@@ -3677,7 +3677,7 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
     <header style={styles.header}>
       <div style={styles.headerInner}>
         <button style={styles.logo} onClick={() => setTela("home")}>
-          <img src={gtIcon} alt="GT" style={{ width:40, height:40, objectFit:"contain", borderRadius:6 }} />
+          <img src={gtIcon} alt="GT" style={{ width:44, height:44, objectFit:"contain", borderRadius:6 }} />
           <div>
             <div style={styles.logoTitle}>{gtNome || "GERENTRACK"}</div>
             <div style={styles.logoSub}>{gtSlogan || "COMPETIÇÃO COM PRECISÃO"}</div>
@@ -22333,16 +22333,16 @@ const styles = {
   main: { flex: 1 },
 
   header: { background: "linear-gradient(90deg, #0D0E12 0%, #141720 100%)", borderBottom: "1px solid #1E2130", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 20px rgba(0,0,0,0.5)" },
-  headerInner: { maxWidth: 1300, margin: "0 auto", padding: "12px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 },
-  logo: { background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 12 },
+  headerInner: { maxWidth: 1200, margin: "0 auto", padding: "14px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 },
+  logo: { background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 14 },
   logoIcon: { fontSize: 36 },
-  logoTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 900, color: "#1976D2", letterSpacing: 3, lineHeight: 1 },
-  logoSub: { fontSize: 11, color: "#666", letterSpacing: 1, marginTop: 2 },
+  logoTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 24, fontWeight: 900, color: "#1976D2", letterSpacing: 3, lineHeight: 1 },
+  logoSub: { fontSize: 11, color: "#666", letterSpacing: 1.5, marginTop: 3 },
 
-  nav: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" },
-  btnNav: { background: "transparent", border: "1px solid #2a2d3a", color: "#ccc", padding: "8px 16px", borderRadius: 6, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", whiteSpace: "nowrap" },
+  nav: { display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" },
+  btnNav: { background: "transparent", border: "1px solid #2a2d3a", color: "#ccc", padding: "10px 20px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", whiteSpace: "nowrap" },
   btnNavActive: { background: "#1a1c22", borderColor: "#1976D2", color: "#1976D2" },
-  btnSair: { background: "transparent", border: "1px solid #3a1a1a", color: "#ff6b6b", padding: "8px 16px", borderRadius: 6, cursor: "pointer", fontSize: 13, fontWeight: 700, fontFamily: "'Barlow', sans-serif" },
+  btnSair: { background: "transparent", border: "1px solid #3a1a1a", color: "#ff6b6b", padding: "10px 20px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow', sans-serif" },
 
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
   pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 24, letterSpacing: 1 },
