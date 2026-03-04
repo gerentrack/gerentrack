@@ -2775,6 +2775,9 @@ function App() {
     setPendenciasRecorde([]);
     setHistoricoRecordes([]);
     setPerfisDisponiveis([]);
+    localStorage.removeItem("gerentrack_admin_senha");
+    localStorage.removeItem("gerentrack_admin_email");
+    localStorage.removeItem("gerentrack_admin_nome");
     registrarAcao(usuarioLogado?.id || "system", usuarioLogado?.nome || "Sistema", "Limpou todos os dados", "Reset completo do sistema", null, { modulo: "sistema" });
   };
 
@@ -2788,13 +2791,18 @@ function App() {
       recordes, pendenciasRecorde, historicoRecordes,
       auditoria, solicitacoesVinculo, notificacoes,
       siteBranding, perfisDisponiveis,
+      adminConfig: {
+        email: localStorage.getItem("gerentrack_admin_email") || "gerentrack@gmail.com",
+        nome: localStorage.getItem("gerentrack_admin_nome") || "Administrador",
+        senha: localStorage.getItem("gerentrack_admin_senha") || "admin123",
+      },
     };
     const json = JSON.stringify(dados, null, 2);
     const blob = new Blob([json], { type: "application/json" });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement("a");
     a.href     = url;
-    a.download = `atletismo-backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.download = `gerentrack-backup-${new Date().toISOString().slice(0,10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Exportou backup", `${eventos.length} eventos, ${atletas.length} atletas, ${recordes.length} tipos recorde`, null, { modulo: "sistema" });
@@ -2838,6 +2846,11 @@ function App() {
         if (dados.notificacoes)            setNotificacoes(dados.notificacoes);
         if (dados.siteBranding)            setSiteBranding(dados.siteBranding);
         if (dados.perfisDisponiveis)       setPerfisDisponiveis(dados.perfisDisponiveis);
+        if (dados.adminConfig) {
+          if (dados.adminConfig.email) localStorage.setItem("gerentrack_admin_email", dados.adminConfig.email);
+          if (dados.adminConfig.nome)  localStorage.setItem("gerentrack_admin_nome", dados.adminConfig.nome);
+          if (dados.adminConfig.senha) localStorage.setItem("gerentrack_admin_senha", dados.adminConfig.senha);
+        }
         setEventoAtualId(null);
         alert("✅ Backup importado com sucesso!");
         registrarAcao(usuarioLogado?.id || "system", usuarioLogado?.nome || "Sistema", "Importou backup", `v${dados.versao} de ${new Date(dados.exportadoEm).toLocaleString("pt-BR")}`, null, { modulo: "sistema" });
@@ -6307,12 +6320,12 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
     };
 
     // ── Admin (caso especial) ──
-    const adminEmail = "gerentrack@gmail.com";
-    const adminSenhaStorage = localStorage.getItem("gerentrack_admin_senha");
-    const adminSenha = adminSenhaStorage || "admin123";
-    const adminIdents = [adminEmail,"admin"];
+    const adminEmail = localStorage.getItem("gerentrack_admin_email") || "gerentrack@gmail.com";
+    const adminNome = localStorage.getItem("gerentrack_admin_nome") || "Administrador";
+    const adminSenha = localStorage.getItem("gerentrack_admin_senha") || "admin123";
+    const adminIdents = [adminEmail.toLowerCase(),"admin"];
     if (adminIdents.includes(identTrimmed) && senha === adminSenha) {
-      login({ tipo: "admin", nome: "Administrador", email: adminEmail });
+      login({ tipo: "admin", nome: adminNome, email: adminEmail });
       return;
     }
 
@@ -7482,7 +7495,10 @@ function TelaConfiguracoes({ usuarioLogado, setTela, logout, atualizarSenha,
     treinador: { data: treinadores, set: setTreinadores },
   };
   const store = stores[usuarioLogado?.tipo];
-  const meuRegistro = store?.data?.find(u => u.id === usuarioLogado?.id) || usuarioLogado;
+  const isAdmin = usuarioLogado?.tipo === "admin";
+  const meuRegistro = isAdmin
+    ? { ...usuarioLogado, senha: localStorage.getItem("gerentrack_admin_senha") || "admin123" }
+    : (store?.data?.find(u => u.id === usuarioLogado?.id) || usuarioLogado);
 
   // ── Editar Dados ───
   const isOrg = usuarioLogado?.tipo === "organizador";
@@ -7502,8 +7518,11 @@ function TelaConfiguracoes({ usuarioLogado, setTela, logout, atualizarSenha,
     if (!formDados.email.trim()) { setErro("E-mail é obrigatório."); return; }
     if (usaCnpj && !formDados.cnpj.trim()) { setErro("CNPJ é obrigatório."); return; }
     if (usaCnpj && formDados.cnpj.trim() && !validarCNPJ(formDados.cnpj)) { setErro("CNPJ inválido."); return; }
-    if (!usaCnpj && formDados.cpf.trim() && !validarCPF(formDados.cpf)) { setErro("CPF inválido."); return; }
-    if (store) {
+    if (!usaCnpj && !isAdmin && formDados.cpf.trim() && !validarCPF(formDados.cpf)) { setErro("CPF inválido."); return; }
+    if (isAdmin) {
+      localStorage.setItem("gerentrack_admin_nome", formDados.nome.trim());
+      localStorage.setItem("gerentrack_admin_email", formDados.email.trim());
+    } else if (store) {
       store.set(arr => arr.map(u => u.id === usuarioLogado.id
         ? { ...u, nome: formDados.nome.trim(), email: formDados.email.trim(), cpf: formDados.cpf.trim(), cnpj: formDados.cnpj.trim(), fone: formDados.fone.trim() }
         : u
