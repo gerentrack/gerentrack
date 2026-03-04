@@ -3124,7 +3124,12 @@ function App() {
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Recusou organizador", org?.nome || id, null, { modulo: "sistema" });
   };
   const aprovarEvento       = (id) => {
-    setEventos((p) => p.map(e => e.id===id ? {...e, statusAprovacao:"aprovado", inscricoesEncerradas:false} : e));
+    const hoje = new Date().toISOString().slice(0, 10);
+    setEventos((p) => p.map(e => {
+      if (e.id !== id) return e;
+      const aindaNaoAbriu = e.dataAberturaInscricoes && hoje < e.dataAberturaInscricoes;
+      return { ...e, statusAprovacao: "aprovado", inscricoesEncerradas: aindaNaoAbriu ? true : false };
+    }));
     const ev = eventos.find(e => e.id === id);
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Aprovou competição", ev?.nome || id, null, { modulo: "sistema" });
   };
@@ -4285,8 +4290,11 @@ function getStatusEvento(ev, resultados) {
   return "ao_vivo"; // hoje e já começou (ou sem hora definida)
 }
 
-function labelStatusEvento(status) {
-  if (status === "futuro") return "🟢 Inscrições Abertas";
+function labelStatusEvento(status, ev) {
+  if (status === "futuro") {
+    if (ev && ev.inscricoesEncerradas) return "📅 Em Breve";
+    return "🟢 Inscrições Abertas";
+  }
   if (status === "hoje_pre") return "🟡 Hoje";
   if (status === "ao_vivo") return "🔴 Ao Vivo";
   return "⚫ Encerrado";
@@ -4358,7 +4366,7 @@ function TelaHome({ setTela, eventos, inscricoes, atletas, resultados, seleciona
                   {/* Status badge overlay */}
                   <div style={{ position: "absolute", top: 10, left: 12 }}>
                     <div style={styles.eventoStatusBadge(status)}>
-                      {labelStatusEvento(status)}
+                      {labelStatusEvento(status, ev)}
                     </div>
                   </div>
                   {/* Admin buttons overlay */}
@@ -5696,7 +5704,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
             {eventoAtual.horaInicio && <> · ⏰ {eventoAtual.horaInicio}h</>}
             &nbsp;·&nbsp; 📍 {_getLocalEventoDisplay(eventoAtual)}
             <span style={{ marginLeft: 10 }}>
-              <span style={styles.eventoStatusBadge(getStatusEvento(eventoAtual, resultados))}>{labelStatusEvento(getStatusEvento(eventoAtual, resultados))}</span>
+              <span style={styles.eventoStatusBadge(getStatusEvento(eventoAtual, resultados))}>{labelStatusEvento(getStatusEvento(eventoAtual, resultados), eventoAtual)}</span>
             </span>
           </div>
           <h1 style={{ ...styles.pageTitle, marginBottom: 4 }}>{eventoAtual.nome}</h1>
