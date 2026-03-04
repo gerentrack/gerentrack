@@ -4362,10 +4362,10 @@ function TelaHome({ setTela, eventos, inscricoes, atletas, resultados, seleciona
           Gerencie competições, inscrições, súmulas e resultados em um só lugar.
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20, marginBottom: 40 }}>
-          <StatCard value={eventos.filter(ev=>!ev.statusAprovacao||ev.statusAprovacao==="aprovado").length} label="Competições" icon="🏟" />
-          <StatCard value={organizadores?.filter(o => o.status === "aprovado").length || 0} label="Organizadores" icon="🏟️" />
-          <StatCard value={equipes?.length || 0} label="Equipes" icon="🏅" />
-          <StatCard value={atletas.length} label="Atletas" icon="🏃" />
+          <StatCard value={eventos.filter(ev=>!ev.statusAprovacao||ev.statusAprovacao==="aprovado").length} label="Competições" />
+          <StatCard value={organizadores?.filter(o => o.status === "aprovado").length || 0} label="Organizadores" />
+          <StatCard value={equipes?.length || 0} label="Equipes" />
+          <StatCard value={atletas.length} label="Atletas" />
         </div>
         <div style={styles.heroBtns}>
           {usuarioLogado?.tipo === "admin" && (
@@ -5802,10 +5802,10 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
       </div>
 
       <div style={styles.statsRow}>
-        <StatCard value={nProvas} label="Provas no Prog." icon="🏅" />
-        <StatCard value={nAtletas} label="Atletas" icon="🏃" />
-        <StatCard value={nInscs} label="Inscrições" icon="✍️" />
-        <StatCard value={nResultados} label="Resultados" icon="🏆" />
+        <StatCard value={nProvas} label="Provas no Prog." />
+        <StatCard value={nAtletas} label="Atletas" />
+        <StatCard value={nInscs} label="Inscrições" />
+        <StatCard value={nResultados} label="Resultados" />
       </div>
 
 
@@ -6448,10 +6448,9 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
   );
 }
 
-function StatCard({ value, label, icon }) {
+function StatCard({ value, label }) {
   return (
     <div style={styles.statCard}>
-      <div style={styles.statIcon}>{icon}</div>
       <div style={styles.statValue}>{value}</div>
       <div style={styles.statLabel}>{label}</div>
     </div>
@@ -21308,11 +21307,11 @@ function TelaAdmin({ equipes, atletas, inscricoes, setTela, eventos, selecionarE
       )}
 
       <div style={styles.statsRow}>
-        <StatCard value={eventos.length}      label="Competições" icon="🏟" />
-        <StatCard value={organizadores.length} label="Organizadores" icon="🏟️" />
-        <StatCard value={equipes.length}  label="Equipes"  icon="👤" />
-        <StatCard value={atletas.length}      label="Atletas"      icon="🏃" />
-        <StatCard value={inscricoes.length}   label="Inscrições"   icon="✍️" />
+        <StatCard value={eventos.length}      label="Competições" />
+        <StatCard value={organizadores.length} label="Organizadores" />
+        <StatCard value={equipes.length}  label="Equipes"  />
+        <StatCard value={atletas.length}      label="Atletas"      />
+        <StatCard value={inscricoes.length}   label="Inscrições"   />
       </div>
 
       {/* ── Solicitações de Recuperação de Senha ───────────── */}
@@ -22383,10 +22382,9 @@ const styles = {
   heroStats: { display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap", marginBottom: 36 },
   heroBtns: { display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" },
 
-  statCard: { background: "#111318", border: "1px solid #1E2130", borderRadius: 12, padding: "20px 28px", textAlign: "center", minWidth: 100 },
-  statIcon: { fontSize: 28, marginBottom: 8, filter: "grayscale(1) brightness(2)" },
-  statValue: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 40, fontWeight: 900, color: "#1976D2", lineHeight: 1 },
-  statLabel: { fontSize: 12, color: "#666", letterSpacing: 1, marginTop: 4 },
+  statCard: { background: "#111318", border: "1px solid #1E2130", borderRadius: 12, padding: "18px 24px", textAlign: "center", minWidth: 100 },
+  statValue: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 900, color: "#1976D2", lineHeight: 1, marginBottom: 6 },
+  statLabel: { fontSize: 13, color: "#888", letterSpacing: 1 },
 
   statsRow: { display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 32 },
 
