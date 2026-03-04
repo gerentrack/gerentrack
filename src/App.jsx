@@ -6258,15 +6258,37 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
         const usarDivisao = temPausa && (manha.length > 0 || tarde.length > 0);
 
         const thStyle = { textAlign:"left", padding:"8px 10px", color:"#888", fontWeight:600 };
+
+        // ── Agrupar linhas com mesmo horário + prova + sexo + fase ──
+        const agruparLinhas = (lista) => {
+          const grupos = [];
+          const map = new Map();
+          lista.forEach(p => {
+            const isComp = p._isComp;
+            const catNome = isComp
+              ? (CATEGORIAS.find(c => (p._parentId || "").includes(`_${c.id}_`) || (p._parentId || "").endsWith(`_${c.id}`))?.nome || "")
+              : (CATEGORIAS.find(c => p.id.includes(`_${c.id}_`) || p.id.endsWith(`_${c.id}`))?.nome || "");
+            const sexoId = isComp ? p._parentId : p.id;
+            const sexoAbrev = (sexoId || "").startsWith("M_") ? "M" : "F";
+            const chave = `${p._horario}||${p.nome}||${sexoAbrev}||${p._fase}||${isComp ? p._parentId?.replace(/^[MF]_/,"") : ""}`;
+            if (map.has(chave)) {
+              map.get(chave).cats.push(catNome);
+            } else {
+              const grupo = { ...p, cats: [catNome], _sexoAbrev: sexoAbrev, _sexoId: sexoId, _chave: chave };
+              map.set(chave, grupo);
+              grupos.push(grupo);
+            }
+          });
+          return grupos;
+        };
+
         const renderRow = (p, idx) => {
           const isComp = p._isComp;
-          const catNome = isComp
-            ? (CATEGORIAS.find(c => (p._parentId || "").includes(`_${c.id}_`) || (p._parentId || "").endsWith(`_${c.id}`))?.nome || "")
-            : (CATEGORIAS.find(c => p.id.includes(`_${c.id}_`) || p.id.endsWith(`_${c.id}`))?.nome || "");
-          const sexoId = isComp ? p._parentId : p.id;
-          const sexoLabel = (sexoId || "").startsWith("M_") ? "Masculino" : "Feminino";
+          const catsDisplay = (p.cats || []).join(", ");
+          const sexoLabel = p._sexoAbrev === "M" ? "Masculino" : "Feminino";
+          const sexoColor = p._sexoAbrev === "M" ? "#88aaff" : "#ff88aa";
           return (
-            <tr key={`${p.id}_${p._entryIdx}_${idx}`} style={{ borderBottom:"1px solid #1a1d2a", background: idx % 2 === 0 ? "transparent" : "#0d0e14" }}>
+            <tr key={`${p._chave}_${idx}`} style={{ borderBottom:"1px solid #1a1d2a", background: idx % 2 === 0 ? "transparent" : "#0d0e14" }}>
               <td style={{ padding:"8px 10px", fontFamily:"monospace", fontWeight:700, color: p._horario ? "#7acc44" : "#555", fontSize:14 }}>
                 {p._horario || "—"}
               </td>
@@ -6275,8 +6297,8 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                 {p.nome}
                 {isComp && p.dia && <span style={{ color:"#88aaff", fontSize:10, marginLeft:6 }}>(Dia {p.dia})</span>}
               </td>
-              <td style={{ padding:"8px 10px", color: (sexoId || "").startsWith("M_") ? "#88aaff" : "#ff88aa", fontSize:12 }}>{sexoLabel}</td>
-              <td style={{ padding:"8px 10px", color:"#aaa", fontSize:12 }}>{catNome}</td>
+              <td style={{ padding:"8px 10px", color: sexoColor, fontSize:12 }}>{sexoLabel}</td>
+              <td style={{ padding:"8px 10px", color:"#aaa", fontSize:12 }}>{catsDisplay}</td>
               <td style={{ padding:"8px 10px", color: p._fase ? faseColor(p._fase) : "#555", fontSize:12, fontWeight: p._fase ? 700 : 400 }}>
                 {p._fase || "—"}
               </td>
@@ -6300,7 +6322,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
             <th style={{ ...thStyle, width:70 }}>Horário</th>
             <th style={thStyle}>Prova</th>
             <th style={{ ...thStyle, width:80 }}>Sexo</th>
-            <th style={thStyle}>Categoria</th>
+            <th style={thStyle}>Categorias</th>
             <th style={thStyle}>Fase</th>
           </tr>
         );
@@ -6316,12 +6338,9 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
         // Helper para gerar HTML de uma linha para impressão
         const printRow = (p, idx) => {
           const isComp = p._isComp;
-          const catNome = isComp
-            ? (CATEGORIAS.find(c => (p._parentId||"").includes(`_${c.id}_`)||(p._parentId||"").endsWith(`_${c.id}`))?.nome||"")
-            : (CATEGORIAS.find(c => p.id.includes(`_${c.id}_`)||p.id.endsWith(`_${c.id}`))?.nome||"");
-          const sexoId = isComp ? p._parentId : p.id;
-          const sexoLabel = (sexoId||"").startsWith("M_") ? "Masculino" : "Feminino";
-          const sexoColor = (sexoId||"").startsWith("M_") ? "#1a56cc" : "#cc1a7a";
+          const catsDisplay = (p.cats || []).join(", ");
+          const sexoLabel = p._sexoAbrev === "M" ? "Masculino" : "Feminino";
+          const sexoColor = p._sexoAbrev === "M" ? "#1a56cc" : "#cc1a7a";
           const fColor = p._fase === "Eliminatória" ? "#cc6600" : p._fase?.includes("Semifinal") ? "#1a56cc" : p._fase?.includes("Final") ? "#1a8a1a" : "#999";
           const provaNome = isComp
             ? `<span style="color:#b88a00;font-size:9px;margin-right:4px">${p._parentNome} ${p.ordem}ª</span>${p.nome}${p.dia ? ` <span style="color:#1a56cc;font-size:9px">(Dia ${p.dia})</span>` : ""}`
@@ -6330,7 +6349,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
             <td style="padding:5px 10px;font-family:monospace;font-weight:700;font-size:12px;color:${p._horario?"#111":"#ccc"}">${p._horario||"—"}</td>
             <td style="padding:5px 10px;font-weight:600;font-size:11px">${provaNome}</td>
             <td style="padding:5px 10px;font-size:10px;color:${sexoColor}">${sexoLabel}</td>
-            <td style="padding:5px 10px;font-size:10px;color:#555">${catNome}</td>
+            <td style="padding:5px 10px;font-size:10px;color:#555">${catsDisplay}</td>
             <td style="padding:5px 10px;font-size:10px;font-weight:700;color:${fColor}">${p._fase||"—"}</td>
           </tr>`;
         };
@@ -6346,23 +6365,23 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                     const dataEvt = new Date(eventoAtual.data + "T12:00:00").toLocaleDateString("pt-BR", { weekday:"long", day:"2-digit", month:"long", year:"numeric" });
                     const logoComp = eventoAtual.logoCompeticao || "";
                     const logoRod = eventoAtual.logoRodape || "";
-                    const thPrint = `<tr><th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;font-size:10px;color:#555;font-weight:700;width:55px">Horário</th><th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;font-size:10px;color:#555;font-weight:700">Prova</th><th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;font-size:10px;color:#555;font-weight:700;width:70px">Sexo</th><th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;font-size:10px;color:#555;font-weight:700">Categoria</th><th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;font-size:10px;color:#555;font-weight:700">Fase</th></tr>`;
+                    const thPrint = `<tr><th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;font-size:10px;color:#555;font-weight:700;width:55px">Horário</th><th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;font-size:10px;color:#555;font-weight:700">Prova</th><th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;font-size:10px;color:#555;font-weight:700;width:70px">Sexo</th><th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;font-size:10px;color:#555;font-weight:700">Categorias</th><th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;font-size:10px;color:#555;font-weight:700">Fase</th></tr>`;
                     const pausaPrint = temPausa ? `<tr><td colspan="5" style="padding:10px;text-align:center;background:#f0f0f0;border-bottom:1px solid #ddd"><strong style="color:#b88a00">⏸️ ${pausaDesc || "Intervalo"}</strong><span style="color:#666;margin-left:8px;font-size:11px">${pausaHorario}${pausaRetorno ? " — " + pausaRetorno : ""}</span></td></tr>` : "";
                     const secLabel = (label) => `<tr><td colspan="5" style="padding:8px 10px 4px;font-weight:800;font-size:12px;color:#b88a00;border-bottom:1px solid #ccc;letter-spacing:1px">${label}</td></tr>`;
 
                     let tableBody = "";
                     if (usarDivisao) {
                       tableBody += secLabel("☀️ MANHÃ");
-                      manha.forEach((p,i) => { tableBody += printRow(p,i); });
+                      agruparLinhas(manha).forEach((p,i) => { tableBody += printRow(p,i); });
                       tableBody += pausaPrint;
                       tableBody += secLabel("🌤️ TARDE");
-                      tarde.forEach((p,i) => { tableBody += printRow(p,i); });
+                      agruparLinhas(tarde).forEach((p,i) => { tableBody += printRow(p,i); });
                       if (semHorarioList.length > 0) {
                         tableBody += secLabel("📋 A DEFINIR");
-                        semHorarioList.forEach((p,i) => { tableBody += printRow(p,i); });
+                        agruparLinhas(semHorarioList).forEach((p,i) => { tableBody += printRow(p,i); });
                       }
                     } else {
-                      linhasOrdenadas.forEach((p,i) => { tableBody += printRow(p,i); });
+                      agruparLinhas(linhasOrdenadas).forEach((p,i) => { tableBody += printRow(p,i); });
                     }
 
                     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Programa Horário — ${eventoAtual.nome}</title>
@@ -6408,16 +6427,16 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                 <tbody>
                   {usarDivisao ? (<>
                     {sectionLabel("☀️ MANHÃ")}
-                    {manha.map((p, i) => renderRow(p, i))}
+                    {agruparLinhas(manha).map((p, i) => renderRow(p, i))}
                     {pausaRow()}
                     {sectionLabel("🌤️ TARDE")}
-                    {tarde.map((p, i) => renderRow(p, i))}
+                    {agruparLinhas(tarde).map((p, i) => renderRow(p, i))}
                     {semHorarioList.length > 0 && (<>
                       {sectionLabel("📋 A DEFINIR")}
-                      {semHorarioList.map((p, i) => renderRow(p, i))}
+                      {agruparLinhas(semHorarioList).map((p, i) => renderRow(p, i))}
                     </>)}
                   </>) : (
-                    linhasOrdenadas.map((p, i) => renderRow(p, i))
+                    agruparLinhas(linhasOrdenadas).map((p, i) => renderRow(p, i))
                   )}
                 </tbody>
               </table>
