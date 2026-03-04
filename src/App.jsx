@@ -4469,14 +4469,6 @@ function TelaHome({ setTela, eventos, inscricoes, atletas, resultados, seleciona
                 <button style={styles.btnPrimary} onClick={() => selecionarEvento(ev.id)}>
                   Acessar Competição →
                 </button>
-                <button style={{ ...styles.btnGhost, fontSize:12, padding:"6px 12px", marginTop:4 }} onClick={() => {
-                  const url = `${window.location.origin}/#/competicao/${ev.id}`;
-                  navigator.clipboard.writeText(url).then(() => alert("✅ Link copiado!")).catch(() => {
-                    prompt("Copie o link:", url);
-                  });
-                }}>
-                  🔗 Copiar link
-                </button>
                 </div>{/* end content area */}
               </div>
             );
