@@ -1,15 +1,15 @@
 import React from "react";
 import { useState, useEffect, useRef, useCallback } from "react";
+import { db, doc, setDoc, onSnapshot } from "./firebase";
 
 
-// ─── CUSTOM HOOK: useLocalStorage ────────────────────────────────────────────
+// ─── CUSTOM HOOK: useLocalStorage + Firestore Sync ───────────────────────────
 function useLocalStorage(key, initialValue) {
   const [storedValue, setStoredValue] = useState(() => {
     try {
       const item = window.localStorage.getItem(key);
       return item ? JSON.parse(item) : initialValue;
     } catch (error) {
-      console.log(error);
       return initialValue;
     }
   });
@@ -17,12 +17,40 @@ function useLocalStorage(key, initialValue) {
   const ref = useRef(storedValue);
   ref.current = storedValue;
 
+  // ── Firestore real-time sync ──
+  useEffect(() => {
+    const docRef = doc(db, "state", key);
+    const unsub = onSnapshot(docRef, (snap) => {
+      if (snap.exists()) {
+        const remoteVal = snap.data().value;
+        ref.current = remoteVal;
+        setStoredValue(remoteVal);
+        try { window.localStorage.setItem(key, JSON.stringify(remoteVal)); } catch(e) {}
+      } else {
+        // Firestore vazio — semeiar com dados locais se existirem
+        const localVal = ref.current;
+        const hasData = Array.isArray(localVal) ? localVal.length > 0
+          : (typeof localVal === "object" && localVal !== null) ? Object.keys(localVal).length > 0
+          : localVal != null && localVal !== initialValue;
+        if (hasData) {
+          setDoc(docRef, { value: localVal }).catch(err => console.error("Firestore seed error:", key, err));
+        }
+      }
+    }, (error) => {
+      console.error("Firestore sync error:", key, error);
+    });
+    return unsub;
+  }, [key]);
+
   const setValue = useCallback((value) => {
     try {
       const valueToStore = value instanceof Function ? value(ref.current) : value;
       ref.current = valueToStore;
       setStoredValue(valueToStore);
       window.localStorage.setItem(key, JSON.stringify(valueToStore));
+      // Sync to Firestore
+      const docRef = doc(db, "state", key);
+      setDoc(docRef, { value: valueToStore }).catch(err => console.error("Firestore write error:", key, err));
     } catch (error) {
       console.log(error);
     }
@@ -2721,6 +2749,29 @@ function App() {
   // ── Multi-Organizador: perfis disponíveis após login ──
   const [perfisDisponiveis, setPerfisDisponiveis] = useLocalStorage("atl_perfis_disponiveis", []);
 
+  // ── Admin Config (synced via Firestore) ──
+  const [adminConfig, setAdminConfig] = useLocalStorage("gt_admin_config", {
+    email: "gerentrack@gmail.com",
+    nome: "Administrador",
+    senha: "admin123"
+  });
+  // Migrar chaves antigas individuais (se existirem)
+  useEffect(() => {
+    const oldE = localStorage.getItem("gerentrack_admin_email");
+    const oldN = localStorage.getItem("gerentrack_admin_nome");
+    const oldS = localStorage.getItem("gerentrack_admin_senha");
+    if (oldE || oldN || oldS) {
+      setAdminConfig(prev => ({
+        email: oldE || prev.email,
+        nome: oldN || prev.nome,
+        senha: oldS || prev.senha,
+      }));
+      localStorage.removeItem("gerentrack_admin_email");
+      localStorage.removeItem("gerentrack_admin_nome");
+      localStorage.removeItem("gerentrack_admin_senha");
+    }
+  }, []);
+
   const login = (dados) => {
     setUsuarioLogado(dados);
     registrarAcao(dados.id, dados.nome, "Login", `${dados.tipo}`, dados.organizadorId || null, { equipeId: dados.equipeId, modulo: "auth" });
@@ -2775,9 +2826,7 @@ function App() {
     setPendenciasRecorde([]);
     setHistoricoRecordes([]);
     setPerfisDisponiveis([]);
-    localStorage.removeItem("gerentrack_admin_senha");
-    localStorage.removeItem("gerentrack_admin_email");
-    localStorage.removeItem("gerentrack_admin_nome");
+    setAdminConfig({ email: "gerentrack@gmail.com", nome: "Administrador", senha: "admin123" });
     registrarAcao(usuarioLogado?.id || "system", usuarioLogado?.nome || "Sistema", "Limpou todos os dados", "Reset completo do sistema", null, { modulo: "sistema" });
   };
 
@@ -2791,11 +2840,7 @@ function App() {
       recordes, pendenciasRecorde, historicoRecordes,
       auditoria, solicitacoesVinculo, notificacoes,
       siteBranding, perfisDisponiveis,
-      adminConfig: {
-        email: localStorage.getItem("gerentrack_admin_email") || "gerentrack@gmail.com",
-        nome: localStorage.getItem("gerentrack_admin_nome") || "Administrador",
-        senha: localStorage.getItem("gerentrack_admin_senha") || "admin123",
-      },
+      adminConfig,
     };
     const json = JSON.stringify(dados, null, 2);
     const blob = new Blob([json], { type: "application/json" });
@@ -2847,9 +2892,7 @@ function App() {
         if (dados.siteBranding)            setSiteBranding(dados.siteBranding);
         if (dados.perfisDisponiveis)       setPerfisDisponiveis(dados.perfisDisponiveis);
         if (dados.adminConfig) {
-          if (dados.adminConfig.email) localStorage.setItem("gerentrack_admin_email", dados.adminConfig.email);
-          if (dados.adminConfig.nome)  localStorage.setItem("gerentrack_admin_nome", dados.adminConfig.nome);
-          if (dados.adminConfig.senha) localStorage.setItem("gerentrack_admin_senha", dados.adminConfig.senha);
+          setAdminConfig(dados.adminConfig);
         }
         setEventoAtualId(null);
         alert("✅ Backup importado com sucesso!");
@@ -2959,9 +3002,9 @@ function App() {
   const resolverSolicitacaoRecuperacao = (id) =>
     setSolicitacoesRecuperacao(p => p.map(s => s.id === id ? {...s, status:"resolvido"} : s));
   const atualizarSenha = (tipo, userId, novaSenha, fraseSeguranca) => {
-    // Admin: salva senha no localStorage
+    // Admin: salva no adminConfig (Firestore-synced)
     if (tipo === "admin") {
-      localStorage.setItem("gerentrack_admin_senha", novaSenha);
+      setAdminConfig(prev => ({ ...prev, senha: novaSenha }));
       setUsuarioLogado(u => u ? {...u, senhaTemporaria: false} : u);
       return;
     }
@@ -3470,6 +3513,7 @@ function App() {
     recordes, setRecordes,
     pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes,
     siteBranding, setSiteBranding, gtIcon, gtLogo, gtNome, gtSlogan,
+    adminConfig, setAdminConfig,
   };
 
   
@@ -6320,12 +6364,9 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
     };
 
     // ── Admin (caso especial) ──
-    const adminEmail = localStorage.getItem("gerentrack_admin_email") || "gerentrack@gmail.com";
-    const adminNome = localStorage.getItem("gerentrack_admin_nome") || "Administrador";
-    const adminSenha = localStorage.getItem("gerentrack_admin_senha") || "admin123";
-    const adminIdents = [adminEmail.toLowerCase(),"admin"];
-    if (adminIdents.includes(identTrimmed) && senha === adminSenha) {
-      login({ tipo: "admin", nome: adminNome, email: adminEmail });
+    const adminIdents = [adminConfig.email.toLowerCase(), "admin"];
+    if (adminIdents.includes(identTrimmed) && senha === adminConfig.senha) {
+      login({ tipo: "admin", nome: adminConfig.nome, email: adminConfig.email });
       return;
     }
 
@@ -7480,7 +7521,7 @@ function TelaTrocarSenha({ usuarioLogado, setTela, atualizarSenha, equipes, orga
 // ─── CONFIGURAÇÕES DO USUÁRIO ──────────────────────────────────────────────────
 function TelaConfiguracoes({ usuarioLogado, setUsuarioLogado, setTela, logout, atualizarSenha,
   equipes, setEquipes, organizadores, setOrganizadores, atletasUsuarios, setAtletasUsuarios,
-  funcionarios, setFuncionarios, treinadores, setTreinadores, registrarAcao }) {
+  funcionarios, setFuncionarios, treinadores, setTreinadores, registrarAcao, adminConfig, setAdminConfig }) {
 
   const [aba, setAba] = useState("dados"); // dados | senha | conta
   const [feedback, setFeedback] = useState("");
@@ -7497,7 +7538,7 @@ function TelaConfiguracoes({ usuarioLogado, setUsuarioLogado, setTela, logout, a
   const store = stores[usuarioLogado?.tipo];
   const isAdmin = usuarioLogado?.tipo === "admin";
   const meuRegistro = isAdmin
-    ? { ...usuarioLogado, senha: localStorage.getItem("gerentrack_admin_senha") || "admin123" }
+    ? { ...usuarioLogado, senha: adminConfig?.senha || "admin123" }
     : (store?.data?.find(u => u.id === usuarioLogado?.id) || usuarioLogado);
 
   // ── Editar Dados ───
@@ -7520,8 +7561,7 @@ function TelaConfiguracoes({ usuarioLogado, setUsuarioLogado, setTela, logout, a
     if (usaCnpj && formDados.cnpj.trim() && !validarCNPJ(formDados.cnpj)) { setErro("CNPJ inválido."); return; }
     if (!usaCnpj && !isAdmin && formDados.cpf.trim() && !validarCPF(formDados.cpf)) { setErro("CPF inválido."); return; }
     if (isAdmin) {
-      localStorage.setItem("gerentrack_admin_nome", formDados.nome.trim());
-      localStorage.setItem("gerentrack_admin_email", formDados.email.trim());
+      setAdminConfig(prev => ({ ...prev, nome: formDados.nome.trim(), email: formDados.email.trim() }));
       setUsuarioLogado(u => u ? { ...u, nome: formDados.nome.trim(), email: formDados.email.trim() } : u);
     } else if (store) {
       store.set(arr => arr.map(u => u.id === usuarioLogado.id
