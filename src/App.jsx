@@ -3672,12 +3672,12 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
           </div>
         </button>
         <nav style={styles.nav}>
-          <NavBtn onClick={() => setTela("home")} icon="🗓" label="Competições" />
+          <NavBtn onClick={() => setTela("home")} label="Competições" />
           {(() => {
             const pendCount = usuarioLogado?.tipo === "admin" ? (pendenciasRecorde || []).filter(p => p.status === "pendente").length : 0;
             return (
               <div style={{ position:"relative", display:"inline-block" }}>
-                <NavBtn onClick={() => setTela("recordes")} icon="🏆" label="Recordes" />
+                <NavBtn onClick={() => setTela("recordes")} label="Recordes" />
                 {pendCount > 0 && (
                   <span style={{ position:"absolute", top:-4, right:-4, background:"#ff4444", color:"#fff", fontSize:9,
                     fontWeight:800, borderRadius:10, padding:"1px 5px", minWidth:16, textAlign:"center" }}>{pendCount}</span>
@@ -3688,12 +3688,12 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
           {/* Súmulas e Resultados agora estão dentro de cada competição */}
           {usuarioLogado ? (
             <>
-              {usuarioLogado.tipo === "equipe"       && <NavBtn onClick={() => setTela("painel")}              icon="🎽" label="Painel" active />}
-              {usuarioLogado.tipo === "treinador"    && <NavBtn onClick={() => setTela("painel")}              icon="🎽" label="Painel" active />}
-              {usuarioLogado.tipo === "organizador" && <NavBtn onClick={() => setTela("painel-organizador")}  icon="🏟️" label="Painel" active />}
-              {usuarioLogado.tipo === "funcionario"  && <NavBtn onClick={() => setTela("painel-organizador")}  icon="👥" label="Painel" active />}
-              {usuarioLogado.tipo === "atleta"      && <NavBtn onClick={() => setTela("painel-atleta")}       icon="🏃" label="Meu Painel" active />}
-              {usuarioLogado.tipo === "admin"       && <NavBtn onClick={() => setTela("admin")}               icon="⚙️" label="Admin" />}
+              {usuarioLogado.tipo === "equipe"       && <NavBtn onClick={() => setTela("painel")}              label="Painel" active />}
+              {usuarioLogado.tipo === "treinador"    && <NavBtn onClick={() => setTela("painel")}              label="Painel" active />}
+              {usuarioLogado.tipo === "organizador" && <NavBtn onClick={() => setTela("painel-organizador")}  label="Painel" active />}
+              {usuarioLogado.tipo === "funcionario"  && <NavBtn onClick={() => setTela("painel-organizador")}  label="Painel" active />}
+              {usuarioLogado.tipo === "atleta"      && <NavBtn onClick={() => setTela("painel-atleta")}       label="Meu Painel" active />}
+              {usuarioLogado.tipo === "admin"       && <NavBtn onClick={() => setTela("admin")}               label="Admin" />}
 
               {/* Botão Trocar Perfil — quando tem múltiplos perfis */}
               {usuarioLogado._temOutrosPerfis && perfisDisponiveis?.length > 1 && (
@@ -3730,7 +3730,7 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
             </>
           ) : (
             <>
-              <button style={{ ...styles.btnNav, background: "#1976D2", color: "#fff" }} onClick={() => setTela("login")}>
+              <button style={{ ...styles.btnNav, background: "#1976D2", color: "#fff", fontWeight: 700 }} onClick={() => setTela("login")}>
                 Entrar
               </button>
             </>
@@ -3769,10 +3769,10 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
   );
 }
 
-function NavBtn({ onClick, icon, label, active }) {
+function NavBtn({ onClick, label, active }) {
   return (
-    <button onClick={onClick} style={{ ...styles.btnNav, ...(active ? styles.btnNavActive : {}) }}>
-      {icon} {label}
+    <button onClick={onClick} style={{ ...styles.btnNav, fontWeight: 700, ...(active ? styles.btnNavActive : {}) }}>
+      {label}
     </button>
   );
 }
@@ -4351,7 +4351,7 @@ function TelaHome({ setTela, eventos, inscricoes, atletas, resultados, seleciona
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20, marginBottom: 40 }}>
           <StatCard value={eventos.filter(ev=>!ev.statusAprovacao||ev.statusAprovacao==="aprovado").length} label="Competições" icon="🏟" />
-          <StatCard value={organizadores?.filter(o => o.status === "aprovado").length || 0} label="Organizadores" icon="👔" />
+          <StatCard value={organizadores?.filter(o => o.status === "aprovado").length || 0} label="Organizadores" icon="🏟️" />
           <StatCard value={equipes?.length || 0} label="Equipes" icon="🏅" />
           <StatCard value={atletas.length} label="Atletas" icon="🏃" />
         </div>
@@ -4485,10 +4485,10 @@ function TelaHome({ setTela, eventos, inscricoes, atletas, resultados, seleciona
       )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24, marginTop: 48 }}>
-        <InfoCard icon="🏅" title="Provas de Pista"
+        <InfoCard icon="🏃" title="Provas de Pista"
           items={["Corridas Rasas", "Corridas c/ Barreiras", "Corrida c/ Obstáculos", "Marcha Atlética", "Revezamentos"]} />
         
-        <InfoCard icon="🎯" title="Provas de Campo"
+        <InfoCard icon="🏅" title="Provas de Campo"
           items={["Salto em Distância", "Salto em Altura", "Salto Triplo", "Salto com Vara",
                   "Arremesso do Peso", "Lançamento do Disco", "Lançamento do Dardo",
                   "Lançamento do Martelo"]} />
@@ -5796,7 +5796,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
       </div>
 
       <div style={styles.statsRow}>
-        <StatCard value={nProvas} label="Provas no Prog." icon="🎯" />
+        <StatCard value={nProvas} label="Provas no Prog." icon="🏅" />
         <StatCard value={nAtletas} label="Atletas" icon="🏃" />
         <StatCard value={nInscs} label="Inscrições" icon="✍️" />
         <StatCard value={nResultados} label="Resultados" icon="🏆" />
@@ -7093,11 +7093,11 @@ function TelaPainel({ usuarioLogado, setTela, atletas, inscricoes, eventoAtual, 
       </div>
 
       <div style={styles.statsRow}>
-        <StatCard value={meusAtletas.length} label="Meus Atletas" icon="🏃" />
-        <StatCard value={minhasInscricoes.length} label="Inscrições" icon="✍️" />
-        <StatCard value={meusTreinadores.length} label="Treinadores" icon="👨‍🏫" />
-        <StatCard value={meusAtletas.filter((a) => a.sexo === "M").length} label="Masculino" icon="🏃" />
-        <StatCard value={meusAtletas.filter((a) => a.sexo === "F").length} label="Feminino" icon="🏃‍♀️" />
+        <StatCard value={meusAtletas.length} label="Meus Atletas" />
+        <StatCard value={minhasInscricoes.length} label="Inscrições" />
+        <StatCard value={meusTreinadores.length} label="Treinadores" />
+        <StatCard value={meusAtletas.filter((a) => a.sexo === "M").length} label="Masculino" />
+        <StatCard value={meusAtletas.filter((a) => a.sexo === "F").length} label="Feminino" />
       </div>
 
       {eventoAtual && (
@@ -8307,10 +8307,10 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
       )}
 
       <div style={styles.statsRow}>
-        <StatCard value={meusEventos.length}  label="Competições" icon="🏟️" />
-        <StatCard value={meusEventos.filter(e=>!e.inscricoesEncerradas).length} label="Com Inscrições Abertas" icon="✅" />
-        <StatCard value={inscricoes.filter(i=>meusEventos.some(e=>e.id===i.eventoId)).length} label="Total Inscrições" icon="✍️" />
-        {(!isFuncionario || temPerm("funcionarios_ver")) && <StatCard value={funcionarios?.filter(f=>f.organizadorId===orgId).length||0} label="Funcionários" icon="👥" />}
+        <StatCard value={meusEventos.length}  label="Competições" />
+        <StatCard value={meusEventos.filter(e=>!e.inscricoesEncerradas).length} label="Com Inscrições Abertas" />
+        <StatCard value={inscricoes.filter(i=>meusEventos.some(e=>e.id===i.eventoId)).length} label="Total Inscrições" />
+        {(!isFuncionario || temPerm("funcionarios_ver")) && <StatCard value={funcionarios?.filter(f=>f.organizadorId===orgId).length||0} label="Funcionários" />}
       </div>
 
       {isFuncionario && (usuarioLogado?.permissoes||[]).length === 0 && (
@@ -22322,7 +22322,7 @@ const styles = {
   nav: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" },
   btnNav: { background: "transparent", border: "1px solid #2a2d3a", color: "#ccc", padding: "8px 16px", borderRadius: 6, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", whiteSpace: "nowrap" },
   btnNavActive: { background: "#1a1c22", borderColor: "#1976D2", color: "#1976D2" },
-  btnSair: { background: "transparent", border: "1px solid #3a1a1a", color: "#ff6b6b", padding: "8px 16px", borderRadius: 6, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
+  btnSair: { background: "transparent", border: "1px solid #3a1a1a", color: "#ff6b6b", padding: "8px 16px", borderRadius: 6, cursor: "pointer", fontSize: 13, fontWeight: 700, fontFamily: "'Barlow', sans-serif" },
 
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
   pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 24, letterSpacing: 1 },
