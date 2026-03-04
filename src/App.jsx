@@ -74,6 +74,32 @@ function useLocalStorage(key, initialValue) {
   return [storedValue, setValue];
 }
 
+// ─── HOOK: useLocalOnly (localStorage only, NO Firestore sync) ───────────────
+// Usado para dados individuais por navegador (sessão do usuário, evento selecionado)
+function useLocalOnly(key, initialValue) {
+  const [storedValue, setStoredValue] = useState(() => {
+    try {
+      const item = window.localStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    } catch (error) {
+      return initialValue;
+    }
+  });
+  const ref = useRef(storedValue);
+  ref.current = storedValue;
+  const setValue = useCallback((value) => {
+    try {
+      const valueToStore = value instanceof Function ? value(ref.current) : value;
+      ref.current = valueToStore;
+      setStoredValue(valueToStore);
+      window.localStorage.setItem(key, JSON.stringify(valueToStore));
+    } catch (error) {
+      console.log(error);
+    }
+  }, [key]);
+  return [storedValue, setValue];
+}
+
 // Hook para escutar mudanças no localStorage de outras abas
 function useStorageSync(key, setter) {
   useEffect(() => {
@@ -2719,7 +2745,7 @@ function nomeProvaHtml(nome) {
 // ─── APP PRINCIPAL ─────────────────────────────────────────────────────────────
 function App() {
   const [tela, setTela] = useState("home");
-  const [usuarioLogado, setUsuarioLogado] = useLocalStorage("atl_usuario", null);
+  const [usuarioLogado, setUsuarioLogado] = useLocalOnly("atl_usuario", null);
   const [equipes,   setEquipes]   = useLocalStorage("atl_equipes", []);
   const [auditoria, setAuditoria] = useLocalStorage("atl_auditoria", []);
   const [organizadores, setOrganizadores] = useLocalStorage("atl_organizadores", []);
@@ -2738,7 +2764,7 @@ function App() {
   const [recordes, setRecordes] = useLocalStorage("atl_recordes", []);
   const [pendenciasRecorde, setPendenciasRecorde] = useLocalStorage("atl_pendencias_recorde", []);
   const [historicoRecordes, setHistoricoRecordes] = useLocalStorage("atl_historico_recordes", []);
-  const [eventoAtualId, setEventoAtualId] = useLocalStorage("atl_eventoAtualId", null);
+  const [eventoAtualId, setEventoAtualId] = useLocalOnly("atl_eventoAtualId", null);
 
   // Inscrições e resultados vinculados ao eventoId
   const [inscricoes, setInscricoes] = useLocalStorage("atl_inscricoes", []);   // cada item tem { ...dados, eventoId }
@@ -2762,7 +2788,7 @@ function App() {
   const eventoAtual = eventos.find((e) => e.id === eventoAtualId) || null;
 
   // ── Multi-Organizador: perfis disponíveis após login ──
-  const [perfisDisponiveis, setPerfisDisponiveis] = useLocalStorage("atl_perfis_disponiveis", []);
+  const [perfisDisponiveis, setPerfisDisponiveis] = useLocalOnly("atl_perfis_disponiveis", []);
 
   // ── Admin Config (synced via Firestore) ──
   const [adminConfig, setAdminConfig] = useLocalStorage("gt_admin_config", {
