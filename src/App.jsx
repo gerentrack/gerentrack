@@ -3710,8 +3710,12 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
             📅 {new Date(eventoAtual.data + "T12:00:00").toLocaleDateString("pt-BR")}
             &nbsp;·&nbsp;📍 {_getLocalEventoDisplay(eventoAtual)}
           </span>
-          <span style={styles.statusDotInline(eventoAtual.inscricoesEncerradas ? "#ff6b6b" : "#7acc44")}>
-            {eventoAtual.inscricoesEncerradas ? "Inscrições encerradas" : "Inscrições abertas"}
+          <span style={styles.statusDotInline(eventoAtual.inscricoesEncerradas ? (eventoAtual.dataAberturaInscricoes && new Date().toISOString().slice(0,10) < eventoAtual.dataAberturaInscricoes ? "#1976D2" : "#ff6b6b") : "#7acc44")}>
+            {eventoAtual.inscricoesEncerradas
+              ? (eventoAtual.dataAberturaInscricoes && new Date().toISOString().slice(0,10) < eventoAtual.dataAberturaInscricoes
+                ? `📅 Em breve — abre em ${new Date(eventoAtual.dataAberturaInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}`
+                : "Inscrições encerradas")
+              : "Inscrições abertas"}
           </span>
           {eventoAtual.dataEncerramentoInscricoes && !eventoAtual.inscricoesEncerradas && (
             <span style={{ color:"#888", fontSize:12 }}>
@@ -6108,7 +6112,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
           <div style={{ color:"#1976D2", fontWeight:700, fontSize:14, marginBottom:12 }}>📝 Informações</div>
           <div
             style={{ color:"#ddd", fontFamily:"'Inter', sans-serif", fontSize:14, lineHeight:1.7,
-              wordBreak:"break-word" }}
+              wordBreak:"break-word", whiteSpace:"pre-wrap" }}
             dangerouslySetInnerHTML={{ __html: eventoAtual.descricao }}
           />
         </div>
