@@ -6473,7 +6473,7 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
           </button>
         </div>
 
-        <div style={styles.formHint}><small>Admin: admin@atletismo.com / admin123</small></div>
+
       </div>
     </div>
   );
