@@ -4485,15 +4485,15 @@ function TelaHome({ setTela, eventos, inscricoes, atletas, resultados, seleciona
       )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24, marginTop: 48 }}>
-        <InfoCard icon="🏃" title="Provas de Pista"
+        <InfoCard title="Provas de Pista"
           items={["Corridas Rasas", "Corridas c/ Barreiras", "Corrida c/ Obstáculos", "Marcha Atlética", "Revezamentos"]} />
         
-        <InfoCard icon="🏅" title="Provas de Campo"
+        <InfoCard title="Provas de Campo"
           items={["Salto em Distância", "Salto em Altura", "Salto Triplo", "Salto com Vara",
                   "Arremesso do Peso", "Lançamento do Disco", "Lançamento do Dardo",
                   "Lançamento do Martelo"]} />
         
-        <InfoCard icon="🏆" title="Provas Combinadas"
+        <InfoCard title="Provas Combinadas"
           items={[
             "Decatlo (10 provas)",
             "Heptatlo (7 provas)", 
@@ -6421,7 +6421,7 @@ function StatCard({ value, label, icon }) {
 function InfoCard({ icon, title, items }) {
   return (
     <div style={styles.infoCard}>
-      <div style={styles.infoCardTitle}>{icon} {title}</div>
+      <div style={styles.infoCardTitle}>{icon ? `${icon} ` : ""}{title}</div>
       <ul style={styles.infoList}>
         {items.map((item, i) => (
           <li key={i} style={styles.infoItem}>
