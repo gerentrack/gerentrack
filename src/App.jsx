@@ -2946,6 +2946,12 @@ function App() {
   const resolverSolicitacaoRecuperacao = (id) =>
     setSolicitacoesRecuperacao(p => p.map(s => s.id === id ? {...s, status:"resolvido"} : s));
   const atualizarSenha = (tipo, userId, novaSenha, fraseSeguranca) => {
+    // Admin: salva senha no localStorage
+    if (tipo === "admin") {
+      localStorage.setItem("gerentrack_admin_senha", novaSenha);
+      setUsuarioLogado(u => u ? {...u, senhaTemporaria: false} : u);
+      return;
+    }
     // Primeiro, atualiza o registro específico
     const upd = arr => arr.map(u => u.id === userId ? {
       ...u, senha: novaSenha, senhaTemporaria: false,
@@ -6301,9 +6307,12 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
     };
 
     // ── Admin (caso especial) ──
-    const adminIdents = ["admin@atletismo.com","admin"];
-    if (adminIdents.includes(identTrimmed) && senha === "admin123") {
-      login({ tipo: "admin", nome: "Administrador", email: "admin@atletismo.com" });
+    const adminEmail = "gerentrack@gmail.com";
+    const adminSenhaStorage = localStorage.getItem("gerentrack_admin_senha");
+    const adminSenha = adminSenhaStorage || "admin123";
+    const adminIdents = [adminEmail,"admin"];
+    if (adminIdents.includes(identTrimmed) && senha === adminSenha) {
+      login({ tipo: "admin", nome: "Administrador", email: adminEmail });
       return;
     }
 
