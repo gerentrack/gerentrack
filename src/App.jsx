@@ -4,6 +4,21 @@ import { db, doc, setDoc, onSnapshot } from "./firebase";
 
 
 // ─── CUSTOM HOOK: useLocalStorage + Firestore Sync ───────────────────────────
+// Sanitize: Firestore rejects undefined values
+function sanitizeForFirestore(val) {
+  if (val === undefined) return null;
+  if (val === null || typeof val !== "object") return val;
+  if (Array.isArray(val)) return val.map(sanitizeForFirestore);
+  const out = {};
+  for (const k in val) {
+    if (Object.prototype.hasOwnProperty.call(val, k)) {
+      const v = val[k];
+      out[k] = v === undefined ? null : (typeof v === "object" && v !== null ? sanitizeForFirestore(v) : v);
+    }
+  }
+  return out;
+}
+
 function useLocalStorage(key, initialValue) {
   const [storedValue, setStoredValue] = useState(() => {
     try {
@@ -33,7 +48,7 @@ function useLocalStorage(key, initialValue) {
           : (typeof localVal === "object" && localVal !== null) ? Object.keys(localVal).length > 0
           : localVal != null && localVal !== initialValue;
         if (hasData) {
-          setDoc(docRef, { value: localVal }).catch(err => console.error("Firestore seed error:", key, err));
+          setDoc(docRef, { value: sanitizeForFirestore(localVal) }).catch(err => console.error("Firestore seed error:", key, err));
         }
       }
     }, (error) => {
@@ -50,7 +65,7 @@ function useLocalStorage(key, initialValue) {
       window.localStorage.setItem(key, JSON.stringify(valueToStore));
       // Sync to Firestore
       const docRef = doc(db, "state", key);
-      setDoc(docRef, { value: valueToStore }).catch(err => console.error("Firestore write error:", key, err));
+      setDoc(docRef, { value: sanitizeForFirestore(valueToStore) }).catch(err => console.error("Firestore write error:", key, err));
     } catch (error) {
       console.log(error);
     }
@@ -7655,8 +7670,8 @@ function TelaConfiguracoes({ usuarioLogado, setUsuarioLogado, setTela, logout, a
       <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
         <button style={tabStyle("dados")} onClick={() => { setAba("dados"); setErro(""); }}>📝 Dados Pessoais</button>
         <button style={tabStyle("senha")} onClick={() => { setAba("senha"); setErro(""); }}>🔒 Alterar Senha</button>
-        <button style={tabStyle("seguranca")} onClick={() => { setAba("seguranca"); setErro(""); }}>🛡️ Frase de Segurança</button>
-        <button style={tabStyle("conta")} onClick={() => { setAba("conta"); setErro(""); }}>ℹ️ Minha Conta</button>
+        {!isAdmin && <button style={tabStyle("seguranca")} onClick={() => { setAba("seguranca"); setErro(""); }}>🛡️ Frase de Segurança</button>}
+        {!isAdmin && <button style={tabStyle("conta")} onClick={() => { setAba("conta"); setErro(""); }}>ℹ️ Minha Conta</button>}
       </div>
 
       {/* ── ABA: Dados Pessoais ─── */}
@@ -7665,11 +7680,11 @@ function TelaConfiguracoes({ usuarioLogado, setUsuarioLogado, setTela, logout, a
           <h3 style={{ color: "#fff", marginBottom: 16, fontSize: 16 }}>Editar Dados Pessoais</h3>
           <FormField label="Nome *" value={formDados.nome} onChange={v => setFormDados({...formDados, nome: v})} placeholder="Seu nome completo" />
           <FormField label="E-mail *" value={formDados.email} onChange={v => setFormDados({...formDados, email: v})} type="email" placeholder="seu@email.com" />
-          {usaCnpj
+          {!isAdmin && (usaCnpj
             ? <FormField label="CNPJ *" value={formDados.cnpj} onChange={v => setFormDados({...formDados, cnpj: v})} placeholder="00.000.000/0001-00" />
             : <FormField label="CPF" value={formDados.cpf} onChange={v => setFormDados({...formDados, cpf: v})} placeholder="000.000.000-00" />
-          }
-          <FormField label="Telefone" value={formDados.fone} onChange={v => setFormDados({...formDados, fone: v})} placeholder="(00) 00000-0000" />
+          )}
+          {!isAdmin && <FormField label="Telefone" value={formDados.fone} onChange={v => setFormDados({...formDados, fone: v})} placeholder="(00) 00000-0000" />}
           <button style={{ ...styles.btnPrimary, marginTop: 12 }} onClick={salvarDados}>💾 Salvar Dados</button>
         </div>
       )}
