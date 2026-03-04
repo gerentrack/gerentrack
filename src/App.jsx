@@ -2742,40 +2742,6 @@ function nomeProvaHtml(nome) {
 function App() {
   const [tela, _setTela] = useState("home");
 
-  // ── Hash-based routing ──
-  const telaToHash = (t, evtId) => {
-    if (t === "evento-detalhe" && evtId) return `#/competicao/${evtId}`;
-    if (t === "recordes") return "#/recordes";
-    if (t === "login") return "#/entrar";
-    if (t === "home") return "#/";
-    return "";
-  };
-
-  const setTela = useCallback((novaTela) => {
-    _setTela(novaTela);
-    const hash = telaToHash(novaTela, eventoAtualId);
-    if (hash) {
-      window.history.replaceState(null, "", hash);
-    }
-  }, [eventoAtualId]);
-
-  // Ler hash na inicialização
-  useEffect(() => {
-    const hash = window.location.hash;
-    if (!hash) return;
-    const match = hash.match(/^#\/competicao\/(.+)$/);
-    if (match) {
-      const evtId = match[1];
-      const existe = eventos.find(e => e.id === evtId);
-      if (existe) {
-        setEventoAtualId(evtId);
-        _setTela("evento-detalhe");
-      }
-      return;
-    }
-    if (hash === "#/recordes") { _setTela("recordes"); return; }
-    if (hash === "#/entrar") { _setTela("login"); return; }
-  }, [eventos.length]);
   const [usuarioLogado, setUsuarioLogado] = useLocalOnly("atl_usuario", null);
   const [equipes,   setEquipes]   = useLocalStorage("atl_equipes", []);
   const [auditoria, setAuditoria] = useLocalStorage("atl_auditoria", []);
@@ -2843,6 +2809,39 @@ function App() {
       localStorage.removeItem("gerentrack_admin_senha");
     }
   }, []);
+
+  // ── Hash-based routing ──
+  const eventoAtualIdRef = useRef(eventoAtualId);
+  eventoAtualIdRef.current = eventoAtualId;
+
+  const setTela = useCallback((novaTela) => {
+    _setTela(novaTela);
+    const evtId = eventoAtualIdRef.current;
+    let hash = "";
+    if (novaTela === "evento-detalhe" && evtId) hash = `#/competicao/${evtId}`;
+    else if (novaTela === "recordes") hash = "#/recordes";
+    else if (novaTela === "login") hash = "#/entrar";
+    else if (novaTela === "home") hash = "#/";
+    if (hash) window.history.replaceState(null, "", hash);
+  }, []);
+
+  // Ler hash na inicialização
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash) return;
+    const match = hash.match(/^#\/competicao\/(.+)$/);
+    if (match) {
+      const evtId = match[1];
+      const existe = eventos.find(e => e.id === evtId);
+      if (existe) {
+        setEventoAtualId(evtId);
+        _setTela("evento-detalhe");
+      }
+      return;
+    }
+    if (hash === "#/recordes") { _setTela("recordes"); return; }
+    if (hash === "#/entrar") { _setTela("login"); return; }
+  }, [eventos.length]);
 
   const login = (dados) => {
     setUsuarioLogado(dados);
