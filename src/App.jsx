@@ -22335,7 +22335,7 @@ const styles = {
   heroBtns: { display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" },
 
   statCard: { background: "#111318", border: "1px solid #1E2130", borderRadius: 12, padding: "20px 28px", textAlign: "center", minWidth: 100 },
-  statIcon: { fontSize: 28, marginBottom: 8 },
+  statIcon: { fontSize: 28, marginBottom: 8, filter: "grayscale(1) brightness(2)" },
   statValue: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 40, fontWeight: 900, color: "#1976D2", lineHeight: 1 },
   statLabel: { fontSize: 12, color: "#666", letterSpacing: 1, marginTop: 4 },
 
