@@ -5890,15 +5890,16 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
         /* Visão somente-leitura para não-admins */
         <div style={styles.statusBar}>
           <div style={styles.statusBarItem}>
-            <span style={styles.statusDot(eventoAtual.inscricoesEncerradas ? "#ff6b6b" : "#7acc44")} />
+            <span style={styles.statusDot(eventoAtual.inscricoesEncerradas ? (eventoAtual.dataAberturaInscricoes && new Date().toISOString().slice(0,10) < eventoAtual.dataAberturaInscricoes ? "#1976D2" : "#ff6b6b") : "#7acc44")} />
             <span style={{ color: "#aaa", fontSize: 13 }}>
-              {eventoAtual.inscricoesEncerradas ? "Inscrições encerradas" : "Inscrições abertas"}
-              {eventoAtual.dataEncerramentoInscricoes && !eventoAtual.inscricoesEncerradas && (
-                <span style={{ color:"#666" }}> — até {new Date(eventoAtual.dataEncerramentoInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}</span>
-              )}
-              {eventoAtual.dataAberturaInscricoes && eventoAtual.inscricoesEncerradas && new Date().toISOString().slice(0,10) < eventoAtual.dataAberturaInscricoes && (
-                <span style={{ color:"#1976D2" }}> — abre em {new Date(eventoAtual.dataAberturaInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}</span>
-              )}
+              {eventoAtual.inscricoesEncerradas
+                ? (eventoAtual.dataAberturaInscricoes && new Date().toISOString().slice(0,10) < eventoAtual.dataAberturaInscricoes
+                  ? <>Inscrições em breve — <span style={{ color:"#1976D2" }}>abre em {new Date(eventoAtual.dataAberturaInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}</span></>
+                  : "Inscrições encerradas")
+                : <>Inscrições abertas{eventoAtual.dataEncerramentoInscricoes && (
+                    <span style={{ color:"#666" }}> — até {new Date(eventoAtual.dataEncerramentoInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}</span>
+                  )}</>
+              }
             </span>
           </div>
           <div style={styles.statusBarItem}>
@@ -8377,11 +8378,20 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
                       {ev.statusAprovacao === "recusado" && (
                         <span style={{ color:"#ff6b6b", fontSize:11, fontWeight:700, display:"block" }}>✗ Recusado pelo admin</span>
                       )}
-                      {(!ev.statusAprovacao || ev.statusAprovacao === "aprovado") && (
-                        <span style={{ color: ev.inscricoesEncerradas?"#ff6b6b":"#7acc44", fontSize:12, fontWeight:700 }}>
-                          {ev.inscricoesEncerradas ? "Encerradas" : "Abertas"}
-                        </span>
-                      )}
+                      {(!ev.statusAprovacao || ev.statusAprovacao === "aprovado") && (() => {
+                        const hoje = new Date().toISOString().slice(0,10);
+                        const aindaNaoAbriu = ev.dataAberturaInscricoes && hoje < ev.dataAberturaInscricoes;
+                        if (ev.inscricoesEncerradas && aindaNaoAbriu) return (
+                          <span style={{ color: "#1976D2", fontSize:12, fontWeight:700 }}>
+                            Em Breve
+                          </span>
+                        );
+                        return (
+                          <span style={{ color: ev.inscricoesEncerradas?"#ff6b6b":"#7acc44", fontSize:12, fontWeight:700 }}>
+                            {ev.inscricoesEncerradas ? "Encerradas" : "Abertas"}
+                          </span>
+                        );
+                      })()}
                     </Td>
                     <Td>
                       <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
