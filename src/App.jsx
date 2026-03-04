@@ -2819,6 +2819,7 @@ function App() {
     const evtId = eventoAtualIdRef.current;
     let hash = "";
     if (novaTela === "evento-detalhe" && evtId) hash = `#/competicao/${evtId}`;
+    else if (novaTela === "resultados" && evtId) hash = `#/competicao/${evtId}/resultados`;
     else if (novaTela === "recordes") hash = "#/recordes";
     else if (novaTela === "login") hash = "#/entrar";
     else if (novaTela === "home") hash = "#/";
@@ -2829,6 +2830,16 @@ function App() {
   useEffect(() => {
     const hash = window.location.hash;
     if (!hash) return;
+    const matchResultados = hash.match(/^#\/competicao\/(.+)\/resultados$/);
+    if (matchResultados) {
+      const evtId = matchResultados[1];
+      const existe = eventos.find(e => e.id === evtId);
+      if (existe) {
+        setEventoAtualId(evtId);
+        _setTela("resultados");
+      }
+      return;
+    }
     const match = hash.match(/^#\/competicao\/(.+)$/);
     if (match) {
       const evtId = match[1];
@@ -3554,6 +3565,7 @@ function App() {
 
   const selecionarEvento = (id) => {
     setEventoAtualId(id);
+    eventoAtualIdRef.current = id;
     _setTela("evento-detalhe");
     if (id) window.history.replaceState(null, "", `#/competicao/${id}`);
   };
@@ -4462,9 +4474,11 @@ function TelaHome({ setTela, eventos, inscricoes, atletas, resultados, seleciona
                       </button>
                     );
                   })()}
-                  <button style={{...styles.btnSecondary, flex: 1}} onClick={() => { selecionarEvento(ev.id); setTela("resultados"); }}>
-                    🏆 Resultados
-                  </button>
+                  {(status === "ao_vivo" || status === "encerrado" || status === "hoje_pre") && (
+                    <button style={{...styles.btnSecondary, flex: 1}} onClick={() => { selecionarEvento(ev.id); setTela("resultados"); }}>
+                      🏆 Resultados
+                    </button>
+                  )}
                 </div>
                 <button style={styles.btnPrimary} onClick={() => selecionarEvento(ev.id)}>
                   Acessar Competição →
@@ -6044,11 +6058,25 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
           </div>
         )}
 
-        <button style={styles.eventoAcaoBtn} onClick={() => setTela("resultados")}>
-          <span style={{ fontSize: 36 }}>🏆</span>
-          <strong>Resultados</strong>
-          <span style={{ color: "#666", fontSize: 13 }}>Classificação e marcas publicadas</span>
-        </button>
+        {(() => {
+          const evStatus = getStatusEvento(eventoAtual, resultados);
+          const tpU = usuarioLogado?.tipo;
+          const isStaff = tpU === "admin" || tpU === "organizador" || tpU === "funcionario";
+          const mostrar = isStaff || evStatus === "ao_vivo" || evStatus === "encerrado" || evStatus === "hoje_pre" || eventoAtual.competicaoFinalizada;
+          return mostrar ? (
+            <button style={styles.eventoAcaoBtn} onClick={() => setTela("resultados")}>
+              <span style={{ fontSize: 36 }}>🏆</span>
+              <strong>Resultados</strong>
+              <span style={{ color: "#666", fontSize: 13 }}>Classificação e marcas publicadas</span>
+            </button>
+          ) : (
+            <div style={{ ...styles.eventoAcaoBtn, opacity: 0.35, cursor: "not-allowed" }}>
+              <span style={{ fontSize: 36 }}>🏆</span>
+              <strong>Resultados</strong>
+              <span style={{ color: "#666", fontSize: 13 }}>Disponível a partir do dia da competição</span>
+            </div>
+          );
+        })()}
         {/* Editar Competição - para admin e organizador */}
         {(() => {
           const tpU = usuarioLogado?.tipo;
