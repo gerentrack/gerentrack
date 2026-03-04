@@ -3513,8 +3513,7 @@ function App() {
         {tela === "auditoria"         && <TelaAuditoria {...props} />}
       </main>
       <footer style={styles.footer}>
-        <span style={{ opacity: 0.4 }}>⚡ GERENTRACK</span>
-        <span style={{ opacity: 0.25, fontSize: 11, marginLeft: 16 }}>💾 Dados salvos automaticamente</span>
+        <span style={{ opacity: 0.4 }}>Desenvolvido por: GERENTRACK</span>
       </footer>
     </div>
   );
