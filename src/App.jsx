@@ -2740,7 +2740,42 @@ function nomeProvaHtml(nome) {
 
 // ─── APP PRINCIPAL ─────────────────────────────────────────────────────────────
 function App() {
-  const [tela, setTela] = useState("home");
+  const [tela, _setTela] = useState("home");
+
+  // ── Hash-based routing ──
+  const telaToHash = (t, evtId) => {
+    if (t === "evento-detalhe" && evtId) return `#/competicao/${evtId}`;
+    if (t === "recordes") return "#/recordes";
+    if (t === "login") return "#/entrar";
+    if (t === "home") return "#/";
+    return "";
+  };
+
+  const setTela = useCallback((novaTela) => {
+    _setTela(novaTela);
+    const hash = telaToHash(novaTela, eventoAtualId);
+    if (hash) {
+      window.history.replaceState(null, "", hash);
+    }
+  }, [eventoAtualId]);
+
+  // Ler hash na inicialização
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash) return;
+    const match = hash.match(/^#\/competicao\/(.+)$/);
+    if (match) {
+      const evtId = match[1];
+      const existe = eventos.find(e => e.id === evtId);
+      if (existe) {
+        setEventoAtualId(evtId);
+        _setTela("evento-detalhe");
+      }
+      return;
+    }
+    if (hash === "#/recordes") { _setTela("recordes"); return; }
+    if (hash === "#/entrar") { _setTela("login"); return; }
+  }, [eventos.length]);
   const [usuarioLogado, setUsuarioLogado] = useLocalOnly("atl_usuario", null);
   const [equipes,   setEquipes]   = useLocalStorage("atl_equipes", []);
   const [auditoria, setAuditoria] = useLocalStorage("atl_auditoria", []);
@@ -3520,7 +3555,8 @@ function App() {
 
   const selecionarEvento = (id) => {
     setEventoAtualId(id);
-    setTela("evento-detalhe");
+    _setTela("evento-detalhe");
+    if (id) window.history.replaceState(null, "", `#/competicao/${id}`);
   };
 
   // Helper: resolve nome da equipe/clube para exibição (closure sobre equipes do componente)
@@ -4433,6 +4469,14 @@ function TelaHome({ setTela, eventos, inscricoes, atletas, resultados, seleciona
                 </div>
                 <button style={styles.btnPrimary} onClick={() => selecionarEvento(ev.id)}>
                   Acessar Competição →
+                </button>
+                <button style={{ ...styles.btnGhost, fontSize:12, padding:"6px 12px", marginTop:4 }} onClick={() => {
+                  const url = `${window.location.origin}/#/competicao/${ev.id}`;
+                  navigator.clipboard.writeText(url).then(() => alert("✅ Link copiado!")).catch(() => {
+                    prompt("Copie o link:", url);
+                  });
+                }}>
+                  🔗 Copiar link
                 </button>
                 </div>{/* end content area */}
               </div>
