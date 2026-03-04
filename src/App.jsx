@@ -31,6 +31,7 @@ function useLocalStorage(key, initialValue) {
 
   const ref = useRef(storedValue);
   ref.current = storedValue;
+  const firestoreLoaded = useRef(false);
 
   // ── Firestore real-time sync ──
   useEffect(() => {
@@ -41,18 +42,11 @@ function useLocalStorage(key, initialValue) {
         ref.current = remoteVal;
         setStoredValue(remoteVal);
         try { window.localStorage.setItem(key, JSON.stringify(remoteVal)); } catch(e) {}
-      } else {
-        // Firestore vazio — semeiar com dados locais se existirem
-        const localVal = ref.current;
-        const hasData = Array.isArray(localVal) ? localVal.length > 0
-          : (typeof localVal === "object" && localVal !== null) ? Object.keys(localVal).length > 0
-          : localVal != null && localVal !== initialValue;
-        if (hasData) {
-          setDoc(docRef, { value: sanitizeForFirestore(localVal) }).catch(err => console.error("Firestore seed error:", key, err));
-        }
       }
+      firestoreLoaded.current = true;
     }, (error) => {
       console.error("Firestore sync error:", key, error);
+      firestoreLoaded.current = true;
     });
     return unsub;
   }, [key]);
@@ -63,9 +57,11 @@ function useLocalStorage(key, initialValue) {
       ref.current = valueToStore;
       setStoredValue(valueToStore);
       window.localStorage.setItem(key, JSON.stringify(valueToStore));
-      // Sync to Firestore
-      const docRef = doc(db, "state", key);
-      setDoc(docRef, { value: sanitizeForFirestore(valueToStore) }).catch(err => console.error("Firestore write error:", key, err));
+      // Only write to Firestore after initial load to prevent overwriting with stale data
+      if (firestoreLoaded.current) {
+        const docRef = doc(db, "state", key);
+        setDoc(docRef, { value: sanitizeForFirestore(valueToStore) }).catch(err => console.error("Firestore write error:", key, err));
+      }
     } catch (error) {
       console.log(error);
     }
