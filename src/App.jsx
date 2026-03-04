@@ -6342,7 +6342,7 @@ function InfoCard({ icon, title, items }) {
 }
 
 // ─── LOGIN ─────────────────────────────────────────────────────────────────────
-function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, atletasUsuarios, funcionarios, treinadores, setPerfisDisponiveis }) {
+function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, atletasUsuarios, funcionarios, treinadores, setPerfisDisponiveis, adminConfig }) {
   const [ident,   setIdent]   = useState(""); // e-mail, CPF ou CNPJ
   const [senha,   setSenha]   = useState("");
   const [erro,    setErro]    = useState("");
