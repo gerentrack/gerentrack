@@ -3442,7 +3442,7 @@ function App() {
   const getClubeAtleta = (atleta) => _getClubeAtleta(atleta, equipes);
 
   const props = {
-    tela, setTela, usuarioLogado, login, loginComSelecao, logout,
+    tela, setTela, usuarioLogado, setUsuarioLogado, login, loginComSelecao, logout,
     perfisDisponiveis, setPerfisDisponiveis,
     equipes, atletas, inscricoes, resultados, setAtletas,
     eventos, eventoAtual, eventoAtualId, selecionarEvento,
@@ -7478,7 +7478,7 @@ function TelaTrocarSenha({ usuarioLogado, setTela, atualizarSenha, equipes, orga
 
 
 // ─── CONFIGURAÇÕES DO USUÁRIO ──────────────────────────────────────────────────
-function TelaConfiguracoes({ usuarioLogado, setTela, logout, atualizarSenha,
+function TelaConfiguracoes({ usuarioLogado, setUsuarioLogado, setTela, logout, atualizarSenha,
   equipes, setEquipes, organizadores, setOrganizadores, atletasUsuarios, setAtletasUsuarios,
   funcionarios, setFuncionarios, treinadores, setTreinadores, registrarAcao }) {
 
@@ -7522,6 +7522,7 @@ function TelaConfiguracoes({ usuarioLogado, setTela, logout, atualizarSenha,
     if (isAdmin) {
       localStorage.setItem("gerentrack_admin_nome", formDados.nome.trim());
       localStorage.setItem("gerentrack_admin_email", formDados.email.trim());
+      setUsuarioLogado(u => u ? { ...u, nome: formDados.nome.trim(), email: formDados.email.trim() } : u);
     } else if (store) {
       store.set(arr => arr.map(u => u.id === usuarioLogado.id
         ? { ...u, nome: formDados.nome.trim(), email: formDados.email.trim(), cpf: formDados.cpf.trim(), cnpj: formDados.cnpj.trim(), fone: formDados.fone.trim() }
