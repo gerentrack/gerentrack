@@ -35,7 +35,6 @@ export function getStatusInscricoes(ev) {
 
 export function labelStatusEvento(status, ev) {
   if (status === "futuro") {
-    if (ev && ev.inscricoesEncerradas) return "🔒 Inscrições Encerradas";
     if (ev && ev.dataAberturaInscricoes) {
       const dtAb = _dtInscricoes(ev.dataAberturaInscricoes, ev.horaAberturaInscricoes);
       if (dtAb && new Date() < dtAb) return "📅 Em Breve";
@@ -44,6 +43,7 @@ export function labelStatusEvento(status, ev) {
       const dtEnc = _dtInscricoes(ev.dataEncerramentoInscricoes, ev.horaEncerramentoInscricoes);
       if (dtEnc && new Date() > dtEnc) return "🔒 Inscrições Encerradas";
     }
+    if (ev && ev.inscricoesEncerradas) return "🔒 Inscrições Encerradas";
     return "🟢 Inscrições Abertas";
   }
   if (status === "hoje_pre") return "🟡 Hoje";

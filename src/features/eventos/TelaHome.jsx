@@ -224,8 +224,8 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
               const dataEv = new Date(ev.data + "T12:00:00");
               const status = getStatusEvento(ev, resultados);
               const stInsc = getStatusInscLocal(ev);
-              const insBadgeColor = stInsc === "abertas" ? "#7acc44" : stInsc === "em_breve" ? "#1976D2" : "#888";
-              const insBadgeLabel = stInsc === "abertas" ? "✅ Inscrições abertas" : stInsc === "em_breve" ? `📅 Abre ${new Date(ev.dataAberturaInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}` : "🔒 Inscrições encerradas";
+              const insBadgeColor = stInsc === "em_breve" ? "#1976D2" : "#888";
+              const insBadgeLabel = stInsc === "em_breve" ? `📅 Abre ${new Date(ev.dataAberturaInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}` : "🔒 Inscrições encerradas";
               return (
                 <div key={ev.id} style={{ ...styles.eventoCard, padding:0, overflow:"hidden" }}>
                   <div style={{ position:"relative", width:"100%", minHeight: ev.logoCompeticao ? 0 : 60, background: ev.logoCompeticao ? "transparent" : "linear-gradient(135deg, #0a1a2a 0%, #1a0a2a 100%)", borderBottom:"1px solid #1E2130", overflow:"hidden" }}>
@@ -236,7 +236,9 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
                     )}
                     <div style={{ position:"absolute", top:10, left:12, display:"flex", flexDirection:"column", gap:4 }}>
                       <div style={styles.eventoStatusBadge(status)}>{labelStatusEvento(status, ev)}</div>
+                      {stInsc !== "abertas" && stInsc !== "em_breve" && (
                       <div style={{ background: insBadgeColor + "22", color: insBadgeColor, border: `1px solid ${insBadgeColor}44`, borderRadius: 10, padding: "2px 8px", fontSize: 11, fontWeight: 600, backdropFilter:"blur(4px)" }}>{insBadgeLabel}</div>
+                      )}
                     </div>
                     {usuarioLogado?.tipo === "admin" && (
                       <div style={{ position:"absolute", top:8, right:10, display:"flex", gap:6 }}>
