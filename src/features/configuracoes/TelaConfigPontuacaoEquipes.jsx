@@ -1,0 +1,432 @@
+import React, { useState } from "react";
+import { todasAsProvas } from "../../shared/athletics/provasDef";
+
+const styles = {
+  page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
+  pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 24, letterSpacing: 1 },
+  sectionTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, fontWeight: 800, color: "#fff", marginBottom: 20, letterSpacing: 1 },
+  statsRow: { display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 32 },
+  btnPrimary: { background: "linear-gradient(135deg, #1976D2, #1565C0)", color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, transition: "all 0.2s" },
+  btnSecondary: { background: "transparent", color: "#1976D2", border: "2px solid #1976D2", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
+  btnGhost: { background: "transparent", color: "#888", border: "1px solid #2a2d3a", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
+  tableWrap: { overflowX: "auto", borderRadius: 12, border: "1px solid #1E2130" },
+  table: { width: "100%", borderCollapse: "collapse" },
+  th: { background: "#0D0E12", padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "#666", letterSpacing: 1, textTransform: "uppercase", borderBottom: "1px solid #1E2130" },
+  td: { padding: "12px 16px", fontSize: 14, color: "#bbb", borderBottom: "1px solid #12141a" },
+  tr: { transition: "background 0.15s" },
+  marca: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: "#1976D2" },
+  emptyState: { textAlign: "center", padding: "60px 20px", color: "#444", display: "flex", flexDirection: "column", alignItems: "center", gap: 12, fontSize: 15 },
+  painelHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 32 },
+  painelBtns: { display: "flex", gap: 10, flexWrap: "wrap" },
+  input: { width: "100%", background: "#141720", borderWidth: 1, borderStyle: "solid", borderColor: "#252837", borderRadius: 8, padding: "10px 14px", color: "#E0E0E0", fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
+  select: { width: "100%", background: "#141720", borderWidth: 1, borderStyle: "solid", borderColor: "#252837", borderRadius: 8, padding: "10px 14px", color: "#E0E0E0", fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
+  label: { display: "block", fontSize: 12, fontWeight: 600, color: "#888", letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" },
+  erro: { background: "#2a1010", border: "1px solid #ff4444", color: "#ff6b6b", padding: "10px 14px", borderRadius: 8, marginBottom: 16, fontSize: 14 },
+  linkBtn: { background: "none", border: "none", color: "#1976D2", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", padding: 0 },
+  badge: (color) => ({ background: color + "22", color: color, border: `1px solid ${color}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }),
+  badgeGold: { background: "#1976D222", color: "#1976D2", border: "1px solid #1976D244", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 },
+  catBanner: { background: "#141720", border: "1px solid #252837", borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 14, color: "#aaa" },
+  filtros: { display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 },
+  adminGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 32 },
+  adminCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: 24 },
+  adminCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: "#1976D2", marginBottom: 16 },
+  formCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 16, padding: 32, marginBottom: 20 },
+  formTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 800, color: "#fff", textAlign: "center", marginBottom: 8 },
+  formSub: { color: "#666", textAlign: "center", fontSize: 14, marginBottom: 24 },
+  grid2: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 40 },
+  grid2form: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 },
+  fieldError: { color: "#ff6b6b", fontSize: 12, marginTop: 2 },
+  radioGroup: { display: "flex", gap: 8, marginBottom: 16 },
+  radioLabel: { flex: 1, background: "#141720", border: "1px solid #252837", borderRadius: 8, padding: "10px", textAlign: "center", cursor: "pointer", fontSize: 14, color: "#888", transition: "all 0.2s" },
+  radioLabelActive: { background: "#1c1f2e", border: "1px solid #1976D2", color: "#1976D2" },
+  sumuCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, marginBottom: 20, overflow: "hidden" },
+  sumuHeader: { padding: "16px 20px", background: "#0D0E12", borderBottom: "1px solid #1E2130", display: "flex", justifyContent: "space-between", alignItems: "center" },
+  sumuProva: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: "#fff", marginBottom: 6 },
+  sumuMeta: { display: "flex", gap: 8, alignItems: "center" },
+  btnIconSm: { background: "#141720", border: "1px solid #252837", color: "#888", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
+  btnIconSmDanger: { background: "#1a0a0a", border: "1px solid #3a1a1a", color: "#ff6b6b", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
+  infoCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: 24 },
+  infoCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 700, color: "#1976D2", marginBottom: 16, letterSpacing: 1 },
+  infoList: { listStyle: "none" },
+  infoItem: { padding: "6px 0", borderBottom: "1px solid #151820", fontSize: 14, color: "#bbb", display: "flex", alignItems: "center", gap: 8 },
+  infoItemDot: { color: "#1976D2", fontWeight: 700 },
+  heroSection: { textAlign: "center", padding: "60px 20px 40px", background: "linear-gradient(180deg, #0D1018 0%, transparent 100%)", borderRadius: 16, marginBottom: 48, position: "relative", overflow: "hidden" },
+  heroBadge: { display: "inline-block", background: "#1976D2", color: "#fff", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: 3, padding: "6px 16px", borderRadius: 20, marginBottom: 20 },
+  heroTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 56, fontWeight: 900, color: "#fff", lineHeight: 1.1, marginBottom: 16, letterSpacing: 1 },
+  heroBtns: { display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" },
+  eventosGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 20, marginBottom: 48 },
+  eventoCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 14, padding: 24, display: "flex", flexDirection: "column", gap: 10 },
+  eventoCardNome: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: "#fff", lineHeight: 1.2 },
+  eventoCardMeta: { fontSize: 13, color: "#666" },
+  eventoCardStats: { display: "flex", gap: 16, fontSize: 13, color: "#888", flexWrap: "wrap", borderTop: "1px solid #141820", paddingTop: 10, marginTop: 4 },
+  eventoStatusBadge: (status) => ({
+    display: "inline-block", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700, letterSpacing: 0.5,
+    background: status === "ao_vivo" ? "#3a0a0a" : status === "hoje_pre" ? "#2a2a0a" : status === "futuro" ? "#0a2a0a" : "#1a1a1a",
+    color: status === "ao_vivo" ? "#ff6b6b" : status === "hoje_pre" ? "#1976D2" : status === "futuro" ? "#7acc44" : "#555",
+    border: `1px solid ${status === "ao_vivo" ? "#6a2a2a" : status === "hoje_pre" ? "#4a4a0a" : status === "futuro" ? "#2a5a2a" : "#333"}`,
+  }),
+  permissividadeBox: { background: "#0d1117", border: "1px solid #1976D233", borderRadius: 10, padding: 16, marginTop: 16, marginBottom: 4 },
+  stepBar: { display: "flex", alignItems: "center", gap: 0, marginBottom: 32, maxWidth: 400 },
+  stepItem: (ativo) => ({ padding: "10px 24px", borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, background: ativo ? "#1a1c22" : "transparent", color: ativo ? "#1976D2" : "#444", border: `1px solid ${ativo ? "#1976D244" : "#1E2130"}` }),
+  stepDivider: { flex: 1, height: 1, background: "#1E2130", margin: "0 8px" },
+  tagProva: { background: "#1976D222", color: "#1976D2", border: "1px solid #1976D244", borderRadius: 6, padding: "4px 12px", fontSize: 12, cursor: "pointer" },
+  eventoAcoesGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16, marginBottom: 40 },
+  eventoAcaoBtn: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: "20px 16px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, textAlign: "center", color: "#fff", fontFamily: "'Barlow', sans-serif", fontSize: 15, fontWeight: 700, transition: "border-color 0.2s" },
+  statusControlsCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: "20px 24px", marginBottom: 28 },
+  statusBar: { display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap", background: "#0D0E12", border: "1px solid #1E2130", borderRadius: 10, padding: "12px 18px", marginBottom: 24 },
+  modoSwitch: { display: "flex", gap: 0, background: "#0D0E12", border: "1px solid #1E2130", borderRadius: 10, overflow: "hidden", marginBottom: 24, width: "fit-content" },
+  modoBtn: { background: "transparent", border: "none", color: "#666", padding: "12px 24px", cursor: "pointer", fontSize: 14, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s" },
+  modoBtnActive: { background: "#141720", color: "#1976D2" },
+  provaGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 },
+  provaBtn: { background: "#0E1016", border: "1px solid #1E2130", color: "#888", padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", lineHeight: 1.4 },
+  provaBtnSel: { background: "#1a1c22", borderColor: "#1976D2", color: "#1976D2" },
+  savedBadge: { background: "#0a2a0a", border: "1px solid #2a6a2a", color: "#4aaa4a", padding: "8px 16px", borderRadius: 8, fontSize: 13 },
+  digitarSection: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, overflow: "hidden" },
+  digitarHeader: { padding: "16px 20px", background: "#0D0E12", borderBottom: "1px solid #1E2130", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 },
+  inputMarca: { background: "#141720", border: "1px solid #252837", borderRadius: 6, padding: "8px 12px", color: "#1976D2", fontSize: 16, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, width: 120, outline: "none" },
+};
+
+function TelaConfigPontuacaoEquipes({ setTela, eventoAtual, editarEvento, equipes, inscricoes, atletas, recordes }) {
+  if (!eventoAtual) return (
+    <div style={styles.page}><div style={styles.emptyState}><p>Selecione uma competição.</p>
+      <button style={styles.btnPrimary} onClick={() => setTela("home")}>Voltar</button></div></div>
+  );
+
+  const config = eventoAtual.pontuacaoEquipes || {};
+  const [ativo, setAtivo] = useState(!!config.ativo);
+  const [equipeSel, setEquipeSel] = useState(config.equipesParticipantes || []);
+  const [tabela, setTabela] = useState(() => {
+    if (config.tabelaPontuacao) return Object.entries(config.tabelaPontuacao).map(function(e) { return { pos: Number(e[0]), pts: Number(e[1]) }; }).sort(function(a, b) { return a.pos - b.pos; });
+    return [{ pos: 1, pts: 10 }, { pos: 2, pts: 8 }, { pos: 3, pts: 6 }, { pos: 4, pts: 5 }, { pos: 5, pts: 4 }, { pos: 6, pts: 3 }, { pos: 7, pts: 2 }, { pos: 8, pts: 1 }];
+  });
+  const [tabelaRevez, setTabelaRevez] = useState(() => {
+    if (config.tabelaPontuacaoRevezamentos) return Object.entries(config.tabelaPontuacaoRevezamentos).map(function(e) { return { pos: Number(e[0]), pts: Number(e[1]) }; }).sort(function(a, b) { return a.pos - b.pos; });
+    return [{ pos: 1, pts: 15 }, { pos: 2, pts: 12 }, { pos: 3, pts: 10 }, { pos: 4, pts: 8 }, { pos: 5, pts: 6 }, { pos: 6, pts: 4 }, { pos: 7, pts: 2 }, { pos: 8, pts: 1 }];
+  });
+  const [salvo, setSalvo] = useState(false);
+  const [atletasPorEquipe, setAtletasPorEquipe] = useState(config.atletasPorEquipePorProva || 1);
+  const [bonusRecordes, setBonusRecordes] = useState(config.bonusRecordes || {});
+
+  // Equipes com atletas inscritos neste evento
+  const eid = eventoAtual.id;
+  const inscDoEvento = inscricoes.filter(function(i) { return i.eventoId === eid; });
+  // Coletar equipeIds e clubes únicos dos atletas inscritos
+  const _eqIdsSet = new Set();
+  const _clubesSemEquipe = new Set();
+  inscDoEvento.forEach(function(i) {
+    var atl = atletas.find(function(a) { return a.id === i.atletaId; });
+    if (!atl) return;
+    if (atl.equipeId) {
+      _eqIdsSet.add(atl.equipeId);
+    } else if (atl.clube) {
+      // Tenta achar equipe pelo nome do clube
+      var eqPorClube = equipes.find(function(eq) {
+        return eq.nome === atl.clube || eq.sigla === atl.clube ||
+               eq.nome?.toLowerCase() === atl.clube?.toLowerCase();
+      });
+      if (eqPorClube) {
+        _eqIdsSet.add(eqPorClube.id);
+      } else {
+        _clubesSemEquipe.add(atl.clube);
+      }
+    }
+  });
+  const equipeIdsComAtletas = [..._eqIdsSet];
+
+  // Equipes cadastradas que possuem atletas inscritos
+  const equipesReais = equipes.filter(function(eq) {
+    return equipeIdsComAtletas.includes(eq.id);
+  });
+
+  // Clubes sem equipe cadastrada — cria entradas virtuais para seleção
+  const equipesVirtuais = [..._clubesSemEquipe].map(function(clube) {
+    return { id: "clube_" + clube, nome: clube, sigla: "", virtual: true };
+  });
+
+  const equipesDisponiveis = equipesReais.concat(equipesVirtuais);
+
+  var temRevezamentos = (eventoAtual.provasPrograma || []).some(function(pId) {
+    var p = todasAsProvas().find(function(pr) { return pr.id === pId; });
+    return p && p.tipo === "revezamento";
+  });
+
+  var toggleEquipe = function(eqId) {
+    setEquipeSel(function(prev) {
+      return prev.includes(eqId) ? prev.filter(function(id) { return id !== eqId; }) : [].concat(prev, [eqId]);
+    });
+  };
+
+  var addLinha = function(isRevez) {
+    var setter = isRevez ? setTabelaRevez : setTabela;
+    var tbl = isRevez ? tabelaRevez : tabela;
+    var nextPos = tbl.length > 0 ? tbl[tbl.length - 1].pos + 1 : 1;
+    setter([].concat(tbl, [{ pos: nextPos, pts: 0 }]));
+  };
+
+  var removeLinha = function(isRevez, idx) {
+    var setter = isRevez ? setTabelaRevez : setTabela;
+    setter(function(prev) { return prev.filter(function(_, i) { return i !== idx; }); });
+  };
+
+  var updateLinha = function(isRevez, idx, field, val) {
+    var setter = isRevez ? setTabelaRevez : setTabela;
+    setter(function(prev) { return prev.map(function(item, i) {
+      if (i !== idx) return item;
+      var novo = Object.assign({}, item);
+      novo[field] = Number(val) || 0;
+      return novo;
+    }); });
+  };
+
+  var handleSalvar = function() {
+    var tabelaObj = {};
+    tabela.forEach(function(r) { if (r.pts > 0) tabelaObj[r.pos] = r.pts; });
+    var tabelaRevezObj = {};
+    tabelaRevez.forEach(function(r) { if (r.pts > 0) tabelaRevezObj[r.pos] = r.pts; });
+    // Limpar bonus com valor 0
+    var bonusLimpo = {};
+    Object.keys(bonusRecordes).forEach(function(k) { if (parseInt(bonusRecordes[k]) > 0) bonusLimpo[k] = parseInt(bonusRecordes[k]); });
+    editarEvento({
+      ...eventoAtual,
+      pontuacaoEquipes: {
+        ativo: ativo,
+        equipesParticipantes: equipeSel,
+        tabelaPontuacao: tabelaObj,
+        tabelaPontuacaoRevezamentos: temRevezamentos ? tabelaRevezObj : {},
+        atletasPorEquipePorProva: Math.max(1, parseInt(atletasPorEquipe) || 1),
+        bonusRecordes: bonusLimpo,
+      }
+    });
+    setSalvo(true);
+    setTimeout(function() { setSalvo(false); }, 3000);
+  };
+
+  return (
+    <div style={styles.page}>
+      <div style={styles.painelHeader}>
+        <div>
+          <h1 style={styles.pageTitle}>🏅 Pontuação por Equipes</h1>
+          <div style={{ color: "#666", fontSize: 13 }}>{eventoAtual.nome}</div>
+        </div>
+        <button style={styles.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
+      </div>
+
+      <div style={styles.formCard}>
+        {/* Toggle ativo */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24, padding: "12px 16px", background: ativo ? "#0a1a0a" : "#1a0a0a", border: "1px solid " + (ativo ? "#2a8a2a" : "#3a2a2a"), borderRadius: 8 }}>
+          <input type="checkbox" checked={ativo} onChange={function() { setAtivo(!ativo); }}
+            style={{ width: 20, height: 20, accentColor: "#1976D2", cursor: "pointer" }} />
+          <div>
+            <div style={{ fontWeight: 700, color: ativo ? "#7cfc7c" : "#ff6b6b", fontSize: 15 }}>
+              {ativo ? "✅ Pontuação por Equipes ATIVA" : "❌ Pontuação por Equipes DESATIVADA"}
+            </div>
+            <div style={{ fontSize: 12, color: "#888" }}>Os pontos das colocações individuais serão somados por equipe</div>
+          </div>
+        </div>
+
+        {ativo && (
+          <>
+            {/* Seleção de equipes */}
+            <div style={{ marginBottom: 24 }}>
+              <h3 style={{ color: "#1976D2", fontSize: 15, marginBottom: 10 }}>📋 Equipes Participantes</h3>
+              <div style={{ fontSize: 12, color: "#888", marginBottom: 10 }}>Selecione as equipes que disputarão a classificação por equipes. Apenas equipes com atletas inscritos são listadas.</div>
+              {equipesDisponiveis.length === 0 ? (
+                <div style={{ color: "#666", padding: 16, textAlign: "center", background: "#0a0a0a", borderRadius: 8 }}>
+                  Nenhuma equipe com atletas inscritos nesta competição.
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {equipesDisponiveis.map(function(eq) {
+                    var sel = equipeSel.includes(eq.id);
+                    return (
+                      <label key={eq.id} style={{
+                        display: "flex", alignItems: "center", gap: 8, padding: "8px 14px",
+                        background: sel ? "#1a2a0a" : "#0a0a0f", border: "1px solid " + (sel ? "#4a8a2a" : "#1a1d2a"),
+                        borderRadius: 8, cursor: "pointer", fontSize: 13
+                      }}>
+                        <input type="checkbox" checked={sel} onChange={function() { toggleEquipe(eq.id); }}
+                          style={{ accentColor: "#1976D2", cursor: "pointer" }} />
+                        <span style={{ color: sel ? "#7cfc7c" : "#888", fontWeight: sel ? 600 : 400 }}>
+                          {eq.clube || eq.nome} {eq.sigla ? "(" + eq.sigla + ")" : ""}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+              <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
+                <button style={{ ...styles.btnGhost, fontSize: 11, padding: "4px 10px" }}
+                  onClick={function() { setEquipeSel(equipesDisponiveis.map(function(e) { return e.id; })); }}>
+                  Selecionar todas
+                </button>
+                <button style={{ ...styles.btnGhost, fontSize: 11, padding: "4px 10px" }}
+                  onClick={function() { setEquipeSel([]); }}>
+                  Limpar
+                </button>
+              </div>
+            </div>
+
+            {/* Tabela de pontuação — provas normais */}
+            <div style={{ marginBottom: 24 }}>
+              <h3 style={{ color: "#1976D2", fontSize: 15, marginBottom: 10 }}>🏆 Tabela de Pontuação — Provas Individuais e Combinadas</h3>
+              <div style={{ fontSize: 12, color: "#888", marginBottom: 10 }}>Defina quantos pontos cada colocação recebe. Inclui provas individuais e a classificação final das combinadas (Decatlo, Heptatlo, etc.). As combinadas só pontuam quando todas as provas componentes tiverem resultado.</div>
+              <table style={{ borderCollapse: "collapse", fontSize: 13 }}>
+                <thead>
+                  <tr>
+                    <th style={{ padding: "6px 12px", color: "#888", textAlign: "left", borderBottom: "1px solid #2a2a2a" }}>Colocação</th>
+                    <th style={{ padding: "6px 12px", color: "#888", textAlign: "left", borderBottom: "1px solid #2a2a2a" }}>Pontos</th>
+                    <th style={{ padding: "6px 12px", borderBottom: "1px solid #2a2a2a" }}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tabela.map(function(r, idx) {
+                    return (
+                      <tr key={idx}>
+                        <td style={{ padding: "4px 12px" }}>
+                          <input type="number" min="1" value={r.pos} onChange={function(e) { updateLinha(false, idx, "pos", e.target.value); }}
+                            style={{ ...styles.input, width: 60, textAlign: "center" }} />
+                          <span style={{ color: "#666", marginLeft: 4 }}>º</span>
+                        </td>
+                        <td style={{ padding: "4px 12px" }}>
+                          <input type="number" min="0" value={r.pts} onChange={function(e) { updateLinha(false, idx, "pts", e.target.value); }}
+                            style={{ ...styles.input, width: 70, textAlign: "center" }} />
+                        </td>
+                        <td style={{ padding: "4px 6px" }}>
+                          <button onClick={function() { removeLinha(false, idx); }} style={{ background: "transparent", border: "none", color: "#ff6b6b", cursor: "pointer", fontSize: 14 }}>✕</button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <button onClick={function() { addLinha(false); }} style={{ ...styles.btnGhost, fontSize: 11, marginTop: 8, padding: "4px 12px" }}>+ Adicionar colocação</button>
+            </div>
+
+            {/* Tabela de pontuação — revezamentos */}
+            {temRevezamentos && (
+              <div style={{ marginBottom: 24 }}>
+                <h3 style={{ color: "#1976D2", fontSize: 15, marginBottom: 10 }}>🏅 Tabela de Pontuação — Provas de Revezamento</h3>
+                <div style={{ fontSize: 12, color: "#888", marginBottom: 10 }}>Pontuação diferenciada para as provas de revezamento (4x100m, 4x400m, etc.). Aplicada a todos os revezamentos do programa.</div>
+                <table style={{ borderCollapse: "collapse", fontSize: 13 }}>
+                  <thead>
+                    <tr>
+                      <th style={{ padding: "6px 12px", color: "#888", textAlign: "left", borderBottom: "1px solid #2a2a2a" }}>Colocação</th>
+                      <th style={{ padding: "6px 12px", color: "#888", textAlign: "left", borderBottom: "1px solid #2a2a2a" }}>Pontos</th>
+                      <th style={{ padding: "6px 12px", borderBottom: "1px solid #2a2a2a" }}></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tabelaRevez.map(function(r, idx) {
+                      return (
+                        <tr key={idx}>
+                          <td style={{ padding: "4px 12px" }}>
+                            <input type="number" min="1" value={r.pos} onChange={function(e) { updateLinha(true, idx, "pos", e.target.value); }}
+                              style={{ ...styles.input, width: 60, textAlign: "center" }} />
+                            <span style={{ color: "#666", marginLeft: 4 }}>º</span>
+                          </td>
+                          <td style={{ padding: "4px 12px" }}>
+                            <input type="number" min="0" value={r.pts} onChange={function(e) { updateLinha(true, idx, "pts", e.target.value); }}
+                              style={{ ...styles.input, width: 70, textAlign: "center" }} />
+                          </td>
+                          <td style={{ padding: "4px 6px" }}>
+                            <button onClick={function() { removeLinha(true, idx); }} style={{ background: "transparent", border: "none", color: "#ff6b6b", cursor: "pointer", fontSize: 14 }}>✕</button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                <button onClick={function() { addLinha(true); }} style={{ ...styles.btnGhost, fontSize: 11, marginTop: 8, padding: "4px 12px" }}>+ Adicionar colocação</button>
+              </div>
+            )}
+
+            {/* Atletas pontuantes por equipe por prova */}
+            <div style={{ marginBottom: 24 }}>
+              <h3 style={{ color: "#1976D2", fontSize: 15, marginBottom: 10 }}>👥 Atletas Pontuantes por Equipe</h3>
+              <div style={{ fontSize: 12, color: "#888", marginBottom: 10, lineHeight: 1.5 }}>
+                Quantos atletas da mesma equipe podem pontuar em cada prova, desde que estejam dentro das colocações definidas na tabela acima.
+                <br/>Exemplo: se configurar <strong style={{ color: "#ccc" }}>2</strong> e a tabela pontua até o 8º lugar, até 2 atletas da mesma equipe que ficarem entre os 8 primeiros somarão pontos.
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <input type="number" min="1" max="20" value={atletasPorEquipe}
+                  onChange={function(e) { setAtletasPorEquipe(Math.max(1, parseInt(e.target.value) || 1)); }}
+                  style={{ ...styles.input, width: 70, textAlign: "center", fontSize: 18, fontWeight: 700 }} />
+                <span style={{ color: "#888", fontSize: 13 }}>atleta(s) por equipe por prova</span>
+              </div>
+            </div>
+
+            {/* Bônus por Quebra de Recorde */}
+            {(() => {
+              const recSumulaIds = eventoAtual.recordesSumulas || [];
+              const recTipos = (recordes || []).filter(t => recSumulaIds.includes(t.id));
+              if (recTipos.length === 0) return (
+                <div style={{ marginBottom: 24, padding: "14px 18px", background: "#0a0a0f", border: "1px solid #1a1d2a", borderRadius: 10 }}>
+                  <h3 style={{ color: "#1976D2", fontSize: 15, marginBottom: 6 }}>🏆 Bônus por Quebra de Recorde</h3>
+                  <div style={{ fontSize: 12, color: "#666", lineHeight: 1.5 }}>
+                    Nenhum tipo de recorde habilitado nas súmulas desta competição.
+                    <br/>Para usar esta funcionalidade, vá em <strong style={{ color: "#888" }}>Editar Competição → Recordes nas Súmulas</strong> e selecione pelo menos um tipo de recorde.
+                  </div>
+                </div>
+              );
+              return (
+                <div style={{ marginBottom: 24 }}>
+                  <h3 style={{ color: "#1976D2", fontSize: 15, marginBottom: 6 }}>🏆 Bônus por Quebra de Recorde</h3>
+                  <div style={{ fontSize: 12, color: "#888", marginBottom: 12, lineHeight: 1.5 }}>
+                    Defina quantos pontos bônus a equipe recebe quando um de seus atletas quebra um recorde nesta competição.
+                    <br/>Cada quebra de recorde em cada prova pontua independentemente. Deixe <strong style={{ color: "#ccc" }}>0</strong> para não bonificar.
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {recTipos.map(tipo => {
+                      const val = bonusRecordes[tipo.id] || 0;
+                      return (
+                        <div key={tipo.id} style={{
+                          display: "flex", alignItems: "center", gap: 12, padding: "10px 16px",
+                          background: val > 0 ? "#0a1a0a" : "#0a0a0f",
+                          border: "1px solid " + (val > 0 ? "#2a6a2a" : "#1a1d2a"),
+                          borderRadius: 8
+                        }}>
+                          <div style={{ flex: 1 }}>
+                            <span style={{ color: val > 0 ? "#7cfc7c" : "#888", fontWeight: 700, fontSize: 14 }}>{tipo.nome}</span>
+                            <span style={{ color: "#555", fontSize: 11, marginLeft: 8 }}>({tipo.sigla})</span>
+                            <span style={{ color: "#444", fontSize: 11, marginLeft: 8 }}>· {tipo.registros?.length || 0} registros</span>
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <input type="number" min="0" value={val}
+                              onChange={function(e) { setBonusRecordes(function(prev) { return { ...prev, [tipo.id]: parseInt(e.target.value) || 0 }; }); }}
+                              style={{ ...styles.input, width: 70, textAlign: "center", fontSize: 16, fontWeight: 700 }} />
+                            <span style={{ color: "#888", fontSize: 12 }}>pts</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Salvar */}
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <button style={styles.btnPrimary} onClick={handleSalvar}>💾 Salvar Configuração</button>
+              {salvo && <span style={styles.savedBadge}>✅ Salvo!</span>}
+            </div>
+          </>
+        )}
+
+        {!ativo && (
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button style={styles.btnPrimary} onClick={handleSalvar}>💾 Salvar (Desativado)</button>
+            {salvo && <span style={styles.savedBadge}>✅ Salvo!</span>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── ADMIN ─────────────────────────────────────────────────────────────────────
+
+// ─── TELA: GERENCIAR EQUIPES ─────────────────────────────────────────
+
+// ─── TELA: GERENCIAR USUÁRIOS (ADMIN) ────────────────────────────────────────
+
+export default TelaConfigPontuacaoEquipes;
