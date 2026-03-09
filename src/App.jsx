@@ -135,14 +135,14 @@ function App() {
   const [solicitacoesVinculo, setSolicitacoesVinculo] = useLocalStorage("atl_vinculo_sol",   []);
   useStorageSync("atl_vinculo_sol", setSolicitacoesVinculo);
   const [notificacoes,        setNotificacoes]        = useLocalStorage("atl_notificacoes", []);
-  const [historicoAcoes,  setHistoricoAcoes]  = useLocalOnly("atl_historico",       []);
+  const [historicoAcoes,  setHistoricoAcoes]  = useLocalStorage("atl_historico",       []);
   const [solicitacoesRecuperacao, setSolicitacoesRecuperacao] = useLocalStorage("atl_recuperacao", []);
 
   // Multi-evento: cada evento tem { id, nome, data, local, permissividadeNorma, provasPrograma: Set de provaIds }
   const [eventos, setEventos] = useLocalStorage("atl_eventos", []);
   const [recordes, setRecordes] = useLocalStorage("atl_recordes", []);
   const [pendenciasRecorde, setPendenciasRecorde] = useLocalStorage("atl_pendencias_recorde", []);
-  const [historicoRecordes, setHistoricoRecordes] = useLocalOnly("atl_historico_recordes", []);
+  const [historicoRecordes, setHistoricoRecordes] = useLocalStorage("atl_historico_recordes", []);
   const [eventoAtualId, setEventoAtualId] = useLocalOnly("atl_eventoAtualId", null);
 
   // Inscrições e resultados vinculados ao eventoId
@@ -240,12 +240,12 @@ function App() {
     setUsuarioLogado(dados);
     registrarAcao(dados.id, dados.nome, "Login", `${dados.tipo}`, dados.organizadorId || null, { equipeId: dados.equipeId, modulo: "auth" });
     if (dados.tipo === "admin")             setTela("admin");
-    else if (dados.tipo === "atleta")       setTela("painel-atleta");
+    else if (dados.tipo === "atleta")       { setEventoAtualId(null); setTela("painel-atleta"); }
     else if (dados.tipo === "organizador")  setTela("painel-organizador");
     else if (dados.tipo === "funcionario")  setTela("painel-organizador");
-    else if (dados.tipo === "equipe")       { setEventoAtualId(null); setTela("painel-equipe"); }
-    else if (dados.tipo === "treinador")    { setEventoAtualId(null); setTela("painel-equipe"); }
-    else                                    { console.warn("[GerenTrack] tipo de usuário desconhecido:", dados.tipo); setTela("home"); }
+    else if (dados.tipo === "equipe")       setTela("painel");
+    else if (dados.tipo === "treinador")    setTela("painel");
+    else                                    setTela("painel");
   };
 
   const loginComSelecao = (dados, perfis) => {
@@ -253,12 +253,12 @@ function App() {
     setUsuarioLogado({ ...dados, _temOutrosPerfis: perfis.length > 1 });
     if (dados.senhaTemporaria) { setTela("trocar-senha"); return; }
     if (dados.tipo === "admin")             setTela("admin");
-    else if (dados.tipo === "atleta")       setTela("painel-atleta");
+    else if (dados.tipo === "atleta")       { setEventoAtualId(null); setTela("painel-atleta"); }
     else if (dados.tipo === "organizador")  setTela("painel-organizador");
     else if (dados.tipo === "funcionario")  setTela("painel-organizador");
-    else if (dados.tipo === "equipe")       { setEventoAtualId(null); setTela("painel-equipe"); }
-    else if (dados.tipo === "treinador")    { setEventoAtualId(null); setTela("painel-equipe"); }
-    else                                    { console.warn("[GerenTrack] tipo de usuário desconhecido:", dados.tipo); setTela("home"); }
+    else if (dados.tipo === "equipe")       setTela("painel");
+    else if (dados.tipo === "treinador")    setTela("painel");
+    else                                    setTela("painel");
   };
 
   const logout = () => {
@@ -570,129 +570,18 @@ function App() {
         origem: opts.origem || "atleta",
         aprovadorTipo: opts.aprovadorTipo || "equipe",
         equipeAtualId: opts.equipeAtualId || null,
-        equipeAtualNome: opts.equipeAtualNome || null,
-        organizadorId: opts.organizadorId || null,
-        solicitanteId: opts.solicitanteId || null,
-        solicitanteNome: opts.solicitanteNome || null,
         status: "pendente", data: new Date().toISOString() }
     ]);
 
   const responderVinculo = (solId, aceitar, atletas_arr) => {
     const sol = solicitacoesVinculo.find(s => s.id === solId);
     if (!sol) return;
-    const agora = new Date().toISOString();
     setSolicitacoesVinculo(p => p.map(s => s.id === solId
-      ? { ...s,
-          status: aceitar ? "aceito" : "recusado",
-          resolvidoEm: agora,
-          resolvidoPorId: usuarioLogado?.id || null,
-          resolvidoPorNome: usuarioLogado?.nome || null,
-          resolvidoPorTipo: usuarioLogado?.tipo || null,
-        } : s));
-
-    const atv = atletasRef_app.current.find(a => a.id === sol.atletaId);
-
-    if (sol.tipo === "desvinculacao") {
-      // ── Desvinculação solicitada pelo atleta ────────────────────────────────────────────
-      if (aceitar) {
-        const equipeAnterior = atv?.clube || sol.clube || "";
-        if (atv) _atualizarAtleta({ ...atv, equipeId: null, clube: "", equipeAnterior, desvinculadoEm: agora });
-        const contaAtl = atletasUsuarios.find(u =>
-          u.id === atv?.atletaUsuarioId ||
-          (u.cpf && atv?.cpf && u.cpf.replace(/\D/g,"") === atv.cpf.replace(/\D/g,"")));
-        if (contaAtl) adicionarNotificacao(contaAtl.id, "desvinculacao",
-          `✅ Sua solicitação de saída da equipe "${equipeAnterior}" foi aceita. Seus resultados e inscrições históricas permanecem preservados.`,
-          { equipeAnterior });
-      } else {
-        const contaAtl = atv && atletasUsuarios.find(u =>
-          u.id === atv.atletaUsuarioId ||
-          (u.cpf && atv.cpf && u.cpf.replace(/\D/g,"") === atv.cpf.replace(/\D/g,"")));
-        if (contaAtl) adicionarNotificacao(contaAtl.id, "desvinculacao",
-          `ℹ️ Sua solicitação de saída da equipe "${sol.clube || ""}" foi recusada. Entre em contato com a equipe se tiver dúvidas.`, {});
-      }
-      if (usuarioLogado) registrarAcao(
-        usuarioLogado.id, usuarioLogado.nome,
-        aceitar ? "Aprovou desvinculação" : "Recusou desvinculação",
-        `${sol.atletaNome} ← ${sol.clube || "—"}`,
-        usuarioLogado.organizadorId || null, { equipeId: usuarioLogado.equipeId, modulo: "vinculos" });
-    } else {
-      // ── Vínculo normal ────────────────────────────────────────────────────────────────────────────────────
-      if (aceitar && atv) _atualizarAtleta({ ...atv, equipeId: sol.equipeId, clube: sol.clube });
-      if (usuarioLogado) registrarAcao(
-        usuarioLogado.id, usuarioLogado.nome,
-        aceitar ? "Aceitou vínculo" : "Recusou vínculo",
-        `${sol.atletaNome} → ${sol.clube || "—"}`,
-        usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null),
-        { equipeId: usuarioLogado.equipeId, modulo: "vinculos" });
+      ? { ...s, status: aceitar ? "aceito" : "recusado" } : s));
+    if (aceitar) {
+      const atv = atletasRef_app.current.find(a => a.id === sol.atletaId);
+      if (atv) _atualizarAtleta({ ...atv, equipeId: sol.equipeId, clube: sol.clube });
     }
-  };
-
-  // ── ETAPA 6: Solicitar desvinculação (atleta pede para sair da equipe) ───
-  const solicitarDesvinculo = (atletaId, atletaNome, equipeId, equipeNome) => {
-    setSolicitacoesVinculo(p => [
-      ...p.filter(s => !(s.atletaId === atletaId && s.tipo === "desvinculacao" && s.status === "pendente")),
-      {
-        id: Date.now().toString() + Math.random().toString(36).slice(2, 6),
-        atletaId, atletaNome, equipeId, clube: equipeNome,
-        tipo: "desvinculacao", origem: "atleta", aprovadorTipo: "equipe",
-        equipeAtualId: equipeId, status: "pendente", data: new Date().toISOString(),
-      }
-    ]);
-  };
-
-  // ── ETAPA 6: Anonimizar atleta base (preserva histórico, remove PII) ─────
-  const anonimizarAtletaBase = (atletaId) => {
-    const a = atletasRef_app.current.find(x => x.id === atletaId);
-    if (!a || a.contaExcluida) return;
-    _atualizarAtleta({
-      id: a.id, sexo: a.sexo, anoNasc: a.anoNasc,
-      equipeId: a.equipeId, equipeAnterior: a.equipeAnterior || a.clube,
-      clube: a.clube, organizadorId: a.organizadorId,
-      nome: "Atleta Excluído", email: null, cpf: null, fone: null,
-      dataNasc: null, atletaUsuarioId: null,
-      contaExcluida: true, excluidoEm: new Date().toISOString(),
-    });
-  };
-
-  // ── ETAPA 6: Excluir apenas o perfil atual (preserva atleta base + outros perfis) ─
-  const excluirPerfilAtual = () => {
-    const u = usuarioLogado;
-    if (!u) return;
-    if (u.tipo === "atleta")      setAtletasUsuarios(p => p.filter(x => x.id !== u.id));
-    if (u.tipo === "organizador") setOrganizadores(p => p.filter(x => x.id !== u.id));
-    if (u.tipo === "funcionario") setFuncionarios(p => p.filter(x => x.id !== u.id));
-    if (u.tipo === "treinador")   setTreinadores(p => p.filter(x => x.id !== u.id));
-    if (u.tipo === "equipe")      excluirEquipePorId(u.id);
-    registrarAcao(u.id, u.nome, "Excluiu perfil específico",
-      `Tipo: ${u.tipo} | Org: ${u.organizadorId || u._organizadorNome || "—"}`,
-      null, { modulo: "conta" });
-    logout();
-  };
-
-  // ── ETAPA 6: Excluir TODOS os perfis + anonimizar atleta base ────────────
-  const excluirTodosOsPerfis = () => {
-    const u = usuarioLogado;
-    if (!u) return;
-    const cpf   = u.cpf?.replace(/\D/g, "");
-    const email = u.email?.toLowerCase();
-    const match = (x) =>
-      x.id === u.id ||
-      (cpf   && x.cpf?.replace(/\D/g, "")  === cpf)  ||
-      (email && x.email?.toLowerCase()       === email);
-    setAtletasUsuarios(p => p.filter(x => !match(x)));
-    setOrganizadores  (p => p.filter(x => !match(x)));
-    setFuncionarios   (p => p.filter(x => !match(x)));
-    setTreinadores    (p => p.filter(x => !match(x)));
-    // Se o perfil atual é uma equipe, remover o documento da equipe no Firestore
-    if (u.tipo === "equipe") excluirEquipePorId(u.id);
-    const atletaBase = atletasRef_app.current.find(a =>
-      a.atletaUsuarioId === u.id ||
-      (cpf   && a.cpf?.replace(/\D/g, "") === cpf) ||
-      (email && a.email?.toLowerCase()     === email));
-    if (atletaBase) anonimizarAtletaBase(atletaBase.id);
-    registrarAcao(u.id, u.nome, "Excluiu todos os perfis e anonimizou dados",
-      `CPF: ***${cpf?.slice(-3) || "?"}`, null, { modulo: "conta" });
-    logout();
   };
 
   const adicionarNotificacao = (para, tipo, msg, extra = {}) =>
@@ -1171,7 +1060,6 @@ function App() {
     atualizarEquipe: _atualizarEquipe,
     setOrganizadores, setAtletasUsuarios, setFuncionarios, setTreinadores,
     adicionarAtleta, adicionarAtletasEmLote, atualizarAtleta, excluirAtleta, excluirAtletasEmMassa, solicitarVinculo, responderVinculo, desvincularAtleta,
-    solicitarDesvinculo, excluirPerfilAtual, excluirTodosOsPerfis, anonimizarAtletaBase,
     notificacoes, adicionarNotificacao, marcarNotifLida,
     solicitacoesVinculo,
     adicionarInscricao, excluirInscricao, atualizarInscricao,
