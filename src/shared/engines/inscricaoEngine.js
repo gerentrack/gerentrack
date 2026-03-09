@@ -125,22 +125,25 @@ export function calcularPrecoInscricao(atleta, catId, evento) {
       const equipeIds    = Array.isArray(regra.equipeIds) ? regra.equipeIds : [];
       const atletaEqId   = atleta?.equipeId || null;
       const temEquipeSel = !!(atletaEqId && equipeIds.includes(atletaEqId));
+      const temCbat      = !!(atleta?.cbat && String(atleta.cbat).trim() !== "");
+      const ehFederado   = temEquipeSel && temCbat;
 
-      if (temEquipeSel) {
+      if (ehFederado) {
         return {
           preco: regra.precoComEquipe ?? null,
           tipo:  "comEquipe",
           regra,
-          label: "Atleta com equipe selecionada",
+          label: "Atleta federado",
         };
       } else {
+        const motivo = !temEquipeSel && !temCbat ? "sem equipe selecionada e sem registro CBAt"
+          : !temEquipeSel ? (atletaEqId ? "equipe não selecionada" : "sem equipe")
+          : "sem registro CBAt";
         return {
           preco: regra.precoSemEquipe ?? null,
           tipo:  "semEquipe",
           regra,
-          label: atletaEqId
-            ? "Atleta de equipe não selecionada (tratado como sem equipe)"
-            : "Atleta sem equipe",
+          label: `Atleta não federado (${motivo})`,
         };
       }
     }

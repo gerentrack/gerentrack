@@ -915,12 +915,12 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                               <div style={{ display: "flex", justifyContent: "flex-end", gap: 4, marginTop: 3, flexWrap: "wrap" }}>
                                 {r.precoInfo.tipo === "comEquipe" && (
                                   <span style={{ fontSize: 10, background: "#0a200a", border: "1px solid #1a4a1a", color: "#4a9a4a", borderRadius: 4, padding: "1px 6px" }}>
-                                    🏛️ preço com equipe
+                                    🏛️ atleta federado
                                   </span>
                                 )}
                                 {r.precoInfo.tipo === "semEquipe" && (
                                   <span style={{ fontSize: 10, background: "#1a1a0a", border: "1px solid #4a4a1a", color: "#9a9a4a", borderRadius: 4, padding: "1px 6px" }}>
-                                    👤 preço sem equipe
+                                    👤 atleta não federado
                                   </span>
                                 )}
                                 {r.precoInfo.tipo === "global" && (

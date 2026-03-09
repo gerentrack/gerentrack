@@ -861,7 +861,7 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
           <div style={{ background:"#0a0a1a", border:"1px solid #1a2a3a", borderRadius:10, padding:"16px 20px", marginTop:24 }}>
             <div style={{ color:"#f0c040", fontWeight:700, fontSize:14, marginBottom:4 }}>💰 Preço de Inscrição por Categoria</div>
             <p style={{ color:"#666", fontSize:12, marginBottom:14, lineHeight:1.5 }}>
-              Opcional. Defina preços diferentes por categoria. Para cada regra, selecione as <strong style={{ color:"#ccc" }}>equipes com preço diferenciado</strong> — atletas de equipes não selecionadas (ou sem equipe) pagarão o <em>Preço sem equipe</em>.
+              Opcional. Defina preços diferentes por categoria. Para cada regra, selecione as <strong style={{ color:"#ccc" }}>equipes com preço diferenciado</strong> — atletas de equipes não selecionadas (ou sem equipe) pagarão o <em>Preço de atleta não federado</em>.
             </p>
 
             {(form.regrasPreco || []).map((regra, idx) => (
@@ -881,7 +881,7 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
                     </select>
                   </div>
                   <div style={{ flex:1, minWidth:130 }}>
-                    <label style={styles.label}>Preço c/ equipe (R$)</label>
+                    <label style={styles.label}>Atleta federado (R$)</label>
                     <input type="number" min="0" step="0.01"
                       style={{ ...styles.input, marginBottom:0 }}
                       placeholder="Ex: 45.00"
@@ -894,7 +894,7 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
                       }))} />
                   </div>
                   <div style={{ flex:1, minWidth:130 }}>
-                    <label style={styles.label}>Preço s/ equipe (R$)</label>
+                    <label style={styles.label}>Atleta não federado (R$)</label>
                     <input type="number" min="0" step="0.01"
                       style={{ ...styles.input, marginBottom:0 }}
                       placeholder="Ex: 65.00"
@@ -947,7 +947,7 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
                     </div>
                   )}
                   <p style={{ fontSize:10, color:"#555", marginTop:6, lineHeight:1.5 }}>
-                    💡 Atletas de equipes <strong>não</strong> selecionadas pagarão o preço "sem equipe".
+                    💡 Atletas de equipes <strong>não</strong> selecionadas pagarão o preço "atleta não federado".
                   </p>
                 </div>
               </div>
