@@ -146,41 +146,37 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
             onClick={() => setTemaClaro(false)}
             title="Modo escuro"
             style={{
-              background: !temaClaro ? "#1976D2" : "transparent",
+              background: !temaClaro ? "#252837" : "transparent",
               border: "none",
               borderRadius: 16,
               cursor: "pointer",
-              padding: "5px 14px",
-              fontSize: 13,
-              fontWeight: !temaClaro ? 700 : 400,
-              color: !temaClaro ? "#fff" : "#555",
+              padding: "4px 10px",
+              fontSize: 11,
+              color: !temaClaro ? "#ccc" : "#444",
               fontFamily: "'Barlow', sans-serif",
+              letterSpacing: 0.5,
               transition: "all 0.2s",
-              whiteSpace: "nowrap",
-              display: "flex", alignItems: "center", gap: 5,
             }}
           >
-            🌙
+            escuro
           </button>
           <button
             onClick={() => setTemaClaro(true)}
             title="Modo claro"
             style={{
-              background: temaClaro ? "#1976D2" : "transparent",
+              background: temaClaro ? "#252837" : "transparent",
               border: "none",
               borderRadius: 16,
               cursor: "pointer",
-              padding: "5px 14px",
-              fontSize: 13,
-              fontWeight: temaClaro ? 700 : 400,
-              color: temaClaro ? "#fff" : "#555",
+              padding: "4px 10px",
+              fontSize: 11,
+              color: temaClaro ? "#ccc" : "#444",
               fontFamily: "'Barlow', sans-serif",
+              letterSpacing: 0.5,
               transition: "all 0.2s",
-              whiteSpace: "nowrap",
-              display: "flex", alignItems: "center", gap: 5,
             }}
           >
-            ☀️
+            claro
           </button>
         </div>
       </div>
