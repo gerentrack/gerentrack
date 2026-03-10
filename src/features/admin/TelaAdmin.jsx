@@ -94,6 +94,7 @@ function TelaAdmin({
 
   // Org form (hoisted — não pode ser useState dentro de IIFE)
   const [showOrgForm, setShowOrgForm] = useState(false);
+  const [senhasVisiveis, setSenhasVisiveis] = useState(new Set()); // IDs de senhas reveladas
   const [formOrg,  setFormOrg]  = useState({ nome:"", email:"", senha:"", entidade:"", fone:"", cnpj:"" });
   const [errosOrg, setErrosOrg] = useState({});
   const [salvoOrg, setSalvoOrg] = useState(false);
@@ -299,10 +300,23 @@ function TelaAdmin({
                           <Td style={{ fontSize:11, color:"#aaa" }}>{sol.cpf||"—"}</Td>
                           <Td style={{ fontSize:11, color:"#666" }}>{new Date(sol.data).toLocaleString("pt-BR")}</Td>
                           <Td>
-                            <span style={{ fontFamily:"monospace", background:"#0a0b0e", border:"1px solid #1976D266",
-                              color:"#1976D2", padding:"2px 10px", borderRadius:4, fontWeight:700, letterSpacing:2, fontSize:13 }}>
-                              {sol.senhaTemp}
-                            </span>
+                            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                              <span style={{ fontFamily:"monospace", background:"#0a0b0e", border:"1px solid #1976D266",
+                                color:"#1976D2", padding:"2px 10px", borderRadius:4, fontWeight:700, letterSpacing:2, fontSize:13 }}>
+                                {senhasVisiveis.has(sol.id) ? sol.senhaTemp : "••••••••"}
+                              </span>
+                              <button
+                                onClick={() => setSenhasVisiveis(prev => {
+                                  const next = new Set(prev);
+                                  next.has(sol.id) ? next.delete(sol.id) : next.add(sol.id);
+                                  return next;
+                                })}
+                                style={{ background:"none", border:"none", cursor:"pointer", fontSize:14, color:"#666", padding:"0 2px" }}
+                                title={senhasVisiveis.has(sol.id) ? "Ocultar senha" : "Revelar senha"}
+                              >
+                                {senhasVisiveis.has(sol.id) ? "🙈" : "👁️"}
+                              </button>
+                            </div>
                           </Td>
                           <Td>
                             <button onClick={async () => {
