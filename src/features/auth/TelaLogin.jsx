@@ -110,24 +110,36 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
     setErro("");
     if (!ident || !senha) { setErro("Preencha o identificador e a senha."); return; }
     const identTrimmed = ident.trim().toLowerCase();
+
+    // ── Admin: autenticação 100% via Firebase Auth ───────────────────────────
+    // Sem comparação local de senha — Firebase gerencia a credencial
     const adminIdents = [adminConfig.email.toLowerCase(), "admin"];
-    if (adminIdents.includes(identTrimmed) && senha === adminConfig.senha) {
-      login({ tipo:"admin", nome:adminConfig.nome, email:adminConfig.email });
+    if (adminIdents.includes(identTrimmed)) {
+      setLoading(true);
+      try {
+        await signInWithEmailAndPassword(auth, adminConfig.email, senha);
+        login({ tipo:"admin", nome:adminConfig.nome, email:adminConfig.email });
+      } catch (err) {
+        if (err.code === "auth/too-many-requests") {
+          setErro("Muitas tentativas. Aguarde alguns minutos e tente novamente.");
+        } else {
+          setErro("Senha incorreta.");
+        }
+      } finally { setLoading(false); }
       return;
     }
 
-    // 1. Verificar senha local primeiro (evita erros 400 no console para usuários sem conta Firebase)
+    // ── Demais usuários: verificar senha local primeiro ──────────────────────
     const todos = [...organizadores, ...funcionarios, ...equipes, ...treinadores, ...atletasUsuarios];
     const matchLocal = todos.find(u => matchIdent(u) && u.senha === senha);
 
     if (matchLocal) {
-      // Login local válido → autenticar direto, sem chamar Firebase Auth
       const perfis = buscarPerfis();
       finalizarLogin(perfis);
       return;
     }
 
-    // 2. Sem senha local → tentar Firebase Auth (usuários que criaram conta pelo app)
+    // ── Fallback: Firebase Auth (usuários que criaram conta pelo app) ─────────
     const emailParaAuth = encontrarEmail();
     if (!emailParaAuth) { setErro("E-mail, CPF ou CNPJ não encontrado."); return; }
     setLoading(true);

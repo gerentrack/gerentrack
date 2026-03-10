@@ -127,16 +127,18 @@ function App() {
   const [tela, _setTela] = useState("home");
 
   const [usuarioLogado, setUsuarioLogado] = useLocalOnly("atl_usuario", null);
-  const [auditoria, setAuditoria] = useLocalStorage("atl_auditoria", []);
-  const [organizadores, setOrganizadores] = useLocalStorage("atl_organizadores", []);
-  const [atletasUsuarios, setAtletasUsuarios] = useLocalStorage("atl_atletas_usuarios", []);
-  const [funcionarios,       setFuncionarios]       = useLocalStorage("atl_funcionarios",    []);
-  const [treinadores,        setTreinadores]        = useLocalStorage("atl_treinadores",    []); // treinadores vinculados a equipes
-  const [solicitacoesVinculo, setSolicitacoesVinculo] = useLocalStorage("atl_vinculo_sol",   []);
-  useStorageSync("atl_vinculo_sol", setSolicitacoesVinculo);
-  const [notificacoes,        setNotificacoes]        = useLocalStorage("atl_notificacoes", []);
-  const [historicoAcoes,  setHistoricoAcoes]  = useLocalStorage("atl_historico",       []);
-  const [solicitacoesRecuperacao, setSolicitacoesRecuperacao] = useLocalStorage("atl_recuperacao", []);
+  const [auditoria, setAuditoria] = useLocalOnly("atl_auditoria", []);
+  // ⚠️ SEGURANÇA: useLocalOnly — estes dados contêm senhas e CPFs.
+  // Nunca devem ser sincronizados no Firestore via useLocalStorage.
+  const [organizadores, setOrganizadores] = useLocalOnly("atl_organizadores", []);
+  const [atletasUsuarios, setAtletasUsuarios] = useLocalOnly("atl_atletas_usuarios", []);
+  const [funcionarios,       setFuncionarios]       = useLocalOnly("atl_funcionarios",    []);
+  const [treinadores,        setTreinadores]        = useLocalOnly("atl_treinadores",    []); // treinadores vinculados a equipes
+  // ⚠️ Arrays grandes — useLocalOnly evita limite de 1MB do Firestore
+  const [solicitacoesVinculo, setSolicitacoesVinculo] = useLocalOnly("atl_vinculo_sol",   []);
+  const [notificacoes,        setNotificacoes]        = useLocalOnly("atl_notificacoes", []);
+  const [historicoAcoes,  setHistoricoAcoes]  = useLocalOnly("atl_historico",       []);
+  const [solicitacoesRecuperacao, setSolicitacoesRecuperacao] = useLocalOnly("atl_recuperacao", []);
 
   // Multi-evento: cada evento tem { id, nome, data, local, permissividadeNorma, provasPrograma: Set de provaIds }
   const [eventos, setEventos] = useLocalStorage("atl_eventos", []);
@@ -165,11 +167,12 @@ function App() {
   // ── Multi-Organizador: perfis disponíveis após login ──
   const [perfisDisponiveis, setPerfisDisponiveis] = useLocalOnly("atl_perfis_disponiveis", []);
 
-  // ── Admin Config (synced via Firestore) ──
-  const [adminConfig, setAdminConfig] = useLocalStorage("gt_admin_config", {
+  // ⚠️ SEGURANÇA: senha do admin gerenciada pelo Firebase Auth.
+  // adminConfig guarda apenas email/nome — sem senha local.
+  const [adminConfig, setAdminConfig] = useLocalOnly("gt_admin_config", {
     email: "gerentrack@gmail.com",
     nome: "Administrador",
-    senha: "admin123"
+    configurado: true, // Firebase Auth é a fonte de verdade
   });
   // Migrar chaves antigas individuais (se existirem)
   useEffect(() => {
@@ -239,7 +242,7 @@ function App() {
   const login = (dados) => {
     setUsuarioLogado(dados);
     registrarAcao(dados.id, dados.nome, "Login", `${dados.tipo}`, dados.organizadorId || null, { equipeId: dados.equipeId, modulo: "auth" });
-    if (dados.tipo === "admin")             setTela("admin");
+    if (dados.tipo === "admin") setTela("admin");
     else if (dados.tipo === "atleta")       { setEventoAtualId(null); setTela("painel-atleta"); }
     else if (dados.tipo === "organizador")  setTela("painel-organizador");
     else if (dados.tipo === "funcionario")  setTela("painel-organizador");
@@ -444,7 +447,13 @@ function App() {
     setSolicitacoesRecuperacao(p => p.map(s => s.id === id ? {...s, status:"resolvido"} : s));
   const atualizarSenha = async (tipo, userId, novaSenha) => {
     if (tipo === "admin") {
-      setAdminConfig(prev => ({ ...prev, senha: novaSenha }));
+      // Senha do admin é gerenciada pelo Firebase Auth — não salva localmente
+      try {
+        const currentUser = auth.currentUser;
+        if (currentUser && novaSenha) await updatePassword(currentUser, novaSenha);
+      } catch(e) {
+        console.error("Erro ao atualizar senha admin no Firebase Auth:", e);
+      }
       setUsuarioLogado(u => u ? {...u, senhaTemporaria: false} : u);
       return;
     }
@@ -774,7 +783,7 @@ function App() {
     setPendenciasRecorde([]);
     setHistoricoRecordes([]);
     setPerfisDisponiveis([]);
-    setAdminConfig({ email: "gerentrack@gmail.com", nome: "Administrador", senha: "admin123" });
+    setAdminConfig(prev => ({ ...prev, configurado: true }));
     registrarAcao(usuarioLogado?.id || "system", usuarioLogado?.nome || "Sistema", "Limpou todos os dados", "Reset completo do sistema", null, { modulo: "sistema" });
   };
 
@@ -1070,7 +1079,8 @@ function App() {
     recordes, setRecordes,
     pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes,
     siteBranding, setSiteBranding, gtIcon, gtLogo, gtNome, gtSlogan,
-    adminConfig, setAdminConfig,
+    // ⚠️ SEGURANÇA: adminConfig removido do spread global.
+    // Injetado explicitamente apenas em TelaLogin, TelaConfiguracoes e TelaAdmin.
   };
 
   
@@ -1080,14 +1090,14 @@ function App() {
       <Header {...props} />
       <main style={styles.main}>
         {tela === "home"                  && <TelaHome {...props} />}
-        {tela === "login"                 && <TelaLogin {...props} />}
+        {tela === "login"                 && <TelaLogin {...props} adminConfig={adminConfig} />}
         {tela === "cadastro-equipe"    && <TelaCadastroEquipe {...props} />}
         {tela === "cadastro-organizador"  && <TelaCadastroOrganizador {...props} />}
         {tela === "cadastro-atleta-login" && <TelaCadastroAtletaLogin {...props} />}
         {tela === "recuperar-senha"        && <TelaRecuperacaoSenha {...props} />}
         {tela === "trocar-senha"           && <TelaTrocarSenha {...props} />}
         {tela === "selecionar-perfil"      && <TelaSelecaoPerfil {...props} />}
-        {tela === "configuracoes"          && <TelaConfiguracoes {...props} />}
+        {tela === "configuracoes"          && <TelaConfiguracoes {...props} adminConfig={adminConfig} setAdminConfig={setAdminConfig} />}
         {tela === "painel"                && <TelaPainel {...props} />}
         {tela === "painel-organizador"    && <TelaPainelOrganizador {...props} />}
         {tela === "funcionarios"          && <TelaFuncionarios {...props} />}
@@ -1124,7 +1134,7 @@ function App() {
         {tela === "sumulas"           && usuarioLogado && <TelaSumulas {...props} />}
         {tela === "resultados"        && <TelaResultados {...props} />}
         {tela === "recordes"          && <TelaRecordes {...props} />}
-        {tela === "admin"             && <TelaAdmin {...props} />}
+        {tela === "admin"             && <TelaAdmin {...props} adminConfig={adminConfig} setAdminConfig={setAdminConfig} />}
         {tela === "gerenciar-equipes" && <TelaGerenciarEquipes {...props} />}
         {tela === "gerenciar-usuarios" && <TelaGerenciarUsuarios {...props} />}
         {tela === "importar-atletas"  && <TelaImportarAtletas {...props} />}

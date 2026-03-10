@@ -160,14 +160,8 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
     if (tipoUsuario === "organizadores") return organizadores;
     if (tipoUsuario === "equipes") return equipes;
     if (tipoUsuario === "atletas") {
-      // Combina atletasUsuarios (com login) + atletas base (sem login) evitando duplicatas
-      const comConta = atletasUsuarios.map(au => ({ ...au, _temConta: true }));
-      const idsComConta = new Set(atletasUsuarios.map(au => au.id));
-      const cpfsComConta = new Set(atletasUsuarios.filter(au => au.cpf).map(au => au.cpf.replace(/\D/g, '')));
-      const semConta = atletas
-        .filter(a => !idsComConta.has(a.atletaUsuarioId) && !(a.cpf && cpfsComConta.has(a.cpf.replace(/\D/g, ''))))
-        .map(a => ({ ...a, _temConta: false, _atletaBase: true }));
-      return [...comConta, ...semConta];
+      // Apenas atletas com login (atletasUsuarios)
+      return atletasUsuarios.map(au => ({ ...au, _temConta: true }));
     }
     return [];
   };

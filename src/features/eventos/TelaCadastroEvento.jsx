@@ -233,6 +233,7 @@ function RichTextEditor({ value, onChange, placeholder }) {
   );
 }
 
+
 // ─── CADASTRO / EDIÇÃO DE EVENTO ─────────────────────────────────────────────
 function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtual, eventoAtualId, selecionarEvento, usuarioLogado, organizadores, recordes, equipes = [] }) {
   const editando = eventoAtual && eventoAtualId && true;
@@ -271,16 +272,14 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
       programaHorario: {},
       programaPausa: { horario: "", retorno: "", descricao: "" },
       organizadorId: usuarioLogado?.tipo === "organizador" ? usuarioLogado.id : "",
-      orgsAutorizadas: [], // Etapa 5: organizadores cujos atletas podem participar (participação cruzada)
+      orgsAutorizadas: [],
     };
-    // Garante que campos de data existam mesmo em eventos antigos
     if (!("dataAberturaInscricoes" in base)) base.dataAberturaInscricoes = "";
     if (!("horaAberturaInscricoes" in base)) base.horaAberturaInscricoes = "";
     if (!("dataEncerramentoInscricoes" in base)) base.dataEncerramentoInscricoes = "";
     if (!("horaEncerramentoInscricoes" in base)) base.horaEncerramentoInscricoes = "";
     if (!("descricao" in base)) base.descricao = "";
-    if (!("orgsAutorizadas" in base)) base.orgsAutorizadas = []; // Etapa 5: participação cruzada
-    // Migrar formato antigo (horariosProvas + fasesProvas) para programaHorario
+    if (!("orgsAutorizadas" in base)) base.orgsAutorizadas = [];
     if (!("programaHorario" in base)) {
       const prog = {};
       const oldH = base.horariosProvas || {};
@@ -292,21 +291,28 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
       base.programaHorario = prog;
     }
     if (!("programaPausa" in base)) base.programaPausa = { horario: "", retorno: "", descricao: "" };
-    // ── Etapa 2: campos de precificação e limites por categoria ──
     if (!("limitesProvasCat"    in base)) base.limitesProvasCat    = {};
     if (!("usarLimiteCat"       in base)) base.usarLimiteCat       = false;
     if (!("regrasPreco"         in base)) base.regrasPreco         = [];
+    if (!("equipeIdsFederados"  in base)) base.equipeIdsFederados  = [];
     if (!("valorInscricao"      in base)) base.valorInscricao      = "";
     if (!("formaPagamento"      in base)) base.formaPagamento      = "";
     if (!("orientacaoPagamento" in base)) base.orientacaoPagamento = "";
     return base;
   });
   const [erros, setErros] = useState({});
-  const [step, setStep] = useState(1); // 1: dados básicos, 2: programa de provas
+  // Steps: 1=Dados | 2=Configurações | 3=Provas | 4=Horários (editing only)
+  const [step, setStep] = useState(1);
+  // Acordeões do step 2
+  const [acordeoes, setAcordeoes] = useState({ limites: false, precos: false, logos: false });
+  const toggleAcordeo = (key) => setAcordeoes(a => ({ ...a, [key]: !a[key] }));
 
-  // Callback para navegação direta ao step 3 (Programa Horário)
+  // Número total de steps
+  const totalSteps = editando ? 4 : 3;
+
+  // Callback para navegação direta ao step de Horários (step 4 ao editar)
   useEffect(() => {
-    window.__gerenTrackGoStep3 = () => { if (editando) setStep(3); };
+    window.__gerenTrackGoStep3 = () => { if (editando) setStep(4); };
     return () => { delete window.__gerenTrackGoStep3; };
   }, [editando]);
 
@@ -323,7 +329,6 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
   };
 
   const toggleGrupo = (grupo, provasGrupoFiltradas) => {
-    // usa as provas filtradas passadas pelo filho, ou o grupo completo
     const provasGrupo = provasGrupoFiltradas || todasProvas.filter((p) => p.grupo === grupo);
     const todasSel = provasGrupo.every((p) => form.provasPrograma.includes(p.id));
     setForm((f) => ({
@@ -352,7 +357,6 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
     if (!dadosParaSalvar.horaAberturaInscricoes) delete dadosParaSalvar.horaAberturaInscricoes;
     if (!dadosParaSalvar.dataEncerramentoInscricoes) delete dadosParaSalvar.dataEncerramentoInscricoes;
     if (!dadosParaSalvar.horaEncerramentoInscricoes) delete dadosParaSalvar.horaEncerramentoInscricoes;
-    
     if (editando) {
       editarEvento(dadosParaSalvar);
       selecionarEvento(dadosParaSalvar.id);
@@ -362,48 +366,111 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
     }
   };
 
+  // ── Resumos para acordeões ──────────────────────────────────────────────────
+  const resumoLimites = (() => {
+    const ind = form.limiteProvasIndividual || 0;
+    const rev = form.limiteProvasRevezamento || 0;
+    if (!ind && !rev) return "Sem limite definido";
+    const partes = [];
+    if (ind) partes.push(`Máx. ${ind} individual`);
+    if (rev) partes.push(`${rev} revezamento`);
+    return partes.join(" · ");
+  })();
+
+  const resumoPrecos = (() => {
+    const n = (form.regrasPreco || []).filter(r => r.catId).length;
+    const tem = form.valorInscricao || form.formaPagamento;
+    if (!n && !tem) return "Não configurado";
+    const partes = [];
+    if (n) partes.push(`${n} regra(s) por categoria`);
+    if (form.valorInscricao) partes.push(`R$ ${Number(form.valorInscricao).toFixed(2)} global`);
+    if (form.formaPagamento) partes.push(form.formaPagamento);
+    return partes.join(" · ");
+  })();
+
+  const resumoLogos = (() => {
+    const n = [form.logoCompeticao, form.logoCabecalho, form.logoCabecalhoDireito, form.logoRodape].filter(Boolean).length;
+    return n === 0 ? "Nenhuma imagem carregada" : `${n} imagem(ns) carregada(s) ✓`;
+  })();
+
+  // ── Componente acordeão inline ──────────────────────────────────────────────
+  const Acordeao = ({ keyName, titulo, icone, resumo, children }) => {
+    const aberto = acordeoes[keyName];
+    return (
+      <div style={{ background:"#0a0a1a", border:`1px solid ${aberto ? "#1976D244" : "#1a2a3a"}`, borderRadius:10, marginBottom:12, overflow:"hidden", transition:"border-color 0.2s" }}>
+        <button type="button" onClick={() => toggleAcordeo(keyName)}
+          style={{ width:"100%", background:"transparent", border:"none", padding:"14px 18px", display:"flex", justifyContent:"space-between", alignItems:"center", cursor:"pointer", textAlign:"left", gap:12 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10, flex:1, minWidth:0 }}>
+            <span style={{ fontSize:18 }}>{icone}</span>
+            <span style={{ color:"#1976D2", fontWeight:700, fontSize:14 }}>{titulo}</span>
+            {!aberto && <span style={{ color:"#555", fontSize:12, marginLeft:4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{resumo}</span>}
+          </div>
+          <span style={{ color:"#555", fontSize:14, flexShrink:0, transform: aberto ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s", display:"inline-block" }}>▾</span>
+        </button>
+        {aberto && (
+          <div style={{ padding:"0 18px 18px" }}>
+            {children}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div style={styles.page}>
       <div style={styles.painelHeader}>
         <div>
           <h1 style={styles.pageTitle}>{editando ? "✏️ Editar Competição" : "🏟 Nova Competição"}</h1>
           <p style={{ color: "#666", fontSize: 14 }}>
-            {step === 1 ? `Passo 1 de ${editando ? 3 : 2} — Dados da competição` : step === 2 ? `Passo 2 de ${editando ? 3 : 2} — Programa de provas` : "Passo 3 de 3 — Programa horário"}
+            {step === 1 ? `Passo 1 de ${totalSteps} — Dados da competição`
+              : step === 2 ? `Passo 2 de ${totalSteps} — Configurações`
+              : step === 3 ? `Passo 3 de ${totalSteps} — Programa de provas`
+              : `Passo 4 de ${totalSteps} — Programa horário`}
           </p>
         </div>
         <button style={styles.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
       </div>
 
+      {/* ── Barra de steps ── */}
       <div style={styles.stepBar}>
         <div style={styles.stepItem(step >= 1)}>① Dados</div>
         <div style={styles.stepDivider} />
-        <div style={styles.stepItem(step >= 2)}>② Provas</div>
+        <div style={styles.stepItem(step >= 2)}>② Config</div>
+        <div style={styles.stepDivider} />
+        <div style={styles.stepItem(step >= 3)}>③ Provas</div>
         {editando && <>
           <div style={styles.stepDivider} />
-          <div style={styles.stepItem(step >= 3)}>③ Horários</div>
+          <div style={styles.stepItem(step >= 4)}>④ Horários</div>
         </>}
       </div>
 
+      {/* ══════════════════════════════════════════════════════════════════
+          STEP 1 — DADOS ESSENCIAIS
+      ══════════════════════════════════════════════════════════════════ */}
       {step === 1 && (
         <>
-        <div style={styles.formCard}>
-          <div style={styles.grid2form}>
+          <div style={styles.formCard}>
+            {/* Nome */}
             <div style={{ gridColumn: "1 / -1" }}>
               <FormField label="Nome da Competição *" value={form.nome} onChange={(v) => setForm({ ...form, nome: v })} placeholder="Ex: Competição Estadual de Atletismo 2025" error={erros.nome} />
             </div>
-            <FormField label="Data *" value={form.data} onChange={(v) => setForm({ ...form, data: v })} type="date" error={erros.data} />
-            <div style={{ display:"flex", gap:12 }}>
-              <div style={{ flex:1 }}>
-                <FormField label="Local / Instalação *" value={form.local} onChange={(v) => setForm({ ...form, local: v })} placeholder="Ex: Estádio Olímpico Municipal" error={erros.local} />
-              </div>
+
+            {/* Data + Hora */}
+            <div style={styles.grid2form}>
+              <FormField label="Data *" value={form.data} onChange={(v) => setForm({ ...form, data: v })} type="date" error={erros.data} />
               <div style={{ width:130 }}>
                 <label style={styles.label}>Hora de Início</label>
                 <input type="time" style={styles.input} value={form.horaInicio || ""}
                   onChange={(e) => setForm({ ...form, horaInicio: e.target.value })} />
               </div>
             </div>
-            <div style={{ display:"flex", gap:12 }}>
-              <div style={{ flex:1 }}>
+
+            {/* Local + Cidade + UF */}
+            <div style={{ display:"flex", gap:12, flexWrap:"wrap" }}>
+              <div style={{ flex:2, minWidth:200 }}>
+                <FormField label="Local / Instalação *" value={form.local} onChange={(v) => setForm({ ...form, local: v })} placeholder="Ex: Estádio Olímpico Municipal" error={erros.local} />
+              </div>
+              <div style={{ flex:1, minWidth:150 }}>
                 <FormField label="Cidade *" value={form.cidade || ""} onChange={(v) => setForm({ ...form, cidade: v })} placeholder="Ex: Belo Horizonte" error={erros.cidade} />
               </div>
               <div style={{ width:100 }}>
@@ -416,29 +483,29 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
                 {erros.uf && <span style={{ color:"#e57373", fontSize:11 }}>{erros.uf}</span>}
               </div>
             </div>
+
+            {/* Organizador vinculado */}
+            {(tipoEvt === "admin" || tipoEvt === "funcionario") && (
+              <div style={{ marginTop: 8 }}>
+                <label style={styles.label}>Organizador Responsável *</label>
+                <select style={styles.select} value={form.organizadorId || ""}
+                  onChange={(e) => setForm({ ...form, organizadorId: e.target.value })}>
+                  <option value="">— Selecione o organizador —</option>
+                  {(organizadores || []).map(function(org) {
+                    return <option key={org.id} value={org.id}>{org.nome}{org.entidade ? " — " + org.entidade : ""}</option>;
+                  })}
+                </select>
+                {erros.organizadorId && <span style={{ color: "#ff6b6b", fontSize: 12 }}>{erros.organizadorId}</span>}
+                <p style={{ color: "#666", fontSize: 12, marginTop: 6 }}>
+                  💡 Selecione a qual organizador esta competição será vinculada.
+                </p>
+              </div>
+            )}
           </div>
 
-          {/* Organizador vinculado */}
-          {(tipoEvt === "admin" || tipoEvt === "funcionario") && (
-            <div style={{ marginTop: 16, marginBottom: 16 }}>
-              <label style={styles.label}>Organizador Responsável *</label>
-              <select style={styles.select} value={form.organizadorId || ""}
-                onChange={(e) => setForm({ ...form, organizadorId: e.target.value })}>
-                <option value="">— Selecione o organizador —</option>
-                {(organizadores || []).map(function(org) {
-                  return <option key={org.id} value={org.id}>{org.nome}{org.entidade ? " — " + org.entidade : ""}</option>;
-                })}
-              </select>
-              {erros.organizadorId && <span style={{ color: "#ff6b6b", fontSize: 12 }}>{erros.organizadorId}</span>}
-              <p style={{ color: "#666", fontSize: 12, marginTop: 6 }}>
-                💡 Selecione a qual organizador esta competição será vinculada.
-              </p>
-            </div>
-          )}
-
-          {/* ── Etapa 5: Participação Cruzada — Organizadores Autorizados ── */}
+          {/* ── Participação Cruzada (admin only) ── */}
           {tipoEvt === "admin" && (organizadores || []).filter(o => o.id !== form.organizadorId && o.status === "aprovado").length > 0 && (
-            <div style={{ background:"#0a0f1a", border:"1px solid #1a3a5a", borderRadius:10, padding:"16px 20px", marginTop:16, marginBottom:16 }}>
+            <div style={{ background:"#0a0f1a", border:"1px solid #1a3a5a", borderRadius:10, padding:"16px 20px", marginBottom:16 }}>
               <div style={{ color:"#5599ff", fontWeight:700, fontSize:14, marginBottom:8 }}>🤝 Participação Cruzada entre Organizadores</div>
               <p style={{ color:"#666", fontSize:12, marginBottom:12, lineHeight:1.6 }}>
                 Selecione os organizadores cujos atletas poderão se inscrever nesta competição.<br/>
@@ -478,39 +545,17 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
             </div>
           )}
 
-          {/* Datas de inscrição */}
-          <div style={{ background:"#0a0a1a", border:"1px solid #1a2a3a", borderRadius:10, padding:"16px 20px", marginTop:16, marginBottom:16 }}>
+          {/* ── Período de Inscrições ── */}
+          <div style={{ background:"#0a0a1a", border:"1px solid #1a2a3a", borderRadius:10, padding:"16px 20px", marginBottom:16 }}>
             <div style={{ color:"#1976D2", fontWeight:700, fontSize:14, marginBottom:12 }}>📅 Período de Inscrições</div>
             <div style={styles.grid2form}>
               <div>
-                <FormField
-                  label="Abertura das Inscrições"
-                  value={form.dataAberturaInscricoes || ""}
-                  onChange={(v) => setForm({ ...form, dataAberturaInscricoes: v })}
-                  type="date"
-                />
-                <FormField
-                  label="Hora de Abertura"
-                  value={form.horaAberturaInscricoes || ""}
-                  onChange={(v) => setForm({ ...form, horaAberturaInscricoes: v })}
-                  type="time"
-                  placeholder="HH:MM (opcional)"
-                />
+                <FormField label="Abertura das Inscrições" value={form.dataAberturaInscricoes || ""} onChange={(v) => setForm({ ...form, dataAberturaInscricoes: v })} type="date" />
+                <FormField label="Hora de Abertura" value={form.horaAberturaInscricoes || ""} onChange={(v) => setForm({ ...form, horaAberturaInscricoes: v })} type="time" placeholder="HH:MM (opcional)" />
               </div>
               <div>
-                <FormField
-                  label="Encerramento das Inscrições"
-                  value={form.dataEncerramentoInscricoes || ""}
-                  onChange={(v) => setForm({ ...form, dataEncerramentoInscricoes: v })}
-                  type="date"
-                />
-                <FormField
-                  label="Hora de Encerramento"
-                  value={form.horaEncerramentoInscricoes || ""}
-                  onChange={(v) => setForm({ ...form, horaEncerramentoInscricoes: v })}
-                  type="time"
-                  placeholder="HH:MM (opcional)"
-                />
+                <FormField label="Encerramento das Inscrições" value={form.dataEncerramentoInscricoes || ""} onChange={(v) => setForm({ ...form, dataEncerramentoInscricoes: v })} type="date" />
+                <FormField label="Hora de Encerramento" value={form.horaEncerramentoInscricoes || ""} onChange={(v) => setForm({ ...form, horaEncerramentoInscricoes: v })} type="time" placeholder="HH:MM (opcional)" />
               </div>
             </div>
             <p style={{ color:"#666", fontSize:12, marginTop:8, lineHeight:1.5 }}>
@@ -519,8 +564,8 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
             </p>
           </div>
 
-          {/* Descrição / Informações */}
-          <div style={{ background:"#0a0a1a", border:"1px solid #1a2a3a", borderRadius:10, padding:"16px 20px", marginTop:16, marginBottom:16 }}>
+          {/* ── Descrição ── */}
+          <div style={{ background:"#0a0a1a", border:"1px solid #1a2a3a", borderRadius:10, padding:"16px 20px", marginBottom:16 }}>
             <div style={{ color:"#1976D2", fontWeight:700, fontSize:14, marginBottom:12 }}>📝 Informações da Competição</div>
             <RichTextEditor
               value={form.descricao || ""}
@@ -532,68 +577,92 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
             </p>
           </div>
 
-          <div style={styles.permissividadeBox}>
-            <div style={styles.permissividadeHeader}>
-              <label style={styles.permissividadeLabel}>
+          <button style={{ ...styles.btnPrimary, marginTop: 8 }} onClick={() => { if (validarStep1()) setStep(2); }}>
+            Próximo: Configurações →
+          </button>
+        </>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════
+          STEP 2 — CONFIGURAÇÕES
+      ══════════════════════════════════════════════════════════════════ */}
+      {step === 2 && (
+        <>
+          {/* ── Regras de Participação (3 checkboxes agrupados) ── */}
+          <div style={{ background:"#0E1016", border:"1px solid #1E2130", borderRadius:12, padding:"20px 24px", marginBottom:16 }}>
+            <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:18, fontWeight:700, color:"#1976D2", marginBottom:4 }}>
+              📋 Regras de Participação
+            </div>
+            <p style={{ fontSize:12, color:"#666", marginBottom:18 }}>
+              Defina as permissões especiais de inscrição para esta competição.
+            </p>
+
+            {/* Checkbox 1 — Exceção de norma CBAt */}
+            <div style={{ borderBottom:"1px solid #1a1d2a", paddingBottom:14, marginBottom:14 }}>
+              <label style={{ display:"flex", alignItems:"flex-start", gap:12, cursor:"pointer" }}>
                 <input type="checkbox" checked={form.permissividadeNorma}
                   onChange={(e) => setForm({ ...form, permissividadeNorma: e.target.checked })}
-                  style={{ width: 18, height: 18, accentColor: "#1976D2", cursor: "pointer", marginRight: 10, flexShrink: 0 }} />
-                <span>Permitir participação por <strong>exceção de norma CBAt</strong></span>
+                  style={{ width:18, height:18, accentColor:"#1976D2", cursor:"pointer", flexShrink:0, marginTop:2 }} />
+                <div>
+                  <div style={{ fontWeight:700, color:"#ddd", fontSize:14 }}>Exceção de norma CBAt</div>
+                  <div style={{ color:"#666", fontSize:12, marginTop:3, lineHeight:1.5 }}>
+                    Atletas nestas idades poderão se inscrever na categoria superior:&nbsp;
+                    <strong style={{ color:"#1976D2" }}>13 anos</strong> → Sub-16 &nbsp;·&nbsp;
+                    <strong style={{ color:"#1976D2" }}>15 anos</strong> → Sub-18
+                    <span style={{ display:"block", marginTop:4, fontStyle:"italic", color:"#555" }}>
+                      ⚠️ A categoria oficial do atleta não é alterada. A inscrição será marcada como participação excepcional.
+                    </span>
+                  </div>
+                </div>
               </label>
             </div>
-            <div style={styles.permissividadeInfo}>
-              <p style={{ marginBottom: 6 }}>Quando ativado, atletas nestas idades poderão se inscrever na categoria superior:</p>
-              <ul style={{ paddingLeft: 18, lineHeight: 1.8, color: "#aaa", fontSize: 13 }}>
-                <li><strong style={{ color: "#1976D2" }}>11 anos</strong> → Sub-14 &nbsp;·&nbsp; <strong style={{ color: "#1976D2" }}>13 anos</strong> → Sub-16 &nbsp;·&nbsp; <strong style={{ color: "#1976D2" }}>15 anos</strong> → Sub-18</li>
-              </ul>
-              <p style={{ marginTop: 6, fontSize: 12, color: "#666", fontStyle: "italic" }}>
-                ⚠️ A categoria oficial do atleta não é alterada. A inscrição será marcada como participação excepcional.
-              </p>
-            </div>
-          </div>
 
-          <div style={styles.permissividadeBox}>
-            <div style={styles.permissividadeHeader}>
-              <label style={styles.permissividadeLabel}>
+            {/* Checkbox 2 — Atletas 16+ em categorias superiores */}
+            <div style={{ borderBottom:"1px solid #1a1d2a", paddingBottom:14, marginBottom:14 }}>
+              <label style={{ display:"flex", alignItems:"flex-start", gap:12, cursor:"pointer" }}>
                 <input type="checkbox" checked={form.permiteSub16CategoriasSup || false}
                   onChange={(e) => setForm({ ...form, permiteSub16CategoriasSup: e.target.checked })}
-                  style={{ width: 18, height: 18, accentColor: "#7cfc7c", cursor: "pointer", marginRight: 10, flexShrink: 0 }} />
-                <span>Permitir <strong>atletas 16+</strong> em categorias superiores</span>
+                  style={{ width:18, height:18, accentColor:"#7cfc7c", cursor:"pointer", flexShrink:0, marginTop:2 }} />
+                <div>
+                  <div style={{ fontWeight:700, color:"#ddd", fontSize:14 }}>Atletas 16+ em categorias superiores</div>
+                  <div style={{ color:"#666", fontSize:12, marginTop:3, lineHeight:1.5 }}>
+                    Permite que atletas com 16 anos ou mais se inscrevam em categorias superiores à sua categoria de origem.
+                    {form.permiteSub16CategoriasSup && (
+                      <span style={{ display:"block", marginTop:4, color:"#aaa" }}>
+                        <strong style={{ color:"#7cfc7c" }}>16-17 anos</strong> → Sub-20, Sub-23 ou Adulto &nbsp;·&nbsp;
+                        <strong style={{ color:"#7cfc7c" }}>18-19 anos</strong> → Sub-23 ou Adulto &nbsp;·&nbsp;
+                        <strong style={{ color:"#7cfc7c" }}>20-22 anos</strong> → Adulto
+                      </span>
+                    )}
+                    <span style={{ display:"block", marginTop:4, fontStyle:"italic", color:"#555" }}>
+                      ⚠️ A categoria oficial registrada no sistema permanece como a categoria de origem do atleta.
+                    </span>
+                  </div>
+                </div>
               </label>
             </div>
-            <div style={styles.permissividadeInfo}>
-              <p style={{ marginBottom: 6 }}>Quando ativado, atletas com <strong>16 anos ou mais</strong> poderão se inscrever em categorias superiores à sua categoria de origem:</p>
-              <ul style={{ paddingLeft: 18, lineHeight: 1.8, color: "#aaa", fontSize: 13 }}>
-                <li><strong style={{ color: "#7cfc7c" }}>16-17 anos (Sub-18)</strong> → podem competir em Sub-20, Sub-23 ou Adulto</li>
-                <li><strong style={{ color: "#7cfc7c" }}>18-19 anos (Sub-20)</strong> → podem competir em Sub-23 ou Adulto</li>
-                <li><strong style={{ color: "#7cfc7c" }}>20-22 anos (Sub-23)</strong> → podem competir em Adulto</li>
-              </ul>
-              <p style={{ marginTop: 6, fontSize: 12, color: "#666", fontStyle: "italic" }}>
-                ⚠️ A categoria oficial registrada no sistema permanece como a categoria de origem do atleta (baseada na idade). Esta opção apenas permite inscrição em provas de categorias superiores.
-              </p>
-            </div>
-          </div>
 
-          <div style={styles.permissividadeBox}>
-            <div style={styles.permissividadeHeader}>
-              <label style={styles.permissividadeLabel}>
+            {/* Checkbox 3 — Inscrição antecipada de revezamentos */}
+            <div>
+              <label style={{ display:"flex", alignItems:"flex-start", gap:12, cursor:"pointer" }}>
                 <input type="checkbox" checked={form.revezamentoInscAntecipada ?? true}
                   onChange={(e) => setForm({ ...form, revezamentoInscAntecipada: e.target.checked })}
-                  style={{ width: 18, height: 18, accentColor: "#5dade2", cursor: "pointer", marginRight: 10, flexShrink: 0 }} />
-                <span>Permitir <strong>inscrição antecipada de revezamentos</strong></span>
+                  style={{ width:18, height:18, accentColor:"#5dade2", cursor:"pointer", flexShrink:0, marginTop:2 }} />
+                <div>
+                  <div style={{ fontWeight:700, color:"#ddd", fontSize:14 }}>Inscrição antecipada de revezamentos</div>
+                  <div style={{ color:"#666", fontSize:12, marginTop:3, lineHeight:1.5 }}>
+                    Quando ativado, <strong>equipes e treinadores</strong> podem inscrever equipes de revezamento junto com as inscrições individuais (antes da competição).
+                    <span style={{ display:"block", marginTop:4, fontStyle:"italic", color:"#555" }}>
+                      ⚠️ Se desativado, revezamentos só poderão ser inscritos por <strong>organizadores, funcionários ou admins</strong> — normalmente no dia do evento.
+                    </span>
+                  </div>
+                </div>
               </label>
-            </div>
-            <div style={styles.permissividadeInfo}>
-              <p style={{ marginBottom: 6 }}>Quando ativado, <strong>equipes e treinadores</strong> podem inscrever equipes de revezamento junto com as inscrições individuais (antes da competição).</p>
-              <p style={{ marginTop: 6, fontSize: 12, color: "#666", fontStyle: "italic" }}>
-                ⚠️ Se desativado, revezamentos só poderão ser inscritos por <strong>organizadores, funcionários ou admins</strong> — normalmente no dia do evento.
-              </p>
             </div>
           </div>
 
-          {/* ── LIMITE DE PROVAS POR ATLETA ── */}
-          <div style={{ background:"#0a0a1a", border:"1px solid #1a2a3a", borderRadius:10, padding:"16px 20px", marginTop:16, marginBottom:16 }}>
-            <div style={{ color:"#1976D2", fontWeight:700, fontSize:14, marginBottom:4 }}>🎯 Limite de Provas por Atleta</div>
+          {/* ── Limite de Provas por Atleta (acordeão) ── */}
+          <Acordeao keyName="limites" titulo="Limite de Provas por Atleta" icone="🎯" resumo={resumoLimites}>
             <p style={{ color:"#666", fontSize:12, marginBottom:14, lineHeight:1.5 }}>
               Opcional. Define o máximo de provas em que cada atleta pode se inscrever. Deixe <strong>0</strong> para ilimitado.
             </p>
@@ -653,8 +722,6 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
                 )}
               </div>
             )}
-
-            {/* ── Limites diferentes por categoria ── */}
             {form.limiteProvasIndividual > 0 && (
               <div style={{ marginTop:14, padding:"12px 14px", background:"#0d0e16", borderRadius:8, border:"1px solid #1a1d2a" }}>
                 <label style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", marginBottom:8 }}>
@@ -695,179 +762,52 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
                 )}
               </div>
             )}
-          </div>
+          </Acordeao>
 
-          {/* ── LOGOS DA COMPETIÇÃO ── */}
-          <div style={{ background:"#0a0a1a", border:"1px solid #1a2a3a", borderRadius:10, padding:"16px 20px", marginTop:16, marginBottom:16 }}>
-            <div style={{ color:"#1976D2", fontWeight:700, fontSize:14, marginBottom:4 }}>🖼️ Logos da Competição</div>
+          {/* ── Preços e Pagamento (acordeão) ── */}
+          <Acordeao keyName="precos" titulo="Preços e Pagamento" icone="💰" resumo={resumoPrecos}>
             <p style={{ color:"#666", fontSize:12, marginBottom:14, lineHeight:1.5 }}>
-              Opcional. As imagens são armazenadas localmente. Use PNG ou JPG com fundo transparente quando possível. Máximo 300KB por imagem.
+              Opcional. Defina preços diferentes por categoria. Atletas das <strong style={{ color:"#ccc" }}>equipes federadas selecionadas</strong> com Nº CBAt pagarão o <em>Preço de atleta federado</em>. Os demais pagarão o <em>Preço de atleta não federado</em>.
             </p>
 
-            {/* Logo da Competição */}
-            <div style={{ marginBottom:18, padding:"12px 14px", background:"#0d0e16", borderRadius:8, border:"1px solid #1a1d2a" }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12 }}>
-                <div style={{ flex:1 }}>
-                  <div style={{ fontWeight:700, fontSize:13, color:"#fff", marginBottom:4 }}>🏟️ Logo da Competição</div>
-                  <p style={{ fontSize:11, color:"#888", margin:0, lineHeight:1.5 }}>
-                    Aparece na lista de competições e na tela de detalhe.<br/>
-                    <strong style={{ color:"#1976D2" }}>Tamanho recomendado: 500×500px</strong> (quadrada). PNG/JPG.
-                  </p>
-                  <div style={{ marginTop:8, display:"flex", gap:8, alignItems:"center" }}>
-                    <label style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", background:"#1a2a3a", border:"1px solid #2a4a6a", borderRadius:6, cursor:"pointer", fontSize:12, color:"#88aaff", fontWeight:600 }}>
-                      📁 Escolher imagem
-                      <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }}
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          if (file.size > 300 * 1024) { alert("Imagem muito grande (máx. 300KB). Reduza o tamanho."); return; }
-                          const reader = new FileReader();
-                          reader.onload = (ev) => setForm({ ...form, logoCompeticao: ev.target.result });
-                          reader.readAsDataURL(file);
-                        }}
-                      />
-                    </label>
-                    {form.logoCompeticao && (
-                      <button style={{ fontSize:11, color:"#ff6b6b", background:"transparent", border:"1px solid #4a1a1a", borderRadius:4, padding:"4px 10px", cursor:"pointer" }}
-                        onClick={() => setForm({ ...form, logoCompeticao: "" })}>✕ Remover</button>
-                    )}
-                  </div>
-                </div>
-                {form.logoCompeticao && (
-                  <div style={{ width:80, height:80, borderRadius:8, border:"2px solid #2a3050", overflow:"hidden", background:"#fff", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
-                    <img src={form.logoCompeticao} alt="Logo" style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain" }} />
-                  </div>
-                )}
+            {/* Equipes federadas */}
+            <div style={{ background:"#0d0e16", border:"1px solid #1e2a3a", borderRadius:8, padding:"12px 16px", marginBottom:14 }}>
+              <div style={{ fontSize:11, color:"#88aaff", fontWeight:700, marginBottom:8 }}>
+                🏢 Equipes federadas — {(form.equipeIdsFederados || []).length} selecionada(s)
               </div>
+              {equipes.length === 0 ? (
+                <div style={{ fontSize:11, color:"#555", fontStyle:"italic" }}>Nenhuma equipe cadastrada no sistema ainda.</div>
+              ) : (
+                <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
+                  {equipes.map(eq => {
+                    const sel = (form.equipeIdsFederados || []).includes(eq.id);
+                    return (
+                      <button key={eq.id}
+                        style={{ padding:"3px 10px", borderRadius:6, fontSize:11, fontWeight:600, cursor:"pointer",
+                          background: sel ? "#1a2a1a" : "#111318",
+                          color:      sel ? "#7acc44" : "#666",
+                          border:     `1px solid ${sel ? "#2a5a2a" : "#222"}`,
+                        }}
+                        onClick={() => {
+                          const cur  = form.equipeIdsFederados || [];
+                          const novo = sel ? cur.filter(id => id !== eq.id) : [...cur, eq.id];
+                          setForm(f => ({ ...f, equipeIdsFederados: novo }));
+                        }}>
+                        {sel ? "✓ " : ""}{eq.sigla || eq.nome}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              <p style={{ fontSize:10, color:"#555", marginTop:6, lineHeight:1.5 }}>
+                💡 Atletas dessas equipes <strong>com Nº CBAt</strong> cadastrado pagarão o preço "atleta federado".
+              </p>
             </div>
 
-            {/* Logo Cabeçalho Súmula */}
-            <div style={{ marginBottom:18, padding:"12px 14px", background:"#0d0e16", borderRadius:8, border:"1px solid #1a1d2a" }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12 }}>
-                <div style={{ flex:1 }}>
-                  <div style={{ fontWeight:700, fontSize:13, color:"#fff", marginBottom:4 }}>📄 Logo Cabeçalho da Súmula</div>
-                  <p style={{ fontSize:11, color:"#888", margin:0, lineHeight:1.5 }}>
-                    Aparece no <strong>canto esquerdo</strong> do cabeçalho da súmula impressa (logo do site fica à direita).<br/>
-                    <strong style={{ color:"#1976D2" }}>Tamanho recomendado: 300×120px</strong> (retangular horizontal). PNG com fundo transparente.
-                  </p>
-                  <div style={{ marginTop:8, display:"flex", gap:8, alignItems:"center" }}>
-                    <label style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", background:"#1a2a3a", border:"1px solid #2a4a6a", borderRadius:6, cursor:"pointer", fontSize:12, color:"#88aaff", fontWeight:600 }}>
-                      📁 Escolher imagem
-                      <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }}
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          if (file.size > 300 * 1024) { alert("Imagem muito grande (máx. 300KB). Reduza o tamanho."); return; }
-                          const reader = new FileReader();
-                          reader.onload = (ev) => setForm({ ...form, logoCabecalho: ev.target.result });
-                          reader.readAsDataURL(file);
-                        }}
-                      />
-                    </label>
-                    {form.logoCabecalho && (
-                      <button style={{ fontSize:11, color:"#ff6b6b", background:"transparent", border:"1px solid #4a1a1a", borderRadius:4, padding:"4px 10px", cursor:"pointer" }}
-                        onClick={() => setForm({ ...form, logoCabecalho: "" })}>✕ Remover</button>
-                    )}
-                  </div>
-                </div>
-                {form.logoCabecalho && (
-                  <div style={{ width:120, height:48, borderRadius:6, border:"2px solid #2a3050", overflow:"hidden", background:"#fff", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
-                    <img src={form.logoCabecalho} alt="Cabeçalho" style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain" }} />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Logo Cabeçalho Direito Súmula */}
-            <div style={{ marginBottom:18, padding:"12px 14px", background:"#0d0e16", borderRadius:8, border:"1px solid #1a1d2a" }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12 }}>
-                <div style={{ flex:1 }}>
-                  <div style={{ fontWeight:700, fontSize:13, color:"#fff", marginBottom:4 }}>📄 Logo Cabeçalho Direito da Súmula</div>
-                  <p style={{ fontSize:11, color:"#888", margin:0, lineHeight:1.5 }}>
-                    Aparece no <strong>canto direito</strong> do cabeçalho da súmula impressa.<br/>
-                    <strong style={{ color:"#1976D2" }}>Tamanho recomendado: 300×120px</strong> (retangular horizontal). PNG com fundo transparente.
-                  </p>
-                  <div style={{ marginTop:8, display:"flex", gap:8, alignItems:"center" }}>
-                    <label style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", background:"#1a2a3a", border:"1px solid #2a4a6a", borderRadius:6, cursor:"pointer", fontSize:12, color:"#88aaff", fontWeight:600 }}>
-                      📁 Escolher imagem
-                      <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }}
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          if (file.size > 300 * 1024) { alert("Imagem muito grande (máx. 300KB). Reduza o tamanho."); return; }
-                          const reader = new FileReader();
-                          reader.onload = (ev) => setForm({ ...form, logoCabecalhoDireito: ev.target.result });
-                          reader.readAsDataURL(file);
-                        }}
-                      />
-                    </label>
-                    {form.logoCabecalhoDireito && (
-                      <button style={{ fontSize:11, color:"#ff6b6b", background:"transparent", border:"1px solid #4a1a1a", borderRadius:4, padding:"4px 10px", cursor:"pointer" }}
-                        onClick={() => setForm({ ...form, logoCabecalhoDireito: "" })}>✕ Remover</button>
-                    )}
-                  </div>
-                </div>
-                {form.logoCabecalhoDireito && (
-                  <div style={{ width:120, height:50, borderRadius:4, border:"2px solid #2a3050", overflow:"hidden", background:"#fff", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
-                    <img src={form.logoCabecalhoDireito} alt="Cabeçalho Dir." style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain" }} />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Logo Rodapé Súmula */}
-            <div style={{ padding:"12px 14px", background:"#0d0e16", borderRadius:8, border:"1px solid #1a1d2a" }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12 }}>
-                <div style={{ flex:1 }}>
-                  <div style={{ fontWeight:700, fontSize:13, color:"#fff", marginBottom:4 }}>📃 Logo / Banner Rodapé da Súmula</div>
-                  <p style={{ fontSize:11, color:"#888", margin:0, lineHeight:1.5 }}>
-                    Banner de largura total no rodapé da súmula impressa (patrocinadores, federação, etc.).<br/>
-                    <strong style={{ color:"#1976D2" }}>Tamanho recomendado: 1200×200px</strong> (retangular largo). PNG/JPG.
-                  </p>
-                  <div style={{ marginTop:8, display:"flex", gap:8, alignItems:"center" }}>
-                    <label style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", background:"#1a2a3a", border:"1px solid #2a4a6a", borderRadius:6, cursor:"pointer", fontSize:12, color:"#88aaff", fontWeight:600 }}>
-                      📁 Escolher imagem
-                      <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }}
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          if (file.size > 300 * 1024) { alert("Imagem muito grande (máx. 300KB). Reduza o tamanho."); return; }
-                          const reader = new FileReader();
-                          reader.onload = (ev) => setForm({ ...form, logoRodape: ev.target.result });
-                          reader.readAsDataURL(file);
-                        }}
-                      />
-                    </label>
-                    {form.logoRodape && (
-                      <button style={{ fontSize:11, color:"#ff6b6b", background:"transparent", border:"1px solid #4a1a1a", borderRadius:4, padding:"4px 10px", cursor:"pointer" }}
-                        onClick={() => setForm({ ...form, logoRodape: "" })}>✕ Remover</button>
-                    )}
-                  </div>
-                </div>
-                {form.logoRodape && (
-                  <div style={{ width:260, height:50, borderRadius:4, border:"2px solid #2a3050", overflow:"hidden", background:"#fff", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
-                    <img src={form.logoRodape} alt="Rodapé" style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain" }} />
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <button style={{ ...styles.btnPrimary, marginTop: 20 }} onClick={() => { if (validarStep1()) setStep(2); }}>
-            Próximo: Programa de Provas →
-          </button>
-
-          {/* ── REGRAS DE PREÇO POR CATEGORIA ── */}
-          <div style={{ background:"#0a0a1a", border:"1px solid #1a2a3a", borderRadius:10, padding:"16px 20px", marginTop:24 }}>
-            <div style={{ color:"#f0c040", fontWeight:700, fontSize:14, marginBottom:4 }}>💰 Preço de Inscrição por Categoria</div>
-            <p style={{ color:"#666", fontSize:12, marginBottom:14, lineHeight:1.5 }}>
-              Opcional. Defina preços diferentes por categoria. Para cada regra, selecione as <strong style={{ color:"#ccc" }}>equipes com preço diferenciado</strong> — atletas de equipes não selecionadas (ou sem equipe) pagarão o <em>Preço de atleta não federado</em>.
-            </p>
-
+            {/* Regras de preço */}
             {(form.regrasPreco || []).map((regra, idx) => (
               <div key={idx} style={{ background:"#0d0e16", border:"1px solid #1e2a3a", borderRadius:8, padding:"14px 16px", marginBottom:10 }}>
-                {/* Linha: categoria + preços + remover */}
-                <div style={{ display:"flex", gap:10, alignItems:"flex-end", flexWrap:"wrap", marginBottom:10 }}>
+                <div style={{ display:"flex", gap:10, alignItems:"flex-end", flexWrap:"wrap" }}>
                   <div style={{ minWidth:140 }}>
                     <label style={styles.label}>Categoria</label>
                     <select style={{ ...styles.select, marginBottom:0 }}
@@ -912,63 +852,21 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
                     ✕ Remover
                   </button>
                 </div>
-
-                {/* Equipes selecionadas */}
-                <div>
-                  <div style={{ fontSize:11, color:"#88aaff", fontWeight:700, marginBottom:6 }}>
-                    🏢 Equipes com preço diferenciado — {(regra.equipeIds || []).length} selecionada(s)
-                  </div>
-                  {equipes.length === 0 ? (
-                    <div style={{ fontSize:11, color:"#555", fontStyle:"italic" }}>Nenhuma equipe cadastrada no sistema ainda.</div>
-                  ) : (
-                    <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
-                      {equipes.map(eq => {
-                        const sel = (regra.equipeIds || []).includes(eq.id);
-                        return (
-                          <button key={eq.id}
-                            style={{
-                              padding:"3px 10px", borderRadius:6, fontSize:11, fontWeight:600, cursor:"pointer",
-                              background: sel ? "#1a2a1a" : "#111318",
-                              color:      sel ? "#7acc44" : "#666",
-                              border:     `1px solid ${sel ? "#2a5a2a" : "#222"}`,
-                            }}
-                            onClick={() => {
-                              const cur  = regra.equipeIds || [];
-                              const novo = sel ? cur.filter(id => id !== eq.id) : [...cur, eq.id];
-                              setForm(f => ({
-                                ...f,
-                                regrasPreco: f.regrasPreco.map((r, i) => i === idx ? { ...r, equipeIds: novo } : r)
-                              }));
-                            }}>
-                            {sel ? "✓ " : ""}{eq.sigla || eq.nome}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                  <p style={{ fontSize:10, color:"#555", marginTop:6, lineHeight:1.5 }}>
-                    💡 Atletas de equipes <strong>não</strong> selecionadas pagarão o preço "atleta não federado".
-                  </p>
-                </div>
               </div>
             ))}
-
             <button
               style={{ ...styles.btnGhost, fontSize:12, marginTop:4 }}
               onClick={() => setForm(f => ({
                 ...f,
-                regrasPreco: [...(f.regrasPreco || []), { catId: "", equipeIds: [], precoComEquipe: null, precoSemEquipe: null }]
+                regrasPreco: [...(f.regrasPreco || []), { catId: "", precoComEquipe: null, precoSemEquipe: null }]
               }))}>
               + Adicionar regra de preço
             </button>
-
             {(form.regrasPreco || []).length === 0 && (
               <p style={{ fontSize:11, color:"#555", marginTop:8, lineHeight:1.5 }}>
-                Sem regras por categoria — se houver um <em>Valor de Inscrição</em> global definido no evento, ele será exibido ao atleta.
+                Sem regras por categoria — se houver um <em>Valor de Inscrição</em> global definido, ele será exibido ao atleta.
               </p>
             )}
-
-            {/* Resumo das regras configuradas */}
             {(form.regrasPreco || []).some(r => r.catId) && (
               <div style={{ marginTop:14, padding:"10px 14px", background:"#0a1a0a", border:"1px solid #1a3a1a", borderRadius:8 }}>
                 <div style={{ fontSize:11, color:"#7acc44", fontWeight:700, marginBottom:6 }}>✓ Resumo das regras configuradas:</div>
@@ -987,98 +885,246 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
                 })}
               </div>
             )}
-          </div>
-        </div>
 
-        {/* ── FORMA DE PAGAMENTO ── */}
-        <div style={{ background:"#0E1016", border:"1px solid #1E2130", borderRadius:12, padding:"20px 24px", marginBottom:20 }}>
-          <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:18, fontWeight:700, color:"#1976D2", marginBottom:4 }}>
-            💳 Pagamento
-          </div>
-          <div style={{ fontSize:12, color:"#666", marginBottom:16 }}>
-            Informe como o atleta deve pagar a inscrição. Essas informações aparecem na tela de confirmação após a inscrição.
-          </div>
+            {/* Forma de pagamento */}
+            <div style={{ marginTop:20, paddingTop:16, borderTop:"1px solid #1a1d2a" }}>
+              <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:16, fontWeight:700, color:"#1976D2", marginBottom:12 }}>
+                💳 Forma de Pagamento
+              </div>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:16 }}>
+                <div>
+                  <label style={styles.label}>Valor Global por Atleta (R$)</label>
+                  <input type="number" min="0" step="0.01" style={styles.input}
+                    placeholder="Ex: 50.00 — deixe em branco se usar regras por categoria"
+                    value={form.valorInscricao ?? ""}
+                    onChange={e => setForm(f => ({ ...f, valorInscricao: e.target.value === "" ? "" : parseFloat(e.target.value) }))}
+                  />
+                  <div style={{ fontSize:11, color:"#555", marginTop:2 }}>
+                    Usado como fallback quando não há regra de preço para a categoria do atleta.
+                  </div>
+                </div>
+                <div>
+                  <label style={styles.label}>Forma de Pagamento</label>
+                  <select style={styles.select} value={form.formaPagamento || ""} onChange={e => setForm(f => ({ ...f, formaPagamento: e.target.value }))}>
+                    <option value="">— Não informar —</option>
+                    <option value="Pix">Pix</option>
+                    <option value="Boleto">Boleto</option>
+                    <option value="Dinheiro">Dinheiro</option>
+                    <option value="Cartão de Crédito">Cartão de Crédito</option>
+                    <option value="Transferência Bancária">Transferência Bancária</option>
+                    <option value="Pix / Dinheiro">Pix / Dinheiro</option>
+                    <option value="Pix / Cartão">Pix / Cartão</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label style={styles.label}>Orientações de Pagamento</label>
+                <textarea
+                  style={{ ...styles.input, minHeight:90, resize:"vertical" }}
+                  placeholder={"Ex: Pix: 11999999999 (João Silva)\nEnvie o comprovante para atletismo@email.com\nPrazo: até 3 dias antes da competição"}
+                  value={form.orientacaoPagamento || ""}
+                  onChange={e => setForm(f => ({ ...f, orientacaoPagamento: e.target.value }))}
+                />
+                <div style={{ fontSize:11, color:"#555", marginTop:2 }}>
+                  Chave Pix, conta bancária, prazo, contato para envio de comprovante, etc.
+                </div>
+              </div>
+              {(form.valorInscricao || form.formaPagamento || form.orientacaoPagamento) && (
+                <div style={{ marginTop:14, background:"#0a1220", border:"1px solid #1976D244", borderRadius:8, padding:"12px 16px" }}>
+                  <div style={{ fontSize:11, color:"#1976D2", fontWeight:700, marginBottom:8 }}>👁 Preview — como o atleta verá após a inscrição:</div>
+                  {form.valorInscricao !== "" && form.valorInscricao != null && (
+                    <div style={{ display:"flex", justifyContent:"space-between", padding:"5px 0", borderBottom:"1px solid #1E2130" }}>
+                      <span style={{ color:"#888", fontSize:12 }}>Valor por atleta</span>
+                      <strong style={{ color:"#7acc44", fontSize:15, fontFamily:"'Barlow Condensed', sans-serif" }}>
+                        R$ {Number(form.valorInscricao).toFixed(2)}
+                      </strong>
+                    </div>
+                  )}
+                  {form.formaPagamento && (
+                    <div style={{ display:"flex", justifyContent:"space-between", padding:"5px 0", borderBottom:"1px solid #1E2130" }}>
+                      <span style={{ color:"#888", fontSize:12 }}>Forma de pagamento</span>
+                      <span style={{ color:"#fff", fontSize:12 }}>{form.formaPagamento}</span>
+                    </div>
+                  )}
+                  {form.orientacaoPagamento && (
+                    <div style={{ marginTop:8, fontSize:12, color:"#aaa", whiteSpace:"pre-wrap", lineHeight:1.6 }}>
+                      {form.orientacaoPagamento}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </Acordeao>
 
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:16 }}>
-            {/* Valor global */}
-            <div>
-              <label style={styles.label}>Valor Global por Atleta (R$)</label>
-              <input
-                type="number" min="0" step="0.01"
-                style={styles.input}
-                placeholder="Ex: 50.00 — deixe em branco se usar regras por categoria"
-                value={form.valorInscricao ?? ""}
-                onChange={e => setForm(f => ({ ...f, valorInscricao: e.target.value === "" ? "" : parseFloat(e.target.value) }))}
-              />
-              <div style={{ fontSize:11, color:"#555", marginTop:2 }}>
-                Usado como fallback quando não há regra de preço para a categoria do atleta.
+          {/* ── Logos da Competição (acordeão) ── */}
+          <Acordeao keyName="logos" titulo="Logos da Competição" icone="🖼️" resumo={resumoLogos}>
+            <p style={{ color:"#666", fontSize:12, marginBottom:14, lineHeight:1.5 }}>
+              Opcional. As imagens são armazenadas localmente. Use PNG ou JPG com fundo transparente quando possível. Máximo 300KB por imagem.
+            </p>
+
+            {/* Logo da Competição */}
+            <div style={{ marginBottom:14, padding:"12px 14px", background:"#0d0e16", borderRadius:8, border:"1px solid #1a1d2a" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12 }}>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontWeight:700, fontSize:13, color:"#fff", marginBottom:4 }}>🏟️ Logo da Competição</div>
+                  <p style={{ fontSize:11, color:"#888", margin:0, lineHeight:1.5 }}>
+                    Aparece na lista de competições e na tela de detalhe.<br/>
+                    <strong style={{ color:"#1976D2" }}>Tamanho recomendado: 500×500px</strong> (quadrada). PNG/JPG.
+                  </p>
+                  <div style={{ marginTop:8, display:"flex", gap:8, alignItems:"center" }}>
+                    <label style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", background:"#1a2a3a", border:"1px solid #2a4a6a", borderRadius:6, cursor:"pointer", fontSize:12, color:"#88aaff", fontWeight:600 }}>
+                      📁 Escolher imagem
+                      <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          if (file.size > 300 * 1024) { alert("Imagem muito grande (máx. 300KB). Reduza o tamanho."); return; }
+                          const reader = new FileReader();
+                          reader.onload = (ev) => setForm({ ...form, logoCompeticao: ev.target.result });
+                          reader.readAsDataURL(file);
+                        }}
+                      />
+                    </label>
+                    {form.logoCompeticao && (
+                      <button style={{ fontSize:11, color:"#ff6b6b", background:"transparent", border:"1px solid #4a1a1a", borderRadius:4, padding:"4px 10px", cursor:"pointer" }}
+                        onClick={() => setForm({ ...form, logoCompeticao: "" })}>✕ Remover</button>
+                    )}
+                  </div>
+                </div>
+                {form.logoCompeticao && (
+                  <div style={{ width:80, height:80, borderRadius:8, border:"2px solid #2a3050", overflow:"hidden", background:"#fff", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <img src={form.logoCompeticao} alt="Logo" style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain" }} />
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Forma de pagamento */}
-            <div>
-              <label style={styles.label}>Forma de Pagamento</label>
-              <select
-                style={styles.select}
-                value={form.formaPagamento || ""}
-                onChange={e => setForm(f => ({ ...f, formaPagamento: e.target.value }))}
-              >
-                <option value="">— Não informar —</option>
-                <option value="Pix">Pix</option>
-                <option value="Boleto">Boleto</option>
-                <option value="Dinheiro">Dinheiro</option>
-                <option value="Cartão de Crédito">Cartão de Crédito</option>
-                <option value="Transferência Bancária">Transferência Bancária</option>
-                <option value="Pix / Dinheiro">Pix / Dinheiro</option>
-                <option value="Pix / Cartão">Pix / Cartão</option>
-              </select>
+            {/* Logo Cabeçalho Súmula */}
+            <div style={{ marginBottom:14, padding:"12px 14px", background:"#0d0e16", borderRadius:8, border:"1px solid #1a1d2a" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12 }}>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontWeight:700, fontSize:13, color:"#fff", marginBottom:4 }}>📄 Logo Cabeçalho da Súmula</div>
+                  <p style={{ fontSize:11, color:"#888", margin:0, lineHeight:1.5 }}>
+                    Aparece no <strong>canto esquerdo</strong> do cabeçalho da súmula impressa.<br/>
+                    <strong style={{ color:"#1976D2" }}>Tamanho recomendado: 300×120px</strong> (retangular horizontal). PNG com fundo transparente.
+                  </p>
+                  <div style={{ marginTop:8, display:"flex", gap:8, alignItems:"center" }}>
+                    <label style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", background:"#1a2a3a", border:"1px solid #2a4a6a", borderRadius:6, cursor:"pointer", fontSize:12, color:"#88aaff", fontWeight:600 }}>
+                      📁 Escolher imagem
+                      <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          if (file.size > 300 * 1024) { alert("Imagem muito grande (máx. 300KB). Reduza o tamanho."); return; }
+                          const reader = new FileReader();
+                          reader.onload = (ev) => setForm({ ...form, logoCabecalho: ev.target.result });
+                          reader.readAsDataURL(file);
+                        }}
+                      />
+                    </label>
+                    {form.logoCabecalho && (
+                      <button style={{ fontSize:11, color:"#ff6b6b", background:"transparent", border:"1px solid #4a1a1a", borderRadius:4, padding:"4px 10px", cursor:"pointer" }}
+                        onClick={() => setForm({ ...form, logoCabecalho: "" })}>✕ Remover</button>
+                    )}
+                  </div>
+                </div>
+                {form.logoCabecalho && (
+                  <div style={{ width:120, height:48, borderRadius:6, border:"2px solid #2a3050", overflow:"hidden", background:"#fff", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <img src={form.logoCabecalho} alt="Cabeçalho" style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain" }} />
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Orientações */}
-          <div>
-            <label style={styles.label}>Orientações de Pagamento</label>
-            <textarea
-              style={{ ...styles.input, minHeight:90, resize:"vertical" }}
-              placeholder={"Ex: Pix: 11999999999 (João Silva)\nEnvie o comprovante para atletismo@email.com\nPrazo: até 3 dias antes da competição"}
-              value={form.orientacaoPagamento || ""}
-              onChange={e => setForm(f => ({ ...f, orientacaoPagamento: e.target.value }))}
-            />
-            <div style={{ fontSize:11, color:"#555", marginTop:2 }}>
-              Chave Pix, conta bancária, prazo, contato para envio de comprovante, etc.
+            {/* Logo Cabeçalho Direito */}
+            <div style={{ marginBottom:14, padding:"12px 14px", background:"#0d0e16", borderRadius:8, border:"1px solid #1a1d2a" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12 }}>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontWeight:700, fontSize:13, color:"#fff", marginBottom:4 }}>📄 Logo Cabeçalho Direito da Súmula</div>
+                  <p style={{ fontSize:11, color:"#888", margin:0, lineHeight:1.5 }}>
+                    Aparece no <strong>canto direito</strong> do cabeçalho da súmula impressa.<br/>
+                    <strong style={{ color:"#1976D2" }}>Tamanho recomendado: 300×120px</strong> (retangular horizontal). PNG com fundo transparente.
+                  </p>
+                  <div style={{ marginTop:8, display:"flex", gap:8, alignItems:"center" }}>
+                    <label style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", background:"#1a2a3a", border:"1px solid #2a4a6a", borderRadius:6, cursor:"pointer", fontSize:12, color:"#88aaff", fontWeight:600 }}>
+                      📁 Escolher imagem
+                      <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          if (file.size > 300 * 1024) { alert("Imagem muito grande (máx. 300KB). Reduza o tamanho."); return; }
+                          const reader = new FileReader();
+                          reader.onload = (ev) => setForm({ ...form, logoCabecalhoDireito: ev.target.result });
+                          reader.readAsDataURL(file);
+                        }}
+                      />
+                    </label>
+                    {form.logoCabecalhoDireito && (
+                      <button style={{ fontSize:11, color:"#ff6b6b", background:"transparent", border:"1px solid #4a1a1a", borderRadius:4, padding:"4px 10px", cursor:"pointer" }}
+                        onClick={() => setForm({ ...form, logoCabecalhoDireito: "" })}>✕ Remover</button>
+                    )}
+                  </div>
+                </div>
+                {form.logoCabecalhoDireito && (
+                  <div style={{ width:120, height:50, borderRadius:4, border:"2px solid #2a3050", overflow:"hidden", background:"#fff", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <img src={form.logoCabecalhoDireito} alt="Cabeçalho Dir." style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain" }} />
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Preview */}
-          {(form.valorInscricao || form.formaPagamento || form.orientacaoPagamento) && (
-            <div style={{ marginTop:14, background:"#0a1220", border:"1px solid #1976D244", borderRadius:8, padding:"12px 16px" }}>
-              <div style={{ fontSize:11, color:"#1976D2", fontWeight:700, marginBottom:8 }}>👁 Preview — como o atleta verá após a inscrição:</div>
-              {form.valorInscricao !== "" && form.valorInscricao != null && (
-                <div style={{ display:"flex", justifyContent:"space-between", padding:"5px 0", borderBottom:"1px solid #1E2130" }}>
-                  <span style={{ color:"#888", fontSize:12 }}>Valor por atleta</span>
-                  <strong style={{ color:"#7acc44", fontSize:15, fontFamily:"'Barlow Condensed', sans-serif" }}>
-                    R$ {Number(form.valorInscricao).toFixed(2)}
-                  </strong>
+            {/* Logo Rodapé */}
+            <div style={{ padding:"12px 14px", background:"#0d0e16", borderRadius:8, border:"1px solid #1a1d2a" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12 }}>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontWeight:700, fontSize:13, color:"#fff", marginBottom:4 }}>📃 Logo / Banner Rodapé da Súmula</div>
+                  <p style={{ fontSize:11, color:"#888", margin:0, lineHeight:1.5 }}>
+                    Banner de largura total no rodapé da súmula impressa (patrocinadores, federação, etc.).<br/>
+                    <strong style={{ color:"#1976D2" }}>Tamanho recomendado: 1200×200px</strong> (retangular largo). PNG/JPG.
+                  </p>
+                  <div style={{ marginTop:8, display:"flex", gap:8, alignItems:"center" }}>
+                    <label style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", background:"#1a2a3a", border:"1px solid #2a4a6a", borderRadius:6, cursor:"pointer", fontSize:12, color:"#88aaff", fontWeight:600 }}>
+                      📁 Escolher imagem
+                      <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          if (file.size > 300 * 1024) { alert("Imagem muito grande (máx. 300KB). Reduza o tamanho."); return; }
+                          const reader = new FileReader();
+                          reader.onload = (ev) => setForm({ ...form, logoRodape: ev.target.result });
+                          reader.readAsDataURL(file);
+                        }}
+                      />
+                    </label>
+                    {form.logoRodape && (
+                      <button style={{ fontSize:11, color:"#ff6b6b", background:"transparent", border:"1px solid #4a1a1a", borderRadius:4, padding:"4px 10px", cursor:"pointer" }}
+                        onClick={() => setForm({ ...form, logoRodape: "" })}>✕ Remover</button>
+                    )}
+                  </div>
                 </div>
-              )}
-              {form.formaPagamento && (
-                <div style={{ display:"flex", justifyContent:"space-between", padding:"5px 0", borderBottom:"1px solid #1E2130" }}>
-                  <span style={{ color:"#888", fontSize:12 }}>Forma de pagamento</span>
-                  <span style={{ color:"#fff", fontSize:12 }}>{form.formaPagamento}</span>
-                </div>
-              )}
-              {form.orientacaoPagamento && (
-                <div style={{ marginTop:8, fontSize:12, color:"#aaa", whiteSpace:"pre-wrap", lineHeight:1.6 }}>
-                  {form.orientacaoPagamento}
-                </div>
-              )}
+                {form.logoRodape && (
+                  <div style={{ width:260, height:50, borderRadius:4, border:"2px solid #2a3050", overflow:"hidden", background:"#fff", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <img src={form.logoRodape} alt="Rodapé" style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain" }} />
+                  </div>
+                )}
+              </div>
             </div>
-          )}
-        </div>
+          </Acordeao>
+
+          {/* ── Navegação Step 2 ── */}
+          <div style={{ display:"flex", gap:12, marginTop:8 }}>
+            <button style={styles.btnGhost} onClick={() => setStep(1)}>← Voltar</button>
+            <button style={styles.btnPrimary} onClick={() => setStep(3)}>
+              Próximo: Programa de Provas →
+            </button>
+          </div>
         </>
       )}
 
-      {step === 2 && (
+      {/* ══════════════════════════════════════════════════════════════════
+          STEP 3 — PROGRAMA DE PROVAS
+      ══════════════════════════════════════════════════════════════════ */}
+      {step === 3 && (
         <FiltroProvasStep
           todasProvas={todasProvas}
           form={form}
@@ -1092,7 +1138,10 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
         />
       )}
 
-      {step === 3 && editando && (
+      {/* ══════════════════════════════════════════════════════════════════
+          STEP 4 — PROGRAMA HORÁRIO (apenas ao editar)
+      ══════════════════════════════════════════════════════════════════ */}
+      {step === 4 && editando && (
         <ProgramaHorarioStep
           todasProvas={todasProvas}
           form={form}
@@ -1283,9 +1332,9 @@ function FiltroProvasStep({ todasProvas, form, setForm, toggleProva, toggleGrupo
       )}
 
       <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
-        <button style={styles.btnGhost} onClick={() => setStep(1)}>← Voltar</button>
+        <button style={styles.btnGhost} onClick={() => setStep(2)}>← Voltar</button>
         {editando ? (
-          <button style={styles.btnPrimary} onClick={() => setStep(3)} disabled={form.provasPrograma.length === 0}>
+          <button style={styles.btnPrimary} onClick={() => setStep(4)} disabled={form.provasPrograma.length === 0}>
             Próximo: Programa Horário →
           </button>
         ) : (
@@ -1542,7 +1591,7 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
       </div>
 
       <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
-        <button style={styles.btnGhost} onClick={() => setStep(2)}>← Voltar</button>
+        <button style={styles.btnGhost} onClick={() => setStep(3)}>← Voltar</button>
         <button style={styles.btnPrimary} onClick={handleSalvar}>
           {editando ? "💾 Salvar Alterações" : "✅ Criar Competição"}
         </button>

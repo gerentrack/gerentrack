@@ -122,7 +122,9 @@ export function calcularPrecoInscricao(atleta, catId, evento) {
   if (Array.isArray(regras) && regras.length > 0 && catId) {
     const regra = regras.find((r) => r.catId === catId);
     if (regra) {
-      const equipeIds    = Array.isArray(regra.equipeIds) ? regra.equipeIds : [];
+      const equipeIds    = Array.isArray(evento.equipeIdsFederados) && evento.equipeIdsFederados.length > 0
+        ? evento.equipeIdsFederados
+        : (Array.isArray(regra.equipeIds) ? regra.equipeIds : []);
       const atletaEqId   = atleta?.equipeId || null;
       const temEquipeSel = !!(atletaEqId && equipeIds.includes(atletaEqId));
       const temCbat      = !!(atleta?.cbat && String(atleta.cbat).trim() !== "");

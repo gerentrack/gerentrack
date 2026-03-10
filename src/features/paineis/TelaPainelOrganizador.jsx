@@ -294,12 +294,34 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
                             ⚙️ Editar
                           </button>
                         )}
-                        {temPerm("inscrições") && (
-                          <button style={{ ...styles.btnGhost, fontSize:12, padding:"4px 10px" }}
-                            onClick={()=>alterarStatusEvento(ev.id,{inscricoesEncerradas:!ev.inscricoesEncerradas})}>
-                            {ev.inscricoesEncerradas ? "🟢 Reabrir" : "🔴 Encerrar"}
-                          </button>
-                        )}
+                        {temPerm("inscrições") && (() => {
+                          const agora = new Date();
+                          const hoje = agora.toISOString().slice(0,10);
+                          const aindaNaoAbriu = ev.dataAberturaInscricoes && hoje < ev.dataAberturaInscricoes;
+                          if (aindaNaoAbriu) return null;
+                          const dtEnc = ev.dataEncerramentoInscricoes
+                            ? new Date(ev.dataEncerramentoInscricoes + "T23:59:59")
+                            : null;
+                          if (!ev.inscricoesEncerradas) {
+                            // Só mostrar Encerrar quando abertas
+                            if (dtEnc && agora < dtEnc) return null; // encerramento programado, não precisa do botão
+                            return (
+                              <button style={{ ...styles.btnGhost, fontSize:12, padding:"4px 10px", color:"#ff6b6b", borderColor:"#5a1a1a" }}
+                                onClick={()=>alterarStatusEvento(ev.id,{inscricoesEncerradas:true,inscricoesForceEncerradas:true,inscricoesForceAbertas:false})}>
+                                🔴 Encerrar
+                              </button>
+                            );
+                          } else {
+                            // Só mostrar Reabrir quando fechadas
+                            if (dtEnc && agora >= dtEnc) return null; // prazo vencido, não pode reabrir manualmente
+                            return (
+                              <button style={{ ...styles.btnGhost, fontSize:12, padding:"4px 10px", color:"#7acc44", borderColor:"#2a5a2a" }}
+                                onClick={()=>alterarStatusEvento(ev.id,{inscricoesEncerradas:false,inscricoesForceAbertas:true,inscricoesForceEncerradas:false,sumulaLiberada:false})}>
+                                🟢 Reabrir
+                              </button>
+                            );
+                          }
+                        })()}
                         {temPerm("sumulas") && (
                           <button style={{ ...styles.btnGhost, fontSize:12, padding:"4px 10px", color:"#1976D2", borderColor:"#1976D266" }}
                             onClick={()=>alterarStatusEvento(ev.id,{sumulaLiberada:!ev.sumulaLiberada})}>

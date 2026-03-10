@@ -9,7 +9,7 @@
 const ESTADOS_BR = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 
 const CATEGORIAS = [
-  { id: "sub14", nome: "Sub-14", minIdade: 12, maxIdade: 13, display: "Sub-14 (12-13 anos)" },
+  { id: "sub14", nome: "Sub-14", minIdade: 11, maxIdade: 13, display: "Sub-14 (11-13 anos)" },
   { id: "sub16", nome: "Sub-16", minIdade: 14, maxIdade: 15, display: "Sub-16 (14-15 anos)" },
   { id: "sub18", nome: "Sub-18", minIdade: 16, maxIdade: 17, display: "Sub-18 (16-17 anos)" },
   { id: "sub20", nome: "Sub-20", minIdade: 18, maxIdade: 19, display: "Sub-20 (18-19 anos)" },
@@ -27,7 +27,6 @@ function getCategoria(anoNasc, anoCompeticao) {
 // Retorna null se não se aplica, ou { catOriginal, catPermitida, obs } se se aplica
 // Verifica se atleta é uma EXCEÇÃO permitida para uma prova de categoria específica.
 // Regras: a competição aceita atletas da categoria imediatamente inferior:
-//   Sub-14 → aceita atletas com 11 anos (normalmente abaixo do mínimo de 12)
 //   Sub-16 → aceita atletas com 13 anos (Sub-14, categoria abaixo)
 //   Sub-18 → aceita atletas com 15 anos (Sub-16, categoria abaixo)
 // Parâmetro catProvaId: id da categoria DA PROVA (extraído do provaId: M_sub14_*)
@@ -36,8 +35,6 @@ function getPermissividade(anoNasc, anoCompeticao, catProvaId) {
   const idade = ano - parseInt(anoNasc);
   const catAtleta = getCategoria(anoNasc, anoCompeticao);
 
-  if (catProvaId === "sub14" && idade === 11)
-    return { obs: "* Exceção: atleta com 11 anos em competição Sub-14 (mín. 12 anos)." };
   if (catProvaId === "sub16" && catAtleta.id === "sub14")
     return { obs: "* Exceção: atleta Sub-14 (13 anos ou menos) em competição Sub-16." };
   if (catProvaId === "sub18" && catAtleta.id === "sub16")
