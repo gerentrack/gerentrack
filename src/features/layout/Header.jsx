@@ -180,7 +180,7 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
           </button>
         </div>
       </div>
-      {eventoAtual && !["home","recordes","painel","painel-organizador","gerenciar-equipes","funcionarios","cadastrar-atleta","editar-atleta","importar-atletas","treinadores","gerenciar-inscricoes","painel-atleta","admin"].includes(tela) && (
+      {eventoAtual && !["home","login","cadastro-equipe","cadastro-organizador","cadastro-atleta-login","recuperar-senha","trocar-senha","selecionar-perfil","configuracoes","recordes","painel","painel-organizador","gerenciar-equipes","funcionarios","cadastrar-atleta","editar-atleta","importar-atletas","treinadores","gerenciar-inscricoes","painel-atleta","admin"].includes(tela) && (
         <div style={styles.eventoBar}>
           <span style={styles.eventoBarLabel}>Competição:</span>
           <span style={styles.eventoBarNome}>{eventoAtual.nome}</span>

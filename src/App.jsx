@@ -957,6 +957,7 @@ function App() {
   // gera automaticamente a seriação da próxima fase (Semifinal/Final) usando
   // RT 20.3.2(a) para classificação e RT 20.4.x para distribuição de raias.
   useEffect(() => {
+    const timer = setTimeout(() => {
     if (!eventoAtual) return;
     const todasP = todasAsProvas();
     const progHorario = eventoAtual.programaHorario || {};
@@ -1051,6 +1052,8 @@ function App() {
     if (novasSer) {
       editarEvento({ ...eventoAtual, seriacao: novasSer });
     }
+    }, 800); // debounce — espera 800ms sem mudanças antes de processar
+    return () => clearTimeout(timer);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resultados]);
 
