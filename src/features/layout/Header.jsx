@@ -43,7 +43,7 @@ function NavBtn({ onClick, label, active }) {
   );
 }
 
-function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDisponiveis, gtIcon, gtNome, gtSlogan, pendenciasRecorde }) {
+function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDisponiveis, gtIcon, gtNome, gtSlogan, pendenciasRecorde, temaClaro, setTemaClaro }) {
   const [online, setOnline] = useState(navigator.onLine);
   useEffect(() => {
     const handleOnline  = () => setOnline(true);
@@ -121,10 +121,36 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
                 </div>
                 <span style={{ fontSize:9, color:"#555" }}>⚙</span>
               </button>
+              <button
+                onClick={() => setTemaClaro(t => !t)}
+                title={temaClaro ? "Modo escuro" : "Modo claro"}
+                style={{
+                  background: temaClaro ? "#e8f0fa" : "#141720",
+                  border: `1px solid ${temaClaro ? "#1976D244" : "#252837"}`,
+                  borderRadius: 6, cursor: "pointer",
+                  padding: "6px 10px", fontSize: 16, lineHeight: 1,
+                  transition: "all 0.2s",
+                }}
+              >
+                {temaClaro ? "🌙" : "☀️"}
+              </button>
               <button style={styles.btnSair} onClick={logout}>Sair</button>
             </>
           ) : (
             <>
+              <button
+                onClick={() => setTemaClaro(t => !t)}
+                title={temaClaro ? "Modo escuro" : "Modo claro"}
+                style={{
+                  background: temaClaro ? "#e8f0fa" : "#141720",
+                  border: `1px solid ${temaClaro ? "#1976D244" : "#252837"}`,
+                  borderRadius: 6, cursor: "pointer",
+                  padding: "6px 10px", fontSize: 16, lineHeight: 1,
+                  transition: "all 0.2s",
+                }}
+              >
+                {temaClaro ? "🌙" : "☀️"}
+              </button>
               <button style={{ ...styles.btnNav, background:"#1976D2", color:"#fff", fontWeight:700 }} onClick={() => setTela("login")}>
                 Entrar
               </button>

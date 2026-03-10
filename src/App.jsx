@@ -140,6 +140,7 @@ function App() {
   const [tela, _setTela] = useState("home");
 
   const [usuarioLogado, setUsuarioLogado] = useLocalOnly("atl_usuario", null);
+  const [temaClaro, setTemaClaro] = useLocalOnly("gt_tema_claro", false);
   const [auditoria, setAuditoria] = useLocalOnly("atl_auditoria", []);
   // ⚠️ SEGURANÇA: useLocalOnly — estes dados contêm senhas e CPFs.
   // Nunca devem ser sincronizados no Firestore via useLocalStorage.
@@ -1065,6 +1066,7 @@ function App() {
 
   const props = {
     tela, setTela, usuarioLogado, setUsuarioLogado, login, loginComSelecao, logout,
+    temaClaro, setTemaClaro,
     perfisDisponiveis, setPerfisDisponiveis,
     equipes, atletas, inscricoes, resultados, excluirAtletaPorUsuario,
     eventos, eventoAtual, eventoAtualId, setEventoAtualId, selecionarEvento,
@@ -1106,7 +1108,7 @@ function App() {
   return (
     <ConfirmProvider>
     <ConfirmBridge />
-    <div style={styles.root}>
+    <div style={styles.root} className={temaClaro ? "tema-claro" : ""}>
       <style>{cssGlobal}</style>
       <Header {...props} />
       <main style={styles.main}>
@@ -1183,6 +1185,17 @@ const cssGlobal = `
   ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
   optgroup { background: #1a1c22; color: #1976D2; font-style: normal; }
   option { background: #1a1c22; color: #E0E0E0; }
+
+  /* ── Modo Claro ── */
+  .tema-claro {
+    filter: invert(1) hue-rotate(180deg);
+  }
+  .tema-claro img,
+  .tema-claro video,
+  .tema-claro canvas,
+  .tema-claro svg image {
+    filter: invert(1) hue-rotate(180deg);
+  }
 
   @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(16px); }
