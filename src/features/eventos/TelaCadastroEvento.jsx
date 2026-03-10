@@ -235,6 +235,29 @@ function RichTextEditor({ value, onChange, placeholder }) {
 
 
 // ─── CADASTRO / EDIÇÃO DE EVENTO ─────────────────────────────────────────────
+// ── Acordeão extraído fora do componente para evitar re-render/perda de foco ──
+function Acordeao({ keyName, titulo, icone, resumo, children, aberto, onToggle }) {
+  return (
+    <div style={{ background:"#0a0a1a", border:`1px solid ${aberto ? "#1976D244" : "#1a2a3a"}`, borderRadius:10, marginBottom:12, overflow:"hidden", transition:"border-color 0.2s" }}>
+      <button type="button" onClick={() => onToggle(keyName)}
+        style={{ width:"100%", background:"transparent", border:"none", padding:"14px 18px", display:"flex", justifyContent:"space-between", alignItems:"center", cursor:"pointer", textAlign:"left", gap:12 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:10, flex:1, minWidth:0 }}>
+          <span style={{ fontSize:18 }}>{icone}</span>
+          <span style={{ color:"#1976D2", fontWeight:700, fontSize:14 }}>{titulo}</span>
+          {!aberto && <span style={{ color:"#555", fontSize:12, marginLeft:4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{resumo}</span>}
+        </div>
+        <span style={{ color:"#555", fontSize:14, flexShrink:0, transform: aberto ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s", display:"inline-block" }}>▾</span>
+      </button>
+      {aberto && (
+        <div style={{ padding:"0 18px 18px" }}>
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtual, eventoAtualId, selecionarEvento, usuarioLogado, organizadores, recordes, equipes = [],
   cadEventoGoStep, setCadEventoGoStep }) {
   const editando = eventoAtual && eventoAtualId && true;
@@ -396,29 +419,6 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
     const n = [form.logoCompeticao, form.logoCabecalho, form.logoCabecalhoDireito, form.logoRodape].filter(Boolean).length;
     return n === 0 ? "Nenhuma imagem carregada" : `${n} imagem(ns) carregada(s) ✓`;
   })();
-
-  // ── Componente acordeão inline ──────────────────────────────────────────────
-  const Acordeao = ({ keyName, titulo, icone, resumo, children }) => {
-    const aberto = acordeoes[keyName];
-    return (
-      <div style={{ background:"#0a0a1a", border:`1px solid ${aberto ? "#1976D244" : "#1a2a3a"}`, borderRadius:10, marginBottom:12, overflow:"hidden", transition:"border-color 0.2s" }}>
-        <button type="button" onClick={() => toggleAcordeo(keyName)}
-          style={{ width:"100%", background:"transparent", border:"none", padding:"14px 18px", display:"flex", justifyContent:"space-between", alignItems:"center", cursor:"pointer", textAlign:"left", gap:12 }}>
-          <div style={{ display:"flex", alignItems:"center", gap:10, flex:1, minWidth:0 }}>
-            <span style={{ fontSize:18 }}>{icone}</span>
-            <span style={{ color:"#1976D2", fontWeight:700, fontSize:14 }}>{titulo}</span>
-            {!aberto && <span style={{ color:"#555", fontSize:12, marginLeft:4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{resumo}</span>}
-          </div>
-          <span style={{ color:"#555", fontSize:14, flexShrink:0, transform: aberto ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s", display:"inline-block" }}>▾</span>
-        </button>
-        {aberto && (
-          <div style={{ padding:"0 18px 18px" }}>
-            {children}
-          </div>
-        )}
-      </div>
-    );
-  };
 
   return (
     <div style={styles.page}>
@@ -666,7 +666,7 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
           </div>
 
           {/* ── Limite de Provas por Atleta (acordeão) ── */}
-          <Acordeao keyName="limites" titulo="Limite de Provas por Atleta" icone="🎯" resumo={resumoLimites}>
+          <Acordeao keyName="limites" aberto={acordeoes["limites"]} onToggle={toggleAcordeo} titulo="Limite de Provas por Atleta" icone="🎯" resumo={resumoLimites}>
             <p style={{ color:"#666", fontSize:12, marginBottom:14, lineHeight:1.5 }}>
               Opcional. Define o máximo de provas em que cada atleta pode se inscrever. Deixe <strong>0</strong> para ilimitado.
             </p>
@@ -769,7 +769,7 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
           </Acordeao>
 
           {/* ── Preços e Pagamento (acordeão) ── */}
-          <Acordeao keyName="precos" titulo="Preços e Pagamento" icone="💰" resumo={resumoPrecos}>
+          <Acordeao keyName="precos" aberto={acordeoes["precos"]} onToggle={toggleAcordeo} titulo="Preços e Pagamento" icone="💰" resumo={resumoPrecos}>
             <p style={{ color:"#666", fontSize:12, marginBottom:14, lineHeight:1.5 }}>
               Opcional. Defina preços diferentes por categoria. Atletas das <strong style={{ color:"#ccc" }}>equipes federadas selecionadas</strong> com Nº CBAt pagarão o <em>Preço de atleta federado</em>. Os demais pagarão o <em>Preço de atleta não federado</em>.
             </p>
@@ -961,7 +961,7 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
           </Acordeao>
 
           {/* ── Logos da Competição (acordeão) ── */}
-          <Acordeao keyName="logos" titulo="Logos da Competição" icone="🖼️" resumo={resumoLogos}>
+          <Acordeao keyName="logos" aberto={acordeoes["logos"]} onToggle={toggleAcordeo} titulo="Logos da Competição" icone="🖼️" resumo={resumoLogos}>
             <p style={{ color:"#666", fontSize:12, marginBottom:14, lineHeight:1.5 }}>
               Opcional. As imagens são armazenadas localmente. Use PNG ou JPG com fundo transparente quando possível. Máximo 300KB por imagem.
             </p>
