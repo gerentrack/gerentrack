@@ -121,42 +121,68 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
                 </div>
                 <span style={{ fontSize:9, color:"#555" }}>⚙</span>
               </button>
-              <button
-                onClick={() => setTemaClaro(t => !t)}
-                title={temaClaro ? "Modo escuro" : "Modo claro"}
-                style={{
-                  background: temaClaro ? "#e8f0fa" : "#141720",
-                  border: `1px solid ${temaClaro ? "#1976D244" : "#252837"}`,
-                  borderRadius: 6, cursor: "pointer",
-                  padding: "6px 10px", fontSize: 16, lineHeight: 1,
-                  transition: "all 0.2s",
-                }}
-              >
-                {temaClaro ? "🌙" : "☀️"}
-              </button>
               <button style={styles.btnSair} onClick={logout}>Sair</button>
             </>
           ) : (
             <>
-              <button
-                onClick={() => setTemaClaro(t => !t)}
-                title={temaClaro ? "Modo escuro" : "Modo claro"}
-                style={{
-                  background: temaClaro ? "#e8f0fa" : "#141720",
-                  border: `1px solid ${temaClaro ? "#1976D244" : "#252837"}`,
-                  borderRadius: 6, cursor: "pointer",
-                  padding: "6px 10px", fontSize: 16, lineHeight: 1,
-                  transition: "all 0.2s",
-                }}
-              >
-                {temaClaro ? "🌙" : "☀️"}
-              </button>
               <button style={{ ...styles.btnNav, background:"#1976D2", color:"#fff", fontWeight:700 }} onClick={() => setTela("login")}>
                 Entrar
               </button>
             </>
           )}
         </nav>
+        {/* ── Toggle Claro / Escuro — direita total ── */}
+        <div style={{
+          display: "flex", alignItems: "center",
+          background: "#0D0E12",
+          border: "1px solid #1E2130",
+          borderRadius: 20,
+          padding: 3,
+          gap: 0,
+          marginLeft: "auto",
+          flexShrink: 0,
+        }}>
+          <button
+            onClick={() => setTemaClaro(false)}
+            title="Modo escuro"
+            style={{
+              background: !temaClaro ? "#1976D2" : "transparent",
+              border: "none",
+              borderRadius: 16,
+              cursor: "pointer",
+              padding: "5px 14px",
+              fontSize: 13,
+              fontWeight: !temaClaro ? 700 : 400,
+              color: !temaClaro ? "#fff" : "#555",
+              fontFamily: "'Barlow', sans-serif",
+              transition: "all 0.2s",
+              whiteSpace: "nowrap",
+              display: "flex", alignItems: "center", gap: 5,
+            }}
+          >
+            🌙
+          </button>
+          <button
+            onClick={() => setTemaClaro(true)}
+            title="Modo claro"
+            style={{
+              background: temaClaro ? "#1976D2" : "transparent",
+              border: "none",
+              borderRadius: 16,
+              cursor: "pointer",
+              padding: "5px 14px",
+              fontSize: 13,
+              fontWeight: temaClaro ? 700 : 400,
+              color: temaClaro ? "#fff" : "#555",
+              fontFamily: "'Barlow', sans-serif",
+              transition: "all 0.2s",
+              whiteSpace: "nowrap",
+              display: "flex", alignItems: "center", gap: 5,
+            }}
+          >
+            ☀️
+          </button>
+        </div>
       </div>
       {eventoAtual && !["home","recordes","painel","painel-organizador","gerenciar-equipes","funcionarios","cadastrar-atleta","editar-atleta","importar-atletas","treinadores","gerenciar-inscricoes","painel-atleta","admin"].includes(tela) && (
         <div style={styles.eventoBar}>

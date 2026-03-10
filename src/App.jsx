@@ -1196,6 +1196,16 @@ const cssGlobal = `
   .tema-claro svg image {
     filter: invert(1) hue-rotate(180deg);
   }
+  .tema-claro div,
+  .tema-claro span,
+  .tema-claro p,
+  .tema-claro button,
+  .tema-claro td,
+  .tema-claro th,
+  .tema-claro label,
+  .tema-claro a {
+    font-weight: 500 !important;
+  }
 
   @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(16px); }
