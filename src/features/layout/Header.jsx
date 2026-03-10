@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { _getLocalEventoDisplay } from "../../shared/formatters/utils";
 
 function _dtInscricoes(data, hora) {
@@ -32,6 +32,7 @@ const styles = {
   eventoBarNome: { fontSize: 13, fontWeight: 700, color: "#1976D2", fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
   eventoBarMeta: { fontSize: 12, color: "#555", marginLeft: "auto" },
   statusDotInline: (cor) => ({ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: cor, background: cor + "22", border: `1px solid ${cor}44`, borderRadius: 10, padding: "2px 8px", whiteSpace: "nowrap" }),
+  offlineBanner: { background: "#2a1500", borderBottom: "1px solid #ff880044", padding: "8px 24px", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontSize: 13, color: "#ff8800", fontWeight: 600, letterSpacing: 0.5 },
 };
 
 function NavBtn({ onClick, label, active }) {
@@ -43,8 +44,26 @@ function NavBtn({ onClick, label, active }) {
 }
 
 function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDisponiveis, gtIcon, gtNome, gtSlogan, pendenciasRecorde }) {
+  const [online, setOnline] = useState(navigator.onLine);
+  useEffect(() => {
+    const handleOnline  = () => setOnline(true);
+    const handleOffline = () => setOnline(false);
+    window.addEventListener("online",  handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online",  handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
   return (
-    <header style={styles.header}>
+    <>
+      {!online && (
+        <div style={styles.offlineBanner}>
+          ⚡ Sem conexão com a internet — algumas funções podem não estar disponíveis
+        </div>
+      )}
+      <header style={styles.header}>
       <div style={styles.headerInner}>
         <button style={styles.logo} onClick={() => setTela("home")}>
           <img src={gtIcon} alt="GT" style={{ width:44, height:44, objectFit:"contain", borderRadius:6 }} />
@@ -142,6 +161,7 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
         </div>
       )}
     </header>
+    </>
   );
 }
 
