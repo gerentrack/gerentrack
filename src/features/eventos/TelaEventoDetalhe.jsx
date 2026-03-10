@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useConfirm } from "../../features/ui/ConfirmContext";
 import { getStatusEvento, getStatusInscricoes, labelStatusEvento } from "./eventoHelpers";
 import { _getLocalEventoDisplay } from "../../shared/formatters/utils";
 import { todasAsProvas, getComposicaoCombinada } from "../../shared/athletics/provasDef";
@@ -163,6 +164,7 @@ function StatCard({ value, label }) {
 
 function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultados, usuarioLogado, alterarStatusEvento, selecionarEvento, recordes, setRecordes, equipes, getClubeAtleta, editarEvento, pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes, RecordDetectionEngine, organizadores = [],
   setCadEventoGoStep }) {
+  const confirmar = useConfirm();
 
   // ── Aba ativa: inicializa conforme perfil ────────────────────────────────
   const [abaAtiva, setAbaAtiva] = useState(() => {
@@ -434,13 +436,13 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
         return (
           <div style={styles.eventoAcoesGrid}>
             <button style={{ ...styles.eventoAcaoBtn, borderColor: "#88aaff66" }}
-                    onClick={() => { selecionarEvento(eventoAtual.id); setTela("novo-evento"); }}>
+                    onClick={async () => { selecionarEvento(eventoAtual.id); setTela("novo-evento"); }}>
               <span style={{ fontSize: 36 }}>⚙️</span>
               <strong>Editar Competição</strong>
               <span style={{ color: "#666", fontSize: 13 }}>Alterar dados, provas e configurações</span>
             </button>
             <button style={{ ...styles.eventoAcaoBtn, borderColor: "#ffcc0066" }}
-                    onClick={() => { selecionarEvento(eventoAtual.id); setCadEventoGoStep("step3"); setTela("novo-evento"); }}>
+                    onClick={async () => { selecionarEvento(eventoAtual.id); setCadEventoGoStep("step3"); setTela("novo-evento"); }}>
               <span style={{ fontSize: 36 }}>🕐</span>
               <strong>Programa Horário</strong>
               <span style={{ color: "#666", fontSize: 13 }}>Definir horários e fases das provas</span>
@@ -556,7 +558,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
           {usuarioLogado?.tipo === "admin" && (
             <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
               <button style={{ padding:"8px 18px", borderRadius:8, border:"1px solid #2a4a2a", background:"#0a1a0a", color:"#7cfc7c", fontWeight:700, fontSize:12, cursor:"pointer" }}
-                onClick={() => {
+                onClick={async () => {
                   try {
                     const novasPendencias = RecordDetectionEngine.detectarQuebras(eventoAtual, resultados, recordes, atletas, equipes, inscricoes);
                     const antes = (pendenciasRecorde || []).length;
@@ -572,9 +574,9 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                 🏆 Reprocessar Recordes
               </button>
               <button style={{ padding:"8px 18px", borderRadius:8, border:"1px solid #4a2a2a", background:"#2a0a0a", color:"#ff6b6b", fontWeight:700, fontSize:12, cursor:"pointer" }}
-                onClick={() => {
-                  if (window.confirm("Desbloquear esta competição para edição? Isso removerá a finalização."))
-                    alterarStatusEvento(eventoAtual.id, { competicaoFinalizada: false, competicaoFinalizadaEm: null, competicaoFinalizadaPor: null });
+                onClick={async () => { 
+                  if (await confirmar("Desbloquear esta competição para edição? Isso removerá a finalização."))
+                    alterarStatusEvento(eventoAtual.id, { competicaoFinalizada: false, competicaoFinalizadaEm: null, competicaoFinalizadaPor: null  });
                 }}>
                 🔓 Desbloquear (Admin)
               </button>
@@ -852,7 +854,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
               <div style={{ display:"flex", alignItems:"center", gap:12 }}>
                 <span style={{ fontSize:12, color:"#666" }}>{linhasOrdenadas.length} entrada(s)</span>
                 {(tpU === "admin" || tpU === "organizador" || tpU === "funcionario") && (
-                  <button onClick={() => {
+                  <button onClick={async () => {
                     const dataEvt = new Date(eventoAtual.data + "T12:00:00").toLocaleDateString("pt-BR", { weekday:"long", day:"2-digit", month:"long", year:"numeric" });
                     const logoComp = eventoAtual.logoCompeticao || "";
                     const logoRod  = eventoAtual.logoRodape || "";
@@ -1009,8 +1011,8 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
             </div>
             <button
               style={{ padding:"10px 24px", borderRadius:8, border:"2px solid #8e44ad", background:"#2a0a3a", color:"#c39bdf", fontWeight:800, fontSize:13, cursor:"pointer", whiteSpace:"nowrap", letterSpacing:0.5 }}
-              onClick={() => {
-                if (window.confirm(
+              onClick={async () => { 
+                if (await confirmar(
                   "⚠️ FINALIZAR COMPETIÇÃO\n\n" +
                   "Após finalizar, NENHUM dado poderá ser editado:\n" +
                   "• Inscrições\n• Resultados\n• Súmulas\n• Programa de provas\n• Dados da competição\n\n" +
@@ -1022,7 +1024,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                     const novasPendencias = RecordDetectionEngine.detectarQuebras(eventoAtual, resultados, recordes, atletas, equipes, inscricoes);
                     if (novasPendencias.length > 0)
                       setPendenciasRecorde(prev => RecordDetectionEngine.mesclarPendencias(prev, novasPendencias));
-                  } catch (e) { console.error("Erro ao detectar quebras de recorde:", e); }
+                   } catch (e) { console.error("Erro ao detectar quebras de recorde:", e); }
                   alterarStatusEvento(eventoAtual.id, {
                     competicaoFinalizada:    true,
                     competicaoFinalizadaEm:  Date.now(),

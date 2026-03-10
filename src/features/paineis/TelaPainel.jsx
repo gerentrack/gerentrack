@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { _getClubeAtleta } from "../../shared/formatters/utils";
 import { StatCard } from "../ui/StatCard";
@@ -148,7 +149,7 @@ function InscricaoProvaRow({ insc, prova, atleta, provasDisp, inscAberta, atuali
             <option value="">Selecione a nova prova...</option>
             {provasDisp.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
           </select>
-          <button onClick={() => {
+          <button onClick={async () => {
             if (!novaProvaId) return;
             atualizarInscricao({ ...insc, provaId: novaProvaId });
             setEditando(false); setNovaProvaId("");
@@ -156,7 +157,7 @@ function InscricaoProvaRow({ insc, prova, atleta, provasDisp, inscAberta, atuali
             style={{ ...styles.btnGhost, fontSize:10, padding:"2px 8px", color:"#7cfc7c", borderColor:"#2a5a2a" }}>
             ✓
           </button>
-          <button onClick={() => { setEditando(false); setNovaProvaId(""); }}
+          <button onClick={async () => { setEditando(false); setNovaProvaId(""); }}
             style={{ ...styles.btnGhost, fontSize:10, padding:"2px 8px" }}>
             ✕
           </button>
@@ -181,9 +182,8 @@ function InscricaoProvaRow({ insc, prova, atleta, provasDisp, inscAberta, atuali
                 title="Trocar prova">
                 ✏️
               </button>
-              <button onClick={() => {
-                if (window.confirm(`Excluir inscrição de ${atleta?.nome} em ${prova?.nome}?`))
-                  excluirInscricao(insc.id);
+              <button onClick={async () => { 
+                if (await confirmar(`Excluir inscrição de ${atleta?.nome } em ${prova?.nome}?`)) excluirInscricao(insc.id, { confirmado: true });
               }}
                 style={{ ...styles.btnGhost, fontSize:10, padding:"2px 8px", color:"#ff6b6b", borderColor:"#3a1a1a" }}
                 title="Excluir inscrição">
@@ -199,6 +199,7 @@ function InscricaoProvaRow({ insc, prova, atleta, provasDisp, inscAberta, atuali
 
 
 function TelaPainel({ usuarioLogado, setTela, atletas, inscricoes, eventos, solicitacoesVinculo, responderVinculo, equipes, excluirInscricao, atualizarInscricao, treinadores }) {
+  const confirmar = useConfirm();
   const isTreinador = usuarioLogado?.tipo === "treinador";
   const equipeId = isTreinador ? usuarioLogado.equipeId : usuarioLogado?.id;
   

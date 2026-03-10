@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas, getComposicaoCombinada } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/athletics/constants";
 import { NomeProvaComImplemento, abreviarProva, formatarMarca, normalizarMarca, exibirMarcaInput, formatarTempo, autoFormatTempo, parseTempoPista } from "../../shared/formatters/utils";
@@ -100,6 +101,7 @@ const getExibicaoEquipe = (atleta, equipes) => {
 };
 
 function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResultado, atualizarResultadosEmLote, limparResultado, limparTodosResultados, setTela, eventoAtual, editarEvento, usuarioLogado, registrarAcao, numeracaoPeito, getClubeAtleta, equipes, recordes }) {
+  const confirmar = useConfirm();
   // Guard: apenas admin, organizador ou funcionário com permissão
   const tipoUser = usuarioLogado?.tipo;
   const temAcessoDigitar = tipoUser === "admin" || tipoUser === "organizador" ||
@@ -823,7 +825,7 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
               </span>
               <button
                 style={{ ...styles.btnSecondary, fontSize:12, padding:"5px 14px" }}
-                onClick={() => {
+                onClick={async () => {
                   // Pré-carrega todos os resultados existentes nos campos de edição
                   const loaded = {};
                   const isCorridaEdit = provaSel && provaSel.unidade === "s" &&
@@ -873,7 +875,7 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
               ✏️ <strong>Modo edição</strong> — altere os valores e clique em "Salvar e Publicar"
               <button
                 style={{ ...styles.linkBtn, marginLeft:"auto", color:"#888", fontSize:11 }}
-                onClick={() => { setMarcas({}); setTentativas({}); }}
+                onClick={async () => { setMarcas({}); setTentativas({}); }}
               >Cancelar edição</button>
             </div>
           )}
@@ -1063,8 +1065,8 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
                     )}
                     {equipesRevezNaProva.some(eq => resExistentes[eq.equipeId] != null) && (
                       <button style={{ ...styles.btnGhost, color: "#ff6b6b", borderColor: "#5a1a1a" }}
-                        onClick={() => {
-                          if (!window.confirm(`⚠️ Limpar TODOS os resultados deste revezamento?\n\n${provaSel?.nome} — ${filtroCat} — ${filtroSexo === "M" ? "Masc." : "Fem."}\n\nEsta ação é IRREVERSÍVEL.`)) return;
+                        onClick={async () => { 
+                          if (!await confirmar(`⚠️ Limpar TODOS os resultados deste revezamento?\n\n${provaSel?.nome } — ${filtroCat} — ${filtroSexo === "M" ? "Masc." : "Fem."}\n\nEsta ação é IRREVERSÍVEL.`)) return;
                           _limparTodos(eid, filtroProva, filtroCat, filtroSexo);
                           setMarcas({});
                         }}>🗑 Limpar Todos</button>

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { useConfirm } from "../../features/ui/ConfirmContext";
 import { getCategoria } from "../../shared/constants/categorias";
 import { getStatusEvento, labelStatusEvento } from "../eventos/eventoHelpers";
 
@@ -52,6 +53,7 @@ export default function TelaPainelEquipe({
   selecionarEvento,
   desvincularAtleta, setAtletaEditandoId,
 }) {
+  const confirmar = useConfirm();
   const isTreinador = usuarioLogado?.tipo === "treinador";
   const equipeId    = isTreinador ? usuarioLogado?.equipeId : usuarioLogado?.id;
   const equipe      = equipes?.find(e => e.id === equipeId) || usuarioLogado;
@@ -153,7 +155,7 @@ export default function TelaPainelEquipe({
                   const nInscs = minhasInscs.filter(i => i.eventoId === ev.id).length;
                   const status = getStatusEvento(ev);
                   return (
-                    <div key={ev.id} onClick={() => { selecionarEvento(ev.id); setTela("gestao-inscricoes"); }}
+                    <div key={ev.id} onClick={async () => { selecionarEvento(ev.id); setTela("gestao-inscricoes"); }}
                       style={{ background: "#0a0b14", border: "1px solid #1E2130", borderRadius: 8, padding: "12px 16px", cursor: "pointer", minWidth: 200 }}>
                       <div style={{ color: "#fff", fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{ev.nome}</div>
                       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
@@ -182,7 +184,7 @@ export default function TelaPainelEquipe({
                       {ev.data ? new Date(ev.data + "T12:00:00").toLocaleDateString("pt-BR") : ""}
                       {ev.dataEncerramentoInscricoes ? ` · até ${new Date(ev.dataEncerramentoInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}` : ""}
                     </div>
-                    <button onClick={() => { selecionarEvento(ev.id); setTela("gestao-inscricoes"); }}
+                    <button onClick={async () => { selecionarEvento(ev.id); setTela("gestao-inscricoes"); }}
                       style={{ ...S.btn, padding: "5px 14px", fontSize: 11 }}>
                       📝 Inscrever atletas
                     </button>
@@ -229,7 +231,7 @@ export default function TelaPainelEquipe({
                         <Td>
                           <div style={{ display: "flex", gap: 6 }}>
                             <button style={{ background: "#141720", border: "1px solid #252837", color: "#aaa", borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: 12 }}
-                              onClick={() => { setAtletaEditandoId(a.id); setTela("editar-atleta"); }}>
+                              onClick={async () => { setAtletaEditandoId(a.id); setTela("editar-atleta"); }}>
                               ✏️ Editar
                             </button>
                             <button style={{ background: "#1a0a0a", border: "1px solid #3a1a1a", color: "#ff6b6b", borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: 12 }}
@@ -269,7 +271,7 @@ export default function TelaPainelEquipe({
                     <span style={{ color: "#555", fontSize: 11, fontWeight: 400 }}>
                       📅 {ev.data ? new Date(ev.data + "T12:00:00").toLocaleDateString("pt-BR") : ""}
                     </span>
-                    <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); selecionarEvento(ev.id); setTela("gestao-inscricoes"); }}
+                    <button onClick={async (e) => { e.preventDefault(); e.stopPropagation(); selecionarEvento(ev.id); setTela("gestao-inscricoes"); }}
                       style={{ ...S.btnSec, fontSize: 11, padding: "3px 12px", marginLeft: "auto" }}>
                       Gerenciar →
                     </button>
@@ -338,11 +340,11 @@ export default function TelaPainelEquipe({
                       </div>
                     )}
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      <button onClick={() => { selecionarEvento(ev.id); setTela("gestao-inscricoes"); }}
+                      <button onClick={async () => { selecionarEvento(ev.id); setTela("gestao-inscricoes"); }}
                         style={{ ...S.btn, padding: "7px 16px", fontSize: 12 }}>
                         📝 Inscrever atletas
                       </button>
-                      <button onClick={() => { selecionarEvento(ev.id); setTela("evento-detalhe"); }}
+                      <button onClick={async () => { selecionarEvento(ev.id); setTela("evento-detalhe"); }}
                         style={{ ...S.btnGhost, padding: "7px 14px", fontSize: 12 }}>
                         Ver detalhes
                       </button>
@@ -463,9 +465,9 @@ export default function TelaPainelEquipe({
                               </div>
                               <div style={{ display: "flex", gap: 6 }}>
                                 <button
-                                  onClick={() => {
-                                    if (!window.confirm(
-                                      `Aprovar saída de "${s.atletaNome}" da equipe?
+                                  onClick={async () => { 
+                                    if (!await confirmar(
+                                      `Aprovar saída de "${s.atletaNome }" da equipe?
 
 ` +
                                       `✅ O atleta será desvinculado.
@@ -483,9 +485,9 @@ export default function TelaPainelEquipe({
                                   ✓ Aprovar saída
                                 </button>
                                 <button
-                                  onClick={() => {
-                                    if (!window.confirm(
-                                      `Recusar o pedido de saída de "${s.atletaNome}"?
+                                  onClick={async () => { 
+                                    if (!await confirmar(
+                                      `Recusar o pedido de saída de "${s.atletaNome }"?
 
 ` +
                                       `O atleta continuará vinculado à equipe.

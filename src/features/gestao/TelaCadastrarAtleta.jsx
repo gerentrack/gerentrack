@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useConfirm } from "../../features/ui/ConfirmContext";
 import { CATEGORIAS, getCategoria } from "../../shared/athletics/constants";
 import { _getClubeAtleta, validarCPF } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
@@ -135,6 +136,7 @@ const styles = {
 };
 
 function TelaCadastrarAtleta({ setTela, adicionarAtleta, excluirAtleta, excluirAtletasEmMassa, usuarioLogado, equipes, eventoAtual, atletas, atletasUsuarios, solicitarVinculo, solicitacoesVinculo, organizadores, desvincularAtleta }) {
+  const confirmar = useConfirm();
   const _equipeDoUsuario = usuarioLogado?.tipo === "equipe" ? equipes?.find(e => e.id === usuarioLogado.id) : null;
   // equipeId e clube são auto-preenchidos para tipo "equipe" — não requerem input do usuário
   const _autoEquipeId  = usuarioLogado?.tipo === "equipe" ? usuarioLogado.id : "";
@@ -307,7 +309,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, excluirAtleta, excluirA
         <div style={{ fontSize: 64, textAlign: "center" }}>✅</div>
         <h2 style={{ ...styles.formTitle, textAlign: "center" }}>Atleta cadastrado!</h2>
         <div style={styles.heroBtns}>
-          <button style={styles.btnPrimary} onClick={() => { setOk(false); setForm(FORM_VAZIO); setAtletaExistente(null); setVinculoEnviado(false); }}>Cadastrar outro</button>
+          <button style={styles.btnPrimary} onClick={async () => { setOk(false); setForm(FORM_VAZIO); setAtletaExistente(null); setVinculoEnviado(false); }}>Cadastrar outro</button>
           <button style={styles.btnSecondary} onClick={() => setTela("inscricao-avulsa")}>Inscrever atleta</button>
           <button style={styles.btnGhost} onClick={handleCancelar}>← Voltar à lista</button>
         </div>
@@ -376,7 +378,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, excluirAtleta, excluirA
           </select>
           {(filtroSexoAtl !== "todos" || filtroCatAtl !== "todas" || filtro) && (
             <button style={{ ...styles.btnGhost, fontSize: 11, padding: "4px 10px" }}
-              onClick={() => { setFiltroSexoAtl("todos"); setFiltroCatAtl("todas"); setFiltro(""); }}>
+              onClick={async () => { setFiltroSexoAtl("todos"); setFiltroCatAtl("todas"); setFiltro(""); }}>
               ✕ Limpar filtros
             </button>
           )}
@@ -407,8 +409,8 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, excluirAtleta, excluirA
             {selecionados.size > 0 && (
               <button
                 style={{ ...styles.btnGhost, fontSize: 12, padding: "5px 14px", color: "#ff6b6b", borderColor: "#3a1a1a" }}
-                onClick={() => {
-                  if (!window.confirm(`⚠️ ATENÇÃO: Excluir ${selecionados.size} atleta(s)?\n\nEsta ação é IRREVERSÍVEL!`)) return;
+                onClick={async () => { 
+                  if (!await confirmar(`⚠️ ATENÇÃO: Excluir ${selecionados.size } atleta(s)?\n\nEsta ação é IRREVERSÍVEL!`)) return;
                   excluirAtletasEmMassa(selecionados);
                   setSelecionados(new Set());
                 }}
@@ -460,7 +462,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, excluirAtleta, excluirA
                   borderRadius: 8,
                   padding: "12px 16px", display: "flex", alignItems: "center", gap: 14, cursor: "pointer"
                 }}
-                  onClick={() => { window.__atletaEditId = a.id; setTela("editar-atleta"); }}
+                  onClick={async () => { window.__atletaEditId = a.id; setTela("editar-atleta"); }}
                   onMouseEnter={e => { if (!selecionados.has(a.id)) e.currentTarget.style.borderColor = "#1976D2"; }}
                   onMouseLeave={e => { if (!selecionados.has(a.id)) e.currentTarget.style.borderColor = "#1E2130"; }}
                 >
@@ -501,7 +503,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, excluirAtleta, excluirA
                   </div>
                   {isEquipe && desvincularAtleta && (
                     <button
-                      onClick={(e) => { e.stopPropagation(); if (window.confirm(`Desvincular ${a.nome} da sua equipe?`)) desvincularAtleta(a.id); }}
+                      onClick={async (e) => {  e.stopPropagation(); if (await confirmar(`Desvincular ${a.nome } da sua equipe?`)) desvincularAtleta(a.id); }}
                       style={{ ...styles.btnGhost, fontSize: 11, padding: "4px 10px", color: "#ff6b6b", borderColor: "#3a1a1a", flexShrink: 0 }}
                     >
                       ✂️ Desvincular

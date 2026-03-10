@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useConfirm } from "../../features/ui/ConfirmContext";
 import { validarCPF, validarCNPJ } from "../../shared/formatters/utils";
 
 const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
@@ -133,6 +134,7 @@ const styles = {
 };
 
 function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuarios, funcionarios, atletas, adicionarOrganizador, editarOrganizadorAdmin, adicionarEquipe, editarEquipeAdmin, adicionarAtletaUsuario, editarAtletaUsuarioAdmin, adicionarAtleta, excluirOrganizador, excluirEquipeUsuario, excluirAtletaUsuario, excluirAtletaPorUsuario }) {
+  const confirmar = useConfirm();
   const [tipoUsuario, setTipoUsuario] = useState("organizadores"); // organizadores | equipes | atletas
   const [modo, setModo] = useState("lista"); // lista | novo | editar
   const [usuarioSelecionado, setUsuarioSelecionado] = useState(null);
@@ -343,9 +345,9 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
     setModo("editar");
   };
 
-  const handleExcluir = (id) => {
+  const handleExcluir = async (id) => { 
     const usuario = getTodosUsuarios().find(u => u.id === id);
-    if (!window.confirm(`⚠️ Excluir usuário "${usuario?.nome}"?\n\nEsta ação é IRREVERSÍVEL!`)) return;
+    if (!await confirmar(`⚠️ Excluir usuário "${usuario?.nome }"?\n\nEsta ação é IRREVERSÍVEL!`)) return;
     
     if (tipoUsuario === "organizadores") {
       excluirOrganizador(id);
@@ -384,7 +386,7 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
             background: tipoUsuario === "organizadores" ? "#1976D233" : undefined,
             borderColor: tipoUsuario === "organizadores" ? "#1976D2" : undefined
           }}
-          onClick={() => { setTipoUsuario("organizadores"); setModo("lista"); }}
+          onClick={async () => { setTipoUsuario("organizadores"); setModo("lista"); }}
         >
           🏢 Organizadores ({organizadores.length})
         </button>
@@ -394,7 +396,7 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
             background: tipoUsuario === "equipes" ? "#1976D233" : undefined,
             borderColor: tipoUsuario === "equipes" ? "#1976D2" : undefined
           }}
-          onClick={() => { setTipoUsuario("equipes"); setModo("lista"); }}
+          onClick={async () => { setTipoUsuario("equipes"); setModo("lista"); }}
         >
           🏅 Equipes ({tipoUsuario === "equipes" ? getTodosUsuarios().length : equipes.length})
         </button>
@@ -404,7 +406,7 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
             background: tipoUsuario === "atletas" ? "#1976D233" : undefined,
             borderColor: tipoUsuario === "atletas" ? "#1976D2" : undefined
           }}
-          onClick={() => { setTipoUsuario("atletas"); setModo("lista"); }}
+          onClick={async () => { setTipoUsuario("atletas"); setModo("lista"); }}
         >
           🏃 Atletas ({tipoUsuario === "atletas" ? getTodosUsuarios().length : atletasUsuarios.length})
         </button>
@@ -495,7 +497,7 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
               <button style={{ marginTop: 10, background: "#1a2a1a", border: "1px solid #4a8a2a",
                 color: "#7acc44", borderRadius: 6, padding: "7px 18px",
                 cursor: "pointer", fontSize: 13, fontWeight: 700 }}
-                onClick={() => {
+                onClick={async () => {
                   setForm(f => ({
                     ...f,
                     nome: perfilExistente.nome || f.nome,
@@ -657,7 +659,7 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
           )}
 
           <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
-            <button style={styles.btnGhost} onClick={() => {
+            <button style={styles.btnGhost} onClick={async () => {
               setModo("lista");
               setForm({ nome: "", email: "", senha: "", tipo: "organizador", entidade: "", cnpj: "", fone: "", equipeId: "", cpf: "", dataNasc: "", sexo: "M", organizadorId: "" });
               setErros({});

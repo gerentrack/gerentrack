@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useConfirm } from "../../features/ui/ConfirmContext";
 import { _getLocalEventoDisplay, _getNascDisplay, validarCNPJ, emailJaCadastrado } from "../../shared/formatters/utils";
 import { StatCard } from "../ui/StatCard";
 import FormField from "../ui/FormField";
@@ -71,6 +72,7 @@ function TelaAdmin({
   atletasUsuarios=[], funcionarios=[], treinadores=[],
   setAtletaEditandoId,
 }) {
+  const confirmar = useConfirm();
   const pendOrg = organizadores.filter(o => o.status === "pendente");
   const pendEv  = eventos.filter(e => e.statusAprovacao === "pendente");
   const pendRec = (solicitacoesRecuperacao || []).filter(s => s.status === "pendente");
@@ -343,7 +345,7 @@ function TelaAdmin({
           <div style={s.card}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:16 }}>
               <div style={s.sectionHd}>🏟️ Organizadores ({organizadores.length})</div>
-              <button onClick={() => { setShowOrgForm(!showOrgForm); setErrosOrg({}); }}
+              <button onClick={async () => { setShowOrgForm(!showOrgForm); setErrosOrg({}); }}
                 style={{ ...s.btnPrimary, fontSize:12, padding:"6px 16px" }}>
                 {showOrgForm ? "✕ Cancelar" : "+ Novo Organizador"}
               </button>
@@ -448,9 +450,9 @@ function TelaAdmin({
                           <Td>{ev.provasPrograma?.length||0}</Td>
                           <Td>
                             <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-                              <button onClick={() => {selecionarEvento(ev.id);setTela("evento-detalhe");}}
+                              <button onClick={async () => {selecionarEvento(ev.id);setTela("evento-detalhe");}}
                                 style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px" }}>Ver</button>
-                              <button onClick={() => {selecionarEvento(ev.id);setTela("novo-evento");}}
+                              <button onClick={async () => {selecionarEvento(ev.id);setTela("novo-evento");}}
                                 style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px", color:"#88aaff", borderColor:"#88aaff66" }}>⚙️ Editar</button>
                               <button onClick={() => aprovarEvento(ev.id)}
                                 style={{ ...s.btnGhost, fontSize:11, padding:"3px 12px", color:"#7cfc7c", borderColor:"#2a5a2a" }}>✓ Aprovar</button>
@@ -471,7 +473,7 @@ function TelaAdmin({
           <div style={s.card}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:14 }}>
               <div style={s.sectionHd}>🏟 Todas as Competições ({eventos.length})</div>
-              <button style={s.btnPrimary} onClick={() => { selecionarEvento(null); setTela("novo-evento"); }}>+ Nova Competição</button>
+              <button style={s.btnPrimary} onClick={async () => { selecionarEvento(null); setTela("novo-evento"); }}>+ Nova Competição</button>
             </div>
             <input type="text" value={buscaComp} onChange={e=>setBuscaComp(e.target.value)}
               placeholder="🔍 Buscar competição..." style={si} />
@@ -498,9 +500,9 @@ function TelaAdmin({
                       </div>
                       <div style={{ display:"flex", gap:5 }}>
                         <button style={{ ...s.btnSecondary, fontSize:11, padding:"3px 10px" }}
-                          onClick={() => { selecionarEvento(ev.id); setTela("evento-detalhe"); }}>Acessar</button>
+                          onClick={async () => { selecionarEvento(ev.id); setTela("evento-detalhe"); }}>Acessar</button>
                         <button style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px" }}
-                          onClick={() => { selecionarEvento(ev.id); setTela("novo-evento"); }}>✏️ Editar</button>
+                          onClick={async () => { selecionarEvento(ev.id); setTela("novo-evento"); }}>✏️ Editar</button>
                         <button style={{ ...s.btnGhost, fontSize:11, padding:"3px 9px", color:"#ff6b6b", borderColor:"#3a1a1a" }}
                           onClick={() => excluirEvento(ev.id)}>🗑</button>
                       </div>
@@ -605,9 +607,9 @@ function TelaAdmin({
                             <Td><span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:800, color:"#1976D2" }}>{ninsc}</span></Td>
                             <Td>
                               <div style={{ display:"flex", gap:5 }}>
-                                <button onClick={() => { setAtletaEditandoId(a.id); setTela("editar-atleta"); }}
+                                <button onClick={async () => { setAtletaEditandoId(a.id); setTela("editar-atleta"); }}
                                   style={{ ...s.btnGhost, fontSize:11, padding:"3px 12px" }}>✏️ Editar</button>
-                                <button onClick={() => { if (window.confirm(`Excluir ${a.nome}?`)) excluirAtleta(a.id); }}
+                                <button onClick={async () => {  if (await confirmar(`Excluir ${a.nome }?`)) excluirAtleta(a.id); }}
                                   style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px", color:"#ff6b6b", borderColor:"#5a1a1a" }}>🗑</button>
                               </div>
                             </Td>

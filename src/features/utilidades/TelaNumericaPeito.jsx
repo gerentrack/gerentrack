@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { _getCbat } from "../../shared/formatters/utils";
 import { Th, Td } from "../ui/TableHelpers";
@@ -89,6 +90,7 @@ const styles = {
 };
 
 function TelaNumericaPeito({ setTela, eventoAtual, inscricoes, atletas, equipes, numeracaoPeito, setNumeracaoPeito, usuarioLogado, registrarAcao }) {
+  const confirmar = useConfirm();
   if (!eventoAtual) return <div style={styles.page}><div style={styles.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
 
   const eid = eventoAtual.id;
@@ -174,9 +176,9 @@ function TelaNumericaPeito({ setTela, eventoAtual, inscricoes, atletas, equipes,
     setTimeout(() => setFeedback(""), 3000);
   };
 
-  const limparTudo = () => {
-    if (!window.confirm("Limpar toda a numeração desta competição?")) return;
-    setEditNum({});
+  const limparTudo = async () => { 
+    if (!await confirmar("Limpar toda a numeração desta competição?")) return;
+    setEditNum({ });
     setErroNum({});
   };
 

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { getCategoria, getPermissividade, podeCategoriaSuperior } from "../../shared/athletics/constants";
 import { _getClubeAtleta } from "../../shared/formatters/utils";
@@ -134,6 +135,7 @@ const styles = {
 };
 
 function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equipes, excluirInscricao, adicionarInscricao, atualizarInscricao, usuarioLogado, registrarAcao, numeracaoPeito }) {
+  const confirmar = useConfirm();
   if (!eventoAtual) return <div style={styles.page}><div style={styles.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
 
   const eid = eventoAtual.id;
@@ -204,11 +206,11 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
   const catsUnicas = [...new Set(inscsEvt.map(i => i.categoriaId || i.categoria))].filter(Boolean);
 
   // ── Ações tabela existente ───────────────────────────────────────────────
-  const handleExcluir = (insc) => {
+  const handleExcluir = async (insc) => { 
     const atl = atletas.find(a => a.id === insc.atletaId);
     const prv = todasAsProvas().find(p => p.id === insc.provaId);
-    if (!window.confirm(`Remover ${atl?.nome || "atleta"} da prova ${prv?.nome || insc.provaId}?`)) return;
-    excluirInscricao(insc.id);
+    if (!await confirmar(`Remover ${atl?.nome || "atleta" } da prova ${prv?.nome || insc.provaId}?`)) return;
+    excluirInscricao(insc.id, { confirmado: true });
     setFeedback(`✅ ${atl?.nome} removido de ${prv?.nome}`);
     setTimeout(() => setFeedback(""), 3000);
   };
@@ -478,7 +480,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
         </button>
         <button
           style={{ ...styles.modoBtn, ...(modoCarrinho ? styles.modoBtnActive : {}) }}
-          onClick={() => { setModoCarrinho(true); setEtapa("montagem"); }}>
+          onClick={async () => { setModoCarrinho(true); setEtapa("montagem"); }}>
           🛒 Novo Lote
           {carrinho.length > 0 && (
             <span style={{ background: "#1976D2", color: "#fff", borderRadius: 10, padding: "1px 7px", fontSize: 11, marginLeft: 6 }}>
@@ -559,9 +561,9 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                         </td>
                         <td style={{ ...styles.td, verticalAlign: "top" }}>{primeiraInsc.equipeCadastro || atl?.clube || "—"}</td>
                         <td style={{ ...styles.td, whiteSpace: "nowrap", verticalAlign: "top" }}>
-                          <button onClick={() => {
-                            if (window.confirm(`Remover TODAS as ${inscsVisiveis.length} inscrições de ${atl?.nome || "atleta"}?`)) {
-                              inscs.forEach(i => excluirInscricao(i.id));
+                          <button onClick={async () => { 
+                            if (await confirmar(`Remover TODAS as ${inscsVisiveis.length } inscrições de ${atl?.nome || "atleta"}?`)) {
+                              inscs.forEach(i => excluirInscricao(i.id, { confirmado: true }));
                               setFeedback(`✅ Todas as inscrições de ${atl?.nome} removidas`);
                               setTimeout(() => setFeedback(""), 3000);
                             }
@@ -1045,7 +1047,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                 </div>
                 <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
                   <button style={styles.btnPrimary} onClick={resetCarrinho}>+ Novo Lote</button>
-                  <button style={styles.btnGhost} onClick={() => { resetCarrinho(); setModoCarrinho(false); }}>
+                  <button style={styles.btnGhost} onClick={async () => { resetCarrinho(); setModoCarrinho(false); }}>
                     Ver Inscrições Salvas
                   </button>
                 </div>

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useConfirm } from "../../features/ui/ConfirmContext";
 import { validarCPF, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { Th, Td } from "../ui/TableHelpers";
@@ -150,6 +151,7 @@ const painelDestino = (u) =>
 function TelaTreinadores({ usuarioLogado, setTela, treinadores, adicionarTreinador,
   atualizarTreinador, removerTreinador, registrarAcao, gerarSenhaTemp, historicoAcoes,
   equipes, atletasUsuarios, funcionarios, organizadores }) {
+  const confirmar = useConfirm();
 
   const tipoUsr = usuarioLogado?.tipo;
   const isTreinador = tipoUsr === "treinador";
@@ -322,8 +324,8 @@ function TelaTreinadores({ usuarioLogado, setTela, treinadores, adicionarTreinad
       t.ativo ? "Desativou treinador" : "Reativou treinador", t.nome, null, { equipeId, modulo: "treinadores" });
   };
 
-  const handleRemover = (t) => {
-    if (!window.confirm(`Remover ${t.nome} permanentemente?`)) return;
+  const handleRemover = async (t) => { 
+    if (!await confirmar(`Remover ${t.nome } permanentemente?`)) return;
     removerTreinador(t.id);
     registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Removeu treinador", t.nome, null, { equipeId, modulo: "treinadores" });
   };
@@ -550,7 +552,7 @@ function TelaTreinadores({ usuarioLogado, setTela, treinadores, adicionarTreinad
               onClick={handleSalvar} disabled={!!treinDuplicadoOrg}>
               {editando ? "💾 Salvar Alterações" : docModo === "vincular" ? "🔗 Vincular Treinador" : "✅ Cadastrar Treinador"}
             </button>
-            <button style={styles.btnGhost} onClick={() => { setAba("lista"); setDocModo("novo"); setDocExistente(null); setLoginForm({email:"",senha:""}); }}>Cancelar</button>
+            <button style={styles.btnGhost} onClick={async () => { setAba("lista"); setDocModo("novo"); setDocExistente(null); setLoginForm({email:"",senha:""}); }}>Cancelar</button>
           </div>
             </>
           )}

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/athletics/constants";
 import { RecordHelper } from "../../shared/engines/recordHelper";
@@ -8,6 +9,7 @@ import inscricaoStyles from "../inscricoes/inscricaoStyles";
 
 const styles = inscricaoStyles;
 function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClubeAtleta, usuarioLogado, setTela, pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes }) {
+  const confirmar = useConfirm();
   const isAdmin = usuarioLogado?.tipo === "admin";
   const [tipoSel, setTipoSel] = useState(null); // id do tipo selecionado
   const [editReg, setEditReg] = useState(null); // registro em edição
@@ -644,7 +646,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                       background: tipoSel === tipo.id ? "#0a1a2a" : "#111",
                       color: tipoSel === tipo.id ? "#1976D2" : "#888",
                     }}
-                    onClick={() => { setTipoSel(tipo.id); setEditReg(null); setImportPreview(null); }}
+                    onClick={async () => { setTipoSel(tipo.id); setEditReg(null); setImportPreview(null); }}
                   >
                     {tipo.nome} <span style={{ fontSize:10, color:"#555", marginLeft:4 }}>({tipo.sigla} · {tipo.registros.length})</span>
                   </button>
@@ -1095,7 +1097,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                     {isAdmin && (
                       <td style={{ padding:"6px 6px", textAlign:"center" }}>
                         <button style={{ background:"none", border:"none", color:"#6ab4ff", cursor:"pointer", fontSize:11, marginRight:4 }}
-                          onClick={() => {
+                          onClick={async () => {
                             const d = RecordHelper.getPrimeiro(r);
                             setEditReg({ ...r, atleta: d.atleta, equipe: d.equipe, atletaId: d.atletaId, ano: d.ano, local: d.local,
                               competicaoId: d.competicaoId, competicaoNome: d.competicaoNome, atletasRevezamento: d.atletasRevezamento,
@@ -1236,8 +1238,8 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                         </div>
                         <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
                           {locais.length > 0 && (
-                            <button onClick={() => {
-                              if (!window.confirm(`Homologar ${locais.length} pendência(s) do estado local (${evtUf}) de uma vez?`)) return;
+                            <button onClick={async () => { 
+                              if (!await confirmar(`Homologar ${locais.length } pendência(s) do estado local (${evtUf}) de uma vez?`)) return;
                               const obs = prompt("Observação para todas (opcional):", "") || "";
                               homologarLote(locais, obs);
                             }} style={{ padding:"4px 10px", borderRadius:4, border:"1px solid #2a5a2a", background:"#0a1a0a",
@@ -1245,11 +1247,11 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                               ✅ Homologar {locais.length} local ({evtUf})
                             </button>
                           )}
-                          {atletaRelevantes.length > 0 && (() => {
+                          {atletaRelevantes.length > 0 && (() => { 
                             const ufsAtl = [...new Set(atletaRelevantes.map(p => p.recordeEstado).filter(Boolean))];
                             return (
-                              <button onClick={() => {
-                                if (!window.confirm(`Homologar ${atletaRelevantes.length} pendência(s) de RE do estado do atleta (${ufsAtl.join(", ")}) de uma vez?`)) return;
+                              <button onClick={async () => {
+                                if (!await confirmar(`Homologar ${atletaRelevantes.length } pendência(s) de RE do estado do atleta (${ufsAtl.join(", ")}) de uma vez?`)) return;
                                 const obs = prompt("Observação para todas (opcional):", "") || "";
                                 homologarLote(atletaRelevantes, obs);
                               }} style={{ padding:"4px 10px", borderRadius:4, border:"1px solid #2a4a6a", background:"#0a1020",
@@ -1259,8 +1261,8 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                             );
                           })()}
                           {nacionais.length > 0 && (
-                            <button onClick={() => {
-                              if (!window.confirm(`Homologar ${nacionais.length} pendência(s) nacionais de uma vez?`)) return;
+                            <button onClick={async () => { 
+                              if (!await confirmar(`Homologar ${nacionais.length } pendência(s) nacionais de uma vez?`)) return;
                               const obs = prompt("Observação para todas (opcional):", "") || "";
                               homologarLote(nacionais, obs);
                             }} style={{ padding:"4px 10px", borderRadius:4, border:"1px solid #2a2a5a", background:"#0a0a1a",
@@ -1269,8 +1271,8 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                             </button>
                           )}
                           {outroEstado.length > 0 && (
-                            <button onClick={() => {
-                              if (!window.confirm(`Rejeitar ${outroEstado.length} pendência(s) de outros estados? (competição ocorreu em ${evtUf})`)) return;
+                            <button onClick={async () => { 
+                              if (!await confirmar(`Rejeitar ${outroEstado.length } pendência(s) de outros estados? (competição ocorreu em ${evtUf})`)) return;
                               const obs = prompt("Motivo (opcional):", `Competição em ${evtUf}, não se aplica a este RE`) || `Competição em ${evtUf}`;
                               setPendenciasRecorde(prev => prev.map(p =>
                                 outroEstado.some(o => o.id === p.id) ? { ...p, status: "nao_homologado", resolvidoPor: usuarioLogado?.nome || "admin", resolvidoEm: Date.now(), observacao: obs } : p
@@ -1337,7 +1339,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                                 </td>
                                 <td style={{ padding:"6px 8px", textAlign:"center" }}>
                                   <div style={{ display:"flex", gap:4, justifyContent:"center", flexWrap:"wrap" }}>
-                                    <button onClick={() => {
+                                    <button onClick={async () => {
                                       const obs = prompt("Observação (opcional):", "");
                                       if (obs === null) return;
                                       resolver(pend, "homologado", obs);
@@ -1345,7 +1347,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                                       color:"#7cfc7c", fontSize:10, fontWeight:700, cursor:"pointer" }}>
                                       ✅
                                     </button>
-                                    <button onClick={() => {
+                                    <button onClick={async () => {
                                       const obs = prompt("Observação (opcional):", "");
                                       if (obs === null) return;
                                       setPendenciasRecorde(prev => prev.map(p => p.id !== pend.id ? p : {
@@ -1356,7 +1358,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                                       color:"#6ab4ff", fontSize:10, fontWeight:700, cursor:"pointer" }}>
                                       ☑️
                                     </button>
-                                    <button onClick={() => {
+                                    <button onClick={async () => {
                                       const obs = prompt("Motivo da rejeição:", "");
                                       if (obs === null) return;
                                       setPendenciasRecorde(prev => prev.map(p => p.id !== pend.id ? p : {

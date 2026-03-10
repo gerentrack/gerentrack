@@ -119,10 +119,23 @@ import { useStorageSync }  from "./lib/storage/useStorageSync";
 
 // Migração de dados legados (executa imediatamente ao importar)
 import "./lib/migration/migrarDadosLegacy";
+import { ConfirmProvider, useConfirm } from "./features/ui/ConfirmContext";
 
 // SheetJS for Excel file handling - will be loaded via script tag in HTML
 
+// Conecta o hook useConfirm ao ref global (App não pode usar o hook diretamente)
+function ConfirmBridge() {
+  const c = useConfirm();
+  React.useEffect(() => { _confirmarRef.current = c; return () => { _confirmarRef.current = null; }; }, [c]);
+  return null;
+}
+
+
 // ─── APP PRINCIPAL ─────────────────────────────────────────────────────────────
+// Ref global para confirmar — setado por ConfirmBridge dentro do ConfirmProvider
+const _confirmarRef = { current: null };
+const confirmar = (...args) => _confirmarRef.current ? _confirmarRef.current(...args) : Promise.resolve(window.confirm(...args.map(a => typeof a === "string" ? a : "")));
+
 function App() {
   const [tela, _setTela] = useState("home");
 
@@ -287,8 +300,8 @@ function App() {
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Editou equipe", eq.nome || "", usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "equipes" });
   };
   // ── Exclusão de Usuários (Admin) ──────────────────────────────────────────
-  const excluirOrganizador = (id) => {
-    if (!window.confirm("⚠️ Excluir este organizador?\n\nEsta ação é IRREVERSÍVEL!")) return;
+  const excluirOrganizador = async (id) => {
+    if (!await confirmar("⚠️ Excluir este organizador?\n\nEsta ação é IRREVERSÍVEL!")) return;
     setOrganizadores((p) => p.filter(o => o.id !== id));
   };
   
@@ -296,7 +309,7 @@ function App() {
     await _atualizarEquipe(equipeatualizada);
   };
 
-  const excluirEquipeUsuario = (id) => {
+  const excluirEquipeUsuario = async (id) => {
     const equipe = equipes.find(e => e.id === id);
     const nomeEquipe = equipe?.nome || "esta equipe";
     const atletasVinculados = atletas.filter(a => a.clube === equipe?.nome || a.equipeId === id);
@@ -304,7 +317,7 @@ function App() {
     const msg = `⚠️ Excluir equipe "${nomeEquipe}"?\n\n` +
       (nAtletas > 0 ? `⚠️ ${nAtletas} atleta(s) vinculado(s) também serão excluídos!\n\n` : "") +
       `Esta ação é IRREVERSÍVEL!`;
-    if (!window.confirm(msg)) return;
+    if (!await confirmar(msg)) return;
     excluirEquipePorId(id);
     if (nAtletas > 0) {
       const idsAtletas = new Set(atletasVinculados.map(a => a.id));
@@ -317,12 +330,12 @@ function App() {
   
   
   
-  const excluirAtletaUsuario = (id) => {
-    if (!window.confirm("⚠️ Excluir este atleta usuário?\n\nEsta ação é IRREVERSÍVEL!")) return;
+  const excluirAtletaUsuario = async (id) => {
+    if (!await confirmar("⚠️ Excluir este atleta usuário?\n\nEsta ação é IRREVERSÍVEL!")) return;
     setAtletasUsuarios((p) => p.filter(a => a.id !== id));
   };
   
-  const excluirEquipeFiliada       = (id) => {
+  const excluirEquipeFiliada       = async (id) => {
     const equipe = equipes.find(e => e.id === id);
     const nomeEquipe = equipe?.nome || "esta equipe";
     const atletasVinculados = atletas.filter(a => a.clube === equipe?.nome || a.equipeId === id);
@@ -333,7 +346,7 @@ function App() {
       (nAtletas > 0 ? `⚠️ ${nAtletas} atleta(s) vinculado(s) também serão excluídos!\n\n` : "") +
       `Deseja realmente continuar?`;
     
-    if (!window.confirm(msg)) return;
+    if (!await confirmar(msg)) return;
     excluirEquipePorId(id);
     // Remover atletas vinculados à equipe
     if (nAtletas > 0) {
@@ -510,11 +523,11 @@ function App() {
   };
   const adicionarFuncionario  = (f) => setFuncionarios((p) => [...p, f]);
   const atualizarFuncionario  = (f) => setFuncionarios((p) => p.map(x => x.id === f.id ? f : x));
-  const removerFuncionario    = (id) => {
+  const removerFuncionario    = async (id) => {
     const func = funcionarios.find(f => f.id === id);
     const nomeFuncionario = func?.nome || "este funcionário";
     
-    if (!window.confirm(`⚠️ Remover "${nomeFuncionario}"?\n\nEsta ação é IRREVERSÍVEL e o funcionário perderá acesso ao sistema.`)) return;
+    if (!await confirmar(`⚠️ Remover "${nomeFuncionario}"?\n\nEsta ação é IRREVERSÍVEL e o funcionário perderá acesso ao sistema.`)) return;
     
     setFuncionarios((p) => p.filter(x => x.id !== id));
   };
@@ -522,9 +535,9 @@ function App() {
   // ── CRUD Treinadores (vinculados a equipes) ─────────────────────────────────
   const adicionarTreinador   = (t) => setTreinadores((p) => [...p, t]);
   const atualizarTreinador   = (t) => setTreinadores((p) => p.map(x => x.id === t.id ? t : x));
-  const removerTreinador     = (id) => {
+  const removerTreinador     = async (id) => {
     const trein = treinadores.find(t => t.id === id);
-    if (!window.confirm(`⚠️ Remover "${trein?.nome || "este treinador"}"?\n\nEsta ação é IRREVERSÍVEL.`)) return;
+    if (!await confirmar(`⚠️ Remover "${trein?.nome || "este treinador"}"?\n\nEsta ação é IRREVERSÍVEL.`)) return;
     setTreinadores((p) => p.filter(x => x.id !== id));
   };
   const registrarAcao = (usuarioId, nomeUsuario, acao, detalhe = "", organizadorId = null, extra = {}) =>
@@ -605,11 +618,11 @@ function App() {
   const marcarNotifLida = (id) =>
     setNotificacoes(p => p.map(n => n.id === id ? {...n, lida: true} : n));
 
-  const excluirAtleta = (atletaId) => {
+  const excluirAtleta = async (atletaId) => {
     const atleta = atletas.find(a => a.id === atletaId);
     const nomeAtleta = atleta?.nome || "este atleta";
     
-    if (!window.confirm(`⚠️ ATENÇÃO: Esta ação é IRREVERSÍVEL!\n\nExcluir "${nomeAtleta}"?\n\nO cadastro será removido permanentemente.\nInscrições e resultados serão mantidos como snapshots.`)) return;
+    if (!await confirmar(`⚠️ ATENÇÃO: Esta ação é IRREVERSÍVEL!\n\nExcluir "${nomeAtleta}"?\n\nO cadastro será removido permanentemente.\nInscrições e resultados serão mantidos como snapshots.`)) return;
     
     _excluirAtletaInterno(atletaId);
   };
@@ -763,8 +776,8 @@ function App() {
     importarInscricoes,
   } = useInscricoes({ atletas, registrarAcao, usuarioLogado });
 
-  const limparTodosDados = () => {
-    if (!window.confirm("⚠️ ATENÇÃO: Esta ação é IRREVERSÍVEL e EXTREMAMENTE DESTRUTIVA!\n\nVocê está prestes a APAGAR TODOS OS DADOS do sistema:\n\n• Todas as competições\n• Todos os atletas\n• Todas as equipes\n• Todos os organizadores\n• Todas as inscrições\n• Todos os resultados\n• Todos os recordes\n• Todas as pendências de recorde\n• Todo o histórico\n\n⚠️ AS CONTAS DE LOGIN (Firebase Auth) NÃO SERÃO APAGADAS.\nOs usuários ainda conseguirão fazer login, mas sem perfil no sistema.\nPara apagar as contas de login, acesse o Console do Firebase manualmente.\n\nEsta ação NÃO PODE SER DESFEITA.\n\nDeseja realmente continuar?")) return;
+  const limparTodosDados = async () => {
+    if (!await confirmar("⚠️ ATENÇÃO: Esta ação é IRREVERSÍVEL e EXTREMAMENTE DESTRUTIVA!\n\nVocê está prestes a APAGAR TODOS OS DADOS do sistema:\n\n• Todas as competições\n• Todos os atletas\n• Todas as equipes\n• Todos os organizadores\n• Todas as inscrições\n• Todos os resultados\n• Todos os recordes\n• Todas as pendências de recorde\n• Todo o histórico\n\n⚠️ AS CONTAS DE LOGIN (Firebase Auth) NÃO SERÃO APAGADAS.\nOs usuários ainda conseguirão fazer login, mas sem perfil no sistema.\nPara apagar as contas de login, acesse o Console do Firebase manualmente.\n\nEsta ação NÃO PODE SER DESFEITA.\n\nDeseja realmente continuar?")) return;
     resetEquipes();
     setOrganizadores([]);
     setAtletasUsuarios([]);
@@ -814,13 +827,13 @@ function App() {
     alert("✅ Backup exportado com sucesso!\n\n⚠️ ATENÇÃO: O backup NÃO inclui as contas de login (Firebase Auth).\nAs senhas e e-mails de acesso dos usuários ficam no Firebase Authentication e não podem ser exportados pelo sistema.\nSe necessário, exporte-os manualmente pelo Console do Firebase.");
   };
 
-  const importarDados = (arquivo) => {
+  const importarDados = async (arquivo) => {
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
         const dados = JSON.parse(e.target.result);
         if (!dados.versao) throw new Error("Arquivo inválido — não é um backup do sistema.");
-        if (!window.confirm(
+        if (!await confirmar(
           `Importar backup de ${new Date(dados.exportadoEm).toLocaleString("pt-BR")}?\n\n` +
           `Isso SUBSTITUIRÁ todos os dados atuais:\n` +
           `• ${dados.eventos?.length||0} evento(s)\n` +
@@ -915,7 +928,7 @@ function App() {
       return mudou ? atualizados : prev;
     });
   }, [eventos.length]); // roda ao montar e quando nº de eventos muda
-  const excluirEvento = (id) => {
+  const excluirEvento = async (id) => {
     const evento = eventos.find(e => e.id === id);
     const nomeEvento = evento?.nome || "esta competição";
     const nInscs = inscricoes.filter(i => i.eventoId === id).length;
@@ -928,7 +941,7 @@ function App() {
       `• Todas as súmulas\n\n` +
       `Deseja realmente continuar?`;
     
-    if (!window.confirm(msg)) return;
+    if (!await confirmar(msg)) return;
     
     setEventos((p) => p.filter((e) => e.id !== id));
     excluirInscricoesPorEvento(id);
@@ -1091,6 +1104,8 @@ function App() {
 
   
   return (
+    <ConfirmProvider>
+    <ConfirmBridge />
     <div style={styles.root}>
       <style>{cssGlobal}</style>
       <Header {...props} />
@@ -1152,6 +1167,7 @@ function App() {
         <span style={{ opacity: 0.4 }}>Desenvolvido por: GERENTRACK</span>
       </footer>
     </div>
+    </ConfirmProvider>
   );
 }
 

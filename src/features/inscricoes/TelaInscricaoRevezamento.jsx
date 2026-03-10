@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas, nPernasRevezamento, isRevezamentoMisto } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/athletics/constants";
 import { ProvaSelector } from "../ui/ProvaSelector";
@@ -133,6 +134,7 @@ const styles = {
 };
 
 function TelaInscricaoRevezamento({ setTela, eventoAtual, inscricoes, atletas, equipes, excluirInscricao, adicionarInscricao, atualizarInscricao, usuarioLogado, registrarAcao, numeracaoPeito }) {
+  const confirmar = useConfirm();
   if (!eventoAtual) return <div style={styles.page}><div style={styles.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
 
   const eid = eventoAtual.id;
@@ -266,12 +268,12 @@ function TelaInscricaoRevezamento({ setTela, eventoAtual, inscricoes, atletas, e
     else setFeedback("");
   };
 
-  const handleExcluir = (insc) => {
+  const handleExcluir = async (insc) => { 
     const prv = todasAsProvas().find(p => p.id === insc.provaId);
     const eq = equipes.find(e => e.id === insc.equipeId);
     const nomeEq = eq ? (eq.clube || eq.nome || "—") : "—";
-    if (!window.confirm(`Remover inscrição de ${nomeEq} em ${prv?.nome || insc.provaId}?`)) return;
-    excluirInscricao(insc.id);
+    if (!await confirmar(`Remover inscrição de ${nomeEq } em ${prv?.nome || insc.provaId}?`)) return;
+    excluirInscricao(insc.id, { confirmado: true });
     if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, "Removeu inscrição revezamento",
       `${prv?.nome || insc.provaId} — ${nomeEq}`, usuarioLogado?.organizadorId || usuarioLogado?.id, { modulo: "revezamento" });
     setFeedback("✅ Inscrição removida."); setTimeout(() => setFeedback(""), 3000);
@@ -428,7 +430,7 @@ function TelaInscricaoRevezamento({ setTela, eventoAtual, inscricoes, atletas, e
                           <span style={{ color: atletaSel.sexo === "M" ? "#1a6ef5" : "#e54f9b", fontSize: 10 }}>{atletaSel.sexo}</span>
                           {atletaSel.cbat && <span style={{ color: "#666", fontSize: 10 }}>CBAt: {atletaSel.cbat}</span>}
                           {numPeito[atletaSel.id] && <span style={{ color: "#888", fontSize: 10 }}>Nº {numPeito[atletaSel.id]}</span>}
-                          <button onClick={() => {
+                          <button onClick={async () => {
                             setRevezForm(f => { const ids = [...f.atletasIds]; ids[idx] = ""; return { ...f, atletasIds: ids }; });
                             setRevezBusca(prev => { const n = [...prev]; n[idx] = ""; return n; });
                           }} style={{ background: "none", border: "none", color: "#ff6b6b", cursor: "pointer", fontSize: 14, marginLeft: "auto" }}>✕</button>
@@ -446,7 +448,7 @@ function TelaInscricaoRevezamento({ setTela, eventoAtual, inscricoes, atletas, e
                               {resB.map(a => {
                                 const jaEscolhido = revezForm.atletasIds.includes(a.id);
                                 return (
-                                  <div key={a.id} onClick={() => {
+                                  <div key={a.id} onClick={async () => {
                                     if (jaEscolhido) return;
                                     setRevezForm(f => { const ids = [...f.atletasIds]; while (ids.length <= idx) ids.push(""); ids[idx] = a.id; return { ...f, atletasIds: ids }; });
                                     setRevezBusca(prev => { const n = [...prev]; n[idx] = ""; return n; });
@@ -509,7 +511,7 @@ function TelaInscricaoRevezamento({ setTela, eventoAtual, inscricoes, atletas, e
             <button style={styles.btnPrimary} onClick={handleSalvar}>
               💾 {revezForm.editId ? "Atualizar Inscrição" : "Inscrever Equipe"}
             </button>
-            <button style={styles.btnGhost} onClick={() => { setRevezForm(null); setRevezBusca(["","","","",""]); setFeedback(""); }}>
+            <button style={styles.btnGhost} onClick={async () => { setRevezForm(null); setRevezBusca(["","","","",""]); setFeedback(""); }}>
               Cancelar
             </button>
           </div>

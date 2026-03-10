@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useConfirm } from "../../features/ui/ConfirmContext";
 import { validarCPF, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { Th, Td } from "../ui/TableHelpers";
@@ -147,6 +148,7 @@ const PERMISSOES = [
 function TelaFuncionarios({ usuarioLogado, setTela, funcionarios, adicionarFuncionario,
   atualizarFuncionario, removerFuncionario, registrarAcao, gerarSenhaTemp,
   historicoAcoes, organizadores, equipes, atletasUsuarios, treinadores }) {
+  const confirmar = useConfirm();
 
   const tipoUsr = usuarioLogado?.tipo;
   if (tipoUsr !== "organizador" && tipoUsr !== "admin") return (
@@ -290,8 +292,8 @@ function TelaFuncionarios({ usuarioLogado, setTela, funcionarios, adicionarFunci
       f.ativo ? "Desativou funcionário" : "Reativou funcionário", f.nome, orgId);
   };
 
-  const handleRemover = (f) => {
-    if (!window.confirm(`Remover ${f.nome} permanentemente?`)) return;
+  const handleRemover = async (f) => { 
+    if (!await confirmar(`Remover ${f.nome } permanentemente?`)) return;
     removerFuncionario(f.id);
     registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Removeu funcionário", f.nome, orgId);
   };
@@ -509,7 +511,7 @@ function TelaFuncionarios({ usuarioLogado, setTela, funcionarios, adicionarFunci
             <button style={styles.btnPrimary} onClick={handleSalvar}>
               {editando ? "💾 Salvar Alterações" : docModo === "vincular" ? "🔗 Vincular Funcionário" : "✅ Cadastrar Funcionário"}
             </button>
-            <button style={styles.btnGhost} onClick={() => { setAba("lista"); setDocModo("novo"); setDocExistente(null); }}>Cancelar</button>
+            <button style={styles.btnGhost} onClick={async () => { setAba("lista"); setDocModo("novo"); setDocExistente(null); }}>Cancelar</button>
           </div>
             </>
           )}

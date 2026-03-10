@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { getCategoria } from "../../shared/athletics/constants";
 import { _getCbat } from "../../shared/formatters/utils";
@@ -82,6 +83,7 @@ function VinculoSolicitarForm({ atletaId, atletaNome, clubeInicial, equipes, sol
 
 
 function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, inscricoes, eventos, equipes, eventoAtual, adicionarInscricao, atualizarAtletaUsuario, solicitarVinculo, solicitacoesVinculo, responderVinculo, notificacoes, marcarNotifLida, excluirInscricao, atualizarInscricao, resultados, organizadores, solicitarDesvinculo, perfisDisponiveis }) {
+  const confirmar = useConfirm();
   if (usuarioLogado?.tipo !== "atleta") return (
     <div style={styles.page}><div style={styles.emptyState}>
       <span style={{ fontSize: 48 }}>🚫</span>
@@ -132,7 +134,7 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
         </div>
         {meuAtleta && (
           <div style={styles.painelBtns}>
-            <button style={styles.btnSecondary} onClick={() => { window.__atletaEditId = meuAtleta?.id; setTela("editar-atleta"); }}>✏️ Meus Dados</button>
+            <button style={styles.btnSecondary} onClick={async () => { window.__atletaEditId = meuAtleta?.id; setTela("editar-atleta"); }}>✏️ Meus Dados</button>
             <button style={styles.btnSecondary} onClick={() => setTela("gerenciar-inscricoes")}>📋 Minhas Inscrições</button>
             <button style={styles.btnPrimary} onClick={() => setTela("inscricao-avulsa")}>✍️ Me Inscrever</button>
           </div>
@@ -201,7 +203,7 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
                       </span>
                     ) : (
                       <button style={{ ...styles.btnPrimary, fontSize:13, padding:"8px 16px" }}
-                        onClick={() => { window.__eventoParaInscricao = ev.id; setTela("inscricao-avulsa"); }}>
+                        onClick={async () => { window.__eventoParaInscricao = ev.id; setTela("inscricao-avulsa"); }}>
                         ✍️ Me Inscrever
                       </button>
                     )}
@@ -305,9 +307,9 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
                           totalmente preservados</strong> — nenhum dado esportivo é apagado.
                         </div>
                         <button
-                          onClick={() => {
-                            if (!window.confirm(
-                              `⚠️ Solicitar saída da equipe "${equipeVinculada.nome}"?
+                          onClick={async () => { 
+                            if (!await confirmar(
+                              `⚠️ Solicitar saída da equipe "${equipeVinculada.nome }"?
 
 ` +
                               `A equipe precisará aprovar sua solicitação.
@@ -487,7 +489,7 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
                         const inscAberta = ev && !ev.inscricoesEncerradas;
                         if (!inscAberta) return <span style={{color:"#444",fontSize:11}}>—</span>;
                         return (
-                          <button onClick={() => excluirInscricao(i.id)}
+                          <button onClick={async () => { if (await confirmar("⚠️ Excluir esta inscrição?\n\nEsta ação é IRREVERSÍVEL e removerá todos os resultados associados.")) excluirInscricao(i.id, { confirmado: true }); }}
                             style={{...styles.btnGhost,fontSize:11,padding:"3px 10px",color:"#ff6b6b",borderColor:"#5a1a1a"}}
                             title="Excluir inscrição">
                             🗑 Excluir

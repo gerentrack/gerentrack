@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/athletics/constants";
 import { Th, Td } from "../ui/TableHelpers";
@@ -134,6 +135,7 @@ const styles = {
 
 function TelaGerenciarInscricoes({ usuarioLogado, setTela, atletas, inscricoes,
   eventos, eventoAtual, equipes, excluirInscricao, atualizarInscricao, organizadores = [] }) {
+  const confirmar = useConfirm();
 
   const isAdmin   = usuarioLogado?.tipo === "admin";
   const isOrg     = usuarioLogado?.tipo === "organizador";
@@ -324,9 +326,9 @@ function TelaGerenciarInscricoes({ usuarioLogado, setTela, atletas, inscricoes,
                               }}>
                                 {prova?.nome || i.provaId}
                                 {podeAlt && (
-                                  <button onClick={() => {
-                                    if (window.confirm(`Remover ${atleta?.nome || "atleta"} de ${prova?.nome || i.provaId}?`)) {
-                                      excluirInscricao(i.id);
+                                  <button onClick={async () => { 
+                                    if (await confirmar(`Remover ${atleta?.nome || "atleta" } de ${prova?.nome || i.provaId}?`)) {
+                                      excluirInscricao(i.id, { confirmado: true });
                                     }
                                   }}
                                     style={{ background:"none", border:"none", cursor:"pointer", color:"#ff6b6b", fontSize:10, padding:"0 2px", lineHeight:1 }}
@@ -361,8 +363,8 @@ function TelaGerenciarInscricoes({ usuarioLogado, setTela, atletas, inscricoes,
                       )}
                       <Td>
                         {podeAlt ? (
-                          <button onClick={() => {
-                            if (window.confirm(`Remover TODAS as ${inscs.length} inscrições de ${atleta?.nome || "atleta"}?`)) {
+                          <button onClick={async () => { 
+                            if (await confirmar(`Remover TODAS as ${inscs.length } inscrições de ${atleta?.nome || "atleta"}?`)) {
                               inscs.forEach(i => excluirInscricao(i.id));
                             }
                           }}

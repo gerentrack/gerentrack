@@ -96,7 +96,7 @@ export function useInscricoes({ atletas = [], registrarAcao, usuarioLogado } = {
   // Nota: window.confirm e CombinedEventEngine ficam aqui para manter
   // o comportamento idêntico ao App.jsx original
   const excluirInscricao = useCallback(
-    async (id, { todasAsProvas, CombinedEventEngine } = {}) => {
+    async (id, { todasAsProvas, CombinedEventEngine, confirmado } = {}) => {
       const insc = inscricoesRef.current.find((i) => i.id === id);
 
       // Proteger inscrições de componentes de provas combinadas
@@ -107,12 +107,8 @@ export function useInscricoes({ atletas = [], registrarAcao, usuarioLogado } = {
         return;
       }
 
-      if (
-        !window.confirm(
-          "⚠️ Excluir esta inscrição?\n\nEsta ação é IRREVERSÍVEL e removerá todos os resultados associados."
-        )
-      )
-        return;
+      // Confirmação deve vir do componente (confirmado: true) para suportar modal React
+      if (!confirmado) return;
 
       // Se for combinada principal, remover componentes também
       let idsParaRemover = [id];
