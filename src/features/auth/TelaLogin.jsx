@@ -140,12 +140,11 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
       // Na próxima vez que a senha local for removida, o usuário já tem Auth
       const emailParaAuth = encontrarEmail();
       if (emailParaAuth) {
-        createUserWithEmailAndPassword(auth, emailParaAuth, senha)
-          .catch(err => {
-            if (err.code !== "auth/email-already-in-use") {
-              console.warn("[auth migration]", err.code);
-            }
-          });
+        // Migração silenciosa: só tenta se for email válido
+        if (emailParaAuth.includes("@")) {
+          createUserWithEmailAndPassword(auth, emailParaAuth, senha)
+            .catch(() => { /* ignora todos os erros de migração */ });
+        }
       }
       const perfis = buscarPerfis();
       finalizarLogin(perfis);

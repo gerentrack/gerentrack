@@ -1,3 +1,4 @@
+import { usePagination, PaginaControles } from "../../lib/hooks/usePagination.jsx";
 import React, { useState, useMemo } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
@@ -453,6 +454,16 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // ── Paginação inscrições agrupadas ─────────────────────────────────────────
+  const _porAtletaMap = {};
+  inscsFiltradas.forEach(insc => {
+    if (!_porAtletaMap[insc.atletaId]) _porAtletaMap[insc.atletaId] = [];
+    _porAtletaMap[insc.atletaId].push(insc);
+  });
+  const _porAtletaArr = Object.entries(_porAtletaMap);
+  const { paginado: porAtletaPag, infoPage: inscsInfo } = usePagination(_porAtletaArr, 10);
+
+
   return (
     <div style={styles.page}>
       <div style={styles.painelHeader}>
@@ -522,13 +533,8 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
               <tbody>
                 {inscsFiltradas.length === 0 ? (
                   <tr><td colSpan={6} style={{ ...styles.td, textAlign: "center", color: "#666" }}>Nenhuma inscrição encontrada.</td></tr>
-                ) : (() => {
-                  const porAtleta = {};
-                  inscsFiltradas.forEach(insc => {
-                    if (!porAtleta[insc.atletaId]) porAtleta[insc.atletaId] = [];
-                    porAtleta[insc.atletaId].push(insc);
-                  });
-                  return Object.entries(porAtleta).map(([atletaId, inscs], rowIdx) => {
+                ) : (
+                  porAtletaPag.map(([atletaId, inscs], rowIdx) => {
                     const atl = atletas.find(a => a.id === atletaId);
                     const primeiraInsc = inscs[0];
                     const inscsVisiveis = inscs.filter(i => !i.combinadaId);
@@ -573,10 +579,11 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                         </td>
                       </tr>
                     );
-                  });
-                })()}
+                  })
+                )}
               </tbody>
             </table>
+            <PaginaControles {...inscsInfo} />
           </div>
 
           {/* Revezamento — sem custo */}

@@ -1,3 +1,4 @@
+import { usePagination, PaginaControles } from "../../lib/hooks/usePagination.jsx";
 import React, { useState } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { _getLocalEventoDisplay, _getNascDisplay, validarCNPJ, emailJaCadastrado } from "../../shared/formatters/utils";
@@ -134,6 +135,16 @@ function TelaAdmin({
   const si = { ...s.input, padding:"6px 12px", fontSize:12, marginBottom:10, maxWidth:400 };
 
   // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Paginação ──────────────────────────────────────────────────────────────
+  const _atletasFiltrados = atletas.filter(a => {
+    if (!buscaAtl) return true;
+    const b = buscaAtl.toLowerCase();
+    const eq = equipes.find(t => t.id === a.equipeId);
+    return (a.nome||"").toLowerCase().includes(b)||(eq?.nome||"").toLowerCase().includes(b);
+  });
+  const { paginado: atletasPag, infoPage: atletasInfo } = usePagination(_atletasFiltrados, 10);
+
+
   return (
     <div style={s.page}>
 
@@ -556,6 +567,7 @@ function TelaAdmin({
                     </tbody>
                   </table>
                 </div>
+                <PaginaControles {...atletasInfo} />
               </div>
             </>
           )}
@@ -585,12 +597,7 @@ function TelaAdmin({
                   <table style={s.table}>
                     <thead><tr><Th>Nome</Th><Th>Sexo</Th><Th>Nasc.</Th><Th>Equipe</Th><Th>Inscrições</Th><Th>Ações</Th></tr></thead>
                     <tbody>
-                      {atletas.filter(a => {
-                        if (!buscaAtl) return true;
-                        const b = buscaAtl.toLowerCase();
-                        const eq = equipes.find(t => t.id === a.equipeId);
-                        return (a.nome||"").toLowerCase().includes(b)||(eq?.nome||"").toLowerCase().includes(b);
-                      }).map(a => {
+                      {atletasPag.map(a => {
                         const eq = equipes.find(t => t.id === a.equipeId);
                         const ninsc = inscricoes.filter(i => i.atletaId===a.id).length;
                         return (
@@ -619,6 +626,7 @@ function TelaAdmin({
                     </tbody>
                   </table>
                 </div>
+                <PaginaControles {...atletasInfo} />
               </div>
             </>
           )}

@@ -1,3 +1,4 @@
+import { usePagination, PaginaControles } from "../../lib/hooks/usePagination.jsx";
 import React, { useState } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { CATEGORIAS, getCategoria } from "../../shared/athletics/constants";
@@ -173,6 +174,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, excluirAtleta, excluirA
         })
       : atletas;
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const atletasFiltrados = meusAtletas.filter(a => {
     if (filtroSexoAtl !== "todos" && a.sexo !== filtroSexoAtl) return false;
     if (filtroCatAtl !== "todas") {
@@ -185,6 +187,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, excluirAtleta, excluirA
     }
     return true;
   });
+  const { paginado: atletasPag, infoPage: atletasInfo } = usePagination(atletasFiltrados, 10);
 
   // ── Handlers do formulário ──
   const handleCpfChange = (v) => {
@@ -394,10 +397,10 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, excluirAtleta, excluirA
             borderRadius: 8, flexWrap: "wrap" }}>
             <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", color: "#aaa", fontSize: 13 }}>
               <input type="checkbox"
-                checked={selecionados.size > 0 && selecionados.size === atletasFiltrados.slice(0, 200).length}
+                checked={selecionados.size > 0 && selecionados.size === atletasFiltrados.length}
                 onChange={(e) => {
                   if (e.target.checked) {
-                    setSelecionados(new Set(atletasFiltrados.slice(0, 200).map(a => a.id)));
+                    setSelecionados(new Set(atletasFiltrados.map(a => a.id)));
                   } else {
                     setSelecionados(new Set());
                   }
@@ -430,6 +433,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, excluirAtleta, excluirA
         )}
 
         {/* Lista */}
+        <PaginaControles {...atletasInfo} />
         {atletasFiltrados.length === 0 ? (
           <div style={{ textAlign: "center", padding: 60, color: "#666" }}>
             <div style={{ fontSize: 64, marginBottom: 16 }}>🏃</div>
@@ -452,7 +456,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, excluirAtleta, excluirA
         ) : (
           <div style={{ maxHeight: 680, overflowY: "auto", border: "1px solid #1E2130", borderRadius: 8, padding: 4 }}>
             <div style={{ display: "grid", gap: 8 }}>
-            {atletasFiltrados.slice(0, 200).map(a => {
+            {atletasPag.map(a => {
               const eq = _getClubeAtleta(a, equipes);
               const catAtl = getCategoria(a.anoNasc, anoBase);
               return (

@@ -1,3 +1,4 @@
+import { usePagination, PaginaControles } from "../../lib/hooks/usePagination.jsx";
 import React, { useState } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
@@ -212,6 +213,22 @@ function TelaGerenciarInscricoes({ usuarioLogado, setTela, atletas, inscricoes,
   );
 
 
+  // ── Paginação inscrições ───────────────────────────────────────────────────
+  const inscricoesFiltradas = inscVisiveis.filter(i => i.tipo !== "revezamento");
+
+
+  // ── Paginação inscrições agrupadas por atleta ──────────────────────────────
+  const _gruposChave = (i) => filtroEvento ? i.atletaId : `${i.atletaId}_${i.eventoId}`;
+  const _gruposMap = {};
+  inscricoesFiltradas.forEach(i => {
+    const k = _gruposChave(i);
+    if (!_gruposMap[k]) _gruposMap[k] = [];
+    _gruposMap[k].push(i);
+  });
+  const _gruposArr = Object.values(_gruposMap);
+  const { paginado: gruposPag, infoPage: inscsInfo } = usePagination(_gruposArr, 10);
+
+
   return (
     <div style={styles.page}>
       <div style={styles.painelHeader}>
@@ -277,15 +294,8 @@ function TelaGerenciarInscricoes({ usuarioLogado, setTela, atletas, inscricoes,
             </tr></thead>
             <tbody>
               {(() => {
-                // Agrupar por atleta (e competição se não filtrada)
-                const chave = (i) => filtroEvento ? i.atletaId : `${i.atletaId}_${i.eventoId}`;
-                const grupos = {};
-                inscVisiveis.filter(i => i.tipo !== "revezamento").forEach(i => {
-                  const k = chave(i);
-                  if (!grupos[k]) grupos[k] = [];
-                  grupos[k].push(i);
-                });
-                return Object.values(grupos).map(inscs => {
+                // Usar grupos pré-calculados com paginação
+                return gruposPag.map(inscs => {
                   const first = inscs[0];
                   const atleta = atletas.find(a => a.id === first.atletaId);
                   const ev = eventos.find(e => e.id === first.eventoId);
@@ -381,11 +391,12 @@ function TelaGerenciarInscricoes({ usuarioLogado, setTela, atletas, inscricoes,
               })()}
             </tbody>
           </table>
+          <PaginaControles {...inscsInfo} />
         </div>
       )}
 
       <div style={{marginTop:8,color:"#555",fontSize:12}}>
-        {inscVisiveis.filter(i => i.tipo !== "revezamento").length} inscrição(ões) de {[...new Set(inscVisiveis.filter(i => i.tipo !== "revezamento").map(i => i.atletaId))].length} atleta(s)
+        {inscricoesFiltradas.length} inscrição(ões) de {[...new Set(inscVisiveis.filter(i => i.tipo !== "revezamento").map(i => i.atletaId))].length} atleta(s)
         {!isAmplo && " · Editar/excluir disponível apenas enquanto inscrições estiverem abertas"}
       </div>
     </div>

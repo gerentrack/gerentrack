@@ -1,3 +1,4 @@
+import { usePagination, PaginaControles } from "../../lib/hooks/usePagination.jsx";
 import React, { useState } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { validarCPF, validarCNPJ } from "../../shared/formatters/utils";
@@ -364,6 +365,10 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
     alert(`✅ Usuário "${usuario?.nome}" excluído com sucesso!`);
   };
 
+  // ── Paginação usuários ─────────────────────────────────────────────────────
+  const { paginado: usuariosPag, infoPage: usuariosInfo } = usePagination(usuariosFiltrados, 10);
+
+
   return (
     <div style={styles.page}>
       <div style={styles.painelHeader}>
@@ -676,7 +681,7 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
       {/* Users list */}
       {modo === "lista" && (
         <div style={{ display: "grid", gap: 12, maxHeight:500, overflowY:"auto" }}>
-        {usuariosFiltrados.map((usuario) => (
+        {usuariosPag.map((usuario) => (
           <div key={usuario.id} style={{
             background: "#0D0E12",
             border: "1px solid #1E2130",
@@ -744,6 +749,7 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
           </div>
         ))}
 
+        <PaginaControles {...usuariosInfo} />
         {usuariosFiltrados.length === 0 && (
           <div style={{ textAlign: "center", padding: 60, color: "#666" }}>
             <div style={{ fontSize: 64, marginBottom: 16 }}>👥</div>
