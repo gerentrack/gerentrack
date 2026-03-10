@@ -249,9 +249,9 @@ function App() {
     else if (dados.tipo === "atleta")       { setEventoAtualId(null); setTela("painel-atleta"); }
     else if (dados.tipo === "organizador")  setTela("painel-organizador");
     else if (dados.tipo === "funcionario")  setTela("painel-organizador");
-    else if (dados.tipo === "equipe")       setTela("painel");
-    else if (dados.tipo === "treinador")    setTela("painel");
-    else                                    setTela("painel");
+    else if (dados.tipo === "equipe")       setTela("painel-equipe");
+    else if (dados.tipo === "treinador")    setTela("painel-equipe");
+    else                                    setTela("painel-equipe");
   };
 
   const loginComSelecao = (dados, perfis) => {
@@ -262,9 +262,9 @@ function App() {
     else if (dados.tipo === "atleta")       { setEventoAtualId(null); setTela("painel-atleta"); }
     else if (dados.tipo === "organizador")  setTela("painel-organizador");
     else if (dados.tipo === "funcionario")  setTela("painel-organizador");
-    else if (dados.tipo === "equipe")       setTela("painel");
-    else if (dados.tipo === "treinador")    setTela("painel");
-    else                                    setTela("painel");
+    else if (dados.tipo === "equipe")       setTela("painel-equipe");
+    else if (dados.tipo === "treinador")    setTela("painel-equipe");
+    else                                    setTela("painel-equipe");
   };
 
   const logout = () => {
