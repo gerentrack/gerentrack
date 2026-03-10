@@ -23,7 +23,8 @@ export function useLocalStorage(key, initialValue) {
     try {
       const item = window.localStorage.getItem(key);
       return item ? JSON.parse(item) : initialValue;
-    } catch {
+    } catch (err) {
+      console.error(`[useLocalStorage] Falha ao ler "${key}" do localStorage:`, err);
       return initialValue;
     }
   });
@@ -44,8 +45,8 @@ export function useLocalStorage(key, initialValue) {
           setStoredValue(remoteVal);
           try {
             window.localStorage.setItem(key, JSON.stringify(remoteVal));
-          } catch (_e) {
-            // quota exceeded — ignorar silenciosamente
+          } catch (quotaErr) {
+            console.warn(`[useLocalStorage] localStorage cheio ao sincronizar "${key}":`, quotaErr);
           }
         }
         firestoreLoaded.current = true;
@@ -61,23 +62,24 @@ export function useLocalStorage(key, initialValue) {
   // ── Setter com persistência dupla ──────────────────────────────────────────
   const setValue = useCallback(
     (value) => {
-      try {
-        const valueToStore =
-          value instanceof Function ? value(ref.current) : value;
-        ref.current = valueToStore;
-        setStoredValue(valueToStore);
-        window.localStorage.setItem(key, JSON.stringify(valueToStore));
+      const valueToStore =
+        value instanceof Function ? value(ref.current) : value;
+      ref.current = valueToStore;
+      setStoredValue(valueToStore);
 
-        // Só grava no Firestore após o carregamento inicial para não
-        // sobrescrever dados remotos com estado desatualizado.
-        if (firestoreLoaded.current) {
-          const docRef = doc(db, "state", key);
-          setDoc(docRef, { value: sanitizeForFirestore(valueToStore) }).catch(
-            (err) => console.error("Firestore write error:", key, err)
-          );
-        }
-      } catch (error) {
-        console.log(error);
+      // localStorage: falha de quota não bloqueia o Firestore
+      try {
+        window.localStorage.setItem(key, JSON.stringify(valueToStore));
+      } catch (quotaErr) {
+        console.warn(`[useLocalStorage] localStorage cheio ao gravar "${key}":`, quotaErr);
+      }
+
+      // Firestore: só grava após carregamento inicial para não sobrescrever dados remotos
+      if (firestoreLoaded.current) {
+        const docRef = doc(db, "state", key);
+        setDoc(docRef, { value: sanitizeForFirestore(valueToStore) }).catch(
+          (err) => console.error(`[useLocalStorage] Firestore write error "${key}":`, err)
+        );
       }
     },
     [key]

@@ -308,14 +308,14 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
         `<span style="display:inline-block;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:4px;padding:2px 8px;font-size:11px;margin:2px 3px 2px 0;color:#1b5e20;">${p.provaNome}</span>`
       ).join("");
 
-      const tipoLabel = r.precoInfo.tipo === "comEquipe" ? "com equipe"
-        : r.precoInfo.tipo === "semEquipe" ? "sem equipe"
-        : r.precoInfo.tipo === "global" ? "valor geral" : "";
+      const tipoLabel = r.precoInfo?.tipo === "comEquipe" ? "com equipe"
+        : r.precoInfo?.tipo === "semEquipe" ? "sem equipe"
+        : r.precoInfo?.tipo === "global" ? "valor geral" : "";
 
       const valorHtml = r.jaTemInscricao
         ? `<span style="color:#999;font-size:12px;">Já inscrito</span>`
-        : r.precoInfo.preco != null
-          ? `<strong style="font-size:17px;color:#1a6b1a;">${formatarPreco(r.precoInfo.preco)}</strong>${tipoLabel ? `<br><span style="font-size:10px;color:#888;">(${tipoLabel})</span>` : ""}`
+        : r.precoInfo?.preco != null
+          ? `<strong style="font-size:17px;color:#1a6b1a;">${formatarPreco(r.precoInfo?.preco)}</strong>${tipoLabel ? `<br><span style="font-size:10px;color:#888;">(${tipoLabel})</span>` : ""}`
           : `<span style="color:#999;font-size:12px;font-style:italic;">Gratuito</span>`;
 
       return `
@@ -816,15 +816,15 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                                   <span style={{ fontSize: 11, color: "#555", background: "#111", border: "1px solid #1e2130", borderRadius: 6, padding: "3px 8px" }}>
                                     Já inscrito
                                   </span>
-                                ) : r.precoInfo.preco != null ? (
+                                ) : r.precoInfo?.preco != null ? (
                                   <div>
                                     <strong style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 17, color: "#7acc44" }}>
-                                      {formatarPreco(r.precoInfo.preco)}
+                                      {formatarPreco(r.precoInfo?.preco)}
                                     </strong>
                                     <div style={{ fontSize: 10, color: "#555", marginTop: 1 }}>
-                                      {r.precoInfo.tipo === "comEquipe" ? "🏛️ com equipe" :
-                                       r.precoInfo.tipo === "semEquipe" ? "👤 sem equipe" :
-                                       r.precoInfo.tipo === "global"    ? "🌐 valor geral" : ""}
+                                      {r.precoInfo?.tipo === "comEquipe" ? "🏛️ com equipe" :
+                                       r.precoInfo?.tipo === "semEquipe" ? "👤 sem equipe" :
+                                       r.precoInfo?.tipo === "global"    ? "🌐 valor geral" : ""}
                                     </div>
                                   </div>
                                 ) : (
@@ -907,23 +907,23 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                               </span>
                               <div style={{ fontSize: 10, color: "#444", marginTop: 3 }}>sem cobrança adicional</div>
                             </div>
-                          ) : r.precoInfo.preco != null ? (
+                          ) : r.precoInfo?.preco != null ? (
                             <div>
                               <strong style={{ color: "#7acc44", fontSize: 22, fontFamily: "'Barlow Condensed', sans-serif" }}>
-                                {formatarPreco(r.precoInfo.preco)}
+                                {formatarPreco(r.precoInfo?.preco)}
                               </strong>
                               <div style={{ display: "flex", justifyContent: "flex-end", gap: 4, marginTop: 3, flexWrap: "wrap" }}>
-                                {r.precoInfo.tipo === "comEquipe" && (
+                                {r.precoInfo?.tipo === "comEquipe" && (
                                   <span style={{ fontSize: 10, background: "#0a200a", border: "1px solid #1a4a1a", color: "#4a9a4a", borderRadius: 4, padding: "1px 6px" }}>
                                     🏛️ atleta federado
                                   </span>
                                 )}
-                                {r.precoInfo.tipo === "semEquipe" && (
+                                {r.precoInfo?.tipo === "semEquipe" && (
                                   <span style={{ fontSize: 10, background: "#1a1a0a", border: "1px solid #4a4a1a", color: "#9a9a4a", borderRadius: 4, padding: "1px 6px" }}>
                                     👤 atleta não federado
                                   </span>
                                 )}
-                                {r.precoInfo.tipo === "global" && (
+                                {r.precoInfo?.tipo === "global" && (
                                   <span style={{ fontSize: 10, background: "#0a1a2a", border: "1px solid #1a3a5a", color: "#4a7aaa", borderRadius: 4, padding: "1px 6px" }}>
                                     🌐 valor geral
                                   </span>

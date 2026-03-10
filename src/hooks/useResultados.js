@@ -20,14 +20,10 @@ import {
   onSnapshot,
   writeBatch,
 } from "../firebase";
+import { resKey } from "../shared/constants/fases";
 
 const COLLECTION = "resultados";
 
-// ── Mesma função resKey do App.jsx (duplicada aqui para independência) ────────
-const resKey = (eventoId, provaId, catId, sexo, faseSufixo) =>
-  faseSufixo
-    ? `${eventoId}_${provaId}_${catId}_${sexo}__${faseSufixo}`
-    : `${eventoId}_${provaId}_${catId}_${sexo}`;
 
 // ── Sanitize: Firestore rejeita undefined, NaN, Infinity ─────────────────────
 function sanitize(val) {
