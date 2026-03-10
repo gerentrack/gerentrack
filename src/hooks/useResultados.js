@@ -20,25 +20,17 @@ import {
   onSnapshot,
   writeBatch,
 } from "../firebase";
-import { resKey } from "../shared/constants/fases";
+import { sanitize } from "../lib/utils/sanitize";
 
 const COLLECTION = "resultados";
 
+// ── Mesma função resKey do App.jsx (duplicada aqui para independência) ────────
+const resKey = (eventoId, provaId, catId, sexo, faseSufixo) =>
+  faseSufixo
+    ? `${eventoId}_${provaId}_${catId}_${sexo}__${faseSufixo}`
+    : `${eventoId}_${provaId}_${catId}_${sexo}`;
 
 // ── Sanitize: Firestore rejeita undefined, NaN, Infinity ─────────────────────
-function sanitize(val) {
-  if (val === undefined || val === null) return null;
-  if (typeof val === "number") return isNaN(val) || !isFinite(val) ? null : val;
-  if (typeof val !== "object") return val;
-  if (Array.isArray(val)) return val.map(sanitize);
-  const out = {};
-  for (const k in val) {
-    if (Object.prototype.hasOwnProperty.call(val, k)) {
-      out[k] = sanitize(val[k]);
-    }
-  }
-  return out;
-}
 
 /**
  * @param {object} opts

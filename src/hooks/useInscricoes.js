@@ -20,22 +20,10 @@ import {
   onSnapshot,
   writeBatch,
 } from "../firebase";
+import { sanitize } from "../lib/utils/sanitize";
 
 const COLLECTION = "inscricoes";
 
-function sanitize(val) {
-  if (val === undefined || val === null) return null;
-  if (typeof val === "number") return isNaN(val) || !isFinite(val) ? null : val;
-  if (typeof val !== "object") return val;
-  if (Array.isArray(val)) return val.map(sanitize);
-  const out = {};
-  for (const k in val) {
-    if (Object.prototype.hasOwnProperty.call(val, k)) {
-      out[k] = sanitize(val[k]);
-    }
-  }
-  return out;
-}
 
 /**
  * @param {object} opts
@@ -96,7 +84,7 @@ export function useInscricoes({ atletas = [], registrarAcao, usuarioLogado } = {
   // Nota: window.confirm e CombinedEventEngine ficam aqui para manter
   // o comportamento idêntico ao App.jsx original
   const excluirInscricao = useCallback(
-    async (id, { todasAsProvas, CombinedEventEngine, confirmado } = {}) => {
+    async (id, { todasAsProvas, CombinedEventEngine } = {}) => {
       const insc = inscricoesRef.current.find((i) => i.id === id);
 
       // Proteger inscrições de componentes de provas combinadas
@@ -107,8 +95,12 @@ export function useInscricoes({ atletas = [], registrarAcao, usuarioLogado } = {
         return;
       }
 
-      // Confirmação deve vir do componente (confirmado: true) para suportar modal React
-      if (!confirmado) return;
+      if (
+        !window.confirm(
+          "⚠️ Excluir esta inscrição?\n\nEsta ação é IRREVERSÍVEL e removerá todos os resultados associados."
+        )
+      )
+        return;
 
       // Se for combinada principal, remover componentes também
       let idsParaRemover = [id];

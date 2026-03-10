@@ -17,22 +17,10 @@ import {
   onSnapshot,
   writeBatch,
 } from "../firebase";
+import { sanitize } from "../lib/utils/sanitize";
 
 const COLLECTION = "equipes";
 
-function sanitize(val) {
-  if (val === undefined || val === null) return null;
-  if (typeof val === "number") return isNaN(val) || !isFinite(val) ? null : val;
-  if (typeof val !== "object") return val;
-  if (Array.isArray(val)) return val.map(sanitize);
-  const out = {};
-  for (const k in val) {
-    if (Object.prototype.hasOwnProperty.call(val, k)) {
-      out[k] = sanitize(val[k]);
-    }
-  }
-  return out;
-}
 
 export function useEquipes() {
   const [equipes, setEquipesLocal] = useState([]);
