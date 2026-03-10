@@ -115,7 +115,7 @@ function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, us
           {docModo === "vincular" ? "Vínculo criado!" : "Cadastro realizado!"}
         </h2>
         <p style={{ textAlign: "center", color: "#aaa" }}>Bem-vindo ao sistema, {form.nome}!</p>
-        <button style={styles.btnPrimary} onClick={() => setTela("painel")}>Ir para o Painel</button>
+        <button style={styles.btnPrimary} onClick={() => setTela("painel-equipe")}>Ir para o Painel</button>
       </div>
     </div>
   );
