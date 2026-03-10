@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import DOMPurify from "dompurify";
 import { validarCPF, validarCNPJ } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 
@@ -51,7 +52,7 @@ function ExclusaoConfirmada({ titulo, descricao, corAccent, btnLabel, onConfirma
         ⚠️ {titulo}
       </div>
       <div style={{ color: "#aaa", fontSize: 13, lineHeight: 1.7, marginBottom: 14 }}
-        dangerouslySetInnerHTML={{ __html: descricao }} />
+        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(descricao) }} />
       <div style={{ display: "flex", gap: 8 }}>
         <button onClick={() => setFase(2)}
           style={{ background: corAccent + "22", border: `1px solid ${corAccent}55`,
@@ -120,7 +121,7 @@ function TelaConfiguracoes({
   const isAdmin = usuarioLogado?.tipo === "admin";
 
   const meuRegistro = isAdmin
-    ? { ...usuarioLogado, senha: adminConfig?.senha || "admin123" }
+    ? { ...usuarioLogado } // admin: senha gerenciada pelo Firebase Auth, não existe localmente
     : (store?.data?.find(u => u.id === usuarioLogado?.id) || usuarioLogado);
 
   const isOrg    = usuarioLogado?.tipo === "organizador";
@@ -165,10 +166,25 @@ function TelaConfiguracoes({
   const salvarSenha = async () => {
     setErro("");
     if (!formSenha.atual)                          { setErro("Informe a senha atual."); return; }
-    if (meuRegistro?.senha && formSenha.atual !== meuRegistro.senha) { setErro("Senha atual incorreta."); return; }
     if (formSenha.nova.length < 6)                 { setErro("A nova senha deve ter pelo menos 6 caracteres."); return; }
     if (formSenha.nova !== formSenha.confirmar)     { setErro("As senhas não coincidem."); return; }
     if (formSenha.nova === formSenha.atual)         { setErro("A nova senha deve ser diferente da atual."); return; }
+
+    // Admin: validar senha atual via Firebase Auth antes de trocar
+    if (isAdmin) {
+      try {
+        const { signInWithEmailAndPassword } = await import("../../firebase");
+        const { auth } = await import("../../firebase");
+        await signInWithEmailAndPassword(auth, usuarioLogado.email, formSenha.atual);
+      } catch (_) {
+        setErro("Senha atual incorreta."); return;
+      }
+    } else {
+      // Demais usuários: validar contra senha local
+      if (meuRegistro?.senha && formSenha.atual !== meuRegistro.senha) {
+        setErro("Senha atual incorreta."); return;
+      }
+    }
     await atualizarSenha(usuarioLogado.tipo, usuarioLogado.id, formSenha.nova);
     if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Alterou senha", "",
       usuarioLogado.organizadorId || (isOrg ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId });
