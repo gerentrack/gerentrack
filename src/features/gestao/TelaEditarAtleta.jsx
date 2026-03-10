@@ -178,7 +178,7 @@ function TelaEditarAtleta({ usuarioLogado, atletas, atualizarAtleta, excluirAtle
       <div style={styles.painelHeader}>
         <h1 style={styles.pageTitle}>🏃 Atletas</h1>
         <button style={styles.btnGhost} onClick={() => setTela(
-          isAtleta ? "painel-atleta" : isEquipe ? "painel" : "admin")}>← Voltar</button>
+          isAtleta ? "painel-atleta" : isEquipe ? "painel-equipe" : "admin")}>← Voltar</button>
       </div>
       <div style={styles.tableWrap}>
         <table style={styles.table}>

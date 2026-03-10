@@ -134,6 +134,17 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
     const matchLocal = todos.find(u => matchIdent(u) && u.senha === senha);
 
     if (matchLocal) {
+      // Migração silenciosa: cria conta Firebase Auth em background
+      // Na próxima vez que a senha local for removida, o usuário já tem Auth
+      const emailParaAuth = encontrarEmail();
+      if (emailParaAuth) {
+        createUserWithEmailAndPassword(auth, emailParaAuth, senha)
+          .catch(err => {
+            if (err.code !== "auth/email-already-in-use") {
+              console.warn("[auth migration]", err.code);
+            }
+          });
+      }
       const perfis = buscarPerfis();
       finalizarLogin(perfis);
       return;

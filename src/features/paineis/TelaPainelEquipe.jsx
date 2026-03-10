@@ -50,6 +50,7 @@ export default function TelaPainelEquipe({
   atletas, inscricoes, eventos, equipes, treinadores,
   solicitacoesVinculo, responderVinculo,
   selecionarEvento,
+  desvincularAtleta, setAtletaEditandoId,
 }) {
   const isTreinador = usuarioLogado?.tipo === "treinador";
   const equipeId    = isTreinador ? usuarioLogado?.equipeId : usuarioLogado?.id;
@@ -211,7 +212,7 @@ export default function TelaPainelEquipe({
           ) : (
             <div style={S.tableWrap}>
               <table style={S.table}>
-                <thead><tr><Th>Nome</Th><Th>Sexo</Th><Th>Categoria</Th><Th>CPF</Th></tr></thead>
+                <thead><tr><Th>Nome</Th><Th>Sexo</Th><Th>Categoria</Th><Th>CPF</Th><Th></Th></tr></thead>
                 <tbody>
                   {meusAtletas.filter(a => {
                     if (!buscaAtl) return true;
@@ -225,6 +226,18 @@ export default function TelaPainelEquipe({
                         <Td><span style={S.badge(a.sexo === "M" ? "#88aaff" : "#ff88cc")}>{a.sexo === "M" ? "Masc." : "Fem."}</span></Td>
                         <Td><span style={S.badge("#1976D2")}>{cat?.nome || "—"}</span></Td>
                         <Td style={{ fontSize: 11, color: "#555" }}>{a.cpf || "—"}</Td>
+                        <Td>
+                          <div style={{ display: "flex", gap: 6 }}>
+                            <button style={{ background: "#141720", border: "1px solid #252837", color: "#aaa", borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: 12 }}
+                              onClick={() => { setAtletaEditandoId(a.id); setTela("editar-atleta"); }}>
+                              ✏️ Editar
+                            </button>
+                            <button style={{ background: "#1a0a0a", border: "1px solid #3a1a1a", color: "#ff6b6b", borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: 12 }}
+                              onClick={() => desvincularAtleta(a.id)}>
+                              🔓 Desvincular
+                            </button>
+                          </div>
+                        </Td>
                       </tr>
                     );
                   })}
