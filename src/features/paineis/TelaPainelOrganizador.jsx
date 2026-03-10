@@ -411,7 +411,7 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
                             <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
                               {!ev.inscricoesEncerradas && (
                                 <button style={{ ...styles.btnPrimary, fontSize:12, padding:"4px 10px" }}
-                                  onClick={() => { window.__eventoParaInscricao = ev.id; setTela("inscricao-avulsa"); }}>
+                                  onClick={() => { selecionarEvento(ev.id); setTela("inscricao-avulsa"); }}>
                                   + Inscrever
                                 </button>
                               )}

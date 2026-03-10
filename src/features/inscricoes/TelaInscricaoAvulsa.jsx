@@ -92,7 +92,7 @@ const styles = {
   inputMarca: { background: "#141720", border: "1px solid #252837", borderRadius: 6, padding: "8px 12px", color: "#1976D2", fontSize: 16, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, width: 120, outline: "none" },
 };
 
-function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equipes, inscricoes, usuarioLogado, setTela, eventoAtual, eventos, selecionarEvento, adicionarAtletaUsuario, atualizarAtletaUsuario, login, loginComSelecao, atletasUsuarios=[], organizadores=[] }) {
+function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equipes, inscricoes, usuarioLogado, setTela, eventoAtual, eventoAtualId, eventos, selecionarEvento, adicionarAtletaUsuario, atualizarAtletaUsuario, login, loginComSelecao, atletasUsuarios=[], organizadores=[] }) {
     const [modo, setModo] = useState("existente");
   const [atletaId, setAtletaId] = useState("");
   const [buscaAtleta, setBuscaAtleta] = useState("");
@@ -160,12 +160,10 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
     return Array.isArray(ev.orgsAutorizadas) && ev.orgsAutorizadas.includes(atletaOrgId);
   });
 
-  // Pré-selecionar evento cruzado vindo do TelaPainelAtleta
+  // Pré-selecionar evento cruzado vindo do TelaPainelOrganizador via eventoAtualId
   useEffect(() => {
-    const preId = window.__eventoParaInscricao;
-    if (preId && isAtleta && !eventoSelecionadoAtleta) {
-      setEventoSelecionadoAtleta(preId);
-      delete window.__eventoParaInscricao;
+    if (eventoAtualId && isAtleta && !eventoSelecionadoAtleta) {
+      setEventoSelecionadoAtleta(eventoAtualId);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAtleta]);

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DOMPurify from "dompurify";
 import { getStatusEvento, getStatusInscricoes, labelStatusEvento } from "./eventoHelpers";
 import { _getLocalEventoDisplay } from "../../shared/formatters/utils";
 import { todasAsProvas, getComposicaoCombinada } from "../../shared/athletics/provasDef";
@@ -162,7 +161,8 @@ function StatCard({ value, label }) {
   );
 }
 
-function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultados, usuarioLogado, alterarStatusEvento, selecionarEvento, recordes, setRecordes, equipes, getClubeAtleta, editarEvento, pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes, RecordDetectionEngine, organizadores = [] }) {
+function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultados, usuarioLogado, alterarStatusEvento, selecionarEvento, recordes, setRecordes, equipes, getClubeAtleta, editarEvento, pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes, RecordDetectionEngine, organizadores = [],
+  setCadEventoGoStep }) {
 
   // ── Aba ativa: inicializa conforme perfil ────────────────────────────────
   const [abaAtiva, setAbaAtiva] = useState(() => {
@@ -440,7 +440,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
               <span style={{ color: "#666", fontSize: 13 }}>Alterar dados, provas e configurações</span>
             </button>
             <button style={{ ...styles.eventoAcaoBtn, borderColor: "#ffcc0066" }}
-                    onClick={() => { selecionarEvento(eventoAtual.id); setTela("novo-evento"); setTimeout(() => window.__gerenTrackGoStep3?.(), 100); }}>
+                    onClick={() => { selecionarEvento(eventoAtual.id); setCadEventoGoStep("step3"); setTela("novo-evento"); }}>
               <span style={{ fontSize: 36 }}>🕐</span>
               <strong>Programa Horário</strong>
               <span style={{ color: "#666", fontSize: 13 }}>Definir horários e fases das provas</span>
@@ -940,7 +940,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
           <div style={{ color:"#1976D2", fontWeight:700, fontSize:14, marginBottom:12 }}>📝 Informações</div>
           <div
             style={{ color:"#ddd", fontFamily:"'Inter', sans-serif", fontSize:14, lineHeight:1.7, wordBreak:"break-word", whiteSpace:"pre-wrap", maxHeight: isAdmin ? 320 : undefined, overflowY: isAdmin ? "auto" : undefined }}
-            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(eventoAtual.descricao) }}
+            dangerouslySetInnerHTML={{ __html: eventoAtual.descricao }}
           />
         </div>
       )}

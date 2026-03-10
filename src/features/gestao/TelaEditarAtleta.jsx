@@ -90,17 +90,20 @@ const styles = {
 };
 
 function TelaEditarAtleta({ usuarioLogado, atletas, atualizarAtleta, excluirAtleta,
-  inscricoes, eventos, equipes, setTela, notificacoes, marcarNotifLida }) {
+  inscricoes, eventos, equipes, setTela, notificacoes, marcarNotifLida,
+  atletaEditandoId, setAtletaEditandoId }) {
 
   const atletaId = usuarioLogado?.tipo === "atleta"
     ? atletas.find(a => a.cpf && usuarioLogado.cpf &&
         a.cpf.replace(/\D/g,"") === usuarioLogado.cpf.replace(/\D/g,""))?.id
     : null;
-  // Admin/equipe passam atletaEditandoId via sessionStorage (simples)
+  // Admin/equipe passam atletaEditandoId via prop (substituiu window.__atletaEditId)
   const [selId, setSelId] = useState(
-    window.__atletaEditId || atletaId || ""
+    atletaEditandoId || atletaId || ""
   );
-  useEffect(() => { window.__atletaEditId = null; }, []);
+  useEffect(() => {
+    if (atletaEditandoId) setAtletaEditandoId(null); // limpar após uso
+  }, []);
 
   const atleta = atletas.find(a => a.id === selId);
   const [form, setForm] = useState(atleta ? { ...atleta } : null);

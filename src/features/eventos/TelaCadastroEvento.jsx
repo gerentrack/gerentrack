@@ -235,7 +235,8 @@ function RichTextEditor({ value, onChange, placeholder }) {
 
 
 // ─── CADASTRO / EDIÇÃO DE EVENTO ─────────────────────────────────────────────
-function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtual, eventoAtualId, selecionarEvento, usuarioLogado, organizadores, recordes, equipes = [] }) {
+function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtual, eventoAtualId, selecionarEvento, usuarioLogado, organizadores, recordes, equipes = [],
+  cadEventoGoStep, setCadEventoGoStep }) {
   const editando = eventoAtual && eventoAtualId && true;
   const tipoEvt = usuarioLogado?.tipo;
   if (tipoEvt !== "admin" && tipoEvt !== "organizador" && tipoEvt !== "funcionario") return (
@@ -311,10 +312,13 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
   const totalSteps = editando ? 4 : 3;
 
   // Callback para navegação direta ao step de Horários (step 4 ao editar)
+  // Antes: window.__gerenTrackGoStep3 — agora via prop cadEventoGoStep/setCadEventoGoStep
   useEffect(() => {
-    window.__gerenTrackGoStep3 = () => { if (editando) setStep(4); };
-    return () => { delete window.__gerenTrackGoStep3; };
-  }, [editando]);
+    if (cadEventoGoStep === "step3" && editando) {
+      setStep(4);
+      setCadEventoGoStep(null);
+    }
+  }, [cadEventoGoStep, editando]);
 
   const todasProvas = todasAsProvas();
   const grupos = [...new Set(todasProvas.map((p) => p.grupo))];

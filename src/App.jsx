@@ -146,6 +146,9 @@ function App() {
   const [pendenciasRecorde, setPendenciasRecorde] = useLocalStorage("atl_pendencias_recorde", []);
   const [historicoRecordes, setHistoricoRecordes] = useLocalStorage("atl_historico_recordes", []);
   const [eventoAtualId, setEventoAtualId] = useLocalOnly("atl_eventoAtualId", null);
+  // Substitutos para window.__ globals
+  const [atletaEditandoId, setAtletaEditandoId] = React.useState(null);
+  const [cadEventoGoStep, setCadEventoGoStep]   = React.useState(null);
 
   // Inscrições e resultados vinculados ao eventoId
   const [numeracaoPeito, setNumeracaoPeito] = useLocalStorage("atl_numeracao_peito", {}); // { eventoId: { atletaId: numero } }
@@ -1051,7 +1054,9 @@ function App() {
     tela, setTela, usuarioLogado, setUsuarioLogado, login, loginComSelecao, logout,
     perfisDisponiveis, setPerfisDisponiveis,
     equipes, atletas, inscricoes, resultados, excluirAtletaPorUsuario,
-    eventos, eventoAtual, eventoAtualId, selecionarEvento,
+    eventos, eventoAtual, eventoAtualId, setEventoAtualId, selecionarEvento,
+    atletaEditandoId, setAtletaEditandoId,
+    cadEventoGoStep, setCadEventoGoStep,
     gerarSenhaTemp, aplicarSenhaTemp, atualizarSenha,
     solicitacoesRecuperacao, adicionarSolicitacaoRecuperacao, resolverSolicitacaoRecuperacao,
     funcionarios, adicionarFuncionario, atualizarFuncionario, removerFuncionario,

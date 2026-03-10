@@ -69,6 +69,7 @@ function TelaAdmin({
   exportarDados, importarDados, usuarioLogado, excluirAtleta,
   siteBranding, setSiteBranding, gtIcon, gtLogo, historicoAcoes,
   atletasUsuarios=[], funcionarios=[], treinadores=[],
+  setAtletaEditandoId,
 }) {
   const pendOrg = organizadores.filter(o => o.status === "pendente");
   const pendEv  = eventos.filter(e => e.statusAprovacao === "pendente");
@@ -604,7 +605,7 @@ function TelaAdmin({
                             <Td><span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:800, color:"#1976D2" }}>{ninsc}</span></Td>
                             <Td>
                               <div style={{ display:"flex", gap:5 }}>
-                                <button onClick={() => { window.__atletaEditId = a.id; setTela("editar-atleta"); }}
+                                <button onClick={() => { setAtletaEditandoId(a.id); setTela("editar-atleta"); }}
                                   style={{ ...s.btnGhost, fontSize:11, padding:"3px 12px" }}>✏️ Editar</button>
                                 <button onClick={() => { if (window.confirm(`Excluir ${a.nome}?`)) excluirAtleta(a.id); }}
                                   style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px", color:"#ff6b6b", borderColor:"#5a1a1a" }}>🗑</button>
