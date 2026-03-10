@@ -27,6 +27,7 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
   const [senha,   setSenha]   = useState("");
   const [erro,    setErro]    = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingMsg, setLoadingMsg] = useState("");
   const [modoRecuperar, setModoRecuperar] = useState(false);
   const [emailRecuperar, setEmailRecuperar] = useState("");
   const [feedbackRecuperar, setFeedbackRecuperar] = useState("");
@@ -115,9 +116,10 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
     // Sem comparação local de senha — Firebase gerencia a credencial
     const adminIdents = [adminConfig.email.toLowerCase(), "admin"];
     if (adminIdents.includes(identTrimmed)) {
-      setLoading(true);
+      setLoading(true); setLoadingMsg("Verificando credenciais...");
       try {
         await signInWithEmailAndPassword(auth, adminConfig.email, senha);
+        setLoadingMsg("Bem-vindo!");
         login({ tipo:"admin", nome:adminConfig.nome, email:adminConfig.email });
       } catch (err) {
         if (err.code === "auth/too-many-requests") {
@@ -125,7 +127,7 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
         } else {
           setErro("Senha incorreta.");
         }
-      } finally { setLoading(false); }
+      } finally { setLoading(false); setLoadingMsg(""); }
       return;
     }
 
@@ -153,9 +155,10 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
     // ── Fallback: Firebase Auth (usuários que criaram conta pelo app) ─────────
     const emailParaAuth = encontrarEmail();
     if (!emailParaAuth) { setErro("E-mail, CPF ou CNPJ não encontrado."); return; }
-    setLoading(true);
+    setLoading(true); setLoadingMsg("Verificando credenciais...");
     try {
       await signInWithEmailAndPassword(auth, emailParaAuth, senha);
+      setLoadingMsg("Carregando perfis...");
       const perfis = buscarPerfis();
       finalizarLogin(perfis);
     } catch (firebaseErr) {
@@ -164,7 +167,7 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
       } else {
         setErro("E-mail, CPF ou senha incorretos.");
       }
-    } finally { setLoading(false); }
+    } finally { setLoading(false); setLoadingMsg(""); }
   };
 
   const handleRecuperarSenha = async () => {
@@ -176,11 +179,12 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
       setFeedbackRecuperar("✅ E-mail de recuperação enviado! Verifique sua caixa de entrada e spam.");
     } catch (err) {
       setErro(err.code === "auth/user-not-found" ? "E-mail não encontrado." : "Erro ao enviar e-mail. Tente novamente.");
-    } finally { setLoading(false); }
+    } finally { setLoading(false); setLoadingMsg(""); }
   };
 
   if (modoRecuperar) return (
     <div style={styles.formPage}>
+      <LoginStyle />
       <div style={{ ...styles.formCard, maxWidth:460 }}>
         <div style={styles.formIcon}>🔑</div>
         <h2 style={styles.formTitle}>Recuperar Senha</h2>
@@ -188,7 +192,7 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
         {erro && <div style={styles.erro}>{erro}</div>}
         {feedbackRecuperar && <div style={{ ...styles.erro, background:"#0a2a0a", color:"#7acc44", borderColor:"#2a5a2a" }}>{feedbackRecuperar}</div>}
         <FormField label="E-mail cadastrado" value={emailRecuperar} onChange={setEmailRecuperar} placeholder="seuemail@exemplo.com" />
-        <button style={styles.btnPrimary} onClick={handleRecuperarSenha} disabled={loading}>{loading ? "Enviando..." : "Enviar Link de Recuperação"}</button>
+        <button style={styles.btnPrimary} onClick={handleRecuperarSenha} disabled={loading}>{loading ? <span style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><span style={{width:16,height:16,borderRadius:"50%",border:"2px solid #ffffff44",borderTopColor:"#fff",display:"inline-block",animation:"spin 0.7s linear infinite"}} />Enviando...</span> : "Enviar Link de Recuperação"}</button>
         <div style={{ textAlign:"center", marginTop:16 }}>
           <button style={styles.linkBtn} onClick={() => { setModoRecuperar(false); setErro(""); setFeedbackRecuperar(""); }}>← Voltar ao Login</button>
         </div>
@@ -198,7 +202,9 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
 
   return (
     <div style={styles.formPage}>
-      <div style={{ ...styles.formCard, maxWidth:460 }}>
+      <LoginStyle />
+      <div style={{ ...styles.formCard, maxWidth:460, position:"relative", overflow:"hidden" }}>
+        {loading && <div style={{position:"absolute",inset:0,background:"rgba(10,11,13,0.6)",zIndex:10,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:12,backdropFilter:"blur(2px)"}}><span style={{width:36,height:36,borderRadius:"50%",border:"3px solid #1976D244",borderTopColor:"#1976D2",display:"inline-block",animation:"spin 0.7s linear infinite"}} /><span style={{color:"#1976D2",fontSize:14,fontWeight:600}}>{loadingMsg || "Aguarde..."}</span></div>}
         <div style={styles.formIcon}>🔐</div>
         <h2 style={styles.formTitle}>Entrar no Sistema</h2>
         <p style={styles.formSub}>Use seu e-mail, CPF ou CNPJ para acessar</p>
@@ -206,7 +212,7 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
         <FormField label="E-mail / CPF / CNPJ" value={ident} onChange={setIdent} placeholder="Digite seu e-mail, CPF ou CNPJ" />
         <div style={{ fontSize:11, color:"#555", marginTop:3, marginBottom:8 }}>O sistema buscará automaticamente seus perfis cadastrados</div>
         <FormField label="Senha" value={senha} onChange={setSenha} type="password" placeholder="••••••••" />
-        <button style={styles.btnPrimary} onClick={handleLogin} disabled={loading}>{loading ? "Entrando..." : "Entrar"}</button>
+        <button style={styles.btnPrimary} onClick={handleLogin} disabled={loading}>{loading ? <span style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><span style={{width:16,height:16,borderRadius:"50%",border:"2px solid #ffffff44",borderTopColor:"#fff",display:"inline-block",animation:"spin 0.7s linear infinite"}} />{loadingMsg || "Entrando..."}</span> : "Entrar"}</button>
         <div style={{ textAlign:"center", marginTop:12 }}>
           <button style={styles.linkBtn} onClick={() => { setModoRecuperar(true); setErro(""); setEmailRecuperar(ident.includes("@") ? ident : ""); }}>🔑 Esqueci minha senha</button>
         </div>
@@ -221,6 +227,12 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
       </div>
     </div>
   );
+}
+
+const cssLogin = `@keyframes spin { to { transform: rotate(360deg); } }`;
+
+function LoginStyle() {
+  return <style>{cssLogin}</style>;
 }
 
 export default TelaLogin;
