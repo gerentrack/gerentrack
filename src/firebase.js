@@ -25,7 +25,7 @@ const firebaseConfig = {
   projectId: "gerentrack-b88b5",
   storageBucket: "gerentrack-b88b5.firebasestorage.app",
   messagingSenderId: "124815557463",
-  appId: "1:124815557463:web:853c0be469ce9a11e3412",
+  appId: "1:124815557463:web:853c0be469ce9a112e3412",
 };
 
 const app = initializeApp(firebaseConfig);

@@ -144,10 +144,10 @@ function App() {
   const [auditoria, setAuditoria] = useLocalOnly("atl_auditoria", []);
   // ⚠️ SEGURANÇA: useLocalOnly — estes dados contêm senhas e CPFs.
   // Nunca devem ser sincronizados no Firestore via useLocalStorage.
-  const [organizadores, setOrganizadores] = useLocalOnly("atl_organizadores", []);
-  const [atletasUsuarios, setAtletasUsuarios] = useLocalOnly("atl_atletas_usuarios", []);
-  const [funcionarios,       setFuncionarios]       = useLocalOnly("atl_funcionarios",    []);
-  const [treinadores,        setTreinadores]        = useLocalOnly("atl_treinadores",    []); // treinadores vinculados a equipes
+  const [organizadores, setOrganizadores] = useLocalStorage("atl_organizadores", []);
+  const [atletasUsuarios, setAtletasUsuarios] = useLocalStorage("atl_atletas_usuarios", []);
+  const [funcionarios,       setFuncionarios]       = useLocalStorage("atl_funcionarios",    []);
+  const [treinadores,        setTreinadores]        = useLocalStorage("atl_treinadores",    []); // treinadores vinculados a equipes
   // ⚠️ Arrays grandes — useLocalOnly evita limite de 1MB do Firestore
   const [solicitacoesVinculo, setSolicitacoesVinculo] = useLocalOnly("atl_vinculo_sol",   []);
   const [notificacoes,        setNotificacoes]        = useLocalOnly("atl_notificacoes", []);
