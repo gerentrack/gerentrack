@@ -130,6 +130,38 @@ export function migrarDadosLegacy() {
         window.localStorage.setItem("atl_recordes", JSON.stringify(migrated));
       }
     }
+    // ── 6. Remover campo senha de dados legados ───────────────────────────────
+    // Senha nunca deve ficar no localStorage — migração para Firebase Auth.
+    const chavesSensiveis = [
+      "atl_organizadores",
+      "atl_atletas_usuarios",
+      "atl_funcionarios",
+      "atl_treinadores",
+    ];
+    chavesSensiveis.forEach((chave) => {
+      const raw = window.localStorage.getItem(chave);
+      if (!raw) return;
+      try {
+        const arr = JSON.parse(raw);
+        if (!Array.isArray(arr)) return;
+        if (!arr.some((u) => u.senha !== undefined)) return; // nada a fazer
+        const limpo = arr.map(({ senha, ...resto }) => resto);
+        window.localStorage.setItem(chave, JSON.stringify(limpo));
+      } catch { /* ignora erro de parse individual */ }
+    });
+
+    // Limpa senha do usuário logado se ainda estiver lá
+    const rawUsuario = window.localStorage.getItem("atl_usuario");
+    if (rawUsuario) {
+      try {
+        const u = JSON.parse(rawUsuario);
+        if (u && u.senha !== undefined) {
+          const { senha, ...uSemSenha } = u;
+          window.localStorage.setItem("atl_usuario", JSON.stringify(uSemSenha));
+        }
+      } catch { /* ignora */ }
+    }
+
   } catch (e) {
     console.warn("Migração dados legados:", e);
   }

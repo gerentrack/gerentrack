@@ -238,7 +238,9 @@ function TelaFuncionarios({ usuarioLogado, setTela, funcionarios, adicionarFunci
     if (Object.keys(e).length) { setErros(e); return; }
 
     if (editando) {
-      const atualizado = { ...editando, ...form };
+      const { senha: _s, ...editandoSemSenha } = editando;
+      const { senha: _s2, ...formSemSenha } = form;
+      const atualizado = { ...editandoSemSenha, ...formSemSenha };
       atualizarFuncionario(atualizado);
       registrarAcao(usuarioLogado.id, usuarioLogado.nome,
         "Editou funcionário", `${form.nome} — permissões: ${form.permissoes.join(", ") || "nenhuma"}`,
@@ -247,8 +249,9 @@ function TelaFuncionarios({ usuarioLogado, setTela, funcionarios, adicionarFunci
     } else {
       const novo = docExistente
         ? {
-            // Perfil existente: preservar id, senha, email — só atualizar cargo/permissões
+            // Perfil existente: preservar id, email — só atualizar cargo/permissões. Sem campo senha.
             ...docExistente,
+            senha: undefined,
             tipo: "funcionario",
             organizadorId: orgId,
             cargo: form.cargo || "",
@@ -257,15 +260,18 @@ function TelaFuncionarios({ usuarioLogado, setTela, funcionarios, adicionarFunci
             ativo: true,
             senhaTemporaria: docExistente.senhaTemporaria || false,
           }
-        : {
-            ...form,
-            id: genId(),
-            tipo: "funcionario",
-            organizadorId: orgId,
-            ativo: true,
-            dataCadastro: new Date().toISOString(),
-            senhaTemporaria: true,
-          };
+        : (() => {
+            const { senha: _s, ...formSemSenha } = form;
+            return {
+              ...formSemSenha,
+              id: genId(),
+              tipo: "funcionario",
+              organizadorId: orgId,
+              ativo: true,
+              dataCadastro: new Date().toISOString(),
+              senhaTemporaria: true,
+            };
+          })();
 
       // Criar no Firebase Auth apenas se for perfil novo
       if (!docExistente) {

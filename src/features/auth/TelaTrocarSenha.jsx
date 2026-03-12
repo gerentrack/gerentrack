@@ -13,9 +13,6 @@ function TelaTrocarSenha({ usuarioLogado, setTela, atualizarSenha, equipes, orga
     setErro("");
     if (novaSenha.length < 6)    { setErro("A senha deve ter pelo menos 6 caracteres."); return; }
     if (novaSenha !== confirmar) { setErro("As senhas não coincidem."); return; }
-    const stores = { equipe:equipes, organizador:organizadores, atleta:atletasUsuarios };
-    const atual = (stores[usuarioLogado?.tipo] || []).find(u => u.id === usuarioLogado?.id);
-    if (atual && novaSenha === atual.senha) { setErro("A nova senha não pode ser igual à senha temporária."); return; }
     await atualizarSenha(usuarioLogado?.tipo, usuarioLogado?.id, novaSenha);
     setOk(true);
   };

@@ -92,9 +92,9 @@ function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, us
       }
     }
 
+    const { senha: _senha, ...formSemSenha } = form;
     const t = { 
-      ...form,
-      senha: senhaFinal,
+      ...formSemSenha,
       organizadorId: orgIdFinal,
       equipeId: form.equipeId || null,
       equipeAvulsa: form.equipeAvulsa || false,

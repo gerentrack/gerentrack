@@ -38,7 +38,8 @@ function TelaCadastroOrganizador({ setTela, adicionarOrganizador, login, organiz
       }
     }
     await firebaseSignOut(auth).catch(() => {}); // Não logar automaticamente
-    const o = { ...form, id: Date.now().toString(), status: "pendente", dataCadastro: new Date().toISOString() };
+    const { senha: _senha, ...formSemSenha } = form;
+    const o = { ...formSemSenha, id: Date.now().toString(), status: "pendente", dataCadastro: new Date().toISOString() };
     adicionarOrganizador(o);
     setOk(true);
   };

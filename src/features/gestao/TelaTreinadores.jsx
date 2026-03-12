@@ -273,7 +273,9 @@ function TelaTreinadores({ usuarioLogado, setTela, treinadores, adicionarTreinad
     if (Object.keys(e).length) { setErros(e); return; }
 
     if (editando) {
-      const atualizado = { ...editando, ...form };
+      const { senha: _s, ...editandoSemSenha } = editando;
+      const { senha: _s2, ...formSemSenha } = form;
+      const atualizado = { ...editandoSemSenha, ...formSemSenha };
       atualizarTreinador(atualizado);
       registrarAcao(usuarioLogado.id, usuarioLogado.nome,
         "Editou treinador", `${form.nome} — permissões: ${form.permissoes.join(", ") || "nenhuma"}`,
@@ -302,10 +304,10 @@ function TelaTreinadores({ usuarioLogado, setTela, treinadores, adicionarTreinad
       }
 
       const novo = docExistente
-        ? { ...docExistente, tipo: "treinador", equipeId, organizadorId: equipes.find(eq => eq.id === equipeId)?.organizadorId || null,
+        ? { ...docExistente, senha: undefined, tipo: "treinador", equipeId, organizadorId: equipes.find(eq => eq.id === equipeId)?.organizadorId || null,
             cargo: form.cargo || "", permissoes: form.permissoes || [], nome: form.nome || docExistente.nome,
             ativo: true, senhaTemporaria: docExistente.senhaTemporaria || false }
-        : { ...form, id: genId(), equipeId, ativo: true, dataCadastro: new Date().toISOString(), senhaTemporaria: true };
+        : (() => { const { senha: _s, ...formSemSenha } = form; return { ...formSemSenha, id: genId(), equipeId, ativo: true, dataCadastro: new Date().toISOString(), senhaTemporaria: true }; })();
       adicionarTreinador(novo);
       registrarAcao(usuarioLogado.id, usuarioLogado.nome,
         "Adicionou treinador", `${form.nome} (${form.email}) — cargo: ${form.cargo||"—"}`,

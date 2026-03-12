@@ -209,19 +209,19 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
     if (Object.keys(e).length) { setErros(e); return; }
 
     if (modo === "novo") {
-      // Se há perfil existente: reutilizar ID e senha, apenas adicionar novo vínculo/cargo
+      // Se há perfil existente: reutilizar ID, apenas adicionar novo vínculo/cargo. Sem campo senha.
       const baseUsuario = perfilExistente
         ? {
             ...perfilExistente,
+            senha: undefined,
             nome: form.nome || perfilExistente.nome,
             email: form.email || perfilExistente.email,
             fone: form.fone || perfilExistente.fone || "",
-            // mantém senha existente — não pede nova
           }
         : {
             nome: form.nome,
             email: form.email,
-            senha: form.senha,
+            // ⚠️ senha não é persistida — fica exclusivamente no Firebase Auth
             id: genId(),
             status: "aprovado",
             dataCadastro: new Date().toISOString(),
@@ -299,6 +299,7 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
     } else if (modo === "editar" && usuarioSelecionado) {
       const dadosEditados = {
         ...usuarioSelecionado,
+        senha: undefined, // ⚠️ senha nunca é persistida localmente
         nome: form.nome,
         email: form.email,
         entidade: form.entidade || "",
@@ -309,7 +310,6 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
         dataNasc: form.dataNasc || "",
         sexo: form.sexo || "M",
         organizadorId: form.organizadorId || "",
-        ...(form.senha ? { senha: form.senha } : {}),
       };
       if (tipoUsuario === "organizadores") {
         editarOrganizadorAdmin(dadosEditados);

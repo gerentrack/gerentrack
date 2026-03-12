@@ -150,7 +150,7 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
           {minhaEquipe && <> &nbsp;·&nbsp; <strong>Equipe:</strong> {minhaEquipe.nome}</>}
         </div>
       ) : (
-        <div style={{ ...styles.catBanner, borderColor:"#cc444444", marginBottom:16 }}>
+        <div style={{ ...styles.catBanner, border:"1px solid #cc444444", marginBottom:16 }}>
           ⚠️ Seu perfil de atleta não foi localizado no sistema. Peça à sua equipe para cadastrá-lo ou complete seu cadastro.
         </div>
       )}
@@ -216,12 +216,12 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
       })()}
 
       {!eventoAtual && !meuAtleta?.organizadorId && (
-        <div style={{ ...styles.catBanner, borderColor:"#1976D244", marginBottom:16 }}>
+        <div style={{ ...styles.catBanner, border:"1px solid #1976D244", marginBottom:16 }}>
           💡 Selecione uma competição em <button style={styles.linkBtn} onClick={()=>setTela("home")}>Competições</button> para se inscrever.
         </div>
       )}
       {eventoAtual?.inscricoesEncerradas && (
-        <div style={{ ...styles.catBanner, borderColor:"#ff6b6b44", marginBottom:16 }}>
+        <div style={{ ...styles.catBanner, border:"1px solid #ff6b6b44", marginBottom:16 }}>
           ⛔ As inscrições para <strong>{eventoAtual.nome}</strong> estão encerradas.
         </div>
       )}

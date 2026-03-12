@@ -184,7 +184,8 @@ function TelaCadastroAtletaLogin({ setTela, adicionarAtletaUsuario, adicionarAtl
       if (cbatDup) { setErros({ cbat: `Nº CBAt já cadastrado para ${cbatDup.nome}` }); return; }
     }
     const id = Date.now().toString();
-    const usuario = { ...form, id, tipo:"atleta", senha: senhaFinal };
+    const { senha: _senha, ...formSemSenha } = form;
+    const usuario = { ...formSemSenha, id, tipo:"atleta" };
     adicionarAtletaUsuario(usuario);
     if (atletaCpfEncontrado) {
       atualizarAtleta({ ...atletaCpfEncontrado, atletaUsuarioId: id, email: form.email });

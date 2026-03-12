@@ -131,27 +131,7 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
       return;
     }
 
-    // ── Demais usuários: verificar senha local primeiro ──────────────────────
-    const todos = [...organizadores, ...funcionarios, ...equipes, ...treinadores, ...atletasUsuarios];
-    const matchLocal = todos.find(u => matchIdent(u) && u.senha === senha);
-
-    if (matchLocal) {
-      // Migração silenciosa: cria conta Firebase Auth em background
-      // Na próxima vez que a senha local for removida, o usuário já tem Auth
-      const emailParaAuth = encontrarEmail();
-      if (emailParaAuth) {
-        // Migração silenciosa: só tenta se for email válido
-        if (emailParaAuth.includes("@")) {
-          createUserWithEmailAndPassword(auth, emailParaAuth, senha)
-            .catch(() => { /* ignora todos os erros de migração */ });
-        }
-      }
-      const perfis = buscarPerfis();
-      finalizarLogin(perfis);
-      return;
-    }
-
-    // ── Fallback: Firebase Auth (usuários que criaram conta pelo app) ─────────
+    // ── Demais usuários: Firebase Auth é a fonte de verdade ──────────────────
     const emailParaAuth = encontrarEmail();
     if (!emailParaAuth) { setErro("E-mail, CPF ou CNPJ não encontrado."); return; }
     setLoading(true); setLoadingMsg("Verificando credenciais...");
@@ -161,6 +141,31 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
       const perfis = buscarPerfis();
       finalizarLogin(perfis);
     } catch (firebaseErr) {
+      // ── Migração / recuperação de senhas divergidas ───────────────────────────
+      // Entra aqui se o Auth não reconheceu a senha.
+      const codigoFalhou = ["auth/invalid-credential", "auth/wrong-password", "auth/user-not-found"];
+      if (codigoFalhou.includes(firebaseErr.code)) {
+        const todos = [...organizadores, ...funcionarios, ...equipes, ...treinadores, ...atletasUsuarios];
+        const matchLocal = todos.find(u => matchIdent(u) && u.senha === senha);
+        if (matchLocal) {
+          try {
+            // Tenta criar conta nova (usuário legado sem Auth)
+            await createUserWithEmailAndPassword(auth, emailParaAuth, senha);
+            await signInWithEmailAndPassword(auth, emailParaAuth, senha);
+            const perfis = buscarPerfis();
+            finalizarLogin(perfis);
+            return;
+          } catch (migrErr) {
+            if (migrErr.code === "auth/email-already-in-use") {
+              // Conta Auth existe mas senha divergiu — envia reset e avisa o usuário
+              await sendPasswordResetEmail(auth, emailParaAuth).catch(() => {});
+              setErro("Sua senha precisa ser redefinida. Enviamos um link de redefinição para " + emailParaAuth + ". Verifique sua caixa de entrada.");
+              return;
+            }
+            // outro erro de migração — cai no erro genérico abaixo
+          }
+        }
+      }
       if (firebaseErr.code === "auth/too-many-requests") {
         setErro("Muitas tentativas. Aguarde alguns minutos e tente novamente.");
       } else {

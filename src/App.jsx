@@ -144,10 +144,10 @@ function App() {
   const [auditoria, setAuditoria] = useLocalOnly("atl_auditoria", []);
   // ⚠️ SEGURANÇA: useLocalOnly — estes dados contêm senhas e CPFs.
   // Nunca devem ser sincronizados no Firestore via useLocalStorage.
-  const [organizadores, setOrganizadores] = useLocalStorage("atl_organizadores", []);
-  const [atletasUsuarios, setAtletasUsuarios] = useLocalStorage("atl_atletas_usuarios", []);
-  const [funcionarios,       setFuncionarios]       = useLocalStorage("atl_funcionarios",    []);
-  const [treinadores,        setTreinadores]        = useLocalStorage("atl_treinadores",    []); // treinadores vinculados a equipes
+  const [organizadores, setOrganizadores] = useLocalOnly("atl_organizadores", []);
+  const [atletasUsuarios, setAtletasUsuarios] = useLocalOnly("atl_atletas_usuarios", []);
+  const [funcionarios,       setFuncionarios]       = useLocalOnly("atl_funcionarios",    []);
+  const [treinadores,        setTreinadores]        = useLocalOnly("atl_treinadores",    []); // treinadores vinculados a equipes
   // ⚠️ Arrays grandes — useLocalOnly evita limite de 1MB do Firestore
   const [solicitacoesVinculo, setSolicitacoesVinculo] = useLocalOnly("atl_vinculo_sol",   []);
   const [notificacoes,        setNotificacoes]        = useLocalOnly("atl_notificacoes", []);
@@ -367,22 +367,23 @@ function App() {
     return Array.from({length: 8}, () => chars[Math.floor(Math.random() * chars.length)]).join("");
   };
 
-  // Aplica senha temporária num usuário de qualquer store (com sync por CPF/CNPJ)
+  // Aplica senha temporária num usuário de qualquer store.
+  // ⚠️ SEGURANÇA: senha NÃO é salva localmente — apenas o flag senhaTemporaria.
+  // A credencial real fica exclusivamente no Firebase Auth.
   const aplicarSenhaTemp = async (tipo, userId, senhaTemp, solicitacao) => {
-    const upd = arr => arr.map(u => u.id === userId ? {...u, senha: senhaTemp, senhaTemporaria: true} : u);
-    if (tipo === "equipe")      atualizarCamposEquipe(userId, { senha: senhaTemp, senhaTemporaria: true });
-    if (tipo === "organizador") setOrganizadores(upd);
-    if (tipo === "funcionario") setFuncionarios(upd);
-    if (tipo === "treinador")   setTreinadores(upd);
+    // Só persiste o flag — sem campo senha no objeto local
+    const updFlag = arr => arr.map(u => u.id === userId ? {...u, senhaTemporaria: true} : u);
+    if (tipo === "equipe")      atualizarCamposEquipe(userId, { senhaTemporaria: true });
+    if (tipo === "organizador") setOrganizadores(updFlag);
+    if (tipo === "funcionario") setFuncionarios(updFlag);
+    if (tipo === "treinador")   setTreinadores(updFlag);
 
     if (tipo === "atleta" || tipo === "atleta_cpf") {
-      // Verificar se existe entrada em atletasUsuarios
       const existente = atletasUsuarios.find(u => u.id === userId);
       if (existente) {
-        // Já existe — só atualizar senha
-        setAtletasUsuarios(upd);
+        setAtletasUsuarios(updFlag);
       } else {
-        // Não existe: buscar dados do atleta base para criar entrada
+        // Não existe: criar entrada mínima com flag, sem senha
         const atletaBase = atletas.find(a => a.id === userId);
         if (atletaBase) {
           const emailFinal = solicitacao?.email || atletaBase.email || "";
@@ -398,62 +399,48 @@ function App() {
             clube: atletaBase.clube || "",
             equipeId: atletaBase.equipeId || null,
             organizadorId: atletaBase.organizadorId || null,
-            senha: senhaTemp,
             senhaTemporaria: true,
             status: "ativo",
             dataCadastro: new Date().toISOString(),
             criadoPorSenhaTemp: true,
           };
           setAtletasUsuarios(prev => {
-            // Evitar duplicata
-            if (prev.some(u => u.id === userId)) return prev.map(u => u.id === userId ? {...u, senha: senhaTemp, senhaTemporaria: true} : u);
+            if (prev.some(u => u.id === userId)) return prev.map(u => u.id === userId ? {...u, senhaTemporaria: true} : u);
             return [...prev, novoUsuario];
           });
-          // Criar conta no Firebase Auth se o atleta tiver email
-          // Email: prioriza o da solicitação (informado pelo atleta), fallback para o base
+          // Criar conta no Firebase Auth (senha fica apenas aqui)
           const emailAuth = (solicitacao?.email || atletaBase.email || "").trim();
           if (emailAuth) {
             try {
               await createUserWithEmailAndPassword(auth, emailAuth, senhaTemp);
               await firebaseSignOut(auth).catch(() => {});
             } catch (authErr) {
-              if (authErr.code === "auth/email-already-in-use") {
-              }
+              // auth/email-already-in-use: conta já existe no Auth com senha própria — não faz nada.
+              // O flag senhaTemporaria já foi setado e forçará a troca no próximo login.
             }
-          } else {
           }
-          // Persistir email no atleta base se ainda não tiver
           if (solicitacao?.email && atletaBase && !atletaBase.email) {
             _atualizarAtleta({ ...atletaBase, email: solicitacao.email });
           }
         } else {
-          // Atleta base não encontrado — aplica normalmente (pode ser userId de outra solicitação)
-          setAtletasUsuarios(upd);
+          setAtletasUsuarios(updFlag);
         }
       }
     }
 
-    const stores = { equipe: equipesRef.current, organizador: organizadores, atleta: atletasUsuarios, funcionario: funcionarios, treinador: treinadores };
-    const registro = (stores[tipo] || []).find(u => u.id === userId);
-    const usaCnpj = tipo === "equipe" || tipo === "organizador";
-    const docId = usaCnpj ? registro?.cnpj?.replace(/\D/g, '') : registro?.cpf?.replace(/\D/g, '');
-    const docMinLen = usaCnpj ? 14 : 11;
-    if (docId && docId.length >= docMinLen) {
-      if (usaCnpj) {
-        atualizarSenhaEquipes(docId, senhaTemp, true);
-      } else {
-        const sincronizar = (arr, setter, tipoAtual) => {
-          if (tipoAtual === tipo) return;
-          const tipoUsaCnpj = tipoAtual === "equipe" || tipoAtual === "organizador";
-          if (tipoUsaCnpj !== usaCnpj) return;
-          const campo = "cpf";
-          const temMatch = arr.some(i => i[campo] && i[campo].replace(/\D/g, '') === docId && i.id !== userId);
-          if (temMatch) setter(prev => prev.map(i => i[campo] && i[campo].replace(/\D/g, '') === docId ? { ...i, senha: senhaTemp, senhaTemporaria: true } : i));
-        };
-        sincronizar(organizadores, setOrganizadores, "organizador");
-        sincronizar(atletasUsuarios, setAtletasUsuarios, "atleta");
-        sincronizar(funcionarios, setFuncionarios, "funcionario");
-        sincronizar(treinadores, setTreinadores, "treinador");
+    // Criar conta Firebase Auth para não-atletas que ainda não têm
+    if (tipo !== "atleta" && tipo !== "atleta_cpf" && tipo !== "equipe") {
+      const stores = { organizador: organizadores, funcionario: funcionarios, treinador: treinadores };
+      const registro = (stores[tipo] || []).find(u => u.id === userId);
+      const emailAuth = registro?.email?.trim();
+      if (emailAuth) {
+        try {
+          await createUserWithEmailAndPassword(auth, emailAuth, senhaTemp);
+          await firebaseSignOut(auth).catch(() => {});
+        } catch (authErr) {
+          // auth/email-already-in-use: conta já existe no Auth — não faz nada.
+          // O flag senhaTemporaria já foi setado e forçará a troca no próximo login.
+        }
       }
     }
   };
@@ -464,7 +451,6 @@ function App() {
     setSolicitacoesRecuperacao(p => p.map(s => s.id === id ? {...s, status:"resolvido"} : s));
   const atualizarSenha = async (tipo, userId, novaSenha) => {
     if (tipo === "admin") {
-      // Senha do admin é gerenciada pelo Firebase Auth — não salva localmente
       try {
         const currentUser = auth.currentUser;
         if (currentUser && novaSenha) await updatePassword(currentUser, novaSenha);
@@ -474,41 +460,20 @@ function App() {
       setUsuarioLogado(u => u ? {...u, senhaTemporaria: false} : u);
       return;
     }
-    const upd = arr => arr.map(u => u.id === userId ? { ...u, senha: novaSenha, senhaTemporaria: false } : u);
-    if (tipo === "equipe")      atualizarCamposEquipe(userId, { senha: novaSenha, senhaTemporaria: false });
-    if (tipo === "organizador") setOrganizadores(upd);
-    if (tipo === "atleta")      setAtletasUsuarios(upd);
-    if (tipo === "funcionario") setFuncionarios(upd);
-    if (tipo === "treinador")   setTreinadores(upd);
+    // ⚠️ SEGURANÇA: senha NÃO é salva localmente — apenas limpa o flag senhaTemporaria.
+    // A atualização real fica exclusivamente no Firebase Auth.
+    const updFlag = arr => arr.map(u => u.id === userId ? { ...u, senhaTemporaria: false } : u);
+    if (tipo === "equipe")      atualizarCamposEquipe(userId, { senhaTemporaria: false });
+    if (tipo === "organizador") setOrganizadores(updFlag);
+    if (tipo === "atleta")      setAtletasUsuarios(updFlag);
+    if (tipo === "funcionario") setFuncionarios(updFlag);
+    if (tipo === "treinador")   setTreinadores(updFlag);
 
-    const stores = { equipe: equipesRef.current, organizador: organizadores, atleta: atletasUsuarios, funcionario: funcionarios, treinador: treinadores };
-    const registro = (stores[tipo] || []).find(u => u.id === userId);
-    const usaCnpj = tipo === "equipe" || tipo === "organizador";
-    const docId = usaCnpj ? registro?.cnpj?.replace(/\D/g, '') : registro?.cpf?.replace(/\D/g, '');
-    const docMinLen = usaCnpj ? 14 : 11;
-    if (docId && docId.length >= docMinLen) {
-      if (usaCnpj) {
-        atualizarSenhaEquipes(docId, novaSenha, false);
-      } else {
-        const sincronizar = (arr, setter, tipoAtual) => {
-          if (tipoAtual === tipo) return;
-          const tipoUsaCnpj = tipoAtual === "equipe" || tipoAtual === "organizador";
-          if (tipoUsaCnpj !== usaCnpj) return;
-          const campo = "cpf";
-          const temMatch = arr.some(i => i[campo] && i[campo].replace(/\D/g, '') === docId && i.id !== userId);
-          if (temMatch) setter(prev => prev.map(i => i[campo] && i[campo].replace(/\D/g, '') === docId ? { ...i, senha: novaSenha, senhaTemporaria: false } : i));
-        };
-        sincronizar(organizadores, setOrganizadores, "organizador");
-        sincronizar(atletasUsuarios, setAtletasUsuarios, "atleta");
-        sincronizar(funcionarios, setFuncionarios, "funcionario");
-        sincronizar(treinadores, setTreinadores, "treinador");
-      }
-    }
     setUsuarioLogado(u => u ? {...u, senhaTemporaria: false} : u);
     try {
       const currentUser = auth.currentUser;
       if (currentUser && novaSenha) await updatePassword(currentUser, novaSenha);
-    } catch(e) { /* senha Firebase Auth opcional */ }
+    } catch(e) { console.error("Erro ao atualizar senha no Firebase Auth:", e); }
   };
 
   const adicionarOrganizador  = (o) => setOrganizadores((p) => [...p, o]);
