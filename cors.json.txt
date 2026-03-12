@@ -1,0 +1,7 @@
+[
+  {
+    "origin": ["https://gerentrack.com.br", "http://localhost:5173"],
+    "method": ["GET", "POST", "PUT", "DELETE"],
+    "maxAgeSeconds": 3600
+  }
+]
