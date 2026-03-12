@@ -2,6 +2,16 @@ import React, { useState, useEffect, useRef } from "react";
 import { todasAsProvas, getComposicaoCombinada } from "../../shared/athletics/provasDef";
 import { CATEGORIAS, ESTADOS_BR } from "../../shared/athletics/constants";
 import FormField from "../ui/FormField";
+import { storage, storageRef, uploadBytes, getDownloadURL } from "../../firebase";
+
+// Faz upload da imagem para Firebase Storage e retorna a URL pública
+async function uploadLogo(file, eventoId, campo) {
+  const ext = file.name.split(".").pop();
+  const path = `logos/${eventoId}/${campo}.${ext}`;
+  const ref = storageRef(storage, path);
+  await uploadBytes(ref, file);
+  return await getDownloadURL(ref);
+}
 
 const styles = {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
@@ -963,7 +973,7 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
           {/* ── Logos da Competição (acordeão) ── */}
           <Acordeao keyName="logos" aberto={acordeoes["logos"]} onToggle={toggleAcordeo} titulo="Logos da Competição" icone="🖼️" resumo={resumoLogos}>
             <p style={{ color:"#666", fontSize:12, marginBottom:14, lineHeight:1.5 }}>
-              Opcional. As imagens são armazenadas localmente. Use PNG ou JPG com fundo transparente quando possível. Máximo 300KB por imagem.
+              Opcional. As imagens são armazenadas na nuvem e ficam visíveis para todos. Use PNG ou JPG com fundo transparente quando possível. Máximo 2MB por imagem.
             </p>
 
             {/* Logo da Competição */}
@@ -979,13 +989,15 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
                     <label style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", background:"#1a2a3a", border:"1px solid #2a4a6a", borderRadius:6, cursor:"pointer", fontSize:12, color:"#88aaff", fontWeight:600 }}>
                       📁 Escolher imagem
                       <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }}
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
-                          if (file.size > 300 * 1024) { alert("Imagem muito grande (máx. 300KB). Reduza o tamanho."); return; }
-                          const reader = new FileReader();
-                          reader.onload = (ev) => setForm({ ...form, logoCompeticao: ev.target.result });
-                          reader.readAsDataURL(file);
+                          if (file.size > 2 * 1024 * 1024) { alert("Imagem muito grande (máx. 2MB)."); return; }
+                          try {
+                            const id = eventoAtualId || form._uploadId || (form._uploadId = Date.now().toString());
+                            const url = await uploadLogo(file, id, "logoCompeticao");
+                            setForm({ ...form, logoCompeticao: url });
+                          } catch { alert("Erro ao enviar imagem. Tente novamente."); }
                         }}
                       />
                     </label>
@@ -1016,13 +1028,15 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
                     <label style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", background:"#1a2a3a", border:"1px solid #2a4a6a", borderRadius:6, cursor:"pointer", fontSize:12, color:"#88aaff", fontWeight:600 }}>
                       📁 Escolher imagem
                       <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }}
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
-                          if (file.size > 300 * 1024) { alert("Imagem muito grande (máx. 300KB). Reduza o tamanho."); return; }
-                          const reader = new FileReader();
-                          reader.onload = (ev) => setForm({ ...form, logoCabecalho: ev.target.result });
-                          reader.readAsDataURL(file);
+                          if (file.size > 2 * 1024 * 1024) { alert("Imagem muito grande (máx. 2MB)."); return; }
+                          try {
+                            const id = eventoAtualId || form._uploadId || (form._uploadId = Date.now().toString());
+                            const url = await uploadLogo(file, id, "logoCabecalho");
+                            setForm({ ...form, logoCabecalho: url });
+                          } catch { alert("Erro ao enviar imagem. Tente novamente."); }
                         }}
                       />
                     </label>
@@ -1053,13 +1067,15 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
                     <label style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", background:"#1a2a3a", border:"1px solid #2a4a6a", borderRadius:6, cursor:"pointer", fontSize:12, color:"#88aaff", fontWeight:600 }}>
                       📁 Escolher imagem
                       <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }}
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
-                          if (file.size > 300 * 1024) { alert("Imagem muito grande (máx. 300KB). Reduza o tamanho."); return; }
-                          const reader = new FileReader();
-                          reader.onload = (ev) => setForm({ ...form, logoCabecalhoDireito: ev.target.result });
-                          reader.readAsDataURL(file);
+                          if (file.size > 2 * 1024 * 1024) { alert("Imagem muito grande (máx. 2MB)."); return; }
+                          try {
+                            const id = eventoAtualId || form._uploadId || (form._uploadId = Date.now().toString());
+                            const url = await uploadLogo(file, id, "logoCabecalhoDireito");
+                            setForm({ ...form, logoCabecalhoDireito: url });
+                          } catch { alert("Erro ao enviar imagem. Tente novamente."); }
                         }}
                       />
                     </label>
@@ -1090,13 +1106,15 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
                     <label style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", background:"#1a2a3a", border:"1px solid #2a4a6a", borderRadius:6, cursor:"pointer", fontSize:12, color:"#88aaff", fontWeight:600 }}>
                       📁 Escolher imagem
                       <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }}
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
-                          if (file.size > 300 * 1024) { alert("Imagem muito grande (máx. 300KB). Reduza o tamanho."); return; }
-                          const reader = new FileReader();
-                          reader.onload = (ev) => setForm({ ...form, logoRodape: ev.target.result });
-                          reader.readAsDataURL(file);
+                          if (file.size > 2 * 1024 * 1024) { alert("Imagem muito grande (máx. 2MB)."); return; }
+                          try {
+                            const id = eventoAtualId || form._uploadId || (form._uploadId = Date.now().toString());
+                            const url = await uploadLogo(file, id, "logoRodape");
+                            setForm({ ...form, logoRodape: url });
+                          } catch { alert("Erro ao enviar imagem. Tente novamente."); }
                         }}
                       />
                     </label>

@@ -1,4 +1,5 @@
 import { initializeApp } from "firebase/app";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import {
   getFirestore,
   collection,
@@ -31,6 +32,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 const auth = getAuth(app);
+const storage = getStorage(app);
 
 export {
   // Firestore — existentes
@@ -40,4 +42,6 @@ export {
   // Auth
   auth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
   signOut, sendPasswordResetEmail, updatePassword, onAuthStateChanged,
+  // Storage
+  storage, storageRef, uploadBytes, getDownloadURL, deleteObject,
 };
