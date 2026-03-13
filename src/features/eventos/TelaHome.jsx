@@ -217,6 +217,11 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
         <div style={styles.eventosGrid}>
           {eventos
             .filter(ev => !ev.statusAprovacao || ev.statusAprovacao === "aprovado")
+            .slice().sort((a, b) => {
+              const da = a.data ? new Date(a.data) : new Date(0);
+              const db = b.data ? new Date(b.data) : new Date(0);
+              return da - db;
+            })
             .map((ev) => {
               const nInscs = inscricoes.filter((i) => i.eventoId === ev.id).length;
               const nAtletas = [...new Set(inscricoes.filter((i) => i.eventoId === ev.id).map((i) => i.atletaId))].length;
