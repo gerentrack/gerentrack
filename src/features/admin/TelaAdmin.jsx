@@ -147,6 +147,32 @@ function TelaAdmin({
   });
   const { paginado: atletasPag, infoPage: atletasInfo } = usePagination(_atletasFiltrados, 10);
 
+  const _equipesFiltradas = [...equipes]
+    .filter(t => {
+      if (!buscaEq) return true;
+      const b = buscaEq.toLowerCase();
+      return (t.nome||"").toLowerCase().includes(b)||(t.sigla||"").toLowerCase().includes(b)||(t.cidade||"").toLowerCase().includes(b);
+    })
+    .sort((a, b) => (a.nome||"").localeCompare(b.nome||"", "pt-BR"));
+  const { paginado: equipesPag, infoPage: equipesInfo } = usePagination(_equipesFiltradas, 10);
+
+  const _orgFiltrados = [...organizadores]
+    .filter(o => {
+      if (!buscaOrg) return true;
+      const b = buscaOrg.toLowerCase();
+      return (o.nome||"").toLowerCase().includes(b)||(o.entidade||"").toLowerCase().includes(b);
+    })
+    .sort((a, b) => (a.nome||"").localeCompare(b.nome||"", "pt-BR"));
+  const { paginado: orgPag, infoPage: orgInfo } = usePagination(_orgFiltrados, 10);
+
+  const _compFiltradas = [...eventos]
+    .filter(e => {
+      if (!buscaComp) return true;
+      const b = buscaComp.toLowerCase();
+      return (e.nome||"").toLowerCase().includes(b)||(e.local||"").toLowerCase().includes(b);
+    })
+    .sort((a, b) => (a.nome||"").localeCompare(b.nome||"", "pt-BR"));
+  const { paginado: compPag, infoPage: compInfo } = usePagination(_compFiltradas, 10);
 
   return (
     <div style={s.page}>
@@ -154,10 +180,6 @@ function TelaAdmin({
       {/* ── HEADER ─────────────────────────────────────────────────────────── */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:24 }}>
         <h1 style={s.title}>⚙️ Administração</h1>
-        <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-          <button style={{ ...s.btnGhost, fontSize:12, padding:"6px 14px" }} onClick={() => setTela("gerenciar-usuarios")}>👥 Usuários</button>
-          <button style={{ ...s.btnGhost, fontSize:12, padding:"6px 14px" }} onClick={() => setTela("home")}>🏠 Home</button>
-        </div>
       </div>
 
       {/* ── TAB BAR ────────────────────────────────────────────────────────── */}
@@ -397,11 +419,7 @@ function TelaAdmin({
                     <Th>Nome</Th><Th>Entidade</Th><Th>E-mail</Th><Th>CNPJ</Th><Th>Cadastro</Th><Th>Status</Th><Th>Ações</Th>
                   </tr></thead>
                   <tbody>
-                    {organizadores.filter(o => {
-                      if (!buscaOrg) return true;
-                      const b = buscaOrg.toLowerCase();
-                      return (o.nome||"").toLowerCase().includes(b)||(o.entidade||"").toLowerCase().includes(b)||(o.email||"").toLowerCase().includes(b);
-                    }).map((o, i) => {
+                    {orgPag.map((o, i) => {
                       const bs = badgeStatus(o.status || "pendente");
                       return (
                         <tr key={`org_${o.id}_${i}`} style={{ ...s.tr, opacity: o.status==="recusado" ? 0.5 : 1 }}>
@@ -432,6 +450,7 @@ function TelaAdmin({
                     })}
                   </tbody>
                 </table>
+                <PaginaControles {...orgInfo} />
               </div>
             </div>
           </div>
@@ -494,36 +513,35 @@ function TelaAdmin({
             {eventos.length === 0 ? (
               <div style={s.empty}>Nenhuma competição cadastrada.</div>
             ) : (
-              <div style={{ display:"flex", flexDirection:"column", gap:8, maxHeight:480, overflowY:"auto" }}>
-                {eventos.filter(ev => {
-                  if (!buscaComp) return true;
-                  const b = buscaComp.toLowerCase();
-                  return (ev.nome||"").toLowerCase().includes(b)||(_getLocalEventoDisplay(ev)||"").toLowerCase().includes(b);
-                }).map(ev => {
-                  const nInscs = inscricoes.filter(i => i.eventoId===ev.id).length;
-                  const bs = badgeStatus(ev.statusAprovacao || "aprovado");
-                  return (
-                    <div key={`all_${ev.id}`} style={{ background:"#0a0c14", border:"1px solid #1a1d2a", borderRadius:8, padding:"10px 14px" }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
-                        {ev.logoCompeticao && <img src={ev.logoCompeticao} alt="" style={{ width:22, height:22, objectFit:"contain", borderRadius:3 }} />}
-                        <strong style={{ color:"#fff", fontSize:13, flex:1 }}>{ev.nome}</strong>
-                        <span style={{ background:bs.bg, color:bs.color, fontSize:10, fontWeight:700, padding:"1px 7px", borderRadius:3 }}>{bs.label}</span>
+              <>
+                <div style={{ display:"flex", flexDirection:"column", gap:8, maxHeight:480, overflowY:"auto" }}>
+                  {compPag.map(ev => {
+                    const nInscs = inscricoes.filter(i => i.eventoId===ev.id).length;
+                    const bs = badgeStatus(ev.statusAprovacao || "aprovado");
+                    return (
+                      <div key={`all_${ev.id}`} style={{ background:"#0a0c14", border:"1px solid #1a1d2a", borderRadius:8, padding:"10px 14px" }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
+                          {ev.logoCompeticao && <img src={ev.logoCompeticao} alt="" style={{ width:22, height:22, objectFit:"contain", borderRadius:3 }} />}
+                          <strong style={{ color:"#fff", fontSize:13, flex:1 }}>{ev.nome}</strong>
+                          <span style={{ background:bs.bg, color:bs.color, fontSize:10, fontWeight:700, padding:"1px 7px", borderRadius:3 }}>{bs.label}</span>
+                        </div>
+                        <div style={{ color:"#555", fontSize:11, marginBottom:8 }}>
+                          {new Date(ev.data+"T12:00:00").toLocaleDateString("pt-BR")} · {_getLocalEventoDisplay(ev)} · {nInscs} insc.
+                        </div>
+                        <div style={{ display:"flex", gap:5 }}>
+                          <button style={{ ...s.btnSecondary, fontSize:11, padding:"3px 10px" }}
+                            onClick={async () => { selecionarEvento(ev.id); setTela("evento-detalhe"); }}>Acessar</button>
+                          <button style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px" }}
+                            onClick={async () => { selecionarEvento(ev.id); setTela("novo-evento"); }}>✏️ Editar</button>
+                          <button style={{ ...s.btnGhost, fontSize:11, padding:"3px 9px", color:"#ff6b6b", borderColor:"#3a1a1a" }}
+                            onClick={() => excluirEvento(ev.id)}>🗑</button>
+                        </div>
                       </div>
-                      <div style={{ color:"#555", fontSize:11, marginBottom:8 }}>
-                        {new Date(ev.data+"T12:00:00").toLocaleDateString("pt-BR")} · {_getLocalEventoDisplay(ev)} · {nInscs} insc.
-                      </div>
-                      <div style={{ display:"flex", gap:5 }}>
-                        <button style={{ ...s.btnSecondary, fontSize:11, padding:"3px 10px" }}
-                          onClick={async () => { selecionarEvento(ev.id); setTela("evento-detalhe"); }}>Acessar</button>
-                        <button style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px" }}
-                          onClick={async () => { selecionarEvento(ev.id); setTela("novo-evento"); }}>✏️ Editar</button>
-                        <button style={{ ...s.btnGhost, fontSize:11, padding:"3px 9px", color:"#ff6b6b", borderColor:"#3a1a1a" }}
-                          onClick={() => excluirEvento(ev.id)}>🗑</button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+                <PaginaControles {...compInfo} />
+              </>
             )}
           </div>
         </>
@@ -603,11 +621,7 @@ function TelaAdmin({
                   <table style={s.table}>
                     <thead><tr><Th>Nome</Th><Th>Sigla</Th><Th>E-mail</Th><Th>CNPJ</Th><Th>Cidade</Th><Th>Organizador</Th><Th>Atletas</Th></tr></thead>
                     <tbody>
-                      {equipes.filter(t => {
-                        if (!buscaEq) return true;
-                        const b = buscaEq.toLowerCase();
-                        return (t.nome||"").toLowerCase().includes(b)||(t.sigla||"").toLowerCase().includes(b)||(t.cidade||"").toLowerCase().includes(b);
-                      }).map(t => {
+                      {equipesPag.map(t => {
                         const org = organizadores.find(o => o.id === t.organizadorId);
                         return (
                           <tr key={`eq_${t.id}`} style={s.tr}>
@@ -624,7 +638,7 @@ function TelaAdmin({
                     </tbody>
                   </table>
                 </div>
-                <PaginaControles {...atletasInfo} />
+                <PaginaControles {...equipesInfo} />
               </div>
             </>
           )}
