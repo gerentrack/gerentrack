@@ -217,8 +217,14 @@ function App() {
     _setTela(novaTela);
     const evtId = eventoAtualIdRef.current;
     let hash = "";
-    if (novaTela === "evento-detalhe" && evtId) hash = `#/competicao/${evtId}`;
-    else if (novaTela === "resultados" && evtId) hash = `#/competicao/${evtId}/resultados`;
+    if (novaTela === "evento-detalhe" && evtId) {
+      const ev = eventos.find(e => e.id === evtId);
+      hash = `#/competicao/${ev?.slug || evtId}`;
+    }
+    else if (novaTela === "resultados" && evtId) {
+      const ev = eventos.find(e => e.id === evtId);
+      hash = `#/competicao/${ev?.slug || evtId}/resultados`;
+    }
     else if (novaTela === "recordes") hash = "#/recordes";
     else if (novaTela === "login") hash = "#/entrar";
     else if (novaTela === "home") hash = "#/";
@@ -235,20 +241,20 @@ function App() {
     if (!hash || hash === "#/") return;
     const matchResultados = hash.match(/^#\/competicao\/(.+)\/resultados$/);
     if (matchResultados) {
-      const evtId = matchResultados[1];
-      const existe = eventos.find(e => e.id === evtId);
+      const param = matchResultados[1];
+      const existe = eventos.find(e => e.slug === param || e.id === param);
       if (existe) {
-        setEventoAtualId(evtId);
+        setEventoAtualId(existe.id);
         _setTela("resultados");
       }
       return;
     }
     const match = hash.match(/^#\/competicao\/(.+)$/);
     if (match) {
-      const evtId = match[1];
-      const existe = eventos.find(e => e.id === evtId);
+      const param = match[1];
+      const existe = eventos.find(e => e.slug === param || e.id === param);
       if (existe) {
-        setEventoAtualId(evtId);
+        setEventoAtualId(existe.id);
         _setTela("evento-detalhe");
       }
       return;
@@ -682,16 +688,32 @@ function App() {
 
   const adicionarEvento = (ev, usuarioLogadoParam) => {
     const hoje = new Date().toISOString().slice(0, 10);
-    // Determinar se inscrições devem começar encerradas
     const temAberturaFutura = ev.dataAberturaInscricoes && ev.dataAberturaInscricoes > hoje;
     const orgPendente = usuarioLogadoParam?.tipo === "organizador";
-    
+
+    // Gera slug único a partir do nome
+    const gerarSlug = (nome, id) => {
+      const base = (nome || "competicao")
+        .toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s-]/g, "")
+        .trim()
+        .replace(/\s+/g, "-")
+        .slice(0, 60);
+      const ano = new Date().getFullYear();
+      const slug = `${base}-${ano}`;
+      // Garante unicidade adicionando sufixo do ID se já existir
+      const jaExiste = eventos.some(e => e.slug === slug && e.id !== id);
+      return jaExiste ? `${slug}-${id.slice(-4)}` : slug;
+    };
+
+    const id = Date.now().toString();
     const novo = {
       ...ev,
-      id: Date.now().toString(),
+      id,
+      slug: gerarSlug(ev.nome, id),
       organizadorId: orgPendente ? usuarioLogadoParam.id : (ev.organizadorId || null),
       statusAprovacao: orgPendente ? "pendente" : "aprovado",
-      // Inscrições fechadas se: org pendente, ou tem data de abertura futura
       inscricoesEncerradas: orgPendente || temAberturaFutura ? true : (ev.inscricoesEncerradas ?? false),
     };
     setEventos((p) => [...p, novo]);
@@ -701,6 +723,20 @@ function App() {
   };
 
   const editarEvento = (ev) => {
+    // Se não tem slug ainda (evento legado), gera agora
+    if (!ev.slug) {
+      const base = (ev.nome || "competicao")
+        .toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s-]/g, "")
+        .trim()
+        .replace(/\s+/g, "-")
+        .slice(0, 60);
+      const ano = ev.data ? ev.data.slice(0, 4) : new Date().getFullYear();
+      const slugBase = `${base}-${ano}`;
+      const jaExiste = eventos.some(e => e.slug === slugBase && e.id !== ev.id);
+      ev = { ...ev, slug: jaExiste ? `${slugBase}-${ev.id.slice(-4)}` : slugBase };
+    }
     setEventos((p) => p.map((e) => e.id === ev.id ? ev : e));
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Editou competição", ev.nome || "", usuarioLogado.organizadorId || usuarioLogado.id, { equipeId: usuarioLogado.equipeId, modulo: "competicoes" });
   };
@@ -1052,7 +1088,10 @@ function App() {
     setEventoAtualId(id);
     eventoAtualIdRef.current = id;
     _setTela("evento-detalhe");
-    if (id) window.history.replaceState(null, "", `#/competicao/${id}`);
+    if (id) {
+      const ev = eventos.find(e => e.id === id);
+      window.history.replaceState(null, "", `#/competicao/${ev?.slug || id}`);
+    }
   };
 
   // Helper: resolve nome da equipe/clube para exibição (closure sobre equipes do componente)
