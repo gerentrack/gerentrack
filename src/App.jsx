@@ -151,8 +151,9 @@ function App() {
   // ⚠️ Arrays grandes — useLocalOnly evita limite de 1MB do Firestore
   const [solicitacoesVinculo, setSolicitacoesVinculo] = useLocalOnly("atl_vinculo_sol",   []);
   const [notificacoes,        setNotificacoes]        = useLocalOnly("atl_notificacoes", []);
-  const [historicoAcoes,  setHistoricoAcoes]  = useLocalOnly("atl_historico",       []);
+  const [historicoAcoes,  setHistoricoAcoes]  = useLocalStorage("atl_historico",       []);
   const [solicitacoesRecuperacao, setSolicitacoesRecuperacao] = useLocalOnly("atl_recuperacao", []);
+  const [solicitacoesEquipe,  setSolicitacoesEquipe]  = useLocalOnly("atl_sol_equipe",   []);
 
   // Multi-evento: cada evento tem { id, nome, data, local, permissividadeNorma, provasPrograma: Set de provaIds }
   const [eventos, setEventos] = useLocalStorage("atl_eventos", []);
@@ -510,7 +511,7 @@ function App() {
     setHistoricoAcoes(p => [{
       id: Date.now().toString(), usuarioId, nomeUsuario, acao, detalhe, organizadorId,
       data: new Date().toISOString(), ...extra
-    }, ...p].slice(0, 2000)); // keep last 2000
+    }, ...p].slice(0, 500)); // keep last 500 — limite Firestore
   const aprovarOrganizador  = (id) => {
     setOrganizadores((p) => p.map(o => o.id===id ? {...o, status:"aprovado"} : o));
     const org = organizadores.find(o => o.id === id);
@@ -520,6 +521,31 @@ function App() {
     setOrganizadores((p) => p.map(o => o.id===id ? {...o, status:"recusado"} : o));
     const org = organizadores.find(o => o.id === id);
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Recusou organizador", org?.nome || id, null, { modulo: "sistema" });
+  };
+
+  // ── Aprovação de Equipes ───────────────────────────────────────────────────
+  const adicionarSolicitacaoEquipe = (sol) => {
+    setSolicitacoesEquipe(p => [sol, ...p]);
+  };
+  const aprovarEquipe = async (equipeId, novoOrgId) => {
+    const eq = equipes.find(e => e.id === equipeId);
+    if (!eq) return;
+    await _atualizarEquipe({ ...eq, status: "ativa", ...(novoOrgId ? { organizadorId: novoOrgId } : {}) });
+    setSolicitacoesEquipe(p => p.map(s => s.equipeId === equipeId && s.status === "pendente"
+      ? { ...s, status: "aprovada", dataResposta: new Date().toISOString() }
+      : s
+    ));
+    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Aprovou equipe", eq?.nome || equipeId, null, { modulo: "sistema" });
+  };
+  const recusarEquipe = async (equipeId) => {
+    const eq = equipes.find(e => e.id === equipeId);
+    if (!eq) return;
+    await _atualizarEquipe({ ...eq, status: "recusada" });
+    setSolicitacoesEquipe(p => p.map(s => s.equipeId === equipeId && s.status === "pendente"
+      ? { ...s, status: "recusada", dataResposta: new Date().toISOString() }
+      : s
+    ));
+    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Recusou equipe", eq?.nome || equipeId, null, { modulo: "sistema" });
   };
   const aprovarEvento       = (id) => {
     const hoje = new Date().toISOString().slice(0, 10);
@@ -1051,6 +1077,8 @@ function App() {
     editarOrganizadorAdmin, editarEquipeAdmin, editarAtletaUsuarioAdmin,
     adicionarEquipe, adicionarOrganizador, aprovarOrganizador, recusarOrganizador,
     aprovarEvento, recusarEvento,
+    aprovarEquipe, recusarEquipe, adicionarSolicitacaoEquipe,
+    solicitacoesEquipe,
     adicionarAtletaUsuario, atualizarAtletaUsuario,
     organizadores, atletasUsuarios,
     atualizarEquipePerfil: _atualizarEquipe,

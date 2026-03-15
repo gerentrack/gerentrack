@@ -5,8 +5,8 @@ import inscricaoStyles from "../inscricoes/inscricaoStyles";
 
 const styles = inscricaoStyles;
 
-function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, usuarioLogado, equipes, atletasUsuarios, funcionarios, treinadores }) {
-  const [form, setForm] = useState({ nome: "", sigla: "", cidade: "", uf: "", email: "", senha: "", entidade: "", cnpj: "", fone: "" , organizadorId:"", equipeAvulsa:false, equipeId: "" });
+function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, usuarioLogado, equipes, atletasUsuarios, funcionarios, treinadores, adicionarSolicitacaoEquipe }) {
+  const [form, setForm] = useState({ nome: "", sigla: "", cidade: "", uf: "", email: "", senha: "", cnpj: "", fone: "", organizadorId: "" });
   const [ok, setOk] = useState(false);
   const [erros, setErros] = useState({});
 
@@ -126,26 +126,46 @@ function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, us
       cidade: form.cidade.trim(),
       uf: form.uf.trim().toUpperCase(),
       organizadorId: orgIdFinal,
-      equipeId: form.equipeId || null,
-      equipeAvulsa: form.equipeAvulsa || false,
-      status: "ativa",
+      status: "pendente",
       dataCadastro: new Date().toISOString(),
       id: Date.now().toString() 
     };
     adicionarEquipe(t);
-    login({ tipo: "equipe", ...t });
+
+    // Cria solicitação de aprovação
+    const org = organizadores?.find(o => o.id === orgIdFinal);
+    adicionarSolicitacaoEquipe?.({
+      id: Date.now().toString() + "_sol",
+      equipeId: t.id,
+      equipeNome: t.nome,
+      equipeSigla: t.sigla,
+      equipeEmail: t.email,
+      equipeCnpj: t.cnpj,
+      equipeCidade: t.cidade,
+      equipeUf: t.uf,
+      organizadorId: orgIdFinal || null,
+      organizadorNome: org?.nome || null,
+      status: "pendente",
+      data: new Date().toISOString(),
+    });
+
     setOk(true);
   };
 
   if (ok) return (
     <div style={styles.formPage}>
       <div style={styles.formCard}>
-        <div style={{ fontSize: 64, textAlign: "center" }}>✅</div>
-        <h2 style={{ ...styles.formTitle, textAlign: "center" }}>
-          {docModo === "vincular" ? "Vínculo criado!" : "Cadastro realizado!"}
-        </h2>
-        <p style={{ textAlign: "center", color: "#aaa" }}>Bem-vindo ao sistema, {form.nome}!</p>
-        <button style={styles.btnPrimary} onClick={() => setTela("painel-equipe")}>Ir para o Painel</button>
+        <div style={{ fontSize: 64, textAlign: "center" }}>⏳</div>
+        <h2 style={{ ...styles.formTitle, textAlign: "center" }}>Cadastro enviado!</h2>
+        <p style={{ textAlign: "center", color: "#aaa", marginBottom: 8 }}>
+          Seu cadastro foi recebido e está aguardando aprovação.
+        </p>
+        <p style={{ textAlign: "center", color: "#666", fontSize: 13, marginBottom: 24 }}>
+          {form.organizadorId
+            ? "O organizador responsável e o administrador serão notificados para aprovar sua equipe."
+            : "Como não foi selecionado um organizador, o administrador irá revisar e vincular sua equipe."}
+        </p>
+        <button style={styles.btnPrimary} onClick={() => setTela("login")}>Voltar ao Login</button>
       </div>
     </div>
   );
@@ -234,41 +254,6 @@ function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, us
                 {erros.organizadorId && <div style={{ color: "#ff6b6b", fontSize: 12, marginTop: 4 }}>{erros.organizadorId}</div>}
                 <div style={{ color: "#666", fontSize: 11, marginTop: 4 }}>
                   {docModo === "vincular" ? "Selecione o novo organizador para vincular" : "Selecione o organizador responsável pela equipe"}
-                </div>
-              </div>
-
-              {/* Equipe/Clube */}
-              <div style={{ marginBottom: 16 }}>
-                <label style={{ display: "block", color: "#aaa", fontSize: 13, marginBottom: 6 }}>
-                  Equipe/Clube
-                </label>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                  <input type="checkbox" id="equipe-avulsa-flag" checked={form.equipeAvulsa}
-                    onChange={(e) => setForm({ ...form, equipeAvulsa: e.target.checked, entidade: "" })}
-                    style={{ cursor: "pointer" }} />
-                  <label htmlFor="equipe-avulsa-flag" style={{ color: "#aaa", fontSize: 13, cursor: "pointer" }}>
-                    ✓ Digitar manualmente
-                  </label>
-                </div>
-                {form.equipeAvulsa ? (
-                  <input type="text" value={form.entidade}
-                    onChange={(e) => setForm({ ...form, entidade: e.target.value })}
-                    placeholder="Digite o nome da equipe/clube" style={styles.input} />
-                ) : (
-                  <select value={form.equipeId || ""}
-                    onChange={(e) => {
-                      const equipeSel = equipes?.find(eq => eq.id === e.target.value);
-                      setForm({ ...form, equipeId: e.target.value, entidade: equipeSel?.nome || "" });
-                    }}
-                    style={styles.input}>
-                    <option value="">Selecione...</option>
-                    {equipes?.filter(eq => eq.status === "ativa" || eq.status === "aprovado").map(eq => (
-                      <option key={eq.id} value={eq.id}>{eq.nome} ({eq.sigla})</option>
-                    ))}
-                  </select>
-                )}
-                <div style={{ color: "#666", fontSize: 11, marginTop: 4 }}>
-                  {form.equipeAvulsa ? "Digite o nome da equipe manualmente" : "Selecione uma equipe ou marque a caixa acima para digitar"}
                 </div>
               </div>
             </div>

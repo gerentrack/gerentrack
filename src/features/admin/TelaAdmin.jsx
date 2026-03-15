@@ -72,12 +72,14 @@ function TelaAdmin({
   siteBranding, setSiteBranding, gtIcon, gtLogo, historicoAcoes,
   atletasUsuarios=[], funcionarios=[], treinadores=[],
   setAtletaEditandoId,
+  solicitacoesEquipe=[], aprovarEquipe, recusarEquipe,
 }) {
   const confirmar = useConfirm();
   const pendOrg = organizadores.filter(o => o.status === "pendente");
   const pendEv  = eventos.filter(e => e.statusAprovacao === "pendente");
   const pendRec = (solicitacoesRecuperacao || []).filter(s => s.status === "pendente");
-  const totalPend = pendOrg.length + pendEv.length + pendRec.length;
+  const pendEq  = (solicitacoesEquipe || []).filter(s => s.status === "pendente");
+  const totalPend = pendOrg.length + pendEv.length + pendRec.length + pendEq.length;
 
   // ── Guard ──────────────────────────────────────────────────────────────────
   if (usuarioLogado?.tipo !== "admin") return (
@@ -94,6 +96,7 @@ function TelaAdmin({
   const [buscaComp, setBuscaComp] = useState("");
   const [buscaEq,   setBuscaEq]   = useState("");
   const [buscaAtl,  setBuscaAtl]  = useState("");
+  const [orgSel,    setOrgSel]    = useState({});
   const [buscaHist, setBuscaHist] = useState("");
 
   // Org form (hoisted — não pode ser useState dentro de IIFE)
@@ -126,7 +129,7 @@ function TelaAdmin({
     { id:"visao-geral",   label:"📊 Visão Geral",   badge: totalPend },
     { id:"organizadores", label:"🏟️ Organizadores",  badge: pendOrg.length + pendRec.length, sub: organizadores.length },
     { id:"competicoes",   label:"📋 Competições",    badge: pendEv.length, sub: eventos.length },
-    { id:"equipes",       label:"🏅 Equipes",        sub: equipes.length },
+    { id:"equipes",       label:"🏅 Equipes",        badge: pendEq.length, sub: equipes.length },
     { id:"atletas",       label:"🏃 Atletas",        sub: atletas.length },
     { id:"historico",     label:"📊 Histórico" },
     { id:"sistema",       label:"⚙️ Sistema" },
@@ -531,6 +534,60 @@ function TelaAdmin({
       ══════════════════════════════════════════════════════════════════════ */}
       {aba === "equipes" && (
         <div style={s.card}>
+          {/* ── Fila de aprovação ── */}
+          {pendEq.length > 0 && (() => {
+            return (
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
+                  <div style={s.sectionHd}>⏳ Equipes Aguardando Aprovação</div>
+                  <span style={{ background:"#1a2a0a", color:"#7cfc7c", border:"1px solid #2a5a2a", borderRadius:20, padding:"2px 10px", fontSize:12, fontWeight:700 }}>
+                    {pendEq.length}
+                  </span>
+                </div>
+                {pendEq.map(sol => (
+                  <div key={sol.id} style={{ background:"#0a1020", border:"1px solid #1a2a4a", borderRadius:10, padding:16, marginBottom:12 }}>
+                    <div style={{ display:"flex", flexWrap:"wrap", gap:16, marginBottom:12 }}>
+                      <div>
+                        <div style={{ color:"#fff", fontWeight:700, fontSize:15 }}>{sol.equipeNome} <span style={{ color:"#1976D2", fontSize:13 }}>({sol.equipeSigla})</span></div>
+                        <div style={{ color:"#888", fontSize:12, marginTop:2 }}>{sol.equipeEmail} · CNPJ: {sol.equipeCnpj}</div>
+                        <div style={{ color:"#888", fontSize:12 }}>{sol.equipeCidade}/{sol.equipeUf}</div>
+                      </div>
+                      <div style={{ marginLeft:"auto", textAlign:"right" }}>
+                        {sol.organizadorId
+                          ? <div style={{ color:"#88aaff", fontSize:12 }}>Org.: {sol.organizadorNome || sol.organizadorId}</div>
+                          : <div style={{ color:"#e67e22", fontSize:12 }}>⚠️ Sem organizador vinculado</div>
+                        }
+                        <div style={{ color:"#555", fontSize:11 }}>{new Date(sol.data).toLocaleDateString("pt-BR")}</div>
+                      </div>
+                    </div>
+                    {!sol.organizadorId && (
+                      <div style={{ marginBottom:10 }}>
+                        <label style={{ color:"#aaa", fontSize:12, display:"block", marginBottom:4 }}>Vincular a organizador:</label>
+                        <select value={orgSel[sol.id] || ""} onChange={e => setOrgSel(p => ({...p, [sol.id]: e.target.value}))}
+                          style={{ background:"#141720", border:"1px solid #252837", borderRadius:6, color:"#fff", padding:"6px 10px", fontSize:13, width:"100%" }}>
+                          <option value="">Selecione o organizador...</option>
+                          {organizadores.filter(o => o.status === "aprovado").map(o => (
+                            <option key={o.id} value={o.id}>{o.nome} — {o.entidade}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                    <div style={{ display:"flex", gap:8 }}>
+                      <button style={{ ...s.btnPrimary, fontSize:13, padding:"6px 18px" }}
+                        onClick={() => {
+                          const orgId = sol.organizadorId || orgSel[sol.id];
+                          if (!sol.organizadorId && !orgId) { alert("Selecione um organizador antes de aprovar."); return; }
+                          aprovarEquipe(sol.equipeId, orgId || null);
+                        }}>✅ Aprovar</button>
+                      <button style={{ background:"#2a0a0a", color:"#ff6b6b", border:"1px solid #5a1a1a", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:700, padding:"6px 18px" }}
+                        onClick={() => recusarEquipe(sol.equipeId)}>❌ Recusar</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:14 }}>
             <div style={s.sectionHd}>🏅 Equipes ({equipes.length})</div>
             <button style={s.btnSecondary} onClick={() => setTela("gerenciar-equipes")}>🏅 Gestão Completa →</button>

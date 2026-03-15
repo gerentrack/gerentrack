@@ -207,10 +207,10 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
   const handleEditar = (equipe) => {
     setEquipeSelecionada(equipe);
     setForm({
-      nome: equipe.nome,
-      sigla: equipe.sigla,
-      cidade: equipe.cidade,
-      estado: equipe.estado,
+      nome: equipe.nome || "",
+      sigla: equipe.sigla || "",
+      cidade: equipe.cidade || "",
+      estado: equipe.estado || equipe.uf || "",
       cnpj: equipe.cnpj || "",
       contato: equipe.contato || "",
       email: equipe.email || "",

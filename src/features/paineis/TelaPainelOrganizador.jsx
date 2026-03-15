@@ -142,7 +142,7 @@ const styles = {
   provaCheckBtnSel: { background: "#1a1c22", borderColor: "#1976D2", color: "#1976D2" },
 };
 
-function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, atletas, selecionarEvento, adicionarEvento, editarEvento, excluirEvento, alterarStatusEvento, organizadores, funcionarios, solicitacoesVinculo, responderVinculo, equipes }) {
+function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, atletas, selecionarEvento, adicionarEvento, editarEvento, excluirEvento, alterarStatusEvento, organizadores, funcionarios, solicitacoesVinculo, responderVinculo, equipes, solicitacoesEquipe=[], aprovarEquipe, recusarEquipe }) {
   const tipoOrg = usuarioLogado?.tipo;
   if (tipoOrg !== "organizador" && tipoOrg !== "funcionario" && tipoOrg !== "admin") return (
     <div style={styles.page}><div style={styles.emptyState}>
@@ -432,6 +432,39 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
                 </table>
               </div>
             )}
+          </div>
+        );
+      })()}
+
+      {/* ── Equipes Aguardando Aprovação ── */}
+      {(() => {
+        const meuOrgId = usuarioLogado?.tipo === "organizador" ? usuarioLogado?.id : usuarioLogado?.organizadorId;
+        const pendentes = (solicitacoesEquipe||[]).filter(s => s.status === "pendente" && s.organizadorId === meuOrgId);
+        if (pendentes.length === 0) return null;
+        return (
+          <div style={{ background:"#0a0f1a", border:"1px solid #1a2a4a", borderRadius:12, padding:20, marginBottom:20 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+              <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:20, fontWeight:800, color:"#fff" }}>⏳ Equipes Aguardando Aprovação</span>
+              <span style={{ background:"#1a2a0a", color:"#7cfc7c", border:"1px solid #2a5a2a", borderRadius:20, padding:"2px 10px", fontSize:12, fontWeight:700 }}>{pendentes.length}</span>
+            </div>
+            {pendentes.map(sol => (
+              <div key={sol.id} style={{ background:"#0d1220", border:"1px solid #252837", borderRadius:8, padding:14, marginBottom:10 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", flexWrap:"wrap", gap:8, marginBottom:10 }}>
+                  <div>
+                    <div style={{ color:"#fff", fontWeight:700 }}>{sol.equipeNome} <span style={{ color:"#1976D2", fontSize:13 }}>({sol.equipeSigla})</span></div>
+                    <div style={{ color:"#888", fontSize:12 }}>{sol.equipeEmail} · CNPJ: {sol.equipeCnpj}</div>
+                    <div style={{ color:"#888", fontSize:12 }}>{sol.equipeCidade}/{sol.equipeUf}</div>
+                  </div>
+                  <div style={{ color:"#555", fontSize:11 }}>{new Date(sol.data).toLocaleDateString("pt-BR")}</div>
+                </div>
+                <div style={{ display:"flex", gap:8 }}>
+                  <button style={{ background:"linear-gradient(135deg,#1976D2,#1565C0)", color:"#fff", border:"none", borderRadius:6, cursor:"pointer", fontSize:13, fontWeight:700, padding:"6px 16px" }}
+                    onClick={() => aprovarEquipe?.(sol.equipeId, meuOrgId)}>✅ Aprovar</button>
+                  <button style={{ background:"#2a0a0a", color:"#ff6b6b", border:"1px solid #5a1a1a", borderRadius:6, cursor:"pointer", fontSize:13, fontWeight:700, padding:"6px 16px" }}
+                    onClick={() => recusarEquipe?.(sol.equipeId)}>❌ Recusar</button>
+                </div>
+              </div>
+            ))}
           </div>
         );
       })()}
