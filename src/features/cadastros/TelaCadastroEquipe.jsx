@@ -6,7 +6,7 @@ import inscricaoStyles from "../inscricoes/inscricaoStyles";
 const styles = inscricaoStyles;
 
 function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, usuarioLogado, equipes, atletasUsuarios, funcionarios, treinadores }) {
-  const [form, setForm] = useState({ nome: "", email: "", senha: "", entidade: "", cnpj: "", fone: "" , organizadorId:"", equipeAvulsa:false, equipeId: "" });
+  const [form, setForm] = useState({ nome: "", sigla: "", cidade: "", uf: "", email: "", senha: "", entidade: "", cnpj: "", fone: "" , organizadorId:"", equipeAvulsa:false, equipeId: "" });
   const [ok, setOk] = useState(false);
   const [erros, setErros] = useState({});
 
@@ -54,13 +54,40 @@ function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, us
 
   const validar = () => {
     const e = {};
-    if (!form.nome) e.nome = "Nome obrigatório";
+    const duplicados = [];
+
+    if (!form.nome.trim()) e.nome = "Nome obrigatório";
+    else if (equipes.some(eq => eq.nome?.trim().toLowerCase() === form.nome.trim().toLowerCase())) {
+      e.nome = "Este nome já possui cadastro no sistema.";
+      duplicados.push("Nome da Equipe");
+    }
+
+    if (!form.sigla.trim()) e.sigla = "Sigla obrigatória";
+    else if (equipes.some(eq => eq.sigla?.trim().toLowerCase() === form.sigla.trim().toLowerCase())) {
+      e.sigla = "Esta sigla já possui cadastro no sistema.";
+      duplicados.push("Sigla");
+    }
+
+    if (!form.cidade.trim()) e.cidade = "Cidade é obrigatória";
+    if (!form.uf.trim()) e.uf = "Estado é obrigatório";
+
     if (!form.email) e.email = "E-mail obrigatório";
-    else if (docModo === "novo" && emailJaCadastrado(form.email, { organizadores, equipes, atletasUsuarios, funcionarios, treinadores }))
-      e.email = "E-mail já cadastrado em outra conta.";
+    else if (docModo === "novo" && emailJaCadastrado(form.email, { organizadores, equipes, atletasUsuarios, funcionarios, treinadores })) {
+      e.email = "Este e-mail já possui cadastro no sistema.";
+      duplicados.push("E-mail");
+    }
+
     if (docModo === "novo" && form.senha.length < 6) e.senha = "Mínimo 6 caracteres";
+
     if (!form.cnpj) e.cnpj = "CNPJ obrigatório";
     else if (!validarCNPJ(form.cnpj)) e.cnpj = "CNPJ inválido";
+
+    if (duplicados.length > 0) {
+      e._duplicados = duplicados.length === 1
+        ? `O campo "${duplicados[0]}" já possui cadastro no sistema. Verifique os dados e tente novamente.`
+        : `Os campos ${duplicados.map(d => `"${d}"`).join(", ")} já possuem cadastro no sistema. Verifique os dados e tente novamente.`;
+    }
+
     return e;
   };
 
@@ -95,6 +122,9 @@ function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, us
     const { senha: _senha, ...formSemSenha } = form;
     const t = { 
       ...formSemSenha,
+      sigla: form.sigla.trim().toUpperCase(),
+      cidade: form.cidade.trim(),
+      uf: form.uf.trim().toUpperCase(),
       organizadorId: orgIdFinal,
       equipeId: form.equipeId || null,
       equipeAvulsa: form.equipeAvulsa || false,
@@ -126,6 +156,13 @@ function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, us
         <div style={styles.formIcon}>🎽</div>
         <h2 style={styles.formTitle}>Cadastro de Equipe</h2>
         <p style={styles.formSub}>Crie sua conta para gerenciar atletas e inscrições</p>
+
+        {/* Banner de duplicidade */}
+        {erros._duplicados && (
+          <div style={{ background: "#1a0a0a", border: "1px solid #ff4444", borderRadius: 8, padding: "12px 16px", marginBottom: 16, color: "#ff8888", fontSize: 13, lineHeight: 1.5 }}>
+            ⚠️ {erros._duplicados}
+          </div>
+        )}
 
         {/* Passo 1: CNPJ — sempre primeiro */}
         <div style={{ marginBottom: 16 }}>
@@ -164,7 +201,10 @@ function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, us
         {(docModo === "novo" || docModo === "vincular") && (
           <>
             <div style={styles.grid2form}>
-              <FormField label="Nome Completo *" value={form.nome} onChange={(v) => setForm({ ...form, nome: v })} error={erros.nome} />
+              <FormField label="Nome da Equipe *" value={form.nome} onChange={(v) => setForm({ ...form, nome: v })} error={erros.nome} />
+              <FormField label="Sigla *" value={form.sigla} onChange={(v) => setForm({ ...form, sigla: v.toUpperCase() })} placeholder="Ex: FMA" error={erros.sigla} />
+              <FormField label="Cidade *" value={form.cidade} onChange={(v) => setForm({ ...form, cidade: v })} error={erros.cidade} />
+              <FormField label="Estado *" value={form.uf} onChange={(v) => setForm({ ...form, uf: v.toUpperCase().slice(0,2) })} placeholder="Ex: MG" error={erros.uf} />
               <FormField label="E-mail *" value={form.email} onChange={(v) => setForm({ ...form, email: v })} type="email" error={erros.email} />
               <FormField label="Telefone" value={form.fone} onChange={(v) => setForm({ ...form, fone: v })} />
               {docModo === "novo" && (
