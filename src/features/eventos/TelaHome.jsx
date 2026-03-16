@@ -176,6 +176,124 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
     ? Object.values(resultados).reduce((a, b) => a + (b && typeof b === "object" ? Object.keys(b).length : 0), 0)
     : 0;
 
+  const [maisEventosPag, setMaisEventosPag] = React.useState(0);
+  const MAIS_POR_PAG = 9;
+
+  const hoje = new Date();
+  hoje.setHours(0,0,0,0);
+  const mesAtual = hoje.getMonth();
+  const anoAtual = hoje.getFullYear();
+
+  const aprovados = eventos
+    .filter(ev => !ev.statusAprovacao || ev.statusAprovacao === "aprovado");
+
+  const proximosEventos = aprovados
+    .filter(ev => {
+      if (!ev.data) return false;
+      const d = new Date(ev.data + "T12:00:00");
+      return d >= hoje && d.getMonth() === mesAtual && d.getFullYear() === anoAtual;
+    })
+    .sort((a, b) => new Date(a.data) - new Date(b.data));
+
+  const eventoPassado = (ev) => {
+    if (ev.competicaoFinalizada) return true;
+    if (!ev.data) return false;
+    return new Date(ev.data + "T12:00:00") < hoje;
+  };
+  const eventosPassados = aprovados
+    .filter(eventoPassado)
+    .sort((a, b) => new Date(b.data) - new Date(a.data));
+
+  const maisEventos = aprovados
+    .filter(ev => !eventoPassado(ev) && !proximosEventos.find(p => p.id === ev.id))
+    .sort((a, b) => {
+      const da = a.data ? new Date(a.data) : new Date(9999,0,1);
+      const db = b.data ? new Date(b.data) : new Date(9999,0,1);
+      return da - db;
+    });
+
+  const totalPagsMais = Math.ceil(maisEventos.length / MAIS_POR_PAG);
+  const maisEventosPagAtual = maisEventos.slice(maisEventosPag * MAIS_POR_PAG, (maisEventosPag + 1) * MAIS_POR_PAG);
+
+  const renderEvCard = (ev) => {
+    const nInscs = inscricoes.filter((i) => i.eventoId === ev.id).length;
+    const nAtletas = [...new Set(inscricoes.filter((i) => i.eventoId === ev.id).map((i) => i.atletaId))].length;
+    const nProvas = (ev.provasPrograma || []).length;
+    const dataEv = new Date(ev.data + "T12:00:00");
+    const status = getStatusEvento(ev, resultados);
+    const stInsc = getStatusInscLocal(ev);
+    const insBadgeColor = stInsc === "em_breve" ? "#1976D2" : "#888";
+    const insBadgeLabel = stInsc === "em_breve" ? `📅 Abre ${new Date(ev.dataAberturaInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}` : "🔒 Inscrições encerradas";
+    return (
+      <div key={ev.id} style={{ ...styles.eventoCard, padding:0, overflow:"hidden" }}>
+        <div style={{ position:"relative", width:"100%", minHeight: ev.logoCompeticao ? 0 : 60, background: ev.logoCompeticao ? "transparent" : "linear-gradient(135deg, #0a1a2a 0%, #1a0a2a 100%)", borderBottom:"1px solid #1E2130", overflow:"hidden" }}>
+          {ev.logoCompeticao ? (
+            <img src={ev.logoCompeticao} alt="" style={{ width:"100%", display:"block", objectFit:"contain" }} />
+          ) : (
+            <span style={{ fontSize:28, opacity:0.3 }}>🏟️</span>
+          )}
+          <div style={{ position:"absolute", top:10, left:12, display:"flex", flexDirection:"column", gap:4 }}>
+            <div style={styles.eventoStatusBadge(status)}>{labelStatusEvento(status, ev)}</div>
+            {stInsc !== "abertas" && stInsc !== "em_breve" && (
+              <div style={{ background: insBadgeColor + "22", color: insBadgeColor, border: `1px solid ${insBadgeColor}44`, borderRadius: 10, padding: "2px 8px", fontSize: 11, fontWeight: 600, backdropFilter:"blur(4px)" }}>{insBadgeLabel}</div>
+            )}
+          </div>
+          {usuarioLogado?.tipo === "admin" && (
+            <div style={{ position:"absolute", top:8, right:10, display:"flex", gap:6 }}>
+              <button style={{ ...styles.btnIconSm, background:"rgba(0,0,0,0.5)", backdropFilter:"blur(4px)" }} onClick={() => { selecionarEvento(ev.id); setTela("novo-evento"); }} title="Editar">✏️</button>
+              <button style={{ ...styles.btnIconSmDanger, background:"rgba(0,0,0,0.5)", backdropFilter:"blur(4px)" }} onClick={() => excluirEvento(ev.id)} title="Excluir">🗑</button>
+            </div>
+          )}
+        </div>
+        <div style={{ padding:"14px 20px 20px" }}>
+          <div style={styles.eventoCardNome}>{ev.nome}</div>
+          <div style={styles.eventoCardMeta}>
+            <span>📅 {dataEv.toLocaleDateString("pt-BR", { day:"2-digit", month:"long", year:"numeric" })}
+              {ev.horaInicio && <> · ⏰ {ev.horaInicio}h</>}
+            </span>
+          </div>
+          <div style={styles.eventoCardMeta}><span>📍 {_getLocalEventoDisplay(ev)}</span></div>
+          {(ev.dataAberturaInscricoes || ev.dataEncerramentoInscricoes) && (
+            <div style={styles.eventoCardMeta}>
+              <span>📋 Inscrições:&nbsp;
+                {ev.dataAberturaInscricoes && <>{new Date(ev.dataAberturaInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}</>}
+                {ev.dataAberturaInscricoes && ev.dataEncerramentoInscricoes && " a "}
+                {ev.dataEncerramentoInscricoes && <>{new Date(ev.dataEncerramentoInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}</>}
+              </span>
+            </div>
+          )}
+          <div style={styles.eventoCardStats}>
+            <span>🎯 {nProvas} prova{nProvas !== 1 ? "s" : ""}</span>
+            <span>🏃 {nAtletas} atleta{nAtletas !== 1 ? "s" : ""}</span>
+            <span>✍️ {nInscs} {nInscs !== 1 ? "inscrições" : "inscrição"}</span>
+          </div>
+          <div style={{ display:"flex", gap:6, marginBottom:10 }}>
+            {(() => {
+              const tpU = usuarioLogado?.tipo;
+              const temAcessoSumula = tpU === "admin" || tpU === "organizador" ||
+                (tpU === "funcionario" && (usuarioLogado?.permissoes?.includes("sumulas") || usuarioLogado?.permissoes?.includes("resultados"))) ||
+                (ev.sumulaLiberada && usuarioLogado);
+              return temAcessoSumula && (
+                <button style={{...styles.btnSecondary, flex:1}} onClick={() => { selecionarEvento(ev.id); setTela("sumulas"); }}>
+                  📋 Súmulas
+                </button>
+              );
+            })()}
+            {(status === "ao_vivo" || status === "encerrado" || status === "hoje_pre") && (
+              <button style={{...styles.btnSecondary, flex:1}} onClick={() => { selecionarEvento(ev.id); setTela("resultados"); }}>
+                🏆 Resultados
+              </button>
+            )}
+          </div>
+          <button style={styles.btnPrimary} onClick={() => selecionarEvento(ev.id)}>
+            Acessar Competição →
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+
   return (
     <div style={styles.page}>
       <div style={styles.heroSection}>
@@ -199,11 +317,8 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
         </div>
       </div>
 
-      <h2 style={styles.sectionTitle}>
-        {eventos.length === 0 ? "Nenhuma competição cadastrada" : "Competições"}
-      </h2>
-
-      {eventos.filter(ev=>!ev.statusAprovacao||ev.statusAprovacao==="aprovado").length === 0 ? (
+      {/* ── PRÓXIMOS EVENTOS (mês atual) ── */}
+      {aprovados.length === 0 ? (
         <div style={styles.emptyState}>
           <span style={{ fontSize:56 }}>🏟</span>
           <p>Nenhuma competição cadastrada ainda.</p>
@@ -214,92 +329,53 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
           )}
         </div>
       ) : (
-        <div style={styles.eventosGrid}>
-          {eventos
-            .filter(ev => !ev.statusAprovacao || ev.statusAprovacao === "aprovado")
-            .slice().sort((a, b) => {
-              const da = a.data ? new Date(a.data) : new Date(0);
-              const db = b.data ? new Date(b.data) : new Date(0);
-              return da - db;
-            })
-            .map((ev) => {
-              const nInscs = inscricoes.filter((i) => i.eventoId === ev.id).length;
-              const nAtletas = [...new Set(inscricoes.filter((i) => i.eventoId === ev.id).map((i) => i.atletaId))].length;
-              const nProvas = (ev.provasPrograma || []).length;
-              const dataEv = new Date(ev.data + "T12:00:00");
-              const status = getStatusEvento(ev, resultados);
-              const stInsc = getStatusInscLocal(ev);
-              const insBadgeColor = stInsc === "em_breve" ? "#1976D2" : "#888";
-              const insBadgeLabel = stInsc === "em_breve" ? `📅 Abre ${new Date(ev.dataAberturaInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}` : "🔒 Inscrições encerradas";
-              return (
-                <div key={ev.id} style={{ ...styles.eventoCard, padding:0, overflow:"hidden" }}>
-                  <div style={{ position:"relative", width:"100%", minHeight: ev.logoCompeticao ? 0 : 60, background: ev.logoCompeticao ? "transparent" : "linear-gradient(135deg, #0a1a2a 0%, #1a0a2a 100%)", borderBottom:"1px solid #1E2130", overflow:"hidden" }}>
-                    {ev.logoCompeticao ? (
-                      <img src={ev.logoCompeticao} alt="" style={{ width:"100%", display:"block", objectFit:"contain" }} />
-                    ) : (
-                      <span style={{ fontSize:28, opacity:0.3 }}>🏟️</span>
-                    )}
-                    <div style={{ position:"absolute", top:10, left:12, display:"flex", flexDirection:"column", gap:4 }}>
-                      <div style={styles.eventoStatusBadge(status)}>{labelStatusEvento(status, ev)}</div>
-                      {stInsc !== "abertas" && stInsc !== "em_breve" && (
-                      <div style={{ background: insBadgeColor + "22", color: insBadgeColor, border: `1px solid ${insBadgeColor}44`, borderRadius: 10, padding: "2px 8px", fontSize: 11, fontWeight: 600, backdropFilter:"blur(4px)" }}>{insBadgeLabel}</div>
-                      )}
-                    </div>
-                    {usuarioLogado?.tipo === "admin" && (
-                      <div style={{ position:"absolute", top:8, right:10, display:"flex", gap:6 }}>
-                        <button style={{ ...styles.btnIconSm, background:"rgba(0,0,0,0.5)", backdropFilter:"blur(4px)" }} onClick={() => { selecionarEvento(ev.id); setTela("novo-evento"); }} title="Editar">✏️</button>
-                        <button style={{ ...styles.btnIconSmDanger, background:"rgba(0,0,0,0.5)", backdropFilter:"blur(4px)" }} onClick={() => excluirEvento(ev.id)} title="Excluir">🗑</button>
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ padding:"14px 20px 20px" }}>
-                    <div style={styles.eventoCardNome}>{ev.nome}</div>
-                    <div style={styles.eventoCardMeta}>
-                      <span>📅 {dataEv.toLocaleDateString("pt-BR", { day:"2-digit", month:"long", year:"numeric" })}
-                        {ev.horaInicio && <> · ⏰ {ev.horaInicio}h</>}
-                      </span>
-                    </div>
-                    <div style={styles.eventoCardMeta}><span>📍 {_getLocalEventoDisplay(ev)}</span></div>
-                    {(ev.dataAberturaInscricoes || ev.dataEncerramentoInscricoes) && (
-                      <div style={styles.eventoCardMeta}>
-                        <span>📋 Inscrições:&nbsp;
-                          {ev.dataAberturaInscricoes && <>{new Date(ev.dataAberturaInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}</>}
-                          {ev.dataAberturaInscricoes && ev.dataEncerramentoInscricoes && " a "}
-                          {ev.dataEncerramentoInscricoes && <>{new Date(ev.dataEncerramentoInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}</>}
-                        </span>
-                      </div>
-                    )}
-                    <div style={styles.eventoCardStats}>
-                      <span>🎯 {nProvas} prova{nProvas !== 1 ? "s" : ""}</span>
-                      <span>🏃 {nAtletas} atleta{nAtletas !== 1 ? "s" : ""}</span>
-                      <span>✍️ {nInscs} {nInscs !== 1 ? "inscrições" : "inscrição"}</span>
-                    </div>
-                    <div style={{ display:"flex", gap:6, marginBottom:10 }}>
-                      {(() => {
-                        const tpU = usuarioLogado?.tipo;
-                        const temAcessoSumula = tpU === "admin" || tpU === "organizador" ||
-                          (tpU === "funcionario" && (usuarioLogado?.permissoes?.includes("sumulas") || usuarioLogado?.permissoes?.includes("resultados"))) ||
-                          (ev.sumulaLiberada && usuarioLogado);
-                        return temAcessoSumula && (
-                          <button style={{...styles.btnSecondary, flex:1}} onClick={() => { selecionarEvento(ev.id); setTela("sumulas"); }}>
-                            📋 Súmulas
-                          </button>
-                        );
-                      })()}
-                      {(status === "ao_vivo" || status === "encerrado" || status === "hoje_pre") && (
-                        <button style={{...styles.btnSecondary, flex:1}} onClick={() => { selecionarEvento(ev.id); setTela("resultados"); }}>
-                          🏆 Resultados
-                        </button>
-                      )}
-                    </div>
-                    <button style={styles.btnPrimary} onClick={() => selecionarEvento(ev.id)}>
-                      Acessar Competição →
+        <>
+          {proximosEventos.length > 0 && (
+            <div style={{ marginBottom:48 }}>
+              <h2 style={styles.sectionTitle}>📅 Próximos Eventos</h2>
+              <div style={styles.eventosGrid}>
+                {proximosEventos.map(ev => renderEvCard(ev))}
+              </div>
+            </div>
+          )}
+
+          {eventosPassados.length > 0 && (
+            <div style={{ marginBottom:48 }}>
+              <h2 style={styles.sectionTitle}>🏆 Eventos Passados</h2>
+              <div style={styles.eventosGrid}>
+                {eventosPassados.map(ev => renderEvCard(ev))}
+              </div>
+            </div>
+          )}
+
+          {maisEventos.length > 0 && (
+            <div style={{ marginBottom:48 }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:24 }}>
+                <h2 style={{ ...styles.sectionTitle, margin:0 }}>
+                  📋 Mais Eventos
+                  {totalPagsMais > 1 && <span style={{ color:"#555", fontSize:16, fontWeight:400, marginLeft:10 }}>— Seção {maisEventosPag + 1} de {totalPagsMais}</span>}
+                </h2>
+                {totalPagsMais > 1 && (
+                  <div style={{ display:"flex", gap:8 }}>
+                    <button disabled={maisEventosPag === 0}
+                      onClick={() => setMaisEventosPag(p => p - 1)}
+                      style={{ ...styles.btnGhost, opacity: maisEventosPag === 0 ? 0.3 : 1, cursor: maisEventosPag === 0 ? "default" : "pointer" }}>
+                      ‹ Anterior
+                    </button>
+                    <button disabled={maisEventosPag >= totalPagsMais - 1}
+                      onClick={() => setMaisEventosPag(p => p + 1)}
+                      style={{ ...styles.btnGhost, opacity: maisEventosPag >= totalPagsMais - 1 ? 0.3 : 1, cursor: maisEventosPag >= totalPagsMais - 1 ? "default" : "pointer" }}>
+                      Próximo ›
                     </button>
                   </div>
-                </div>
-              );
-            })}
-        </div>
+                )}
+              </div>
+              <div style={styles.eventosGrid}>
+                {maisEventosPagAtual.map(ev => renderEvCard(ev))}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(280px, 1fr))", gap:24, marginTop:48 }}>
