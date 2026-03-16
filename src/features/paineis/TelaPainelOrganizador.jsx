@@ -142,7 +142,7 @@ const styles = {
   provaCheckBtnSel: { background: "#1a1c22", borderColor: "#1976D2", color: "#1976D2" },
 };
 
-function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, atletas, selecionarEvento, adicionarEvento, editarEvento, excluirEvento, alterarStatusEvento, organizadores, funcionarios, solicitacoesVinculo, responderVinculo, equipes, solicitacoesEquipe=[], aprovarEquipe, recusarEquipe }) {
+function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, atletas, selecionarEvento, adicionarEvento, editarEvento, excluirEvento, alterarStatusEvento, organizadores, funcionarios, solicitacoesVinculo, responderVinculo, equipes, solicitacoesEquipe=[], aprovarEquipe, recusarEquipe, atualizarAtleta, registrarAcao, setAtletaEditandoId }) {
   const tipoOrg = usuarioLogado?.tipo;
   if (tipoOrg !== "organizador" && tipoOrg !== "funcionario" && tipoOrg !== "admin") return (
     <div style={styles.page}><div style={styles.emptyState}>
@@ -158,10 +158,11 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
   const meusEventos   = eventos.filter(e => e.organizadorId === orgId);
   const isPendente    = meuOrg?.status === "pendente";
 
-  // Permissões: organizador tem tudo; funcionário só o que foi concedido
-  const perms = isFuncionario ? (usuarioLogado?.permissoes || []) : null; // null = sem restrição
+  const perms = isFuncionario ? (usuarioLogado?.permissoes || []) : null;
   const temPerm = (p) => perms === null || perms.includes(p);
   const [buscaComp, setBuscaComp] = useState("");
+  const [modalTransf, setModalTransf] = useState(null);
+  const [transfEquipeId, setTransfEquipeId] = useState("");
 
   return (
     <div style={styles.page}>
@@ -584,9 +585,113 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
           </div>
         );
       })()}
+
+
+      {/* ── Atletas por Equipe ── */}
+      {(() => {
+        const minhasEquipes = (equipes||[])
+          .filter(e => e.organizadorId === orgId && (e.status === "ativa" || e.status === "aprovado"))
+          .sort((a,b) => (a.nome||"").localeCompare(b.nome||"","pt-BR"));
+        const meusAtletas = (atletas||[]).filter(a => minhasEquipes.some(e => e.id === a.equipeId));
+        if (minhasEquipes.length === 0) return null;
+        return (
+          <div style={{ background:"#0a0f1a", border:"1px solid #1a2a4a", borderRadius:12, padding:20, marginBottom:20 }}>
+            <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:20, fontWeight:800, color:"#fff", marginBottom:16 }}>
+              🏃 Atletas por Equipe
+            </div>
+            {minhasEquipes.map(eq => {
+              const atletasEq = meusAtletas
+                .filter(a => a.equipeId === eq.id)
+                .sort((a,b) => (a.nome||"").localeCompare(b.nome||"","pt-BR"));
+              return (
+                <details key={eq.id} style={{ marginBottom:10, background:"#0d1220", border:"1px solid #252837", borderRadius:8 }}>
+                  <summary style={{ padding:"12px 16px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"space-between", listStyle:"none" }}>
+                    <span style={{ color:"#fff", fontWeight:700, fontSize:14 }}>{eq.nome} <span style={{ color:"#888", fontSize:12, fontWeight:400 }}>({eq.sigla||"—"})</span></span>
+                    <span style={{ background:"#1976D222", color:"#1976D2", border:"1px solid #1976D244", borderRadius:20, padding:"2px 10px", fontSize:12, fontWeight:700 }}>
+                      {atletasEq.length} atleta{atletasEq.length !== 1 ? "s" : ""}
+                    </span>
+                  </summary>
+                  {atletasEq.length === 0 ? (
+                    <div style={{ padding:"12px 16px", color:"#555", fontSize:13 }}>Nenhum atleta nesta equipe.</div>
+                  ) : (
+                    <div style={{ borderTop:"1px solid #1a1d2a" }}>
+                      {atletasEq.map((a, i) => (
+                        <div key={a.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 16px",
+                          borderBottom: i < atletasEq.length - 1 ? "1px solid #1a1d2a" : "none",
+                          background: i % 2 === 0 ? "transparent" : "#0a0c14" }}>
+                          <div>
+                            <div style={{ color:"#ddd", fontSize:13, fontWeight:600 }}>{a.nome}</div>
+                            <div style={{ color:"#666", fontSize:11, marginTop:2 }}>
+                              {a.sexo === "M" ? "Masc" : "Fem"} · {a.dataNasc || a.anoNasc || "—"} · CPF: {a.cpf || "—"}
+                            </div>
+                          </div>
+                          <div style={{ display:"flex", gap:6 }}>
+                            <button style={{ background:"#0a1a2a", color:"#88aaff", border:"1px solid #1a3a5a", borderRadius:4, cursor:"pointer", fontSize:11, padding:"3px 10px" }}
+                              onClick={() => { setAtletaEditandoId?.(a.id); setTela("editar-atleta"); }}>
+                              👁 Ver/Editar
+                            </button>
+                            <button style={{ background:"#1a1500", color:"#e6c430", border:"1px solid #5a4a00", borderRadius:4, cursor:"pointer", fontSize:11, padding:"3px 10px" }}
+                              onClick={() => { setModalTransf({ atleta: a }); setTransfEquipeId(""); }}>
+                              🔀 Transferir
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </details>
+              );
+            })}
+          </div>
+        );
+      })()}
+
+      {/* ── Modal de Transferência ── */}
+      {modalTransf && (
+        <div style={{ position:"fixed", inset:0, background:"#000a", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center" }}
+          onClick={() => setModalTransf(null)}>
+          <div style={{ background:"#0E1016", border:"1px solid #1E2130", borderRadius:14, padding:28, width:420, maxWidth:"95vw" }}
+            onClick={e => e.stopPropagation()}>
+            <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:22, fontWeight:800, color:"#fff", marginBottom:4 }}>
+              🔀 Transferir Atleta
+            </h3>
+            <p style={{ color:"#888", fontSize:13, marginBottom:20 }}>{modalTransf.atleta.nome}</p>
+            <div style={{ marginBottom:12 }}>
+              <label style={{ color:"#aaa", fontSize:12, display:"block", marginBottom:4 }}>Equipe atual</label>
+              <div style={{ color:"#fff", fontSize:14, padding:"8px 12px", background:"#141720", borderRadius:6, border:"1px solid #252837" }}>
+                {equipes.find(e => e.id === modalTransf.atleta.equipeId)?.nome || <span style={{ color:"#555" }}>Sem equipe</span>}
+              </div>
+            </div>
+            <div style={{ marginBottom:20 }}>
+              <label style={{ color:"#aaa", fontSize:12, display:"block", marginBottom:4 }}>Nova equipe *</label>
+              <select value={transfEquipeId} onChange={e => setTransfEquipeId(e.target.value)}
+                style={{ width:"100%", background:"#141720", border:"1px solid #252837", borderRadius:6, color:"#fff", padding:"8px 12px", fontSize:13 }}>
+                <option value="">Selecione a equipe de destino...</option>
+                {(equipes||[])
+                  .filter(e => e.id !== modalTransf.atleta.equipeId && e.organizadorId === orgId && (e.status === "ativa" || e.status === "aprovado"))
+                  .sort((a,b) => (a.nome||"").localeCompare(b.nome||"","pt-BR"))
+                  .map(e => <option key={e.id} value={e.id}>{e.nome} ({e.sigla||"—"})</option>)
+                }
+              </select>
+            </div>
+            <div style={{ display:"flex", gap:10 }}>
+              <button style={{ ...styles.btnPrimary, flex:1 }} onClick={async () => {
+                if (!transfEquipeId) { alert("Selecione a equipe de destino."); return; }
+                const novaEquipe = equipes.find(e => e.id === transfEquipeId);
+                const equipeOrigem = equipes.find(e => e.id === modalTransf.atleta.equipeId)?.nome || "Sem equipe";
+                await atualizarAtleta?.({ ...modalTransf.atleta, equipeId: transfEquipeId, clube: novaEquipe?.nome || "" });
+                registrarAcao?.(usuarioLogado.id, usuarioLogado.nome, "Transferiu atleta",
+                  `${modalTransf.atleta.nome}: ${equipeOrigem} → ${novaEquipe?.nome}`, orgId, { modulo: "atletas" });
+                setModalTransf(null);
+                setTransfEquipeId("");
+              }}>✅ Confirmar Transferência</button>
+              <button style={{ ...styles.btnGhost }} onClick={() => setModalTransf(null)}>Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
 
 export default TelaPainelOrganizador;

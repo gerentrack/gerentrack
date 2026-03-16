@@ -72,7 +72,7 @@ function TelaAdmin({
   siteBranding, setSiteBranding, gtIcon, gtLogo, historicoAcoes,
   atletasUsuarios=[], funcionarios=[], treinadores=[],
   setAtletaEditandoId,
-  solicitacoesEquipe=[], aprovarEquipe, recusarEquipe,
+  solicitacoesEquipe=[], aprovarEquipe, recusarEquipe, atualizarAtleta,
 }) {
   const confirmar = useConfirm();
   const pendOrg = organizadores.filter(o => o.status === "pendente");
@@ -98,6 +98,8 @@ function TelaAdmin({
   const [buscaAtl,  setBuscaAtl]  = useState("");
   const [orgSel,    setOrgSel]    = useState({});
   const [buscaHist, setBuscaHist] = useState("");
+  const [modalTransf, setModalTransf] = useState(null); // { atleta }
+  const [transfEquipeId, setTransfEquipeId] = useState("");
 
   // Org form (hoisted — não pode ser useState dentro de IIFE)
   const [showOrgForm, setShowOrgForm] = useState(false);
@@ -684,9 +686,11 @@ function TelaAdmin({
                             <Td style={{ fontSize:12 }}>{eq?.nome||<span style={{ color:"#555" }}>Avulso</span>}</Td>
                             <Td><span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:800, color:"#1976D2" }}>{ninsc}</span></Td>
                             <Td>
-                              <div style={{ display:"flex", gap:5 }}>
+                              <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
                                 <button onClick={async () => { setAtletaEditandoId(a.id); setTela("editar-atleta"); }}
                                   style={{ ...s.btnGhost, fontSize:11, padding:"3px 12px" }}>✏️ Editar</button>
+                                <button onClick={() => { setModalTransf({ atleta: a }); setTransfEquipeId(a.equipeId || ""); }}
+                                  style={{ ...s.btnGhost, fontSize:11, padding:"3px 12px", color:"#e6c430", borderColor:"#5a4a00" }}>🔀 Transferir</button>
                                 <button onClick={async () => {  if (await confirmar(`Excluir ${a.nome }?`)) excluirAtleta(a.id); }}
                                   style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px", color:"#ff6b6b", borderColor:"#5a1a1a" }}>🗑</button>
                               </div>
@@ -887,6 +891,57 @@ function TelaAdmin({
             </button>
           </div>
 
+        </div>
+      )}
+
+      {/* ── Modal de Transferência ── */}
+      {modalTransf && (
+        <div style={{ position:"fixed", inset:0, background:"#000a", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center" }}
+          onClick={() => setModalTransf(null)}>
+          <div style={{ background:"#0E1016", border:"1px solid #1E2130", borderRadius:14, padding:28, width:420, maxWidth:"95vw" }}
+            onClick={e => e.stopPropagation()}>
+            <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:22, fontWeight:800, color:"#fff", marginBottom:4 }}>
+              🔀 Transferir Atleta
+            </h3>
+            <p style={{ color:"#888", fontSize:13, marginBottom:20 }}>{modalTransf.atleta.nome}</p>
+
+            <div style={{ marginBottom:12 }}>
+              <label style={{ color:"#aaa", fontSize:12, display:"block", marginBottom:4 }}>Equipe atual</label>
+              <div style={{ color:"#fff", fontSize:14, padding:"8px 12px", background:"#141720", borderRadius:6, border:"1px solid #252837" }}>
+                {equipes.find(e => e.id === modalTransf.atleta.equipeId)?.nome || <span style={{ color:"#555" }}>Sem equipe</span>}
+              </div>
+            </div>
+
+            <div style={{ marginBottom:20 }}>
+              <label style={{ color:"#aaa", fontSize:12, display:"block", marginBottom:4 }}>Nova equipe *</label>
+              <select value={transfEquipeId} onChange={e => setTransfEquipeId(e.target.value)}
+                style={{ width:"100%", background:"#141720", border:"1px solid #252837", borderRadius:6, color:"#fff", padding:"8px 12px", fontSize:13 }}>
+                <option value="">Selecione a equipe de destino...</option>
+                {[...equipes]
+                  .filter(e => e.id !== modalTransf.atleta.equipeId && (e.status === "ativa" || e.status === "aprovado"))
+                  .sort((a,b) => (a.nome||"").localeCompare(b.nome||"", "pt-BR"))
+                  .map(e => <option key={e.id} value={e.id}>{e.nome} ({e.sigla||"—"})</option>)
+                }
+              </select>
+            </div>
+
+            <div style={{ display:"flex", gap:10 }}>
+              <button style={{ ...s.btnPrimary, flex:1 }} onClick={async () => {
+                if (!transfEquipeId) { alert("Selecione a equipe de destino."); return; }
+                const novaEquipe = equipes.find(e => e.id === transfEquipeId);
+                const atletaAtualizado = { ...modalTransf.atleta, equipeId: transfEquipeId, clube: novaEquipe?.nome || "" };
+                await atualizarAtleta(atletaAtualizado);
+                if (usuarioLogado) {
+                  const equipeOrigem = equipes.find(e => e.id === modalTransf.atleta.equipeId)?.nome || "Sem equipe";
+                  registrarAcao?.(usuarioLogado.id, usuarioLogado.nome, "Transferiu atleta",
+                    `${modalTransf.atleta.nome}: ${equipeOrigem} → ${novaEquipe?.nome}`, null, { modulo: "atletas" });
+                }
+                setModalTransf(null);
+                setTransfEquipeId("");
+              }}>✅ Confirmar Transferência</button>
+              <button style={{ ...s.btnGhost }} onClick={() => setModalTransf(null)}>Cancelar</button>
+            </div>
+          </div>
         </div>
       )}
 
