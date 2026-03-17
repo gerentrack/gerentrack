@@ -149,11 +149,11 @@ function App() {
   const [funcionarios,       setFuncionarios]       = useLocalOnly("atl_funcionarios",    []);
   const [treinadores,        setTreinadores]        = useLocalOnly("atl_treinadores",    []); // treinadores vinculados a equipes
   // ⚠️ Arrays grandes — useLocalOnly evita limite de 1MB do Firestore
-  const [solicitacoesVinculo, setSolicitacoesVinculo] = useLocalOnly("atl_vinculo_sol",   []);
+  const [solicitacoesVinculo, setSolicitacoesVinculo] = useLocalStorage("atl_vinculo_sol",   []);
   const [notificacoes,        setNotificacoes]        = useLocalOnly("atl_notificacoes", []);
   const [historicoAcoes,  setHistoricoAcoes]  = useLocalStorage("atl_historico",       []);
-  const [solicitacoesRecuperacao, setSolicitacoesRecuperacao] = useLocalOnly("atl_recuperacao", []);
-  const [solicitacoesEquipe,  setSolicitacoesEquipe]  = useLocalOnly("atl_sol_equipe",   []);
+  const [solicitacoesRecuperacao, setSolicitacoesRecuperacao] = useLocalStorage("atl_recuperacao", []);
+  const [solicitacoesEquipe,  setSolicitacoesEquipe]  = useLocalStorage("atl_sol_equipe",   []);
 
   // Multi-evento: cada evento tem { id, nome, data, local, permissividadeNorma, provasPrograma: Set de provaIds }
   const [eventos, setEventos] = useLocalStorage("atl_eventos", []);
@@ -1156,7 +1156,7 @@ function App() {
         {tela === "recuperar-senha"        && <TelaRecuperacaoSenha {...props} />}
         {tela === "trocar-senha"           && <TelaTrocarSenha {...props} />}
         {tela === "selecionar-perfil"      && <TelaSelecaoPerfil {...props} />}
-        {tela === "configuracoes"          && <TelaConfiguracoes {...props} adminConfig={adminConfig} setAdminConfig={setAdminConfig} setOrganizadores={setOrganizadores} setAtletasUsuarios={setAtletasUsuarios} setFuncionarios={setFuncionarios} setTreinadores={setTreinadores} siteBranding={siteBranding} setSiteBranding={setSiteBranding} exportarDados={exportarDados} importarDados={importarDados} limparTodosDados={limparTodosDados} />}
+        {tela === "configuracoes"          && <TelaConfiguracoes {...props} adminConfig={adminConfig} setAdminConfig={setAdminConfig} setOrganizadores={setOrganizadores} setAtletasUsuarios={setAtletasUsuarios} setFuncionarios={setFuncionarios} setTreinadores={setTreinadores} siteBranding={siteBranding} setSiteBranding={setSiteBranding} exportarDados={exportarDados} importarDados={importarDados} limparTodosDados={limparTodosDados} atualizarAtleta={atualizarAtleta} />}
         {tela === "painel"                && <TelaPainel {...props} />}
         {tela === "painel-organizador"    && <TelaPainelOrganizador {...props} />}
         {tela === "funcionarios"          && <TelaFuncionarios {...props} />}

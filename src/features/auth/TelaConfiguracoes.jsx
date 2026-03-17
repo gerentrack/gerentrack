@@ -108,6 +108,7 @@ function TelaConfiguracoes({
   excluirPerfilAtual, excluirTodosOsPerfis,
   siteBranding, setSiteBranding,
   exportarDados, importarDados, limparTodosDados,
+  atualizarAtleta,
 }) {
   const [aba, setAba]           = useState("dados");
   const [feedback, setFeedback] = useState("");
@@ -196,6 +197,70 @@ function TelaConfiguracoes({
       usuarioLogado.organizadorId || (isOrg ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId });
     setFormSenha({ atual: "", nova: "", confirmar: "" });
     ok("✅ Senha alterada com sucesso!");
+  };
+
+  // ── Revogação de Consentimento LGPD (Art. 8º §5º) ──────────────────────────
+  const revogarConsentimento = () => {
+    const agora = new Date().toISOString();
+    const idAnon = usuarioLogado.id.slice(-6).toUpperCase();
+
+    // 1. Anonimizar registro no store do tipo do usuário
+    const anonimizarRegistro = (arr) => arr.map(u => {
+      if (u.id !== usuarioLogado.id) return u;
+      return {
+        ...u,
+        nome:  `Atleta Anônimo ${idAnon}`,
+        email: "",
+        cpf:   "",
+        fone:  "",
+        dataNasc: "",
+        lgpdConsentimentoRevogado: true,
+        lgpdRevogadoEm: agora,
+      };
+    });
+
+    if (store) {
+      if (isEquipe) {
+        atualizarEquipePerfil({
+          ...meuRegistro,
+          nome:  `Usuário Anônimo ${idAnon}`,
+          email: "",
+          fone:  "",
+          lgpdConsentimentoRevogado: true,
+          lgpdRevogadoEm: agora,
+        });
+      } else {
+        store.set(anonimizarRegistro);
+      }
+    }
+
+    // 2. Anonimizar registro base de atleta (mantém sexo e anoNasc para integridade histórica)
+    if (atletaBase && atualizarAtleta) {
+      atualizarAtleta({
+        ...atletaBase,
+        nome:     `Atleta Anônimo ${idAnon}`,
+        email:    "",
+        cpf:      "",
+        fone:     "",
+        dataNasc: "",
+        // anoNasc e sexo preservados — necessários para validar resultados históricos
+        lgpdConsentimentoRevogado: true,
+        lgpdRevogadoEm: agora,
+      });
+    }
+
+    // 3. Registrar a ação no histórico
+    if (registrarAcao) registrarAcao(
+      usuarioLogado.id,
+      usuarioLogado.nome,
+      "Revogou consentimento LGPD",
+      `Dados anonimizados — Art. 8º §5º LGPD`,
+      usuarioLogado.organizadorId || null,
+      { modulo: "lgpd" }
+    );
+
+    // 4. Logout imediato
+    logout();
   };
 
   const tipoLabel = { admin: "Administrador", organizador: "Organizador", equipe: "Equipe", funcionario: "Funcionário", treinador: "Treinador", atleta: "Atleta" };
@@ -351,6 +416,87 @@ function TelaConfiguracoes({
               </div>
             )}
           </div>
+
+          {/* ── STATUS DO CONSENTIMENTO LGPD ───────────────────────────────── */}
+          {!isAdmin && (
+            <div style={{ ...S.card, borderColor: meuRegistro?.lgpdConsentimentoRevogado ? "#5a1a1a" : "#1976D233",
+              background: meuRegistro?.lgpdConsentimentoRevogado ? "#0e0a0a" : "#0a0a14" }}>
+              <h3 style={{ ...S.sectionTitle, color: meuRegistro?.lgpdConsentimentoRevogado ? "#ff6b6b" : "#1976D2" }}>
+                🔒 Consentimento LGPD
+              </h3>
+
+              {/* Status atual */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 2, marginBottom: 16 }}>
+                {[
+                  {
+                    label: "Status",
+                    value: meuRegistro?.lgpdConsentimentoRevogado ? "⚠️ Revogado" : "✅ Ativo",
+                    color: meuRegistro?.lgpdConsentimentoRevogado ? "#ff6b6b" : "#4cff4c",
+                  },
+                  meuRegistro?.lgpdConsentimentoData ? {
+                    label: "Consentimento dado em",
+                    value: new Date(meuRegistro.lgpdConsentimentoData).toLocaleString("pt-BR"),
+                  } : null,
+                  meuRegistro?.lgpdVersao ? {
+                    label: "Versão da política",
+                    value: `v${meuRegistro.lgpdVersao}`,
+                  } : null,
+                  meuRegistro?.lgpdRevogadoEm ? {
+                    label: "Revogado em",
+                    value: new Date(meuRegistro.lgpdRevogadoEm).toLocaleString("pt-BR"),
+                    color: "#ff6b6b",
+                  } : null,
+                ].filter(Boolean).map((row, i) => (
+                  <div key={i} style={S.row}>
+                    <span style={{ color: "#888", fontSize: 13 }}>{row.label}</span>
+                    <span style={{ color: row.color || "#fff", fontWeight: row.color ? 700 : 400, fontSize: 13 }}>{row.value}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Explicação dos direitos */}
+              <div style={{ background: "#0d1117", border: "1px solid #1976D222", borderRadius: 8,
+                padding: "12px 14px", marginBottom: 16, fontSize: 12, color: "#888", lineHeight: 1.7 }}>
+                <strong style={{ color: "#1976D2" }}>Seus direitos (Art. 18º LGPD):</strong> Você pode revogar
+                este consentimento a qualquer momento. Ao revogar, seus dados pessoais (nome, CPF, e-mail, telefone)
+                serão <strong style={{ color: "#fff" }}>anonimizados</strong> e seu acesso será encerrado.
+                <br/>
+                <strong style={{ color: "#7acc44" }}>Seus resultados e inscrições em competições anteriores
+                são preservados</strong> como registros históricos anônimos — conforme Art. 8º §5º e Art. 16 da LGPD
+                e obrigações dos regulamentos esportivos.
+              </div>
+
+              {/* Botão de revogação — só mostra se consentimento ainda ativo */}
+              {!meuRegistro?.lgpdConsentimentoRevogado && (
+                <ExclusaoConfirmada
+                  titulo="Revogar Consentimento LGPD"
+                  descricao={`Ao revogar, as seguintes ações serão executadas imediatamente:<br/><br/>
+                    <strong style="color:#fff">Será anonimizado:</strong><br/>
+                    • Seu nome → "Atleta Anônimo"<br/>
+                    • CPF, e-mail e telefone → removidos<br/>
+                    • Seu acesso ao sistema será encerrado<br/><br/>
+                    <strong style="color:#7acc44">Será preservado (Art. 8º §5º LGPD):</strong><br/>
+                    • Todos os seus resultados em competições anteriores<br/>
+                    • Todas as suas inscrições históricas (como registro anônimo)<br/>
+                    • Ano de nascimento e sexo (para integridade das categorias)<br/><br/>
+                    <strong style="color:#ffaa44">Esta ação não pode ser desfeita.</strong>`}
+                  corAccent="#ffaa44"
+                  btnLabel="🔓 Revogar Consentimento LGPD..."
+                  confirmWord="REVOGAR"
+                  onConfirmar={revogarConsentimento}
+                />
+              )}
+
+              {/* Já revogado */}
+              {meuRegistro?.lgpdConsentimentoRevogado && (
+                <div style={{ background: "#1a0800", border: "1px solid #5a2a00", borderRadius: 8,
+                  padding: "10px 14px", fontSize: 12, color: "#cc7744", lineHeight: 1.6 }}>
+                  ⚠️ Seu consentimento já foi revogado. Seus dados estão anonimizados.
+                  Para reativar o uso do sistema, será necessário realizar um novo cadastro.
+                </div>
+              )}
+            </div>
+          )}
 
           {/* ── ZONA DE PERIGO ─────────────────────────────────────────────── */}
           <div style={{ background: "#0e0a0a", border: "2px solid #3a1a1a", borderRadius: 12, padding: "20px 24px" }}>

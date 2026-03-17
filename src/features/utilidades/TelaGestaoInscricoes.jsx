@@ -175,6 +175,20 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
     </div>
   );
 
+  if (!isPrivileg && usuarioLogado?.lgpdConsentimentoRevogado) return (
+    <div style={styles.page}>
+      <div style={styles.emptyState}>
+        <span style={{ fontSize: 48 }}>🔓</span>
+        <p style={{ fontWeight: 700, color: "#ff6b6b", fontSize: 18 }}>Consentimento Revogado</p>
+        <p style={{ color: "#888", fontSize: 14, maxWidth: 420, textAlign: "center", lineHeight: 1.6 }}>
+          Você revogou seu consentimento LGPD. Novas inscrições não são permitidas.<br/>
+          Para voltar a se inscrever em competições, realize um novo cadastro.
+        </p>
+        <button style={styles.btnGhost} onClick={() => setTela("home")}>← Voltar ao Início</button>
+      </div>
+    </div>
+  );
+
   const eid = eventoAtual.id;
 
   // Se for equipe/treinador, filtra apenas atletas e inscrições da própria equipe

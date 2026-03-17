@@ -217,8 +217,9 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
         <div style={{ fontSize:11, color:"#555", marginTop:3, marginBottom:8 }}>O sistema buscará automaticamente seus perfis cadastrados</div>
         <FormField label="Senha" value={senha} onChange={setSenha} type="password" placeholder="••••••••" />
         <button style={styles.btnPrimary} onClick={handleLogin} disabled={loading}>{loading ? <span style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><span style={{width:16,height:16,borderRadius:"50%",border:"2px solid #ffffff44",borderTopColor:"#fff",display:"inline-block",animation:"spin 0.7s linear infinite"}} />{loadingMsg || "Entrando..."}</span> : "Entrar"}</button>
-        <div style={{ textAlign:"center", marginTop:12 }}>
+        <div style={{ textAlign:"center", marginTop:12, display:"flex", flexDirection:"column", gap:8 }}>
           <button style={styles.linkBtn} onClick={() => { setModoRecuperar(true); setErro(""); setEmailRecuperar(ident.includes("@") ? ident : ""); }}>🔑 Esqueci minha senha</button>
+          <button style={{ ...styles.linkBtn, color:"#888", fontSize:12 }} onClick={() => setTela("recuperar-senha")}>🛡️ Não tenho acesso ao e-mail — solicitar senha ao administrador</button>
         </div>
         <div style={{ textAlign:"center", marginTop:16 }}>
           <p style={{ color:"#888", fontSize:13, marginBottom:12 }}>Não tem conta? Cadastre-se como:</p>
