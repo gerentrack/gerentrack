@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { todasAsProvas, getComposicaoCombinada } from "../../shared/athletics/provasDef";
-import { CATEGORIAS, ESTADOS_BR } from "../../shared/athletics/constants";
+import { CATEGORIAS, ESTADOS_BR } from "../../shared/constants/categorias";
 import FormField from "../ui/FormField";
 import { storage, storageRef, uploadBytes, getDownloadURL } from "../../firebase";
 
