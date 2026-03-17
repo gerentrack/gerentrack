@@ -142,9 +142,9 @@ function App() {
   const [usuarioLogado, setUsuarioLogado] = useLocalOnly("atl_usuario", null);
   const [temaClaro, setTemaClaro] = useLocalOnly("gt_tema_claro", false);
   const [auditoria, setAuditoria] = useLocalOnly("atl_auditoria", []);
-  // ⚠️ SEGURANÇA: useLocalOnly — estes dados contêm senhas e CPFs.
-  // Nunca devem ser sincronizados no Firestore via useLocalStorage.
-  const [organizadores, setOrganizadores] = useLocalOnly("atl_organizadores", []);
+  // Organizadores: sem senha desde migração Auth — seguro sincronizar com Firestore
+  const [organizadores, setOrganizadores] = useLocalStorage("atl_organizadores", []);
+  // ⚠️ SEGURANÇA: useLocalOnly — CPFs sensíveis, não sincronizar
   const [atletasUsuarios, setAtletasUsuarios] = useLocalOnly("atl_atletas_usuarios", []);
   const [funcionarios,       setFuncionarios]       = useLocalOnly("atl_funcionarios",    []);
   const [treinadores,        setTreinadores]        = useLocalOnly("atl_treinadores",    []); // treinadores vinculados a equipes
@@ -219,15 +219,15 @@ function App() {
     let hash = "";
     if (novaTela === "evento-detalhe" && evtId) {
       const ev = eventos.find(e => e.id === evtId);
-      hash = `/competicao/${ev?.slug || evtId}`;
+      hash = `#/competicao/${ev?.slug || evtId}`;
     }
     else if (novaTela === "resultados" && evtId) {
       const ev = eventos.find(e => e.id === evtId);
-      hash = `/competicao/${ev?.slug || evtId}/resultados`;
+      hash = `#/competicao/${ev?.slug || evtId}/resultados`;
     }
-    else if (novaTela === "recordes") hash = "/recordes";
-    else if (novaTela === "login") hash = "/entrar";
-    else if (novaTela === "home") hash = "/";
+    else if (novaTela === "recordes") hash = "#/recordes";
+    else if (novaTela === "login") hash = "#/entrar";
+    else if (novaTela === "home") hash = "#/";
     if (hash) window.history.replaceState(null, "", hash);
   }, []);
 
@@ -237,9 +237,9 @@ function App() {
     if (hashProcessado.current) return;
     if (eventos.length === 0) return; // esperar Firestore carregar
     hashProcessado.current = true;
-    const hash = window.location.pathname;
-    if (!hash || hash === "/") return;
-    const matchResultados = hash.match(/^\/competicao\/(.+)\/resultados$/);
+    const hash = window.location.hash;
+    if (!hash || hash === "#/") return;
+    const matchResultados = hash.match(/^#\/competicao\/(.+)\/resultados$/);
     if (matchResultados) {
       const param = matchResultados[1];
       const existe = eventos.find(e => e.slug === param || e.id === param);
@@ -249,7 +249,7 @@ function App() {
       }
       return;
     }
-    const match = hash.match(/^\/competicao\/(.+)$/);
+    const match = hash.match(/^#\/competicao\/(.+)$/);
     if (match) {
       const param = match[1];
       const existe = eventos.find(e => e.slug === param || e.id === param);
@@ -259,8 +259,8 @@ function App() {
       }
       return;
     }
-    if (hash === "/recordes") { _setTela("recordes"); return; }
-    if (hash === "/entrar") { _setTela("login"); return; }
+    if (hash === "#/recordes") { _setTela("recordes"); return; }
+    if (hash === "#/entrar") { _setTela("login"); return; }
   }, [eventos.length]);
 
   const login = (dados) => {
@@ -691,28 +691,27 @@ function App() {
     const temAberturaFutura = ev.dataAberturaInscricoes && ev.dataAberturaInscricoes > hoje;
     const orgPendente = usuarioLogadoParam?.tipo === "organizador";
 
-    // Gera slug único a partir do nome (colisão: adiciona cidade)
-    const toSlug = (str, maxLen = 60) => (str || "")
-      .toLowerCase()
-      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9\s-]/g, "")
-      .trim()
-      .replace(/\s+/g, "-")
-      .slice(0, maxLen);
-    const gerarSlug = (nome, cidade, id) => {
-      const base = toSlug(nome || "competicao");
-      const jaExiste = eventos.some(e => e.slug === base && e.id !== id);
-      if (!jaExiste) return base;
-      const comCidade = cidade ? `${base}-${toSlug(cidade, 30)}` : base;
-      const jaExisteCidade = eventos.some(e => e.slug === comCidade && e.id !== id);
-      return jaExisteCidade ? `${comCidade}-${id.slice(-4)}` : comCidade;
+    // Gera slug único a partir do nome
+    const gerarSlug = (nome, id) => {
+      const base = (nome || "competicao")
+        .toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s-]/g, "")
+        .trim()
+        .replace(/\s+/g, "-")
+        .slice(0, 60);
+      const ano = new Date().getFullYear();
+      const slug = `${base}-${ano}`;
+      // Garante unicidade adicionando sufixo do ID se já existir
+      const jaExiste = eventos.some(e => e.slug === slug && e.id !== id);
+      return jaExiste ? `${slug}-${id.slice(-4)}` : slug;
     };
 
     const id = Date.now().toString();
     const novo = {
       ...ev,
       id,
-      slug: gerarSlug(ev.nome, ev.cidade, id),
+      slug: gerarSlug(ev.nome, id),
       organizadorId: orgPendente ? usuarioLogadoParam.id : (ev.organizadorId || null),
       statusAprovacao: orgPendente ? "pendente" : "aprovado",
       inscricoesEncerradas: orgPendente || temAberturaFutura ? true : (ev.inscricoesEncerradas ?? false),
@@ -726,21 +725,17 @@ function App() {
   const editarEvento = (ev) => {
     // Se não tem slug ainda (evento legado), gera agora
     if (!ev.slug) {
-      const _toSlug = (str, maxLen = 60) => (str || "")
+      const base = (ev.nome || "competicao")
         .toLowerCase()
         .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
         .replace(/[^a-z0-9\s-]/g, "")
         .trim()
         .replace(/\s+/g, "-")
-        .slice(0, maxLen);
-      const base = _toSlug(ev.nome || "competicao");
-      const jaExiste = eventos.some(e => e.slug === base && e.id !== ev.id);
-      if (!jaExiste) { ev = { ...ev, slug: base }; }
-      else {
-        const comCidade = ev.cidade ? `${base}-${_toSlug(ev.cidade, 30)}` : base;
-        const jaExisteCidade = eventos.some(e => e.slug === comCidade && e.id !== ev.id);
-        ev = { ...ev, slug: jaExisteCidade ? `${comCidade}-${ev.id.slice(-4)}` : comCidade };
-      }
+        .slice(0, 60);
+      const ano = ev.data ? ev.data.slice(0, 4) : new Date().getFullYear();
+      const slugBase = `${base}-${ano}`;
+      const jaExiste = eventos.some(e => e.slug === slugBase && e.id !== ev.id);
+      ev = { ...ev, slug: jaExiste ? `${slugBase}-${ev.id.slice(-4)}` : slugBase };
     }
     setEventos((p) => p.map((e) => e.id === ev.id ? ev : e));
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Editou competição", ev.nome || "", usuarioLogado.organizadorId || usuarioLogado.id, { equipeId: usuarioLogado.equipeId, modulo: "competicoes" });
@@ -1095,7 +1090,7 @@ function App() {
     _setTela("evento-detalhe");
     if (id) {
       const ev = eventos.find(e => e.id === id);
-      window.history.replaceState(null, "", `/competicao/${ev?.slug || id}`);
+      window.history.replaceState(null, "", `#/competicao/${ev?.slug || id}`);
     }
   };
 
