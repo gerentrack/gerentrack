@@ -18,11 +18,11 @@ const PROVAS_DEF = {
       // Marcha
       { id: "M_adulto_20kmM",   nome: "20.000m Marcha",      tipo: "marcha",     unidade: "s", grupo: "Marcha Atlética" },
       { id: "M_adulto_35kmM",   nome: "35.000m Marcha",      tipo: "marcha",     unidade: "s", grupo: "Marcha Atlética" },
-      { id: "M_adulto_revMisto",nome: "Revez. Misto Marcha", tipo: "marcha",     unidade: "s", grupo: "Marcha Atlética" },
+      { id: "M_adulto_revMisto",nome: "Revez. Misto Marcha", tipo: "marcha",     unidade: "s", grupo: "Marcha Atlética", misto: true },
       // Revezamentos
       { id: "M_adulto_4x100m",  nome: "4x100m",              tipo: "revezamento",unidade: "s", grupo: "Revezamentos" },
       { id: "M_adulto_4x400m",  nome: "4x400m",              tipo: "revezamento",unidade: "s", grupo: "Revezamentos" },
-      { id: "M_adulto_4x400mix",nome: "4x400m Misto",        tipo: "revezamento",unidade: "s", grupo: "Revezamentos" },
+      { id: "M_adulto_4x400mix",nome: "4x400m Misto",        tipo: "revezamento",unidade: "s", grupo: "Revezamentos", misto: true },
       // Saltos
       { id: "M_adulto_comp",    nome: "Salto em Distância",  tipo: "salto",      unidade: "m", grupo: "Saltos" },
       { id: "M_adulto_altura",  nome: "Salto em Altura",     tipo: "salto",      unidade: "m", grupo: "Saltos" },
@@ -50,7 +50,7 @@ const PROVAS_DEF = {
       { id: "M_sub23_20kmM",   nome: "20.000m Marcha",      tipo: "marcha",     unidade: "s", grupo: "Marcha Atlética" },
       { id: "M_sub23_4x100m",  nome: "4x100m",              tipo: "revezamento",unidade: "s", grupo: "Revezamentos" },
       { id: "M_sub23_4x400m",  nome: "4x400m",              tipo: "revezamento",unidade: "s", grupo: "Revezamentos" },
-      { id: "M_sub23_4x400mix",nome: "4x400m Misto",        tipo: "revezamento",unidade: "s", grupo: "Revezamentos" },
+      { id: "M_sub23_4x400mix",nome: "4x400m Misto",        tipo: "revezamento",unidade: "s", grupo: "Revezamentos", misto: true },
       { id: "M_sub23_comp",    nome: "Salto em Distância",  tipo: "salto",      unidade: "m", grupo: "Saltos" },
       { id: "M_sub23_altura",  nome: "Salto em Altura",     tipo: "salto",      unidade: "m", grupo: "Saltos" },
       { id: "M_sub23_triplo",  nome: "Salto Triplo",        tipo: "salto",      unidade: "m", grupo: "Saltos" },
@@ -75,7 +75,7 @@ const PROVAS_DEF = {
       { id: "M_sub20_10kmM",   nome: "10.000m Marcha",      tipo: "marcha",     unidade: "s", grupo: "Marcha Atlética" },
       { id: "M_sub20_4x100m",  nome: "4x100m",              tipo: "revezamento",unidade: "s", grupo: "Revezamentos" },
       { id: "M_sub20_4x400m",  nome: "4x400m",              tipo: "revezamento",unidade: "s", grupo: "Revezamentos" },
-      { id: "M_sub20_4x400mix",nome: "4x400m Misto",        tipo: "revezamento",unidade: "s", grupo: "Revezamentos" },
+      { id: "M_sub20_4x400mix",nome: "4x400m Misto",        tipo: "revezamento",unidade: "s", grupo: "Revezamentos", misto: true },
       { id: "M_sub20_comp",    nome: "Salto em Distância",  tipo: "salto",      unidade: "m", grupo: "Saltos" },
       { id: "M_sub20_altura",  nome: "Salto em Altura",     tipo: "salto",      unidade: "m", grupo: "Saltos" },
       { id: "M_sub20_triplo",  nome: "Salto Triplo",        tipo: "salto",      unidade: "m", grupo: "Saltos" },
@@ -99,7 +99,7 @@ const PROVAS_DEF = {
       { id: "M_sub18_10kmM",   nome: "10.000m Marcha",      tipo: "marcha",     unidade: "s", grupo: "Marcha Atlética" },
       { id: "M_sub18_4x100m",  nome: "4x100m",              tipo: "revezamento",unidade: "s", grupo: "Revezamentos" },
       { id: "M_sub18_4x400m",  nome: "4x400m",              tipo: "revezamento",unidade: "s", grupo: "Revezamentos" },
-      { id: "M_sub18_4x400mix",nome: "4x400m Misto",        tipo: "revezamento",unidade: "s", grupo: "Revezamentos" },
+      { id: "M_sub18_4x400mix",nome: "4x400m Misto",        tipo: "revezamento",unidade: "s", grupo: "Revezamentos", misto: true },
       { id: "M_sub18_comp",    nome: "Salto em Distância",  tipo: "salto",      unidade: "m", grupo: "Saltos" },
       { id: "M_sub18_altura",  nome: "Salto em Altura",     tipo: "salto",      unidade: "m", grupo: "Saltos" },
       { id: "M_sub18_triplo",  nome: "Salto Triplo",        tipo: "salto",      unidade: "m", grupo: "Saltos" },
@@ -162,10 +162,10 @@ const PROVAS_DEF = {
       { id: "F_adulto_3000mObs",nome: "3.000m Obstáculos",   tipo: "obstaculos", unidade: "s", grupo: "Corrida c/ Obstáculos" },
       { id: "F_adulto_20kmM",   nome: "20.000m Marcha",      tipo: "marcha",     unidade: "s", grupo: "Marcha Atlética" },
       { id: "F_adulto_35kmM",   nome: "35.000m Marcha",      tipo: "marcha",     unidade: "s", grupo: "Marcha Atlética" },
-      { id: "F_adulto_revMisto",nome: "Revez. Misto Marcha", tipo: "marcha",     unidade: "s", grupo: "Marcha Atlética" },
+      { id: "F_adulto_revMisto",nome: "Revez. Misto Marcha", tipo: "marcha",     unidade: "s", grupo: "Marcha Atlética", misto: true, oculto: true },
       { id: "F_adulto_4x100m",  nome: "4x100m",              tipo: "revezamento",unidade: "s", grupo: "Revezamentos" },
       { id: "F_adulto_4x400m",  nome: "4x400m",              tipo: "revezamento",unidade: "s", grupo: "Revezamentos" },
-      { id: "F_adulto_4x400mix",nome: "4x400m Misto",        tipo: "revezamento",unidade: "s", grupo: "Revezamentos" },
+      { id: "F_adulto_4x400mix",nome: "4x400m Misto",        tipo: "revezamento",unidade: "s", grupo: "Revezamentos", misto: true, oculto: true },
       { id: "F_adulto_comp",    nome: "Salto em Distância",  tipo: "salto",      unidade: "m", grupo: "Saltos" },
       { id: "F_adulto_altura",  nome: "Salto em Altura",     tipo: "salto",      unidade: "m", grupo: "Saltos" },
       { id: "F_adulto_triplo",  nome: "Salto Triplo",        tipo: "salto",      unidade: "m", grupo: "Saltos" },
@@ -190,7 +190,7 @@ const PROVAS_DEF = {
       { id: "F_sub23_20kmM",   nome: "20.000m Marcha",      tipo: "marcha",     unidade: "s", grupo: "Marcha Atlética" },
       { id: "F_sub23_4x100m",  nome: "4x100m",              tipo: "revezamento",unidade: "s", grupo: "Revezamentos" },
       { id: "F_sub23_4x400m",  nome: "4x400m",              tipo: "revezamento",unidade: "s", grupo: "Revezamentos" },
-      { id: "F_sub23_4x400mix",nome: "4x400m Misto",        tipo: "revezamento",unidade: "s", grupo: "Revezamentos" },
+      { id: "F_sub23_4x400mix",nome: "4x400m Misto",        tipo: "revezamento",unidade: "s", grupo: "Revezamentos", misto: true, oculto: true },
       { id: "F_sub23_comp",    nome: "Salto em Distância",  tipo: "salto",      unidade: "m", grupo: "Saltos" },
       { id: "F_sub23_altura",  nome: "Salto em Altura",     tipo: "salto",      unidade: "m", grupo: "Saltos" },
       { id: "F_sub23_triplo",  nome: "Salto Triplo",        tipo: "salto",      unidade: "m", grupo: "Saltos" },
@@ -215,7 +215,7 @@ const PROVAS_DEF = {
       { id: "F_sub20_10kmM",   nome: "10.000m Marcha",      tipo: "marcha",     unidade: "s", grupo: "Marcha Atlética" },
       { id: "F_sub20_4x100m",  nome: "4x100m",              tipo: "revezamento",unidade: "s", grupo: "Revezamentos" },
       { id: "F_sub20_4x400m",  nome: "4x400m",              tipo: "revezamento",unidade: "s", grupo: "Revezamentos" },
-      { id: "F_sub20_4x400mix",nome: "4x400m Misto",        tipo: "revezamento",unidade: "s", grupo: "Revezamentos" },
+      { id: "F_sub20_4x400mix",nome: "4x400m Misto",        tipo: "revezamento",unidade: "s", grupo: "Revezamentos", misto: true, oculto: true },
       { id: "F_sub20_comp",    nome: "Salto em Distância",  tipo: "salto",      unidade: "m", grupo: "Saltos" },
       { id: "F_sub20_altura",  nome: "Salto em Altura",     tipo: "salto",      unidade: "m", grupo: "Saltos" },
       { id: "F_sub20_triplo",  nome: "Salto Triplo",        tipo: "salto",      unidade: "m", grupo: "Saltos" },
@@ -239,7 +239,7 @@ const PROVAS_DEF = {
       { id: "F_sub18_5kmM",    nome: "5.000m Marcha",       tipo: "marcha",     unidade: "s", grupo: "Marcha Atlética" },
       { id: "F_sub18_4x100m",  nome: "4x100m",              tipo: "revezamento",unidade: "s", grupo: "Revezamentos" },
       { id: "F_sub18_4x400m",  nome: "4x400m",              tipo: "revezamento",unidade: "s", grupo: "Revezamentos" },
-      { id: "F_sub18_4x400mix",nome: "4x400m Misto",        tipo: "revezamento",unidade: "s", grupo: "Revezamentos" },
+      { id: "F_sub18_4x400mix",nome: "4x400m Misto",        tipo: "revezamento",unidade: "s", grupo: "Revezamentos", misto: true, oculto: true },
       { id: "F_sub18_comp",    nome: "Salto em Distância",  tipo: "salto",      unidade: "m", grupo: "Saltos" },
       { id: "F_sub18_altura",  nome: "Salto em Altura",     tipo: "salto",      unidade: "m", grupo: "Saltos" },
       { id: "F_sub18_triplo",  nome: "Salto Triplo",        tipo: "salto",      unidade: "m", grupo: "Saltos" },
@@ -300,7 +300,10 @@ function todasAsProvas() {
   const map = {};
   Object.values(PROVAS_DEF).forEach((cats) => {
     Object.values(cats).forEach((provas) => {
-      provas.forEach((p) => { map[p.id] = p; });
+      provas.forEach((p) => {
+        // Provas mistas F_ são ocultas — usar apenas a versão M_ canônica
+        if (!p.oculto) map[p.id] = p;
+      });
     });
   });
   return Object.values(map);

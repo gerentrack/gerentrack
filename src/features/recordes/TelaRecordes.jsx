@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
-import { CATEGORIAS, ESTADOS_BR } from "../../shared/constants/categorias";
+import { CATEGORIAS } from "../../shared/athletics/constants";
 import { RecordHelper } from "../../shared/engines/recordHelper";
 import { RecordDetectionEngine } from "../../shared/engines/recordDetectionEngine";
 import { formatarMarca } from "../../shared/formatters/utils";
 import inscricaoStyles from "../inscricoes/inscricaoStyles";
 
 const styles = inscricaoStyles;
-function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClubeAtleta, usuarioLogado, setTela, pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes, registrarAcao }) {
+function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClubeAtleta, usuarioLogado, setTela, pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes }) {
   const confirmar = useConfirm();
   const isAdmin = usuarioLogado?.tipo === "admin";
   const [tipoSel, setTipoSel] = useState(null); // id do tipo selecionado
@@ -1049,7 +1049,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                   <th style={{ padding:"8px 10px", textAlign:"left", color:"#888", fontSize:10 }}>Equipe</th>
                   <th style={{ padding:"8px 6px", color:"#888", fontSize:10 }}>Ano</th>
                   <th style={{ padding:"8px 10px", textAlign:"left", color:"#888", fontSize:10 }}>Local</th>
-                  <th style={{ padding:"8px 6px", color:"#888", fontSize:10 }}>Fonte</th>
+                  {isAdmin && <th style={{ padding:"8px 6px", color:"#888", fontSize:10 }}>Fonte</th>}
                   {isAdmin && <th style={{ padding:"8px 6px", color:"#888", fontSize:10 }}>Ações</th>}
                 </tr>
               </thead>
@@ -1075,7 +1075,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                         return dets.map((d, di) => (
                           <div key={di} style={di > 0 ? { borderTop:"1px dashed #2a2a3a", paddingTop:3, marginTop:3 } : {}}>
                             {d.atletasRevezamento && d.atletasRevezamento.filter(Boolean).length > 0 ? (
-                              <><span>{d.atleta || d.equipe || "—"}</span>
+                              <><span style={{ color:"#aaa", fontSize:11 }}>{d.equipe || "—"}</span>
                               <div style={{ fontSize:9, color:"#aaa", marginTop:1 }}>{d.atletasRevezamento.filter(Boolean).join(" · ")}</div></>
                             ) : (d.atleta || "—")}
                           </div>
@@ -1088,12 +1088,14 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                     <td style={{ padding:"6px 10px", color:"#888" }}>{RecordHelper.getEquipeTexto(r)}</td>
                     <td style={{ padding:"6px 6px", color:"#888", textAlign:"center" }}>{RecordHelper.getAnoTexto(r)}</td>
                     <td style={{ padding:"6px 10px", color:"#888" }}>{RecordHelper.getLocalTexto(r)}</td>
-                    <td style={{ padding:"6px 6px", textAlign:"center" }}>
-                      <span style={{ fontSize:9, padding:"2px 6px", borderRadius:3, fontWeight:600,
-                        background: r.fonte === "auto" ? "#0a1a0a" : "#1a1a0a",
-                        color: r.fonte === "auto" ? "#7cfc7c" : "#888",
-                      }}>{r.fonte === "auto" ? "Auto" : "Manual"}</span>
-                    </td>
+                    {isAdmin && (
+                      <td style={{ padding:"6px 6px", textAlign:"center" }}>
+                        <span style={{ fontSize:9, padding:"2px 6px", borderRadius:3, fontWeight:600,
+                          background: r.fonte === "auto" ? "#0a1a0a" : "#1a1a0a",
+                          color: r.fonte === "auto" ? "#7cfc7c" : "#888",
+                        }}>{r.fonte === "auto" ? "Auto" : "Manual"}</span>
+                      </td>
+                    )}
                     {isAdmin && (
                       <td style={{ padding:"6px 6px", textAlign:"center" }}>
                         <button style={{ background:"none", border:"none", color:"#6ab4ff", cursor:"pointer", fontSize:11, marginRight:4 }}

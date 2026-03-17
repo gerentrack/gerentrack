@@ -1313,7 +1313,7 @@ function FiltroProvasStep({ todasProvas, form, setForm, toggleProva, toggleGrupo
                         <input type="checkbox" checked={sel} onChange={() => toggleProva(p.id)} style={{ display: "none" }} />
                         {sel ? "✓ " : ""}{p.nome}
                         <span style={{ fontSize: 10, color: sel ? "#1976D288" : "#444", display: "block" }}>
-                          {p.id.startsWith("M_") ? "Masc" : "Fem"} · {catNome}
+                          {p.misto ? "Misto" : p.id.startsWith("M_") ? "Masc" : "Fem"} · {catNome}
                         </span>
                       </label>
                     );
@@ -1513,7 +1513,7 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {provasGrupo.map(p => {
                 const catNome = CATEGORIAS.find(c => p.id.includes(`_${c.id}_`) || p.id.endsWith(`_${c.id}`))?.nome || "";
-                const sexoLabel = p.id.startsWith("M_") ? "Masc" : "Fem";
+                const sexoLabel = p.misto ? "Misto" : p.id.startsWith("M_") ? "Masc" : "Fem";
                 const entries = getEntries(p.id);
                 const faseInicial = getFaseInicial(p.id);
                 return (
@@ -1544,7 +1544,7 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
       {listaCompleta.filter(p => p._isCombMae).map(mae => {
         const componentes = listaCompleta.filter(p => p._isComp && p._parentId === mae.id);
         const catNome = CATEGORIAS.find(c => mae.id.includes(`_${c.id}_`) || mae.id.endsWith(`_${c.id}`))?.nome || "";
-        const sexoLabel = mae.id.startsWith("M_") ? "Masc" : "Fem";
+        const sexoLabel = mae.misto ? "Misto" : mae.id.startsWith("M_") ? "Masc" : "Fem";
         return (
           <div key={mae.id} style={{ marginBottom: 18, background: "#0a0a1a", border: "1px solid #1a2a3a", borderRadius: 10, padding: "14px 16px" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
