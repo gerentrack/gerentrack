@@ -219,15 +219,15 @@ function App() {
     let hash = "";
     if (novaTela === "evento-detalhe" && evtId) {
       const ev = eventos.find(e => e.id === evtId);
-      hash = `#/competicao/${ev?.slug || evtId}`;
+      hash = `/competicao/${ev?.slug || evtId}`;
     }
     else if (novaTela === "resultados" && evtId) {
       const ev = eventos.find(e => e.id === evtId);
-      hash = `#/competicao/${ev?.slug || evtId}/resultados`;
+      hash = `/competicao/${ev?.slug || evtId}/resultados`;
     }
-    else if (novaTela === "recordes") hash = "#/recordes";
-    else if (novaTela === "login") hash = "#/entrar";
-    else if (novaTela === "home") hash = "#/";
+    else if (novaTela === "recordes") hash = "/recordes";
+    else if (novaTela === "login") hash = "/entrar";
+    else if (novaTela === "home") hash = "/";
     if (hash) window.history.replaceState(null, "", hash);
   }, []);
 
@@ -237,9 +237,9 @@ function App() {
     if (hashProcessado.current) return;
     if (eventos.length === 0) return; // esperar Firestore carregar
     hashProcessado.current = true;
-    const hash = window.location.hash;
-    if (!hash || hash === "#/") return;
-    const matchResultados = hash.match(/^#\/competicao\/(.+)\/resultados$/);
+    const hash = window.location.pathname;
+    if (!hash || hash === "/") return;
+    const matchResultados = hash.match(/^\/competicao\/(.+)\/resultados$/);
     if (matchResultados) {
       const param = matchResultados[1];
       const existe = eventos.find(e => e.slug === param || e.id === param);
@@ -249,7 +249,7 @@ function App() {
       }
       return;
     }
-    const match = hash.match(/^#\/competicao\/(.+)$/);
+    const match = hash.match(/^\/competicao\/(.+)$/);
     if (match) {
       const param = match[1];
       const existe = eventos.find(e => e.slug === param || e.id === param);
@@ -259,8 +259,8 @@ function App() {
       }
       return;
     }
-    if (hash === "#/recordes") { _setTela("recordes"); return; }
-    if (hash === "#/entrar") { _setTela("login"); return; }
+    if (hash === "/recordes") { _setTela("recordes"); return; }
+    if (hash === "/entrar") { _setTela("login"); return; }
   }, [eventos.length]);
 
   const login = (dados) => {
@@ -1090,7 +1090,7 @@ function App() {
     _setTela("evento-detalhe");
     if (id) {
       const ev = eventos.find(e => e.id === id);
-      window.history.replaceState(null, "", `#/competicao/${ev?.slug || id}`);
+      window.history.replaceState(null, "", `/competicao/${ev?.slug || id}`);
     }
   };
 
