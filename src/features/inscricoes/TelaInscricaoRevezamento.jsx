@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas, nPernasRevezamento, isRevezamentoMisto } from "../../shared/athletics/provasDef";
-import { CATEGORIAS } from "../../shared/athletics/constants";
+import { CATEGORIAS } from "../../shared/constants/categorias";
 import { ProvaSelector } from "../ui/ProvaSelector";
 
 const styles = {

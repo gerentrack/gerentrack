@@ -2,7 +2,7 @@ import { usePagination, PaginaControles } from "../../lib/hooks/usePagination.js
 import React, { useState } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
-import { CATEGORIAS } from "../../shared/athletics/constants";
+import { CATEGORIAS } from "../../shared/constants/categorias";
 import { Th, Td } from "../ui/TableHelpers";
 
 const styles = {

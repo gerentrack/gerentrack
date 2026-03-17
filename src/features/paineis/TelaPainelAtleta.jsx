@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
-import { getCategoria } from "../../shared/athletics/constants";
+import { getCategoria } from "../../shared/constants/categorias";
 import { _getCbat } from "../../shared/formatters/utils";
 import { Th, Td } from "../ui/TableHelpers";
 const styles = {

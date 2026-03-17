@@ -1,7 +1,7 @@
 import { usePagination, PaginaControles } from "../../lib/hooks/usePagination.jsx";
 import React, { useState } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
-import { CATEGORIAS, getCategoria } from "../../shared/athletics/constants";
+import { CATEGORIAS, getCategoria } from "../../shared/constants/categorias";
 import { _getClubeAtleta, validarCPF } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 

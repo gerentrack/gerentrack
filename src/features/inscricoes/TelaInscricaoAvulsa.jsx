@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { todasAsProvas, nPernasRevezamento, isRevezamentoMisto } from "../../shared/athletics/provasDef";
-import { CATEGORIAS, getCategoria, getPermissividade, podeCategoriaSuperior } from "../../shared/athletics/constants";
+import { CATEGORIAS, getCategoria, getPermissividade, podeCategoriaSuperior } from "../../shared/constants/categorias";
 import { _getClubeAtleta, _getLocalEventoDisplay, validarCPF } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { ProvaSelector } from "../ui/ProvaSelector";

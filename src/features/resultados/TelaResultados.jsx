@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { todasAsProvas, getComposicaoCombinada } from "../../shared/athletics/provasDef";
-import { CATEGORIAS } from "../../shared/athletics/constants";
+import { CATEGORIAS } from "../../shared/constants/categorias";
 import { _getLocalEventoDisplay, NomeProvaComImplemento, abreviarProva, formatarMarca, formatarMarcaExibicao, _marcasComEmpateCentesimal, _marcaParaMs } from "../../shared/formatters/utils";
 import { RecordHelper } from "../../shared/engines/recordHelper";
 import { TeamScoringEngine } from "../../shared/engines/teamScoringEngine";

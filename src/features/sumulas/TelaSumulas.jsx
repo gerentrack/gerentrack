@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { todasAsProvas, nPernasRevezamento } from "../../shared/athletics/provasDef";
-import { CATEGORIAS } from "../../shared/athletics/constants";
+import { CATEGORIAS } from "../../shared/constants/categorias";
 import { getFasesProva, temMultiFases, buscarSeriacao, serKey, resKey, FASE_NOME } from "../../shared/constants/fases";
 import { gerarHtmlImpressao } from "../impressao/gerarHtmlImpressao";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { CATEGORIAS, getCategoria } from "../../shared/athletics/constants";
+import { CATEGORIAS, getCategoria } from "../../shared/constants/categorias";
 import { _getClubeAtleta, _getNascDisplay, _getCbat, validarCPF } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { Th, Td } from "../ui/TableHelpers";
