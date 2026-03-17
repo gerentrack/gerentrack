@@ -691,27 +691,28 @@ function App() {
     const temAberturaFutura = ev.dataAberturaInscricoes && ev.dataAberturaInscricoes > hoje;
     const orgPendente = usuarioLogadoParam?.tipo === "organizador";
 
-    // Gera slug único a partir do nome
-    const gerarSlug = (nome, id) => {
-      const base = (nome || "competicao")
-        .toLowerCase()
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9\s-]/g, "")
-        .trim()
-        .replace(/\s+/g, "-")
-        .slice(0, 60);
-      const ano = new Date().getFullYear();
-      const slug = `${base}-${ano}`;
-      // Garante unicidade adicionando sufixo do ID se já existir
-      const jaExiste = eventos.some(e => e.slug === slug && e.id !== id);
-      return jaExiste ? `${slug}-${id.slice(-4)}` : slug;
+    // Gera slug único a partir do nome (colisão: adiciona cidade)
+    const toSlug = (str, maxLen = 60) => (str || "")
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9\s-]/g, "")
+      .trim()
+      .replace(/\s+/g, "-")
+      .slice(0, maxLen);
+    const gerarSlug = (nome, cidade, id) => {
+      const base = toSlug(nome || "competicao");
+      const jaExiste = eventos.some(e => e.slug === base && e.id !== id);
+      if (!jaExiste) return base;
+      const comCidade = cidade ? `${base}-${toSlug(cidade, 30)}` : base;
+      const jaExisteCidade = eventos.some(e => e.slug === comCidade && e.id !== id);
+      return jaExisteCidade ? `${comCidade}-${id.slice(-4)}` : comCidade;
     };
 
     const id = Date.now().toString();
     const novo = {
       ...ev,
       id,
-      slug: gerarSlug(ev.nome, id),
+      slug: gerarSlug(ev.nome, ev.cidade, id),
       organizadorId: orgPendente ? usuarioLogadoParam.id : (ev.organizadorId || null),
       statusAprovacao: orgPendente ? "pendente" : "aprovado",
       inscricoesEncerradas: orgPendente || temAberturaFutura ? true : (ev.inscricoesEncerradas ?? false),
@@ -725,17 +726,21 @@ function App() {
   const editarEvento = (ev) => {
     // Se não tem slug ainda (evento legado), gera agora
     if (!ev.slug) {
-      const base = (ev.nome || "competicao")
+      const _toSlug = (str, maxLen = 60) => (str || "")
         .toLowerCase()
         .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
         .replace(/[^a-z0-9\s-]/g, "")
         .trim()
         .replace(/\s+/g, "-")
-        .slice(0, 60);
-      const ano = ev.data ? ev.data.slice(0, 4) : new Date().getFullYear();
-      const slugBase = `${base}-${ano}`;
-      const jaExiste = eventos.some(e => e.slug === slugBase && e.id !== ev.id);
-      ev = { ...ev, slug: jaExiste ? `${slugBase}-${ev.id.slice(-4)}` : slugBase };
+        .slice(0, maxLen);
+      const base = _toSlug(ev.nome || "competicao");
+      const jaExiste = eventos.some(e => e.slug === base && e.id !== ev.id);
+      if (!jaExiste) { ev = { ...ev, slug: base }; }
+      else {
+        const comCidade = ev.cidade ? `${base}-${_toSlug(ev.cidade, 30)}` : base;
+        const jaExisteCidade = eventos.some(e => e.slug === comCidade && e.id !== ev.id);
+        ev = { ...ev, slug: jaExisteCidade ? `${comCidade}-${ev.id.slice(-4)}` : comCidade };
+      }
     }
     setEventos((p) => p.map((e) => e.id === ev.id ? ev : e));
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Editou competição", ev.nome || "", usuarioLogado.organizadorId || usuarioLogado.id, { equipeId: usuarioLogado.equipeId, modulo: "competicoes" });
