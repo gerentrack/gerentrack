@@ -84,6 +84,8 @@ const styles = {
   infoItem: { padding: "6px 0", borderBottom: "1px solid #151820", fontSize: 14, color: "#bbb", display: "flex", alignItems: "center", gap: 8 },
   infoItemDot: { color: "#1976D2", fontWeight: 700 },
   heroSection: { textAlign: "center", padding: "60px 20px 40px", background: "linear-gradient(180deg, #0D1018 0%, transparent 100%)", borderRadius: 16, marginBottom: 48, position: "relative", overflow: "hidden" },
+  heroOverlay: { position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.45) 100%)", zIndex: 0, borderRadius: 16, pointerEvents: "none" },
+  heroContent: { position: "relative", zIndex: 1 },
   heroBadge: { display: "inline-block", background: "#1976D2", color: "#fff", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: 3, padding: "6px 16px", borderRadius: 20, marginBottom: 20 },
   heroTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 56, fontWeight: 900, color: "#fff", lineHeight: 1.1, marginBottom: 16, letterSpacing: 1 },
   heroBtns: { display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" },
@@ -171,7 +173,7 @@ function InfoCard({ icon, title, items }) {
   );
 }
 
-export default function TelaHome({ setTela, eventos, inscricoes, atletas, resultados, selecionarEvento, usuarioLogado, excluirEvento, organizadores, equipes }) {
+export default function TelaHome({ setTela, eventos, inscricoes, atletas, resultados, selecionarEvento, usuarioLogado, excluirEvento, organizadores, equipes, siteBranding }) {
   const totalResultados = resultados && typeof resultados === "object"
     ? Object.values(resultados).reduce((a, b) => a + (b && typeof b === "object" ? Object.keys(b).length : 0), 0)
     : 0;
@@ -296,7 +298,18 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
 
   return (
     <div style={styles.page}>
-      <div style={styles.heroSection}>
+      <div style={{
+        ...styles.heroSection,
+        ...(siteBranding?.heroBg ? {
+          backgroundImage: `url(${siteBranding.heroBg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          background: undefined,
+        } : {}),
+      }}>
+        {siteBranding?.heroBg && <div style={styles.heroOverlay} />}
+        <div style={styles.heroContent}>
         <div style={styles.heroBadge}>PLATAFORMA DE COMPETIÇÕES</div>
         <h1 style={styles.heroTitle}>GERENTRACK</h1>
         <p style={{ color:"#888", fontSize:16, marginBottom:32 }}>
@@ -314,6 +327,7 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
               + Nova Competição
             </button>
           )}
+        </div>
         </div>
       </div>
 

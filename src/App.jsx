@@ -174,6 +174,7 @@ function App() {
     logo: "", // empty = use default GT_DEFAULT_LOGO
     nome: "GERENTRACK",
     slogan: "COMPETIÇÃO COM PRECISÃO",
+    heroBg: "", // imagem de fundo do hero na home
   });
   const gtIcon = siteBranding.icon || GT_DEFAULT_ICON;
   const gtLogo = siteBranding.logo || GT_DEFAULT_LOGO;
@@ -216,30 +217,30 @@ function App() {
   const setTela = useCallback((novaTela) => {
     _setTela(novaTela);
     const evtId = eventoAtualIdRef.current;
-    let hash = "";
+    let path = "";
     if (novaTela === "evento-detalhe" && evtId) {
       const ev = eventos.find(e => e.id === evtId);
-      hash = `#/competicao/${ev?.slug || evtId}`;
+      path = `/competicao/${ev?.slug || evtId}`;
     }
     else if (novaTela === "resultados" && evtId) {
       const ev = eventos.find(e => e.id === evtId);
-      hash = `#/competicao/${ev?.slug || evtId}/resultados`;
+      path = `/competicao/${ev?.slug || evtId}/resultados`;
     }
-    else if (novaTela === "recordes") hash = "#/recordes";
-    else if (novaTela === "login") hash = "#/entrar";
-    else if (novaTela === "home") hash = "#/";
-    if (hash) window.history.replaceState(null, "", hash);
+    else if (novaTela === "recordes") path = "/recordes";
+    else if (novaTela === "login") path = "/entrar";
+    else if (novaTela === "home") path = "/";
+    if (path) window.history.replaceState(null, "", path);
   }, []);
 
-  // Ler hash na inicialização (apenas uma vez quando eventos carregam)
+  // Ler path na inicialização (apenas uma vez quando eventos carregam)
   const hashProcessado = useRef(false);
   useEffect(() => {
     if (hashProcessado.current) return;
     if (eventos.length === 0) return; // esperar Firestore carregar
     hashProcessado.current = true;
-    const hash = window.location.hash;
-    if (!hash || hash === "#/") return;
-    const matchResultados = hash.match(/^#\/competicao\/(.+)\/resultados$/);
+    const path = window.location.pathname;
+    if (!path || path === "/") return;
+    const matchResultados = path.match(/^\/competicao\/(.+)\/resultados$/);
     if (matchResultados) {
       const param = matchResultados[1];
       const existe = eventos.find(e => e.slug === param || e.id === param);
@@ -249,7 +250,7 @@ function App() {
       }
       return;
     }
-    const match = hash.match(/^#\/competicao\/(.+)$/);
+    const match = path.match(/^\/competicao\/(.+)$/);
     if (match) {
       const param = match[1];
       const existe = eventos.find(e => e.slug === param || e.id === param);
@@ -259,8 +260,8 @@ function App() {
       }
       return;
     }
-    if (hash === "#/recordes") { _setTela("recordes"); return; }
-    if (hash === "#/entrar") { _setTela("login"); return; }
+    if (path === "/recordes") { _setTela("recordes"); return; }
+    if (path === "/entrar") { _setTela("login"); return; }
   }, [eventos.length]);
 
   const login = (dados) => {
@@ -1090,7 +1091,7 @@ function App() {
     _setTela("evento-detalhe");
     if (id) {
       const ev = eventos.find(e => e.id === id);
-      window.history.replaceState(null, "", `#/competicao/${ev?.slug || id}`);
+      window.history.replaceState(null, "", `/competicao/${ev?.slug || id}`);
     }
   };
 
@@ -1155,7 +1156,7 @@ function App() {
         {tela === "recuperar-senha"        && <TelaRecuperacaoSenha {...props} />}
         {tela === "trocar-senha"           && <TelaTrocarSenha {...props} />}
         {tela === "selecionar-perfil"      && <TelaSelecaoPerfil {...props} />}
-        {tela === "configuracoes"          && <TelaConfiguracoes {...props} adminConfig={adminConfig} setAdminConfig={setAdminConfig} setOrganizadores={setOrganizadores} setAtletasUsuarios={setAtletasUsuarios} setFuncionarios={setFuncionarios} setTreinadores={setTreinadores} />}
+        {tela === "configuracoes"          && <TelaConfiguracoes {...props} adminConfig={adminConfig} setAdminConfig={setAdminConfig} setOrganizadores={setOrganizadores} setAtletasUsuarios={setAtletasUsuarios} setFuncionarios={setFuncionarios} setTreinadores={setTreinadores} siteBranding={siteBranding} setSiteBranding={setSiteBranding} exportarDados={exportarDados} importarDados={importarDados} limparTodosDados={limparTodosDados} />}
         {tela === "painel"                && <TelaPainel {...props} />}
         {tela === "painel-organizador"    && <TelaPainelOrganizador {...props} />}
         {tela === "funcionarios"          && <TelaFuncionarios {...props} />}

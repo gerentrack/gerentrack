@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import DOMPurify from "dompurify";
 import { validarCPF, validarCNPJ } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
+import { storage, storageRef, uploadBytes, getDownloadURL } from "../../firebase";
 
 const S = {
   page: { maxWidth: 860, margin: "0 auto", padding: "40px 24px 80px" },
@@ -105,6 +106,8 @@ function TelaConfiguracoes({
   treinadores, setTreinadores, registrarAcao, adminConfig, setAdminConfig,
   atletas, inscricoes, resultados, perfisDisponiveis,
   excluirPerfilAtual, excluirTodosOsPerfis,
+  siteBranding, setSiteBranding,
+  exportarDados, importarDados, limparTodosDados,
 }) {
   const [aba, setAba]           = useState("dados");
   const [feedback, setFeedback] = useState("");
@@ -134,6 +137,9 @@ function TelaConfiguracoes({
     cpf: meuRegistro?.cpf || "", cnpj: meuRegistro?.cnpj || "", fone: meuRegistro?.fone || "",
   });
   const [formSenha, setFormSenha] = useState({ atual: "", nova: "", confirmar: "" });
+  const [heroBgUrl, setHeroBgUrl] = useState(siteBranding?.heroBg || "");
+  const [heroBgPreview, setHeroBgPreview] = useState(siteBranding?.heroBg || "");
+  const [uploadandoHero, setUploadandoHero] = useState(false);
 
   const ok = (msg) => { setFeedback(msg); setTimeout(() => setFeedback(""), 4000); };
 
@@ -245,6 +251,7 @@ function TelaConfiguracoes({
         <button style={tabStyle("dados")} onClick={() => { setAba("dados"); setErro(""); }}>📝 Dados Pessoais</button>
         <button style={tabStyle("senha")} onClick={() => { setAba("senha"); setErro(""); }}>🔒 Alterar Senha</button>
         {!isAdmin && <button style={tabStyle("conta")} onClick={() => { setAba("conta"); setErro(""); }}>ℹ️ Minha Conta</button>}
+        {isAdmin  && <button style={tabStyle("aparencia")} onClick={() => { setAba("aparencia"); setErro(""); }}>⚙️ Configurações Avançadas</button>}
       </div>
 
       {/* ── ABA: DADOS PESSOAIS ─────────────────────────────────────────── */}
@@ -464,6 +471,260 @@ function TelaConfiguracoes({
           </div>
         </div>
       )}
+      {/* ── ABA: CONFIGURAÇÕES AVANÇADAS (admin only) ───────────────────────── */}
+      {aba === "aparencia" && isAdmin && (
+        <div style={{ maxWidth: 700 }}>
+
+          {/* ── Identidade Visual ────────────────────────────────────────────── */}
+          <div style={S.card}>
+            <h3 style={S.sectionTitle}>🎨 Identidade Visual</h3>
+            <p style={{ color:"#666", fontSize:13, marginBottom:16, lineHeight:1.6 }}>
+              Personalize o ícone, logo, nome e slogan exibidos no sistema.
+            </p>
+
+            {/* Ícone + Logo */}
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:16 }}>
+              {/* Ícone */}
+              <div style={{ background:"#0a0b10", border:"1px solid #1a1d2a", borderRadius:8, padding:12 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
+                  <img src={siteBranding?.icon || ""} alt="" style={{ width:36, height:36, objectFit:"contain", borderRadius:5, background:"#1a1c22" }} />
+                  <div>
+                    <div style={{ fontWeight:700, fontSize:12, color:"#fff" }}>Ícone</div>
+                    <div style={{ fontSize:10, color:"#555" }}>48×48px · máx. 300KB</div>
+                  </div>
+                </div>
+                <label style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 10px",
+                  background:"#1a2a3a", border:"1px solid #2a4a6a", borderRadius:5, cursor:"pointer", fontSize:11, color:"#88aaff" }}>
+                  📁 Trocar
+                  <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }}
+                    onChange={e => {
+                      const f = e.target.files?.[0]; if (!f) return;
+                      if (f.size > 300*1024) { setErro("Máx. 300KB para o ícone."); return; }
+                      const r = new FileReader();
+                      r.onload = ev => setSiteBranding(prev => ({ ...prev, icon: ev.target.result }));
+                      r.readAsDataURL(f);
+                      e.target.value = "";
+                    }} />
+                </label>
+                {siteBranding?.icon && (
+                  <button style={{ fontSize:10, color:"#888", background:"transparent", border:"none", cursor:"pointer", marginLeft:6 }}
+                    onClick={() => setSiteBranding(prev => ({ ...prev, icon: "" }))}>↩ Padrão</button>
+                )}
+              </div>
+
+              {/* Logo */}
+              <div style={{ background:"#0a0b10", border:"1px solid #1a1d2a", borderRadius:8, padding:12 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
+                  <img src={siteBranding?.logo || ""} alt="" style={{ height:28, objectFit:"contain", background:"#fff", padding:2, borderRadius:3 }} />
+                  <div>
+                    <div style={{ fontWeight:700, fontSize:12, color:"#fff" }}>Logo</div>
+                    <div style={{ fontSize:10, color:"#555" }}>300×120px · máx. 300KB</div>
+                  </div>
+                </div>
+                <label style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 10px",
+                  background:"#1a2a3a", border:"1px solid #2a4a6a", borderRadius:5, cursor:"pointer", fontSize:11, color:"#88aaff" }}>
+                  📁 Trocar
+                  <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }}
+                    onChange={e => {
+                      const f = e.target.files?.[0]; if (!f) return;
+                      if (f.size > 300*1024) { setErro("Máx. 300KB para o logo."); return; }
+                      const r = new FileReader();
+                      r.onload = ev => setSiteBranding(prev => ({ ...prev, logo: ev.target.result }));
+                      r.readAsDataURL(f);
+                      e.target.value = "";
+                    }} />
+                </label>
+                {siteBranding?.logo && (
+                  <button style={{ fontSize:10, color:"#888", background:"transparent", border:"none", cursor:"pointer", marginLeft:6 }}
+                    onClick={() => setSiteBranding(prev => ({ ...prev, logo: "" }))}>↩ Padrão</button>
+                )}
+              </div>
+            </div>
+
+            {/* Nome + Slogan */}
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:14 }}>
+              <div>
+                <label style={S.label}>Nome do Site</label>
+                <input style={S.input} value={siteBranding?.nome || ""} placeholder="GERENTRACK"
+                  onChange={e => setSiteBranding(prev => ({ ...prev, nome: e.target.value.toUpperCase() }))} />
+              </div>
+              <div>
+                <label style={S.label}>Slogan</label>
+                <input style={S.input} value={siteBranding?.slogan || ""} placeholder="COMPETIÇÃO COM PRECISÃO"
+                  onChange={e => setSiteBranding(prev => ({ ...prev, slogan: e.target.value.toUpperCase() }))} />
+              </div>
+            </div>
+
+            {/* Preview header */}
+            <div style={{ padding:"10px 14px", background:"linear-gradient(90deg,#0D0E12,#141720)", borderRadius:8, border:"1px solid #1E2130" }}>
+              <div style={{ fontSize:10, color:"#555", marginBottom:5 }}>Preview do header:</div>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                {siteBranding?.icon && <img src={siteBranding.icon} alt="" style={{ width:28, height:28, objectFit:"contain", borderRadius:4 }} />}
+                <div>
+                  <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:16, fontWeight:900, color:"#1976D2", letterSpacing:2 }}>
+                    {siteBranding?.nome || "GERENTRACK"}
+                  </div>
+                  <div style={{ fontSize:10, color:"#666" }}>{siteBranding?.slogan || "COMPETIÇÃO COM PRECISÃO"}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Imagem de Fundo do Hero ──────────────────────────────────────── */}
+          <div style={S.card}>
+            <h3 style={S.sectionTitle}>🖼️ Imagem de Fundo do Hero</h3>
+            <p style={{ color: "#666", fontSize: 13, marginBottom: 20, lineHeight: 1.6 }}>
+              Esta imagem aparecerá no fundo da seção principal da página inicial.<br />
+              <strong style={{ color: "#888" }}>Tamanho recomendado:</strong> 1920 × 560px · JPG ou WebP · até 2MB.
+            </p>
+
+            {/* Preview */}
+            <div style={{ marginBottom: 20 }}>
+              <label style={S.label}>Prévia</label>
+              <div style={{
+                width: "100%", height: 180, borderRadius: 10,
+                border: "1px solid #252837",
+                background: heroBgPreview
+                  ? `url(${heroBgPreview}) center/cover no-repeat`
+                  : "linear-gradient(180deg, #0D1018 0%, #141720 100%)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                position: "relative", overflow: "hidden",
+              }}>
+                {heroBgPreview && <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)" }} />}
+                <span style={{ position: "relative", zIndex: 1, color: heroBgPreview ? "#fff" : "#333", fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 2, fontWeight: 700 }}>
+                  {heroBgPreview ? "GERENTRACK" : "Sem imagem de fundo"}
+                </span>
+              </div>
+            </div>
+
+            {/* Upload */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={S.label}>Upload de Imagem</label>
+              <input type="file" accept="image/jpeg,image/png,image/webp" style={{ display: "none" }} id="heroBgUpload"
+                onChange={async e => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  if (file.size > 2 * 1024 * 1024) { setErro("⚠️ Imagem muito grande. Use no máximo 2MB."); e.target.value = ""; return; }
+                  setErro("");
+                  setUploadandoHero(true);
+                  try {
+                    const ref = storageRef(storage, "branding/hero-bg");
+                    await uploadBytes(ref, file);
+                    const url = await getDownloadURL(ref);
+                    setHeroBgUrl(url);
+                    setHeroBgPreview(url);
+                  } catch (err) {
+                    setErro("❌ Erro ao enviar imagem: " + err.message);
+                  } finally {
+                    setUploadandoHero(false);
+                    e.target.value = "";
+                  }
+                }}
+              />
+              <label htmlFor="heroBgUpload" style={{
+                display: "inline-flex", alignItems: "center", gap: 8,
+                background: uploadandoHero ? "#0a1a2a" : "#141720",
+                border: `1px solid ${uploadandoHero ? "#1976D2" : "#252837"}`,
+                borderRadius: 7, padding: "9px 18px",
+                cursor: uploadandoHero ? "not-allowed" : "pointer",
+                fontSize: 13, color: uploadandoHero ? "#1976D2" : "#aaa",
+                fontFamily: "'Barlow', sans-serif", transition: "all 0.2s",
+              }}>
+                {uploadandoHero ? "⏳ Enviando para Firebase Storage..." : "📁 Escolher arquivo (JPG, PNG, WebP — máx. 2MB)"}
+              </label>
+            </div>
+
+            {/* URL */}
+            <div style={{ marginBottom: 20 }}>
+              <label style={S.label}>Ou cole a URL da imagem</label>
+              <input
+                style={{ ...S.input, marginBottom: 0 }}
+                value={typeof heroBgUrl === "string" && heroBgUrl.startsWith("http") ? heroBgUrl : ""}
+                onChange={e => { setHeroBgUrl(e.target.value); setHeroBgPreview(e.target.value); }}
+                placeholder="https://exemplo.com/imagem.jpg"
+              />
+              <div style={{ fontSize: 11, color: "#555", marginTop: 5 }}>
+                Dica: use Firebase Storage, ImgBB ou qualquer host de imagens.
+              </div>
+            </div>
+
+            {/* Botões */}
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <button
+                style={{ ...S.btnPrimary, opacity: uploadandoHero ? 0.5 : 1, cursor: uploadandoHero ? "not-allowed" : "pointer" }}
+                disabled={uploadandoHero}
+                onClick={() => {
+                  if (!setSiteBranding || uploadandoHero) return;
+                  setSiteBranding(prev => ({ ...prev, heroBg: heroBgUrl }));
+                  if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Alterou imagem do hero", "", null, { modulo: "aparencia" });
+                  ok("✅ Imagem de fundo salva com sucesso!");
+                }}
+              >
+                💾 Salvar Imagem
+              </button>
+              {(siteBranding?.heroBg || heroBgPreview) && (
+                <button style={S.btnGhost} onClick={() => {
+                  setHeroBgUrl(""); setHeroBgPreview("");
+                  if (setSiteBranding) setSiteBranding(prev => ({ ...prev, heroBg: "" }));
+                  if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Removeu imagem do hero", "", null, { modulo: "aparencia" });
+                  ok("✅ Imagem de fundo removida.");
+                }}>
+                  🗑️ Remover Imagem
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* ── Backup e Restauração ─────────────────────────────────────────── */}
+          <div style={S.card}>
+            <h3 style={S.sectionTitle}>💾 Backup e Restauração</h3>
+            <p style={{ color:"#666", fontSize:13, marginBottom:16, lineHeight:1.6 }}>
+              Exporte os dados para proteger suas informações ou transferir para outro ambiente.
+            </p>
+            <div style={{ background:"#0a0f0a", border:"1px solid #2a3a2a", borderRadius:8, padding:14, marginBottom:10 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+                <span style={{ fontSize:20 }}>📤</span>
+                <div>
+                  <div style={{ color:"#7cfc7c", fontWeight:700, fontSize:13 }}>Exportar Backup</div>
+                  <div style={{ color:"#555", fontSize:11 }}>Baixa um arquivo .json com todos os dados</div>
+                </div>
+              </div>
+              <button style={{ ...S.btnGhost, color:"#7cfc7c", borderColor:"#2a5a2a", width:"100%", fontSize:12 }}
+                onClick={exportarDados}>⬇️ Baixar Backup Agora</button>
+            </div>
+            <div style={{ background:"#0a0a1a", border:"1px solid #2a2a4a", borderRadius:8, padding:14 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+                <span style={{ fontSize:20 }}>📥</span>
+                <div>
+                  <div style={{ color:"#88aaff", fontWeight:700, fontSize:13 }}>Restaurar Backup</div>
+                  <div style={{ color:"#555", fontSize:11 }}>Carrega um arquivo .json deste sistema</div>
+                </div>
+              </div>
+              <label style={{ display:"block", cursor:"pointer" }}>
+                <div style={{ border:"1px solid #3a3a6a", color:"#88aaff", fontSize:12, textAlign:"center", padding:"8px 12px", borderRadius:6 }}>
+                  📂 Selecionar Arquivo de Backup
+                </div>
+                <input type="file" accept=".json" style={{ display:"none" }}
+                  onChange={e => { if (e.target.files[0]) importarDados(e.target.files[0]); e.target.value = ""; }} />
+              </label>
+              <div style={{ marginTop:8, fontSize:11, color:"#888" }}>⚠️ Importar substitui todos os dados atuais.</div>
+            </div>
+          </div>
+
+          {/* ── Zona de Perigo ───────────────────────────────────────────────── */}
+          <div style={{ ...S.card, borderColor:"#3a1a1a", background:"#0e0a0a" }}>
+            <h3 style={{ ...S.sectionTitle, color:"#ff6b6b" }}>⚠️ Zona de Perigo</h3>
+            <p style={{ color:"#666", fontSize:13, marginBottom:16, lineHeight:1.6 }}>
+              Estas ações são <strong style={{ color:"#ff6b6b" }}>irreversíveis</strong>. Use com extrema cautela.
+            </p>
+            <button style={{ ...S.btnGhost, color:"#ff6b6b", borderColor:"#5a1a1a" }} onClick={limparTodosDados}>
+              🗑 Limpar Todos os Dados do Sistema
+            </button>
+          </div>
+
+        </div>
+      )}
+
     </div>
   );
 }
