@@ -1075,8 +1075,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                         return dets.map((d, di) => (
                           <div key={di} style={di > 0 ? { borderTop:"1px dashed #2a2a3a", paddingTop:3, marginTop:3 } : {}}>
                             {d.atletasRevezamento && d.atletasRevezamento.filter(Boolean).length > 0 ? (
-                              <><span style={{ color:"#aaa", fontSize:11 }}>{d.equipe || "—"}</span>
-                              <div style={{ fontSize:9, color:"#aaa", marginTop:1 }}>{d.atletasRevezamento.filter(Boolean).join(" · ")}</div></>
+                              <span style={{ fontSize:11, color:"#aaa" }}>{d.atletasRevezamento.filter(Boolean).join(" · ")}</span>
                             ) : (d.atleta || "—")}
                           </div>
                         ));
