@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
-import { CATEGORIAS } from "../../shared/athletics/constants";
+import { CATEGORIAS, ESTADOS_BR } from "../../shared/constants/categorias";
 import { RecordHelper } from "../../shared/engines/recordHelper";
 import { RecordDetectionEngine } from "../../shared/engines/recordDetectionEngine";
 import { formatarMarca } from "../../shared/formatters/utils";
 import inscricaoStyles from "../inscricoes/inscricaoStyles";
 
 const styles = inscricaoStyles;
-function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClubeAtleta, usuarioLogado, setTela, pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes }) {
+function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClubeAtleta, usuarioLogado, setTela, pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes, registrarAcao }) {
   const confirmar = useConfirm();
   const isAdmin = usuarioLogado?.tipo === "admin";
   const [tipoSel, setTipoSel] = useState(null); // id do tipo selecionado
