@@ -140,7 +140,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
   const [erro, setErro] = useState("");
   const [organizadorSelecionado, setOrganizadorSelecionado] = useState("");
   const [equipeSelecionada, setEquipeSelecionada] = useState(null);
-  const [form, setForm] = useState({ nome: "", sigla: "", cidade: "", estado: "", cnpj: "", contato: "", email: "", senha: "", organizadorId: "" });
+  const [form, setForm] = useState({ nome: "", sigla: "", cidade: "", estado: "", cnpj: "", contato: "", email: "", senha: "", organizadorId: "", status: "ativa" });
   const [erros, setErros] = useState({});
   const [filtro, setFiltro] = useState("");
 
@@ -199,7 +199,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
     }
 
     setModo("lista");
-    setForm({ nome: "", sigla: "", cidade: "", estado: "", cnpj: "", contato: "", email: "", senha: "", organizadorId: "" });
+    setForm({ nome: "", sigla: "", cidade: "", estado: "", cnpj: "", contato: "", email: "", senha: "", organizadorId: "", status: "ativa" });
     setEquipeSelecionada(null);
     setErros({});
   };
@@ -216,6 +216,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
       email: equipe.email || "",
       senha: equipe.senha || "",
       organizadorId: equipe.organizadorId || "",
+      status: equipe.status || "ativa",
     });
     setModo("editar");
   };
@@ -998,6 +999,19 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
               {erros.senha && <div style={{ color: "#ff6b6b", fontSize: 12, marginTop: 4 }}>{erros.senha}</div>}
             </div>
           </div>
+
+          {modo === "editar" && isAdmin && (
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", color: "#aaa", fontSize: 13, marginBottom: 6 }}>Status da Equipe</label>
+              <select value={form.status || "ativa"} onChange={e => setForm({ ...form, status: e.target.value })}
+                style={styles.input}>
+                <option value="ativa">✅ Ativa</option>
+                <option value="pendente">⏳ Pendente</option>
+                <option value="inativa">❌ Inativa</option>
+                <option value="recusada">🚫 Recusada</option>
+              </select>
+            </div>
+          )}
 
           <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
             <button style={styles.btnGhost} onClick={handleCancelar}>
