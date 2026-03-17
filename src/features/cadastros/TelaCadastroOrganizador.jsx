@@ -5,10 +5,75 @@ import inscricaoStyles from "../inscricoes/inscricaoStyles";
 
 const styles = inscricaoStyles;
 
+// ── Bloco de Consentimento LGPD ──────────────────────────────────────────────
+function BlocoLGPD({ aceite, onChange, erro }) {
+  const [modalAberto, setModalAberto] = useState(false);
+  return (
+    <>
+      {modalAberto && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.8)", zIndex:2000,
+          display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}
+          onClick={() => setModalAberto(false)}>
+          <div style={{ background:"#0E1016", border:"1px solid #1976D2", borderRadius:14,
+            padding:28, maxWidth:560, width:"100%", maxHeight:"80vh", overflowY:"auto" }}
+            onClick={e => e.stopPropagation()}>
+            <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:22, fontWeight:800,
+              color:"#fff", marginBottom:16 }}>📄 Política de Privacidade — GerenTrack</h3>
+            <div style={{ fontSize:13, color:"#aaa", lineHeight:1.8 }}>
+              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>1. Controlador dos dados</strong><br/>
+              O GerenTrack é o responsável pelo tratamento dos seus dados pessoais, nos termos da Lei nº 13.709/2018 (LGPD).</p>
+              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>2. Dados coletados</strong><br/>
+              Coletamos: nome completo, e-mail, telefone, CNPJ, cidade, estado e dados de acesso (login). Para atletas: também CPF, data de nascimento e sexo.</p>
+              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>3. Finalidade do tratamento</strong><br/>
+              Os dados são usados exclusivamente para: gestão de competições de atletismo, inscrições em provas, emissão de súmulas e resultados, e comunicação relacionada às competições.</p>
+              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>4. Base legal</strong><br/>
+              O tratamento é realizado com base no consentimento do titular (Art. 7º, I), na execução de contrato (Art. 7º, V) e no legítimo interesse (Art. 7º, IX) da organização esportiva.</p>
+              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>5. Compartilhamento</strong><br/>
+              Seus dados podem ser compartilhados com organizadores de competições nas quais você participa. Não vendemos dados a terceiros.</p>
+              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>6. Retenção</strong><br/>
+              Resultados esportivos são mantidos permanentemente por integridade do histórico. Dados pessoais de contas excluídas são anonimizados.</p>
+              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>7. Seus direitos (Art. 18º LGPD)</strong><br/>
+              Você tem direito a: confirmar a existência do tratamento, acessar, corrigir, anonimizar, bloquear, eliminar seus dados e revogar o consentimento a qualquer momento nas Configurações da conta.</p>
+              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>8. Segurança</strong><br/>
+              Utilizamos autenticação via Firebase Auth e armazenamento seguro no Firestore. Dados sensíveis (senhas) nunca são armazenados localmente.</p>
+              <p style={{ marginBottom:0 }}><strong style={{ color:"#fff" }}>9. Contato</strong><br/>
+              Para exercer seus direitos ou tirar dúvidas: <span style={{ color:"#1976D2" }}>gerentrack@gmail.com</span></p>
+            </div>
+            <button style={{ marginTop:20, background:"#1976D2", color:"#fff", border:"none",
+              borderRadius:8, padding:"10px 24px", cursor:"pointer", fontSize:13, fontWeight:700,
+              fontFamily:"'Barlow Condensed',sans-serif" }}
+              onClick={() => setModalAberto(false)}>✓ Fechar</button>
+          </div>
+        </div>
+      )}
+      <div style={{ background:"#0a0a14", border:`1px solid ${erro ? "#ff4444" : "#1976D233"}`,
+        borderRadius:10, padding:"16px 18px", marginTop:16 }}>
+        <div style={{ fontSize:12, fontWeight:700, color:"#1976D2", letterSpacing:1,
+          textTransform:"uppercase", marginBottom:10 }}>🔒 Consentimento LGPD (Lei 13.709/2018)</div>
+        <label style={{ display:"flex", alignItems:"flex-start", gap:12, cursor:"pointer" }}>
+          <input type="checkbox" checked={aceite} onChange={e => onChange(e.target.checked)}
+            style={{ marginTop:2, width:16, height:16, cursor:"pointer", flexShrink:0 }} />
+          <span style={{ fontSize:13, color:"#bbb", lineHeight:1.7 }}>
+            Li e concordo com a{" "}
+            <button type="button" onClick={() => setModalAberto(true)}
+              style={{ background:"none", border:"none", color:"#1976D2", cursor:"pointer",
+                fontSize:13, padding:0, textDecoration:"underline" }}>
+              Política de Privacidade
+            </button>
+            {" "}e autorizo o tratamento dos meus dados pessoais pelo GerenTrack para fins de gestão de competições de atletismo, conforme descrito na política.
+          </span>
+        </label>
+        {erro && <div style={{ color:"#ff6b6b", fontSize:12, marginTop:8 }}>⚠️ {erro}</div>}
+      </div>
+    </>
+  );
+}
+
 function TelaCadastroOrganizador({ setTela, adicionarOrganizador, login, organizadores }) {
   const [form, setForm] = useState({ nome:"", email:"", senha:"", entidade:"", fone:"", cnpj:"", equipeId:"" });
   const [erros, setErros] = useState({});
   const [ok, setOk] = useState(false);
+  const [lgpdAceite, setLgpdAceite] = useState(false);
 
   const validar = () => {
     const e = {};
@@ -24,6 +89,7 @@ function TelaCadastroOrganizador({ setTela, adicionarOrganizador, login, organiz
 
   const handleSubmit = async () => {
     const e = validar();
+    if (!lgpdAceite) e.lgpd = "É necessário aceitar a Política de Privacidade para continuar.";
     if (Object.keys(e).length) { setErros(e); return; }
     // Criar usuário no Firebase Auth
     try {
@@ -39,7 +105,15 @@ function TelaCadastroOrganizador({ setTela, adicionarOrganizador, login, organiz
     }
     await firebaseSignOut(auth).catch(() => {}); // Não logar automaticamente
     const { senha: _senha, ...formSemSenha } = form;
-    const o = { ...formSemSenha, id: Date.now().toString(), status: "pendente", dataCadastro: new Date().toISOString() };
+    const o = {
+      ...formSemSenha,
+      id: Date.now().toString(),
+      status: "pendente",
+      dataCadastro: new Date().toISOString(),
+      lgpdConsentimento: true,
+      lgpdConsentimentoData: new Date().toISOString(),
+      lgpdVersao: "1.0",
+    };
     adicionarOrganizador(o);
     setOk(true);
   };
@@ -69,7 +143,8 @@ function TelaCadastroOrganizador({ setTela, adicionarOrganizador, login, organiz
         <FormField label="Senha *"              value={form.senha}     onChange={v=>setForm({...form,senha:v})}     type="password" error={erros.senha} />
         <FormField label="CNPJ *"                value={form.cnpj}      onChange={v=>setForm({...form,cnpj:v})} placeholder="00.000.000/0001-00" error={erros.cnpj} />
       </div>
-      <button style={styles.btnPrimary} onClick={handleSubmit}>Criar Conta</button>
+      <BlocoLGPD aceite={lgpdAceite} onChange={setLgpdAceite} erro={erros.lgpd} />
+      <button style={{ ...styles.btnPrimary, marginTop: 16 }} onClick={handleSubmit}>Criar Conta</button>
       <div style={styles.formLink}>
         Já tem conta? <button style={styles.linkBtn} onClick={()=>setTela("login")}>Entrar</button>
       </div>

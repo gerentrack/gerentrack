@@ -15,7 +15,119 @@ const styles = {
   btnPrimary:  { background: "linear-gradient(135deg, #1976D2, #1565C0)", color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, width: "100%", transition: "all 0.2s" },
   erro:        { background: "#2a1010", border: "1px solid #ff4444", color: "#ff6b6b", padding: "10px 14px", borderRadius: 8, marginBottom: 16, fontSize: 14 },
   linkBtn:     { background: "none", border: "none", color: "#1976D2", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", padding: 0 },
+  input:       { width: "100%", background: "#141720", border: "1px solid #252837", borderRadius: 8, padding: "10px 14px", color: "#E0E0E0", fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
 };
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+const calcularIdade = (dataNasc) => {
+  if (!dataNasc) return null;
+  const hoje = new Date();
+  const nasc = new Date(dataNasc + "T12:00:00");
+  let idade = hoje.getFullYear() - nasc.getFullYear();
+  const m = hoje.getMonth() - nasc.getMonth();
+  if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) idade--;
+  return idade;
+};
+
+// ── Bloco de Consentimento LGPD ──────────────────────────────────────────────
+function BlocoLGPD({ aceite, onChange, erro }) {
+  const [modalAberto, setModalAberto] = useState(false);
+  return (
+    <>
+      {modalAberto && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.8)", zIndex:2000,
+          display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}
+          onClick={() => setModalAberto(false)}>
+          <div style={{ background:"#0E1016", border:"1px solid #1976D2", borderRadius:14,
+            padding:28, maxWidth:560, width:"100%", maxHeight:"80vh", overflowY:"auto" }}
+            onClick={e => e.stopPropagation()}>
+            <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:22, fontWeight:800,
+              color:"#fff", marginBottom:16 }}>📄 Política de Privacidade — GerenTrack</h3>
+            <div style={{ fontSize:13, color:"#aaa", lineHeight:1.8 }}>
+              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>1. Controlador dos dados</strong><br/>
+              O GerenTrack é o responsável pelo tratamento dos seus dados pessoais, nos termos da Lei nº 13.709/2018 (LGPD).</p>
+              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>2. Dados coletados</strong><br/>
+              Coletamos: nome completo, e-mail, telefone, CNPJ, cidade, estado e dados de acesso (login). Para atletas: também CPF, data de nascimento e sexo.</p>
+              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>3. Finalidade do tratamento</strong><br/>
+              Os dados são usados exclusivamente para: gestão de competições de atletismo, inscrições em provas, emissão de súmulas e resultados, e comunicação relacionada às competições.</p>
+              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>4. Base legal</strong><br/>
+              O tratamento é realizado com base no consentimento do titular (Art. 7º, I), na execução de contrato (Art. 7º, V) e no legítimo interesse (Art. 7º, IX) da organização esportiva.</p>
+              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>5. Compartilhamento</strong><br/>
+              Seus dados podem ser compartilhados com organizadores de competições nas quais você participa. Não vendemos dados a terceiros.</p>
+              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>6. Retenção</strong><br/>
+              Resultados esportivos são mantidos permanentemente por integridade do histórico. Dados pessoais de contas excluídas são anonimizados.</p>
+              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>7. Seus direitos (Art. 18º LGPD)</strong><br/>
+              Você tem direito a: confirmar a existência do tratamento, acessar, corrigir, anonimizar, bloquear, eliminar seus dados e revogar o consentimento a qualquer momento nas Configurações da conta.</p>
+              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>8. Segurança</strong><br/>
+              Utilizamos autenticação via Firebase Auth e armazenamento seguro no Firestore. Dados sensíveis (senhas) nunca são armazenados localmente.</p>
+              <p style={{ marginBottom:0 }}><strong style={{ color:"#fff" }}>9. Contato</strong><br/>
+              Para exercer seus direitos ou tirar dúvidas: <span style={{ color:"#1976D2" }}>gerentrack@gmail.com</span></p>
+            </div>
+            <button style={{ marginTop:20, background:"#1976D2", color:"#fff", border:"none",
+              borderRadius:8, padding:"10px 24px", cursor:"pointer", fontSize:13, fontWeight:700,
+              fontFamily:"'Barlow Condensed',sans-serif" }}
+              onClick={() => setModalAberto(false)}>✓ Fechar</button>
+          </div>
+        </div>
+      )}
+      <div style={{ background:"#0a0a14", border:`1px solid ${erro ? "#ff4444" : "#1976D233"}`,
+        borderRadius:10, padding:"16px 18px", marginTop:16 }}>
+        <div style={{ fontSize:12, fontWeight:700, color:"#1976D2", letterSpacing:1,
+          textTransform:"uppercase", marginBottom:10 }}>🔒 Consentimento LGPD (Lei 13.709/2018)</div>
+        <label style={{ display:"flex", alignItems:"flex-start", gap:12, cursor:"pointer" }}>
+          <input type="checkbox" checked={aceite} onChange={e => onChange(e.target.checked)}
+            style={{ marginTop:2, width:16, height:16, cursor:"pointer", flexShrink:0 }} />
+          <span style={{ fontSize:13, color:"#bbb", lineHeight:1.7 }}>
+            Li e concordo com a{" "}
+            <button type="button" onClick={() => setModalAberto(true)}
+              style={{ background:"none", border:"none", color:"#1976D2", cursor:"pointer",
+                fontSize:13, padding:0, textDecoration:"underline" }}>
+              Política de Privacidade
+            </button>
+            {" "}e autorizo o tratamento dos meus dados pessoais pelo GerenTrack para fins de gestão de competições de atletismo, conforme descrito na política.
+          </span>
+        </label>
+        {erro && <div style={{ color:"#ff6b6b", fontSize:12, marginTop:8 }}>⚠️ {erro}</div>}
+      </div>
+    </>
+  );
+}
+
+// ── Bloco de Consentimento Parental (Art. 14 LGPD) ───────────────────────────
+function BlocoConsentimentoParental({ responsavel, onResponsavel, aceite, onChange, erroResponsavel, erroAceite }) {
+  return (
+    <div style={{ background:"#0a120a", border:"1px solid #2a6a2a", borderRadius:10,
+      padding:"16px 18px", marginTop:16 }}>
+      <div style={{ fontSize:12, fontWeight:700, color:"#7acc44", letterSpacing:1,
+        textTransform:"uppercase", marginBottom:4 }}>👨‍👩‍👧 Consentimento Parental (Art. 14 LGPD)</div>
+      <p style={{ fontSize:12, color:"#888", marginBottom:12, lineHeight:1.6 }}>
+        O atleta é <strong style={{ color:"#fff" }}>menor de 18 anos</strong>. Conforme o Art. 14 da LGPD,
+        é obrigatório o consentimento específico de um dos pais ou responsável legal para o tratamento
+        dos dados pessoais de crianças e adolescentes.
+      </p>
+      <div style={{ marginBottom:12 }}>
+        <label style={styles.label}>Nome do Responsável Legal *</label>
+        <input
+          style={{ ...styles.input, border:`1px solid ${erroResponsavel ? "#ff4444" : "#252837"}` }}
+          value={responsavel}
+          onChange={e => onResponsavel(e.target.value)}
+          placeholder="Nome completo do pai, mãe ou responsável legal"
+        />
+        {erroResponsavel && <div style={{ color:"#ff6b6b", fontSize:12, marginTop:2 }}>⚠️ {erroResponsavel}</div>}
+      </div>
+      <label style={{ display:"flex", alignItems:"flex-start", gap:12, cursor:"pointer" }}>
+        <input type="checkbox" checked={aceite} onChange={e => onChange(e.target.checked)}
+          style={{ marginTop:2, width:16, height:16, cursor:"pointer", flexShrink:0 }} />
+        <span style={{ fontSize:13, color:"#bbb", lineHeight:1.7 }}>
+          Declaro ser responsável legal pelo atleta acima e autorizo, de forma específica e destacada,
+          o tratamento dos dados pessoais deste menor pelo GerenTrack para fins de gestão de competições
+          de atletismo, conforme a <strong style={{ color:"#7acc44" }}>Lei nº 13.709/2018 (LGPD), Art. 14</strong>.
+        </span>
+      </label>
+      {erroAceite && <div style={{ color:"#ff6b6b", fontSize:12, marginTop:8 }}>⚠️ {erroAceite}</div>}
+    </div>
+  );
+}
 
 function TelaCadastroAtletaLogin({ setTela, adicionarAtletaUsuario, adicionarAtleta, atualizarAtleta, atletasUsuarios, atletas, equipes, login, adicionarSolicitacaoRecuperacao, gerarSenhaTemp, organizadores, funcionarios, treinadores, solicitarVinculo }) {
   const [form, setForm] = useState({
@@ -23,6 +135,9 @@ function TelaCadastroAtletaLogin({ setTela, adicionarAtletaUsuario, adicionarAtl
   });
   const [erros, setErros] = useState({});
   const [ok, setOk] = useState(false);
+  const [lgpdAceite, setLgpdAceite] = useState(false);
+  const [consentimentoParentalAceite, setConsentimentoParentalAceite] = useState(false);
+  const [responsavelLegal, setResponsavelLegal] = useState("");
 
   // ── Fluxo doc existente: CPF encontrado → pedir login ──
   const [docExistente, setDocExistente] = useState(null);
@@ -146,6 +261,16 @@ function TelaCadastroAtletaLogin({ setTela, adicionarAtletaUsuario, adicionarAtl
 
   const handleSubmit = async () => {
     const e = validar();
+    const idade = calcularIdade(form.dataNasc);
+    const ehMenor = idade !== null && idade < 18;
+
+    // Validações LGPD
+    if (!lgpdAceite) e.lgpd = "É necessário aceitar a Política de Privacidade para continuar.";
+    if (ehMenor) {
+      if (!responsavelLegal.trim()) e.responsavelLegal = "Informe o nome do responsável legal.";
+      if (!consentimentoParentalAceite) e.consentimentoParental = "O responsável legal deve autorizar o cadastro do menor.";
+    }
+
     if (Object.keys(e).length) { setErros(e); return; }
     if (cpfStatus === "invalido" || (form.cpf && !validarCPF(form.cpf))) {
       setErros({ cpf: "CPF inválido" }); return;
@@ -185,7 +310,17 @@ function TelaCadastroAtletaLogin({ setTela, adicionarAtletaUsuario, adicionarAtl
     }
     const id = Date.now().toString();
     const { senha: _senha, ...formSemSenha } = form;
-    const usuario = { ...formSemSenha, id, tipo:"atleta" };
+    const usuario = {
+      ...formSemSenha, id, tipo:"atleta",
+      lgpdConsentimento: true,
+      lgpdConsentimentoData: new Date().toISOString(),
+      lgpdVersao: "1.0",
+      ...(ehMenor ? {
+        responsavelLegal: responsavelLegal.trim(),
+        consentimentoParental: true,
+        consentimentoParentalData: new Date().toISOString(),
+      } : {}),
+    };
     adicionarAtletaUsuario(usuario);
     if (atletaCpfEncontrado) {
       atualizarAtleta({ ...atletaCpfEncontrado, atletaUsuarioId: id, email: form.email });
@@ -197,6 +332,14 @@ function TelaCadastroAtletaLogin({ setTela, adicionarAtletaUsuario, adicionarAtl
         equipeId:null, atletaUsuarioId:id,
         dataCadastro: new Date().toISOString(),
         cadastradoPor: "atleta",
+        lgpdConsentimento: true,
+        lgpdConsentimentoData: new Date().toISOString(),
+        lgpdVersao: "1.0",
+        ...(ehMenor ? {
+          responsavelLegal: responsavelLegal.trim(),
+          consentimentoParental: true,
+          consentimentoParentalData: new Date().toISOString(),
+        } : {}),
       });
     }
     // Se selecionou equipe, enviar solicitação de vínculo (aguarda aprovação)
@@ -378,6 +521,26 @@ function TelaCadastroAtletaLogin({ setTela, adicionarAtletaUsuario, adicionarAtl
               </select>
             </div>
           </div>
+
+          {/* ── LGPD: Consentimento Parental (menores) ── */}
+          {(() => {
+            const idade = calcularIdade(form.dataNasc);
+            const ehMenor = idade !== null && idade < 18;
+            if (!ehMenor) return null;
+            return (
+              <BlocoConsentimentoParental
+                responsavel={responsavelLegal}
+                onResponsavel={setResponsavelLegal}
+                aceite={consentimentoParentalAceite}
+                onChange={setConsentimentoParentalAceite}
+                erroResponsavel={erros.responsavelLegal}
+                erroAceite={erros.consentimentoParental}
+              />
+            );
+          })()}
+
+          {/* ── LGPD: Consentimento geral ── */}
+          <BlocoLGPD aceite={lgpdAceite} onChange={setLgpdAceite} erro={erros.lgpd} />
 
           <button style={{ ...styles.btnPrimary, marginTop: 16 }} onClick={handleSubmit}>
             {docModo === "vincular" ? "✅ Realizar Cadastro" : "Criar Conta"}
