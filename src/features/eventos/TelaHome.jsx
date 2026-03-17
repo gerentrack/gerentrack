@@ -304,7 +304,7 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
         </p>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(220px, 1fr))", gap:20, marginBottom:40 }}>
           <StatCard value={eventos.filter(ev=>!ev.statusAprovacao||ev.statusAprovacao==="aprovado").length} label="Competições" />
-          <StatCard value={organizadores?.filter(o => o.status === "aprovado").length || 0} label="Organizadores" />
+          <StatCard value={organizadores?.filter(o => !o.status || o.status === "aprovado").length || 0} label="Organizadores" />
           <StatCard value={equipes?.length || 0} label="Equipes" />
           <StatCard value={atletas.length} label="Atletas" />
         </div>
