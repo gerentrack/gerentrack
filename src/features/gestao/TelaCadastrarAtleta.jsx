@@ -136,7 +136,7 @@ const styles = {
   provaCheckBtnSel: { background: "#1a1c22", borderColor: "#1976D2", color: "#1976D2" },
 };
 
-function TelaCadastrarAtleta({ setTela, adicionarAtleta, excluirAtleta, excluirAtletasEmMassa, usuarioLogado, equipes, eventoAtual, atletas, atletasUsuarios, solicitarVinculo, solicitacoesVinculo, organizadores, desvincularAtleta }) {
+function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, excluirAtleta, excluirAtletasEmMassa, usuarioLogado, equipes, eventoAtual, atletas, atletasUsuarios, solicitarVinculo, solicitacoesVinculo, organizadores, desvincularAtleta }) {
   const confirmar = useConfirm();
   const _equipeDoUsuario = usuarioLogado?.tipo === "equipe" ? equipes?.find(e => e.id === usuarioLogado.id) : null;
   // equipeId e clube são auto-preenchidos para tipo "equipe" — não requerem input do usuário
@@ -253,6 +253,17 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, excluirAtleta, excluirA
         solicitanteNome: usuarioLogado?.nome || _autoClube,
       }
     );
+    setVinculoEnviado(true);
+  };
+
+  const handleVincularDireto = () => {
+    if (!atletaExistente || !isEquipe) return;
+    const atletaAtualizado = {
+      ...atletaExistente,
+      equipeId: usuarioLogado.id,
+      clube: _autoClube || usuarioLogado?.nome || "",
+    };
+    atualizarAtleta(atletaAtualizado);
     setVinculoEnviado(true);
   };
 
@@ -562,6 +573,58 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, excluirAtleta, excluirA
                   <strong style={{ color:"#fff" }}>👤 {atletaDuplicadoOrg.nome}</strong>
                   {atletaDuplicadoOrg.email && <span style={{ color:"#888", marginLeft:8 }}>— {atletaDuplicadoOrg.email}</span>}
                 </div>
+                {/* Se for equipe, oferecer solicitar vínculo */}
+                {isEquipe && (() => {
+                  const atletaBase = atletas.find(a => a.cpf && a.cpf.replace(/\D/g,"") === atletaDuplicadoOrg.cpf?.replace(/\D/g,""));
+                  if (!atletaBase) return null;
+                  const jaEhMeu = atletaBase.equipeId === usuarioLogado?.id;
+                  const solPendente = (solicitacoesVinculo||[]).find(s => s.atletaId === atletaBase.id && s.status === "pendente");
+                  const temEquipe = !!atletaBase.equipeId && !jaEhMeu;
+                  if (jaEhMeu) return (
+                    <div style={{ background:"#0a2a0a", borderRadius:6, padding:"8px 12px", color:"#7cfc7c", fontSize:13, marginBottom:10 }}>
+                      ✓ Este atleta já está vinculado à sua equipe.
+                    </div>
+                  );
+                  if (solPendente) return (
+                    <div style={{ background:"#1a1500", borderRadius:6, padding:"8px 12px", color:"#1976D2", fontSize:13, marginBottom:10 }}>
+                      ⏳ Solicitação de vínculo já enviada — aguardando aprovação.
+                    </div>
+                  );
+                  if (vinculoEnviado) return (
+                    <div style={{ background:"#0a2a0a", borderRadius:6, padding:"8px 12px", color:"#7cfc7c", fontSize:13, marginBottom:10 }}>
+                      {temEquipe ? "✓ Solicitação enviada! A equipe atual receberá a notificação." : "✓ Solicitação enviada! O atleta receberá a notificação para aceitar o vínculo."}
+                    </div>
+                  );
+                  return (
+                    <div style={{ marginBottom:10 }}>
+                      <p style={{ color:"#aaa", fontSize:12, margin:"0 0 8px", lineHeight:1.6 }}>
+                        {temEquipe
+                          ? `Este atleta está vinculado à equipe "${equipes?.find(e => e.id === atletaBase.equipeId)?.nome || atletaBase.clube || "outra equipe"}". A solicitação será enviada a essa equipe.`
+                          : "Este atleta não possui equipe vinculada. A solicitação será enviada ao atleta para aceitar ou recusar."}
+                      </p>
+                      <button onClick={() => {
+                        const equipeAtualObj = temEquipe ? equipes?.find(e => e.id === atletaBase.equipeId) : null;
+                        const meuOrgId = usuarioLogado?.organizadorId || null;
+                        solicitarVinculo(atletaBase.id, atletaBase.nome, usuarioLogado?.id, _autoClube, {
+                          origem: "equipe",
+                          aprovadorTipo: temEquipe ? "equipe_atual" : "atleta",
+                          equipeAtualId: temEquipe ? atletaBase.equipeId : null,
+                          equipeAtualNome: equipeAtualObj?.nome || atletaBase.clube || null,
+                          organizadorId: meuOrgId,
+                          solicitanteId: usuarioLogado?.id,
+                          solicitanteNome: usuarioLogado?.nome || _autoClube,
+                        });
+                        setVinculoEnviado(true);
+                      }}
+                        style={{ background:"#1a2a3a", border:"1px solid #3a6abf",
+                          color:"#88aaff", borderRadius:6, padding:"8px 18px",
+                          cursor:"pointer", fontSize:13, fontWeight:700,
+                          fontFamily:"Inter,sans-serif" }}>
+                        🔗 Solicitar Vínculo com este Atleta
+                      </button>
+                    </div>
+                  );
+                })()}
                 <div style={{ background:"#1a0f00", border:"1px solid #cc440044", borderRadius:6,
                   padding:"10px 14px", fontSize:12, color:"#aaa", lineHeight:1.7 }}>
                   ⚠️ <strong style={{ color:"#ff9955" }}>Por que isso acontece?</strong><br/>
@@ -624,19 +687,30 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, excluirAtleta, excluirA
                   ) : vinculoEnviado ? (
                     <div style={{ background:"#0a2a0a", borderRadius:6, padding:"8px 12px",
                       color:"#7cfc7c", fontSize:13 }}>
-                      ✓ Solicitação enviada!
                       {temEquipe
-                        ? " A equipe atual do atleta receberá a notificação para aprovar a transferência."
-                        : " O atleta receberá a notificação para aceitar o vínculo."}
+                        ? "✓ Solicitação enviada! A equipe atual receberá a notificação para aprovar a transferência."
+                        : "✓ Atleta vinculado com sucesso à sua equipe!"}
+                    </div>
+                  ) : temEquipe ? (
+                    <div>
+                      <p style={{ color:"#aaa", fontSize:12, margin:"0 0 10px", lineHeight:1.6 }}>
+                        {(() => {
+                          const eqAtual = equipes?.find(e => e.id === atletaExistente.equipeId);
+                          return `Este atleta está vinculado à equipe "${eqAtual?.nome || atletaExistente.clube || "outra equipe"}". A solicitação será enviada a essa equipe para aprovar ou recusar a transferência.`;
+                        })()}
+                      </p>
+                      <button onClick={handleVincular}
+                        style={{ background:"#1a2a3a", border:"1px solid #3a6abf",
+                          color:"#88aaff", borderRadius:6, padding:"8px 18px",
+                          cursor:"pointer", fontSize:13, fontWeight:700,
+                          fontFamily:"Inter,sans-serif" }}>
+                        🔗 Solicitar Transferência para Minha Equipe
+                      </button>
                     </div>
                   ) : (
                     <div>
                       <p style={{ color:"#aaa", fontSize:12, margin:"0 0 10px", lineHeight:1.6 }}>
-                        {temEquipe ? (() => {
-                          const eqAtual = equipes?.find(e => e.id === atletaExistente.equipeId);
-                          return `Este atleta está vinculado à equipe "${eqAtual?.nome || atletaExistente.clube || "outra equipe"}". A solicitação será enviada a essa equipe para aprovar ou recusar a transferência.`;
-                        })()
-                          : `Este atleta ainda não possui equipe vinculada dentro deste organizador. Ao solicitar, o atleta receberá notificação para aceitar ou recusar.`}
+                        Este atleta não está vinculado a nenhuma equipe. A solicitação será enviada ao atleta para aceitar ou recusar o vínculo.
                       </p>
                       <button onClick={handleVincular}
                         style={{ background:"#1a2a3a", border:"1px solid #3a6abf",
@@ -671,11 +745,11 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, excluirAtleta, excluirA
             <h4 style={{ color: "#1976D2", marginBottom: 16 }}>📍 Vinculação</h4>
 
             {/* Banner automático para equipe logada */}
-            {isEquipe ? (
+            {isEquipe && !atletaExistente && !atletaDuplicadoOrg ? (
               <div style={{ background: "#0a1a0a", border: "1px solid #2a5a2a", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "#7acc44" }}>
                 ✓ O atleta será automaticamente vinculado à sua equipe: <strong>{_autoClube || usuarioLogado?.nome}</strong>
               </div>
-            ) : (
+            ) : isEquipe && (atletaExistente || atletaDuplicadoOrg) ? null : (
               <>
                 {/* Organizador (apenas para Admin) */}
                 {usuarioLogado?.tipo === "admin" && (

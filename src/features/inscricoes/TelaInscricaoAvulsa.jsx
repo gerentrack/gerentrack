@@ -7,6 +7,30 @@ import { ProvaSelector } from "../ui/ProvaSelector";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { getLimiteCat, validarLimiteProvas, calcularPrecoInscricao, formatarPreco } from "../../shared/engines/inscricaoEngine";
 
+// Verifica em tempo real se as inscrições estão encerradas,
+// levando em conta data+hora de encerramento além do flag salvo.
+function isInscricaoEncerradaAgora(ev) {
+  if (!ev) return true;
+  if (ev.competicaoFinalizada || ev.competicaoEncerrada) return true;
+  // Flag manual sobrepõe tudo (exceto se force-aberta)
+  if (ev.inscricoesEncerradas && !ev.inscricoesForceAbertas) return true;
+  // Checa data+hora de encerramento em tempo real
+  if (ev.dataEncerramentoInscricoes) {
+    try {
+      const dtEnc = new Date(ev.dataEncerramentoInscricoes + "T" + (ev.horaEncerramentoInscricoes || "23:59") + ":00");
+      if (new Date() > dtEnc) return true;
+    } catch { /* ignora datas inválidas */ }
+  }
+  // Checa data+hora de abertura em tempo real
+  if (ev.dataAberturaInscricoes) {
+    try {
+      const dtAb = new Date(ev.dataAberturaInscricoes + "T" + (ev.horaAberturaInscricoes || "00:00") + ":00");
+      if (new Date() < dtAb) return true;
+    } catch { /* ignora datas inválidas */ }
+  }
+  return false;
+}
+
 const styles = {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
   pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 24, letterSpacing: 1 },
@@ -151,7 +175,7 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
     : null;
 
   const eventosAbertos = (eventos || []).filter(ev => {
-    if (ev.inscricoesEncerradas || ev.competicaoEncerrada || ev.competicaoFinalizada) return false;
+    if (isInscricaoEncerradaAgora(ev)) return false;
     if (ev.statusAprovacao !== "aprovado" && ev.statusAprovacao) return false;
     if (!isAtleta) return true;
     // Atleta: só vê evento do próprio org OU onde org foi autorizado
@@ -320,7 +344,7 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
 
   const tipoInsc   = usuarioLogado?.tipo;
   const isPrivileg = tipoInsc === "admin" || tipoInsc === "organizador" || tipoInsc === "funcionario";
-  if (!isPrivileg && eventoParaInscricao?.inscricoesEncerradas) return (
+  if (!isPrivileg && isInscricaoEncerradaAgora(eventoParaInscricao)) return (
     <div style={styles.page}>
       <div style={styles.emptyState}>
         <span style={{ fontSize: 48 }}>🔒</span>

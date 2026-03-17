@@ -8,6 +8,27 @@ import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { calcularPrecoInscricao, formatarPreco, validarLimiteProvas, getLimiteCat } from "../../shared/engines/inscricaoEngine";
 import { Th, Td } from "../ui/TableHelpers";
 
+// Verifica em tempo real se as inscrições estão encerradas,
+// levando em conta data+hora além do flag salvo.
+function isInscricaoEncerradaAgora(ev) {
+  if (!ev) return true;
+  if (ev.competicaoFinalizada || ev.competicaoEncerrada) return true;
+  if (ev.inscricoesEncerradas && !ev.inscricoesForceAbertas) return true;
+  if (ev.dataEncerramentoInscricoes) {
+    try {
+      const dtEnc = new Date(ev.dataEncerramentoInscricoes + "T" + (ev.horaEncerramentoInscricoes || "23:59") + ":00");
+      if (new Date() > dtEnc) return true;
+    } catch { /* ignora */ }
+  }
+  if (ev.dataAberturaInscricoes) {
+    try {
+      const dtAb = new Date(ev.dataAberturaInscricoes + "T" + (ev.horaAberturaInscricoes || "00:00") + ":00");
+      if (new Date() < dtAb) return true;
+    } catch { /* ignora */ }
+  }
+  return false;
+}
+
 const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
 const styles = {
@@ -138,6 +159,21 @@ const styles = {
 function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equipes, excluirInscricao, adicionarInscricao, atualizarInscricao, usuarioLogado, registrarAcao, numeracaoPeito }) {
   const confirmar = useConfirm();
   if (!eventoAtual) return <div style={styles.page}><div style={styles.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
+
+  const tipoUser   = usuarioLogado?.tipo;
+  const isPrivileg = tipoUser === "admin" || tipoUser === "organizador" || tipoUser === "funcionario";
+  if (!isPrivileg && isInscricaoEncerradaAgora(eventoAtual)) return (
+    <div style={styles.page}>
+      <div style={styles.emptyState}>
+        <span style={{ fontSize: 48 }}>🔒</span>
+        <p style={{ fontWeight: 700, color: "#fff", fontSize: 18 }}>Inscrições Encerradas</p>
+        <p style={{ color: "#666", fontSize: 14 }}>
+          As inscrições para <strong>{eventoAtual.nome}</strong> estão encerradas.
+        </p>
+        <button style={styles.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
+      </div>
+    </div>
+  );
 
   const eid = eventoAtual.id;
 

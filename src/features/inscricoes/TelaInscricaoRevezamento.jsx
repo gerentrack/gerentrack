@@ -4,6 +4,27 @@ import { todasAsProvas, nPernasRevezamento, isRevezamentoMisto } from "../../sha
 import { CATEGORIAS } from "../../shared/constants/categorias";
 import { ProvaSelector } from "../ui/ProvaSelector";
 
+// Verifica em tempo real se as inscrições estão encerradas,
+// levando em conta data+hora de encerramento além do flag salvo.
+function isInscricaoEncerradaAgora(ev) {
+  if (!ev) return true;
+  if (ev.competicaoFinalizada || ev.competicaoEncerrada) return true;
+  if (ev.inscricoesEncerradas && !ev.inscricoesForceAbertas) return true;
+  if (ev.dataEncerramentoInscricoes) {
+    try {
+      const dtEnc = new Date(ev.dataEncerramentoInscricoes + "T" + (ev.horaEncerramentoInscricoes || "23:59") + ":00");
+      if (new Date() > dtEnc) return true;
+    } catch { /* ignora */ }
+  }
+  if (ev.dataAberturaInscricoes) {
+    try {
+      const dtAb = new Date(ev.dataAberturaInscricoes + "T" + (ev.horaAberturaInscricoes || "00:00") + ":00");
+      if (new Date() < dtAb) return true;
+    } catch { /* ignora */ }
+  }
+  return false;
+}
+
 const styles = {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
   pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 24, letterSpacing: 1 },
@@ -137,6 +158,21 @@ function TelaInscricaoRevezamento({ setTela, eventoAtual, inscricoes, atletas, e
   const confirmar = useConfirm();
   if (!eventoAtual) return <div style={styles.page}><div style={styles.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
 
+  const tipoUser = usuarioLogado?.tipo;
+  const isPrivileg = tipoUser === "admin" || tipoUser === "organizador" || tipoUser === "funcionario";
+  if (!isPrivileg && isInscricaoEncerradaAgora(eventoAtual)) return (
+    <div style={styles.page}>
+      <div style={styles.emptyState}>
+        <span style={{ fontSize: 48 }}>🔒</span>
+        <p style={{ fontWeight: 700, color: "#fff", fontSize: 18 }}>Inscrições Encerradas</p>
+        <p style={{ color: "#666", fontSize: 14 }}>
+          As inscrições para <strong>{eventoAtual.nome}</strong> estão encerradas.
+        </p>
+        <button style={styles.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
+      </div>
+    </div>
+  );
+
   const eid = eventoAtual.id;
   const provasRevez = todasAsProvas().filter(p => p.tipo === "revezamento" && (eventoAtual.provasPrograma || []).includes(p.id));
   const inscsEvt = inscricoes.filter(i => i.eventoId === eid);
@@ -162,7 +198,6 @@ function TelaInscricaoRevezamento({ setTela, eventoAtual, inscricoes, atletas, e
   })();
 
   // Para equipe/treinador, filtrar só sua equipe
-  const tipoUser = usuarioLogado?.tipo;
   const equipeIdUser = tipoUser === "equipe" ? usuarioLogado.id : tipoUser === "treinador" ? usuarioLogado.equipeId : null;
   const equipesDisponiveis = equipeIdUser ? equipesComInscritos.filter(e => e.id === equipeIdUser) : equipesComInscritos;
 
