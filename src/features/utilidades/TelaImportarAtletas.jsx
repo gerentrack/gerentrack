@@ -141,6 +141,7 @@ function TelaImportarAtletas({ setTela, atletas, adicionarAtleta, adicionarAtlet
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState("");
+  const [lgpdDeclarado, setLgpdDeclarado] = useState(false);
   
   // Filters for Admin/Organizador
   const [clubeSelecionado, setClubeSelecionado] = useState("");
@@ -393,6 +394,12 @@ function TelaImportarAtletas({ setTela, atletas, adicionarAtleta, adicionarAtlet
         equipeId: isEquipe ? usuarioLogado.id : equipeParaUsar,
         organizadorId: isAdminOuOrg ? (usuarioLogado?.tipo === "organizador" ? usuarioLogado.id : (usuarioLogado?.organizadorId || "")) : "",
         cadastradoPor: usuarioLogado?.tipo || null,
+        // LGPD: consentimento não coletado diretamente — será solicitado no primeiro login do atleta
+        lgpdConsentimento: false,
+        lgpdConsentimentoPendente: true,
+        lgpdResponsavelImportacao: usuarioLogado?.id || null,
+        lgpdResponsavelImportacaoNome: usuarioLogado?.nome || null,
+        lgpdImportadoEm: new Date().toISOString(),
       });
     });
 
@@ -667,17 +674,61 @@ function TelaImportarAtletas({ setTela, atletas, adicionarAtleta, adicionarAtlet
               </table>
             </div>
 
+            {/* ── Declaração LGPD obrigatória ───────────────────────────── */}
+            {(() => {
+              const hoje = new Date();
+              const temMenor = preview.some(a => {
+                if (!a.dataNasc) return false;
+                const nasc = new Date(a.dataNasc + "T12:00:00");
+                let idade = hoje.getFullYear() - nasc.getFullYear();
+                const m = hoje.getMonth() - nasc.getMonth();
+                if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) idade--;
+                return idade < 18;
+              });
+              return (
+                <div style={{ background:"#0a0a14", border:`1px solid ${lgpdDeclarado ? "#1976D2" : "#252837"}`,
+                  borderRadius:10, padding:"16px 18px", marginTop:16, marginBottom:8, transition:"border-color 0.2s" }}>
+                  <div style={{ fontSize:12, fontWeight:700, color:"#1976D2", letterSpacing:1,
+                    textTransform:"uppercase", marginBottom:10 }}>🔒 Declaração LGPD — Art. 7º e {temMenor ? "Art. 14" : "Art. 8"} da Lei 13.709/2018</div>
+                  {temMenor && (
+                    <div style={{ background:"#0a120a", border:"1px solid #2a6a2a", borderRadius:7,
+                      padding:"8px 12px", marginBottom:12, fontSize:12, color:"#7acc44", lineHeight:1.6 }}>
+                      👨‍👩‍👧 <strong>Atenção:</strong> Esta lista contém <strong>atletas menores de 18 anos</strong>.
+                      A declaração abaixo inclui a confirmação do consentimento parental exigido pelo Art. 14 da LGPD.
+                    </div>
+                  )}
+                  <label style={{ display:"flex", alignItems:"flex-start", gap:12, cursor:"pointer" }}>
+                    <input type="checkbox" checked={lgpdDeclarado} onChange={e => setLgpdDeclarado(e.target.checked)}
+                      style={{ marginTop:2, width:16, height:16, cursor:"pointer", flexShrink:0 }} />
+                    <span style={{ fontSize:13, color:"#bbb", lineHeight:1.7 }}>
+                      Declaro que possuo o consentimento dos titulares{temMenor ? " e dos responsáveis legais pelos atletas menores de 18 anos " : " "}
+                      para o tratamento dos dados pessoais contidos nesta planilha pelo GerenTrack,
+                      para fins de gestão de competições de atletismo, assumindo total responsabilidade
+                      por esta declaração conforme a <strong style={{ color:"#1976D2" }}>LGPD (Art. 7º{temMenor ? " e Art. 14" : ""})</strong>.
+                      Os atletas serão solicitados a confirmar individualmente no primeiro acesso ao sistema.
+                    </span>
+                  </label>
+                  {!lgpdDeclarado && (
+                    <div style={{ color:"#ff6b6b", fontSize:12, marginTop:8 }}>
+                      ⚠️ É necessário fazer esta declaração antes de confirmar a importação.
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
             <div style={{ marginTop: 24, display: "flex", gap: 12, justifyContent: "center" }}>
               <button
                 style={styles.btnGhost}
-                onClick={() => { setPreview(null); setFile(null); setClubeSelecionado(""); setEquipeSelecionada(""); }}
+                onClick={() => { setPreview(null); setFile(null); setClubeSelecionado(""); setEquipeSelecionada(""); setLgpdDeclarado(false); }}
               >
                 Cancelar
               </button>
               <button
-                style={{ ...styles.btnPrimary, opacity: loading ? 0.5 : 1 }}
+                style={{ ...styles.btnPrimary, opacity: (loading || !lgpdDeclarado) ? 0.4 : 1,
+                  cursor: (loading || !lgpdDeclarado) ? "not-allowed" : "pointer" }}
                 onClick={handleConfirmar}
-                disabled={loading}
+                disabled={loading || !lgpdDeclarado}
               >
                 {loading ? "Importando..." : `✓ Confirmar Importação (${preview.length} atletas)`}
               </button>
