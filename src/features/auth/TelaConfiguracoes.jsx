@@ -109,6 +109,7 @@ function TelaConfiguracoes({
   siteBranding, setSiteBranding,
   exportarDados, importarDados, limparTodosDados,
   atualizarAtleta,
+  solicitacoesPortabilidade, adicionarSolicitacaoPortabilidade,
 }) {
   const [aba, setAba]           = useState("dados");
   const [feedback, setFeedback] = useState("");
@@ -141,6 +142,19 @@ function TelaConfiguracoes({
   const [heroBgUrl, setHeroBgUrl] = useState(siteBranding?.heroBg || "");
   const [heroBgPreview, setHeroBgPreview] = useState(siteBranding?.heroBg || "");
   const [uploadandoHero, setUploadandoHero] = useState(false);
+
+  // ── State da aba Incidente LGPD ──────────────────────────────────────────
+  const [incTipos, setIncTipos] = useState({
+    acesso_nao_autorizado: false,
+    vazamento_dados: false,
+    perda_dados: false,
+    alteracao_indevida: false,
+    outro: false,
+  });
+  const [incDescricao, setIncDescricao] = useState("");
+  const [incDataDesc,  setIncDataDesc]  = useState("");
+  const [incAfetados,  setIncAfetados]  = useState("todos");
+  const [incCopiado,   setIncCopiado]   = useState("");
 
   const ok = (msg) => { setFeedback(msg); setTimeout(() => setFeedback(""), 4000); };
 
@@ -317,6 +331,7 @@ function TelaConfiguracoes({
         <button style={tabStyle("senha")} onClick={() => { setAba("senha"); setErro(""); }}>🔒 Alterar Senha</button>
         {!isAdmin && <button style={tabStyle("conta")} onClick={() => { setAba("conta"); setErro(""); }}>ℹ️ Minha Conta</button>}
         {isAdmin  && <button style={tabStyle("aparencia")} onClick={() => { setAba("aparencia"); setErro(""); }}>⚙️ Configurações Avançadas</button>}
+        {isAdmin  && <button style={tabStyle("incidente")} onClick={() => { setAba("incidente"); setErro(""); }}>🚨 Incidente LGPD</button>}
       </div>
 
       {/* ── ABA: DADOS PESSOAIS ─────────────────────────────────────────── */}
@@ -495,6 +510,74 @@ function TelaConfiguracoes({
                   Para reativar o uso do sistema, será necessário realizar um novo cadastro.
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ── PORTABILIDADE DE DADOS (Art. 18º, V LGPD) ──────────────────── */}
+          {!isAdmin && (
+            <div style={{ ...S.card, borderColor:"#1976D233" }}>
+              <h3 style={S.sectionTitle}>📦 Portabilidade dos Meus Dados</h3>
+              <p style={{ color:"#666", fontSize:13, marginBottom:14, lineHeight:1.6 }}>
+                Conforme o <strong style={{ color:"#fff" }}>Art. 18º, V da LGPD</strong>, você tem direito a receber
+                uma cópia dos seus dados pessoais em formato estruturado. A solicitação será analisada pelo
+                administrador em até <strong style={{ color:"#fff" }}>15 dias</strong>.
+              </p>
+
+              {(() => {
+                const minhasSol = (solicitacoesPortabilidade || [])
+                  .filter(s => s.usuarioId === usuarioLogado?.id)
+                  .sort((a, b) => new Date(b.data) - new Date(a.data));
+                const solPendente = minhasSol.find(s => s.status === "pendente");
+                const solPronta   = minhasSol.find(s => s.status === "pronto");
+
+                if (solPronta) return (
+                  <div>
+                    <div style={{ background:"#0a2a0a", border:"1px solid #2a6a2a", borderRadius:8,
+                      padding:"12px 16px", marginBottom:12, fontSize:13, color:"#7acc44" }}>
+                      ✅ Seu arquivo está pronto! Solicitação aprovada em{" "}
+                      {new Date(solPronta.dataResolucao).toLocaleString("pt-BR")}.
+                    </div>
+                    <button style={S.btnPrimary} onClick={() => {
+                      const blob = new Blob([solPronta.dadosJson], { type: "application/json" });
+                      const url  = URL.createObjectURL(blob);
+                      const a    = document.createElement("a");
+                      a.href     = url;
+                      a.download = `meus-dados-gerentrack-${new Date().toISOString().slice(0,10)}.json`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                      if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome,
+                        "Baixou portabilidade de dados", "", null, { modulo: "lgpd" });
+                    }}>
+                      ⬇️ Baixar Meus Dados (JSON)
+                    </button>
+                  </div>
+                );
+
+                if (solPendente) return (
+                  <div style={{ background:"#0a1a2a", border:"1px solid #1976D244", borderRadius:8,
+                    padding:"12px 16px", fontSize:13, color:"#88aaff" }}>
+                    ⏳ Solicitação enviada em {new Date(solPendente.data).toLocaleString("pt-BR")}.
+                    O administrador irá processar em até 15 dias.
+                  </div>
+                );
+
+                return (
+                  <button style={S.btnSecondary} onClick={() => {
+                    if (!adicionarSolicitacaoPortabilidade) return;
+                    adicionarSolicitacaoPortabilidade({
+                      usuarioId:   usuarioLogado.id,
+                      usuarioNome: usuarioLogado.nome || meuRegistro?.nome || "",
+                      usuarioTipo: usuarioLogado.tipo,
+                      email:       meuRegistro?.email || usuarioLogado.email || "",
+                    });
+                    if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome,
+                      "Solicitou portabilidade de dados", "", null, { modulo: "lgpd" });
+                    ok("✅ Solicitação enviada! O administrador irá processar em até 15 dias.");
+                  }}>
+                    📤 Solicitar Exportação dos Meus Dados
+                  </button>
+                );
+              })()}
             </div>
           )}
 
@@ -870,6 +953,242 @@ function TelaConfiguracoes({
 
         </div>
       )}
+
+      {/* ── ABA: INCIDENTE LGPD (admin only) ───────────────────────────────── */}
+      {aba === "incidente" && isAdmin && (() => {
+        const emailsAtletas = (atletasUsuarios || []).map(u => u.email).filter(Boolean);
+        const emailsEquipes = equipes.map(e => e.email).filter(Boolean);
+        const emailsOrgs    = organizadores.map(o => o.email).filter(Boolean);
+        const emailsFuncs   = (funcionarios || []).map(f => f.email).filter(Boolean);
+        const emailsTrein   = (treinadores  || []).map(t => t.email).filter(Boolean);
+
+        const mapaAfetados = {
+          todos:         [...new Set([...emailsAtletas, ...emailsEquipes, ...emailsOrgs, ...emailsFuncs, ...emailsTrein])],
+          atletas:       [...new Set(emailsAtletas)],
+          equipes:       [...new Set(emailsEquipes)],
+          organizadores: [...new Set([...emailsOrgs, ...emailsFuncs, ...emailsTrein])],
+        };
+        const emailsAfetados = mapaAfetados[incAfetados] || [];
+
+        const tiposLabel = {
+          acesso_nao_autorizado: "Acesso não autorizado ao sistema",
+          vazamento_dados:       "Vazamento de dados pessoais",
+          perda_dados:           "Perda ou destruição de dados",
+          alteracao_indevida:    "Alteração indevida de dados",
+          outro:                 "Outro",
+        };
+        const tiposSelecionados = Object.entries(incTipos).filter(([,v]) => v).map(([k]) => tiposLabel[k]);
+        const hoje = new Date().toLocaleDateString("pt-BR");
+
+        const templateEmail = `Assunto: Comunicado de Incidente de Segurança — GerenTrack
+
+Prezado(a) titular,
+
+Informamos que identificamos um incidente de segurança${incDataDesc ? ` em ${incDataDesc}` : ""} que pode ter afetado dados pessoais armazenados na plataforma GerenTrack.
+
+NATUREZA DO INCIDENTE:
+${tiposSelecionados.length > 0 ? tiposSelecionados.map(t => `• ${t}`).join("\n") : "• A ser detalhado"}
+${incDescricao ? `\nDESCRIÇÃO:\n${incDescricao}` : ""}
+
+DADOS POSSIVELMENTE AFETADOS:
+• Nome, e-mail, telefone e documento (CPF/CNPJ) de titulares cadastrados na plataforma.
+
+MEDIDAS ADOTADAS:
+• O incidente foi identificado e contido.
+• As autoridades competentes (ANPD) foram notificadas conforme exigido pela Lei nº 13.709/2018 (LGPD).
+• Medidas de segurança adicionais foram implementadas para prevenir novos incidentes.
+
+O QUE VOCÊ PODE FAZER:
+• Fique atento a e-mails ou contatos suspeitos usando seu nome ou dados.
+• Caso identifique uso indevido dos seus dados, entre em contato conosco.
+• Você pode exercer seus direitos de titular previstos no Art. 18 da LGPD.
+
+CONTATO DO ENCARREGADO (DPO):
+E-mail: gerentrack@gmail.com
+
+Lamentamos o ocorrido e reafirmamos nosso compromisso com a proteção dos seus dados.
+
+Atenciosamente,
+GerenTrack — Administração
+Data: ${hoje}`;
+
+        const templateANPD = `COMUNICAÇÃO DE INCIDENTE DE SEGURANÇA À ANPD
+(Art. 48, Lei nº 13.709/2018 — LGPD)
+
+DATA DA COMUNICAÇÃO: ${hoje}
+DATA DO INCIDENTE: ${incDataDesc || "A confirmar"}
+
+1. IDENTIFICAÇÃO DO CONTROLADOR
+   Nome/Razão Social: GerenTrack
+   E-mail: gerentrack@gmail.com
+
+2. NATUREZA DO INCIDENTE
+${tiposSelecionados.length > 0 ? tiposSelecionados.map(t => `   • ${t}`).join("\n") : "   • A ser detalhado"}
+
+3. DESCRIÇÃO DO INCIDENTE
+   ${incDescricao || "Descreva o que ocorreu, como foi descoberto e qual o impacto."}
+
+4. DADOS E TITULARES AFETADOS
+   • Categorias de dados: nome, e-mail, CPF/CNPJ, telefone, data de nascimento
+   • Número estimado de titulares afetados: ${emailsAfetados.length}
+   • Perfis afetados: ${incAfetados === "todos" ? "Atletas, equipes, organizadores, funcionários e treinadores" : incAfetados}
+
+5. MEDIDAS TÉCNICAS E ORGANIZACIONAIS ADOTADAS
+   • Contenção do incidente
+   • Revisão das regras de acesso ao Firestore
+   • Comunicação aos titulares afetados
+   • Monitoramento reforçado
+
+6. RISCOS RELACIONADOS AO INCIDENTE
+   Possível exposição de dados pessoais que pode resultar em:
+   • Uso indevido de identidade
+   • Contato não solicitado (spam/phishing)
+
+7. OBSERVAÇÕES ADICIONAIS
+   A plataforma GerenTrack é utilizada para gestão de competições de atletismo no Brasil.`;
+
+        const copiar = (texto, id) => {
+          navigator.clipboard.writeText(texto).then(() => {
+            setIncCopiado(id);
+            setTimeout(() => setIncCopiado(""), 3000);
+          });
+        };
+
+        return (
+          <div style={{ maxWidth: 760 }}>
+
+            {/* Alerta */}
+            <div style={{ background:"#1a0800", border:"2px solid #cc4400", borderRadius:12,
+              padding:"16px 20px", marginBottom:20, display:"flex", gap:14, alignItems:"flex-start" }}>
+              <span style={{ fontSize:28, flexShrink:0 }}>🚨</span>
+              <div>
+                <div style={{ color:"#ff7744", fontWeight:800, fontSize:15, marginBottom:4 }}>
+                  Comunicação de Incidente — Art. 48º LGPD
+                </div>
+                <div style={{ color:"#aaa", fontSize:13, lineHeight:1.7 }}>
+                  Notifique a <strong style={{ color:"#fff" }}>ANPD em até 72h</strong> após ciência do incidente
+                  e comunique os <strong style={{ color:"#fff" }}>titulares afetados</strong>.
+                </div>
+                <a href="https://peticionamento.anpd.gov.br" target="_blank" rel="noopener noreferrer"
+                  style={{ display:"inline-block", marginTop:10, background:"#cc4400", color:"#fff",
+                    borderRadius:6, padding:"6px 14px", fontSize:12, fontWeight:700,
+                    fontFamily:"'Barlow Condensed',sans-serif", textDecoration:"none", letterSpacing:1 }}>
+                  🔗 Abrir Portal da ANPD →
+                </a>
+              </div>
+            </div>
+
+            {/* 1. Descrever */}
+            <div style={S.card}>
+              <h3 style={S.sectionTitle}>1. Descreva o Incidente</h3>
+              <div style={{ marginBottom:16 }}>
+                <label style={S.label}>Natureza (marque todas que se aplicam)</label>
+                <div style={{ display:"flex", flexDirection:"column", gap:8, marginTop:6 }}>
+                  {Object.entries(tiposLabel).map(([key, label]) => (
+                    <label key={key} style={{ display:"flex", alignItems:"center", gap:10, cursor:"pointer" }}>
+                      <input type="checkbox" checked={incTipos[key]}
+                        onChange={e => setIncTipos(prev => ({ ...prev, [key]: e.target.checked }))}
+                        style={{ width:15, height:15, cursor:"pointer" }} />
+                      <span style={{ fontSize:13, color:"#bbb" }}>{label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div style={{ marginBottom:16 }}>
+                <label style={S.label}>Data do incidente (se conhecida)</label>
+                <input type="date" value={incDataDesc} onChange={e => setIncDataDesc(e.target.value)}
+                  style={{ ...S.input, maxWidth:220 }} />
+              </div>
+              <div style={{ marginBottom:16 }}>
+                <label style={S.label}>Descrição do ocorrido</label>
+                <textarea value={incDescricao} onChange={e => setIncDescricao(e.target.value)}
+                  placeholder="Descreva o que ocorreu, como foi descoberto e qual o impacto estimado..."
+                  style={{ ...S.input, minHeight:90, resize:"vertical", fontFamily:"'Barlow',sans-serif", lineHeight:1.6 }} />
+              </div>
+              <div>
+                <label style={S.label}>Titulares afetados</label>
+                <select value={incAfetados} onChange={e => setIncAfetados(e.target.value)}
+                  style={{ ...S.input, maxWidth:380 }}>
+                  <option value="todos">Todos os titulares ({mapaAfetados.todos.length} e-mails)</option>
+                  <option value="atletas">Apenas atletas ({emailsAtletas.length} e-mails)</option>
+                  <option value="equipes">Apenas equipes ({emailsEquipes.length} e-mails)</option>
+                  <option value="organizadores">Apenas organizadores/funcionários/treinadores ({mapaAfetados.organizadores.length} e-mails)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* 2. Template titulares */}
+            <div style={S.card}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+                <h3 style={{ ...S.sectionTitle, margin:0 }}>2. Template — Comunicação aos Titulares</h3>
+                <div style={{ display:"flex", gap:8 }}>
+                  <button onClick={() => copiar(emailsAfetados.join("; "), "emails")}
+                    style={{ ...S.btnGhost, fontSize:11, padding:"4px 12px", color:"#88aaff", borderColor:"#3a3a6a" }}>
+                    {incCopiado === "emails" ? "✅ Copiado!" : `📋 Copiar ${emailsAfetados.length} e-mails`}
+                  </button>
+                  <button onClick={() => copiar(templateEmail, "template_titular")}
+                    style={{ ...S.btnGhost, fontSize:11, padding:"4px 12px" }}>
+                    {incCopiado === "template_titular" ? "✅ Copiado!" : "📋 Copiar Template"}
+                  </button>
+                </div>
+              </div>
+              <div style={{ fontSize:11, color:"#555", marginBottom:10 }}>
+                Envie pelo seu cliente de e-mail. Use "Copiar e-mails" para obter a lista de destinatários.
+              </div>
+              <pre style={{ background:"#080a0e", border:"1px solid #1E2130", borderRadius:8,
+                padding:"14px 16px", fontSize:11, color:"#aaa", lineHeight:1.8,
+                whiteSpace:"pre-wrap", fontFamily:"monospace", overflowX:"auto" }}>
+                {templateEmail}
+              </pre>
+            </div>
+
+            {/* 3. Template ANPD */}
+            <div style={S.card}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+                <h3 style={{ ...S.sectionTitle, margin:0 }}>3. Template — Notificação à ANPD</h3>
+                <button onClick={() => copiar(templateANPD, "template_anpd")}
+                  style={{ ...S.btnGhost, fontSize:11, padding:"4px 12px" }}>
+                  {incCopiado === "template_anpd" ? "✅ Copiado!" : "📋 Copiar Template"}
+                </button>
+              </div>
+              <div style={{ fontSize:11, color:"#555", marginBottom:10 }}>
+                Use no portal:{" "}
+                <a href="https://peticionamento.anpd.gov.br" target="_blank" rel="noopener noreferrer"
+                  style={{ color:"#1976D2" }}>peticionamento.anpd.gov.br →</a>
+              </div>
+              <pre style={{ background:"#080a0e", border:"1px solid #1E2130", borderRadius:8,
+                padding:"14px 16px", fontSize:11, color:"#aaa", lineHeight:1.8,
+                whiteSpace:"pre-wrap", fontFamily:"monospace", overflowX:"auto" }}>
+                {templateANPD}
+              </pre>
+            </div>
+
+            {/* 4. Registrar */}
+            <div style={{ ...S.card, borderColor:"#3a1a1a", background:"#0e0a0a" }}>
+              <h3 style={{ ...S.sectionTitle, color:"#ff6b6b" }}>4. Registrar no Histórico</h3>
+              <p style={{ color:"#666", fontSize:13, marginBottom:14, lineHeight:1.6 }}>
+                Registre este incidente no histórico de ações para fins de conformidade e auditoria.
+              </p>
+              <button onClick={() => {
+                if (!incDescricao.trim() && tiposSelecionados.length === 0) {
+                  alert("Preencha ao menos a natureza ou a descrição do incidente antes de registrar.");
+                  return;
+                }
+                if (registrarAcao) registrarAcao(
+                  usuarioLogado.id, usuarioLogado.nome,
+                  "Registrou incidente de segurança LGPD",
+                  `${tiposSelecionados.join(", ") || "Tipo não especificado"} — ${incDescricao.slice(0,100) || "Sem descrição"}`,
+                  null, { modulo: "lgpd" }
+                );
+                alert("✅ Incidente registrado no histórico de ações.");
+              }} style={{ ...S.btnGhost, color:"#ff6b6b", borderColor:"#5a1a1a" }}>
+                📝 Registrar Incidente no Histórico
+              </button>
+            </div>
+
+          </div>
+        );
+      })()}
 
     </div>
   );

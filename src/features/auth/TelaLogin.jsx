@@ -22,7 +22,8 @@ import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendP
 import { _getClubeAtleta } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 
-function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, atletasUsuarios, funcionarios, treinadores, setPerfisDisponiveis, adminConfig, atletas: atletasBase }) {
+function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, atletasUsuarios, funcionarios, treinadores, setPerfisDisponiveis, adminConfig, atletas: atletasBase,
+  atualizarEquipePerfil, setOrganizadores, setAtletasUsuarios, setFuncionarios, setTreinadores, registrarAcao }) {
   const [ident,   setIdent]   = useState("");
   const [senha,   setSenha]   = useState("");
   const [erro,    setErro]    = useState("");
@@ -31,6 +32,12 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
   const [modoRecuperar, setModoRecuperar] = useState(false);
   const [emailRecuperar, setEmailRecuperar] = useState("");
   const [feedbackRecuperar, setFeedbackRecuperar] = useState("");
+
+  // ── Consentimento LGPD retroativo ────────────────────────────────────────
+  const [modoConsentimento, setModoConsentimento] = useState(false);
+  const [consentimentoPerfis, setConsentimentoPerfis] = useState([]); // perfis encontrados aguardando consentimento
+  const [consentimentoAceite, setConsentimentoAceite] = useState(false);
+  const [modalPolitica, setModalPolitica] = useState(false);
 
   const matchIdent = (u) => {
     if (!u) return false;
@@ -79,6 +86,55 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
       if (atlMatch?.email) return atlMatch.email.toLowerCase();
     }
     return null;
+  };
+
+  // ── Grava consentimento retroativo em todos os perfis encontrados ─────────
+  const gravarConsentimento = (perfis) => {
+    const agora = new Date().toISOString();
+    const campos = { lgpdConsentimento: true, lgpdConsentimentoData: agora, lgpdVersao: "1.0" };
+
+    perfis.forEach(p => {
+      const id = p.dados?.id;
+      if (!id) return;
+      switch (p.tipo) {
+        case "equipe":
+          if (atualizarEquipePerfil) {
+            const eq = equipes.find(e => e.id === id);
+            if (eq) atualizarEquipePerfil({ ...eq, ...campos });
+          }
+          break;
+        case "organizador":
+          if (setOrganizadores) setOrganizadores(arr => arr.map(u => u.id === id ? { ...u, ...campos } : u));
+          break;
+        case "atleta":
+          if (setAtletasUsuarios) setAtletasUsuarios(arr => arr.map(u => u.id === id ? { ...u, ...campos } : u));
+          break;
+        case "funcionario":
+          if (setFuncionarios) setFuncionarios(arr => arr.map(u => u.id === id ? { ...u, ...campos } : u));
+          break;
+        case "treinador":
+          if (setTreinadores) setTreinadores(arr => arr.map(u => u.id === id ? { ...u, ...campos } : u));
+          break;
+        default: break;
+      }
+    });
+
+    if (registrarAcao && perfis[0]) {
+      const p = perfis[0];
+      registrarAcao(p.dados?.id, p.dados?.nome || p.sublabel, "Consentimento LGPD — primeiro login",
+        "Política de Privacidade v1.0 aceita retroativamente", p.organizadorId || null, { modulo: "lgpd" });
+    }
+  };
+
+  // ── Verifica se precisa de consentimento antes de prosseguir ──────────────
+  const finalizarLoginComConsentimento = (perfis) => {
+    const precisaConsentimento = perfis.some(p => !p.dados?.lgpdConsentimento);
+    if (precisaConsentimento) {
+      setConsentimentoPerfis(perfis);
+      setModoConsentimento(true);
+      return;
+    }
+    finalizarLogin(perfis);
   };
 
   const finalizarLogin = (perfisEncontrados) => {
@@ -139,7 +195,7 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
       await signInWithEmailAndPassword(auth, emailParaAuth, senha);
       setLoadingMsg("Carregando perfis...");
       const perfis = buscarPerfis();
-      finalizarLogin(perfis);
+      finalizarLoginComConsentimento(perfis);
     } catch (firebaseErr) {
       // ── Migração / recuperação de senhas divergidas ───────────────────────────
       // Entra aqui se o Auth não reconheceu a senha.
@@ -153,7 +209,7 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
             await createUserWithEmailAndPassword(auth, emailParaAuth, senha);
             await signInWithEmailAndPassword(auth, emailParaAuth, senha);
             const perfis = buscarPerfis();
-            finalizarLogin(perfis);
+            finalizarLoginComConsentimento(perfis);
             return;
           } catch (migrErr) {
             if (migrErr.code === "auth/email-already-in-use") {
@@ -185,6 +241,129 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
       setErro(err.code === "auth/user-not-found" ? "E-mail não encontrado." : "Erro ao enviar e-mail. Tente novamente.");
     } finally { setLoading(false); setLoadingMsg(""); }
   };
+
+  // ── Tela de Consentimento Retroativo ─────────────────────────────────────
+  if (modoConsentimento) return (
+    <div style={styles.formPage}>
+      <LoginStyle />
+
+      {/* Modal Política de Privacidade */}
+      {modalPolitica && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.85)", zIndex:2000,
+          display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}
+          onClick={() => setModalPolitica(false)}>
+          <div style={{ background:"#0E1016", border:"1px solid #1976D2", borderRadius:14,
+            padding:28, maxWidth:560, width:"100%", maxHeight:"80vh", overflowY:"auto" }}
+            onClick={e => e.stopPropagation()}>
+            <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:22, fontWeight:800,
+              color:"#fff", marginBottom:16 }}>📄 Política de Privacidade — GerenTrack</h3>
+            <div style={{ fontSize:13, color:"#aaa", lineHeight:1.8 }}>
+              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>1. Controlador dos dados</strong><br/>
+              O GerenTrack é o responsável pelo tratamento dos seus dados pessoais, nos termos da Lei nº 13.709/2018 (LGPD).</p>
+              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>2. Dados coletados</strong><br/>
+              Coletamos: nome completo, e-mail, telefone, CNPJ, cidade, estado e dados de acesso (login). Para atletas: também CPF, data de nascimento e sexo.</p>
+              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>3. Finalidade do tratamento</strong><br/>
+              Os dados são usados exclusivamente para: gestão de competições de atletismo, inscrições em provas, emissão de súmulas e resultados, e comunicação relacionada às competições.</p>
+              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>4. Base legal</strong><br/>
+              O tratamento é realizado com base no consentimento do titular (Art. 7º, I), na execução de contrato (Art. 7º, V) e no legítimo interesse (Art. 7º, IX) da organização esportiva.</p>
+              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>5. Compartilhamento</strong><br/>
+              Seus dados podem ser compartilhados com organizadores de competições nas quais você participa. Não vendemos dados a terceiros.</p>
+              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>6. Retenção</strong><br/>
+              Resultados esportivos são mantidos permanentemente por integridade do histórico. Dados pessoais de contas excluídas são anonimizados.</p>
+              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>7. Seus direitos (Art. 18º LGPD)</strong><br/>
+              Você tem direito a: confirmar a existência do tratamento, acessar, corrigir, anonimizar, bloquear, eliminar seus dados e revogar o consentimento a qualquer momento nas Configurações da conta.</p>
+              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>8. Segurança</strong><br/>
+              Utilizamos autenticação via Firebase Auth e armazenamento seguro no Firestore. Dados sensíveis (senhas) nunca são armazenados localmente.</p>
+              <p style={{ marginBottom:0 }}><strong style={{ color:"#fff" }}>9. Contato</strong><br/>
+              Para exercer seus direitos ou tirar dúvidas: <span style={{ color:"#1976D2" }}>gerentrack@gmail.com</span></p>
+            </div>
+            <button style={{ marginTop:20, background:"#1976D2", color:"#fff", border:"none",
+              borderRadius:8, padding:"10px 24px", cursor:"pointer", fontSize:13, fontWeight:700,
+              fontFamily:"'Barlow Condensed',sans-serif" }}
+              onClick={() => setModalPolitica(false)}>✓ Fechar</button>
+          </div>
+        </div>
+      )}
+
+      <div style={{ ...styles.formCard, maxWidth:500 }}>
+        <div style={{ fontSize:48, textAlign:"center", marginBottom:12 }}>🔒</div>
+        <h2 style={styles.formTitle}>Atualização da Política de Privacidade</h2>
+        <p style={{ ...styles.formSub, marginBottom:20 }}>
+          Para continuar usando o GerenTrack, precisamos do seu consentimento conforme a
+          <strong style={{ color:"#1976D2" }}> Lei Geral de Proteção de Dados (LGPD)</strong>.
+        </p>
+
+        {/* Resumo do que será tratado */}
+        <div style={{ background:"#0a0a14", border:"1px solid #1976D233", borderRadius:10,
+          padding:"14px 16px", marginBottom:20, fontSize:13, color:"#aaa", lineHeight:1.7 }}>
+          <strong style={{ color:"#fff", display:"block", marginBottom:8 }}>📋 Resumo do tratamento:</strong>
+          <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+            {[
+              "Seus dados são usados para gestão de competições de atletismo",
+              "Não vendemos nem compartilhamos com terceiros externos",
+              "Você pode revogar este consentimento a qualquer momento nas Configurações",
+              "Resultados esportivos são preservados como registro histórico mesmo após revogação",
+            ].map((item, i) => (
+              <div key={i} style={{ display:"flex", gap:8 }}>
+                <span style={{ color:"#1976D2", flexShrink:0 }}>✓</span>
+                <span>{item}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Checkbox de aceite */}
+        <div style={{ background:"#0a0a14", border:`1px solid ${consentimentoAceite ? "#1976D2" : "#252837"}`,
+          borderRadius:10, padding:"14px 16px", marginBottom:20, transition:"border-color 0.2s" }}>
+          <label style={{ display:"flex", alignItems:"flex-start", gap:12, cursor:"pointer" }}>
+            <input type="checkbox" checked={consentimentoAceite}
+              onChange={e => setConsentimentoAceite(e.target.checked)}
+              style={{ marginTop:2, width:16, height:16, cursor:"pointer", flexShrink:0 }} />
+            <span style={{ fontSize:13, color:"#bbb", lineHeight:1.7 }}>
+              Li e concordo com a{" "}
+              <button type="button" onClick={() => setModalPolitica(true)}
+                style={{ background:"none", border:"none", color:"#1976D2", cursor:"pointer",
+                  fontSize:13, padding:0, textDecoration:"underline" }}>
+                Política de Privacidade
+              </button>
+              {" "}e autorizo o tratamento dos meus dados pessoais pelo GerenTrack para fins de
+              gestão de competições de atletismo.
+            </span>
+          </label>
+        </div>
+
+        {/* Botões */}
+        <button
+          style={{ ...styles.btnPrimary, opacity: consentimentoAceite ? 1 : 0.4,
+            cursor: consentimentoAceite ? "pointer" : "not-allowed", marginBottom:10 }}
+          disabled={!consentimentoAceite}
+          onClick={() => {
+            if (!consentimentoAceite) return;
+            gravarConsentimento(consentimentoPerfis);
+            finalizarLogin(consentimentoPerfis);
+          }}>
+          ✓ Aceitar e Entrar no Sistema
+        </button>
+
+        <button style={{ ...styles.btnGhost, width:"100%", fontSize:13 }}
+          onClick={() => {
+            // Recusa → logout Firebase e volta ao login
+            import("../../firebase").then(({ auth, signOut }) => signOut(auth).catch(() => {}));
+            setModoConsentimento(false);
+            setConsentimentoAceite(false);
+            setConsentimentoPerfis([]);
+            setErro("Para usar o sistema é necessário aceitar a Política de Privacidade.");
+          }}>
+          Recusar e Voltar ao Login
+        </button>
+
+        <p style={{ fontSize:11, color:"#444", textAlign:"center", marginTop:16, lineHeight:1.6 }}>
+          Ao recusar, você será desconectado. Seus dados já cadastrados permanecem no sistema
+          conforme previsto na LGPD.
+        </p>
+      </div>
+    </div>
+  );
 
   if (modoRecuperar) return (
     <div style={styles.formPage}>

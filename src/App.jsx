@@ -154,6 +154,7 @@ function App() {
   const [historicoAcoes,  setHistoricoAcoes]  = useLocalStorage("atl_historico",       []);
   const [solicitacoesRecuperacao, setSolicitacoesRecuperacao] = useLocalStorage("atl_recuperacao", []);
   const [solicitacoesEquipe,  setSolicitacoesEquipe]  = useLocalStorage("atl_sol_equipe",   []);
+  const [solicitacoesPortabilidade, setSolicitacoesPortabilidade] = useLocalStorage("atl_portabilidade", []);
 
   // Multi-evento: cada evento tem { id, nome, data, local, permissividadeNorma, provasPrograma: Set de provaIds }
   const [eventos, setEventos] = useLocalStorage("atl_eventos", []);
@@ -291,7 +292,9 @@ function App() {
 
   const logout = () => {
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Logout", usuarioLogado.tipo || "", usuarioLogado.organizadorId || null, { equipeId: usuarioLogado.equipeId, modulo: "auth" });
-    firebaseSignOut(auth).catch(() => {});
+    // Aguarda 300ms para o setDoc do historicoAcoes ser disparado antes do signOut
+    // revogar o token Firebase Auth (evita erro 400 Bad Request no Firestore)
+    setTimeout(() => firebaseSignOut(auth).catch(() => {}), 300);
     setUsuarioLogado(null);
     setPerfisDisponiveis([]);
     setTela("home");
@@ -457,6 +460,19 @@ function App() {
     setSolicitacoesRecuperacao(p => [...p, {...sol, id: Date.now().toString(), data: new Date().toISOString()}]);
   const resolverSolicitacaoRecuperacao = (id) =>
     setSolicitacoesRecuperacao(p => p.map(s => s.id === id ? {...s, status:"resolvido"} : s));
+
+  // ── Portabilidade de dados (Art. 18º, V LGPD) ─────────────────────────────
+  const adicionarSolicitacaoPortabilidade = (sol) =>
+    setSolicitacoesPortabilidade(p => [...p, {
+      ...sol, id: Date.now().toString(), status: "pendente", data: new Date().toISOString()
+    }]);
+  const resolverSolicitacaoPortabilidade = (id, dadosJson) =>
+    setSolicitacoesPortabilidade(p => p.map(s => s.id === id
+      ? { ...s, status: "pronto", dadosJson, dataResolucao: new Date().toISOString() }
+      : s
+    ));
+  const excluirSolicitacaoPortabilidade = (id) =>
+    setSolicitacoesPortabilidade(p => p.filter(s => s.id !== id));
   const atualizarSenha = async (tipo, userId, novaSenha) => {
     if (tipo === "admin") {
       try {
@@ -1108,6 +1124,7 @@ function App() {
     cadEventoGoStep, setCadEventoGoStep,
     gerarSenhaTemp, aplicarSenhaTemp, atualizarSenha,
     solicitacoesRecuperacao, adicionarSolicitacaoRecuperacao, resolverSolicitacaoRecuperacao,
+    solicitacoesPortabilidade, adicionarSolicitacaoPortabilidade, resolverSolicitacaoPortabilidade, excluirSolicitacaoPortabilidade,
     funcionarios, adicionarFuncionario, atualizarFuncionario, removerFuncionario,
     treinadores, adicionarTreinador, atualizarTreinador, removerTreinador,
     historicoAcoes, registrarAcao,
@@ -1149,14 +1166,14 @@ function App() {
       <Header {...props} />
       <main style={styles.main}>
         {tela === "home"                  && <TelaHome {...props} />}
-        {tela === "login"                 && <TelaLogin {...props} adminConfig={adminConfig} />}
+        {tela === "login"                 && <TelaLogin {...props} adminConfig={adminConfig} setOrganizadores={setOrganizadores} setAtletasUsuarios={setAtletasUsuarios} setFuncionarios={setFuncionarios} setTreinadores={setTreinadores} />}
         {tela === "cadastro-equipe"    && <TelaCadastroEquipe {...props} />}
         {tela === "cadastro-organizador"  && <TelaCadastroOrganizador {...props} />}
         {tela === "cadastro-atleta-login" && <TelaCadastroAtletaLogin {...props} />}
         {tela === "recuperar-senha"        && <TelaRecuperacaoSenha {...props} />}
         {tela === "trocar-senha"           && <TelaTrocarSenha {...props} />}
         {tela === "selecionar-perfil"      && <TelaSelecaoPerfil {...props} />}
-        {tela === "configuracoes"          && <TelaConfiguracoes {...props} adminConfig={adminConfig} setAdminConfig={setAdminConfig} setOrganizadores={setOrganizadores} setAtletasUsuarios={setAtletasUsuarios} setFuncionarios={setFuncionarios} setTreinadores={setTreinadores} siteBranding={siteBranding} setSiteBranding={setSiteBranding} exportarDados={exportarDados} importarDados={importarDados} limparTodosDados={limparTodosDados} atualizarAtleta={atualizarAtleta} />}
+        {tela === "configuracoes"          && <TelaConfiguracoes {...props} adminConfig={adminConfig} setAdminConfig={setAdminConfig} setOrganizadores={setOrganizadores} setAtletasUsuarios={setAtletasUsuarios} setFuncionarios={setFuncionarios} setTreinadores={setTreinadores} siteBranding={siteBranding} setSiteBranding={setSiteBranding} exportarDados={exportarDados} importarDados={importarDados} limparTodosDados={limparTodosDados} atualizarAtleta={atualizarAtleta} solicitacoesPortabilidade={solicitacoesPortabilidade} adicionarSolicitacaoPortabilidade={adicionarSolicitacaoPortabilidade} />}
         {tela === "painel"                && <TelaPainel {...props} />}
         {tela === "painel-organizador"    && <TelaPainelOrganizador {...props} />}
         {tela === "funcionarios"          && <TelaFuncionarios {...props} />}
@@ -1193,7 +1210,7 @@ function App() {
         {tela === "sumulas"           && usuarioLogado && <TelaSumulas {...props} />}
         {tela === "resultados"        && <TelaResultados {...props} />}
         {tela === "recordes"          && <TelaRecordes {...props} />}
-        {tela === "admin"             && <TelaAdmin {...props} adminConfig={adminConfig} setAdminConfig={setAdminConfig} />}
+        {tela === "admin"             && <TelaAdmin {...props} adminConfig={adminConfig} setAdminConfig={setAdminConfig} solicitacoesPortabilidade={solicitacoesPortabilidade} resolverSolicitacaoPortabilidade={resolverSolicitacaoPortabilidade} excluirSolicitacaoPortabilidade={excluirSolicitacaoPortabilidade} />}
         {tela === "gerenciar-equipes" && <TelaGerenciarEquipes {...props} />}
         {tela === "gerenciar-usuarios" && <TelaGerenciarUsuarios {...props} />}
         {tela === "importar-atletas"  && <TelaImportarAtletas {...props} />}

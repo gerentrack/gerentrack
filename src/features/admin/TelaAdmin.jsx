@@ -73,13 +73,16 @@ function TelaAdmin({
   atletasUsuarios=[], funcionarios=[], treinadores=[],
   setAtletaEditandoId,
   solicitacoesEquipe=[], aprovarEquipe, recusarEquipe, atualizarAtleta,
+  solicitacoesPortabilidade=[], resolverSolicitacaoPortabilidade, excluirSolicitacaoPortabilidade,
+  resultados,
 }) {
   const confirmar = useConfirm();
   const pendOrg = organizadores.filter(o => o.status === "pendente");
   const pendEv  = eventos.filter(e => e.statusAprovacao === "pendente");
   const pendRec = (solicitacoesRecuperacao || []).filter(s => s.status === "pendente");
   const pendEq  = (solicitacoesEquipe || []).filter(s => s.status === "pendente");
-  const totalPend = pendOrg.length + pendEv.length + pendRec.length + pendEq.length;
+  const pendPort = (solicitacoesPortabilidade || []).filter(s => s.status === "pendente");
+  const totalPend = pendOrg.length + pendEv.length + pendRec.length + pendEq.length + pendPort.length;
 
   // ── Guard ──────────────────────────────────────────────────────────────────
   if (usuarioLogado?.tipo !== "admin") return (
@@ -135,6 +138,7 @@ function TelaAdmin({
     { id:"equipes",       label:"🏅 Equipes",        badge: pendEq.length, sub: equipes.length },
     { id:"atletas",       label:"🏃 Atletas",        sub: atletas.length },
     { id:"historico",     label:"📊 Histórico" },
+    { id:"portabilidade", label:"📦 Portabilidade", badge: pendPort.length },
   ];
 
   const si = { ...s.input, padding:"6px 12px", fontSize:12, marginBottom:10, maxWidth:400 };
@@ -250,6 +254,16 @@ function TelaAdmin({
                       <div style={{ color:"#555", fontSize:11, marginTop:2 }}>Aguardando aprovação</div>
                     </div>
                     <span style={{ marginLeft:"auto", color:"#4a2a00", fontSize:16 }}>→</span>
+                  </button>
+                )}
+                {pendPort.length > 0 && (
+                  <button onClick={() => setAba("portabilidade")} style={s.pendCard("#a855f7","#1a0a2a","#4a1a6a")}>
+                    <span style={{ fontSize:26 }}>📦</span>
+                    <div>
+                      <div style={{ fontWeight:700, color:"#a855f7", fontSize:13 }}>{pendPort.length} solicitação(ões) de portabilidade</div>
+                      <div style={{ color:"#555", fontSize:11, marginTop:2 }}>Aguardando geração e liberação</div>
+                    </div>
+                    <span style={{ marginLeft:"auto", color:"#4a1a6a", fontSize:16 }}>→</span>
                   </button>
                 )}
               </div>
@@ -773,6 +787,179 @@ function TelaAdmin({
                 </div>
               </>
             )}
+          </div>
+        );
+      })()}
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          ABA: PORTABILIDADE DE DADOS (Art. 18º, V LGPD)
+      ══════════════════════════════════════════════════════════════════════ */}
+      {aba === "portabilidade" && (() => {
+        // Função que monta o JSON de dados do titular
+        const gerarDadosTitular = (sol) => {
+          const hoje = new Date().toISOString();
+          const dados = {
+            gerentrack_portabilidade: true,
+            versao: "1.0",
+            geradoEm: hoje,
+            titular: {
+              id:   sol.usuarioId,
+              nome: sol.usuarioNome,
+              tipo: sol.usuarioTipo,
+              email: sol.email,
+            },
+            aviso: "Este arquivo contém seus dados pessoais conforme Art. 18º, V da Lei nº 13.709/2018 (LGPD).",
+          };
+
+          // Dados do perfil do usuário
+          const stores = {
+            atleta:      atletasUsuarios,
+            equipe:      equipes,
+            organizador: organizadores,
+            funcionario: funcionarios,
+            treinador:   treinadores,
+          };
+          const perfil = (stores[sol.usuarioTipo] || []).find(u => u.id === sol.usuarioId);
+          if (perfil) {
+            const { senha, senhaTemporaria, ...perfilSemSenha } = perfil;
+            dados.perfil = perfilSemSenha;
+          }
+
+          // Atleta base (para atletas)
+          if (sol.usuarioTipo === "atleta") {
+            const atletaBase = atletas.find(a =>
+              a.atletaUsuarioId === sol.usuarioId ||
+              (perfil?.cpf && a.cpf && a.cpf.replace(/\D/g,"") === perfil.cpf.replace(/\D/g,""))
+            );
+            if (atletaBase) {
+              dados.atletaBase = atletaBase;
+              // Inscrições
+              dados.inscricoes = inscricoes
+                .filter(i => i.atletaId === atletaBase.id)
+                .map(i => ({
+                  eventoId:   i.eventoId,
+                  eventoNome: eventos.find(e => e.id === i.eventoId)?.nome || i.eventoId,
+                  provaId:    i.provaId,
+                  provaNome:  i.provaNome || i.provaId,
+                  categoria:  i.categoria,
+                  data:       i.dataCadastro || null,
+                }));
+              // Resultados
+              const meusResultados = [];
+              Object.entries(resultados || {}).forEach(([chave, docRes]) => {
+                if (docRes && docRes[atletaBase.id] != null) {
+                  meusResultados.push({ chave, resultado: docRes[atletaBase.id] });
+                }
+              });
+              dados.resultados = meusResultados;
+            }
+          }
+
+          // Atletas vinculados (para equipes)
+          if (sol.usuarioTipo === "equipe") {
+            dados.atletasVinculados = atletas
+              .filter(a => a.equipeId === sol.usuarioId)
+              .map(a => ({ id: a.id, nome: a.nome, categoria: a.categoria, sexo: a.sexo }));
+          }
+
+          return JSON.stringify(dados, null, 2);
+        };
+
+        const todasSols = [...(solicitacoesPortabilidade || [])]
+          .sort((a, b) => new Date(b.data) - new Date(a.data));
+
+        return (
+          <div style={{ maxWidth: 860 }}>
+            <div style={{ ...s.card, borderColor:"#a855f733" }}>
+              <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:800,
+                color:"#a855f7", marginBottom:8, letterSpacing:1 }}>
+                📦 Solicitações de Portabilidade de Dados
+              </div>
+              <p style={{ color:"#666", fontSize:13, marginBottom:16, lineHeight:1.6 }}>
+                Art. 18º, V da LGPD — O titular tem direito a receber cópia dos seus dados em formato estruturado.
+                Clique em <strong style={{ color:"#fff" }}>Gerar e Liberar</strong> para aprovar e disponibilizar o arquivo ao titular.
+              </p>
+
+              {todasSols.length === 0 ? (
+                <div style={s.empty}>
+                  <span style={{ fontSize:36 }}>📭</span>
+                  <p>Nenhuma solicitação de portabilidade ainda.</p>
+                </div>
+              ) : (
+                <div style={s.tableWrap}>
+                  <table style={s.table}>
+                    <thead><tr>
+                      <Th>Titular</Th>
+                      <Th>Perfil</Th>
+                      <Th>E-mail</Th>
+                      <Th>Solicitado em</Th>
+                      <Th>Status</Th>
+                      <Th>Ação</Th>
+                    </tr></thead>
+                    <tbody>
+                      {todasSols.map(sol => {
+                        const isPendente = sol.status === "pendente";
+                        const isPronto   = sol.status === "pronto";
+                        const tipoLabel  = { atleta:"🏃 Atleta", equipe:"🎽 Equipe", organizador:"🏟️ Org.", funcionario:"👥 Func.", treinador:"👨‍🏫 Trein." };
+                        return (
+                          <tr key={sol.id} style={s.tr}>
+                            <Td><strong style={{ color:"#fff" }}>{sol.usuarioNome || "—"}</strong></Td>
+                            <Td style={{ fontSize:12 }}>{tipoLabel[sol.usuarioTipo] || sol.usuarioTipo}</Td>
+                            <Td style={{ fontSize:12 }}>{sol.email || "—"}</Td>
+                            <Td style={{ fontSize:11, color:"#666" }}>{new Date(sol.data).toLocaleString("pt-BR")}</Td>
+                            <Td>
+                              <span style={{
+                                background: isPendente ? "#1a0a2a" : isPronto ? "#0a2a0a" : "#1a1a1a",
+                                color:      isPendente ? "#a855f7" : isPronto ? "#7cfc7c" : "#888",
+                                border:     `1px solid ${isPendente ? "#a855f744" : isPronto ? "#2a6a2a" : "#333"}`,
+                                borderRadius:10, padding:"2px 10px", fontSize:11, fontWeight:700,
+                              }}>
+                                {isPendente ? "⏳ Pendente" : isPronto ? "✅ Pronto" : sol.status}
+                              </span>
+                            </Td>
+                            <Td>
+                              <div style={{ display:"flex", gap:6 }}>
+                                {isPendente && (
+                                  <button onClick={() => {
+                                    const json = gerarDadosTitular(sol);
+                                    resolverSolicitacaoPortabilidade(sol.id, json);
+                                  }}
+                                    style={{ ...s.btnGhost, fontSize:11, padding:"4px 12px", color:"#a855f7", borderColor:"#4a1a6a" }}>
+                                    ⚙️ Gerar e Liberar
+                                  </button>
+                                )}
+                                {isPronto && (
+                                  <button onClick={() => {
+                                    const blob = new Blob([sol.dadosJson], { type:"application/json" });
+                                    const url  = URL.createObjectURL(blob);
+                                    const a    = document.createElement("a");
+                                    a.href     = url;
+                                    a.download = `portabilidade-${sol.usuarioNome?.replace(/\s/g,"-") || sol.usuarioId}-${sol.data.slice(0,10)}.json`;
+                                    a.click();
+                                    URL.revokeObjectURL(url);
+                                  }}
+                                    style={{ ...s.btnGhost, fontSize:11, padding:"4px 12px", color:"#7cfc7c", borderColor:"#2a5a2a" }}>
+                                    ⬇️ Baixar Cópia
+                                  </button>
+                                )}
+                                <button onClick={() => excluirSolicitacaoPortabilidade(sol.id)}
+                                  style={{ ...s.btnGhost, fontSize:11, padding:"4px 10px", color:"#ff6b6b", borderColor:"#3a1a1a" }}
+                                  title="Excluir solicitação">
+                                  🗑
+                                </button>
+                              </div>
+                            </Td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              <div style={{ fontSize:11, color:"#555", marginTop:10, lineHeight:1.6 }}>
+                ⚖️ A LGPD exige atendimento em prazo razoável — recomendado até <strong style={{ color:"#888" }}>15 dias</strong> da solicitação (Art. 19º).
+              </div>
+            </div>
           </div>
         );
       })()}
