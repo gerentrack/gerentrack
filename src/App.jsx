@@ -617,8 +617,25 @@ function App() {
     setSolicitacoesEquipe(p => [sol, ...p]);
   };
   const aprovarEquipe = async (equipeId, novoOrgId) => {
-    const eq = equipes.find(e => e.id === equipeId);
-    if (!eq) return;
+    let eq = equipes.find(e => e.id === equipeId);
+    // Equipe pode não estar no Firestore (falha na criação antes da correção de rules)
+    // Recria a partir dos dados da solicitação
+    if (!eq) {
+      const sol = solicitacoesEquipe.find(s => s.equipeId === equipeId);
+      if (!sol) return;
+      eq = {
+        id: equipeId,
+        nome: sol.equipeNome,
+        sigla: sol.equipeSigla,
+        email: sol.equipeEmail,
+        cnpj: sol.equipeCnpj,
+        cidade: sol.equipeCidade,
+        uf: sol.equipeUf,
+        organizadorId: novoOrgId || sol.organizadorId || null,
+        status: "pendente",
+        dataCadastro: sol.data || new Date().toISOString(),
+      };
+    }
     await _atualizarEquipe({ ...eq, status: "ativa", ...(novoOrgId ? { organizadorId: novoOrgId } : {}) });
     setSolicitacoesEquipe(p => p.map(s => s.equipeId === equipeId && s.status === "pendente"
       ? { ...s, status: "aprovada", dataResposta: new Date().toISOString() }
