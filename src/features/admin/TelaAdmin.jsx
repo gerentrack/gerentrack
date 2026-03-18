@@ -75,6 +75,8 @@ function TelaAdmin({
   solicitacoesEquipe=[], aprovarEquipe, recusarEquipe, atualizarAtleta,
   solicitacoesPortabilidade=[], resolverSolicitacaoPortabilidade, excluirSolicitacaoPortabilidade,
   resultados,
+  setHistoricoAcoes, setAuditoria, auditoria=[],
+  registrarAcao,
 }) {
   const confirmar = useConfirm();
   const pendOrg = organizadores.filter(o => o.status === "pendente");
@@ -757,8 +759,62 @@ function TelaAdmin({
           <div style={s.card}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:14 }}>
               <div style={s.sectionHd}>📊 Histórico de Ações</div>
-              <span style={{ fontSize:12, color:"#555" }}>{filtradas.length} de {todas.length} · máx. 2000</span>
+              <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
+                <span style={{ fontSize:12, color:"#555" }}>{filtradas.length} de {todas.length} · máx. 500</span>
+                {todas.length > 0 && setHistoricoAcoes && (
+                  <>
+                    <button
+                      onClick={() => {
+                        if (!window.confirm(`⚠️ Apagar as entradas mais antigas?\n\nSerão mantidas apenas as 100 mais recentes das ${todas.length} existentes.`)) return;
+                        setHistoricoAcoes(p => p.slice(0, 100));
+                        registrarAcao?.(usuarioLogado.id, usuarioLogado.nome, "Limpou histórico de ações (manteve 100)", "", null, { modulo: "sistema" });
+                      }}
+                      style={{ ...s.btnGhost, fontSize:11, padding:"4px 12px", color:"#e67e22", borderColor:"#4a3a1a" }}>
+                      🧹 Manter últimas 100
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (!window.confirm(`⚠️ Apagar TODO o histórico de ações?\n\nEsta ação é IRREVERSÍVEL e não pode ser desfeita.`)) return;
+                        setHistoricoAcoes([]);
+                        registrarAcao?.(usuarioLogado.id, usuarioLogado.nome, "Apagou todo o histórico de ações", "", null, { modulo: "sistema" });
+                      }}
+                      style={{ ...s.btnGhost, fontSize:11, padding:"4px 12px", color:"#ff6b6b", borderColor:"#3a1a1a" }}>
+                      🗑️ Apagar tudo
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
+
+            {/* Auditoria de equipes/organizadores */}
+            {auditoria.length > 0 && (
+              <div style={{ background:"#0a0f0a", border:"1px solid #1a3a1a", borderRadius:8, padding:"10px 14px", marginBottom:14, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+                <span style={{ fontSize:12, color:"#7acc44" }}>
+                  📋 Auditoria de equipes/organizadores: <strong>{auditoria.length}</strong> entrada(s)
+                </span>
+                {setAuditoria && (
+                  <div style={{ display:"flex", gap:8 }}>
+                    <button
+                      onClick={() => {
+                        if (!window.confirm(`⚠️ Manter apenas as 100 entradas mais recentes da auditoria?`)) return;
+                        setAuditoria(p => p.slice(0, 100));
+                      }}
+                      style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px", color:"#e67e22", borderColor:"#4a3a1a" }}>
+                      🧹 Manter 100
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (!window.confirm(`⚠️ Apagar TODA a auditoria de equipes/organizadores?`)) return;
+                        setAuditoria([]);
+                      }}
+                      style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px", color:"#ff6b6b", borderColor:"#3a1a1a" }}>
+                      🗑️ Apagar tudo
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
             {todas.length === 0 ? (
               <div style={s.empty}>Nenhuma ação registrada.</div>
             ) : (

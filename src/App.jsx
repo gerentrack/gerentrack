@@ -141,7 +141,12 @@ function App() {
 
   const [usuarioLogado, setUsuarioLogado] = useLocalOnly("atl_usuario", null);
   const [temaClaro, setTemaClaro] = useLocalOnly("gt_tema_claro", false);
-  const [auditoria, setAuditoria] = useLocalOnly("atl_auditoria", []);
+  const [auditoria, _setAuditoria] = useLocalStorage("atl_auditoria", []);
+  // Wrapper com limite de 500 entradas — protege o documento Firestore de ultrapassar 1MB
+  const setAuditoria = (fn) => _setAuditoria(prev => {
+    const novo = typeof fn === "function" ? fn(prev) : fn;
+    return Array.isArray(novo) ? novo.slice(0, 500) : novo;
+  });
   // Organizadores: sem senha desde migração Auth — seguro sincronizar com Firestore
   const [organizadores, setOrganizadores] = useLocalStorage("atl_organizadores", []);
   // ⚠️ SEGURANÇA: useLocalOnly — CPFs sensíveis, não sincronizar
@@ -1211,7 +1216,7 @@ function App() {
         {tela === "sumulas"           && usuarioLogado && <TelaSumulas {...props} />}
         {tela === "resultados"        && <TelaResultados {...props} />}
         {tela === "recordes"          && <TelaRecordes {...props} />}
-        {tela === "admin"             && <TelaAdmin {...props} adminConfig={adminConfig} setAdminConfig={setAdminConfig} solicitacoesPortabilidade={solicitacoesPortabilidade} resolverSolicitacaoPortabilidade={resolverSolicitacaoPortabilidade} excluirSolicitacaoPortabilidade={excluirSolicitacaoPortabilidade} />}
+        {tela === "admin"             && <TelaAdmin {...props} adminConfig={adminConfig} setAdminConfig={setAdminConfig} solicitacoesPortabilidade={solicitacoesPortabilidade} resolverSolicitacaoPortabilidade={resolverSolicitacaoPortabilidade} excluirSolicitacaoPortabilidade={excluirSolicitacaoPortabilidade} setHistoricoAcoes={setHistoricoAcoes} setAuditoria={setAuditoria} auditoria={auditoria} />}
         {tela === "gerenciar-equipes" && <TelaGerenciarEquipes {...props} />}
         {tela === "gerenciar-usuarios" && <TelaGerenciarUsuarios {...props} />}
         {tela === "importar-atletas"  && <TelaImportarAtletas {...props} />}
