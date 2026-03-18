@@ -113,6 +113,7 @@ import { useInscricoes } from "./hooks/useInscricoes";
 import { useAtletas }    from "./hooks/useAtletas";
 import { useEquipes }    from "./hooks/useEquipes";
 import { useEventos }    from "./hooks/useEventos";
+import { useMedalhasChamada } from "./hooks/useMedalhasChamada";
 
 // ── Infraestrutura extraída — Etapa 1 ──────────────────────────────
 import { useLocalStorage } from "./lib/storage/useLocalStorage";
@@ -841,6 +842,10 @@ function App() {
     equipesRef,
   } = useEquipes();
 
+  // ── Câmara de Chamada / Medalhas via Firestore (tempo real) ──────────────
+  const eventoAtualIdForChamada = eventoAtual?.id || null;
+  const { chamada, getPresencaProva } = useMedalhasChamada(eventoAtualIdForChamada);
+
   // ── Atletas via Firestore ─────────────────────────────────────────────────
   const {
     atletas,
@@ -889,6 +894,57 @@ function App() {
     resetInscricoes,
     importarInscricoes,
   } = useInscricoes({ atletas, registrarAcao, usuarioLogado });
+
+  // ── Notificação à secretaria quando prova é concluída ────────────────────
+  // Colocado aqui pois depende de resultados, inscricoes e atletas (todos declarados acima)
+  const provasNotificadasRef = React.useRef(new Set());
+  React.useEffect(() => {
+    if (!eventoAtual || !inscricoes || !atletas || !resultados) return;
+    const eid = eventoAtual.id;
+    const STATUS_FINAL = ["DNS","DNF","DQ","NM"];
+    const inscsEvt = inscricoes.filter(i => i.eventoId === eid && i.tipo !== "revezamento" && !i.combinadaId);
+    const grupos = {};
+    inscsEvt.forEach(i => {
+      const atl = atletas.find(a => a.id === i.atletaId);
+      if (!atl) return;
+      const cat = getCategoria(atl.anoNasc, eventoAtual.data ? new Date(eventoAtual.data + "T12:00:00").getFullYear() : new Date().getFullYear());
+      if (!cat) return;
+      const key = `${i.provaId}_${cat.id}_${i.sexo || atl.sexo}`;
+      if (!grupos[key]) grupos[key] = { provaId: i.provaId, catId: cat.id, sexo: i.sexo || atl.sexo, atletaIds: new Set() };
+      grupos[key].atletaIds.add(i.atletaId);
+    });
+    Object.entries(grupos).forEach(([key, { provaId, catId, sexo, atletaIds }]) => {
+      if (provasNotificadasRef.current.has(`${eid}_${key}`)) return;
+      const fases = getFasesProva(provaId, eventoAtual.programaHorario || {});
+      const fasesCheck = fases.length > 0 ? fases : [null];
+      const faseFinal = fasesCheck[fasesCheck.length - 1];
+      const rKey = resKey(eid, provaId, catId, sexo, faseFinal);
+      const res = resultados[rKey];
+      if (!res) return;
+      const completa = [...atletaIds].every(aId => {
+        const r = res[aId];
+        if (!r) return false;
+        const marca = typeof r === "object" ? r.marca : r;
+        const status = typeof r === "object" ? (r.status || "") : "";
+        return marca != null || STATUS_FINAL.includes(String(status).toUpperCase()) || STATUS_FINAL.includes(String(marca).toUpperCase());
+      });
+      if (!completa) return;
+      provasNotificadasRef.current.add(`${eid}_${key}`);
+      const todasP = todasAsProvas();
+      const provaInfo = todasP.find(p => p.id === provaId);
+      const provaNome = provaInfo?.nome || provaId;
+      const catInfo = CATEGORIAS.find(c => c.id === catId);
+      const catNome = catInfo?.nome || catId;
+      const msg = `✅ Prova concluída: ${provaNome} — ${catNome} ${sexo === "M" ? "Masc" : "Fem"} — ${eventoAtual.nome}. Medalhas disponíveis para entrega.`;
+      const orgEvento = (organizadores || []).find(o => o.id === eventoAtual.organizadorId);
+      if (orgEvento) adicionarNotificacao(orgEvento.id, "medals_ready", msg);
+      (funcionarios || []).forEach(f => {
+        if (!(f.permissoes || []).includes("camara_chamada")) return;
+        if (f.organizadorId === eventoAtual.organizadorId || !f.organizadorId)
+          adicionarNotificacao(f.id, "medals_ready", msg);
+      });
+    });
+  }, [resultados, eventoAtual, inscricoes, atletas, organizadores, funcionarios]);
 
   const limparTodosDados = async () => {
     if (!await confirmar("⚠️ ATENÇÃO: Esta ação é IRREVERSÍVEL e EXTREMAMENTE DESTRUTIVA!\n\nVocê está prestes a APAGAR TODOS OS DADOS do sistema:\n\n• Todas as competições\n• Todos os atletas\n• Todas as equipes\n• Todos os organizadores\n• Todas as inscrições\n• Todos os resultados\n• Todos os recordes\n• Todas as pendências de recorde\n• Todo o histórico\n\n⚠️ AS CONTAS DE LOGIN (Firebase Auth) NÃO SERÃO APAGADAS.\nOs usuários ainda conseguirão fazer login, mas sem perfil no sistema.\nPara apagar as contas de login, acesse o Console do Firebase manualmente.\n\nEsta ação NÃO PODE SER DESFEITA.\n\nDeseja realmente continuar?")) return;
@@ -1304,11 +1360,16 @@ function App() {
             {tela === "gestao-inscricoes"&& <TelaGestaoInscricoes {...props} />}
             {tela === "inscricao-revezamento" && <TelaInscricaoRevezamento {...props} />}
             {tela === "config-pontuacao-equipes" && <TelaConfigPontuacaoEquipes {...props} />}
-            {tela === "secretaria"               && <TelaSecretaria {...props} />}
+            {tela === "secretaria" && (() => {
+              const tpU = usuarioLogado?.tipo;
+              const podeCamara = tpU === "admin" || tpU === "organizador" ||
+                (tpU === "funcionario" && (usuarioLogado?.permissoes || []).includes("camara_chamada"));
+              return podeCamara ? <TelaSecretaria {...props} /> : null;
+            })()}
           </>
         )}
 
-        {tela === "sumulas"           && usuarioLogado && <TelaSumulas {...props} />}
+        {tela === "sumulas"           && usuarioLogado && <TelaSumulas {...props} chamada={chamada} getPresencaProva={getPresencaProva} />}
         {tela === "resultados"        && <TelaResultados {...props} />}
         {tela === "recordes"          && <TelaRecordes {...props} />}
         {tela === "admin"             && <TelaAdmin {...props} adminConfig={adminConfig} setAdminConfig={setAdminConfig} solicitacoesPortabilidade={solicitacoesPortabilidade} resolverSolicitacaoPortabilidade={resolverSolicitacaoPortabilidade} excluirSolicitacaoPortabilidade={excluirSolicitacaoPortabilidade} setHistoricoAcoes={setHistoricoAcoes} setAuditoria={setAuditoria} auditoria={auditoria} />}

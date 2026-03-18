@@ -285,6 +285,12 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
         >
           🏅 MEDALHAS
         </button>
+        <button
+          style={{ ...styles.tab, ...(aba === "relatorio" ? styles.tabActive : {}) }}
+          onClick={() => setAba("relatorio")}
+        >
+          📊 RELATÓRIO
+        </button>
       </div>
 
       {/* ── ABA: CÂMARA DE CHAMADA ─────────────────────────────────────────── */}
@@ -565,6 +571,115 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
           })}
         </>
       )}
+
+      {/* ── ABA: RELATÓRIO ───────────────────────────────────────────────────── */}
+      {aba === "relatorio" && (() => {
+        // Calcular totais de medalhas por tipo
+        const totais = { ouro: 0, prata: 0, bronze: 0, participacao: 0, pendentes: 0 };
+        const porEquipe = {};
+
+        provasFiltradasMedalhas.forEach(({ prova, cat, sexo, atletas: atls }) => {
+          const classificados = getClassificados(prova, cat, sexo);
+          const temRes = classificados.length > 0;
+
+          const atletasOrdenados = temRes
+            ? [
+                ...classificados.map(({ aId }, idx) => ({ aId, tipo: getTipoMedalha(idx + 1) })),
+                ...atls.filter(a => !classificados.some(c => c.aId === a.id)).map(a => ({ aId: a.id, tipo: "participacao" })),
+              ]
+            : atls.map(a => ({ aId: a.id, tipo: "participacao" }));
+
+          atletasOrdenados.forEach(({ aId, tipo }) => {
+            if (!tipo) return;
+            const medalha = getMedalha(prova.id, cat.id, sexo, aId);
+            const atl = atletas.find(a => a.id === aId);
+            const equipe = atl?.clube || "Sem equipe";
+
+            if (medalha.entregue) {
+              totais[tipo] = (totais[tipo] || 0) + 1;
+              if (!porEquipe[equipe]) porEquipe[equipe] = { ouro: 0, prata: 0, bronze: 0, participacao: 0 };
+              porEquipe[equipe][tipo] = (porEquipe[equipe][tipo] || 0) + 1;
+            } else {
+              totais.pendentes++;
+            }
+          });
+        });
+
+        const totalEntregues = totais.ouro + totais.prata + totais.bronze + totais.participacao;
+        const totalGeral = totalEntregues + totais.pendentes;
+
+        return (
+          <>
+            {/* Cards de totais */}
+            <div style={{ display: "flex", gap: 12, marginBottom: 28, flexWrap: "wrap" }}>
+              {[
+                { tipo: "ouro",         label: "Ouro",         emoji: "🥇", cor: "#FFD700" },
+                { tipo: "prata",        label: "Prata",        emoji: "🥈", cor: "#C0C0C0" },
+                { tipo: "bronze",       label: "Bronze",       emoji: "🥉", cor: "#CD7F32" },
+                { tipo: "participacao", label: "Participação", emoji: "🎖️", cor: "#888"    },
+              ].map(({ tipo, label, emoji, cor }) => (
+                <div key={tipo} style={{ background: "#0E1016", border: `1px solid ${cor}33`, borderRadius: 12, padding: "16px 24px", textAlign: "center", minWidth: 110 }}>
+                  <div style={{ fontSize: 28, marginBottom: 4 }}>{emoji}</div>
+                  <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 900, color: cor, lineHeight: 1 }}>{totais[tipo]}</div>
+                  <div style={{ fontSize: 11, color: "#555", marginTop: 4, textTransform: "uppercase", letterSpacing: 1 }}>{label}</div>
+                </div>
+              ))}
+              <div style={{ background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: "16px 24px", textAlign: "center", minWidth: 110 }}>
+                <div style={{ fontSize: 28, marginBottom: 4 }}>⏳</div>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 900, color: "#ff6b6b", lineHeight: 1 }}>{totais.pendentes}</div>
+                <div style={{ fontSize: 11, color: "#555", marginTop: 4, textTransform: "uppercase", letterSpacing: 1 }}>Pendentes</div>
+              </div>
+              <div style={{ background: "#0E1016", border: "1px solid #2a6a2a", borderRadius: 12, padding: "16px 24px", textAlign: "center", minWidth: 110, alignSelf: "center" }}>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 700, color: "#7acc44", letterSpacing: 1, marginBottom: 6 }}>TOTAL ENTREGUES</div>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 900, color: "#7acc44", lineHeight: 1 }}>{totalEntregues}<span style={{ fontSize: 16, color: "#444" }}>/{totalGeral}</span></div>
+                <div style={{ fontSize: 11, color: "#555", marginTop: 4 }}>{totalGeral > 0 ? Math.round(totalEntregues / totalGeral * 100) : 0}% concluído</div>
+              </div>
+            </div>
+
+            {/* Tabela por equipe */}
+            {Object.keys(porEquipe).length > 0 && (
+              <div style={styles.card}>
+                <div style={styles.cardHead}>
+                  <span style={styles.cardTitle}>Medalhas por Equipe / Clube</span>
+                </div>
+                <table style={styles.table}>
+                  <thead>
+                    <tr>
+                      <th style={styles.th}>Equipe / Clube</th>
+                      <th style={{ ...styles.th, textAlign: "center", width: 80 }}>🥇</th>
+                      <th style={{ ...styles.th, textAlign: "center", width: 80 }}>🥈</th>
+                      <th style={{ ...styles.th, textAlign: "center", width: 80 }}>🥉</th>
+                      <th style={{ ...styles.th, textAlign: "center", width: 100 }}>🎖️</th>
+                      <th style={{ ...styles.th, textAlign: "center", width: 80 }}>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(porEquipe)
+                      .sort((a, b) => (b[1].ouro - a[1].ouro) || (b[1].prata - a[1].prata) || (b[1].bronze - a[1].bronze))
+                      .map(([equipe, dados]) => {
+                        const total = dados.ouro + dados.prata + dados.bronze + dados.participacao;
+                        return (
+                          <tr key={equipe} style={{ background: dados.ouro > 0 ? "#1a170a" : undefined }}>
+                            <td style={{ ...styles.td, fontWeight: 600, color: "#fff" }}>{equipe}</td>
+                            <td style={{ ...styles.td, textAlign: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: "#FFD700" }}>{dados.ouro || "—"}</td>
+                            <td style={{ ...styles.td, textAlign: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: "#C0C0C0" }}>{dados.prata || "—"}</td>
+                            <td style={{ ...styles.td, textAlign: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: "#CD7F32" }}>{dados.bronze || "—"}</td>
+                            <td style={{ ...styles.td, textAlign: "center", color: "#888" }}>{dados.participacao || "—"}</td>
+                            <td style={{ ...styles.td, textAlign: "center", fontWeight: 700, color: "#aaa" }}>{total}</td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {totalGeral === 0 && (
+              <div style={styles.empty}>Nenhuma medalha registrada ainda.</div>
+            )}
+          </>
+        );
+      })()}
     </div>
   );
 }

@@ -34,7 +34,7 @@ const getExibicaoEquipe = (atleta, equipes) => {
   return atleta?.clube || "—";
 };
 
-function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual, resultados, registrarAcao, numeracaoPeito, getClubeAtleta, equipes, editarEvento, alterarStatusEvento, recordes }) {
+function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual, resultados, registrarAcao, numeracaoPeito, getClubeAtleta, equipes, editarEvento, alterarStatusEvento, recordes, chamada, getPresencaProva }) {
   const [filtroProva, setFiltroProva] = useState("todas");
   const [filtroCat, setFiltroCat] = useState("todas");
   const [filtroSexo, setFiltroSexo] = useState("todos");
@@ -1349,6 +1349,21 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                         ? `${(s.equipesRevez||[]).length} equipe(s)`
                         : `${s.atletas.length} atleta(s)`}
                     </span>
+                    {/* Badge câmara de chamada */}
+                    {!s.isRevezamento && getPresencaProva && (() => {
+                      const presenca = getPresencaProva(s.prova.id, s.categoria.id, s.sexo);
+                      const confirmados = Object.values(presenca).filter(v => v === "confirmado").length;
+                      const presentes   = Object.values(presenca).filter(v => v === "presente").length;
+                      const total = s.atletas.length;
+                      if (confirmados === 0 && presentes === 0) return null;
+                      const cor = confirmados === total ? "#7acc44" : "#1976D2";
+                      return (
+                        <span style={{ fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:700,
+                          background: cor + "18", color: cor, border: `1px solid ${cor}44` }}>
+                          📋 {confirmados > 0 ? `${confirmados} conf.` : ""}{presentes > 0 ? `${confirmados > 0 ? " · " : ""}${presentes} pres.` : ""}
+                        </span>
+                      );
+                    })()}
                     {s.isRevezamento && (
                       <span style={{ fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:600, background:"#1a1a2a", color:"#88aaff", border:"1px solid #2a2a6a" }}>
                         🏃‍♂️ Revezamento ({nPernasRevezamento(s.prova)} pernas)
