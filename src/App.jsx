@@ -111,6 +111,7 @@ import { useResultados } from "./hooks/useResultados";
 import { useInscricoes } from "./hooks/useInscricoes";
 import { useAtletas }    from "./hooks/useAtletas";
 import { useEquipes }    from "./hooks/useEquipes";
+import { useEventos }    from "./hooks/useEventos";
 
 // ── Infraestrutura extraída — Etapa 1 ──────────────────────────────
 import { useLocalStorage } from "./lib/storage/useLocalStorage";
@@ -163,7 +164,7 @@ function App() {
   const [solicitacoesPortabilidade, setSolicitacoesPortabilidade] = useLocalStorage("atl_portabilidade", []);
 
   // Multi-evento: cada evento tem { id, nome, data, local, permissividadeNorma, provasPrograma: Set de provaIds }
-  const [eventos, setEventos] = useLocalStorage("atl_eventos", []);
+  // atl_eventos migrado para coleção Firestore própria via useEventos (ver abaixo)
   const [recordes, setRecordes] = useLocalStorage("atl_recordes", []);
   const [pendenciasRecorde, setPendenciasRecorde] = useLocalStorage("atl_pendencias_recorde", []);
   const [historicoRecordes, setHistoricoRecordes] = useLocalStorage("atl_historico_recordes", []);
@@ -187,8 +188,6 @@ function App() {
   const gtLogo = siteBranding.logo || GT_DEFAULT_LOGO;
   const gtNome = siteBranding.nome || "GERENTRACK";
   const gtSlogan = siteBranding.slogan || "COMPETIÇÃO COM PRECISÃO";
-
-  const eventoAtual = eventos.find((e) => e.id === eventoAtualId) || null;
 
   // ── Multi-Organizador: perfis disponíveis após login ──
   const [perfisDisponiveis, setPerfisDisponiveis] = useLocalOnly("atl_perfis_disponiveis", []);
@@ -216,6 +215,22 @@ function App() {
       localStorage.removeItem("gerentrack_admin_senha");
     }
   }, []);
+
+  // ── Eventos via Firestore ─────────────────────────────────────────────────
+  // Instanciado antes dos useCallback/useEffect que dependem de `eventos`
+  const {
+    eventos,
+    eventosRef,
+    _adicionarEvento,
+    _editarEvento,
+    _atualizarCamposEvento,
+    _atualizarEventosEmLote,
+    excluirEventoPorId,
+    resetEventos,
+    importarEventos,
+  } = useEventos();
+
+  const eventoAtual = eventos.find((e) => e.id === eventoAtualId) || null;
 
   // ── Hash-based routing ──
   const eventoAtualIdRef = useRef(eventoAtualId);
@@ -578,17 +593,15 @@ function App() {
   };
   const aprovarEvento       = (id) => {
     const hoje = new Date().toISOString().slice(0, 10);
-    setEventos((p) => p.map(e => {
-      if (e.id !== id) return e;
-      const aindaNaoAbriu = e.dataAberturaInscricoes && hoje < e.dataAberturaInscricoes;
-      return { ...e, statusAprovacao: "aprovado", inscricoesEncerradas: aindaNaoAbriu ? true : false };
-    }));
-    const ev = eventos.find(e => e.id === id);
+    const ev = eventosRef.current.find(e => e.id === id);
+    if (!ev) return;
+    const aindaNaoAbriu = ev.dataAberturaInscricoes && hoje < ev.dataAberturaInscricoes;
+    _atualizarCamposEvento(id, { statusAprovacao: "aprovado", inscricoesEncerradas: aindaNaoAbriu ? true : false });
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Aprovou competição", ev?.nome || id, null, { modulo: "sistema" });
   };
   const recusarEvento       = (id) => {
-    setEventos((p) => p.map(e => e.id===id ? {...e, statusAprovacao:"recusado"} : e));
-    const ev = eventos.find(e => e.id === id);
+    _atualizarCamposEvento(id, { statusAprovacao: "recusado" });
+    const ev = eventosRef.current.find(e => e.id === id);
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Recusou competição", ev?.nome || id, null, { modulo: "sistema" });
   };
   const adicionarAtletaUsuario = (u) => setAtletasUsuarios((p) => [...p, u]);
@@ -739,7 +752,7 @@ function App() {
       statusAprovacao: orgPendente ? "pendente" : "aprovado",
       inscricoesEncerradas: orgPendente || temAberturaFutura ? true : (ev.inscricoesEncerradas ?? false),
     };
-    setEventos((p) => [...p, novo]);
+    _adicionarEvento(novo);
     const usr = usuarioLogadoParam || usuarioLogado;
     if (usr) registrarAcao(usr.id, usr.nome, "Criou competição", ev.nome || "", orgPendente ? usr.id : null, { equipeId: usr.equipeId, modulo: "competicoes" });
     return novo;
@@ -757,10 +770,10 @@ function App() {
         .slice(0, 60);
       const ano = ev.data ? ev.data.slice(0, 4) : new Date().getFullYear();
       const slugBase = `${base}-${ano}`;
-      const jaExiste = eventos.some(e => e.slug === slugBase && e.id !== ev.id);
+      const jaExiste = eventosRef.current.some(e => e.slug === slugBase && e.id !== ev.id);
       ev = { ...ev, slug: jaExiste ? `${slugBase}-${ev.id.slice(-4)}` : slugBase };
     }
-    setEventos((p) => p.map((e) => e.id === ev.id ? ev : e));
+    _editarEvento(ev);
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Editou competição", ev.nome || "", usuarioLogado.organizadorId || usuarioLogado.id, { equipeId: usuarioLogado.equipeId, modulo: "competicoes" });
   };
 
@@ -841,7 +854,7 @@ function App() {
     setAuditoria([]);
     resetEquipes();
     resetAtletas();
-    setEventos([]);
+    await resetEventos();
     setEventoAtualId(null);
     resetInscricoes();
     resetResultados();
@@ -863,6 +876,7 @@ function App() {
       solicitacoesRecuperacao, historicoAcoes,
       recordes, pendenciasRecorde, historicoRecordes,
       auditoria, solicitacoesVinculo, notificacoes,
+      solicitacoesPortabilidade,
       siteBranding, perfisDisponiveis,
       adminConfig,
     };
@@ -902,7 +916,7 @@ function App() {
         if (dados.funcionarios)            setFuncionarios(dados.funcionarios);
         if (dados.treinadores)             setTreinadores(dados.treinadores);
         if (dados.atletas)                 await importarAtletas(dados.atletas);
-        if (dados.eventos)                 setEventos(dados.eventos);
+        if (dados.eventos)                 await importarEventos(dados.eventos);
         if (dados.inscricoes)              await importarInscricoes(dados.inscricoes);
         if (dados.resultados)              await importarResultados(dados.resultados);
         if (dados.numeracaoPeito)          setNumeracaoPeito(dados.numeracaoPeito);
@@ -914,6 +928,7 @@ function App() {
         if (dados.auditoria)               setAuditoria(dados.auditoria);
         if (dados.solicitacoesVinculo)     setSolicitacoesVinculo(dados.solicitacoesVinculo);
         if (dados.notificacoes)            setNotificacoes(dados.notificacoes);
+        if (dados.solicitacoesPortabilidade) setSolicitacoesPortabilidade(dados.solicitacoesPortabilidade);
         if (dados.siteBranding)            setSiteBranding(dados.siteBranding);
         if (dados.perfisDisponiveis)       setPerfisDisponiveis(dados.perfisDisponiveis);
         if (dados.adminConfig) {
@@ -931,8 +946,8 @@ function App() {
 
 
   const alterarStatusEvento = (id, campos) => {
-    setEventos((p) => p.map((e) => e.id === id ? { ...e, ...campos } : e));
-    const nomeEv = eventos.find(e => e.id === id)?.nome || "";
+    _atualizarCamposEvento(id, campos);
+    const nomeEv = eventosRef.current.find(e => e.id === id)?.nome || "";
     const detalhe = campos.competicaoFinalizada === true
       ? `${nomeEv} — Finalizou competição`
       : campos.competicaoFinalizada === false
@@ -948,42 +963,32 @@ function App() {
   // ── Auto-gestão de inscrições por data ─────────────────────────────────────
   useEffect(() => {
     const hoje = new Date().toISOString().slice(0, 10);
-    setEventos(prev => {
-      let mudou = false;
-      const atualizados = prev.map(ev => {
-        if (ev.statusAprovacao && ev.statusAprovacao !== "aprovado") return ev;
-        let novo = ev;
-        // Auto-abrir: chegou na data+hora de abertura, inscrições estavam encerradas (não manualmente)
-        const dtAbEv = _dtInscricoes(ev.dataAberturaInscricoes, ev.horaAberturaInscricoes);
-        const dtEncEv = _dtInscricoes(ev.dataEncerramentoInscricoes, ev.horaEncerramentoInscricoes);
-        const agora = new Date();
-        if (dtAbEv && agora >= dtAbEv
-            && ev.inscricoesEncerradas && !ev.inscricoesForceEncerradas) {
-          novo = { ...novo, inscricoesEncerradas: false };
-          mudou = true;
-        }
-        // Auto-encerrar: passou da data+hora de encerramento
-        if (dtEncEv && agora > dtEncEv
-            && !ev.inscricoesEncerradas) {
-          novo = { ...novo, inscricoesEncerradas: true };
-          mudou = true;
-        }
-        // Antes da data+hora de abertura: manter encerradas (competição futura)
-        if (dtAbEv && agora < dtAbEv
-            && !ev.inscricoesEncerradas && !ev.inscricoesForceAbertas) {
-          novo = { ...novo, inscricoesEncerradas: true };
-          mudou = true;
-        }
-        return novo;
-      });
-      return mudou ? atualizados : prev;
+    const agora = new Date();
+    const atualizados = [];
+    eventosRef.current.forEach(ev => {
+      if (ev.statusAprovacao && ev.statusAprovacao !== "aprovado") return;
+      const dtAbEv  = _dtInscricoes(ev.dataAberturaInscricoes,    ev.horaAberturaInscricoes);
+      const dtEncEv = _dtInscricoes(ev.dataEncerramentoInscricoes, ev.horaEncerramentoInscricoes);
+      let novo = ev;
+      // Auto-abrir
+      if (dtAbEv && agora >= dtAbEv && ev.inscricoesEncerradas && !ev.inscricoesForceEncerradas)
+        novo = { ...novo, inscricoesEncerradas: false };
+      // Auto-encerrar
+      if (dtEncEv && agora > dtEncEv && !novo.inscricoesEncerradas)
+        novo = { ...novo, inscricoesEncerradas: true };
+      // Antes da abertura
+      if (dtAbEv && agora < dtAbEv && !novo.inscricoesEncerradas && !novo.inscricoesForceAbertas)
+        novo = { ...novo, inscricoesEncerradas: true };
+      if (novo !== ev) atualizados.push(novo);
     });
+    if (atualizados.length > 0) _atualizarEventosEmLote(atualizados);
   }, [eventos.length]); // roda ao montar e quando nº de eventos muda
+
   const excluirEvento = async (id) => {
-    const evento = eventos.find(e => e.id === id);
+    const evento = eventosRef.current.find(e => e.id === id);
     const nomeEvento = evento?.nome || "esta competição";
     const nInscs = inscricoes.filter(i => i.eventoId === id).length;
-    
+
     const msg = `⚠️ ATENÇÃO: Esta ação é IRREVERSÍVEL!\n\n` +
       `Você está prestes a excluir "${nomeEvento}".\n\n` +
       `Isso também excluirá:\n` +
@@ -991,10 +996,10 @@ function App() {
       `• Todos os resultados desta competição\n` +
       `• Todas as súmulas\n\n` +
       `Deseja realmente continuar?`;
-    
+
     if (!await confirmar(msg)) return;
-    
-    setEventos((p) => p.filter((e) => e.id !== id));
+
+    excluirEventoPorId(id);
     excluirInscricoesPorEvento(id);
     if (eventoAtualId === id) setEventoAtualId(null);
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Excluiu competição", `${nomeEvento} (${nInscs} inscrições removidas)`, usuarioLogado.organizadorId || usuarioLogado.id, { equipeId: usuarioLogado.equipeId, modulo: "competicoes" });
