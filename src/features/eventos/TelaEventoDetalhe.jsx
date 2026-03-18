@@ -866,6 +866,8 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                   <button onClick={async () => {
                     const dataEvt = new Date(eventoAtual.data + "T12:00:00").toLocaleDateString("pt-BR", { weekday:"long", day:"2-digit", month:"long", year:"numeric" });
                     const logoComp = eventoAtual.logoCompeticao || "";
+                    const logoCabEsq = eventoAtual.logoCabecalho || eventoAtual.logoCompeticao || "";
+                    const logoCabDir = eventoAtual.logoCabecalhoDireito || "";
                     const logoRod  = eventoAtual.logoRodape || "";
                     const thPrint  = `<tr><th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;font-size:10px;color:#555;font-weight:700;width:55px">Horário</th><th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;font-size:10px;color:#555;font-weight:700">Prova</th><th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;font-size:10px;color:#555;font-weight:700;width:70px">Sexo</th><th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;font-size:10px;color:#555;font-weight:700">Categorias</th><th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;font-size:10px;color:#555;font-weight:700">Fase</th></tr>`;
                     const pausaPrint = temPausa ? `<tr><td colspan="5" style="padding:10px;text-align:center;background:#f0f0f0;border-bottom:1px solid #ddd"><strong style="color:#b88a00">⏸️ ${pausaDesc || "Intervalo"}</strong><span style="color:#666;margin-left:8px;font-size:11px">${pausaHorario}${pausaRetorno ? " — " + pausaRetorno : ""}</span></td></tr>` : "";
@@ -896,11 +898,12 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                     </style></head><body>
                     <div class="page">
                       <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;border-bottom:3px solid #1976D2;padding-bottom:10px">
-                        ${logoComp ? `<img src="${logoComp}" style="max-height:60px;max-width:120px;object-fit:contain"/>` : ""}
-                        <div style="flex:1">
+                        ${logoCabEsq ? `<img src="${logoCabEsq}" style="max-height:60px;max-width:120px;object-fit:contain;flex-shrink:0"/>` : ""}
+                        <div style="flex:1;min-width:0">
                           <div style="font-size:18px;font-weight:800;color:#111">${eventoAtual.nome}</div>
                           <div style="font-size:11px;color:#666;margin-top:2px">📅 ${dataEvt} · 📍 ${_getLocalEventoDisplay(eventoAtual)}</div>
                         </div>
+                        ${logoCabDir ? `<img src="${logoCabDir}" style="max-height:60px;max-width:120px;object-fit:contain;flex-shrink:0"/>` : ""}
                       </div>
                       <div style="text-align:center;font-size:15px;font-weight:800;color:#333;margin:10px 0 14px;letter-spacing:1px">🕐 PROGRAMA HORÁRIO</div>
                       <table><thead>${thPrint}</thead><tbody>${tableBody}</tbody></table>
