@@ -843,7 +843,7 @@ function App() {
   } = useEquipes();
 
   // ── Câmara de Chamada / Medalhas via Firestore (tempo real) ──────────────
-  const eventoAtualIdForChamada = eventoAtual?.id || null;
+  const eventoAtualIdForChamada = usuarioLogado ? (eventoAtual?.id || null) : null;
   const { chamada, getPresencaProva } = useMedalhasChamada(eventoAtualIdForChamada);
 
   // ── Atletas via Firestore ─────────────────────────────────────────────────
