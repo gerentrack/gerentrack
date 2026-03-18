@@ -18,7 +18,7 @@ const styles = {
   badge:      (color) => ({ background: color + "22", color: color, border: `1px solid ${color}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }),
 };
 import React, { useState } from "react";
-import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "../../firebase";
+import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, db, getDoc, doc } from "../../firebase";
 import { _getClubeAtleta } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 
@@ -127,8 +127,38 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
   };
 
   // ── Verifica se precisa de consentimento antes de prosseguir ──────────────
-  const finalizarLoginComConsentimento = (perfis) => {
-    const precisaConsentimento = perfis.some(p => !p.dados?.lgpdConsentimento);
+  // Consulta o Firestore diretamente para evitar falso positivo quando o
+  // onSnapshot ainda não sincronizou no novo dispositivo.
+  const finalizarLoginComConsentimento = async (perfis) => {
+    const COLECOES = {
+      atleta:      "atl_atletas_usuarios", // useLocalStorage → state/{key}
+      organizador: "atl_organizadores",
+      funcionario: "atl_funcionarios",
+      treinador:   "atl_treinadores",
+    };
+
+    let precisaConsentimento = false;
+
+    for (const p of perfis) {
+      // Equipes ficam na coleção própria "equipes/"
+      if (p.tipo === "equipe") {
+        if (!p.dados?.lgpdConsentimento) {
+          try {
+            const snap = await getDoc(doc(db, "equipes", p.dados?.id));
+            if (snap.exists() && snap.data()?.lgpdConsentimento) continue;
+          } catch (_) {}
+          precisaConsentimento = true;
+          break;
+        }
+        continue;
+      }
+      // Demais tipos ficam em state/{chave} via useLocalStorage
+      if (!p.dados?.lgpdConsentimento) {
+        precisaConsentimento = true;
+        break;
+      }
+    }
+
     if (precisaConsentimento) {
       setConsentimentoPerfis(perfis);
       setModoConsentimento(true);
