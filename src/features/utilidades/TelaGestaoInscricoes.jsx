@@ -739,7 +739,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
   const [marcarComoPago, setMarcarComoPago] = useState(false);
 
   // ── Bloco HTML base de 1 recibo ───────────────────────────────────────────
-  const _blocoRecibo = ({ titulo, pagador, atletasLista, org, dataEmissao, assinatura }) => {
+  const _blocoRecibo = ({ titulo, pagador, atletasLista, org, dataEmissao, assinatura, isEquipe = false }) => {
     const temPrecoConfig = !!(eventoAtual.regrasPreco?.length > 0 || eventoAtual.valorInscricao);
     const total = atletasLista.reduce((s, { precoInfo }) => s + (precoInfo?.preco || 0), 0);
     const logoEsq   = eventoAtual.logoCabecalho       || "";
@@ -748,24 +748,31 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
 
     const linhas = atletasLista.map(({ atl, inscs, peito, cat, precoInfo }) => {
       const provas = inscs.filter(i => !i.combinadaId).map(i =>
-        `<span style="display:inline-block;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:3px;padding:1px 6px;font-size:10px;margin:1px 2px;">${todasAsProvas().find(p => p.id === i.provaId)?.nome || i.provaId}</span>`
+        `<span style="display:inline-block;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:3px;padding:1px 6px;font-size:${isEquipe ? "8px" : "10px"};margin:1px 2px;white-space:nowrap;">${todasAsProvas().find(p => p.id === i.provaId)?.nome || i.provaId}</span>`
       ).join("");
       const valor = precoInfo?.preco != null
         ? `<strong style="color:#1a6b1a;">${formatarPreco(precoInfo.preco)}</strong>`
         : `<span style="color:#999;font-style:italic;">Gratuito</span>`;
+      const nomeStyle = isEquipe
+        ? "padding:5px 8px;border-bottom:1px solid #eee;font-weight:600;font-size:10px;"
+        : "padding:7px 10px;border-bottom:1px solid #eee;font-weight:600;";
+      const provasStyle = isEquipe
+        ? "padding:5px 8px;border-bottom:1px solid #eee;white-space:nowrap;overflow:hidden;max-width:200px;"
+        : "padding:7px 10px;border-bottom:1px solid #eee;";
       return `<tr>
-        <td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:#555;">${peito || "—"}</td>
-        <td style="padding:7px 10px;border-bottom:1px solid #eee;color:#888;font-size:11px;">${_getCbat(atl) || "—"}</td>
-        <td style="padding:7px 10px;border-bottom:1px solid #eee;font-weight:600;">${atl?.nome || "—"}</td>
-        <td style="padding:7px 10px;border-bottom:1px solid #eee;color:#555;">${cat?.nome || "—"}</td>
-        <td style="padding:7px 10px;border-bottom:1px solid #eee;">${provas}</td>
-        <td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:right;">${valor}</td>
+        <td style="padding:${isEquipe?"5px 6px":"6px 6px"};border-bottom:1px solid #eee;text-align:center;font-weight:700;color:#555;white-space:nowrap;">${peito || "—"}</td>
+        <td style="padding:${isEquipe?"5px 6px":"6px 6px"};border-bottom:1px solid #eee;color:#888;font-size:${isEquipe?"9px":"10px"};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${_getCbat(atl) || "—"}</td>
+        <td style="padding:${isEquipe?"5px 6px":"6px 6px"};border-bottom:1px solid #eee;font-weight:600;font-size:${isEquipe?"10px":"11px"};overflow:hidden;">${atl?.nome || "—"}</td>
+        <td style="padding:${isEquipe?"5px 6px":"6px 6px"};border-bottom:1px solid #eee;color:#555;font-size:${isEquipe?"9px":"10px"};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${cat?.nome || "—"}</td>
+        <td style="padding:${isEquipe?"5px 4px":"6px 4px"};border-bottom:1px solid #eee;text-align:center;font-size:${isEquipe?"9px":"10px"};color:#555;white-space:nowrap;">${atl?.sexo === "M" ? "M" : atl?.sexo === "F" ? "F" : "—"}</td>
+        <td style="padding:${isEquipe?"5px 6px":"6px 6px"};border-bottom:1px solid #eee;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${provas}</td>
+        <td style="padding:${isEquipe?"5px 6px":"6px 6px"};border-bottom:1px solid #eee;text-align:right;white-space:nowrap;">${valor}</td>
       </tr>`;
     }).join("");
 
     const totalRow = temPrecoConfig && total > 0 ? `<tr style="background:#f1f8e9;">
-      <td colspan="5" style="padding:10px;font-weight:700;text-align:right;border-top:2px solid #a5d6a7;">TOTAL</td>
-      <td style="padding:10px;font-size:18px;font-weight:900;color:#1a6b1a;text-align:right;border-top:2px solid #a5d6a7;">${formatarPreco(total)}</td>
+      <td colspan="6" style="padding:8px 6px;font-weight:700;text-align:right;border-top:2px solid #a5d6a7;font-size:11px;">TOTAL</td>
+      <td style="padding:8px 6px;font-size:12px;font-weight:900;color:#1a6b1a;text-align:right;border-top:2px solid #a5d6a7;white-space:nowrap;">${formatarPreco(total)}</td>
     </tr>` : "";
 
     const pagSection = temPrecoConfig && (eventoAtual.formaPagamento || eventoAtual.orientacaoPagamento) ? `
@@ -776,24 +783,28 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
       </div>` : "";
 
     const recebiBloco = temPrecoConfig && total > 0 ? `
-      <div style="margin-top:24px;border:1.5px solid #333;border-radius:6px;padding:18px 20px;">
+      <div style="margin-top:20px;border:1.5px solid #333;border-radius:6px;padding:16px 20px;">
         <div style="font-size:11px;font-weight:700;color:#111;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">RECIBO</div>
-        <div style="font-size:13px;color:#111;line-height:2.2;">
-          Recebi de <strong>${pagador}</strong> a importância de
-          <strong style="font-size:17px;color:#1a6b1a;margin:0 5px;">${formatarPreco(total)}</strong>
+        <div style="font-size:13px;color:#111;line-height:1.9;">
+          Recebemos de <strong>${pagador}</strong> a importância de
+          <strong style="font-size:16px;color:#1a6b1a;margin:0 5px;">${formatarPreco(total)}</strong>
           referente à(s) inscrição(ões) na competição
-          <strong>${eventoAtual.nome}</strong>${eventoAtual.data ? `, realizada em ${new Date(eventoAtual.data + "T12:00:00").toLocaleDateString("pt-BR")}` : ""}.
+          <strong>${eventoAtual.nome}</strong>${eventoAtual.data ? `, realizada em ${new Date(eventoAtual.data + "T12:00:00").toLocaleDateString("pt-BR")}` : ""}${eventoAtual.cidade ? `, em ${eventoAtual.cidade}${eventoAtual.estado ? "/" + eventoAtual.estado : ""}` : ""}.
         </div>
-        <div style="margin-top:28px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:20px;">
-          <div style="font-size:10px;color:#555;">${eventoAtual.cidade || ""}${eventoAtual.estado ? "/" + eventoAtual.estado : ""}, ${dataEmissao}</div>
-        </div>
+        ${org ? `<div style="margin-top:12px;padding-top:10px;border-top:1px solid #eee;font-size:10px;color:#555;line-height:1.7;">
+          <strong style="color:#333;">${org.entidade || org.nome || ""}</strong>
+          ${org.cnpj ? ` &nbsp;·&nbsp; CNPJ: ${org.cnpj}` : ""}
+          ${org.email ? ` &nbsp;·&nbsp; ${org.email}` : ""}
+          ${org.fone ? ` &nbsp;·&nbsp; ${org.fone}` : ""}
+        </div>` : ""}
+        <div style="margin-top:14px;font-size:10px;color:#777;">${eventoAtual.cidade || ""}${eventoAtual.estado ? "/" + eventoAtual.estado : ""}, ${dataEmissao}</div>
       </div>` : "";
 
     // ── Cabeçalho com logos ──
     const cabecalho = `
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:12px;border-bottom:2px solid #1b5e20;gap:12px;">
+      <div class="cab-recibo" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:12px;border-bottom:2px solid #1b5e20;gap:12px;">
         <div style="display:flex;align-items:center;gap:14px;">
-          ${logoEsq ? `<img src="${logoEsq}" alt="Logo" style="max-height:56px;max-width:120px;object-fit:contain;" />` : ""}
+          ${logoEsq ? `<img src="${logoEsq}" alt="Logo" />` : ""}
           <div>
             <div style="font-size:9px;font-weight:700;color:#1b5e20;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;">${titulo}</div>
             <div style="font-size:17px;font-weight:700;color:#111;margin-bottom:2px;">${eventoAtual.nome}</div>
@@ -804,14 +815,10 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:12px;">
-          <div style="text-align:right;font-size:10px;color:#666;">
-            ${org ? `<div style="font-weight:700;font-size:12px;color:#111;">${org.entidade || org.nome || ""}</div>
-            ${org.cnpj ? `<div>CNPJ: ${org.cnpj}</div>` : ""}
-            ${org.email ? `<div>${org.email}</div>` : ""}
-            ${org.fone ? `<div>${org.fone}</div>` : ""}` : ""}
-            <div style="margin-top:3px;color:#aaa;">Emitido em ${dataEmissao}</div>
+          <div style="text-align:right;font-size:10px;color:#aaa;">
+            <div>Emitido em ${dataEmissao}</div>
           </div>
-          ${logoDir ? `<img src="${logoDir}" alt="Logo Org" style="max-height:56px;max-width:100px;object-fit:contain;" />` : ""}
+          ${logoDir ? `<img src="${logoDir}" alt="Logo Org" />` : ""}
         </div>
       </div>`;
 
@@ -836,14 +843,24 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
     return `
       <div class="recibo-conteudo">
         ${cabecalho}
-        <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:0;">
+        <table style="width:100%;border-collapse:collapse;font-size:${isEquipe?"11px":"12px"};margin-bottom:0;table-layout:fixed;">
+          <colgroup>
+            <col style="width:44px"/>
+            <col style="width:60px"/>
+            <col style="width:${isEquipe?"170px":"200px"}"/>
+            <col style="width:54px"/>
+            <col style="width:28px"/>
+            <col/>
+            <col style="width:70px"/>
+          </colgroup>
           <thead><tr style="background:#1b5e20;">
-            <th style="padding:7px 10px;text-align:center;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;width:60px;">Nº Peito</th>
-            <th style="padding:7px 10px;text-align:left;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;width:80px;">CBAt</th>
-            <th style="padding:7px 10px;text-align:left;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;">Atleta</th>
-            <th style="padding:7px 10px;text-align:left;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;">Categoria</th>
-            <th style="padding:7px 10px;text-align:left;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;">Provas</th>
-            <th style="padding:7px 10px;text-align:right;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;">Valor</th>
+            <th style="padding:6px 6px;text-align:center;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;">Nº Peito</th>
+            <th style="padding:6px 6px;text-align:left;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;">CBAt</th>
+            <th style="padding:6px 6px;text-align:left;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;">Atleta</th>
+            <th style="padding:6px 6px;text-align:left;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;">Cat.</th>
+            <th style="padding:6px 4px;text-align:center;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;">Sx</th>
+            <th style="padding:6px 6px;text-align:left;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;">Provas</th>
+            <th style="padding:6px 6px;text-align:right;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;">Valor</th>
           </tr></thead>
           <tbody>${linhas}${totalRow}</tbody>
         </table>
@@ -867,19 +884,22 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
     }
 
     const cssBase = `
-      @media print{.no-print{display:none!important;}.page-break{page-break-after:always;}body{margin:0;}
+      @media print{.no-print{display:none!important;}body{margin:0;}
         @page{size:A4 portrait;margin:0;}
-        .recibo{min-height:100vh;padding:12mm 15mm 10mm;margin:0;box-shadow:none;border:none;}}
+        .recibo{height:100vh;padding:12mm 15mm 10mm;margin:0;box-shadow:none;border:none;overflow:hidden;}
+        .recibo:not(:last-child){page-break-after:always;}}
       body{font-family:Arial,sans-serif;color:#111;background:#fff;margin:0;padding:0;font-size:13px;}
       .recibo{background:#fff;width:210mm;min-height:297mm;margin:16px auto;padding:12mm 15mm 10mm;
-        display:flex;flex-direction:column;page-break-after:always;box-shadow:0 4px 24px rgba(0,0,0,.2);box-sizing:border-box;}
+        display:flex;flex-direction:column;box-shadow:0 4px 24px rgba(0,0,0,.2);box-sizing:border-box;}
       .recibo-conteudo{flex:1;}
-      .rod-wrap{margin-top:auto;padding-top:12px;}
-      .rod{padding-top:9px;border-top:1px solid #ddd;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;}
+      .cab-recibo{font-size:initial;}
+      .cab-recibo img{max-height:18mm;max-width:32mm;object-fit:contain;}
+      .rod-wrap{margin-top:auto;padding-bottom:3mm;}
+      .rod{padding-top:4px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;}
       .rod-ass{flex:1;max-width:220px;}
       .rod-ln{border-bottom:1px solid #aaa;margin-bottom:5px;height:72px;display:flex;align-items:flex-end;justify-content:center;}
       .rod-lb{font-size:9px;color:#888;text-align:center;font-style:italic;}
-      .rod-info{font-size:9px;color:#aaa;text-align:center;line-height:1.9;}
+      .rod-info{font-size:9px;color:#aaa;text-align:center;line-height:1.4;}
       .rod-logo{margin-top:10px;text-align:center;}
     `;
 
@@ -900,9 +920,8 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
         return { atl, inscs, peito, cat, precoInfo };
       });
       const blocos = atletasLista.map((item, idx) =>
-        `<div class="recibo${idx < atletasLista.length - 1 ? " page-break" : ""}" style="${idx > 0 ? "border-top:3px dashed #ccc;" : ""}">
+        `<div class="recibo">
           ${_blocoRecibo({ titulo: "RECIBO DE INSCRIÇÃO", pagador: item.atl?.nome || "—", atletasLista: [item], org, dataEmissao, assinatura: assinaturaUrl })}
-          <div style="margin-top:20px;font-size:10px;color:#aaa;text-align:center;padding-top:8px;border-top:1px solid #eee;">GerenTrack · ${dataEmissao}</div>
         </div>`
       ).join("");
       const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/><title>Recibos Individuais — ${eventoAtual.nome}</title><style>${cssBase}</style></head><body>${btnBar(atletasLista.length + " recibo(s) individual(is)")}${blocos}</body></html>`;
@@ -937,9 +956,8 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
       ];
 
       const blocos = todosGrupos.map(({ pagador, lista, titulo }, idx) =>
-        `<div class="recibo${idx < todosGrupos.length - 1 ? " page-break" : ""}" style="${idx > 0 ? "border-top:3px dashed #ccc;" : ""}">
-          ${_blocoRecibo({ titulo, pagador, atletasLista: lista, org, dataEmissao, assinatura: assinaturaUrl })}
-          <div style="margin-top:20px;font-size:10px;color:#aaa;text-align:center;padding-top:8px;border-top:1px solid #eee;">GerenTrack · ${dataEmissao}</div>
+        `<div class="recibo">
+          ${_blocoRecibo({ titulo, pagador, atletasLista: lista, org, dataEmissao, assinatura: assinaturaUrl, isEquipe: lista.length > 1 })}
         </div>`
       ).join("");
 

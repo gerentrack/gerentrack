@@ -89,15 +89,16 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
     .conteudo{padding-top:74px;}
     .pg{background:#fff;width:210mm;min-height:297mm;margin:16px auto;
       padding:12mm 15mm 10mm;display:flex;flex-direction:column;
-      page-break-after:always;box-shadow:0 4px 24px rgba(0,0,0,.2);}
+      box-shadow:0 4px 24px rgba(0,0,0,.2);}
     .pg.landscape{width:297mm;min-height:210mm;padding:10mm 12mm 8mm;}
     .cab{display:flex;align-items:flex-start;justify-content:space-between;
-      padding-bottom:7px;margin-bottom:7px;border-bottom:3px solid #111;gap:10px;}
+      padding-bottom:7px;margin-bottom:7px;border-bottom:3px solid #111;gap:10px;
+      font-size:initial;}
     .cab-logo{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;
       color:#111;letter-spacing:2px;white-space:nowrap;display:flex;align-items:center;gap:6px;}
-    .cab-logo img{max-height:28mm;max-width:45mm;object-fit:contain;}
-    .cab-left{display:flex;align-items:center;min-width:45mm;}
-    .cab-left img{max-height:28mm;max-width:45mm;object-fit:contain;}
+    .cab-logo img{max-height:18mm;max-width:32mm;object-fit:contain;}
+    .cab-left{display:flex;align-items:center;min-width:32mm;}
+    .cab-left img{max-height:18mm;max-width:32mm;object-fit:contain;}
     .cab-c{flex:1;text-align:center;}
     .cab-ev{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;
       color:#111;text-transform:uppercase;letter-spacing:.5px;line-height:1.2;}
@@ -155,20 +156,21 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
     .cond-campo-hr{min-width:40px;}
     .cond-unidade{font-size:7.5px;color:#666;}
     .cond-sep{width:1px;background:#ccc;align-self:stretch;margin:0 4px;}
-    .rod-wrap{margin-top:auto;}
-    .rod{padding-top:9px;border-top:1px solid #ddd;
-      display:flex;justify-content:space-between;align-items:flex-end;gap:12px;}
+    .rod-wrap{margin-top:auto;padding-bottom:3mm;}
+    .rod{padding-top:4px;}
+    .rod-assinaturas{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:6px;}
     .rod-ass{flex:1;max-width:185px;}
-    .rod-ln{border-bottom:1px solid #aaa;margin-bottom:5px;height:26px;}
+    .rod-ln{border-bottom:1px solid #aaa;margin-bottom:4px;height:22px;}
     .rod-lb{font-size:9px;color:#888;text-align:center;font-style:italic;}
-    .rod-info{font-size:9px;color:#aaa;text-align:center;line-height:1.9;}
+    .rod-info{font-size:9px;color:#aaa;text-align:center;line-height:1.4;}
     @media print{
       @page{size:A4 portrait;margin:0;}
       @page landscape-page{size:A4 landscape;margin:0;}
       body{background:#fff;}
       .barra{display:none!important;}
       .conteudo{padding-top:0;}
-      .pg{margin:0;border:none;box-shadow:none;width:100%;min-height:100vh;padding:12mm 15mm 10mm;}
+      .pg{margin:0;border:none;box-shadow:none;width:100%;height:100vh;padding:12mm 15mm 10mm;overflow:hidden;}
+      .pg:not(:last-child){page-break-after:always;}
       .pg.landscape{page:landscape-page;padding:10mm 12mm 8mm;}
     }
   `;
@@ -196,15 +198,20 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
         <strong>Observa\u00e7\u00f5es:</strong> ${obsTexto.replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br/>")}
       </div>` : ""}
     <div class="rod">
-      <div class="rod-ass"><div class="rod-ln"></div><div class="rod-lb">\u00c1rbitro Respons\u00e1vel</div></div>
-      <div class="rod-info"><div>Gerado em: ${dataGeracao}</div><div>Plataforma de Competições - GERENTRACK</div></div>
-      <div class="rod-ass"><div class="rod-ln"></div><div class="rod-lb">Anotador / Cronometrista</div></div>
+      <div class="rod-assinaturas">
+        <div class="rod-ass"><div class="rod-ln"></div><div class="rod-lb">\u00c1rbitro Respons\u00e1vel</div></div>
+        <div style="flex:1"></div>
+        <div class="rod-ass"><div class="rod-ln"></div><div class="rod-lb">Anotador / Cronometrista</div></div>
+      </div>
+      <div class="rod-info">
+        <div>Gerado em: ${dataGeracao}</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:2px;">
+          <span>Plataforma de Competições -</span>
+          <img src="${_gtLogo}" alt="GERENTRACK" style="max-height:20mm;object-fit:contain;opacity:0.7;vertical-align:middle;" />
+        </div>
+      </div>
     </div>
     ${evento.logoRodape ? `<div style="margin-top:10px;text-align:center;"><img src="${evento.logoRodape}" alt="" style="max-width:100%;max-height:28mm;object-fit:contain;"/></div>` : ""}
-    <div style="margin-top:12px;text-align:center;padding-top:6px;border-top:1px solid #e0e0e0;">
-      <div style="font-size:7px;color:#999;letter-spacing:1px;margin-bottom:3px;">Desenvolvido por:</div>
-      <img src="${_gtLogo}" alt="GERENTRACK" style="max-height:10mm;object-fit:contain;opacity:0.7;" />
-    </div>
     </div>`;
   };
 
@@ -218,7 +225,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
         <div class="cab-dt">\u{1F4C5} ${dataEvento} \u00a0\u00b7\u00a0 \u{1F4CD} ${_getLocalEventoDisplay(evento)}</div>
       </div>
       <div style="text-align:right;">
-        ${evento.logoCabecalhoDireito ? `<div class="cab-logo"><img src="${evento.logoCabecalhoDireito}" alt="" style="max-height:24mm;max-width:45mm;object-fit:contain;" /></div>` : ""}
+        ${evento.logoCabecalhoDireito ? `<div class="cab-logo"><img src="${evento.logoCabecalhoDireito}" alt="" style="max-height:18mm;max-width:32mm;object-fit:contain;" /></div>` : ""}
         <div class="cab-n">
           ${"`"}${lblExtra ? `<span style="font-size:10px;color:#1976D2;font-weight:800;letter-spacing:1px">${lblExtra}</span><br>` : ""}${"`"}
           S\u00fam. <span class="cab-nbig">#${"`"}${String(num).padStart(3,"0")}${"`"}</span>
@@ -320,6 +327,18 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
   let numPag = 0;
   const pags = [];
   const MAX = 8;
+
+  // ── Escala de fonte proporcional ao número de atletas por página ───────────
+  // Quanto menos atletas, maior a fonte — preenche melhor a página.
+  // Referência: 8 atletas = 100% (tamanho padrão). Máximo: 140% (1 atleta).
+  const escalaFonte = (nAtletas, isLandscape = false) => {
+    const base = isLandscape ? 8 : 8; // referência de atletas para 100%
+    const maxScale = 1.35;
+    const minScale = 0.82;
+    const scale = Math.min(maxScale, Math.max(minScale, base / Math.max(nAtletas, 1)));
+    if (Math.abs(scale - 1.0) < 0.04) return ""; // diferença pequena demais, não aplica
+    return ` style="font-size:${(scale * 100).toFixed(0)}%"`;
+  };
 
   // Pontuação por equipes na impressão
   const pontEqAtivo = evento.pontuacaoEquipes?.ativo === true;
@@ -964,7 +983,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
                 </div>
                 <table style="table-layout:fixed">
                   <thead>${thAltura}</thead>
-                  <tbody>${grp.map((a,j) => linhaAlturaVazia(a,j)).join("")}</tbody>
+                  <tbody>${grp.map((a,j) => linhaAlturaVazia(a, gi*MAX + j)).join("")}</tbody>
                 </table>
                 ${rodape(s)}
               </div>`);
@@ -1098,7 +1117,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
                 ${avisoDesempateAlt}
                 <table style="table-layout:fixed">
                   <thead>${thAlturaRes}</thead>
-                  <tbody>${grp.map(({a, pos, su, fp}, j) => linhaAlturaRes(a, pos, j, su, fp)).join("")}</tbody>
+                  <tbody>${grp.map(({a, pos, su, fp}, j) => linhaAlturaRes(a, pos, gi*MAX + j, su, fp)).join("")}</tbody>
                 </table>
                 ${rodape(s)}
               </div>`);
@@ -1134,7 +1153,12 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
         </tr>`;
 
         const linhaCampoVazia = (a, j) => {
-          const vSpace = isSaltoHorizPrint ? '<div style="font-size:7px;color:#bbb;margin-top:2px">___m/s</div>' : '';
+          const vSpace = isSaltoHorizPrint
+            ? '<div style="font-size:7px;color:#bbb;margin-top:4px;border-top:1px dashed #ddd;padding-top:2px;text-align:center;">___m/s</div>'
+            : '';
+          const tdTent = isSaltoHorizPrint
+            ? 'style="vertical-align:top;padding-top:6px;height:44px;"'
+            : '';
           return `
           <tr class="${j%2===0?"par":"imp"}">
             <td class="tdn">${j+1}</td>
@@ -1143,10 +1167,10 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
             <td class="tdal"><span class="anome">${a.nome}</span>${excTag(getInsc(a))}</td>
             <td class="tdat">${fmtNasc(a)}</td>
             <td class="tdcl">${getClubeAtleta(a)||"\u2014"}</td>
-            <td class="tdm">${vSpace}</td><td class="tdm">${vSpace}</td><td class="tdm">${vSpace}</td>
+            <td class="tdm" ${tdTent}>${vSpace}</td><td class="tdm" ${tdTent}>${vSpace}</td><td class="tdm" ${tdTent}>${vSpace}</td>
             <td class="tdmb"></td>
             <td class="tdpc"></td>
-            <td class="tdm">${vSpace}</td><td class="tdm">${vSpace}</td><td class="tdm">${vSpace}</td>
+            <td class="tdm" ${tdTent}>${vSpace}</td><td class="tdm" ${tdTent}>${vSpace}</td><td class="tdm" ${tdTent}>${vSpace}</td>
             <td class="tdmbd"></td>
             <td class="tdpf"></td>
             ${_tdClassifVazio}${_tdPtsEqVazio}
@@ -1211,7 +1235,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
                   T1\u2013T3: ordem por sorteio (RT 25.5) \u00b7 T4\u2013T6: ordem inversa da CP (RT 25.6.1) \u00b7 Empate na CP: mesma ordem do sorteio (RT 25.6.2) \u00b7 Desempate: RT 25.22
                 </div>
                 <table><thead>${thCampoUnico}</thead><tbody>
-                  ${grp.map((a,j) => linhaCampoVazia(a,j)).join("")}
+                  ${grp.map((a,j) => linhaCampoVazia(a, gi*MAX + j)).join("")}
                 </tbody></table>
                 ${rodape(s)}
               </div>`);
@@ -1249,7 +1273,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
                 <table><thead>${thCampoUnico}</thead><tbody>
                   ${grpClass.map(({a,m,raw}, j) => {
                     const posG = classGeral.findIndex((c) => c.a.id === a.id) + 1;
-                    return linhaCampoRes(a, m, j, posG, raw);
+                    return linhaCampoRes(a, m, gi*MAX + j, posG, raw);
                   }).join("")}
                 </tbody></table>
                 ${rodape(s)}
@@ -1266,6 +1290,20 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
   <meta charset="UTF-8">
   <title>${opts.modo === "resultados" ? "Resultados" : "S\u00famulas"} \u2014 ${evento.nome}</title>
   <style>${CSS}</style>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.pg').forEach(function(pg) {
+        var rows = pg.querySelectorAll('tbody tr').length;
+        if (rows === 0) return;
+        // Scale: 8 rows = 100%, fewer = bigger, more = smaller
+        var scale = Math.min(1.35, Math.max(0.82, 8 / rows));
+        if (Math.abs(scale - 1.0) > 0.04) {
+          pg.style.fontSize = Math.round(scale * 100) + '%';
+        }
+      });
+    });
+  </script>
 </head>
 <body>
   <div class="barra">
