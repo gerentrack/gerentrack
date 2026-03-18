@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { _getCbat } from "../../shared/formatters/utils";
+import { getCategoria } from "../../shared/constants/categorias";
 import { Th, Td } from "../ui/TableHelpers";
 
 const styles = {
@@ -94,6 +95,7 @@ function TelaNumericaPeito({ setTela, eventoAtual, inscricoes, atletas, equipes,
   if (!eventoAtual) return <div style={styles.page}><div style={styles.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
 
   const eid = eventoAtual.id;
+  const anoComp = eventoAtual.data ? parseInt(eventoAtual.data.slice(0, 4)) : new Date().getFullYear();
   const numMap = numeracaoPeito[eid] || {};
   const inscsEvt = inscricoes.filter(i => i.eventoId === eid);
   const atletaIds = [...new Set(inscsEvt.map(i => i.atletaId))];
@@ -187,6 +189,7 @@ function TelaNumericaPeito({ setTela, eventoAtual, inscricoes, atletas, equipes,
       "Nº Peito": editNum[a.id] ?? numMap[a.id] ?? "",
       "CBAt": _getCbat(a),
       "Atleta": a.nome || "",
+      "Categoria": getCategoria(a.anoNasc, anoComp)?.nome || "",
       "Equipe": getEquipeNome(a) === "ZZZ_SEM_EQUIPE" ? "" : getEquipeNome(a),
       "CPF": a.cpf || "",
       "Data Nasc.": a.dataNasc || "",
@@ -203,6 +206,86 @@ function TelaNumericaPeito({ setTela, eventoAtual, inscricoes, atletas, equipes,
     const a = document.createElement("a");
     a.href = url; a.download = `numeracao-peito-${eventoAtual.nome.replace(/\s+/g, "_")}.csv`; a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const exportarPDF = () => {
+    const dataEmissao = new Date().toLocaleString("pt-BR");
+    let equipeAtualPdf = "";
+    const linhas = atletasOrdenados.map(a => {
+      const eqNome = getEquipeNome(a) === "ZZZ_SEM_EQUIPE" ? "—" : getEquipeNome(a);
+      const cat = getCategoria(a.anoNasc, anoComp);
+      const peito = editNum[a.id] ?? numMap[a.id] ?? "";
+      const provas = inscsEvt.filter(i => i.atletaId === a.id && !i.origemCombinada).map(i => {
+        const p = todasAsProvas().find(pp => pp.id === i.provaId);
+        return p?.nome || i.provaId;
+      }).join(", ");
+      const novaEquipe = eqNome !== equipeAtualPdf;
+      equipeAtualPdf = eqNome;
+      const separador = novaEquipe ? `
+        <tr><td colspan="7" style="background:#1b5e20;color:#fff;padding:6px 12px;font-weight:700;font-size:11px;letter-spacing:1px;">🏟️ ${eqNome}</td></tr>` : "";
+      return `${separador}
+        <tr>
+          <td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:center;font-weight:900;font-size:15px;color:#e67e00;">${peito || "—"}</td>
+          <td style="padding:6px 10px;border-bottom:1px solid #eee;font-size:11px;color:#555;">${_getCbat(a) || "—"}</td>
+          <td style="padding:6px 10px;border-bottom:1px solid #eee;font-weight:600;">${a.nome || "—"}</td>
+          <td style="padding:6px 10px;border-bottom:1px solid #eee;"><span style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:3px;padding:1px 6px;font-size:10px;">${cat?.nome || "—"}</span></td>
+          <td style="padding:6px 10px;border-bottom:1px solid #eee;font-size:11px;">${eqNome}</td>
+          <td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:center;font-size:11px;">${a.sexo === "M" ? "M" : "F"}</td>
+          <td style="padding:6px 10px;border-bottom:1px solid #eee;font-size:10px;color:#777;">${provas}</td>
+        </tr>`;
+    }).join("");
+
+    const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Numeração de Peito — ${eventoAtual.nome}</title>
+  <style>
+    @media print { .no-print{display:none!important;} body{margin:0;} }
+    body{font-family:Arial,sans-serif;color:#111;background:#fff;margin:0;padding:24px;font-size:13px;}
+    table{width:100%;border-collapse:collapse;}
+    thead th{background:#1b5e20;color:#fff;padding:8px 10px;text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;}
+    tr:nth-child(even){background:#fafafa;}
+  </style>
+</head>
+<body>
+  <div class="no-print" style="margin-bottom:20px;">
+    <button onclick="window.print()" style="background:#1b5e20;color:#fff;border:none;padding:10px 24px;border-radius:6px;cursor:pointer;font-size:14px;margin-right:10px;">🖨️ Imprimir / Salvar PDF</button>
+    <button onclick="window.close()" style="background:#eee;border:1px solid #ccc;padding:10px 18px;border-radius:6px;cursor:pointer;">✕ Fechar</button>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;padding-bottom:12px;border-bottom:2px solid #1b5e20;flex-wrap:wrap;gap:10px;">
+    <div>
+      <div style="font-size:9px;font-weight:700;color:#1b5e20;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;">NUMERAÇÃO DE PEITO</div>
+      <div style="font-size:20px;font-weight:700;margin-bottom:2px;">${eventoAtual.nome}</div>
+      <div style="font-size:11px;color:#555;">
+        ${eventoAtual.data ? new Date(eventoAtual.data + "T12:00:00").toLocaleDateString("pt-BR", {weekday:"long",day:"2-digit",month:"long",year:"numeric"}) : ""}
+        ${eventoAtual.cidade ? ` · ${eventoAtual.cidade}${eventoAtual.estado ? `/${eventoAtual.estado}` : ""}` : ""}
+      </div>
+    </div>
+    <div style="text-align:right;font-size:10px;color:#888;">
+      <div>${atletasOrdenados.length} atleta(s)</div>
+      <div>Emitido em ${dataEmissao}</div>
+    </div>
+  </div>
+  <table>
+    <thead><tr>
+      <th style="width:60px;text-align:center;">Nº Peito</th>
+      <th style="width:80px;">CBAt</th>
+      <th>Atleta</th>
+      <th style="width:100px;">Categoria</th>
+      <th>Equipe</th>
+      <th style="width:40px;text-align:center;">Sexo</th>
+      <th>Provas</th>
+    </tr></thead>
+    <tbody>${linhas}</tbody>
+  </table>
+  <div style="margin-top:22px;padding-top:10px;border-top:1px solid #ddd;font-size:10px;color:#aaa;text-align:center;">
+    GerenTrack · Sistema de Gestão de Competições de Atletismo · ${dataEmissao}
+  </div>
+</body>
+</html>`;
+    const w = window.open("", "_blank", "width=1000,height=780");
+    if (w) { w.document.write(html); w.document.close(); }
   };
 
   let equipeAtual = "";
@@ -227,6 +310,7 @@ function TelaNumericaPeito({ setTela, eventoAtual, inscricoes, atletas, equipes,
         <button style={styles.btnPrimary} onClick={numerarAuto}>🔢 Numerar Automaticamente</button>
         <button style={styles.btnSecondary} onClick={salvar}>💾 Salvar Numeração</button>
         <button style={styles.btnSecondary} onClick={exportarCsv}>📥 Exportar CSV</button>
+        <button style={styles.btnSecondary} onClick={exportarPDF}>📄 Exportar PDF</button>
         <button style={styles.btnGhost} onClick={limparTudo}>🗑️ Limpar</button>
         <div style={{ flex: 1 }} />
         <input style={{ ...styles.input, maxWidth: 250 }} placeholder="🔍 Filtrar atleta ou equipe..." value={filtro} onChange={e => setFiltro(e.target.value)} />
@@ -238,25 +322,28 @@ function TelaNumericaPeito({ setTela, eventoAtual, inscricoes, atletas, equipes,
 
       <div style={styles.tableWrap}>
         <table style={styles.table}>
-          <thead><tr><Th>Nº Peito</Th><Th>Atleta</Th><Th>Equipe</Th><Th>Sexo</Th><Th>Provas</Th></tr></thead>
+          <thead><tr><Th>Nº Peito</Th><Th>CBAt</Th><Th>Atleta</Th><Th>Categoria</Th><Th>Equipe</Th><Th>Sexo</Th><Th>Provas</Th></tr></thead>
           <tbody>
             {atletasFiltrados.map(a => {
               const eqNome = getEquipeNome(a) === "ZZZ_SEM_EQUIPE" ? "—" : getEquipeNome(a);
               const novaEquipe = eqNome !== equipeAtual;
               equipeAtual = eqNome;
+              const cat = getCategoria(a.anoNasc, anoComp);
               const provas = inscsEvt.filter(i => i.atletaId === a.id && !i.origemCombinada).map(i => {
                 const p = todasAsProvas().find(pp => pp.id === i.provaId);
                 return p?.nome || i.provaId;
               }).join(", ");
               return [
-                  novaEquipe && <tr key={"eq_"+a.id}><td colSpan={5} style={{ background: "#0a0b14", padding: "6px 12px", fontWeight: 700, color: "#1976D2", fontSize: 12, borderTop: "2px solid #1976D233" }}>🏟️ {eqNome}</td></tr>,
+                  novaEquipe && <tr key={"eq_"+a.id}><td colSpan={7} style={{ background: "#0a0b14", padding: "6px 12px", fontWeight: 700, color: "#1976D2", fontSize: 12, borderTop: "2px solid #1976D233" }}>🏟️ {eqNome}</td></tr>,
                   <tr key={`num_${a.id}`} style={{ ...styles.tr, background: erroNum[a.id] ? "#1a0a0a" : undefined }}>
                     <td style={{ ...styles.td, width: 80 }}>
                       <input type="number" min={1} value={editNum[a.id] ?? ""} onChange={e => handleChangeNum(a.id, e.target.value)}
                         style={{ ...styles.input, width: 65, textAlign: "center", padding: "4px 6px", fontSize: 14, fontWeight: 700, borderColor: erroNum[a.id] ? "#ff6b6b" : undefined }} />
                       {erroNum[a.id] && <div style={{ color: "#ff6b6b", fontSize: 9, marginTop: 2 }}>{erroNum[a.id]}</div>}
                     </td>
+                    <td style={{ ...styles.td, fontSize: 12, color: "#888", fontFamily: "'Barlow Condensed', sans-serif" }}>{_getCbat(a) || "—"}</td>
                     <td style={{ ...styles.td, fontWeight: 600, color: "#fff" }}>{a.nome}</td>
+                    <td style={{ ...styles.td, fontSize: 12 }}><span style={{ background: "#1976D222", color: "#1976D2", border: "1px solid #1976D244", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }}>{cat?.nome || "—"}</span></td>
                     <td style={styles.td}>{eqNome}</td>
                     <td style={{ ...styles.td, textAlign: "center" }}>{a.sexo === "M" ? "M" : "F"}</td>
                     <td style={{ ...styles.td, fontSize: 11, color: "#888", maxWidth: 300 }}>{provas}</td>

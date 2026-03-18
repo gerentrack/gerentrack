@@ -3,7 +3,7 @@ import React, { useState, useMemo } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { getCategoria, getPermissividade, podeCategoriaSuperior } from "../../shared/constants/categorias";
-import { _getClubeAtleta } from "../../shared/formatters/utils";
+import { _getClubeAtleta, _getCbat } from "../../shared/formatters/utils";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { calcularPrecoInscricao, formatarPreco, validarLimiteProvas, getLimiteCat } from "../../shared/engines/inscricaoEngine";
 import { Th, Td } from "../ui/TableHelpers";
@@ -156,7 +156,7 @@ const styles = {
   provaBtnSel: { background: "#1a1c22", borderColor: "#1976D2", color: "#1976D2" },
 };
 
-function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equipes, excluirInscricao, adicionarInscricao, atualizarInscricao, usuarioLogado, registrarAcao, numeracaoPeito }) {
+function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equipes, excluirInscricao, adicionarInscricao, atualizarInscricao, usuarioLogado, registrarAcao, numeracaoPeito, organizadores }) {
   const confirmar = useConfirm();
   if (!eventoAtual) return <div style={styles.page}><div style={styles.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
 
@@ -504,14 +504,216 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // ── Paginação inscrições agrupadas ─────────────────────────────────────────
+  // ── Agrupamento por atleta, ordenado por equipe → nome alfabético ──────────
   const _porAtletaMap = {};
   inscsFiltradas.forEach(insc => {
     if (!_porAtletaMap[insc.atletaId]) _porAtletaMap[insc.atletaId] = [];
     _porAtletaMap[insc.atletaId].push(insc);
   });
-  const _porAtletaArr = Object.entries(_porAtletaMap);
+  const _porAtletaArr = Object.entries(_porAtletaMap).sort(([idA, inscsA], [idB, inscsB]) => {
+    const atlA = atletas.find(a => a.id === idA);
+    const atlB = atletas.find(a => a.id === idB);
+    const equipeA = (inscsA[0]?.equipeCadastro || atlA?.clube || "").toLowerCase();
+    const equipeB = (inscsB[0]?.equipeCadastro || atlB?.clube || "").toLowerCase();
+    if (equipeA !== equipeB) return equipeA.localeCompare(equipeB, "pt-BR");
+    return (atlA?.nome || "").localeCompare(atlB?.nome || "", "pt-BR");
+  });
   const { paginado: porAtletaPag, infoPage: inscsInfo } = usePagination(_porAtletaArr, 10);
+
+  // ── Resumo financeiro das inscrições salvas ────────────────────────────────
+  const resumoFinanceiro = useMemo(() => {
+    const porEquipe = {};
+    let totalGlobalSalvo = 0;
+    _porAtletaArr.forEach(([atletaId, inscs]) => {
+      const atl = atletas.find(a => a.id === atletaId);
+      const cat = atl ? getCategoria(atl.anoNasc, anoComp) : null;
+      const precoInfo = calcularPrecoInscricao(atl, cat?.id || null, eventoAtual);
+      const valor = precoInfo?.preco || 0;
+      const equipeNome = inscs[0]?.equipeCadastro || atl?.clube || "Sem equipe";
+      if (!porEquipe[equipeNome]) porEquipe[equipeNome] = { atletas: 0, valor: 0 };
+      porEquipe[equipeNome].atletas++;
+      porEquipe[equipeNome].valor += valor;
+      totalGlobalSalvo += valor;
+    });
+    return { porEquipe, totalGlobalSalvo };
+  }, [_porAtletaArr, atletas, anoComp, eventoAtual]);
+
+  // ── Exportar CSV ───────────────────────────────────────────────────────────
+  const exportarCSV = () => {
+    const linhas = _porAtletaArr.map(([atletaId, inscs]) => {
+      const atl = atletas.find(a => a.id === atletaId);
+      const cat = atl ? getCategoria(atl.anoNasc, anoComp) : null;
+      const precoInfo = calcularPrecoInscricao(atl, cat?.id || null, eventoAtual);
+      const peito = numeracaoPeito?.[eid]?.[atletaId] ?? "";
+      const equipe = inscs[0]?.equipeCadastro || atl?.clube || "";
+      const provas = inscs.filter(i => !i.combinadaId)
+        .map(i => todasAsProvas().find(p => p.id === i.provaId)?.nome || i.provaId).join(", ");
+      return {
+        "Nº Peito":   peito,
+        "CBAt":       _getCbat(atl),
+        "Atleta":     atl?.nome || "",
+        "Equipe":     equipe,
+        "CPF":        atl?.cpf || "",
+        "Data Nasc.": atl?.dataNasc || "",
+        "Sexo":       atl?.sexo || "",
+        "Categoria":  cat?.nome || "",
+        "Provas":     provas,
+        "Valor":      precoInfo?.preco != null ? formatarPreco(precoInfo.preco) : "Gratuito",
+      };
+    });
+    if (linhas.length === 0) { alert("Nenhuma inscrição para exportar."); return; }
+    const headers = Object.keys(linhas[0]);
+    const csv = [headers.join(";"), ...linhas.map(r => headers.map(h => `"${String(r[h] ?? "").replace(/"/g, '""')}"`).join(";"))].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `inscricoes-${eventoAtual.nome.replace(/\s+/g, "_")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // ── Estado modal seleção tipo de recibo ──────────────────────────────────
+  const [modoRecibo, setModoRecibo] = useState(null); // null | "individual" | "equipe"
+
+  // ── Bloco HTML base de 1 recibo ───────────────────────────────────────────
+  const _blocoRecibo = ({ titulo, pagador, atletasLista, org, dataEmissao }) => {
+    const temPrecoConfig = !!(eventoAtual.regrasPreco?.length > 0 || eventoAtual.valorInscricao);
+    const total = atletasLista.reduce((s, { precoInfo }) => s + (precoInfo?.preco || 0), 0);
+    const linhas = atletasLista.map(({ atl, inscs, peito, cat, precoInfo }) => {
+      const provas = inscs.filter(i => !i.combinadaId).map(i =>
+        `<span style="display:inline-block;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:3px;padding:1px 6px;font-size:10px;margin:1px 2px;">${todasAsProvas().find(p => p.id === i.provaId)?.nome || i.provaId}</span>`
+      ).join("");
+      const valor = precoInfo?.preco != null
+        ? `<strong style="color:#1a6b1a;">${formatarPreco(precoInfo.preco)}</strong>`
+        : `<span style="color:#999;font-style:italic;">Gratuito</span>`;
+      return `<tr>
+        <td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:#555;">${peito || "—"}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #eee;color:#888;font-size:11px;">${_getCbat(atl) || "—"}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #eee;font-weight:600;">${atl?.nome || "—"}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #eee;color:#555;">${cat?.nome || "—"}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #eee;">${provas}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:right;">${valor}</td>
+      </tr>`;
+    }).join("");
+    const totalRow = temPrecoConfig && total > 0 ? `<tr style="background:#f1f8e9;">
+      <td colspan="5" style="padding:10px;font-weight:700;text-align:right;border-top:2px solid #a5d6a7;">TOTAL</td>
+      <td style="padding:10px;font-size:18px;font-weight:900;color:#1a6b1a;text-align:right;border-top:2px solid #a5d6a7;">${formatarPreco(total)}</td>
+    </tr>` : "";
+    const pagSection = temPrecoConfig && (eventoAtual.formaPagamento || eventoAtual.orientacaoPagamento) ? `
+      <div style="margin-top:14px;background:#e8f5e9;border-left:4px solid #4caf50;padding:10px 14px;border-radius:4px;">
+        <div style="font-weight:700;font-size:11px;color:#1b5e20;margin-bottom:3px;">💳 Pagamento</div>
+        ${eventoAtual.formaPagamento ? `<div style="font-size:11px;margin-bottom:2px;">Via: <strong>${eventoAtual.formaPagamento}</strong></div>` : ""}
+        ${eventoAtual.orientacaoPagamento ? `<div style="font-size:10px;color:#555;white-space:pre-wrap;line-height:1.5;">${eventoAtual.orientacaoPagamento}</div>` : ""}
+      </div>` : "";
+    const recebiBloco = temPrecoConfig && total > 0 ? `
+      <div style="margin-top:24px;border:1.5px solid #333;border-radius:6px;padding:18px 20px;">
+        <div style="font-size:11px;font-weight:700;color:#111;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">RECIBO</div>
+        <div style="font-size:13px;color:#111;line-height:2.2;">
+          Recebi de <strong>${pagador}</strong> a importância de
+          <strong style="font-size:17px;color:#1a6b1a;margin:0 5px;">${formatarPreco(total)}</strong>
+          referente à(s) inscrição(ões) na competição
+          <strong>${eventoAtual.nome}</strong>${eventoAtual.data ? `, realizada em ${new Date(eventoAtual.data + "T12:00:00").toLocaleDateString("pt-BR")}` : ""}.
+        </div>
+        <div style="margin-top:28px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:20px;">
+          <div style="font-size:10px;color:#555;">${eventoAtual.cidade || ""}${eventoAtual.estado ? "/" + eventoAtual.estado : ""}, ${dataEmissao}</div>
+          <div style="text-align:center;">
+            <div style="border-top:1.5px solid #333;padding-top:6px;min-width:220px;font-size:11px;color:#333;">
+              <div style="font-weight:700;">${org?.entidade || org?.nome || "Organizador"}</div>
+              ${org?.cnpj ? `<div style="font-size:10px;color:#666;">CNPJ: ${org.cnpj}</div>` : ""}
+            </div>
+          </div>
+        </div>
+      </div>` : "";
+    return `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #1b5e20;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-size:9px;font-weight:700;color:#1b5e20;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;">${titulo}</div>
+          <div style="font-size:17px;font-weight:700;color:#111;margin-bottom:2px;">${eventoAtual.nome}</div>
+          <div style="font-size:11px;color:#555;">
+            ${eventoAtual.data ? new Date(eventoAtual.data + "T12:00:00").toLocaleDateString("pt-BR", {weekday:"long",day:"2-digit",month:"long",year:"numeric"}) : ""}
+            ${eventoAtual.cidade ? " · " + eventoAtual.cidade + (eventoAtual.estado ? "/" + eventoAtual.estado : "") : ""}
+          </div>
+        </div>
+        <div style="text-align:right;font-size:10px;color:#666;">
+          ${org ? `<div style="font-weight:700;font-size:12px;color:#111;">${org.entidade || org.nome || ""}</div>
+          ${org.cnpj ? `<div>CNPJ: ${org.cnpj}</div>` : ""}
+          ${org.email ? `<div>${org.email}</div>` : ""}
+          ${org.fone ? `<div>${org.fone}</div>` : ""}` : ""}
+          <div style="margin-top:3px;color:#aaa;">Emitido em ${dataEmissao}</div>
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:0;">
+        <thead><tr style="background:#1b5e20;">
+          <th style="padding:7px 10px;text-align:center;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;width:60px;">Nº Peito</th>
+          <th style="padding:7px 10px;text-align:left;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;width:80px;">CBAt</th>
+          <th style="padding:7px 10px;text-align:left;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;">Atleta</th>
+          <th style="padding:7px 10px;text-align:left;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;">Categoria</th>
+          <th style="padding:7px 10px;text-align:left;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;">Provas</th>
+          <th style="padding:7px 10px;text-align:right;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;">Valor</th>
+        </tr></thead>
+        <tbody>${linhas}${totalRow}</tbody>
+      </table>
+      ${pagSection}
+      ${recebiBloco}`;
+  };
+
+  const gerarRecibos = (modo) => {
+    const org = (organizadores || []).find(o => o.id === eventoAtual.organizadorId);
+    const dataEmissao = new Date().toLocaleString("pt-BR");
+
+    const cssBase = `@media print{.no-print{display:none!important;}.page-break{page-break-after:always;}body{margin:0;}}
+      body{font-family:Arial,sans-serif;color:#111;background:#fff;margin:0;padding:0;font-size:13px;}
+      .recibo{padding:24px;}`;
+
+    const btnBar = (extra) => `<div class="no-print" style="padding:14px 20px;background:#f5f5f5;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:12px;">
+      <button onclick="window.print()" style="background:#1b5e20;color:#fff;border:none;padding:10px 24px;border-radius:6px;cursor:pointer;font-size:14px;">🖨️ Imprimir / Salvar PDF</button>
+      <button onclick="window.close()" style="background:#eee;border:1px solid #ccc;padding:10px 18px;border-radius:6px;cursor:pointer;">✕ Fechar</button>
+      <span style="font-size:12px;color:#666;">${extra}</span>
+    </div>`;
+
+    if (modo === "individual") {
+      const atletasLista = _porAtletaArr.map(([atletaId, inscs]) => {
+        const atl = atletas.find(a => a.id === atletaId);
+        const cat = atl ? getCategoria(atl.anoNasc, anoComp) : null;
+        const precoInfo = calcularPrecoInscricao(atl, cat?.id || null, eventoAtual);
+        const peito = numeracaoPeito?.[eid]?.[atletaId];
+        return { atl, inscs, peito, cat, precoInfo };
+      });
+      const blocos = atletasLista.map((item, idx) =>
+        `<div class="recibo${idx < atletasLista.length - 1 ? " page-break" : ""}" style="${idx > 0 ? "border-top:3px dashed #ccc;" : ""}">
+          ${_blocoRecibo({ titulo: "RECIBO DE INSCRIÇÃO", pagador: item.atl?.nome || "—", atletasLista: [item], org, dataEmissao })}
+          <div style="margin-top:20px;font-size:10px;color:#aaa;text-align:center;padding-top:8px;border-top:1px solid #eee;">GerenTrack · ${dataEmissao}</div>
+        </div>`
+      ).join("");
+      const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/><title>Recibos Individuais — ${eventoAtual.nome}</title><style>${cssBase}</style></head><body>${btnBar(atletasLista.length + " recibo(s) individual(is)")}${blocos}</body></html>`;
+      const w = window.open("", "_blank", "width=960,height=780");
+      if (w) { w.document.write(html); w.document.close(); }
+
+    } else {
+      const porEquipe = {};
+      _porAtletaArr.forEach(([atletaId, inscs]) => {
+        const atl = atletas.find(a => a.id === atletaId);
+        const cat = atl ? getCategoria(atl.anoNasc, anoComp) : null;
+        const precoInfo = calcularPrecoInscricao(atl, cat?.id || null, eventoAtual);
+        const peito = numeracaoPeito?.[eid]?.[atletaId];
+        const equipeNome = inscs[0]?.equipeCadastro || atl?.clube || "Sem equipe";
+        if (!porEquipe[equipeNome]) porEquipe[equipeNome] = [];
+        porEquipe[equipeNome].push({ atl, inscs, peito, cat, precoInfo });
+      });
+      const equipes = Object.entries(porEquipe);
+      const blocos = equipes.map(([equipeNome, lista], idx) =>
+        `<div class="recibo${idx < equipes.length - 1 ? " page-break" : ""}" style="${idx > 0 ? "border-top:3px dashed #ccc;" : ""}">
+          ${_blocoRecibo({ titulo: "RECIBO DE INSCRIÇÃO — " + equipeNome.toUpperCase(), pagador: equipeNome, atletasLista: lista, org, dataEmissao })}
+          <div style="margin-top:20px;font-size:10px;color:#aaa;text-align:center;padding-top:8px;border-top:1px solid #eee;">GerenTrack · ${dataEmissao}</div>
+        </div>`
+      ).join("");
+      const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/><title>Recibos por Equipe — ${eventoAtual.nome}</title><style>${cssBase}</style></head><body>${btnBar(equipes.length + " equipe(s)")}${blocos}</body></html>`;
+      const w = window.open("", "_blank", "width=960,height=780");
+      if (w) { w.document.write(html); w.document.close(); }
+    }
+    setModoRecibo(null);
+  };
 
 
   return (
@@ -523,12 +725,55 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
             {eventoAtual.nome} — {[...new Set(inscsEvt.filter(i => i.tipo !== "revezamento" && !i.combinadaId).map(i => i.atletaId))].length} atleta(s), {inscsEvt.filter(i => i.tipo !== "revezamento" && !i.combinadaId).length} inscrições
           </div>
         </div>
-        <button style={styles.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+          {isPrivileg && inscsEvt.length > 0 && (
+            <>
+              <button style={{ ...styles.btnGhost, fontSize: 12, padding: "7px 14px" }} onClick={exportarCSV} title="Exportar planilha Excel/CSV">
+                📊 Exportar CSV
+              </button>
+              <button style={{ ...styles.btnGhost, fontSize: 12, padding: "7px 14px" }} onClick={() => setModoRecibo("escolha")} title="Gerar recibo">
+                🧾 Recibo PDF
+              </button>
+            </>
+          )}
+          <button style={styles.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
+        </div>
       </div>
 
       {feedback && (
         <div style={{ background: "#0a1a0a", border: "1px solid #2a8a2a", borderRadius: 8, padding: "10px 16px", marginBottom: 16, color: "#4cff4c", fontSize: 13 }}>
           {feedback}
+        </div>
+      )}
+
+      {/* Modal seleção tipo de recibo */}
+      {modoRecibo === "escolha" && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ background: "#0E1016", border: "1px solid #1E2130", borderRadius: 16, padding: "32px 36px", maxWidth: 400, width: "90%" }}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 20, color: "#fff", marginBottom: 8, letterSpacing: 1 }}>
+              🧾 GERAR RECIBO
+            </div>
+            <div style={{ color: "#666", fontSize: 13, marginBottom: 24 }}>
+              Escolha o tipo de recibo a gerar:
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <button
+                onClick={() => gerarRecibos("individual")}
+                style={{ background: "#0a1220", border: "1px solid #1976D244", borderRadius: 10, padding: "16px 20px", cursor: "pointer", textAlign: "left" }}>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: "#1976D2", marginBottom: 4 }}>👤 Individual</div>
+                <div style={{ fontSize: 12, color: "#666" }}>Um recibo por atleta — "Recebi de [nome do atleta]..."</div>
+              </button>
+              <button
+                onClick={() => gerarRecibos("equipe")}
+                style={{ background: "#0a1a0a", border: "1px solid #2a6a2a44", borderRadius: 10, padding: "16px 20px", cursor: "pointer", textAlign: "left" }}>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: "#7acc44", marginBottom: 4 }}>🏃 Por Equipe</div>
+                <div style={{ fontSize: 12, color: "#666" }}>Um recibo por equipe — "Recebi de [nome da equipe]..."</div>
+              </button>
+            </div>
+            <button onClick={() => setModoRecibo(null)} style={{ marginTop: 20, background: "none", border: "none", color: "#555", cursor: "pointer", fontSize: 13, width: "100%", textAlign: "center" }}>
+              Cancelar
+            </button>
+          </div>
         </div>
       )}
 
@@ -577,64 +822,128 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
             <table style={styles.table}>
               <thead>
                 <tr>
-                  <Th>Atleta</Th><Th>Provas Inscritas</Th><Th>Categoria</Th><Th>Sexo</Th><Th>Equipe</Th><Th>Ações</Th>
+                  <Th>Nº Peito</Th><Th>CBAt</Th><Th>Atleta</Th><Th>Provas Inscritas</Th><Th>Categoria</Th><Th>Sexo</Th><Th>Equipe</Th><Th>Valor</Th><Th>Ações</Th>
                 </tr>
               </thead>
               <tbody>
                 {inscsFiltradas.length === 0 ? (
-                  <tr><td colSpan={6} style={{ ...styles.td, textAlign: "center", color: "#666" }}>Nenhuma inscrição encontrada.</td></tr>
-                ) : (
-                  porAtletaPag.map(([atletaId, inscs], rowIdx) => {
+                  <tr><td colSpan={8} style={{ ...styles.td, textAlign: "center", color: "#666" }}>Nenhuma inscrição encontrada.</td></tr>
+                ) : (() => {
+                  let equipeAtual = null;
+                  return porAtletaPag.map(([atletaId, inscs], rowIdx) => {
                     const atl = atletas.find(a => a.id === atletaId);
                     const primeiraInsc = inscs[0];
                     const inscsVisiveis = inscs.filter(i => !i.combinadaId);
+                    const equipeNome = primeiraInsc?.equipeCadastro || atl?.clube || "Sem equipe";
+                    const peito = numeracaoPeito?.[eid]?.[atletaId];
+                    const cat = atl ? getCategoria(atl.anoNasc, anoComp) : null;
+                    const precoInfo = calcularPrecoInscricao(atl, cat?.id || null, eventoAtual);
+                    const mostrarSeparador = equipeNome !== equipeAtual;
+                    if (mostrarSeparador) equipeAtual = equipeNome;
                     return (
-                      <tr key={`saved_${atletaId}_${rowIdx}`} style={styles.tr}>
-                        <td style={{ ...styles.td, fontWeight: 600, color: "#fff", verticalAlign: "top" }}>{atl?.nome || "—"}</td>
-                        <td style={{ ...styles.td, verticalAlign: "top" }}>
-                          <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                            {inscsVisiveis.map(insc => {
-                              const prv = todasAsProvas().find(p => p.id === insc.provaId);
-                              return (
-                                <span key={insc.id} style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 8px", borderRadius: 6, fontSize: 11, fontWeight: 600, background: "#111318", border: "1px solid #1a1d2a", color: "#ccc" }}>
-                                  {prv?.nome || insc.provaId}
-                                  <button onClick={() => handleExcluir(insc)}
-                                    style={{ background: "none", border: "none", cursor: "pointer", color: "#ff6b6b", fontSize: 10, padding: "0 2px" }}
-                                    title="Remover">✕</button>
-                                </span>
-                              );
-                            })}
-                          </div>
-                          <div style={{ fontSize: 11, color: "#555", marginTop: 4 }}>{inscsVisiveis.length} prova(s)</div>
-                        </td>
-                        <td style={{ ...styles.td, verticalAlign: "top" }}>
-                          <span style={styles.badgeGold}>{primeiraInsc.categoria || "—"}</span>
-                        </td>
-                        <td style={{ ...styles.td, textAlign: "center", verticalAlign: "top" }}>
-                          <span style={styles.badge(primeiraInsc.sexo === "M" ? "#1a6ef5" : "#e54f9b")}>
-                            {primeiraInsc.sexo === "M" ? "Masc" : "Fem"}
-                          </span>
-                        </td>
-                        <td style={{ ...styles.td, verticalAlign: "top" }}>{primeiraInsc.equipeCadastro || atl?.clube || "—"}</td>
-                        <td style={{ ...styles.td, whiteSpace: "nowrap", verticalAlign: "top" }}>
-                          <button onClick={async () => { 
-                            if (await confirmar(`Remover TODAS as ${inscsVisiveis.length } inscrições de ${atl?.nome || "atleta"}?`)) {
-                              inscs.forEach(i => excluirInscricao(i.id, { confirmado: true }));
-                              setFeedback(`✅ Todas as inscrições de ${atl?.nome} removidas`);
-                              setTimeout(() => setFeedback(""), 3000);
-                            }
-                          }} style={{ ...styles.btnGhost, fontSize: 11, padding: "3px 8px", color: "#ff6b6b", borderColor: "#5a1a1a" }}>
-                            🗑️ Todas
-                          </button>
-                        </td>
-                      </tr>
+                      <React.Fragment key={`saved_${atletaId}_${rowIdx}`}>
+                        {mostrarSeparador && (
+                          <tr>
+                            <td colSpan={8} style={{ background: "#0d1020", borderBottom: "1px solid #1E2130", borderTop: rowIdx > 0 ? "2px solid #1976D244" : "none", padding: "6px 16px" }}>
+                              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 12, color: "#1976D2", letterSpacing: 1, textTransform: "uppercase" }}>
+                                🏃 {equipeNome}
+                              </span>
+                            </td>
+                          </tr>
+                        )}
+                        <tr style={styles.tr}>
+                          <td style={{ ...styles.td, textAlign: "center", verticalAlign: "top" }}>
+                            {peito
+                              ? <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 18, color: "#ffaa44" }}>{peito}</span>
+                              : <span style={{ color: "#444", fontSize: 11 }}>—</span>}
+                          </td>
+                          <td style={{ ...styles.td, verticalAlign: "top", fontSize: 12, color: "#888", fontFamily: "'Barlow Condensed', sans-serif" }}>
+                            {_getCbat(atl) || <span style={{ color: "#444" }}>—</span>}
+                          </td>
+                          <td style={{ ...styles.td, fontWeight: 600, color: "#fff", verticalAlign: "top" }}>{atl?.nome || "—"}</td>
+                          <td style={{ ...styles.td, verticalAlign: "top" }}>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                              {inscsVisiveis.map(insc => {
+                                const prv = todasAsProvas().find(p => p.id === insc.provaId);
+                                return (
+                                  <span key={insc.id} style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 8px", borderRadius: 6, fontSize: 11, fontWeight: 600, background: "#111318", border: "1px solid #1a1d2a", color: "#ccc" }}>
+                                    {prv?.nome || insc.provaId}
+                                    <button onClick={() => handleExcluir(insc)}
+                                      style={{ background: "none", border: "none", cursor: "pointer", color: "#ff6b6b", fontSize: 10, padding: "0 2px" }}
+                                      title="Remover">✕</button>
+                                  </span>
+                                );
+                              })}
+                            </div>
+                            <div style={{ fontSize: 11, color: "#555", marginTop: 4 }}>{inscsVisiveis.length} prova(s)</div>
+                          </td>
+                          <td style={{ ...styles.td, verticalAlign: "top" }}>
+                            <span style={styles.badgeGold}>{primeiraInsc.categoria || "—"}</span>
+                          </td>
+                          <td style={{ ...styles.td, textAlign: "center", verticalAlign: "top" }}>
+                            <span style={styles.badge(primeiraInsc.sexo === "M" ? "#1a6ef5" : "#e54f9b")}>
+                              {primeiraInsc.sexo === "M" ? "Masc" : "Fem"}
+                            </span>
+                          </td>
+                          <td style={{ ...styles.td, verticalAlign: "top" }}>{equipeNome}</td>
+                          <td style={{ ...styles.td, verticalAlign: "top", textAlign: "right" }}>
+                            {precoInfo?.preco != null
+                              ? <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 15, color: "#7acc44" }}>{formatarPreco(precoInfo.preco)}</span>
+                              : <span style={{ color: "#555", fontSize: 11 }}>Gratuito</span>}
+                          </td>
+                          <td style={{ ...styles.td, whiteSpace: "nowrap", verticalAlign: "top" }}>
+                            <button onClick={async () => {
+                              if (await confirmar(`Remover TODAS as ${inscsVisiveis.length} inscrições de ${atl?.nome || "atleta"}?`)) {
+                                inscs.forEach(i => excluirInscricao(i.id, { confirmado: true }));
+                                setFeedback(`✅ Todas as inscrições de ${atl?.nome} removidas`);
+                                setTimeout(() => setFeedback(""), 3000);
+                              }
+                            }} style={{ ...styles.btnGhost, fontSize: 11, padding: "3px 8px", color: "#ff6b6b", borderColor: "#5a1a1a" }}>
+                              🗑️ Todas
+                            </button>
+                          </td>
+                        </tr>
+                      </React.Fragment>
                     );
-                  })
-                )}
+                  });
+                })()}
               </tbody>
             </table>
             <PaginaControles {...inscsInfo} />
           </div>
+
+          {/* ── Resumo financeiro por equipe ──────────────────────────────── */}
+          {Object.keys(resumoFinanceiro.porEquipe).length > 0 && (
+            <div style={{ marginTop: 24, background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: "20px 24px" }}>
+              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: "#fff", letterSpacing: 1, marginBottom: 16 }}>
+                💰 RESUMO FINANCEIRO
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+                {Object.entries(resumoFinanceiro.porEquipe).map(([equipe, dados]) => (
+                  <div key={equipe} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: "#111318", borderRadius: 8, border: "1px solid #1a1d2a" }}>
+                    <div>
+                      <span style={{ fontWeight: 600, color: "#ddd", fontSize: 13 }}>{equipe}</span>
+                      <span style={{ color: "#555", fontSize: 12, marginLeft: 10 }}>{dados.atletas} atleta(s)</span>
+                    </div>
+                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: dados.valor > 0 ? "#7acc44" : "#555" }}>
+                      {dados.valor > 0 ? formatarPreco(dados.valor) : "Gratuito"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              {resumoFinanceiro.totalGlobalSalvo > 0 && (
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px", background: "#0a1a0a", borderRadius: 8, border: "1px solid #2a6a2a" }}>
+                  <div>
+                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 14, color: "#7acc44", letterSpacing: 1 }}>TOTAL GERAL</span>
+                    <span style={{ color: "#555", fontSize: 12, marginLeft: 10 }}>{_porAtletaArr.length} atleta(s)</span>
+                  </div>
+                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 24, color: "#7acc44" }}>
+                    {formatarPreco(resumoFinanceiro.totalGlobalSalvo)}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Revezamento — sem custo */}
           {provasRevez.length > 0 && (

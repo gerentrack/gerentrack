@@ -292,7 +292,8 @@ function App() {
   }, [eventos.length]);
 
   const login = (dados) => {
-    setUsuarioLogado(dados);
+    const dadosComSessao = { ...dados, _loginEm: Date.now() };
+    setUsuarioLogado(dadosComSessao);
     registrarAcao(dados.id, dados.nome, "Login", `${dados.tipo}`, dados.organizadorId || null, { equipeId: dados.equipeId, modulo: "auth" });
     if (dados.tipo === "admin") setTela("admin");
     else if (dados.tipo === "atleta")       { setEventoAtualId(null); setTela("painel-atleta"); }
@@ -304,8 +305,9 @@ function App() {
   };
 
   const loginComSelecao = (dados, perfis) => {
+    const dadosComSessao = { ...dados, _loginEm: Date.now(), _temOutrosPerfis: perfis.length > 1 };
     setPerfisDisponiveis(perfis);
-    setUsuarioLogado({ ...dados, _temOutrosPerfis: perfis.length > 1 });
+    setUsuarioLogado(dadosComSessao);
     if (dados.senhaTemporaria) { setTela("trocar-senha"); return; }
     if (dados.tipo === "admin")             setTela("admin");
     else if (dados.tipo === "atleta")       { setEventoAtualId(null); setTela("painel-atleta"); }
@@ -324,6 +326,38 @@ function App() {
     setUsuarioLogado(null);
     setPerfisDisponiveis([]);
     setTela("home");
+  };
+
+  // ── Expiração de sessão ────────────────────────────────────────────────────
+  const SESSAO_DURACAO_MS  = 24 * 60 * 60 * 1000; // 24 horas
+  const AVISO_ANTECEDENCIA = 2 * 60 * 1000;        // aviso 2 minutos antes
+  const [sessaoAvisoContagem, setSessaoAvisoContagem] = React.useState(null); // null | segundos restantes
+
+  React.useEffect(() => {
+    if (!usuarioLogado?._loginEm) return;
+    const intervalo = setInterval(() => {
+      const agora = Date.now();
+      const expiraEm = usuarioLogado._loginEm + SESSAO_DURACAO_MS;
+      const restante = expiraEm - agora;
+      if (restante <= 0) {
+        clearInterval(intervalo);
+        setSessaoAvisoContagem(null);
+        if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Sessão expirada", "Logout automático por timeout", usuarioLogado.organizadorId || null, { modulo: "auth" });
+        setTimeout(() => firebaseSignOut(auth).catch(() => {}), 300);
+        setUsuarioLogado(null);
+        setPerfisDisponiveis([]);
+        setTela("home");
+      } else if (restante <= AVISO_ANTECEDENCIA) {
+        setSessaoAvisoContagem(Math.ceil(restante / 1000));
+      }
+    }, 1000);
+    return () => clearInterval(intervalo);
+  }, [usuarioLogado?._loginEm]);
+
+  const renovarSessao = () => {
+    if (!usuarioLogado) return;
+    setUsuarioLogado(u => ({ ...u, _loginEm: Date.now() }));
+    setSessaoAvisoContagem(null);
   };
 
   const adicionarEquipe   = (t) => _adicionarEquipe(t);
@@ -1197,6 +1231,37 @@ function App() {
     <ConfirmBridge />
     <div style={styles.root} className={temaClaro ? "tema-claro" : ""}>
       <style>{cssGlobal}</style>
+
+      {/* ── Modal aviso de expiração de sessão ── */}
+      {sessaoAvisoContagem !== null && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ background: "#0E1016", border: "1px solid #1976D244", borderRadius: 16, padding: "36px 40px", maxWidth: 380, width: "90%", textAlign: "center" }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>⏱️</div>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 20, color: "#fff", marginBottom: 8, letterSpacing: 1 }}>
+              SESSÃO PRESTES A EXPIRAR
+            </div>
+            <div style={{ color: "#888", fontSize: 13, marginBottom: 20, lineHeight: 1.6 }}>
+              Sua sessão expira em
+            </div>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 52, color: sessaoAvisoContagem <= 30 ? "#ff6b6b" : "#ffaa44", lineHeight: 1, marginBottom: 24 }}>
+              {Math.floor(sessaoAvisoContagem / 60)}:{String(sessaoAvisoContagem % 60).padStart(2, "0")}
+            </div>
+            <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+              <button
+                onClick={renovarSessao}
+                style={{ background: "linear-gradient(135deg, #1976D2, #1565C0)", color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 }}>
+                ✅ Continuar conectado
+              </button>
+              <button
+                onClick={logout}
+                style={{ background: "transparent", color: "#888", border: "1px solid #2a2d3a", padding: "12px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" }}>
+                Sair agora
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Header {...props} />
       <main style={styles.main}>
         {tela === "home"                  && <TelaHome {...props} />}
