@@ -193,6 +193,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
 
   // Se for equipe/treinador, filtra apenas atletas e inscrições da própria equipe
   const isEquipeUsuario = usuarioLogado?.tipo === "equipe" || usuarioLogado?.tipo === "treinador";
+  const inscricoesAbertas = !isInscricaoEncerradaAgora(eventoAtual);
   const minhaEquipeId   = usuarioLogado?.equipeId || (usuarioLogado?.tipo === "equipe" ? usuarioLogado?.id : null);
   const minhaEquipe     = minhaEquipeId ? equipes?.find(e => e.id === minhaEquipeId) : null;
   const meuClube        = minhaEquipe?.nome || "";
@@ -214,7 +215,18 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
   const [filtroCat, setFiltroCat]     = useState("");
   const [filtroSexo, setFiltroSexo]   = useState("");
   const [filtroNome, setFiltroNome]   = useState("");
+  const [filtroPago, setFiltroPago]   = useState(""); // "" | "pago" | "pendente"
   const [feedback, setFeedback]       = useState("");
+
+  // Um atleta é considerado "pago" se TODAS as suas inscrições visíveis têm pago=true
+  const isPago = (inscs) => inscs.filter(i => !i.combinadaId).every(i => i.pago === true);
+
+  const togglePago = (inscs, atl) => {
+    const novoStatus = !isPago(inscs);
+    inscs.forEach(i => atualizarInscricao({ ...i, pago: novoStatus }));
+    setFeedback(`${novoStatus ? "✅ Pago" : "↩️ Pendente"}: ${atl?.nome || "atleta"}`);
+    setTimeout(() => setFeedback(""), 3000);
+  };
 
   // ── Carrinho ─────────────────────────────────────────────────────────────
   const [carrinho, setCarrinho]           = useState([]);
@@ -246,6 +258,14 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
   if (filtroNome) {
     const q = filtroNome.toLowerCase();
     inscsFiltradas = inscsFiltradas.filter(i => atletas.find(a => a.id === i.atletaId)?.nome?.toLowerCase().includes(q));
+  }
+  if (filtroPago) {
+    const idsPagos = new Set(
+      Object.entries(
+        inscsFiltradas.reduce((acc, i) => { if (!acc[i.atletaId]) acc[i.atletaId] = []; acc[i.atletaId].push(i); return acc; }, {})
+      ).filter(([, inscs]) => filtroPago === "pago" ? isPago(inscs) : !isPago(inscs)).map(([id]) => id)
+    );
+    inscsFiltradas = inscsFiltradas.filter(i => idsPagos.has(i.atletaId));
   }
 
   const inscsRevez   = inscsEvt.filter(i => i.tipo === "revezamento");
@@ -530,12 +550,20 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
       const precoInfo = calcularPrecoInscricao(atl, cat?.id || null, eventoAtual);
       const valor = precoInfo?.preco || 0;
       const equipeNome = inscs[0]?.equipeCadastro || atl?.clube || "Sem equipe";
-      if (!porEquipe[equipeNome]) porEquipe[equipeNome] = { atletas: 0, valor: 0 };
+      const pago = isPago(inscs);
+      if (!porEquipe[equipeNome]) porEquipe[equipeNome] = { atletas: 0, valor: 0, pago: 0 };
       porEquipe[equipeNome].atletas++;
       porEquipe[equipeNome].valor += valor;
+      if (pago) porEquipe[equipeNome].pago += valor;
       totalGlobalSalvo += valor;
     });
-    return { porEquipe, totalGlobalSalvo };
+    const totalPago = _porAtletaArr.reduce((s, [atletaId, inscs]) => {
+      const atl = atletas.find(a => a.id === atletaId);
+      const cat = atl ? getCategoria(atl.anoNasc, anoComp) : null;
+      const precoInfo = calcularPrecoInscricao(atl, cat?.id || null, eventoAtual);
+      return s + (isPago(inscs) ? (precoInfo?.preco || 0) : 0);
+    }, 0);
+    return { porEquipe, totalGlobalSalvo, totalPago };
   }, [_porAtletaArr, atletas, anoComp, eventoAtual]);
 
   // ── Exportar CSV ───────────────────────────────────────────────────────────
@@ -559,6 +587,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
         "Categoria":  cat?.nome || "",
         "Provas":     provas,
         "Valor":      precoInfo?.preco != null ? formatarPreco(precoInfo.preco) : "Gratuito",
+        "Pago":       isPago(inscs) ? "Sim" : "Não",
       };
     });
     if (linhas.length === 0) { alert("Nenhuma inscrição para exportar."); return; }
@@ -573,13 +602,150 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
     URL.revokeObjectURL(url);
   };
 
+  // ── Exportar PDF — cabeçalho e rodapé iguais ao recibo ───────────────────
+  const exportarPDF = () => {
+    const org = (organizadores || []).find(o => o.id === eventoAtual.organizadorId);
+    const dataEmissao = new Date().toLocaleString("pt-BR");
+    const logoEsq   = eventoAtual.logoCabecalho       || "";
+    const logoDir   = eventoAtual.logoCabecalhoDireito || "";
+    const logoRodap = eventoAtual.logoRodape           || "";
+
+    // Colunas e dados dependem do perfil
+    const mostrarEquipe  = isPrivileg;
+    const mostrarPago    = isPrivileg;
+    const mostrarValor   = true; // todos veem valor
+
+    let equipeAtualPdf = null;
+    const linhas = _porAtletaArr.map(([atletaId, inscs]) => {
+      const atl = atletas.find(a => a.id === atletaId);
+      const cat = atl ? getCategoria(atl.anoNasc, anoComp) : null;
+      const precoInfo = calcularPrecoInscricao(atl, cat?.id || null, eventoAtual);
+      const peito = numeracaoPeito?.[eid]?.[atletaId] ?? "";
+      const equipeNome = inscs[0]?.equipeCadastro || atl?.clube || "Sem equipe";
+      const provas = inscs.filter(i => !i.combinadaId)
+        .map(i => `<span style="display:inline-block;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:3px;padding:1px 5px;font-size:9px;margin:1px 2px;">${todasAsProvas().find(p => p.id === i.provaId)?.nome || i.provaId}</span>`).join("");
+      const valor = precoInfo?.preco != null ? formatarPreco(precoInfo.preco) : "Gratuito";
+      const pagoCell = isPago(inscs)
+        ? `<span style="color:#1a6b1a;font-weight:700;">✅ Pago</span>`
+        : `<span style="color:#888;">⏳ Pendente</span>`;
+
+      const novaEquipe = mostrarEquipe && equipeNome !== equipeAtualPdf;
+      if (mostrarEquipe) equipeAtualPdf = equipeNome;
+
+      const separador = novaEquipe ? `
+        <tr><td colspan="${mostrarEquipe ? (mostrarPago ? 8 : 7) : (mostrarPago ? 7 : 6)}" style="background:#1b5e20;color:#fff;padding:5px 10px;font-weight:700;font-size:10px;letter-spacing:1px;">🏃 ${equipeNome}</td></tr>` : "";
+
+      return `${separador}<tr>
+        <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:900;color:#e67e00;font-size:14px;">${peito || "—"}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #eee;font-size:10px;color:#888;">${_getCbat(atl) || "—"}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #eee;font-weight:600;">${atl?.nome || "—"}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #eee;font-size:10px;"><span style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:3px;padding:1px 5px;">${cat?.nome || "—"}</span></td>
+        <td style="padding:6px 8px;border-bottom:1px solid #eee;font-size:10px;color:#888;">${atl?.sexo === "M" ? "M" : "F"}</td>
+        ${mostrarEquipe ? `<td style="padding:6px 8px;border-bottom:1px solid #eee;font-size:10px;">${equipeNome}</td>` : ""}
+        <td style="padding:6px 8px;border-bottom:1px solid #eee;">${provas}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:right;font-size:11px;font-weight:700;">${valor}</td>
+        ${mostrarPago ? `<td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:center;font-size:10px;">${pagoCell}</td>` : ""}
+      </tr>`;
+    }).join("");
+
+    const nCols = 7 + (mostrarEquipe ? 1 : 0) + (mostrarPago ? 1 : 0);
+    const totalGeral = _porAtletaArr.reduce((s, [, inscs]) => {
+      const atl = atletas.find(a => a.id === inscs[0]?.atletaId || a.id === _porAtletaArr[0]?.[0]);
+      const cat = atl ? getCategoria(atl.anoNasc, anoComp) : null;
+      return s + (calcularPrecoInscricao(atl, cat?.id || null, eventoAtual)?.preco || 0);
+    }, 0);
+
+    const cabecalho = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:12px;border-bottom:2px solid #1b5e20;gap:12px;">
+        <div style="display:flex;align-items:center;gap:14px;">
+          ${logoEsq ? `<img src="${logoEsq}" alt="" style="max-height:56px;max-width:120px;object-fit:contain;" />` : ""}
+          <div>
+            <div style="font-size:9px;font-weight:700;color:#1b5e20;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;">LISTA DE INSCRIÇÕES</div>
+            <div style="font-size:17px;font-weight:700;color:#111;margin-bottom:2px;">${eventoAtual.nome}</div>
+            <div style="font-size:11px;color:#555;">
+              ${eventoAtual.data ? new Date(eventoAtual.data + "T12:00:00").toLocaleDateString("pt-BR", {weekday:"long",day:"2-digit",month:"long",year:"numeric"}) : ""}
+              ${eventoAtual.cidade ? " · " + eventoAtual.cidade + (eventoAtual.estado ? "/" + eventoAtual.estado : "") : ""}
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="text-align:right;font-size:10px;color:#666;">
+            ${org ? `<div style="font-weight:700;font-size:12px;color:#111;">${org.entidade || org.nome || ""}</div>
+            ${org.cnpj ? `<div>CNPJ: ${org.cnpj}</div>` : ""}` : ""}
+            <div style="margin-top:3px;color:#aaa;">${_porAtletaArr.length} atleta(s) · Emitido em ${dataEmissao}</div>
+          </div>
+          ${logoDir ? `<img src="${logoDir}" alt="" style="max-height:56px;max-width:100px;object-fit:contain;" />` : ""}
+        </div>
+      </div>`;
+
+    const rodape = `
+      <div class="rod-wrap">
+        <div style="padding-top:9px;border-top:1px solid #ddd;display:flex;justify-content:flex-end;align-items:center;gap:8px;font-size:9px;color:#aaa;">
+          <span>Emitido em: ${dataEmissao}</span>
+          <span>·</span>
+          <span>Plataforma de Competições - GERENTRACK</span>
+        </div>
+        ${logoRodap ? `<div style="margin-top:10px;text-align:center;"><img src="${logoRodap}" alt="" style="max-height:28mm;max-width:100%;object-fit:contain;" /></div>` : ""}
+      </div>`;
+
+    const css = `
+      @media print{.no-print{display:none!important;}body{margin:0;}@page{size:A4 landscape;margin:0;}}
+      body{font-family:Arial,sans-serif;color:#111;background:#fff;margin:0;padding:0;font-size:12px;}
+      .pg{background:#fff;width:297mm;min-height:210mm;margin:16px auto;padding:10mm 12mm 8mm;
+        display:flex;flex-direction:column;box-shadow:0 4px 24px rgba(0,0,0,.2);box-sizing:border-box;}
+      .conteudo{flex:1;}
+      .rod-wrap{margin-top:auto;padding-top:8px;}
+      table{width:100%;border-collapse:collapse;}
+      thead th{background:#1b5e20;color:#fff;padding:7px 8px;text-align:left;font-size:9px;letter-spacing:1px;text-transform:uppercase;}
+      tr:nth-child(even){background:#f9f9f9;}`;
+
+    const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/><title>Inscrições — ${eventoAtual.nome}</title><style>${css}</style></head>
+    <body>
+      <div class="no-print" style="padding:14px 20px;background:#f5f5f5;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:12px;">
+        <button onclick="window.print()" style="background:#1b5e20;color:#fff;border:none;padding:10px 24px;border-radius:6px;cursor:pointer;font-size:14px;">🖨️ Imprimir / Salvar PDF</button>
+        <button onclick="window.close()" style="background:#eee;border:1px solid #ccc;padding:10px 18px;border-radius:6px;cursor:pointer;">✕ Fechar</button>
+        <span style="font-size:12px;color:#666;">${_porAtletaArr.length} atleta(s)</span>
+      </div>
+      <div class="pg">
+        <div class="conteudo">
+          ${cabecalho}
+          <table>
+            <thead><tr>
+              <th style="width:55px;text-align:center;">Nº Peito</th>
+              <th style="width:70px;">CBAt</th>
+              <th>Atleta</th>
+              <th style="width:90px;">Categoria</th>
+              <th style="width:35px;text-align:center;">Sexo</th>
+              ${mostrarEquipe ? `<th>Equipe</th>` : ""}
+              <th>Provas</th>
+              <th style="width:70px;text-align:right;">Valor</th>
+              ${mostrarPago ? `<th style="width:70px;text-align:center;">Pagamento</th>` : ""}
+            </tr></thead>
+            <tbody>${linhas}</tbody>
+          </table>
+        </div>
+        ${rodape}
+      </div>
+    </body></html>`;
+
+    const w = window.open("", "_blank", "width=1100,height=780");
+    if (w) { w.document.write(html); w.document.close(); }
+  };
+
   // ── Estado modal seleção tipo de recibo ──────────────────────────────────
-  const [modoRecibo, setModoRecibo] = useState(null); // null | "individual" | "equipe"
+  const [modoRecibo, setModoRecibo] = useState(null); // null | "escolha"
+  const [selecionadosRecibo, setSelecionadosRecibo] = useState(new Set()); // Set de atletaIds
+  const [assinaturaUrl, setAssinaturaUrl] = useState(""); // base64 da imagem de assinatura
+  const [marcarComoPago, setMarcarComoPago] = useState(false);
 
   // ── Bloco HTML base de 1 recibo ───────────────────────────────────────────
-  const _blocoRecibo = ({ titulo, pagador, atletasLista, org, dataEmissao }) => {
+  const _blocoRecibo = ({ titulo, pagador, atletasLista, org, dataEmissao, assinatura }) => {
     const temPrecoConfig = !!(eventoAtual.regrasPreco?.length > 0 || eventoAtual.valorInscricao);
     const total = atletasLista.reduce((s, { precoInfo }) => s + (precoInfo?.preco || 0), 0);
+    const logoEsq   = eventoAtual.logoCabecalho       || "";
+    const logoDir   = eventoAtual.logoCabecalhoDireito || "";
+    const logoRodap = eventoAtual.logoRodape           || "";
+
     const linhas = atletasLista.map(({ atl, inscs, peito, cat, precoInfo }) => {
       const provas = inscs.filter(i => !i.combinadaId).map(i =>
         `<span style="display:inline-block;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:3px;padding:1px 6px;font-size:10px;margin:1px 2px;">${todasAsProvas().find(p => p.id === i.provaId)?.nome || i.provaId}</span>`
@@ -596,16 +762,19 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
         <td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:right;">${valor}</td>
       </tr>`;
     }).join("");
+
     const totalRow = temPrecoConfig && total > 0 ? `<tr style="background:#f1f8e9;">
       <td colspan="5" style="padding:10px;font-weight:700;text-align:right;border-top:2px solid #a5d6a7;">TOTAL</td>
       <td style="padding:10px;font-size:18px;font-weight:900;color:#1a6b1a;text-align:right;border-top:2px solid #a5d6a7;">${formatarPreco(total)}</td>
     </tr>` : "";
+
     const pagSection = temPrecoConfig && (eventoAtual.formaPagamento || eventoAtual.orientacaoPagamento) ? `
       <div style="margin-top:14px;background:#e8f5e9;border-left:4px solid #4caf50;padding:10px 14px;border-radius:4px;">
         <div style="font-weight:700;font-size:11px;color:#1b5e20;margin-bottom:3px;">💳 Pagamento</div>
         ${eventoAtual.formaPagamento ? `<div style="font-size:11px;margin-bottom:2px;">Via: <strong>${eventoAtual.formaPagamento}</strong></div>` : ""}
         ${eventoAtual.orientacaoPagamento ? `<div style="font-size:10px;color:#555;white-space:pre-wrap;line-height:1.5;">${eventoAtual.orientacaoPagamento}</div>` : ""}
       </div>` : "";
+
     const recebiBloco = temPrecoConfig && total > 0 ? `
       <div style="margin-top:24px;border:1.5px solid #333;border-radius:6px;padding:18px 20px;">
         <div style="font-size:11px;font-weight:700;color:#111;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">RECIBO</div>
@@ -617,54 +786,103 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
         </div>
         <div style="margin-top:28px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:20px;">
           <div style="font-size:10px;color:#555;">${eventoAtual.cidade || ""}${eventoAtual.estado ? "/" + eventoAtual.estado : ""}, ${dataEmissao}</div>
-          <div style="text-align:center;">
-            <div style="border-top:1.5px solid #333;padding-top:6px;min-width:220px;font-size:11px;color:#333;">
-              <div style="font-weight:700;">${org?.entidade || org?.nome || "Organizador"}</div>
-              ${org?.cnpj ? `<div style="font-size:10px;color:#666;">CNPJ: ${org.cnpj}</div>` : ""}
+        </div>
+      </div>` : "";
+
+    // ── Cabeçalho com logos ──
+    const cabecalho = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:12px;border-bottom:2px solid #1b5e20;gap:12px;">
+        <div style="display:flex;align-items:center;gap:14px;">
+          ${logoEsq ? `<img src="${logoEsq}" alt="Logo" style="max-height:56px;max-width:120px;object-fit:contain;" />` : ""}
+          <div>
+            <div style="font-size:9px;font-weight:700;color:#1b5e20;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;">${titulo}</div>
+            <div style="font-size:17px;font-weight:700;color:#111;margin-bottom:2px;">${eventoAtual.nome}</div>
+            <div style="font-size:11px;color:#555;">
+              ${eventoAtual.data ? new Date(eventoAtual.data + "T12:00:00").toLocaleDateString("pt-BR", {weekday:"long",day:"2-digit",month:"long",year:"numeric"}) : ""}
+              ${eventoAtual.cidade ? " · " + eventoAtual.cidade + (eventoAtual.estado ? "/" + eventoAtual.estado : "") : ""}
             </div>
           </div>
         </div>
-      </div>` : "";
-    return `
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #1b5e20;flex-wrap:wrap;gap:10px;">
-        <div>
-          <div style="font-size:9px;font-weight:700;color:#1b5e20;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;">${titulo}</div>
-          <div style="font-size:17px;font-weight:700;color:#111;margin-bottom:2px;">${eventoAtual.nome}</div>
-          <div style="font-size:11px;color:#555;">
-            ${eventoAtual.data ? new Date(eventoAtual.data + "T12:00:00").toLocaleDateString("pt-BR", {weekday:"long",day:"2-digit",month:"long",year:"numeric"}) : ""}
-            ${eventoAtual.cidade ? " · " + eventoAtual.cidade + (eventoAtual.estado ? "/" + eventoAtual.estado : "") : ""}
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="text-align:right;font-size:10px;color:#666;">
+            ${org ? `<div style="font-weight:700;font-size:12px;color:#111;">${org.entidade || org.nome || ""}</div>
+            ${org.cnpj ? `<div>CNPJ: ${org.cnpj}</div>` : ""}
+            ${org.email ? `<div>${org.email}</div>` : ""}
+            ${org.fone ? `<div>${org.fone}</div>` : ""}` : ""}
+            <div style="margin-top:3px;color:#aaa;">Emitido em ${dataEmissao}</div>
+          </div>
+          ${logoDir ? `<img src="${logoDir}" alt="Logo Org" style="max-height:56px;max-width:100px;object-fit:contain;" />` : ""}
+        </div>
+      </div>`;
+
+    // ── Rodapé — mesmo padrão das súmulas (margin-top:auto empurra para baixo) ──
+    const rodape = `
+      <div class="rod-wrap">
+        <div class="rod">
+          <div class="rod-ass">
+            <div class="rod-ln">
+              ${assinatura ? `<img src="${assinatura}" alt="Assinatura" style="max-height:68px;max-width:200px;object-fit:contain;object-position:bottom;" />` : ""}
+            </div>
+            <div class="rod-lb">${org?.entidade || org?.nome || "Organizador"}</div>
+          </div>
+          <div class="rod-info">
+            <div>Emitido em: ${dataEmissao}</div>
+            <div>Plataforma de Competições - GERENTRACK</div>
           </div>
         </div>
-        <div style="text-align:right;font-size:10px;color:#666;">
-          ${org ? `<div style="font-weight:700;font-size:12px;color:#111;">${org.entidade || org.nome || ""}</div>
-          ${org.cnpj ? `<div>CNPJ: ${org.cnpj}</div>` : ""}
-          ${org.email ? `<div>${org.email}</div>` : ""}
-          ${org.fone ? `<div>${org.fone}</div>` : ""}` : ""}
-          <div style="margin-top:3px;color:#aaa;">Emitido em ${dataEmissao}</div>
-        </div>
+        ${logoRodap ? `<div class="rod-logo"><img src="${logoRodap}" alt="Logo Rodapé" style="max-height:28mm;max-width:100%;object-fit:contain;" /></div>` : ""}
+      </div>`;
+
+    return `
+      <div class="recibo-conteudo">
+        ${cabecalho}
+        <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:0;">
+          <thead><tr style="background:#1b5e20;">
+            <th style="padding:7px 10px;text-align:center;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;width:60px;">Nº Peito</th>
+            <th style="padding:7px 10px;text-align:left;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;width:80px;">CBAt</th>
+            <th style="padding:7px 10px;text-align:left;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;">Atleta</th>
+            <th style="padding:7px 10px;text-align:left;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;">Categoria</th>
+            <th style="padding:7px 10px;text-align:left;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;">Provas</th>
+            <th style="padding:7px 10px;text-align:right;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;">Valor</th>
+          </tr></thead>
+          <tbody>${linhas}${totalRow}</tbody>
+        </table>
+        ${pagSection}
+        ${recebiBloco}
       </div>
-      <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:0;">
-        <thead><tr style="background:#1b5e20;">
-          <th style="padding:7px 10px;text-align:center;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;width:60px;">Nº Peito</th>
-          <th style="padding:7px 10px;text-align:left;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;width:80px;">CBAt</th>
-          <th style="padding:7px 10px;text-align:left;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;">Atleta</th>
-          <th style="padding:7px 10px;text-align:left;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;">Categoria</th>
-          <th style="padding:7px 10px;text-align:left;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;">Provas</th>
-          <th style="padding:7px 10px;text-align:right;color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;">Valor</th>
-        </tr></thead>
-        <tbody>${linhas}${totalRow}</tbody>
-      </table>
-      ${pagSection}
-      ${recebiBloco}`;
+      ${rodape}`;
   };
 
   const gerarRecibos = (modo) => {
     const org = (organizadores || []).find(o => o.id === eventoAtual.organizadorId);
     const dataEmissao = new Date().toLocaleString("pt-BR");
 
-    const cssBase = `@media print{.no-print{display:none!important;}.page-break{page-break-after:always;}body{margin:0;}}
+    // Filtra apenas os selecionados
+    const atletasSelecionados = _porAtletaArr.filter(([atletaId]) => selecionadosRecibo.has(atletaId));
+    if (atletasSelecionados.length === 0) { alert("Selecione ao menos um atleta."); return; }
+
+    // Marcar como pago se opção ativada
+    if (marcarComoPago) {
+      atletasSelecionados.forEach(([, inscs]) => inscs.forEach(i => atualizarInscricao({ ...i, pago: true })));
+    }
+
+    const cssBase = `
+      @media print{.no-print{display:none!important;}.page-break{page-break-after:always;}body{margin:0;}
+        @page{size:A4 portrait;margin:0;}
+        .recibo{min-height:100vh;padding:12mm 15mm 10mm;margin:0;box-shadow:none;border:none;}}
       body{font-family:Arial,sans-serif;color:#111;background:#fff;margin:0;padding:0;font-size:13px;}
-      .recibo{padding:24px;}`;
+      .recibo{background:#fff;width:210mm;min-height:297mm;margin:16px auto;padding:12mm 15mm 10mm;
+        display:flex;flex-direction:column;page-break-after:always;box-shadow:0 4px 24px rgba(0,0,0,.2);box-sizing:border-box;}
+      .recibo-conteudo{flex:1;}
+      .rod-wrap{margin-top:auto;padding-top:12px;}
+      .rod{padding-top:9px;border-top:1px solid #ddd;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;}
+      .rod-ass{flex:1;max-width:220px;}
+      .rod-ln{border-bottom:1px solid #aaa;margin-bottom:5px;height:72px;display:flex;align-items:flex-end;justify-content:center;}
+      .rod-lb{font-size:9px;color:#888;text-align:center;font-style:italic;}
+      .rod-info{font-size:9px;color:#aaa;text-align:center;line-height:1.9;}
+      .rod-logo{margin-top:10px;text-align:center;}
+    `;
+
 
     const btnBar = (extra) => `<div class="no-print" style="padding:14px 20px;background:#f5f5f5;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:12px;">
       <button onclick="window.print()" style="background:#1b5e20;color:#fff;border:none;padding:10px 24px;border-radius:6px;cursor:pointer;font-size:14px;">🖨️ Imprimir / Salvar PDF</button>
@@ -673,7 +891,8 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
     </div>`;
 
     if (modo === "individual") {
-      const atletasLista = _porAtletaArr.map(([atletaId, inscs]) => {
+      // Um recibo por atleta selecionado — nunca agrupa
+      const atletasLista = atletasSelecionados.map(([atletaId, inscs]) => {
         const atl = atletas.find(a => a.id === atletaId);
         const cat = atl ? getCategoria(atl.anoNasc, anoComp) : null;
         const precoInfo = calcularPrecoInscricao(atl, cat?.id || null, eventoAtual);
@@ -682,7 +901,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
       });
       const blocos = atletasLista.map((item, idx) =>
         `<div class="recibo${idx < atletasLista.length - 1 ? " page-break" : ""}" style="${idx > 0 ? "border-top:3px dashed #ccc;" : ""}">
-          ${_blocoRecibo({ titulo: "RECIBO DE INSCRIÇÃO", pagador: item.atl?.nome || "—", atletasLista: [item], org, dataEmissao })}
+          ${_blocoRecibo({ titulo: "RECIBO DE INSCRIÇÃO", pagador: item.atl?.nome || "—", atletasLista: [item], org, dataEmissao, assinatura: assinaturaUrl })}
           <div style="margin-top:20px;font-size:10px;color:#aaa;text-align:center;padding-top:8px;border-top:1px solid #eee;">GerenTrack · ${dataEmissao}</div>
         </div>`
       ).join("");
@@ -691,24 +910,40 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
       if (w) { w.document.write(html); w.document.close(); }
 
     } else {
+      // Por equipe: agrupa atletas da mesma equipe num recibo só.
+      // "Sem equipe" (equipeCadastro vazio) NUNCA agrupa — recibo individual.
       const porEquipe = {};
-      _porAtletaArr.forEach(([atletaId, inscs]) => {
+      const semEquipe = [];
+
+      atletasSelecionados.forEach(([atletaId, inscs]) => {
         const atl = atletas.find(a => a.id === atletaId);
         const cat = atl ? getCategoria(atl.anoNasc, anoComp) : null;
         const precoInfo = calcularPrecoInscricao(atl, cat?.id || null, eventoAtual);
         const peito = numeracaoPeito?.[eid]?.[atletaId];
-        const equipeNome = inscs[0]?.equipeCadastro || atl?.clube || "Sem equipe";
-        if (!porEquipe[equipeNome]) porEquipe[equipeNome] = [];
-        porEquipe[equipeNome].push({ atl, inscs, peito, cat, precoInfo });
+        const equipeNome = inscs[0]?.equipeCadastro || atl?.clube || "";
+        const item = { atl, inscs, peito, cat, precoInfo };
+
+        if (!equipeNome) {
+          semEquipe.push(item); // sem equipe → sempre individual
+        } else {
+          if (!porEquipe[equipeNome]) porEquipe[equipeNome] = [];
+          porEquipe[equipeNome].push(item);
+        }
       });
-      const equipes = Object.entries(porEquipe);
-      const blocos = equipes.map(([equipeNome, lista], idx) =>
-        `<div class="recibo${idx < equipes.length - 1 ? " page-break" : ""}" style="${idx > 0 ? "border-top:3px dashed #ccc;" : ""}">
-          ${_blocoRecibo({ titulo: "RECIBO DE INSCRIÇÃO — " + equipeNome.toUpperCase(), pagador: equipeNome, atletasLista: lista, org, dataEmissao })}
+
+      const todosGrupos = [
+        ...Object.entries(porEquipe).map(([nome, lista]) => ({ pagador: nome, lista, titulo: "RECIBO DE INSCRIÇÃO — " + nome.toUpperCase() })),
+        ...semEquipe.map(item => ({ pagador: item.atl?.nome || "—", lista: [item], titulo: "RECIBO DE INSCRIÇÃO" })),
+      ];
+
+      const blocos = todosGrupos.map(({ pagador, lista, titulo }, idx) =>
+        `<div class="recibo${idx < todosGrupos.length - 1 ? " page-break" : ""}" style="${idx > 0 ? "border-top:3px dashed #ccc;" : ""}">
+          ${_blocoRecibo({ titulo, pagador, atletasLista: lista, org, dataEmissao, assinatura: assinaturaUrl })}
           <div style="margin-top:20px;font-size:10px;color:#aaa;text-align:center;padding-top:8px;border-top:1px solid #eee;">GerenTrack · ${dataEmissao}</div>
         </div>`
       ).join("");
-      const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/><title>Recibos por Equipe — ${eventoAtual.nome}</title><style>${cssBase}</style></head><body>${btnBar(equipes.length + " equipe(s)")}${blocos}</body></html>`;
+
+      const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/><title>Recibos — ${eventoAtual.nome}</title><style>${cssBase}</style></head><body>${btnBar(Object.keys(porEquipe).length + " equipe(s) · " + semEquipe.length + " sem equipe")}${blocos}</body></html>`;
       const w = window.open("", "_blank", "width=960,height=780");
       if (w) { w.document.write(html); w.document.close(); }
     }
@@ -726,14 +961,27 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
           </div>
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-          {isPrivileg && inscsEvt.length > 0 && (
+          {inscsEvt.length > 0 && (
             <>
-              <button style={{ ...styles.btnGhost, fontSize: 12, padding: "7px 14px" }} onClick={exportarCSV} title="Exportar planilha Excel/CSV">
-                📊 Exportar CSV
+              {/* CSV — só admin e organizador (não funcionário, não equipe) */}
+              {(tipoUser === "admin" || tipoUser === "organizador") && (
+                <button style={{ ...styles.btnGhost, fontSize: 12, padding: "7px 14px" }} onClick={exportarCSV} title="Exportar planilha Excel/CSV">
+                  📊 Exportar CSV
+                </button>
+              )}
+              {/* PDF — admin, org, funcionário e equipe (cada um vê seus dados) */}
+              <button style={{ ...styles.btnGhost, fontSize: 12, padding: "7px 14px" }} onClick={exportarPDF} title="Exportar lista em PDF">
+                📄 Exportar PDF
               </button>
-              <button style={{ ...styles.btnGhost, fontSize: 12, padding: "7px 14px" }} onClick={() => setModoRecibo("escolha")} title="Gerar recibo">
-                🧾 Recibo PDF
-              </button>
+              {/* Recibo — só admin e org */}
+              {isPrivileg && (
+                <button style={{ ...styles.btnGhost, fontSize: 12, padding: "7px 14px" }} onClick={() => {
+                  if (selecionadosRecibo.size === 0) { alert("Selecione ao menos um atleta para gerar o recibo."); return; }
+                  setModoRecibo("escolha");
+                }} title="Gerar recibo dos selecionados">
+                  🧾 Recibo PDF{selecionadosRecibo.size > 0 ? ` (${selecionadosRecibo.size})` : ""}
+                </button>
+              )}
             </>
           )}
           <button style={styles.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
@@ -749,25 +997,60 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
       {/* Modal seleção tipo de recibo */}
       {modoRecibo === "escolha" && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ background: "#0E1016", border: "1px solid #1E2130", borderRadius: 16, padding: "32px 36px", maxWidth: 400, width: "90%" }}>
+          <div style={{ background: "#0E1016", border: "1px solid #1E2130", borderRadius: 16, padding: "32px 36px", maxWidth: 440, width: "90%" }}>
             <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 20, color: "#fff", marginBottom: 8, letterSpacing: 1 }}>
               🧾 GERAR RECIBO
             </div>
-            <div style={{ color: "#666", fontSize: 13, marginBottom: 24 }}>
-              Escolha o tipo de recibo a gerar:
+            <div style={{ color: "#666", fontSize: 13, marginBottom: 20 }}>
+              {selecionadosRecibo.size} atleta(s) selecionado(s)
             </div>
+
+            {/* Upload de assinatura */}
+            <div style={{ background: "#111318", border: "1px solid #252837", borderRadius: 10, padding: "14px 16px", marginBottom: 20 }}>
+              <div style={{ fontSize: 12, color: "#aaa", marginBottom: 8, fontWeight: 600 }}>✍️ ASSINATURA (opcional)</div>
+              {assinaturaUrl ? (
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <img src={assinaturaUrl} alt="Assinatura" style={{ maxHeight: 48, maxWidth: 160, objectFit: "contain", background: "#fff", borderRadius: 4, padding: 4 }} />
+                  <button onClick={() => setAssinaturaUrl("")} style={{ background: "none", border: "none", color: "#ff6b6b", cursor: "pointer", fontSize: 12 }}>✕ Remover</button>
+                </div>
+              ) : (
+                <label style={{ cursor: "pointer", display: "inline-block" }}>
+                  <span style={{ background: "#141720", border: "1px solid #252837", borderRadius: 6, padding: "6px 14px", fontSize: 12, color: "#888", cursor: "pointer" }}>
+                    📁 Selecionar imagem
+                  </span>
+                  <input type="file" accept="image/*" style={{ display: "none" }}
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = ev => setAssinaturaUrl(ev.target.result);
+                      reader.readAsDataURL(file);
+                    }} />
+                </label>
+              )}
+              <div style={{ fontSize: 10, color: "#444", marginTop: 6 }}>PNG com fundo transparente recomendado</div>
+            </div>
+
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {/* Opção marcar como pago */}
+              <label style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", background: "#0a1a0a", border: `1px solid ${marcarComoPago ? "#2a6a2a" : "#252837"}`, borderRadius: 10, cursor: "pointer" }}>
+                <input type="checkbox" checked={marcarComoPago} onChange={e => setMarcarComoPago(e.target.checked)} style={{ width: 16, height: 16, cursor: "pointer" }} />
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 13, color: marcarComoPago ? "#7acc44" : "#aaa" }}>✅ Marcar selecionados como pagos</div>
+                  <div style={{ fontSize: 11, color: "#555", marginTop: 2 }}>Atualiza o status de pagamento ao gerar o recibo</div>
+                </div>
+              </label>
               <button
                 onClick={() => gerarRecibos("individual")}
                 style={{ background: "#0a1220", border: "1px solid #1976D244", borderRadius: 10, padding: "16px 20px", cursor: "pointer", textAlign: "left" }}>
                 <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: "#1976D2", marginBottom: 4 }}>👤 Individual</div>
-                <div style={{ fontSize: 12, color: "#666" }}>Um recibo por atleta — "Recebi de [nome do atleta]..."</div>
+                <div style={{ fontSize: 12, color: "#666" }}>Um recibo por atleta — nunca agrupa</div>
               </button>
               <button
                 onClick={() => gerarRecibos("equipe")}
                 style={{ background: "#0a1a0a", border: "1px solid #2a6a2a44", borderRadius: 10, padding: "16px 20px", cursor: "pointer", textAlign: "left" }}>
                 <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: "#7acc44", marginBottom: 4 }}>🏃 Por Equipe</div>
-                <div style={{ fontSize: 12, color: "#666" }}>Um recibo por equipe — "Recebi de [nome da equipe]..."</div>
+                <div style={{ fontSize: 12, color: "#666" }}>Agrupa da mesma equipe · sem equipe fica individual</div>
               </button>
             </div>
             <button onClick={() => setModoRecibo(null)} style={{ marginTop: 20, background: "none", border: "none", color: "#555", cursor: "pointer", fontSize: 13, width: "100%", textAlign: "center" }}>
@@ -816,18 +1099,36 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
               <option value="F">Fem</option>
             </select>
             <input style={{ ...styles.input, maxWidth: 200 }} placeholder="🔍 Nome..." value={filtroNome} onChange={e => setFiltroNome(e.target.value)} />
+            {isPrivileg && (
+              <select value={filtroPago} onChange={e => setFiltroPago(e.target.value)} style={{ ...styles.input, maxWidth: 140 }}>
+                <option value="">Todos</option>
+                <option value="pago">✅ Pagos</option>
+                <option value="pendente">⏳ Pendentes</option>
+              </select>
+            )}
           </div>
 
           <div style={styles.tableWrap}>
             <table style={styles.table}>
               <thead>
                 <tr>
-                  <Th>Nº Peito</Th><Th>CBAt</Th><Th>Atleta</Th><Th>Provas Inscritas</Th><Th>Categoria</Th><Th>Sexo</Th><Th>Equipe</Th><Th>Valor</Th><Th>Ações</Th>
+                  {isPrivileg && (
+                    <Th>
+                      <input type="checkbox"
+                        checked={_porAtletaArr.length > 0 && _porAtletaArr.every(([id]) => selecionadosRecibo.has(id))}
+                        onChange={e => setSelecionadosRecibo(e.target.checked ? new Set(_porAtletaArr.map(([id]) => id)) : new Set())}
+                        title="Selecionar todos"
+                        style={{ cursor: "pointer", width: 14, height: 14 }} />
+                    </Th>
+                  )}
+                  <Th>Nº Peito</Th><Th>CBAt</Th><Th>Atleta</Th><Th>Provas Inscritas</Th><Th>Categoria</Th><Th>Sexo</Th>
+                  {isPrivileg && <Th>Equipe</Th>}
+                  <Th>Valor</Th><Th>Ações</Th>
                 </tr>
               </thead>
               <tbody>
                 {inscsFiltradas.length === 0 ? (
-                  <tr><td colSpan={8} style={{ ...styles.td, textAlign: "center", color: "#666" }}>Nenhuma inscrição encontrada.</td></tr>
+                  <tr><td colSpan={isPrivileg ? 10 : 8} style={{ ...styles.td, textAlign: "center", color: "#666" }}>Nenhuma inscrição encontrada.</td></tr>
                 ) : (() => {
                   let equipeAtual = null;
                   return porAtletaPag.map(([atletaId, inscs], rowIdx) => {
@@ -842,16 +1143,28 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                     if (mostrarSeparador) equipeAtual = equipeNome;
                     return (
                       <React.Fragment key={`saved_${atletaId}_${rowIdx}`}>
-                        {mostrarSeparador && (
+                        {mostrarSeparador && isPrivileg && (
                           <tr>
-                            <td colSpan={8} style={{ background: "#0d1020", borderBottom: "1px solid #1E2130", borderTop: rowIdx > 0 ? "2px solid #1976D244" : "none", padding: "6px 16px" }}>
+                            <td colSpan={10} style={{ background: "#0d1020", borderBottom: "1px solid #1E2130", borderTop: rowIdx > 0 ? "2px solid #1976D244" : "none", padding: "6px 16px" }}>
                               <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 12, color: "#1976D2", letterSpacing: 1, textTransform: "uppercase" }}>
                                 🏃 {equipeNome}
                               </span>
                             </td>
                           </tr>
                         )}
-                        <tr style={styles.tr}>
+                        <tr style={{ ...styles.tr, background: selecionadosRecibo.has(atletaId) ? "#0a1a2a" : isPago(inscs) ? "#061206" : undefined }}>
+                          {isPrivileg && (
+                            <td style={{ ...styles.td, textAlign: "center", verticalAlign: "top" }}>
+                              <input type="checkbox"
+                                checked={selecionadosRecibo.has(atletaId)}
+                                onChange={e => setSelecionadosRecibo(prev => {
+                                  const next = new Set(prev);
+                                  e.target.checked ? next.add(atletaId) : next.delete(atletaId);
+                                  return next;
+                                })}
+                                style={{ cursor: "pointer", width: 14, height: 14 }} />
+                            </td>
+                          )}
                           <td style={{ ...styles.td, textAlign: "center", verticalAlign: "top" }}>
                             {peito
                               ? <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 18, color: "#ffaa44" }}>{peito}</span>
@@ -868,9 +1181,16 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                                 return (
                                   <span key={insc.id} style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 8px", borderRadius: 6, fontSize: 11, fontWeight: 600, background: "#111318", border: "1px solid #1a1d2a", color: "#ccc" }}>
                                     {prv?.nome || insc.provaId}
-                                    <button onClick={() => handleExcluir(insc)}
-                                      style={{ background: "none", border: "none", cursor: "pointer", color: "#ff6b6b", fontSize: 10, padding: "0 2px" }}
-                                      title="Remover">✕</button>
+                                    {(isPrivileg || (isEquipeUsuario && inscricoesAbertas)) && (
+                                      <button onClick={() => handleExcluir(insc)}
+                                        style={{ background: "none", border: "none", cursor: "pointer", color: "#ff6b6b", fontSize: 10, padding: "0 2px" }}
+                                        title="Remover">✕</button>
+                                    )}
+                                    {isPrivileg && (
+                                      <button onClick={() => handleTrocarProva(insc)}
+                                        style={{ background: "none", border: "none", cursor: "pointer", color: "#888", fontSize: 10, padding: "0 2px" }}
+                                        title="Trocar prova">⇄</button>
+                                    )}
                                   </span>
                                 );
                               })}
@@ -885,22 +1205,40 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                               {primeiraInsc.sexo === "M" ? "Masc" : "Fem"}
                             </span>
                           </td>
-                          <td style={{ ...styles.td, verticalAlign: "top" }}>{equipeNome}</td>
+                          {isPrivileg && (
+                            <td style={{ ...styles.td, verticalAlign: "top" }}>{equipeNome}</td>
+                          )}
                           <td style={{ ...styles.td, verticalAlign: "top", textAlign: "right" }}>
                             {precoInfo?.preco != null
                               ? <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 15, color: "#7acc44" }}>{formatarPreco(precoInfo.preco)}</span>
                               : <span style={{ color: "#555", fontSize: 11 }}>Gratuito</span>}
                           </td>
                           <td style={{ ...styles.td, whiteSpace: "nowrap", verticalAlign: "top" }}>
-                            <button onClick={async () => {
-                              if (await confirmar(`Remover TODAS as ${inscsVisiveis.length} inscrições de ${atl?.nome || "atleta"}?`)) {
-                                inscs.forEach(i => excluirInscricao(i.id, { confirmado: true }));
-                                setFeedback(`✅ Todas as inscrições de ${atl?.nome} removidas`);
-                                setTimeout(() => setFeedback(""), 3000);
-                              }
-                            }} style={{ ...styles.btnGhost, fontSize: 11, padding: "3px 8px", color: "#ff6b6b", borderColor: "#5a1a1a" }}>
-                              🗑️ Todas
-                            </button>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                              {/* Toggle pago — só admin/org */}
+                              {isPrivileg && (
+                                <button
+                                  onClick={() => togglePago(inscs, atl)}
+                                  style={{ ...styles.btnGhost, fontSize: 11, padding: "3px 10px",
+                                    color: isPago(inscs) ? "#7acc44" : "#888",
+                                    borderColor: isPago(inscs) ? "#2a5a2a" : "#2a2d3a",
+                                    background: isPago(inscs) ? "#061206" : "transparent" }}>
+                                  {isPago(inscs) ? "✅ Pago" : "⏳ Pendente"}
+                                </button>
+                              )}
+                              {/* Excluir — admin/org sempre; equipe só com inscrições abertas */}
+                              {(isPrivileg || (isEquipeUsuario && inscricoesAbertas)) && (
+                                <button onClick={async () => {
+                                  if (await confirmar(`Remover TODAS as ${inscsVisiveis.length} inscrições de ${atl?.nome || "atleta"}?`)) {
+                                    inscs.forEach(i => excluirInscricao(i.id, { confirmado: true }));
+                                    setFeedback(`✅ Todas as inscrições de ${atl?.nome} removidas`);
+                                    setTimeout(() => setFeedback(""), 3000);
+                                  }
+                                }} style={{ ...styles.btnGhost, fontSize: 11, padding: "3px 8px", color: "#ff6b6b", borderColor: "#5a1a1a" }}>
+                                  🗑️ Remover
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       </React.Fragment>
@@ -925,17 +1263,27 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                       <span style={{ fontWeight: 600, color: "#ddd", fontSize: 13 }}>{equipe}</span>
                       <span style={{ color: "#555", fontSize: 12, marginLeft: 10 }}>{dados.atletas} atleta(s)</span>
                     </div>
-                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: dados.valor > 0 ? "#7acc44" : "#555" }}>
-                      {dados.valor > 0 ? formatarPreco(dados.valor) : "Gratuito"}
-                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      {isPrivileg && dados.pago > 0 && <span style={{ fontSize: 11, color: "#7acc44" }}>✅ {formatarPreco(dados.pago)}</span>}
+                      {isPrivileg && dados.valor - dados.pago > 0 && <span style={{ fontSize: 11, color: "#ffaa44" }}>⏳ {formatarPreco(dados.valor - dados.pago)}</span>}
+                      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: dados.valor > 0 ? "#7acc44" : "#555" }}>
+                        {dados.valor > 0 ? formatarPreco(dados.valor) : "Gratuito"}
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>
               {resumoFinanceiro.totalGlobalSalvo > 0 && (
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px", background: "#0a1a0a", borderRadius: 8, border: "1px solid #2a6a2a" }}>
                   <div>
-                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 14, color: "#7acc44", letterSpacing: 1 }}>TOTAL GERAL</span>
+                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 14, color: "#7acc44", letterSpacing: 1 }}>TOTAL</span>
                     <span style={{ color: "#555", fontSize: 12, marginLeft: 10 }}>{_porAtletaArr.length} atleta(s)</span>
+                    {isPrivileg && (
+                      <div style={{ marginTop: 4, display: "flex", gap: 12 }}>
+                        <span style={{ fontSize: 11, color: "#7acc44" }}>✅ Pago: {formatarPreco(resumoFinanceiro.totalPago)}</span>
+                        <span style={{ fontSize: 11, color: "#ffaa44" }}>⏳ Pendente: {formatarPreco(resumoFinanceiro.totalGlobalSalvo - resumoFinanceiro.totalPago)}</span>
+                      </div>
+                    )}
                   </div>
                   <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 24, color: "#7acc44" }}>
                     {formatarPreco(resumoFinanceiro.totalGlobalSalvo)}
