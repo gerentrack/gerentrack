@@ -156,7 +156,7 @@ const styles = {
   provaBtnSel: { background: "#1a1c22", borderColor: "#1976D2", color: "#1976D2" },
 };
 
-function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equipes, excluirInscricao, adicionarInscricao, atualizarInscricao, usuarioLogado, registrarAcao, numeracaoPeito, organizadores }) {
+function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equipes, excluirInscricao, adicionarInscricao, atualizarInscricao, usuarioLogado, registrarAcao, numeracaoPeito, organizadores, gtLogo }) {
   const confirmar = useConfirm();
   if (!eventoAtual) return <div style={styles.page}><div style={styles.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
 
@@ -216,6 +216,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
   const [filtroSexo, setFiltroSexo]   = useState("");
   const [filtroNome, setFiltroNome]   = useState("");
   const [filtroPago, setFiltroPago]   = useState(""); // "" | "pago" | "pendente"
+  const [filtroEquipe, setFiltroEquipe] = useState("");
   const [feedback, setFeedback]       = useState("");
 
   // Um atleta é considerado "pago" se TODAS as suas inscrições visíveis têm pago=true
@@ -267,9 +268,25 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
     );
     inscsFiltradas = inscsFiltradas.filter(i => idsPagos.has(i.atletaId));
   }
+  if (filtroEquipe) {
+    const idsEquipe = new Set(
+      inscsEvt.filter(i => {
+        const atl = atletas.find(a => a.id === i.atletaId);
+        const eq = i.equipeCadastro || atl?.clube || "";
+        return eq === filtroEquipe;
+      }).map(i => i.atletaId)
+    );
+    inscsFiltradas = inscsFiltradas.filter(i => idsEquipe.has(i.atletaId));
+  }
 
   const inscsRevez   = inscsEvt.filter(i => i.tipo === "revezamento");
   const provasRevez  = provasProg.filter(p => p.tipo === "revezamento");
+  const equipesUnicas = [...new Set(
+    inscsEvt.map(i => {
+      const atl = atletas.find(a => a.id === i.atletaId);
+      return i.equipeCadastro || atl?.clube || "";
+    }).filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b, "pt-BR"));
   const provasUnicas = [...new Set(inscsEvt.map(i => i.provaId))].map(pid => {
     const p = todasAsProvas().find(pp => pp.id === pid);
     return { id: pid, nome: p?.nome || pid };
@@ -828,16 +845,23 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
         <div class="rod">
           <div class="rod-ass">
             <div class="rod-ln">
-              ${assinatura ? `<img src="${assinatura}" alt="Assinatura" style="max-height:68px;max-width:200px;object-fit:contain;object-position:bottom;" />` : ""}
+              ${assinatura ? `<img src="${assinatura}" alt="Assinatura" style="max-height:64px;max-width:200px;object-fit:contain;object-position:bottom;" />` : ""}
             </div>
             <div class="rod-lb">${org?.entidade || org?.nome || "Organizador"}</div>
           </div>
           <div class="rod-info">
             <div>Emitido em: ${dataEmissao}</div>
-            <div>Plataforma de Competições - GERENTRACK</div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin-top:2px;">
+              ${gtLogo
+                ? `<span>Plataforma de Competições -</span><img src="${gtLogo}" alt="GERENTRACK" style="max-height:20mm;object-fit:contain;opacity:0.7;vertical-align:middle;" />`
+                : `<span>Plataforma de Competições - GERENTRACK</span>`}
+            </div>
+          </div>
+          <div class="rod-ass" style="visibility:hidden;">
+            <div class="rod-ln"></div><div class="rod-lb">.</div>
           </div>
         </div>
-        ${logoRodap ? `<div class="rod-logo"><img src="${logoRodap}" alt="Logo Rodapé" style="max-height:28mm;max-width:100%;object-fit:contain;" /></div>` : ""}
+        ${logoRodap ? `<div style="margin-top:10px;text-align:center;"><img src="${logoRodap}" alt="" style="max-width:100%;max-height:28mm;object-fit:contain;" /></div>` : ""}
       </div>`;
 
     return `
@@ -884,11 +908,19 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
     }
 
     const cssBase = `
-      @media print{.no-print{display:none!important;}body{margin:0;}
+      @media print{
+        .no-print{display:none!important;}
+        body{margin:0;padding:0;background:#fff;}
         @page{size:A4 portrait;margin:0;}
-        .recibo{height:100vh;padding:12mm 15mm 10mm;margin:0;box-shadow:none;border:none;overflow:hidden;}
-        .recibo:not(:last-child){page-break-after:always;}}
+        .print-wrap{display:contents;}
+        .recibo{width:100%;height:297mm;padding:12mm 15mm 10mm;margin:0;
+          box-shadow:none;border:none;box-sizing:border-box;
+          display:flex;flex-direction:column;overflow:hidden;
+          zoom:0.9;}
+        .recibo:not(:last-child){page-break-after:always;}
+      }
       body{font-family:Arial,sans-serif;color:#111;background:#fff;margin:0;padding:0;font-size:13px;}
+      .print-wrap{display:block;}
       .recibo{background:#fff;width:210mm;min-height:297mm;margin:16px auto;padding:12mm 15mm 10mm;
         display:flex;flex-direction:column;box-shadow:0 4px 24px rgba(0,0,0,.2);box-sizing:border-box;}
       .recibo-conteudo{flex:1;}
@@ -897,7 +929,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
       .rod-wrap{margin-top:auto;padding-bottom:3mm;}
       .rod{padding-top:4px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;}
       .rod-ass{flex:1;max-width:220px;}
-      .rod-ln{border-bottom:1px solid #aaa;margin-bottom:5px;height:72px;display:flex;align-items:flex-end;justify-content:center;}
+      .rod-ln{border-bottom:1px solid #aaa;margin-bottom:5px;height:64px;display:flex;align-items:flex-end;justify-content:center;}
       .rod-lb{font-size:9px;color:#888;text-align:center;font-style:italic;}
       .rod-info{font-size:9px;color:#aaa;text-align:center;line-height:1.4;}
       .rod-logo{margin-top:10px;text-align:center;}
@@ -924,7 +956,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
           ${_blocoRecibo({ titulo: "RECIBO DE INSCRIÇÃO", pagador: item.atl?.nome || "—", atletasLista: [item], org, dataEmissao, assinatura: assinaturaUrl })}
         </div>`
       ).join("");
-      const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/><title>Recibos Individuais — ${eventoAtual.nome}</title><style>${cssBase}</style></head><body>${btnBar(atletasLista.length + " recibo(s) individual(is)")}${blocos}</body></html>`;
+      const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/><title>Recibos Individuais — ${eventoAtual.nome}</title><style>${cssBase}</style></head><body>${btnBar(atletasLista.length + " recibo(s) individual(is)")}<div class="print-wrap">${blocos}</div></body></html>`;
       const w = window.open("", "_blank", "width=960,height=780");
       if (w) { w.document.write(html); w.document.close(); }
 
@@ -961,7 +993,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
         </div>`
       ).join("");
 
-      const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/><title>Recibos — ${eventoAtual.nome}</title><style>${cssBase}</style></head><body>${btnBar(Object.keys(porEquipe).length + " equipe(s) · " + semEquipe.length + " sem equipe")}${blocos}</body></html>`;
+      const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/><title>Recibos — ${eventoAtual.nome}</title><style>${cssBase}</style></head><body>${btnBar(Object.keys(porEquipe).length + " equipe(s) · " + semEquipe.length + " sem equipe")}<div class="print-wrap">${blocos}</div></body></html>`;
       const w = window.open("", "_blank", "width=960,height=780");
       if (w) { w.document.write(html); w.document.close(); }
     }
@@ -1117,6 +1149,12 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
               <option value="F">Fem</option>
             </select>
             <input style={{ ...styles.input, maxWidth: 200 }} placeholder="🔍 Nome..." value={filtroNome} onChange={e => setFiltroNome(e.target.value)} />
+            {isPrivileg && equipesUnicas.length > 0 && (
+              <select value={filtroEquipe} onChange={e => setFiltroEquipe(e.target.value)} style={{ ...styles.input, maxWidth: 200 }}>
+                <option value="">Todas as equipes</option>
+                {equipesUnicas.map(eq => <option key={eq} value={eq}>{eq}</option>)}
+              </select>
+            )}
             {isPrivileg && (
               <select value={filtroPago} onChange={e => setFiltroPago(e.target.value)} style={{ ...styles.input, maxWidth: 140 }}>
                 <option value="">Todos</option>
