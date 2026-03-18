@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { _getLocalEventoDisplay } from "../../shared/formatters/utils";
 import { StatCard } from "../ui/StatCard";
 import { Th, Td } from "../ui/TableHelpers";
+import { SinoNotificacoes } from "../ui/SinoNotificacoes";
 
 const PERMISSOES = [
   { id:"ver_competições",    grupo:"Competições",  label:"Visualizar competições" },
@@ -142,7 +143,7 @@ const styles = {
   provaCheckBtnSel: { background: "#1a1c22", borderColor: "#1976D2", color: "#1976D2" },
 };
 
-function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, atletas, selecionarEvento, adicionarEvento, editarEvento, excluirEvento, alterarStatusEvento, organizadores, funcionarios, solicitacoesVinculo, responderVinculo, equipes, solicitacoesEquipe=[], aprovarEquipe, recusarEquipe, atualizarAtleta, registrarAcao, setAtletaEditandoId }) {
+function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, atletas, selecionarEvento, adicionarEvento, editarEvento, excluirEvento, alterarStatusEvento, organizadores, funcionarios, solicitacoesVinculo, responderVinculo, equipes, solicitacoesEquipe=[], aprovarEquipe, recusarEquipe, atualizarAtleta, registrarAcao, setAtletaEditandoId, notificacoes, marcarNotifLida }) {
   const tipoOrg = usuarioLogado?.tipo;
   if (tipoOrg !== "organizador" && tipoOrg !== "funcionario" && tipoOrg !== "admin") return (
     <div style={styles.page}><div style={styles.emptyState}>
@@ -193,6 +194,11 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
           )}
         </div>
         <div style={styles.painelBtns}>
+          <SinoNotificacoes
+            notificacoes={notificacoes}
+            usuarioId={usuarioLogado?.id}
+            marcarNotifLida={marcarNotifLida}
+          />
           {(!isFuncionario || temPerm("funcionarios_ver")) &&
             <button style={styles.btnSecondary} onClick={() => setTela("funcionarios")}>👥 Funcionários</button>}
           <button style={styles.btnSecondary} onClick={() => setTela("gerenciar-equipes")}>🏟️ Equipes</button>

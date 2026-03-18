@@ -4,6 +4,7 @@ import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { getCategoria } from "../../shared/constants/categorias";
 import { _getCbat } from "../../shared/formatters/utils";
 import { Th, Td } from "../ui/TableHelpers";
+import { SinoNotificacoes } from "../ui/SinoNotificacoes";
 const styles = {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
   pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 24, letterSpacing: 1 },
@@ -132,13 +133,20 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
             );
           })()}
         </div>
-        {meuAtleta && (
-          <div style={styles.painelBtns}>
-            <button style={styles.btnSecondary} onClick={async () => { window.__atletaEditId = meuAtleta?.id; setTela("editar-atleta"); }}>✏️ Meus Dados</button>
-            <button style={styles.btnSecondary} onClick={() => setTela("gerenciar-inscricoes")}>📋 Minhas Inscrições</button>
-            <button style={styles.btnPrimary} onClick={() => setTela("inscricao-avulsa")}>✍️ Me Inscrever</button>
-          </div>
-        )}
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+          {meuAtleta && (
+            <div style={styles.painelBtns}>
+              <button style={styles.btnSecondary} onClick={async () => { window.__atletaEditId = meuAtleta?.id; setTela("editar-atleta"); }}>✏️ Meus Dados</button>
+              <button style={styles.btnSecondary} onClick={() => setTela("gerenciar-inscricoes")}>📋 Minhas Inscrições</button>
+              <button style={styles.btnPrimary} onClick={() => setTela("inscricao-avulsa")}>✍️ Me Inscrever</button>
+            </div>
+          )}
+          <SinoNotificacoes
+            notificacoes={notificacoes}
+            usuarioId={usuarioLogado?.id}
+            marcarNotifLida={marcarNotifLida}
+          />
+        </div>
       </div>
 
       {/* Dados do atleta */}
@@ -225,36 +233,6 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
           ⛔ As inscrições para <strong>{eventoAtual.nome}</strong> estão encerradas.
         </div>
       )}
-
-      {/* ── Notificações ──────────────────────────────────── */}
-      {(() => {
-        const minhasNotif = (notificacoes||[]).filter(n =>
-          n.para === usuarioLogado?.id && !n.lida);
-        if (!minhasNotif.length) return null;
-        return (
-          <div style={{ marginBottom:16 }}>
-            {minhasNotif.map(n => (
-              <div key={n.id} style={{ background: n.tipo==="desvinculacao"?"#1a0a0a":"#0a0f1a",
-                border:`1px solid ${n.tipo==="desvinculacao"?"#5a1a1a":"#3a5a8a"}`,
-                borderRadius:8, padding:"12px 16px", marginBottom:8,
-                display:"flex", alignItems:"flex-start", gap:12 }}>
-                <span style={{ fontSize:20, flexShrink:0 }}>
-                  {n.tipo==="desvinculacao" ? "🔔" : "ℹ️"}
-                </span>
-                <div style={{ flex:1 }}>
-                  <div style={{ color:"#fff", fontSize:13, marginBottom:4 }}>{n.msg}</div>
-                  <div style={{ color:"#555", fontSize:11 }}>
-                    {new Date(n.data).toLocaleString("pt-BR")}
-                  </div>
-                </div>
-                <button onClick={() => marcarNotifLida(n.id)}
-                  style={{ background:"transparent", border:"none", color:"#555",
-                    cursor:"pointer", fontSize:16, padding:"0 4px" }}>✕</button>
-              </div>
-            ))}
-          </div>
-        );
-      })()}
 
       {/* ── Solicitar/Ver Vínculo ──────────────────────────── */}
       {(() => {

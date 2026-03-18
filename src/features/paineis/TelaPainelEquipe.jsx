@@ -46,12 +46,15 @@ function StatCard({ value, label, color = "#1976D2" }) {
   );
 }
 
+import { SinoNotificacoes } from "../ui/SinoNotificacoes";
+
 export default function TelaPainelEquipe({
   usuarioLogado, setTela, logout,
   atletas, inscricoes, eventos, equipes, treinadores,
   solicitacoesVinculo, responderVinculo,
   selecionarEvento,
   desvincularAtleta, setAtletaEditandoId,
+  notificacoes, marcarNotifLida,
 }) {
   const confirmar = useConfirm();
   const isTreinador = usuarioLogado?.tipo === "treinador";
@@ -105,7 +108,11 @@ export default function TelaPainelEquipe({
             Logado como <strong style={{ color: "#aaa" }}>{usuarioLogado?.nome}</strong>
           </div>
         </div>
-
+        <SinoNotificacoes
+          notificacoes={notificacoes}
+          usuarioId={usuarioLogado?.id}
+          marcarNotifLida={marcarNotifLida}
+        />
       </div>
 
       {/* Stats gerais */}

@@ -157,7 +157,12 @@ function App() {
   const [treinadores,        setTreinadores]        = useLocalStorage("atl_treinadores",    []); // treinadores vinculados a equipes
   // ⚠️ Arrays grandes — useLocalOnly evita limite de 1MB do Firestore
   const [solicitacoesVinculo, setSolicitacoesVinculo] = useLocalStorage("atl_vinculo_sol",   []);
-  const [notificacoes,        setNotificacoes]        = useLocalOnly("atl_notificacoes", []);
+  const [notificacoes, _setNotificacoes] = useLocalStorage("atl_notificacoes", []);
+  // Wrapper com limite de 200 entradas por usuário
+  const setNotificacoes = (fn) => _setNotificacoes(prev => {
+    const novo = typeof fn === "function" ? fn(prev) : fn;
+    return Array.isArray(novo) ? novo.slice(0, 200) : novo;
+  });
   const [historicoAcoes,  setHistoricoAcoes]  = useLocalStorage("atl_historico",       []);
   const [solicitacoesRecuperacao, setSolicitacoesRecuperacao] = useLocalStorage("atl_recuperacao", []);
   const [solicitacoesEquipe,  setSolicitacoesEquipe]  = useLocalStorage("atl_sol_equipe",   []);
@@ -487,11 +492,15 @@ function App() {
     setSolicitacoesPortabilidade(p => [...p, {
       ...sol, id: Date.now().toString(), status: "pendente", data: new Date().toISOString()
     }]);
-  const resolverSolicitacaoPortabilidade = (id, dadosJson) =>
+  const resolverSolicitacaoPortabilidade = (id, dadosJson) => {
+    const sol = solicitacoesPortabilidade.find(s => s.id === id);
     setSolicitacoesPortabilidade(p => p.map(s => s.id === id
       ? { ...s, status: "pronto", dadosJson, dataResolucao: new Date().toISOString() }
       : s
     ));
+    if (sol) adicionarNotificacao(sol.usuarioId, "portabilidade",
+      "Sua solicitação de portabilidade de dados foi processada. Acesse Configurações → Minha Conta para baixar o arquivo.");
+  };
   const excluirSolicitacaoPortabilidade = (id) =>
     setSolicitacoesPortabilidade(p => p.filter(s => s.id !== id));
   const atualizarSenha = async (tipo, userId, novaSenha) => {
@@ -579,6 +588,8 @@ function App() {
       ? { ...s, status: "aprovada", dataResposta: new Date().toISOString() }
       : s
     ));
+    adicionarNotificacao(equipeId, "aprovacao_equipe",
+      `Sua equipe "${eq?.nome || ""}" foi aprovada! Você já pode gerenciar atletas e realizar inscrições.`);
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Aprovou equipe", eq?.nome || equipeId, null, { modulo: "sistema" });
   };
   const recusarEquipe = async (equipeId) => {
@@ -622,7 +633,7 @@ function App() {
   // origem: "atleta" (atleta pede para equipe) | "equipe" (equipe pede ao atleta ou à equipe atual)
   // aprovadorTipo: "atleta" | "equipe_atual"
   // equipeAtualId: equipe atual do atleta (se houver) — precisa aprovar a transferência
-  const solicitarVinculo = (atletaId, atletaNome, equipeId, clube, opts = {}) =>
+  const solicitarVinculo = (atletaId, atletaNome, equipeId, clube, opts = {}) => {
     setSolicitacoesVinculo(p => [
       ...p.filter(s => !(s.atletaId === atletaId && s.status === "pendente")),
       { id: Date.now().toString(), atletaId, atletaNome, equipeId, clube,
@@ -631,6 +642,10 @@ function App() {
         equipeAtualId: opts.equipeAtualId || null,
         status: "pendente", data: new Date().toISOString() }
     ]);
+    // Notifica a equipe que um atleta solicitou vínculo
+    adicionarNotificacao(equipeId, "vinculo_solicitado",
+      `O atleta "${atletaNome}" solicitou vínculo com sua equipe. Acesse o painel para aprovar ou recusar.`);
+  };
 
   const responderVinculo = (solId, aceitar, atletas_arr) => {
     const sol = solicitacoesVinculo.find(s => s.id === solId);
@@ -957,6 +972,14 @@ function App() {
           : campos.sumulaLiberada != null
             ? `${nomeEv} — ${campos.sumulaLiberada ? "Liberou súmulas" : "Bloqueou súmulas"}`
             : nomeEv;
+    // Notificar equipes com inscrições neste evento quando súmulas são liberadas
+    if (campos.sumulaLiberada === true) {
+      const equipeIds = [...new Set(
+        (inscricoes || []).filter(i => i.eventoId === id).map(i => i.equipeId).filter(Boolean)
+      )];
+      equipeIds.forEach(eqId => adicionarNotificacao(eqId, "sumulas_liberadas",
+        `As súmulas da competição "${nomeEv}" foram liberadas. Acesse o evento para visualizar.`));
+    }
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Alterou status competição", detalhe, usuarioLogado.organizadorId || usuarioLogado.id, { equipeId: usuarioLogado.equipeId, modulo: "competicoes" });
   };
 
