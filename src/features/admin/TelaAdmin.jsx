@@ -5,7 +5,7 @@ import { _getLocalEventoDisplay, _getNascDisplay, validarCNPJ, emailJaCadastrado
 import { StatCard } from "../ui/StatCard";
 import FormField from "../ui/FormField";
 import { Th, Td } from "../ui/TableHelpers";
-import { auth, createUserWithEmailAndPassword, signOut as firebaseSignOut } from "../../firebase";
+import { auth, createUserWithEmailAndPassword, signOut as firebaseSignOut, sendPasswordResetEmail } from "../../firebase";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 const badgeStatus = (s) => ({
@@ -103,7 +103,8 @@ function TelaAdmin({
 
   // Org form (hoisted — não pode ser useState dentro de IIFE)
   const [showOrgForm, setShowOrgForm] = useState(false);
-  const [senhasVisiveis, setSenhasVisiveis] = useState(new Set()); // IDs de senhas reveladas
+  const [senhasVisiveis, setSenhasVisiveis] = useState(new Set());
+  const [resetFeedback, setResetFeedback] = useState({}); // { [solId]: "ok" | "erro" | "enviando" } // IDs de senhas reveladas
   const [formOrg,  setFormOrg]  = useState({ nome:"", email:"", senha:"", entidade:"", fone:"", cnpj:"" });
   const [errosOrg, setErrosOrg] = useState({});
   const [salvoOrg, setSalvoOrg] = useState(false);
@@ -359,12 +360,33 @@ function TelaAdmin({
                             </div>
                           </Td>
                           <Td>
-                            <button onClick={async () => {
-                              await aplicarSenhaTemp(sol.tipo, sol.userId, sol.senhaTemp, sol);
-                              resolverSolicitacaoRecuperacao(sol.id);
-                            }} style={{ ...s.btnGhost, fontSize:12, padding:"4px 14px", color:"#7cfc7c", borderColor:"#2a5a2a" }}>
-                              ✓ Enviar Senha
-                            </button>
+                            {resetFeedback[sol.id] === "ok" ? (
+                              <span style={{ color:"#7cfc7c", fontSize:12 }}>✅ E-mail enviado!</span>
+                            ) : resetFeedback[sol.id] === "erro" ? (
+                              <span style={{ color:"#ff6b6b", fontSize:12 }}>❌ Falhou — tente de novo</span>
+                            ) : (
+                              <button onClick={async () => {
+                                setResetFeedback(prev => ({ ...prev, [sol.id]: "enviando" }));
+                                try {
+                                  // 1. Garantir que existe conta Firebase Auth para este e-mail
+                                  await aplicarSenhaTemp(sol.tipo, sol.userId, sol.senhaTemp, sol);
+                                  // 2. Enviar e-mail oficial de redefinição de senha pelo Firebase
+                                  await sendPasswordResetEmail(auth, sol.email);
+                                  // 3. Marcar solicitação como resolvida
+                                  resolverSolicitacaoRecuperacao(sol.id);
+                                  setResetFeedback(prev => ({ ...prev, [sol.id]: "ok" }));
+                                } catch (err) {
+                                  console.error("Erro ao enviar reset:", err);
+                                  setResetFeedback(prev => ({ ...prev, [sol.id]: "erro" }));
+                                }
+                              }}
+                              disabled={resetFeedback[sol.id] === "enviando"}
+                              style={{ ...s.btnGhost, fontSize:12, padding:"4px 14px", color:"#7cfc7c", borderColor:"#2a5a2a",
+                                opacity: resetFeedback[sol.id] === "enviando" ? 0.5 : 1,
+                                cursor: resetFeedback[sol.id] === "enviando" ? "not-allowed" : "pointer" }}>
+                                {resetFeedback[sol.id] === "enviando" ? "⏳ Enviando..." : "📧 Enviar Link de Redefinição"}
+                              </button>
+                            )}
                           </Td>
                         </tr>
                       );
@@ -373,7 +395,7 @@ function TelaAdmin({
                 </table>
               </div>
               <div style={{ fontSize:11, color:"#555", marginTop:8 }}>
-                Ao clicar em "Enviar Senha", a senha temporária é aplicada. O usuário deverá criar uma nova senha no próximo login.
+                Ao clicar em "Enviar Link de Redefinição", o Firebase envia um e-mail oficial para o usuário com link para criar uma nova senha. O link expira em 1 hora.
               </div>
             </div>
           )}
