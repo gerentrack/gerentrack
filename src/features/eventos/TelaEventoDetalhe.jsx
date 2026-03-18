@@ -437,6 +437,13 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                 </span>
               </button>
             )}
+            {(tpU === "admin" || tpU === "organizador" || tpU === "funcionario") && (
+              <button style={{ ...styles.eventoAcaoBtn, borderColor: "#2a6a6a66" }} onClick={() => setTela("secretaria")}>
+                <span style={{ fontSize: 36 }}>📋</span>
+                <strong>Secretaria</strong>
+                <span style={{ color: "#666", fontSize: 13 }}>Câmara de chamada · Entrega de medalhas</span>
+              </button>
+            )}
           </div>
         );
 

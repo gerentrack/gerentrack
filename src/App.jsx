@@ -67,6 +67,7 @@ import TelaRecordes                from "./features/recordes/TelaRecordes";
 import { gerarHtmlImpressao }      from "./features/impressao/gerarHtmlImpressao";
 import TelaDigitarResultados       from "./features/digitar/TelaDigitarResultados";
 import TelaConfigPontuacaoEquipes  from "./features/configuracoes/TelaConfigPontuacaoEquipes";
+import TelaSecretaria              from "./features/secretaria/TelaSecretaria";
 import TelaGerenciarUsuarios       from "./features/admin/TelaGerenciarUsuarios";
 import TelaGerenciarEquipes        from "./features/admin/TelaGerenciarEquipes";
 import TelaAdmin                   from "./features/admin/TelaAdmin";
@@ -1285,7 +1286,7 @@ function App() {
         {tela === "evento-detalhe"    && <TelaEventoDetalhe {...props} />}
 
         {/* Bloqueio global: telas de edição bloqueadas se competição finalizada */}
-        {eventoAtual?.competicaoFinalizada && ["inscricao-avulsa","digitar-resultados","gestao-inscricoes","inscricao-revezamento","config-pontuacao-equipes","numeracao-peito"].includes(tela) ? (
+        {eventoAtual?.competicaoFinalizada && ["inscricao-avulsa","digitar-resultados","gestao-inscricoes","inscricao-revezamento","config-pontuacao-equipes","numeracao-peito","secretaria"].includes(tela) ? (
           <div style={styles.page}><div style={styles.emptyState}>
             <span style={{ fontSize:48 }}>🔒</span>
             <p style={{ color:"#ff6b6b", fontWeight:700, fontSize:18 }}>Competição Finalizada</p>
@@ -1303,6 +1304,7 @@ function App() {
             {tela === "gestao-inscricoes"&& <TelaGestaoInscricoes {...props} />}
             {tela === "inscricao-revezamento" && <TelaInscricaoRevezamento {...props} />}
             {tela === "config-pontuacao-equipes" && <TelaConfigPontuacaoEquipes {...props} />}
+            {tela === "secretaria"               && <TelaSecretaria {...props} />}
           </>
         )}
 
