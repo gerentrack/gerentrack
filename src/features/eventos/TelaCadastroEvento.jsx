@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { todasAsProvas, getComposicaoCombinada } from "../../shared/athletics/provasDef";
-import { CATEGORIAS, ESTADOS_BR } from "../../shared/constants/categorias";
+import { CATEGORIAS, ESTADOS_BR, getCategoria } from "../../shared/constants/categorias";
 import FormField from "../ui/FormField";
 import { storage, storageRef, uploadBytes, getDownloadURL } from "../../firebase";
 
@@ -269,7 +269,7 @@ function Acordeao({ keyName, titulo, icone, resumo, children, aberto, onToggle }
 
 
 function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtual, eventoAtualId, selecionarEvento, usuarioLogado, organizadores, recordes, equipes = [],
-  cadEventoGoStep, setCadEventoGoStep }) {
+  cadEventoGoStep, setCadEventoGoStep, inscricoes = [], atletas = [] }) {
   const editando = eventoAtual && eventoAtualId && true;
   const tipoEvt = usuarioLogado?.tipo;
   if (tipoEvt !== "admin" && tipoEvt !== "organizador" && tipoEvt !== "funcionario") return (
@@ -1175,6 +1175,9 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
           editando={editando}
           handleSalvar={handleSalvar}
           setStep={setStep}
+          inscricoes={inscricoes}
+          atletas={atletas}
+          eventoAtualId={eventoAtualId}
         />
       )}
     </div>
@@ -1374,7 +1377,9 @@ function FiltroProvasStep({ todasProvas, form, setForm, toggleProva, toggleGrupo
 }
 
 // ─── PROGRAMA HORÁRIO (STEP 3) ───────────────────────────────────────────────
-function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalvar, setStep }) {
+function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalvar, setStep,
+  inscricoes = [], atletas = [], eventoAtualId }) {
+
   const provasSel = (form.provasPrograma || [])
     .map(id => todasProvas.find(p => p.id === id))
     .filter(Boolean);
@@ -1387,9 +1392,10 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
     setForm(f => ({ ...f, modoHorario: modo, programaHorario: {}, programaOrdem: [] }));
   };
 
-  // ── Drag state (local — não precisa persistir) ────────────────────────────
+  // ── Drag state ────────────────────────────────────────────────────────────
   const dragKeyRef = useRef(null);
   const [dragOverKey, setDragOverKey] = useState(null);
+  const [confirmLimpar, setConfirmLimpar] = useState(false);
 
   // ── Cadeia de fases ───────────────────────────────────────────────────────
   const FASE_CHAINS = {
@@ -1460,7 +1466,7 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
     });
   };
 
-  // ── Helper grupoKey (usa CATEGORIAS para remover catId) ───────────────────
+  // ── Helper grupoKey ───────────────────────────────────────────────────────
   const getGrupoKeyLocal = (provaId) => {
     const cat = CATEGORIAS.find(c =>
       provaId.endsWith(`_${c.id}`) || provaId.includes(`_${c.id}_`)
@@ -1469,7 +1475,136 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
     return provaId.replace(`_${cat.id}`, "");
   };
 
-  // ── Lista flat para MODO DETALHADO ────────────────────────────────────────
+  // ── Mapa de inscrições: "provaId_catId_sexo" → contagem ──────────────────
+  const inscricoesMap = React.useMemo(() => {
+    const eid = eventoAtualId;
+    if (!eid || !inscricoes?.length || !atletas?.length) return new Map();
+    const anoComp = form.data ? new Date(form.data + "T12:00:00").getFullYear() : new Date().getFullYear();
+    const map = new Map();
+    inscricoes
+      .filter(i => i.eventoId === eid && i.tipo !== "revezamento" && !i.combinadaId)
+      .forEach(i => {
+        const atl = atletas.find(a => a.id === i.atletaId);
+        if (!atl) return;
+        const cat = getCategoria(atl.anoNasc, anoComp);
+        if (!cat) return;
+        const chave = `${i.provaId}_${cat.id}_${i.sexo || atl.sexo}`;
+        map.set(chave, (map.get(chave) || 0) + 1);
+      });
+    return map;
+  }, [eventoAtualId, inscricoes, atletas, form.data]);
+
+  const temInscricoes = inscricoes?.length > 0 && !!eventoAtualId;
+
+  // Contagem por provaId completo (ex: "M_100m_sub14")
+  const getContagem = (provaId) => {
+    const cat = CATEGORIAS.find(c =>
+      provaId.endsWith(`_${c.id}`) || provaId.includes(`_${c.id}_`)
+    );
+    if (!cat) return null;
+    const sexo = provaId.startsWith("M_") ? "M" : "F";
+    return inscricoesMap.get(`${provaId}_${cat.id}_${sexo}`) || 0;
+  };
+
+  // Para o modo agrupado: retorna array { catNome, provaId, n } ordenado por catNome
+  // — uma entrada por cada provaId do grupo (cada implemento × categoria)
+  // — agrupa implementos com mesmo catId numa única entrada somada
+  const getCatsComContagem = (grupoKey) => {
+    const map = new Map(); // catNome → { n, provaIds[] }
+    (form.provasPrograma || []).forEach(id => {
+      if (getGrupoKeyLocal(id) !== grupoKey) return;
+      const cat = CATEGORIAS.find(c => id.endsWith(`_${c.id}`) || id.includes(`_${c.id}_`));
+      if (!cat) return;
+      const n = getContagem(id) || 0;
+      if (!map.has(cat.nome)) map.set(cat.nome, { n: 0, catId: cat.id });
+      map.get(cat.nome).n += n;
+    });
+    return [...map.entries()]
+      .map(([catNome, { n }]) => ({ catNome, n }))
+      .sort((a, b) => a.catNome.localeCompare(b.catNome, "pt-BR"));
+  };
+
+  // Chip de categoria inline (Opção A)
+  const chipCat = ({ catNome, n }) => {
+    const cor    = n === 0 ? "#ff6b6b" : n < 3 ? "#ffcc44" : "#7acc44";
+    const bg     = n === 0 ? "#2a0a0a" : n < 3 ? "#1a1400" : "#0a1a08";
+    return (
+      <span key={catNome} style={{
+        display: "inline-flex", alignItems: "center", gap: 4,
+        fontSize: 11, fontWeight: 700, padding: "2px 7px", borderRadius: 10,
+        color: cor, background: bg, flexShrink: 0,
+      }}>
+        {catNome} · {n}
+      </span>
+    );
+  };
+
+  // Badge simples para modo detalhado
+  const badgeInscricao = (n, semInscricao = false) => {
+    if (!temInscricoes) return null;
+    const cor = semInscricao ? "#ff6b6b" : n >= 5 ? "#7acc44" : n >= 1 ? "#ffcc44" : "#ff6b6b";
+    const bg  = semInscricao ? "#2a0a0a" : n >= 5 ? "#0a1a08" : n >= 1 ? "#1a1400" : "#2a0a0a";
+    return (
+      <span style={{ fontSize: 11, fontWeight: 700, color: cor, background: bg,
+        padding: "2px 7px", borderRadius: 10, flexShrink: 0 }}>
+        {n} insc.
+      </span>
+    );
+  };
+
+  // ── Limpeza: remove provas sem inscrição ──────────────────────────────────
+  // provaTemInscricao: conservador — null (catId não reconhecível) = manter
+  const provaTemInscricao = (provaId) => { const n = getContagem(provaId); return n === null || n > 0; };
+  const calcRemovidos = () => (form.provasPrograma || []).filter(id => !provaTemInscricao(id));
+
+  // Lista congelada no momento em que o modal abre — execução usa essa mesma lista,
+  // evitando divergência se inscricoesMap reprocessar entre render e clique.
+  const [removidosConfirmados, setRemovidosConfirmados] = useState([]);
+
+  const abrirConfirmLimpar = () => {
+    setRemovidosConfirmados(calcRemovidos());
+    setConfirmLimpar(true);
+  };
+
+  const executarLimpeza = () => {
+    // Segurança dupla: refiltra a lista congelada mantendo apenas ids que ainda
+    // não têm inscrição NO MOMENTO da execução — nunca remove prova com inscrição.
+    const aRemover = new Set(
+      removidosConfirmados.filter(id => !provaTemInscricao(id))
+    );
+    // Guard: se algum id da lista congelada agora tem inscrição, aborta com aviso
+    const comInscricaoAgora = removidosConfirmados.filter(id => provaTemInscricao(id));
+    if (comInscricaoAgora.length > 0) {
+      setConfirmLimpar(false);
+      setRemovidosConfirmados([]);
+      alert(`⚠️ Dados de inscrição foram atualizados desde que o painel foi aberto.\n\n${comInscricaoAgora.length} prova(s) passaram a ter inscrições e foram mantidas.\n\nReabra o painel para ver a lista atualizada.`);
+      return;
+    }
+    if (aRemover.size === 0) { setConfirmLimpar(false); return; }
+    const novasProvas = (form.provasPrograma || []).filter(id => !aRemover.has(id));
+    const novoProg = { ...(form.programaHorario || {}) };
+    if (modoHorario === "agrupado") {
+      Object.keys(novoProg).forEach(chave => {
+        if (!novasProvas.some(id => getGrupoKeyLocal(id) === chave)) delete novoProg[chave];
+      });
+    } else {
+      aRemover.forEach(id => { delete novoProg[id]; });
+    }
+    setForm(f => ({
+      ...f,
+      provasPrograma: novasProvas,
+      programaHorario: novoProg,
+      programaOrdem: (f.programaOrdem || []).filter(k =>
+        novasProvas.some(id => getGrupoKeyLocal(id) === k)
+      ),
+    }));
+    setConfirmLimpar(false);
+    setRemovidosConfirmados([]);
+  };
+
+  const podeVerificar = form.inscricoesEncerradas && temInscricoes;
+
+  // ── Lista flat MODO DETALHADO ─────────────────────────────────────────────
   const listaCompleta = [];
   provasSel.forEach(p => {
     if (p.tipo === "combinada") {
@@ -1490,16 +1625,15 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
   });
   const grupos = [...new Set(listaCompleta.filter(p => !p._isComp && !p._isCombMae).map(p => p.grupo))];
 
-  // ── Lista agrupada para MODO AGRUPADO ─────────────────────────────────────
+  // ── Lista agrupada MODO AGRUPADO ──────────────────────────────────────────
   const listaAgrupadaBase = (() => {
     const map = new Map();
     provasSel.filter(p => p.tipo !== "combinada").forEach(p => {
       const grupoKey = getGrupoKeyLocal(p.id);
       const sexoLabel = p.misto ? "Misto" : p.id.startsWith("M_") ? "Masc" : "Fem";
-      // Nome sem implemento para exibição
       const nomeBase = p.nome.replace(/\s*\([^)]+\)\s*$/, "").trim();
       if (!map.has(grupoKey)) {
-        map.set(grupoKey, { grupoKey, nome: nomeBase, nomeCompleto: p.nome, grupo: p.grupo, sexoLabel, cats: [], misto: p.misto });
+        map.set(grupoKey, { grupoKey, nome: nomeBase, grupo: p.grupo, sexoLabel, cats: [], misto: p.misto });
       }
       const catNome = CATEGORIAS.find(c =>
         p.id.endsWith(`_${c.id}`) || p.id.includes(`_${c.id}_`)
@@ -1510,27 +1644,22 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
     return [...map.values()];
   })();
 
-  // Aplica a ordem salva no form; itens novos (não na ordem salva) vão pro fim
   const ordemSalva = form.programaOrdem || [];
   const listaAgrupada = (() => {
     if (ordemSalva.length === 0) return listaAgrupadaBase;
-    const ordenados = ordemSalva
-      .map(k => listaAgrupadaBase.find(p => p.grupoKey === k))
-      .filter(Boolean);
+    const ordenados = ordemSalva.map(k => listaAgrupadaBase.find(p => p.grupoKey === k)).filter(Boolean);
     const novos = listaAgrupadaBase.filter(p => !ordemSalva.includes(p.grupoKey));
     return [...ordenados, ...novos];
   })();
 
+  const gruposAgrupados = (() => {
+    const seen = new Set();
+    return listaAgrupada.map(p => p.grupo).filter(g => { if (seen.has(g)) return false; seen.add(g); return true; });
+  })();
+
   // ── Drag handlers ─────────────────────────────────────────────────────────
-  const handleDragStart = (e, key) => {
-    dragKeyRef.current = key;
-    e.dataTransfer.effectAllowed = "move";
-  };
-  const handleDragOver = (e, key) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-    setDragOverKey(key);
-  };
+  const handleDragStart = (e, key) => { dragKeyRef.current = key; e.dataTransfer.effectAllowed = "move"; };
+  const handleDragOver = (e, key) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; setDragOverKey(key); };
   const handleDrop = (e, targetKey) => {
     e.preventDefault();
     const fromKey = dragKeyRef.current;
@@ -1548,12 +1677,7 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
   };
   const handleDragEnd = () => { setDragOverKey(null); dragKeyRef.current = null; };
 
-  const gruposAgrupados = (() => {
-    const seen = new Set();
-    return listaAgrupada.map(p => p.grupo).filter(g => { if (seen.has(g)) return false; seen.add(g); return true; });
-  })();
-
-  // ── Contagem ──────────────────────────────────────────────────────────────
+  // ── Contagem de horários ──────────────────────────────────────────────────
   let totalEntries = 0, totalComHorario = 0;
   if (modoHorario === "detalhado") {
     totalEntries = listaCompleta.filter(p => !p._isCombMae).reduce((acc, p) => acc + getEntries(p.id).length, 0);
@@ -1567,8 +1691,8 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
   }
 
   const dragHandleStyle = {
-    cursor: "grab", fontSize: 16, color: "#444", padding: "0 6px", userSelect: "none",
-    display: "flex", alignItems: "center", flexShrink: 0,
+    cursor: "grab", fontSize: 16, color: "#444", padding: "0 6px",
+    userSelect: "none", display: "flex", alignItems: "center", flexShrink: 0,
   };
 
   return (
@@ -1576,32 +1700,76 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
       <div style={{ marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
           <div style={{ color: "#1976D2", fontWeight: 700, fontSize: 15 }}>🕐 Programa Horário</div>
-          <span style={{ fontSize: 12, color: "#888" }}>
-            {totalComHorario}/{totalEntries} horários preenchidos
-          </span>
+          <span style={{ fontSize: 12, color: "#888" }}>{totalComHorario}/{totalEntries} horários preenchidos</span>
         </div>
 
-        {/* Toggle de modo */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+        {/* Toggle + limpeza */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap", alignItems: "center" }}>
           <button onClick={() => setModoHorario("agrupado")} style={{
             padding: "7px 16px", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer", border: "none",
             background: modoHorario === "agrupado" ? "#1976D2" : "#141720",
             color: modoHorario === "agrupado" ? "#fff" : "#666",
-          }}>
-            📋 Por modalidade/sexo
-          </button>
+          }}>📋 Por modalidade/sexo</button>
           <button onClick={() => setModoHorario("detalhado")} style={{
             padding: "7px 16px", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer", border: "none",
             background: modoHorario === "detalhado" ? "#1976D2" : "#141720",
             color: modoHorario === "detalhado" ? "#fff" : "#666",
-          }}>
-            🔍 Detalhado por categoria
-          </button>
+          }}>🔍 Detalhado por categoria</button>
+          {podeVerificar && (
+            <button onClick={abrirConfirmLimpar} style={{
+              marginLeft: "auto", padding: "7px 14px", borderRadius: 6, fontSize: 12, fontWeight: 700,
+              cursor: "pointer", border: "1px solid #3a2a1a",
+              background: calcRemovidos().length > 0 ? "#1a0e05" : "#0d0e14",
+              color: calcRemovidos().length > 0 ? "#ff9944" : "#555",
+            }}>
+              🧹 Remover sem inscrições {calcRemovidos().length > 0 ? `(${calcRemovidos().length})` : ""}
+            </button>
+          )}
         </div>
+
+        {/* Modal confirmação limpeza */}
+        {confirmLimpar && (
+          <div style={{ background: "#100a04", border: "1px solid #3a2a1a", borderRadius: 8, padding: "16px 18px", marginBottom: 14 }}>
+            {removidosConfirmados.length === 0 ? (
+              <>
+                <div style={{ color: "#7acc44", fontWeight: 700, fontSize: 13, marginBottom: 8 }}>✅ Todas as provas têm inscrições</div>
+                <p style={{ color: "#888", fontSize: 12, margin: "0 0 12px" }}>Nenhuma prova precisa ser removida.</p>
+                <button onClick={() => { setConfirmLimpar(false); setRemovidosConfirmados([]); }} style={{ background: "#141720", color: "#888", border: "1px solid #2a2d3a", borderRadius: 6, padding: "6px 16px", cursor: "pointer", fontSize: 12 }}>Fechar</button>
+              </>
+            ) : (
+              <>
+                <div style={{ color: "#ff9944", fontWeight: 700, fontSize: 13, marginBottom: 8 }}>⚠️ {removidosConfirmados.length} prova(s) sem inscrição</div>
+                <p style={{ color: "#888", fontSize: 12, margin: "0 0 10px" }}>
+                  Serão <strong style={{ color: "#ff6b6b" }}>removidas da competição</strong>, propagando para súmulas, resultados e secretaria. Provas com inscrições <strong style={{ color: "#7acc44" }}>nunca serão removidas</strong>.
+                </p>
+                <div style={{ maxHeight: 160, overflowY: "auto", marginBottom: 12, display: "flex", flexDirection: "column", gap: 3 }}>
+                  {removidosConfirmados.map(id => {
+                    const p = todasProvas.find(x => x.id === id);
+                    const catNome = CATEGORIAS.find(c => id.endsWith(`_${c.id}`) || id.includes(`_${c.id}_`))?.nome || "";
+                    const sexoLabel = id.startsWith("M_") ? "Masc" : "Fem";
+                    return (
+                      <div key={id} style={{ fontSize: 12, color: "#cc8844", padding: "3px 8px", background: "#1a0e05", borderRadius: 4 }}>
+                        {p?.nome || id} <span style={{ color: "#666" }}>— {sexoLabel} · {catNome}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button onClick={executarLimpeza} style={{ background: "#cc4400", color: "#fff", border: "none", borderRadius: 6, padding: "7px 18px", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
+                    Remover {removidosConfirmados.length} prova(s)
+                  </button>
+                  <button onClick={() => { setConfirmLimpar(false); setRemovidosConfirmados([]); }} style={{ background: "#141720", color: "#888", border: "1px solid #2a2d3a", borderRadius: 6, padding: "7px 16px", cursor: "pointer", fontSize: 12 }}>
+                    Cancelar
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
         {modoHorario === "agrupado" ? (
           <p style={{ color: "#888", fontSize: 13, lineHeight: 1.6 }}>
-            Um único horário por modalidade e sexo — todas as categorias compartilham o mesmo horário. Exibição: <span style={{ color: "#ccc" }}>09:00 — Arremesso do Peso — Masculino · Sub-14 · Sub-16</span>
+            Um único horário por modalidade e sexo. Exibição: <span style={{ color: "#ccc" }}>09:00 — Arremesso do Peso — Masculino · Sub-14 · Sub-16</span>
           </p>
         ) : (
           <p style={{ color: "#888", fontSize: 13, lineHeight: 1.6 }}>
@@ -1627,8 +1795,8 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
                     const chave = p.grupoKey;
                     const entries = getEntries(chave);
                     const faseInicial = getFaseInicial(chave);
-                    const catsDisplay = p.cats.join(" · ");
                     const isDragOver = dragOverKey === chave;
+                    const catsComN = temInscricoes ? getCatsComContagem(chave) : null;
                     return (
                       <div key={chave}
                         draggable
@@ -1637,7 +1805,6 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
                         onDrop={(e) => handleDrop(e, chave)}
                         onDragEnd={handleDragEnd}
                         style={{ display: "flex", flexDirection: "column", gap: 4,
-                          opacity: dragKeyRef.current === chave ? 0.5 : 1,
                           outline: isDragOver ? "2px solid #1976D2" : "none",
                           borderRadius: 6, transition: "outline 0.1s" }}
                       >
@@ -1647,14 +1814,21 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
                             onChange={(e) => setEntryHorario(chave, 0, e.target.value)}
                             style={{ background: "#111", color: "#fff", border: "1px solid #2a3050", borderRadius: 4, padding: "4px 8px", fontSize: 13, width: 100, fontFamily: "monospace" }}
                           />
-                          <span style={{ flex: 1, color: "#ddd", fontSize: 13 }}>{p.nome}</span>
-                          <span style={{ color: "#666", fontSize: 11 }}>
-                            {p.sexoLabel}
-                            {catsDisplay && <span style={{ color: "#555" }}> · {catsDisplay}</span>}
-                          </span>
+                          <span style={{ color: "#ddd", fontSize: 13, flexShrink: 0 }}>{p.nome}</span>
+                          <span style={{ color: "#555", fontSize: 11, flexShrink: 0 }}>{p.sexoLabel}</span>
+                          {/* Chips de categoria com contagem — Opção A */}
+                          {catsComN ? (
+                            <span style={{ display: "flex", flexWrap: "wrap", gap: 4, flex: 1 }}>
+                              {catsComN.map(item => chipCat(item))}
+                            </span>
+                          ) : (
+                            <span style={{ flex: 1, color: "#555", fontSize: 11 }}>
+                              {p.cats.join(" · ")}
+                            </span>
+                          )}
                           <select value={faseInicial}
                             onChange={(e) => setFaseInicial(chave, e.target.value)}
-                            style={{ background: "#111", color: faseInicial ? faseColor(faseInicial) : "#555", border: "1px solid #2a3050", borderRadius: 4, padding: "4px 6px", fontSize: 11, fontWeight: 700, width: 150 }}>
+                            style={{ background: "#111", color: faseInicial ? faseColor(faseInicial) : "#555", border: "1px solid #2a3050", borderRadius: 4, padding: "4px 6px", fontSize: 11, fontWeight: 700, width: 150, flexShrink: 0 }}>
                             {FASE_INICIAIS.map(f => <option key={f} value={f}>{f || "Fase..."}</option>)}
                           </select>
                         </div>
@@ -1669,7 +1843,7 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
         </>
       )}
 
-      {/* ═══ MODO DETALHADO (original) ════════════════════════════════════════ */}
+      {/* ═══ MODO DETALHADO ═══════════════════════════════════════════════════ */}
       {modoHorario === "detalhado" && (
         <>
           {grupos.map(grupo => {
@@ -1688,15 +1862,20 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
                     const sexoLabel = p.misto ? "Misto" : p.id.startsWith("M_") ? "Masc" : "Fem";
                     const entries = getEntries(p.id);
                     const faseInicial = getFaseInicial(p.id);
+                    const nInsc = getContagem(p.id);
+                    const semInscricao = podeVerificar && nInsc === 0;
                     return (
                       <div key={p.id} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 10px", background: "#0d0e14", borderRadius: 6, border: "1px solid #1a1d2a" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 10px",
+                          background: semInscricao ? "#160a04" : "#0d0e14", borderRadius: 6,
+                          border: `1px solid ${semInscricao ? "#3a2010" : "#1a1d2a"}` }}>
                           <input type="time" value={entries[0]?.horario || ""}
                             onChange={(e) => setEntryHorario(p.id, 0, e.target.value)}
                             style={{ background: "#111", color: "#fff", border: "1px solid #2a3050", borderRadius: 4, padding: "4px 8px", fontSize: 13, width: 100, fontFamily: "monospace" }}
                           />
                           <span style={{ flex: 1, color: "#ddd", fontSize: 13 }}>{p.nome}</span>
                           <span style={{ color: "#666", fontSize: 11 }}>{sexoLabel} · {catNome}</span>
+                          {badgeInscricao(nInsc ?? 0, semInscricao)}
                           <select value={faseInicial}
                             onChange={(e) => setFaseInicial(p.id, e.target.value)}
                             style={{ background: "#111", color: faseInicial ? faseColor(faseInicial) : "#555", border: "1px solid #2a3050", borderRadius: 4, padding: "4px 6px", fontSize: 11, fontWeight: 700, width: 150 }}>
