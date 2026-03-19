@@ -305,6 +305,7 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
       provasPrograma: [],
       programaHorario: {},
       modoHorario: "detalhado",
+      programaOrdem: [],
       programaPausa: { horario: "", retorno: "", descricao: "" },
       organizadorId: usuarioLogado?.tipo === "organizador" ? usuarioLogado.id : "",
       orgsAutorizadas: [],
@@ -327,6 +328,7 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
     }
     if (!("programaPausa" in base)) base.programaPausa = { horario: "", retorno: "", descricao: "" };
     if (!("modoHorario" in base)) base.modoHorario = "detalhado";
+    if (!("programaOrdem" in base)) base.programaOrdem = [];
     if (!("limitesProvasCat"    in base)) base.limitesProvasCat    = {};
     if (!("usarLimiteCat"       in base)) base.usarLimiteCat       = false;
     if (!("regrasPreco"         in base)) base.regrasPreco         = [];
@@ -1379,13 +1381,17 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
 
   const prog = form.programaHorario || {};
 
-  // ── Modo: "detalhado" (por categoria) | "agrupado" (por modalidade/sexo) ──
+  // ── Modo ──────────────────────────────────────────────────────────────────
   const modoHorario = form.modoHorario || "detalhado";
   const setModoHorario = (modo) => {
-    setForm(f => ({ ...f, modoHorario: modo, programaHorario: {} }));
+    setForm(f => ({ ...f, modoHorario: modo, programaHorario: {}, programaOrdem: [] }));
   };
 
-  // Cadeia de fases
+  // ── Drag state (local — não precisa persistir) ────────────────────────────
+  const dragKeyRef = useRef(null);
+  const [dragOverKey, setDragOverKey] = useState(null);
+
+  // ── Cadeia de fases ───────────────────────────────────────────────────────
   const FASE_CHAINS = {
     "": [{ fase: "" }],
     "Final": [{ fase: "Final" }],
@@ -1394,10 +1400,9 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
     "Semifinal por Tempo": [{ fase: "Semifinal por Tempo" }, { fase: "Final por Tempo" }],
     "Eliminatória": [{ fase: "Eliminatória" }, { fase: "Semifinal" }, { fase: "Final" }],
   };
-
   const FASE_INICIAIS = ["", "Final", "Final por Tempo", "Semifinal", "Semifinal por Tempo", "Eliminatória"];
 
-  // ── Helpers comuns ────────────────────────────────────────────────────────
+  // ── Helpers de entrada ────────────────────────────────────────────────────
   const getEntries = (chave) => prog[chave] || [{ fase: "", horario: "" }];
   const getFaseInicial = (chave) => getEntries(chave)[0]?.fase || "";
 
@@ -1431,14 +1436,14 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
     return "#888";
   };
 
-  const renderEntries = (chave) => {
+  const renderSubEntries = (chave) => {
     const entries = getEntries(chave);
     if (entries.length <= 1) return null;
     return entries.slice(1).map((entry, i) => {
       const idx = i + 1;
       const canToggle = entry.fase.includes("Semifinal") || entry.fase.includes("Final");
       return (
-        <div key={`${chave}_${idx}`} style={{ display: "flex", alignItems: "center", gap: 10, padding: "5px 10px 5px 40px", background: "#080812", borderRadius: 4, border: "1px dashed #1a1d2a" }}>
+        <div key={`${chave}_${idx}`} style={{ display: "flex", alignItems: "center", gap: 10, padding: "5px 10px 5px 52px", background: "#080812", borderRadius: 4, border: "1px dashed #1a1d2a" }}>
           <input type="time" value={entry.horario || ""}
             onChange={(e) => setEntryHorario(chave, idx, e.target.value)}
             style={{ background: "#111", color: "#fff", border: "1px solid #2a3050", borderRadius: 4, padding: "4px 8px", fontSize: 13, width: 100, fontFamily: "monospace" }}
@@ -1455,7 +1460,7 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
     });
   };
 
-  // ── Helper: grupoKey usando CATEGORIAS (mesma lógica do detalhado) ──────
+  // ── Helper grupoKey (usa CATEGORIAS para remover catId) ───────────────────
   const getGrupoKeyLocal = (provaId) => {
     const cat = CATEGORIAS.find(c =>
       provaId.endsWith(`_${c.id}`) || provaId.includes(`_${c.id}_`)
@@ -1483,19 +1488,18 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
       listaCompleta.push(p);
     }
   });
-
   const grupos = [...new Set(listaCompleta.filter(p => !p._isComp && !p._isCombMae).map(p => p.grupo))];
 
   // ── Lista agrupada para MODO AGRUPADO ─────────────────────────────────────
-  // Agrupa provas normais por modalidade+sexo ignorando catId.
-  // catNome deduplicado: cada categoria aparece só uma vez por grupo.
-  const listaAgrupada = (() => {
+  const listaAgrupadaBase = (() => {
     const map = new Map();
     provasSel.filter(p => p.tipo !== "combinada").forEach(p => {
       const grupoKey = getGrupoKeyLocal(p.id);
       const sexoLabel = p.misto ? "Misto" : p.id.startsWith("M_") ? "Masc" : "Fem";
+      // Nome sem implemento para exibição
+      const nomeBase = p.nome.replace(/\s*\([^)]+\)\s*$/, "").trim();
       if (!map.has(grupoKey)) {
-        map.set(grupoKey, { grupoKey, nome: p.nome, grupo: p.grupo, sexoLabel, cats: [], misto: p.misto });
+        map.set(grupoKey, { grupoKey, nome: nomeBase, nomeCompleto: p.nome, grupo: p.grupo, sexoLabel, cats: [], misto: p.misto });
       }
       const catNome = CATEGORIAS.find(c =>
         p.id.endsWith(`_${c.id}`) || p.id.includes(`_${c.id}_`)
@@ -1506,9 +1510,50 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
     return [...map.values()];
   })();
 
-  const gruposAgrupados = [...new Set(listaAgrupada.map(p => p.grupo))];
+  // Aplica a ordem salva no form; itens novos (não na ordem salva) vão pro fim
+  const ordemSalva = form.programaOrdem || [];
+  const listaAgrupada = (() => {
+    if (ordemSalva.length === 0) return listaAgrupadaBase;
+    const ordenados = ordemSalva
+      .map(k => listaAgrupadaBase.find(p => p.grupoKey === k))
+      .filter(Boolean);
+    const novos = listaAgrupadaBase.filter(p => !ordemSalva.includes(p.grupoKey));
+    return [...ordenados, ...novos];
+  })();
 
-  // ── Contagem ─────────────────────────────────────────────────────────────
+  // ── Drag handlers ─────────────────────────────────────────────────────────
+  const handleDragStart = (e, key) => {
+    dragKeyRef.current = key;
+    e.dataTransfer.effectAllowed = "move";
+  };
+  const handleDragOver = (e, key) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverKey(key);
+  };
+  const handleDrop = (e, targetKey) => {
+    e.preventDefault();
+    const fromKey = dragKeyRef.current;
+    if (!fromKey || fromKey === targetKey) { setDragOverKey(null); return; }
+    const currentOrder = listaAgrupada.map(p => p.grupoKey);
+    const fromIdx = currentOrder.indexOf(fromKey);
+    const toIdx = currentOrder.indexOf(targetKey);
+    if (fromIdx === -1 || toIdx === -1) { setDragOverKey(null); return; }
+    const newOrder = [...currentOrder];
+    newOrder.splice(fromIdx, 1);
+    newOrder.splice(toIdx, 0, fromKey);
+    setForm(f => ({ ...f, programaOrdem: newOrder }));
+    setDragOverKey(null);
+    dragKeyRef.current = null;
+  };
+  const handleDragEnd = () => { setDragOverKey(null); dragKeyRef.current = null; };
+
+  const gruposAgrupados = (() => {
+    const seen = new Set();
+    return listaAgrupada.map(p => p.grupo).filter(g => { if (seen.has(g)) return false; seen.add(g); return true; });
+  })();
+
+  // ── Contagem ──────────────────────────────────────────────────────────────
   let totalEntries = 0, totalComHorario = 0;
   if (modoHorario === "detalhado") {
     totalEntries = listaCompleta.filter(p => !p._isCombMae).reduce((acc, p) => acc + getEntries(p.id).length, 0);
@@ -1520,6 +1565,11 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
       totalComHorario += ents.filter(e => e.horario).length;
     });
   }
+
+  const dragHandleStyle = {
+    cursor: "grab", fontSize: 16, color: "#444", padding: "0 6px", userSelect: "none",
+    display: "flex", alignItems: "center", flexShrink: 0,
+  };
 
   return (
     <div style={styles.formCard}>
@@ -1533,22 +1583,18 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
 
         {/* Toggle de modo */}
         <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-          <button
-            onClick={() => setModoHorario("agrupado")}
-            style={{
-              padding: "7px 16px", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer", border: "none",
-              background: modoHorario === "agrupado" ? "#1976D2" : "#141720",
-              color: modoHorario === "agrupado" ? "#fff" : "#666",
-            }}>
+          <button onClick={() => setModoHorario("agrupado")} style={{
+            padding: "7px 16px", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer", border: "none",
+            background: modoHorario === "agrupado" ? "#1976D2" : "#141720",
+            color: modoHorario === "agrupado" ? "#fff" : "#666",
+          }}>
             📋 Por modalidade/sexo
           </button>
-          <button
-            onClick={() => setModoHorario("detalhado")}
-            style={{
-              padding: "7px 16px", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer", border: "none",
-              background: modoHorario === "detalhado" ? "#1976D2" : "#141720",
-              color: modoHorario === "detalhado" ? "#fff" : "#666",
-            }}>
+          <button onClick={() => setModoHorario("detalhado")} style={{
+            padding: "7px 16px", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer", border: "none",
+            background: modoHorario === "detalhado" ? "#1976D2" : "#141720",
+            color: modoHorario === "detalhado" ? "#fff" : "#666",
+          }}>
             🔍 Detalhado por categoria
           </button>
         </div>
@@ -1568,8 +1614,7 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
       {modoHorario === "agrupado" && (
         <>
           {gruposAgrupados.map(grupo => {
-            const provasGrupo = listaAgrupada.filter(p => p.grupo === grupo)
-              .sort((a, b) => a.nome.localeCompare(b.nome));
+            const provasGrupo = listaAgrupada.filter(p => p.grupo === grupo);
             if (provasGrupo.length === 0) return null;
             return (
               <div key={grupo} style={{ marginBottom: 18, background: "#0a0a1a", border: "1px solid #1a2a3a", borderRadius: 10, padding: "14px 16px" }}>
@@ -1583,9 +1628,21 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
                     const entries = getEntries(chave);
                     const faseInicial = getFaseInicial(chave);
                     const catsDisplay = p.cats.join(" · ");
+                    const isDragOver = dragOverKey === chave;
                     return (
-                      <div key={chave} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 10px", background: "#0d0e14", borderRadius: 6, border: "1px solid #1a1d2a" }}>
+                      <div key={chave}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, chave)}
+                        onDragOver={(e) => handleDragOver(e, chave)}
+                        onDrop={(e) => handleDrop(e, chave)}
+                        onDragEnd={handleDragEnd}
+                        style={{ display: "flex", flexDirection: "column", gap: 4,
+                          opacity: dragKeyRef.current === chave ? 0.5 : 1,
+                          outline: isDragOver ? "2px solid #1976D2" : "none",
+                          borderRadius: 6, transition: "outline 0.1s" }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", background: "#0d0e14", borderRadius: 6, border: "1px solid #1a1d2a" }}>
+                          <span style={dragHandleStyle} title="Arrastar para reordenar">⠿</span>
                           <input type="time" value={entries[0]?.horario || ""}
                             onChange={(e) => setEntryHorario(chave, 0, e.target.value)}
                             style={{ background: "#111", color: "#fff", border: "1px solid #2a3050", borderRadius: 4, padding: "4px 8px", fontSize: 13, width: 100, fontFamily: "monospace" }}
@@ -1601,7 +1658,7 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
                             {FASE_INICIAIS.map(f => <option key={f} value={f}>{f || "Fase..."}</option>)}
                           </select>
                         </div>
-                        {renderEntries(chave)}
+                        {renderSubEntries(chave)}
                       </div>
                     );
                   })}
@@ -1615,7 +1672,6 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
       {/* ═══ MODO DETALHADO (original) ════════════════════════════════════════ */}
       {modoHorario === "detalhado" && (
         <>
-          {/* Provas normais agrupadas */}
           {grupos.map(grupo => {
             const provasGrupo = listaCompleta.filter(p => p.grupo === grupo && !p._isComp && !p._isCombMae)
               .sort((a, b) => a.nome.localeCompare(b.nome));
@@ -1647,7 +1703,7 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
                             {FASE_INICIAIS.map(f => <option key={f} value={f}>{f || "Fase..."}</option>)}
                           </select>
                         </div>
-                        {renderEntries(p.id)}
+                        {renderSubEntries(p.id)}
                       </div>
                     );
                   })}
@@ -1656,7 +1712,6 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
             );
           })}
 
-          {/* Provas combinadas com componentes */}
           {listaCompleta.filter(p => p._isCombMae).map(mae => {
             const componentes = listaCompleta.filter(p => p._isComp && p._parentId === mae.id);
             const catNome = CATEGORIAS.find(c => mae.id.includes(`_${c.id}_`) || mae.id.endsWith(`_${c.id}`))?.nome || "";
@@ -1687,7 +1742,7 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
                             {FASE_INICIAIS.map(f => <option key={f} value={f}>{f || "Fase..."}</option>)}
                           </select>
                         </div>
-                        {renderEntries(cp.id)}
+                        {renderSubEntries(cp.id)}
                       </div>
                     );
                   })}
