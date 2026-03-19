@@ -747,14 +747,23 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
           // Tenta chave exata (modo detalhado); fallback: chave-grupo sem catId (modo agrupado)
           let entries = progFinal[p.id];
           if (!entries || !Array.isArray(entries)) {
-            const grupoKey = p.id.replace(/_[a-z][a-z0-9]*$/, "");
-            if (grupoKey !== p.id) entries = progFinal[grupoKey];
+            const cat = CATEGORIAS.find(c =>
+              p.id.endsWith(`_${c.id}`) || p.id.includes(`_${c.id}_`)
+            );
+            if (cat) {
+              const grupoKey = p.id.replace(`_${cat.id}`, "");
+              if (grupoKey !== p.id) entries = progFinal[grupoKey];
+            }
           }
           entries = entries || [{ fase: "", horario: "" }];
           entries.forEach((entry, ei) => {
             linhas.push({ ...p, _entryIdx: ei, _fase: entry.fase || "", _horario: entry.horario || "" });
           });
         });
+
+        // No modo agrupado, remove o implemento do nome para agrupamento e exibição
+        // Ex: "Arremesso do Peso (3kg)" → "Arremesso do Peso"
+        const modoAgrupado = (eventoAtual.modoHorario || "detalhado") === "agrupado";
 
         const comHorario   = linhas.filter(l => l._horario).sort((a, b) => a._horario.localeCompare(b._horario));
         const semHorario   = linhas.filter(l => !l._horario).sort((a, b) => {
@@ -786,11 +795,17 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
             const catNome = isComp
               ? (CATEGORIAS.find(c => (p._parentId || "").includes(`_${c.id}_`) || (p._parentId || "").endsWith(`_${c.id}`))?.nome || "")
               : (CATEGORIAS.find(c => p.id.includes(`_${c.id}_`) || p.id.endsWith(`_${c.id}`))?.nome || "");
-            const chave = `${p._horario}||${p.nome}||${sexoAbrev}||${p._fase}||${isComp ? p._parentId?.replace(/^[MF]_/,"") : ""}`;
+            // No modo agrupado: remove o implemento do nome (ex: "(3kg)", "(500g)")
+            // para agrupar "Arremesso do Peso (3kg)" e "Arremesso do Peso (4kg)" na mesma linha
+            const nomeDisplay = modoAgrupado
+              ? (p.nome || "").replace(/\s*\([^)]+\)\s*$/, "").trim()
+              : p.nome;
+            const chave = `${p._horario}||${nomeDisplay}||${sexoAbrev}||${p._fase}||${isComp ? p._parentId?.replace(/^[MF]_/,"") : ""}`;
             if (map.has(chave)) {
-              map.get(chave).cats.push(catNome);
+              const entry = map.get(chave);
+              if (catNome && !entry.cats.includes(catNome)) entry.cats.push(catNome);
             } else {
-              const grupo = { ...p, cats: [catNome], _sexoAbrev: sexoAbrev, _sexoId: sexoId, _chave: chave };
+              const grupo = { ...p, nome: nomeDisplay, cats: [catNome], _sexoAbrev: sexoAbrev, _sexoId: sexoId, _chave: chave };
               map.set(chave, grupo);
               grupos.push(grupo);
             }

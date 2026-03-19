@@ -1397,9 +1397,8 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
 
   const FASE_INICIAIS = ["", "Final", "Final por Tempo", "Semifinal", "Semifinal por Tempo", "Eliminatória"];
 
-  // ── Helpers comuns (usados pelos dois modos) ──────────────────────────────
+  // ── Helpers comuns ────────────────────────────────────────────────────────
   const getEntries = (chave) => prog[chave] || [{ fase: "", horario: "" }];
-
   const getFaseInicial = (chave) => getEntries(chave)[0]?.fase || "";
 
   const setFaseInicial = (chave, faseInicial) => {
@@ -1456,7 +1455,16 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
     });
   };
 
-  // ── Estrutura de lista para o modo DETALHADO (igual ao original) ──────────
+  // ── Helper: grupoKey usando CATEGORIAS (mesma lógica do detalhado) ──────
+  const getGrupoKeyLocal = (provaId) => {
+    const cat = CATEGORIAS.find(c =>
+      provaId.endsWith(`_${c.id}`) || provaId.includes(`_${c.id}_`)
+    );
+    if (!cat) return provaId;
+    return provaId.replace(`_${cat.id}`, "");
+  };
+
+  // ── Lista flat para MODO DETALHADO ────────────────────────────────────────
   const listaCompleta = [];
   provasSel.forEach(p => {
     if (p.tipo === "combinada") {
@@ -1478,44 +1486,40 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
 
   const grupos = [...new Set(listaCompleta.filter(p => !p._isComp && !p._isCombMae).map(p => p.grupo))];
 
-  // ── Contagem de horários ─────────────────────────────────────────────────
+  // ── Lista agrupada para MODO AGRUPADO ─────────────────────────────────────
+  // Agrupa provas normais por modalidade+sexo ignorando catId.
+  // catNome deduplicado: cada categoria aparece só uma vez por grupo.
+  const listaAgrupada = (() => {
+    const map = new Map();
+    provasSel.filter(p => p.tipo !== "combinada").forEach(p => {
+      const grupoKey = getGrupoKeyLocal(p.id);
+      const sexoLabel = p.misto ? "Misto" : p.id.startsWith("M_") ? "Masc" : "Fem";
+      if (!map.has(grupoKey)) {
+        map.set(grupoKey, { grupoKey, nome: p.nome, grupo: p.grupo, sexoLabel, cats: [], misto: p.misto });
+      }
+      const catNome = CATEGORIAS.find(c =>
+        p.id.endsWith(`_${c.id}`) || p.id.includes(`_${c.id}_`)
+      )?.nome || "";
+      const entry = map.get(grupoKey);
+      if (catNome && !entry.cats.includes(catNome)) entry.cats.push(catNome);
+    });
+    return [...map.values()];
+  })();
+
+  const gruposAgrupados = [...new Set(listaAgrupada.map(p => p.grupo))];
+
+  // ── Contagem ─────────────────────────────────────────────────────────────
   let totalEntries = 0, totalComHorario = 0;
   if (modoHorario === "detalhado") {
     totalEntries = listaCompleta.filter(p => !p._isCombMae).reduce((acc, p) => acc + getEntries(p.id).length, 0);
     totalComHorario = listaCompleta.filter(p => !p._isCombMae).reduce((acc, p) => acc + getEntries(p.id).filter(e => e.horario).length, 0);
   } else {
-    // Agrupado: contar chaves únicas (sem catId)
-    const chavesAgrupadas = new Set();
-    provasSel.filter(p => p.tipo !== "combinada").forEach(p => {
-      // Derivar chave-grupo: remover último segmento _catId
-      const grupoKey = p.id.replace(/_[a-z][a-z0-9]*$/, "");
-      chavesAgrupadas.add(grupoKey);
-    });
-    chavesAgrupadas.forEach(ch => {
-      const ents = getEntries(ch);
+    listaAgrupada.forEach(({ grupoKey }) => {
+      const ents = getEntries(grupoKey);
       totalEntries += ents.length;
       totalComHorario += ents.filter(e => e.horario).length;
     });
   }
-
-  // ── Estrutura de lista para o modo AGRUPADO ───────────────────────────────
-  // Agrupa provas normais por modalidade+sexo (ignora catId)
-  const listaAgrupada = (() => {
-    const map = new Map();
-    provasSel.filter(p => p.tipo !== "combinada").forEach(p => {
-      const grupoKey = p.id.replace(/_[a-z][a-z0-9]*$/, "");
-      const sexoLabel = p.misto ? "Misto" : p.id.startsWith("M_") ? "Masc" : "Fem";
-      if (!map.has(grupoKey)) {
-        map.set(grupoKey, { grupoKey, nome: p.nome, grupo: p.grupo, sexoLabel, cats: [], misto: p.misto });
-      }
-      const catNome = CATEGORIAS.find(c => p.id.includes(`_${c.id}_`) || p.id.endsWith(`_${c.id}`))?.nome || "";
-      if (catNome) map.get(grupoKey).cats.push(catNome);
-    });
-    return [...map.values()];
-  })();
-
-  // Agrupado por grupo (modalidade)
-  const gruposAgrupados = [...new Set(listaAgrupada.map(p => p.grupo))];
 
   return (
     <div style={styles.formCard}>
@@ -1535,7 +1539,6 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
               padding: "7px 16px", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer", border: "none",
               background: modoHorario === "agrupado" ? "#1976D2" : "#141720",
               color: modoHorario === "agrupado" ? "#fff" : "#666",
-              transition: "all 0.15s",
             }}>
             📋 Por modalidade/sexo
           </button>
@@ -1545,7 +1548,6 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
               padding: "7px 16px", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer", border: "none",
               background: modoHorario === "detalhado" ? "#1976D2" : "#141720",
               color: modoHorario === "detalhado" ? "#fff" : "#666",
-              transition: "all 0.15s",
             }}>
             🔍 Detalhado por categoria
           </button>
@@ -1557,7 +1559,7 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
           </p>
         ) : (
           <p style={{ color: "#888", fontSize: 13, lineHeight: 1.6 }}>
-            Defina o horário e fase de cada prova individualmente. Ao selecionar <strong style={{ color: "#ff8844" }}>Eliminatória</strong> ou <strong style={{ color: "#88aaff" }}>Semifinal</strong>, as fases subsequentes são geradas automaticamente.
+            Defina o horário e fase de cada prova individualmente. Ao selecionar <strong style={{ color: "#ff8844" }}>Eliminatória</strong> ou <strong style={{ color: "#88aaff" }}>Semifinal</strong>, as fases subsequentes são geradas automaticamente com horários independentes.
           </p>
         )}
       </div>
@@ -1591,7 +1593,7 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
                           <span style={{ flex: 1, color: "#ddd", fontSize: 13 }}>{p.nome}</span>
                           <span style={{ color: "#666", fontSize: 11 }}>
                             {p.sexoLabel}
-                            {catsDisplay && <> · <span style={{ color: "#555" }}>{catsDisplay}</span></>}
+                            {catsDisplay && <span style={{ color: "#555" }}> · {catsDisplay}</span>}
                           </span>
                           <select value={faseInicial}
                             onChange={(e) => setFaseInicial(chave, e.target.value)}

@@ -2,11 +2,13 @@
  * Constantes e helpers de Fase
  *
  * FASE_SUFIXOS, FASE_ORDEM, FASE_ANTERIOR, FASE_NOME,
- * faseToSufixo, serKey, resKey, getFasesProva,
+ * faseToSufixo, serKey, resKey, getGrupoKey, getFasesProva, getEntradasProva,
  * temMultiFases, buscarSeriacao, buscarResultado
  *
  * Extraído de App.jsx (linhas 2283–2348) — Etapa 3 da refatoração.
  */
+
+import { CATEGORIAS } from "./categorias";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // HELPERS DE FASE — Chaves com sufixo por fase
@@ -42,23 +44,25 @@ const serKey = (provaId, catId, sexo, faseSufixo) =>
 const resKey = (eventoId, provaId, catId, sexo, faseSufixo) =>
   faseSufixo ? `${eventoId}_${provaId}_${catId}_${sexo}__${faseSufixo}` : `${eventoId}_${provaId}_${catId}_${sexo}`;
 
-// Deriva a chave-grupo de uma provaId completa (remove sufixo de categoria).
-// Ex: "M_peso_sub14" → "M_peso" | "F_100m_sub16" → "F_100m"
-// Usado no modo agrupado, onde a chave no programaHorario não contém catId.
-const getGrupoKey = (provaId) => {
-  // provaId segue o padrão <sexo>_<nome>[_catId]
-  // CATEGORIAS ids conhecidos: sub12, sub14, sub16, sub18, sub20, adulto, master, etc.
-  // Estratégia: remove o último segmento se ele coincidir com um padrão de catId
-  // (palavras minúsculas sem números especiais, ou sub\d+, master, adulto)
-  return provaId.replace(/_[a-z][a-z0-9]*$/, "");
-};
-
 // Extrai fases configuradas para uma prova no programaHorario.
 // Suporta dois modos de chave:
 //   • Modo detalhado (atual): "M_peso_sub14" → chave inclui catId
 //   • Modo agrupado (novo):   "M_peso"       → chave sem catId
 // Tenta primeiro a chave exata; se não encontrar, tenta a chave-grupo.
 // Retorna array de sufixos: ex. ["ELI","SEM","FIN"] ou ["FIN"] ou []
+
+// Deriva a chave-grupo removendo o catId da provaId (onde quer que ele apareça).
+// Usa a mesma lógica de detecção do detalhado: endsWith(_catId) ou includes(_catId_).
+// Ex: "M_peso_3kg_sub14" → "M_peso_3kg" | "M_arremessopeso_sub14_3kg" → "M_arremessopeso_3kg"
+const getGrupoKey = (provaId) => {
+  const cat = CATEGORIAS.find(c =>
+    provaId.endsWith(`_${c.id}`) || provaId.includes(`_${c.id}_`)
+  );
+  if (!cat) return provaId;
+  // Remove a primeira ocorrência de _catId (handles tanto fim quanto meio)
+  return provaId.replace(`_${cat.id}`, "");
+};
+
 const getFasesProva = (provaId, programaHorario) => {
   // Tentativa 1: chave exata (modo detalhado)
   let entries = programaHorario?.[provaId];
@@ -73,7 +77,6 @@ const getFasesProva = (provaId, programaHorario) => {
 
 // Retorna as entradas brutas (array de {fase, horario}) de uma prova,
 // resolvendo tanto modo detalhado quanto agrupado.
-// Útil para exibição de horário em TelaEventoDetalhe e TelaSecretaria.
 const getEntradasProva = (provaId, programaHorario) => {
   let entries = programaHorario?.[provaId];
   if (!entries || !Array.isArray(entries)) {

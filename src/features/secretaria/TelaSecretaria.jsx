@@ -94,11 +94,16 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
       const key = `${insc.provaId}_${cat.id}_${insc.sexo || atl.sexo}`;
       if (!grupos[key]) {
         grupos[key] = { prova, cat, sexo: insc.sexo || atl.sexo, atletas: [], horario: null };
-        // Buscar horário do programa: tenta chave exata (detalhado) e chave-grupo (agrupado)
+        // Buscar horário: tenta chave exata (detalhado) e chave-grupo (agrupado)
         let entries = progHorario[insc.provaId];
         if (!entries || !Array.isArray(entries)) {
-          const grupoKey = insc.provaId.replace(/_[a-z][a-z0-9]*$/, "");
-          if (grupoKey !== insc.provaId) entries = progHorario[grupoKey];
+          const catFnd = CATEGORIAS.find(c =>
+            insc.provaId.endsWith(`_${c.id}`) || insc.provaId.includes(`_${c.id}_`)
+          );
+          if (catFnd) {
+            const grupoKey = insc.provaId.replace(`_${catFnd.id}`, "");
+            if (grupoKey !== insc.provaId) entries = progHorario[grupoKey];
+          }
         }
         if (Array.isArray(entries) && entries[0]?.horario) {
           grupos[key].horario = entries[0].horario;
