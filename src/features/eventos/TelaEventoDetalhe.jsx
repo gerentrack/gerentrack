@@ -744,7 +744,13 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
 
         const linhas = [];
         provasBase.forEach(p => {
-          const entries = progFinal[p.id] || [{ fase: "", horario: "" }];
+          // Tenta chave exata (modo detalhado); fallback: chave-grupo sem catId (modo agrupado)
+          let entries = progFinal[p.id];
+          if (!entries || !Array.isArray(entries)) {
+            const grupoKey = p.id.replace(/_[a-z][a-z0-9]*$/, "");
+            if (grupoKey !== p.id) entries = progFinal[grupoKey];
+          }
+          entries = entries || [{ fase: "", horario: "" }];
           entries.forEach((entry, ei) => {
             linhas.push({ ...p, _entryIdx: ei, _fase: entry.fase || "", _horario: entry.horario || "" });
           });

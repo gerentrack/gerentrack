@@ -42,12 +42,45 @@ const serKey = (provaId, catId, sexo, faseSufixo) =>
 const resKey = (eventoId, provaId, catId, sexo, faseSufixo) =>
   faseSufixo ? `${eventoId}_${provaId}_${catId}_${sexo}__${faseSufixo}` : `${eventoId}_${provaId}_${catId}_${sexo}`;
 
-// Extrai fases configuradas para uma prova no programaHorario
+// Deriva a chave-grupo de uma provaId completa (remove sufixo de categoria).
+// Ex: "M_peso_sub14" → "M_peso" | "F_100m_sub16" → "F_100m"
+// Usado no modo agrupado, onde a chave no programaHorario não contém catId.
+const getGrupoKey = (provaId) => {
+  // provaId segue o padrão <sexo>_<nome>[_catId]
+  // CATEGORIAS ids conhecidos: sub12, sub14, sub16, sub18, sub20, adulto, master, etc.
+  // Estratégia: remove o último segmento se ele coincidir com um padrão de catId
+  // (palavras minúsculas sem números especiais, ou sub\d+, master, adulto)
+  return provaId.replace(/_[a-z][a-z0-9]*$/, "");
+};
+
+// Extrai fases configuradas para uma prova no programaHorario.
+// Suporta dois modos de chave:
+//   • Modo detalhado (atual): "M_peso_sub14" → chave inclui catId
+//   • Modo agrupado (novo):   "M_peso"       → chave sem catId
+// Tenta primeiro a chave exata; se não encontrar, tenta a chave-grupo.
 // Retorna array de sufixos: ex. ["ELI","SEM","FIN"] ou ["FIN"] ou []
 const getFasesProva = (provaId, programaHorario) => {
-  const entries = programaHorario?.[provaId];
+  // Tentativa 1: chave exata (modo detalhado)
+  let entries = programaHorario?.[provaId];
+  // Tentativa 2: chave agrupada (modo agrupado, sem catId)
+  if (!entries || !Array.isArray(entries)) {
+    const grupoKey = getGrupoKey(provaId);
+    if (grupoKey !== provaId) entries = programaHorario?.[grupoKey];
+  }
   if (!entries || !Array.isArray(entries)) return [];
   return entries.map(e => faseToSufixo(e.fase)).filter(Boolean);
+};
+
+// Retorna as entradas brutas (array de {fase, horario}) de uma prova,
+// resolvendo tanto modo detalhado quanto agrupado.
+// Útil para exibição de horário em TelaEventoDetalhe e TelaSecretaria.
+const getEntradasProva = (provaId, programaHorario) => {
+  let entries = programaHorario?.[provaId];
+  if (!entries || !Array.isArray(entries)) {
+    const grupoKey = getGrupoKey(provaId);
+    if (grupoKey !== provaId) entries = programaHorario?.[grupoKey];
+  }
+  return entries || [];
 };
 
 // Verifica se a prova tem múltiplas fases configuradas
@@ -75,4 +108,4 @@ const buscarResultado = (resultadosObj, eventoId, provaId, catId, sexo, faseSufi
   return resultadosObj[resKey(eventoId, provaId, catId, sexo, "")] || null;
 };
 
-export { FASE_SUFIXOS, FASE_ORDEM, FASE_ANTERIOR, FASE_NOME, faseToSufixo, serKey, resKey, getFasesProva, temMultiFases, buscarSeriacao, buscarResultado };
+export { FASE_SUFIXOS, FASE_ORDEM, FASE_ANTERIOR, FASE_NOME, faseToSufixo, serKey, resKey, getGrupoKey, getFasesProva, getEntradasProva, temMultiFases, buscarSeriacao, buscarResultado };

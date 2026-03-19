@@ -304,6 +304,7 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
       dataAberturaInscricoes: "", horaAberturaInscricoes: "", dataEncerramentoInscricoes: "", horaEncerramentoInscricoes: "",
       provasPrograma: [],
       programaHorario: {},
+      modoHorario: "detalhado",
       programaPausa: { horario: "", retorno: "", descricao: "" },
       organizadorId: usuarioLogado?.tipo === "organizador" ? usuarioLogado.id : "",
       orgsAutorizadas: [],
@@ -325,6 +326,7 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
       base.programaHorario = prog;
     }
     if (!("programaPausa" in base)) base.programaPausa = { horario: "", retorno: "", descricao: "" };
+    if (!("modoHorario" in base)) base.modoHorario = "detalhado";
     if (!("limitesProvasCat"    in base)) base.limitesProvasCat    = {};
     if (!("usarLimiteCat"       in base)) base.usarLimiteCat       = false;
     if (!("regrasPreco"         in base)) base.regrasPreco         = [];
@@ -1377,7 +1379,13 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
 
   const prog = form.programaHorario || {};
 
-  // Cadeia de fases: cada fase inicial gera as fases subsequentes obrigatórias
+  // ── Modo: "detalhado" (por categoria) | "agrupado" (por modalidade/sexo) ──
+  const modoHorario = form.modoHorario || "detalhado";
+  const setModoHorario = (modo) => {
+    setForm(f => ({ ...f, modoHorario: modo, programaHorario: {} }));
+  };
+
+  // Cadeia de fases
   const FASE_CHAINS = {
     "": [{ fase: "" }],
     "Final": [{ fase: "Final" }],
@@ -1389,44 +1397,66 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
 
   const FASE_INICIAIS = ["", "Final", "Final por Tempo", "Semifinal", "Semifinal por Tempo", "Eliminatória"];
 
-  const getEntries = (provaId) => prog[provaId] || [{ fase: "", horario: "" }];
+  // ── Helpers comuns (usados pelos dois modos) ──────────────────────────────
+  const getEntries = (chave) => prog[chave] || [{ fase: "", horario: "" }];
 
-  // Detecta a "fase inicial" a partir das entradas atuais
-  const getFaseInicial = (provaId) => {
-    const entries = getEntries(provaId);
-    return entries[0]?.fase || "";
-  };
+  const getFaseInicial = (chave) => getEntries(chave)[0]?.fase || "";
 
-  // Quando muda a fase inicial, gera a cadeia preservando horários existentes
-  const setFaseInicial = (provaId, faseInicial) => {
+  const setFaseInicial = (chave, faseInicial) => {
     const chain = (FASE_CHAINS[faseInicial] || [{ fase: "" }]).map(c => ({ ...c }));
-    const existing = getEntries(provaId);
-    const newEntries = chain.map((c, i) => ({
-      fase: c.fase,
-      horario: existing[i]?.horario || "",
-    }));
-    setForm(f => ({ ...f, programaHorario: { ...(f.programaHorario || {}), [provaId]: newEntries } }));
+    const existing = getEntries(chave);
+    const newEntries = chain.map((c, i) => ({ fase: c.fase, horario: existing[i]?.horario || "" }));
+    setForm(f => ({ ...f, programaHorario: { ...(f.programaHorario || {}), [chave]: newEntries } }));
   };
 
-  // Muda horário de uma entrada específica
-  const setEntryHorario = (provaId, index, horario) => {
-    const entries = getEntries(provaId).map(e => ({ ...e }));
+  const setEntryHorario = (chave, index, horario) => {
+    const entries = getEntries(chave).map(e => ({ ...e }));
     if (entries[index]) entries[index].horario = horario;
-    setForm(f => ({ ...f, programaHorario: { ...(f.programaHorario || {}), [provaId]: entries } }));
+    setForm(f => ({ ...f, programaHorario: { ...(f.programaHorario || {}), [chave]: entries } }));
   };
 
-  // Alterna variante de fase (Semifinal ↔ Semifinal por Tempo, Final ↔ Final por Tempo)
-  const toggleVariant = (provaId, index) => {
-    const entries = getEntries(provaId).map(e => ({ ...e }));
+  const toggleVariant = (chave, index) => {
+    const entries = getEntries(chave).map(e => ({ ...e }));
     const fase = entries[index]?.fase;
     if (fase === "Semifinal") entries[index].fase = "Semifinal por Tempo";
     else if (fase === "Semifinal por Tempo") entries[index].fase = "Semifinal";
     else if (fase === "Final") entries[index].fase = "Final por Tempo";
     else if (fase === "Final por Tempo") entries[index].fase = "Final";
-    setForm(f => ({ ...f, programaHorario: { ...(f.programaHorario || {}), [provaId]: entries } }));
+    setForm(f => ({ ...f, programaHorario: { ...(f.programaHorario || {}), [chave]: entries } }));
   };
 
-  // Construir lista flat: provas normais + componentes de combinadas
+  const faseColor = (fase) => {
+    if (fase === "Eliminatória") return "#ff8844";
+    if (fase?.includes("Semifinal")) return "#88aaff";
+    if (fase?.includes("Final")) return "#7acc44";
+    return "#888";
+  };
+
+  const renderEntries = (chave) => {
+    const entries = getEntries(chave);
+    if (entries.length <= 1) return null;
+    return entries.slice(1).map((entry, i) => {
+      const idx = i + 1;
+      const canToggle = entry.fase.includes("Semifinal") || entry.fase.includes("Final");
+      return (
+        <div key={`${chave}_${idx}`} style={{ display: "flex", alignItems: "center", gap: 10, padding: "5px 10px 5px 40px", background: "#080812", borderRadius: 4, border: "1px dashed #1a1d2a" }}>
+          <input type="time" value={entry.horario || ""}
+            onChange={(e) => setEntryHorario(chave, idx, e.target.value)}
+            style={{ background: "#111", color: "#fff", border: "1px solid #2a3050", borderRadius: 4, padding: "4px 8px", fontSize: 13, width: 100, fontFamily: "monospace" }}
+          />
+          <span style={{ color: faseColor(entry.fase), fontWeight: 700, fontSize: 12 }}>{entry.fase}</span>
+          {canToggle && (
+            <button onClick={() => toggleVariant(chave, idx)}
+              style={{ background: "transparent", border: "1px solid #2a3050", borderRadius: 4, color: "#888", fontSize: 10, padding: "2px 8px", cursor: "pointer" }}>
+              ↔ por Tempo
+            </button>
+          )}
+        </div>
+      );
+    });
+  };
+
+  // ── Estrutura de lista para o modo DETALHADO (igual ao original) ──────────
   const listaCompleta = [];
   provasSel.forEach(p => {
     if (p.tipo === "combinada") {
@@ -1448,137 +1478,223 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
 
   const grupos = [...new Set(listaCompleta.filter(p => !p._isComp && !p._isCombMae).map(p => p.grupo))];
 
-  // Contagem
-  const totalEntries = listaCompleta.filter(p => !p._isCombMae).reduce((acc, p) => acc + getEntries(p.id).length, 0);
-  const totalComHorario = listaCompleta.filter(p => !p._isCombMae).reduce((acc, p) => acc + getEntries(p.id).filter(e => e.horario).length, 0);
-
-  // Cores por fase
-  const faseColor = (fase) => {
-    if (fase === "Eliminatória") return "#ff8844";
-    if (fase?.includes("Semifinal")) return "#88aaff";
-    if (fase?.includes("Final")) return "#7acc44";
-    return "#888";
-  };
-
-  // Render de sub-entradas de uma prova
-  const renderEntries = (provaId) => {
-    const entries = getEntries(provaId);
-    if (entries.length <= 1) return null;
-    return entries.slice(1).map((entry, i) => {
-      const idx = i + 1;
-      const canToggle = entry.fase.includes("Semifinal") || entry.fase.includes("Final");
-      return (
-        <div key={`${provaId}_${idx}`} style={{ display: "flex", alignItems: "center", gap: 10, padding: "5px 10px 5px 40px", background: "#080812", borderRadius: 4, border: "1px dashed #1a1d2a" }}>
-          <input type="time" value={entry.horario || ""}
-            onChange={(e) => setEntryHorario(provaId, idx, e.target.value)}
-            style={{ background: "#111", color: "#fff", border: "1px solid #2a3050", borderRadius: 4, padding: "4px 8px", fontSize: 13, width: 100, fontFamily: "monospace" }}
-          />
-          <span style={{ color: faseColor(entry.fase), fontWeight: 700, fontSize: 12 }}>{entry.fase}</span>
-          {canToggle && (
-            <button onClick={() => toggleVariant(provaId, idx)}
-              style={{ background: "transparent", border: "1px solid #2a3050", borderRadius: 4, color: "#888", fontSize: 10, padding: "2px 8px", cursor: "pointer" }}>
-              ↔ por Tempo
-            </button>
-          )}
-        </div>
-      );
+  // ── Contagem de horários ─────────────────────────────────────────────────
+  let totalEntries = 0, totalComHorario = 0;
+  if (modoHorario === "detalhado") {
+    totalEntries = listaCompleta.filter(p => !p._isCombMae).reduce((acc, p) => acc + getEntries(p.id).length, 0);
+    totalComHorario = listaCompleta.filter(p => !p._isCombMae).reduce((acc, p) => acc + getEntries(p.id).filter(e => e.horario).length, 0);
+  } else {
+    // Agrupado: contar chaves únicas (sem catId)
+    const chavesAgrupadas = new Set();
+    provasSel.filter(p => p.tipo !== "combinada").forEach(p => {
+      // Derivar chave-grupo: remover último segmento _catId
+      const grupoKey = p.id.replace(/_[a-z][a-z0-9]*$/, "");
+      chavesAgrupadas.add(grupoKey);
     });
-  };
+    chavesAgrupadas.forEach(ch => {
+      const ents = getEntries(ch);
+      totalEntries += ents.length;
+      totalComHorario += ents.filter(e => e.horario).length;
+    });
+  }
+
+  // ── Estrutura de lista para o modo AGRUPADO ───────────────────────────────
+  // Agrupa provas normais por modalidade+sexo (ignora catId)
+  const listaAgrupada = (() => {
+    const map = new Map();
+    provasSel.filter(p => p.tipo !== "combinada").forEach(p => {
+      const grupoKey = p.id.replace(/_[a-z][a-z0-9]*$/, "");
+      const sexoLabel = p.misto ? "Misto" : p.id.startsWith("M_") ? "Masc" : "Fem";
+      if (!map.has(grupoKey)) {
+        map.set(grupoKey, { grupoKey, nome: p.nome, grupo: p.grupo, sexoLabel, cats: [], misto: p.misto });
+      }
+      const catNome = CATEGORIAS.find(c => p.id.includes(`_${c.id}_`) || p.id.endsWith(`_${c.id}`))?.nome || "";
+      if (catNome) map.get(grupoKey).cats.push(catNome);
+    });
+    return [...map.values()];
+  })();
+
+  // Agrupado por grupo (modalidade)
+  const gruposAgrupados = [...new Set(listaAgrupada.map(p => p.grupo))];
 
   return (
     <div style={styles.formCard}>
       <div style={{ marginBottom: 16 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
           <div style={{ color: "#1976D2", fontWeight: 700, fontSize: 15 }}>🕐 Programa Horário</div>
           <span style={{ fontSize: 12, color: "#888" }}>
             {totalComHorario}/{totalEntries} horários preenchidos
           </span>
         </div>
-        <p style={{ color: "#888", fontSize: 13, lineHeight: 1.6 }}>
-          Defina o horário e fase de cada prova. Ao selecionar <strong style={{ color: "#ff8844" }}>Eliminatória</strong> ou <strong style={{ color: "#88aaff" }}>Semifinal</strong>, as fases subsequentes são geradas automaticamente com horários independentes.
-        </p>
+
+        {/* Toggle de modo */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+          <button
+            onClick={() => setModoHorario("agrupado")}
+            style={{
+              padding: "7px 16px", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer", border: "none",
+              background: modoHorario === "agrupado" ? "#1976D2" : "#141720",
+              color: modoHorario === "agrupado" ? "#fff" : "#666",
+              transition: "all 0.15s",
+            }}>
+            📋 Por modalidade/sexo
+          </button>
+          <button
+            onClick={() => setModoHorario("detalhado")}
+            style={{
+              padding: "7px 16px", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer", border: "none",
+              background: modoHorario === "detalhado" ? "#1976D2" : "#141720",
+              color: modoHorario === "detalhado" ? "#fff" : "#666",
+              transition: "all 0.15s",
+            }}>
+            🔍 Detalhado por categoria
+          </button>
+        </div>
+
+        {modoHorario === "agrupado" ? (
+          <p style={{ color: "#888", fontSize: 13, lineHeight: 1.6 }}>
+            Um único horário por modalidade e sexo — todas as categorias compartilham o mesmo horário. Exibição: <span style={{ color: "#ccc" }}>09:00 — Arremesso do Peso — Masculino · Sub-14 · Sub-16</span>
+          </p>
+        ) : (
+          <p style={{ color: "#888", fontSize: 13, lineHeight: 1.6 }}>
+            Defina o horário e fase de cada prova individualmente. Ao selecionar <strong style={{ color: "#ff8844" }}>Eliminatória</strong> ou <strong style={{ color: "#88aaff" }}>Semifinal</strong>, as fases subsequentes são geradas automaticamente.
+          </p>
+        )}
       </div>
 
-      {/* Provas normais agrupadas */}
-      {grupos.map(grupo => {
-        const provasGrupo = listaCompleta.filter(p => p.grupo === grupo && !p._isComp && !p._isCombMae)
-          .sort((a, b) => a.nome.localeCompare(b.nome));
-        if (provasGrupo.length === 0) return null;
-        return (
-          <div key={grupo} style={{ marginBottom: 18, background: "#0a0a1a", border: "1px solid #1a2a3a", borderRadius: 10, padding: "14px 16px" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-              <span style={{ fontWeight: 700, color: "#ccc", fontSize: 13 }}>{grupo}</span>
-              <span style={{ fontSize: 11, color: "#555" }}>{provasGrupo.length} prova(s)</span>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {provasGrupo.map(p => {
-                const catNome = CATEGORIAS.find(c => p.id.includes(`_${c.id}_`) || p.id.endsWith(`_${c.id}`))?.nome || "";
-                const sexoLabel = p.misto ? "Misto" : p.id.startsWith("M_") ? "Masc" : "Fem";
-                const entries = getEntries(p.id);
-                const faseInicial = getFaseInicial(p.id);
-                return (
-                  <div key={p.id} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 10px", background: "#0d0e14", borderRadius: 6, border: "1px solid #1a1d2a" }}>
-                      <input type="time" value={entries[0]?.horario || ""}
-                        onChange={(e) => setEntryHorario(p.id, 0, e.target.value)}
-                        style={{ background: "#111", color: "#fff", border: "1px solid #2a3050", borderRadius: 4, padding: "4px 8px", fontSize: 13, width: 100, fontFamily: "monospace" }}
-                      />
-                      <span style={{ flex: 1, color: "#ddd", fontSize: 13 }}>{p.nome}</span>
-                      <span style={{ color: "#666", fontSize: 11 }}>{sexoLabel} · {catNome}</span>
-                      <select value={faseInicial}
-                        onChange={(e) => setFaseInicial(p.id, e.target.value)}
-                        style={{ background: "#111", color: faseInicial ? faseColor(faseInicial) : "#555", border: "1px solid #2a3050", borderRadius: 4, padding: "4px 6px", fontSize: 11, fontWeight: 700, width: 150 }}>
-                        {FASE_INICIAIS.map(f => <option key={f} value={f}>{f || "Fase..."}</option>)}
-                      </select>
-                    </div>
-                    {renderEntries(p.id)}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
+      {/* ═══ MODO AGRUPADO ═════════════════════════════════════════════════════ */}
+      {modoHorario === "agrupado" && (
+        <>
+          {gruposAgrupados.map(grupo => {
+            const provasGrupo = listaAgrupada.filter(p => p.grupo === grupo)
+              .sort((a, b) => a.nome.localeCompare(b.nome));
+            if (provasGrupo.length === 0) return null;
+            return (
+              <div key={grupo} style={{ marginBottom: 18, background: "#0a0a1a", border: "1px solid #1a2a3a", borderRadius: 10, padding: "14px 16px" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                  <span style={{ fontWeight: 700, color: "#ccc", fontSize: 13 }}>{grupo}</span>
+                  <span style={{ fontSize: 11, color: "#555" }}>{provasGrupo.length} modalidade(s)</span>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {provasGrupo.map(p => {
+                    const chave = p.grupoKey;
+                    const entries = getEntries(chave);
+                    const faseInicial = getFaseInicial(chave);
+                    const catsDisplay = p.cats.join(" · ");
+                    return (
+                      <div key={chave} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 10px", background: "#0d0e14", borderRadius: 6, border: "1px solid #1a1d2a" }}>
+                          <input type="time" value={entries[0]?.horario || ""}
+                            onChange={(e) => setEntryHorario(chave, 0, e.target.value)}
+                            style={{ background: "#111", color: "#fff", border: "1px solid #2a3050", borderRadius: 4, padding: "4px 8px", fontSize: 13, width: 100, fontFamily: "monospace" }}
+                          />
+                          <span style={{ flex: 1, color: "#ddd", fontSize: 13 }}>{p.nome}</span>
+                          <span style={{ color: "#666", fontSize: 11 }}>
+                            {p.sexoLabel}
+                            {catsDisplay && <> · <span style={{ color: "#555" }}>{catsDisplay}</span></>}
+                          </span>
+                          <select value={faseInicial}
+                            onChange={(e) => setFaseInicial(chave, e.target.value)}
+                            style={{ background: "#111", color: faseInicial ? faseColor(faseInicial) : "#555", border: "1px solid #2a3050", borderRadius: 4, padding: "4px 6px", fontSize: 11, fontWeight: 700, width: 150 }}>
+                            {FASE_INICIAIS.map(f => <option key={f} value={f}>{f || "Fase..."}</option>)}
+                          </select>
+                        </div>
+                        {renderEntries(chave)}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </>
+      )}
 
-      {/* Provas combinadas com componentes */}
-      {listaCompleta.filter(p => p._isCombMae).map(mae => {
-        const componentes = listaCompleta.filter(p => p._isComp && p._parentId === mae.id);
-        const catNome = CATEGORIAS.find(c => mae.id.includes(`_${c.id}_`) || mae.id.endsWith(`_${c.id}`))?.nome || "";
-        const sexoLabel = mae.misto ? "Misto" : mae.id.startsWith("M_") ? "Masc" : "Fem";
-        return (
-          <div key={mae.id} style={{ marginBottom: 18, background: "#0a0a1a", border: "1px solid #1a2a3a", borderRadius: 10, padding: "14px 16px" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-              <span style={{ fontWeight: 700, color: "#1976D2", fontSize: 13 }}>🏅 {mae.nome} — {sexoLabel} · {catNome}</span>
-              <span style={{ fontSize: 11, color: "#555" }}>{componentes.length} prova(s)</span>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {componentes.map(cp => {
-                const entries = getEntries(cp.id);
-                const faseInicial = getFaseInicial(cp.id);
-                return (
-                  <div key={cp.id} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 10px", background: "#0d0e14", borderRadius: 6, border: "1px solid #1a1d2a" }}>
-                      <input type="time" value={entries[0]?.horario || ""}
-                        onChange={(e) => setEntryHorario(cp.id, 0, e.target.value)}
-                        style={{ background: "#111", color: "#fff", border: "1px solid #2a3050", borderRadius: 4, padding: "4px 8px", fontSize: 13, width: 100, fontFamily: "monospace" }}
-                      />
-                      <span style={{ color: "#1976D2", fontSize: 11, fontWeight: 700, width: 22, textAlign: "center" }}>{cp.ordem}ª</span>
-                      <span style={{ flex: 1, color: "#ddd", fontSize: 13 }}>{cp.nome}</span>
-                      {cp.dia && <span style={{ color: "#88aaff", fontSize: 10, background: "#0a1a2a", padding: "2px 6px", borderRadius: 3 }}>Dia {cp.dia}</span>}
-                      <select value={faseInicial}
-                        onChange={(e) => setFaseInicial(cp.id, e.target.value)}
-                        style={{ background: "#111", color: faseInicial ? faseColor(faseInicial) : "#555", border: "1px solid #2a3050", borderRadius: 4, padding: "4px 6px", fontSize: 11, fontWeight: 700, width: 150 }}>
-                        {FASE_INICIAIS.map(f => <option key={f} value={f}>{f || "Fase..."}</option>)}
-                      </select>
-                    </div>
-                    {renderEntries(cp.id)}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
+      {/* ═══ MODO DETALHADO (original) ════════════════════════════════════════ */}
+      {modoHorario === "detalhado" && (
+        <>
+          {/* Provas normais agrupadas */}
+          {grupos.map(grupo => {
+            const provasGrupo = listaCompleta.filter(p => p.grupo === grupo && !p._isComp && !p._isCombMae)
+              .sort((a, b) => a.nome.localeCompare(b.nome));
+            if (provasGrupo.length === 0) return null;
+            return (
+              <div key={grupo} style={{ marginBottom: 18, background: "#0a0a1a", border: "1px solid #1a2a3a", borderRadius: 10, padding: "14px 16px" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                  <span style={{ fontWeight: 700, color: "#ccc", fontSize: 13 }}>{grupo}</span>
+                  <span style={{ fontSize: 11, color: "#555" }}>{provasGrupo.length} prova(s)</span>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {provasGrupo.map(p => {
+                    const catNome = CATEGORIAS.find(c => p.id.includes(`_${c.id}_`) || p.id.endsWith(`_${c.id}`))?.nome || "";
+                    const sexoLabel = p.misto ? "Misto" : p.id.startsWith("M_") ? "Masc" : "Fem";
+                    const entries = getEntries(p.id);
+                    const faseInicial = getFaseInicial(p.id);
+                    return (
+                      <div key={p.id} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 10px", background: "#0d0e14", borderRadius: 6, border: "1px solid #1a1d2a" }}>
+                          <input type="time" value={entries[0]?.horario || ""}
+                            onChange={(e) => setEntryHorario(p.id, 0, e.target.value)}
+                            style={{ background: "#111", color: "#fff", border: "1px solid #2a3050", borderRadius: 4, padding: "4px 8px", fontSize: 13, width: 100, fontFamily: "monospace" }}
+                          />
+                          <span style={{ flex: 1, color: "#ddd", fontSize: 13 }}>{p.nome}</span>
+                          <span style={{ color: "#666", fontSize: 11 }}>{sexoLabel} · {catNome}</span>
+                          <select value={faseInicial}
+                            onChange={(e) => setFaseInicial(p.id, e.target.value)}
+                            style={{ background: "#111", color: faseInicial ? faseColor(faseInicial) : "#555", border: "1px solid #2a3050", borderRadius: 4, padding: "4px 6px", fontSize: 11, fontWeight: 700, width: 150 }}>
+                            {FASE_INICIAIS.map(f => <option key={f} value={f}>{f || "Fase..."}</option>)}
+                          </select>
+                        </div>
+                        {renderEntries(p.id)}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Provas combinadas com componentes */}
+          {listaCompleta.filter(p => p._isCombMae).map(mae => {
+            const componentes = listaCompleta.filter(p => p._isComp && p._parentId === mae.id);
+            const catNome = CATEGORIAS.find(c => mae.id.includes(`_${c.id}_`) || mae.id.endsWith(`_${c.id}`))?.nome || "";
+            const sexoLabel = mae.misto ? "Misto" : mae.id.startsWith("M_") ? "Masc" : "Fem";
+            return (
+              <div key={mae.id} style={{ marginBottom: 18, background: "#0a0a1a", border: "1px solid #1a2a3a", borderRadius: 10, padding: "14px 16px" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                  <span style={{ fontWeight: 700, color: "#1976D2", fontSize: 13 }}>🏅 {mae.nome} — {sexoLabel} · {catNome}</span>
+                  <span style={{ fontSize: 11, color: "#555" }}>{componentes.length} prova(s)</span>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {componentes.map(cp => {
+                    const entries = getEntries(cp.id);
+                    const faseInicial = getFaseInicial(cp.id);
+                    return (
+                      <div key={cp.id} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 10px", background: "#0d0e14", borderRadius: 6, border: "1px solid #1a1d2a" }}>
+                          <input type="time" value={entries[0]?.horario || ""}
+                            onChange={(e) => setEntryHorario(cp.id, 0, e.target.value)}
+                            style={{ background: "#111", color: "#fff", border: "1px solid #2a3050", borderRadius: 4, padding: "4px 8px", fontSize: 13, width: 100, fontFamily: "monospace" }}
+                          />
+                          <span style={{ color: "#1976D2", fontSize: 11, fontWeight: 700, width: 22, textAlign: "center" }}>{cp.ordem}ª</span>
+                          <span style={{ flex: 1, color: "#ddd", fontSize: 13 }}>{cp.nome}</span>
+                          {cp.dia && <span style={{ color: "#88aaff", fontSize: 10, background: "#0a1a2a", padding: "2px 6px", borderRadius: 3 }}>Dia {cp.dia}</span>}
+                          <select value={faseInicial}
+                            onChange={(e) => setFaseInicial(cp.id, e.target.value)}
+                            style={{ background: "#111", color: faseInicial ? faseColor(faseInicial) : "#555", border: "1px solid #2a3050", borderRadius: 4, padding: "4px 6px", fontSize: 11, fontWeight: 700, width: 150 }}>
+                            {FASE_INICIAIS.map(f => <option key={f} value={f}>{f || "Fase..."}</option>)}
+                          </select>
+                        </div>
+                        {renderEntries(cp.id)}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </>
+      )}
 
       {/* ── Pausa / Intervalo ── */}
       <div style={{ background: "#0a0a1a", border: "1px solid #1a2a3a", borderRadius: 10, padding: "14px 16px", marginBottom: 8 }}>
