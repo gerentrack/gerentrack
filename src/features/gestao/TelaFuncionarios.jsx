@@ -141,6 +141,7 @@ const PERMISSOES = [
   { id:"inscricoes",         grupo:"Competições",  label:"Gerenciar inscrições" },
   { id:"resultados",         grupo:"Resultados",   label:"Digitar resultados" },
   { id:"sumulas",            grupo:"Resultados",   label:"Gerenciar súmulas" },
+  { id:"camara_chamada",     grupo:"Secretaria",   label:"Câmara de chamada / Medalhas" },
   { id:"atletas",            grupo:"Atletas",      label:"Gerenciar atletas" },
   { id:"funcionarios_ver",   grupo:"Funcionários", label:"Visualizar funcionários" },
 ];
