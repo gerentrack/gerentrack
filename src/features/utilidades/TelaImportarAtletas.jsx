@@ -773,6 +773,7 @@ function TelaImportarAtletas({ setTela, atletas, adicionarAtleta, adicionarAtlet
 }
 
 function StatCard({ value, label }) {
+  const s = useStylesResponsivos(styles);
   return (
     <div style={s.statCard}>
       <div style={s.statValue}>{value}</div>
@@ -782,6 +783,7 @@ function StatCard({ value, label }) {
 }
 
 function InfoCard({ icon, title, items }) {
+  const s = useStylesResponsivos(styles);
   return (
     <div style={s.infoCard}>
       <div style={s.infoCardTitle}>{icon ? `${icon} ` : ""}{title}</div>

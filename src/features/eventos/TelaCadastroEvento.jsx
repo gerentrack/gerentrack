@@ -1188,6 +1188,7 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
 
 // ─── SELETOR DE PROVAS (STEP 2) ──────────────────────────────────────────────
 function FiltroProvasStep({ todasProvas, form, setForm, toggleProva, toggleGrupo, editando, handleSalvar, setStep, recordes }) {
+  const s = useStylesResponsivos(styles);
   const [filtroSexo, setFiltroSexo] = useState("todos");   // "todos" | "M" | "F"
   const [filtroCats, setFiltroCats] = useState([]);        // [] = todas; senão array de catIds ativos
 
@@ -1381,6 +1382,7 @@ function FiltroProvasStep({ todasProvas, form, setForm, toggleProva, toggleGrupo
 // ─── PROGRAMA HORÁRIO (STEP 3) ───────────────────────────────────────────────
 function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalvar, setStep,
   inscricoes = [], atletas = [], eventoAtualId }) {
+  const s = useStylesResponsivos(styles);
 
   const provasSel = (form.provasPrograma || [])
     .map(id => todasProvas.find(p => p.id === id))
