@@ -667,13 +667,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
         let serSalva = s.faseSufixo
           ? buscarSeriacao(evento.seriacao, s.prova.id, s.categoria.id, s.sexo, s.faseSufixo)
           : evento.seriacao?.[chaveSer];
-        if (!serSalva) {
-          const _fasesP = getFasesProva(s.prova.id, evento.programaHorario || {});
-          for (const _fs of _fasesP) {
-            const _ck = serKey(s.prova.id, s.categoria.id, s.sexo, _fs);
-            if (evento.seriacao?.[_ck]?.series) { serSalva = evento.seriacao[_ck]; break; }
-          }
-        }
+        // Não usar seriação de outra fase como fallback — raias/séries diferem entre fases
         const cfgProva = evento.configSeriacao?.[s.prova.id];
         const configModo = (typeof cfgProva === "string") ? cfgProva : (cfgProva?.modo || "final_tempo");
         const nRaiasProva = isProvaLonga

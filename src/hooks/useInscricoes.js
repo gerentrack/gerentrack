@@ -61,11 +61,13 @@ export function useInscricoes({ atletas = [], registrarAcao, usuarioLogado } = {
   // ── Adicionar 1 inscrição ────────────────────────────────────────────────
   const adicionarInscricao = useCallback(
     async (insc) => {
-      // Guarda contra duplicatas: mesmo atleta + prova + evento + categoria + sexo
+      // Guarda contra duplicatas: mesmo atleta + prova + evento + categoria + sexo + tipo
+      const tipoInsc = insc.tipo || "";
       const duplicada = inscricoesRef.current.some(i =>
         i.atletaId === insc.atletaId &&
         i.provaId === insc.provaId &&
         i.eventoId === insc.eventoId &&
+        (i.tipo || "") === tipoInsc &&
         (i.categoriaOficialId || i.categoriaId) === (insc.categoriaOficialId || insc.categoriaId) &&
         i.sexo === insc.sexo
       );

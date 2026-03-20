@@ -399,6 +399,16 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
   };
 
   const handleSalvarAltura = async () => {
+    // Normaliza alturas para precisão consistente (2 casas decimais)
+    const _normAlt = (h) => { const n = parseFloat(h); return isNaN(n) ? h : n.toFixed(2); };
+    const alturasNorm = (Array.isArray(alturas) ? alturas : []).filter(h => h).map(_normAlt);
+    const _normTent = (tentObj) => {
+      if (!tentObj || typeof tentObj !== "object") return tentObj;
+      const norm = {};
+      Object.entries(tentObj).forEach(([k, v]) => { norm[_normAlt(k)] = v; });
+      return norm;
+    };
+
     // Salva todos em lote para evitar race condition
     const entradas = [];
     atletasNaProva.forEach((a) => {
@@ -408,16 +418,16 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
       if (statusVal) {
         entradas.push({ atletaId: a.id, marca: statusVal, tentData: {}, statusData: {
           status: statusVal, ...(statusVal === "DQ" && dqRegraVal ? { dqRegra: dqRegraVal } : {}),
-          alturas: (Array.isArray(alturas) ? alturas : []).filter(h => h),
-          tentativas: tentativas[a.id] || {},
+          alturas: alturasNorm,
+          tentativas: _normTent(tentativas[a.id] || {}),
         }});
         return;
       }
       const melhor = melhorAltura(a.id);
       if (melhor != null) {
-        entradas.push({ atletaId: a.id, marca: melhor, tentData: {
-          alturas: (Array.isArray(alturas) ? alturas : []).filter(h => h),
-          tentativas: tentativas[a.id] || {},
+        entradas.push({ atletaId: a.id, marca: _normAlt(melhor), tentData: {
+          alturas: alturasNorm,
+          tentativas: _normTent(tentativas[a.id] || {}),
         }});
       }
     });
@@ -466,7 +476,7 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
           return;
         }
         const melhor = melhorDe2([d.t1,d.t2,d.t3,d.t4,d.t5,d.t6]);
-        if (melhor !== null) {
+        if (melhor !== null && !isNaN(melhor) && melhor > 0) {
           const { marca, raia, vento, alturas: _a, tentativas: _t, status: _s, dqRegra: _dq, ...tentData } = d;
           entradas.push({ atletaId: a.id, marca: melhor, tentData });
         }

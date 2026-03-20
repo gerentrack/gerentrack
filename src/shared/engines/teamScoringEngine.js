@@ -203,7 +203,7 @@ const TeamScoringEngine = {
             .map(function(entry) {
               var atletaId = entry[0], raw = entry[1];
               var marca = (raw != null && typeof raw === "object") ? (raw.marca != null ? raw.marca : null) : raw;
-              var status = (raw != null && typeof raw === "object") ? (raw.status || "") : "";
+              var status = (raw != null && typeof raw === "object") ? (raw.status || "").toUpperCase() : "";
               var isStatus = ["DNS","DNF","NM","DQ"].indexOf(status) !== -1;
               var atletaFound = atletas.find(function(a) { return a.id === atletaId; });
               if (!atletaFound) {
@@ -270,7 +270,7 @@ const TeamScoringEngine = {
             .map(function(entry) {
               var eqId = entry[0], raw = entry[1];
               var marca = (raw != null && typeof raw === "object") ? (raw.marca != null ? raw.marca : null) : raw;
-              var status = (raw != null && typeof raw === "object") ? (raw.status || "") : "";
+              var status = (raw != null && typeof raw === "object") ? (raw.status || "").toUpperCase() : "";
               var isStatus = ["DNS","DNF","DQ"].indexOf(status) !== -1;
               return { equipeId: eqId, marca: (!isStatus && marca != null) ? parseFloat(marca) : null, isStatus: isStatus };
             })
@@ -420,7 +420,7 @@ const TeamScoringEngine = {
           const isRevez = prova.tipo === "revezamento";
 
           Object.entries(resByAtleta).forEach(([aId, raw]) => {
-            const status = (raw != null && typeof raw === "object") ? (raw.status || "") : "";
+            const status = (raw != null && typeof raw === "object") ? (raw.status || "").toUpperCase() : "";
             if (["DNS","DNF","DQ","NM"].includes(status)) return;
             const m = typeof raw === "object" ? raw.marca : raw;
             if (m == null || m === "") return;
