@@ -208,7 +208,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
             .map(([eqId, raw]) => {
               const marca = (raw != null && typeof raw === "object") ? (raw.marca ?? null) : raw;
               const status = (raw != null && typeof raw === "object") ? (raw.status || "") : "";
-              const isStatus = ["DNS","DNF","DQ"].includes(status);
+              const isStatus = ["DNS","DNF","DQ","NM"].includes(status);
               const insc = inscsRevez.find(i => i.equipeId === eqId);
               const eq = equipes.find(e => e.id === eqId);
               const nomeEquipe = eq ? (eq.clube || eq.nome || "—") : (eqId.startsWith("clube_") ? eqId.substring(6) : "—");
@@ -237,7 +237,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
             const marca = (raw != null && typeof raw === "object") ? (raw.marca ?? null) : raw;
             const status = (raw != null && typeof raw === "object") ? (raw.status || "") : "";
             const dqRegra = (raw != null && typeof raw === "object") ? (raw.dqRegra || "") : "";
-            const isStatus = ["DNS","DNF","NM","DQ"].indexOf(status) !== -1;
+            const isStatus = ["DNS","DNF","NM","NH","DQ"].indexOf(status) !== -1;
             // Tenta achar pelo ID; se não achar (atleta excluído e reimportado),
             // recupera via inscrição pelo nome
             let atleta = atletas.find((a) => a.id === atletaId);

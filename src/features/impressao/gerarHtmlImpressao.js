@@ -393,7 +393,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
         const raia = raiaRes || serInfo.raia;
         const serie = serieRes || serInfo.serie;
         const vento = raw != null && typeof raw === "object" ? (raw.vento || "") : "";
-        const isStatus = ["DNS","DNF","DQ"].includes(status);
+        const isStatus = ["DNS","DNF","DQ","NM"].includes(status);
         return { ...eq, marca: !isStatus && marca != null ? parseFloat(marca) : null, status, isStatus, raia, serie, vento };
       }).sort((a, b) => {
         if (temRes) {
@@ -506,7 +506,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
           const raw = res[a.id];
           const marca = raw != null ? parseFloat(getMarca(raw)) : null;
           const status = (raw != null && typeof raw === "object") ? (raw.status || "") : "";
-          const isStatus = ["DNS","DNF","NM","DQ"].indexOf(status) !== -1;
+          const isStatus = ["DNS","DNF","NM","NH","DQ"].indexOf(status) !== -1;
           return { atleta: a, marca: (!isStatus && marca != null && !isNaN(marca)) ? marca : null, raw, isStatus };
         })
         .filter(x => x.marca != null || x.isStatus)

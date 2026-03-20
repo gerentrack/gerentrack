@@ -400,12 +400,15 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
 
   const handleSalvarAltura = async () => {
     // Normaliza alturas para precisão consistente (2 casas decimais)
-    const _normAlt = (h) => { const n = parseFloat(h); return isNaN(n) ? h : n.toFixed(2); };
-    const alturasNorm = (Array.isArray(alturas) ? alturas : []).filter(h => h).map(_normAlt);
+    const _normAlt = (h) => { const n = parseFloat(h); return isNaN(n) ? null : n.toFixed(2); };
+    const alturasNorm = (Array.isArray(alturas) ? alturas : []).filter(h => h).map(_normAlt).filter(h => h != null);
     const _normTent = (tentObj) => {
       if (!tentObj || typeof tentObj !== "object") return tentObj;
       const norm = {};
-      Object.entries(tentObj).forEach(([k, v]) => { norm[_normAlt(k)] = v; });
+      Object.entries(tentObj).forEach(([k, v]) => {
+        const nk = _normAlt(k);
+        if (nk != null) norm[nk] = v;
+      });
       return norm;
     };
 

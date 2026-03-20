@@ -271,7 +271,7 @@ const TeamScoringEngine = {
               var eqId = entry[0], raw = entry[1];
               var marca = (raw != null && typeof raw === "object") ? (raw.marca != null ? raw.marca : null) : raw;
               var status = (raw != null && typeof raw === "object") ? (raw.status || "").toUpperCase() : "";
-              var isStatus = ["DNS","DNF","DQ"].indexOf(status) !== -1;
+              var isStatus = ["DNS","DNF","DQ","NM"].indexOf(status) !== -1;
               return { equipeId: eqId, marca: (!isStatus && marca != null) ? parseFloat(marca) : null, isStatus: isStatus };
             })
             .filter(function(x) { return x.marca != null && !isNaN(x.marca); })

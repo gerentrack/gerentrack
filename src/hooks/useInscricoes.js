@@ -140,6 +140,9 @@ export function useInscricoes({ atletas = [], registrarAcao, usuarioLogado } = {
         }
       }
 
+      // Capturar dados das inscrições ANTES de deletar (snapshot local)
+      const inscsRemovidas = idsParaRemover.map(iid => inscricoesRef.current.find(i => i.id === iid)).filter(Boolean);
+
       // Deletar inscrições em lote
       const batch = writeBatch(db);
       idsParaRemover.forEach((iid) => batch.delete(doc(db, COLLECTION, iid)));
@@ -147,7 +150,6 @@ export function useInscricoes({ atletas = [], registrarAcao, usuarioLogado } = {
 
       // Limpar resultados órfãos das inscrições removidas
       try {
-        const inscsRemovidas = idsParaRemover.map(iid => inscricoesRef.current.find(i => i.id === iid)).filter(Boolean);
         for (const ir of inscsRemovidas) {
           const catId = ir.categoriaOficialId || ir.categoriaId;
           // Tentar todas as fases possíveis + sem fase
