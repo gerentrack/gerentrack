@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { validarCPF } from "../../shared/formatters/utils";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
 
@@ -137,6 +138,7 @@ const painelDestino = (u) =>
 
 
 function TelaImportarAtletas({ setTela, atletas, adicionarAtleta, adicionarAtletasEmLote, equipes, usuarioLogado, organizadores }) {
+  const s = useStylesResponsivos(styles);
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -444,17 +446,17 @@ function TelaImportarAtletas({ setTela, atletas, adicionarAtleta, adicionarAtlet
   });
 
   return (
-    <div style={styles.page}>
-      <div style={styles.painelHeader}>
+    <div style={s.page}>
+      <div style={s.painelHeader}>
         <div>
-          <h1 style={styles.pageTitle}>📊 Importar Atletas em Lote</h1>
+          <h1 style={s.pageTitle}>📊 Importar Atletas em Lote</h1>
           <p style={{ color: "#666", fontSize: 14 }}>
             {isEquipe 
               ? "Upload de planilha Excel - atletas vinculados automaticamente a você" 
               : "Upload de planilha Excel - selecione a Equipe após processar"}
           </p>
         </div>
-        <button style={styles.btnGhost} onClick={() => {
+        <button style={s.btnGhost} onClick={() => {
           const tp = usuarioLogado?.tipo;
           if (tp === "admin") setTela("admin");
           else if (tp === "organizador" || tp === "funcionario") setTela("painel-organizador");
@@ -488,7 +490,7 @@ function TelaImportarAtletas({ setTela, atletas, adicionarAtleta, adicionarAtlet
             id="file-upload"
           />
           <label htmlFor="file-upload">
-            <div style={{ ...styles.btnPrimary, display: "inline-block", cursor: "pointer" }}>
+            <div style={{ ...s.btnPrimary, display: "inline-block", cursor: "pointer" }}>
               Selecionar Arquivo Excel
             </div>
           </label>
@@ -557,7 +559,7 @@ function TelaImportarAtletas({ setTela, atletas, adicionarAtleta, adicionarAtlet
                 XL.utils.book_append_sheet(wb, ws, "Atletas");
                 XL.writeFile(wb, "modelo_importacao_atletas.xlsx");
               }}
-              style={{ ...styles.btnSecondary, border: "none", cursor: "pointer" }}
+              style={{ ...s.btnSecondary, border: "none", cursor: "pointer" }}
             >
               ⬇️ Baixar Modelo
             </button>
@@ -606,7 +608,7 @@ function TelaImportarAtletas({ setTela, atletas, adicionarAtleta, adicionarAtlet
                   setClubeSelecionado(eq ? eq.nome : "");
                 }}
                 style={{
-                  ...styles.input,
+                  ...s.input,
                   width: "100%", maxWidth: 400,
                   background: equipeSelecionada ? "#1a2a1a" : "#1a1a2a"
                 }}
@@ -640,25 +642,25 @@ function TelaImportarAtletas({ setTela, atletas, adicionarAtleta, adicionarAtlet
             </p>
 
             <div style={{ maxHeight: 400, overflowY: "auto" }}>
-              <table style={styles.table}>
+              <table style={s.table}>
                 <thead>
                   <tr>
-                    <th style={styles.th}>Nome</th>
-                    <th style={styles.th}>Sexo</th>
-                    <th style={styles.th}>Nasc.</th>
-                    <th style={styles.th}>CPF</th>
-                    {!isEquipe && <th style={styles.th}>Equipe</th>}
+                    <th style={s.th}>Nome</th>
+                    <th style={s.th}>Sexo</th>
+                    <th style={s.th}>Nasc.</th>
+                    <th style={s.th}>CPF</th>
+                    {!isEquipe && <th style={s.th}>Equipe</th>}
                   </tr>
                 </thead>
                 <tbody>
                   {preview.map((a, idx) => (
-                    <tr key={idx} style={styles.tr}>
-                      <td style={styles.td}>{a.nome}</td>
-                      <td style={styles.td}>{a.sexo === "M" ? "Masculino" : "Feminino"}</td>
-                      <td style={styles.td}>{a.dataNasc}</td>
-                      <td style={styles.td}>{a.cpf}</td>
+                    <tr key={idx} style={s.tr}>
+                      <td style={s.td}>{a.nome}</td>
+                      <td style={s.td}>{a.sexo === "M" ? "Masculino" : "Feminino"}</td>
+                      <td style={s.td}>{a.dataNasc}</td>
+                      <td style={s.td}>{a.cpf}</td>
                       {!isEquipe && (
-                        <td style={styles.td}>
+                        <td style={s.td}>
                           {equipeSelecionada ? (
                             <span style={{ color: "#7cfc7c" }}>
                               ✓ {equipesDisponiveis.find(t => t.id === equipeSelecionada)?.nome}
@@ -719,13 +721,13 @@ function TelaImportarAtletas({ setTela, atletas, adicionarAtleta, adicionarAtlet
 
             <div style={{ marginTop: 24, display: "flex", gap: 12, justifyContent: "center" }}>
               <button
-                style={styles.btnGhost}
+                style={s.btnGhost}
                 onClick={() => { setPreview(null); setFile(null); setClubeSelecionado(""); setEquipeSelecionada(""); setLgpdDeclarado(false); }}
               >
                 Cancelar
               </button>
               <button
-                style={{ ...styles.btnPrimary, opacity: (loading || !lgpdDeclarado) ? 0.4 : 1,
+                style={{ ...s.btnPrimary, opacity: (loading || !lgpdDeclarado) ? 0.4 : 1,
                   cursor: (loading || !lgpdDeclarado) ? "not-allowed" : "pointer" }}
                 onClick={handleConfirmar}
                 disabled={loading || !lgpdDeclarado}
@@ -772,21 +774,21 @@ function TelaImportarAtletas({ setTela, atletas, adicionarAtleta, adicionarAtlet
 
 function StatCard({ value, label }) {
   return (
-    <div style={styles.statCard}>
-      <div style={styles.statValue}>{value}</div>
-      <div style={styles.statLabel}>{label}</div>
+    <div style={s.statCard}>
+      <div style={s.statValue}>{value}</div>
+      <div style={s.statLabel}>{label}</div>
     </div>
   );
 }
 
 function InfoCard({ icon, title, items }) {
   return (
-    <div style={styles.infoCard}>
-      <div style={styles.infoCardTitle}>{icon ? `${icon} ` : ""}{title}</div>
-      <ul style={styles.infoList}>
+    <div style={s.infoCard}>
+      <div style={s.infoCardTitle}>{icon ? `${icon} ` : ""}{title}</div>
+      <ul style={s.infoList}>
         {items.map((item, i) => (
-          <li key={i} style={styles.infoItem}>
-            <span style={styles.infoItemDot}>›</span> {item}
+          <li key={i} style={s.infoItem}>
+            <span style={s.infoItemDot}>›</span> {item}
           </li>
         ))}
       </ul>

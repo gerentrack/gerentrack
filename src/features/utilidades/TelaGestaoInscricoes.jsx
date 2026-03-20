@@ -7,6 +7,7 @@ import { _getClubeAtleta, _getCbat } from "../../shared/formatters/utils";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { calcularPrecoInscricao, formatarPreco, validarLimiteProvas, getLimiteCat } from "../../shared/engines/inscricaoEngine";
 import { Th, Td } from "../ui/TableHelpers";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 // Verifica em tempo real se as inscrições estão encerradas,
 // levando em conta data+hora além do flag salvo.
@@ -157,34 +158,35 @@ const styles = {
 };
 
 function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equipes, excluirInscricao, adicionarInscricao, atualizarInscricao, usuarioLogado, registrarAcao, numeracaoPeito, organizadores, gtLogo }) {
+  const s = useStylesResponsivos(styles);
   const confirmar = useConfirm();
-  if (!eventoAtual) return <div style={styles.page}><div style={styles.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
+  if (!eventoAtual) return <div style={s.page}><div style={s.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
 
   const tipoUser   = usuarioLogado?.tipo;
   const isPrivileg = tipoUser === "admin" || tipoUser === "organizador" || tipoUser === "funcionario";
   if (!isPrivileg && isInscricaoEncerradaAgora(eventoAtual)) return (
-    <div style={styles.page}>
-      <div style={styles.emptyState}>
+    <div style={s.page}>
+      <div style={s.emptyState}>
         <span style={{ fontSize: 48 }}>🔒</span>
         <p style={{ fontWeight: 700, color: "#fff", fontSize: 18 }}>Inscrições Encerradas</p>
         <p style={{ color: "#666", fontSize: 14 }}>
           As inscrições para <strong>{eventoAtual.nome}</strong> estão encerradas.
         </p>
-        <button style={styles.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
+        <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
       </div>
     </div>
   );
 
   if (!isPrivileg && usuarioLogado?.lgpdConsentimentoRevogado) return (
-    <div style={styles.page}>
-      <div style={styles.emptyState}>
+    <div style={s.page}>
+      <div style={s.emptyState}>
         <span style={{ fontSize: 48 }}>🔓</span>
         <p style={{ fontWeight: 700, color: "#ff6b6b", fontSize: 18 }}>Consentimento Revogado</p>
         <p style={{ color: "#888", fontSize: 14, maxWidth: 420, textAlign: "center", lineHeight: 1.6 }}>
           Você revogou seu consentimento LGPD. Novas inscrições não são permitidas.<br/>
           Para voltar a se inscrever em competições, realize um novo cadastro.
         </p>
-        <button style={styles.btnGhost} onClick={() => setTela("home")}>← Voltar ao Início</button>
+        <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar ao Início</button>
       </div>
     </div>
   );
@@ -1006,10 +1008,10 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
 
 
   return (
-    <div style={styles.page}>
-      <div style={styles.painelHeader}>
+    <div style={s.page}>
+      <div style={s.painelHeader}>
         <div>
-          <h1 style={styles.pageTitle}>🔄 Gestão de Inscrições</h1>
+          <h1 style={s.pageTitle}>🔄 Gestão de Inscrições</h1>
           <div style={{ color: "#666", fontSize: 13 }}>
             {eventoAtual.nome} — {[...new Set(inscsEvt.filter(i => i.tipo !== "revezamento" && !i.combinadaId).map(i => i.atletaId))].length} atleta(s), {inscsEvt.filter(i => i.tipo !== "revezamento" && !i.combinadaId).length} inscrições
           </div>
@@ -1019,17 +1021,17 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
             <>
               {/* CSV — só admin e organizador (não funcionário, não equipe) */}
               {(tipoUser === "admin" || tipoUser === "organizador") && (
-                <button style={{ ...styles.btnGhost, fontSize: 12, padding: "7px 14px" }} onClick={exportarCSV} title="Exportar planilha Excel/CSV">
+                <button style={{ ...s.btnGhost, fontSize: 12, padding: "7px 14px" }} onClick={exportarCSV} title="Exportar planilha Excel/CSV">
                   📊 Exportar CSV
                 </button>
               )}
               {/* PDF — admin, org, funcionário e equipe (cada um vê seus dados) */}
-              <button style={{ ...styles.btnGhost, fontSize: 12, padding: "7px 14px" }} onClick={exportarPDF} title="Exportar lista em PDF">
+              <button style={{ ...s.btnGhost, fontSize: 12, padding: "7px 14px" }} onClick={exportarPDF} title="Exportar lista em PDF">
                 📄 Exportar PDF
               </button>
               {/* Recibo — só admin e org */}
               {isPrivileg && (
-                <button style={{ ...styles.btnGhost, fontSize: 12, padding: "7px 14px" }} onClick={() => {
+                <button style={{ ...s.btnGhost, fontSize: 12, padding: "7px 14px" }} onClick={() => {
                   if (selecionadosRecibo.size === 0) { alert("Selecione ao menos um atleta para gerar o recibo."); return; }
                   setModoRecibo("escolha");
                 }} title="Gerar recibo dos selecionados">
@@ -1038,7 +1040,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
               )}
             </>
           )}
-          <button style={styles.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
+          <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
         </div>
       </div>
 
@@ -1115,14 +1117,14 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
       )}
 
       {/* Tabs */}
-      <div style={styles.modoSwitch}>
+      <div style={s.modoSwitch}>
         <button
-          style={{ ...styles.modoBtn, ...(!modoCarrinho ? styles.modoBtnActive : {}) }}
+          style={{ ...s.modoBtn, ...(!modoCarrinho ? s.modoBtnActive : {}) }}
           onClick={() => setModoCarrinho(false)}>
           📋 Inscrições Salvas
         </button>
         <button
-          style={{ ...styles.modoBtn, ...(modoCarrinho ? styles.modoBtnActive : {}) }}
+          style={{ ...s.modoBtn, ...(modoCarrinho ? s.modoBtnActive : {}) }}
           onClick={async () => { setModoCarrinho(true); setEtapa("montagem"); }}>
           🛒 Novo Lote
           {carrinho.length > 0 && (
@@ -1139,28 +1141,28 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
       {!modoCarrinho && (
         <>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
-            <select value={filtroProva} onChange={e => setFiltroProva(e.target.value)} style={{ ...styles.input, maxWidth: 220 }}>
+            <select value={filtroProva} onChange={e => setFiltroProva(e.target.value)} style={{ ...s.input, maxWidth: 220 }}>
               <option value="">Todas as provas</option>
               {provasUnicas.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
             </select>
-            <select value={filtroCat} onChange={e => setFiltroCat(e.target.value)} style={{ ...styles.input, maxWidth: 160 }}>
+            <select value={filtroCat} onChange={e => setFiltroCat(e.target.value)} style={{ ...s.input, maxWidth: 160 }}>
               <option value="">Categorias</option>
               {catsUnicas.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
-            <select value={filtroSexo} onChange={e => setFiltroSexo(e.target.value)} style={{ ...styles.input, maxWidth: 120 }}>
+            <select value={filtroSexo} onChange={e => setFiltroSexo(e.target.value)} style={{ ...s.input, maxWidth: 120 }}>
               <option value="">Ambos</option>
               <option value="M">Masc</option>
               <option value="F">Fem</option>
             </select>
-            <input style={{ ...styles.input, maxWidth: 200 }} placeholder="🔍 Nome..." value={filtroNome} onChange={e => setFiltroNome(e.target.value)} />
+            <input style={{ ...s.input, maxWidth: 200 }} placeholder="🔍 Nome..." value={filtroNome} onChange={e => setFiltroNome(e.target.value)} />
             {isPrivileg && equipesUnicas.length > 0 && (
-              <select value={filtroEquipe} onChange={e => setFiltroEquipe(e.target.value)} style={{ ...styles.input, maxWidth: 200 }}>
+              <select value={filtroEquipe} onChange={e => setFiltroEquipe(e.target.value)} style={{ ...s.input, maxWidth: 200 }}>
                 <option value="">Todas as equipes</option>
                 {equipesUnicas.map(eq => <option key={eq} value={eq}>{eq}</option>)}
               </select>
             )}
             {isPrivileg && (
-              <select value={filtroPago} onChange={e => setFiltroPago(e.target.value)} style={{ ...styles.input, maxWidth: 140 }}>
+              <select value={filtroPago} onChange={e => setFiltroPago(e.target.value)} style={{ ...s.input, maxWidth: 140 }}>
                 <option value="">Todos</option>
                 <option value="pago">✅ Pagos</option>
                 <option value="pendente">⏳ Pendentes</option>
@@ -1168,8 +1170,8 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
             )}
           </div>
 
-          <div style={styles.tableWrap}>
-            <table style={styles.table}>
+          <div style={s.tableWrap}>
+            <table style={s.table}>
               <thead>
                 <tr>
                   {isPrivileg && (
@@ -1188,7 +1190,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
               </thead>
               <tbody>
                 {inscsFiltradas.length === 0 ? (
-                  <tr><td colSpan={isPrivileg ? 10 : 8} style={{ ...styles.td, textAlign: "center", color: "#666" }}>Nenhuma inscrição encontrada.</td></tr>
+                  <tr><td colSpan={isPrivileg ? 10 : 8} style={{ ...s.td, textAlign: "center", color: "#666" }}>Nenhuma inscrição encontrada.</td></tr>
                 ) : (() => {
                   let equipeAtual = null;
                   return porAtletaPag.map(([atletaId, inscs], rowIdx) => {
@@ -1212,9 +1214,9 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                             </td>
                           </tr>
                         )}
-                        <tr style={{ ...styles.tr, background: selecionadosRecibo.has(atletaId) ? "#0a1a2a" : isPago(inscs) ? "#061206" : undefined }}>
+                        <tr style={{ ...s.tr, background: selecionadosRecibo.has(atletaId) ? "#0a1a2a" : isPago(inscs) ? "#061206" : undefined }}>
                           {isPrivileg && (
-                            <td style={{ ...styles.td, textAlign: "center", verticalAlign: "top" }}>
+                            <td style={{ ...s.td, textAlign: "center", verticalAlign: "top" }}>
                               <input type="checkbox"
                                 checked={selecionadosRecibo.has(atletaId)}
                                 onChange={e => setSelecionadosRecibo(prev => {
@@ -1225,16 +1227,16 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                                 style={{ cursor: "pointer", width: 14, height: 14 }} />
                             </td>
                           )}
-                          <td style={{ ...styles.td, textAlign: "center", verticalAlign: "top" }}>
+                          <td style={{ ...s.td, textAlign: "center", verticalAlign: "top" }}>
                             {peito
                               ? <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 18, color: "#ffaa44" }}>{peito}</span>
                               : <span style={{ color: "#444", fontSize: 11 }}>—</span>}
                           </td>
-                          <td style={{ ...styles.td, verticalAlign: "top", fontSize: 12, color: "#888", fontFamily: "'Barlow Condensed', sans-serif" }}>
+                          <td style={{ ...s.td, verticalAlign: "top", fontSize: 12, color: "#888", fontFamily: "'Barlow Condensed', sans-serif" }}>
                             {_getCbat(atl) || <span style={{ color: "#444" }}>—</span>}
                           </td>
-                          <td style={{ ...styles.td, fontWeight: 600, color: "#fff", verticalAlign: "top" }}>{atl?.nome || "—"}</td>
-                          <td style={{ ...styles.td, verticalAlign: "top" }}>
+                          <td style={{ ...s.td, fontWeight: 600, color: "#fff", verticalAlign: "top" }}>{atl?.nome || "—"}</td>
+                          <td style={{ ...s.td, verticalAlign: "top" }}>
                             <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                               {inscsVisiveis.map(insc => {
                                 const prv = todasAsProvas().find(p => p.id === insc.provaId);
@@ -1257,29 +1259,29 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                             </div>
                             <div style={{ fontSize: 11, color: "#555", marginTop: 4 }}>{inscsVisiveis.length} prova(s)</div>
                           </td>
-                          <td style={{ ...styles.td, verticalAlign: "top" }}>
-                            <span style={styles.badgeGold}>{primeiraInsc.categoria || "—"}</span>
+                          <td style={{ ...s.td, verticalAlign: "top" }}>
+                            <span style={s.badgeGold}>{primeiraInsc.categoria || "—"}</span>
                           </td>
-                          <td style={{ ...styles.td, textAlign: "center", verticalAlign: "top" }}>
-                            <span style={styles.badge(primeiraInsc.sexo === "M" ? "#1a6ef5" : "#e54f9b")}>
+                          <td style={{ ...s.td, textAlign: "center", verticalAlign: "top" }}>
+                            <span style={s.badge(primeiraInsc.sexo === "M" ? "#1a6ef5" : "#e54f9b")}>
                               {primeiraInsc.sexo === "M" ? "Masc" : "Fem"}
                             </span>
                           </td>
                           {isPrivileg && (
-                            <td style={{ ...styles.td, verticalAlign: "top" }}>{equipeNome}</td>
+                            <td style={{ ...s.td, verticalAlign: "top" }}>{equipeNome}</td>
                           )}
-                          <td style={{ ...styles.td, verticalAlign: "top", textAlign: "right" }}>
+                          <td style={{ ...s.td, verticalAlign: "top", textAlign: "right" }}>
                             {precoInfo?.preco != null
                               ? <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 15, color: "#7acc44" }}>{formatarPreco(precoInfo.preco)}</span>
                               : <span style={{ color: "#555", fontSize: 11 }}>Gratuito</span>}
                           </td>
-                          <td style={{ ...styles.td, whiteSpace: "nowrap", verticalAlign: "top" }}>
+                          <td style={{ ...s.td, whiteSpace: "nowrap", verticalAlign: "top" }}>
                             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                               {/* Toggle pago — só admin/org */}
                               {isPrivileg && (
                                 <button
                                   onClick={() => togglePago(inscs, atl)}
-                                  style={{ ...styles.btnGhost, fontSize: 11, padding: "3px 10px",
+                                  style={{ ...s.btnGhost, fontSize: 11, padding: "3px 10px",
                                     color: isPago(inscs) ? "#7acc44" : "#888",
                                     borderColor: isPago(inscs) ? "#2a5a2a" : "#2a2d3a",
                                     background: isPago(inscs) ? "#061206" : "transparent" }}>
@@ -1294,7 +1296,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                                     setFeedback(`✅ Todas as inscrições de ${atl?.nome} removidas`);
                                     setTimeout(() => setFeedback(""), 3000);
                                   }
-                                }} style={{ ...styles.btnGhost, fontSize: 11, padding: "3px 8px", color: "#ff6b6b", borderColor: "#5a1a1a" }}>
+                                }} style={{ ...s.btnGhost, fontSize: 11, padding: "3px 8px", color: "#ff6b6b", borderColor: "#5a1a1a" }}>
                                   🗑️ Remover
                                 </button>
                               )}
@@ -1366,7 +1368,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                   O revezamento é composto por atletas já inscritos no evento — nenhum valor extra é cobrado.
                 </p>
               </div>
-              <button style={styles.btnSecondary} onClick={() => setTela("inscricao-revezamento")}>
+              <button style={s.btnSecondary} onClick={() => setTela("inscricao-revezamento")}>
                 Gerenciar Revezamentos →
               </button>
             </div>
@@ -1394,7 +1396,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                   <select
                     value={inserirAtletaId}
                     onChange={e => { setInserirAtletaId(e.target.value); setInserirProvasIds(new Set()); }}
-                    style={{ ...styles.input, marginBottom: 0, maxWidth: 400 }}>
+                    style={{ ...s.input, marginBottom: 0, maxWidth: 400 }}>
                     <option value="">Selecione o atleta...</option>
                     {todosAtletas.map(a => {
                       const eq = equipes?.find(e => e.id === a.equipeId);
@@ -1473,7 +1475,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                         )}
                         {selecionadas > 0 && (
                           <button
-                            style={{ ...styles.btnPrimary, padding: "7px 20px", fontSize: 13, marginLeft: "auto" }}
+                            style={{ ...s.btnPrimary, padding: "7px 20px", fontSize: 13, marginLeft: "auto" }}
                             onClick={handleAdicionarAoCarrinho}>
                             + Adicionar {selecionadas} prova{selecionadas !== 1 ? "s" : ""} ao lote
                           </button>
@@ -1552,15 +1554,15 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
               </div>
 
               {carrinho.length === 0 ? (
-                <div style={styles.emptyState}>
+                <div style={s.emptyState}>
                   <span style={{ fontSize: 36 }}>🛒</span>
                   <p>Nenhum atleta adicionado ao lote.</p>
                   <p style={{ fontSize: 13 }}>Selecione atleta e prova acima.</p>
                 </div>
               ) : (
                 <>
-                  <div style={styles.tableWrap}>
-                    <table style={styles.table}>
+                  <div style={s.tableWrap}>
+                    <table style={s.table}>
                       <thead>
                         <tr>
                           <Th>Atleta</Th>
@@ -1572,10 +1574,10 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                       </thead>
                       <tbody>
                         {resumoCarrinho.map((r, rowIdx) => (
-                          <tr key={`cart_${r.atletaId}_${rowIdx}`} style={styles.tr}>
-                            <td style={{ ...styles.td, fontWeight: 600, color: "#fff" }}>{r.atletaNome}</td>
-                            <td style={styles.td}><span style={styles.badgeGold}>{r.catNome}</span></td>
-                            <td style={styles.td}>
+                          <tr key={`cart_${r.atletaId}_${rowIdx}`} style={s.tr}>
+                            <td style={{ ...s.td, fontWeight: 600, color: "#fff" }}>{r.atletaNome}</td>
+                            <td style={s.td}><span style={s.badgeGold}>{r.catNome}</span></td>
+                            <td style={s.td}>
                               <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                                 {r.provas.map((item, iIdx) => (
                                   <span key={`${item.provaId}_${iIdx}`} style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 8px", borderRadius: 6, fontSize: 11, fontWeight: 600, background: "#0a1a0a", border: "1px solid #1a4a1a", color: "#7acc44" }}>
@@ -1587,7 +1589,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                               </div>
                             </td>
                             {temPreco && (
-                              <td style={{ ...styles.td, textAlign: "right", whiteSpace: "nowrap" }}>
+                              <td style={{ ...s.td, textAlign: "right", whiteSpace: "nowrap" }}>
                                 {r.jaTemInscricao ? (
                                   <span style={{ fontSize: 11, color: "#555", background: "#111", border: "1px solid #1e2130", borderRadius: 6, padding: "3px 8px" }}>
                                     Já inscrito
@@ -1608,9 +1610,9 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                                 )}
                               </td>
                             )}
-                            <td style={styles.td}>
+                            <td style={s.td}>
                               <button onClick={() => setCarrinho(c => c.filter(x => x.atletaId !== r.atletaId))}
-                                style={{ ...styles.btnGhost, fontSize: 11, padding: "3px 8px", color: "#ff6b6b", borderColor: "#5a1a1a" }}>
+                                style={{ ...s.btnGhost, fontSize: 11, padding: "3px 8px", color: "#ff6b6b", borderColor: "#5a1a1a" }}>
                                 🗑️ Remover
                               </button>
                             </td>
@@ -1646,8 +1648,8 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                   </div>
 
                   <div style={{ display: "flex", gap: 12, marginTop: 20, justifyContent: "flex-end" }}>
-                    <button style={styles.btnGhost} onClick={() => setCarrinho([])}>🗑 Limpar lote</button>
-                    <button style={styles.btnPrimary} onClick={() => setEtapa("confirmacao")}>
+                    <button style={s.btnGhost} onClick={() => setCarrinho([])}>🗑 Limpar lote</button>
+                    <button style={s.btnPrimary} onClick={() => setEtapa("confirmacao")}>
                       Revisar e Confirmar ({carrinho.length}) →
                     </button>
                   </div>
@@ -1757,13 +1759,13 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                 )}
 
                 <div style={{ display: "flex", gap: 12, marginTop: 24, justifyContent: "space-between", flexWrap: "wrap" }}>
-                  <button style={styles.btnGhost} onClick={() => setEtapa("montagem")}>← Voltar e editar</button>
+                  <button style={s.btnGhost} onClick={() => setEtapa("montagem")}>← Voltar e editar</button>
                   <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                    <button style={{ ...styles.btnGhost, borderColor: "#1976D244", color: "#7aacff" }} onClick={imprimirLote}>
+                    <button style={{ ...s.btnGhost, borderColor: "#1976D244", color: "#7aacff" }} onClick={imprimirLote}>
                       🖨️ Imprimir detalhamento
                     </button>
                     <button
-                      style={{ ...styles.btnPrimary, background: "linear-gradient(135deg, #2a7a2a, #1a5a1a)", fontSize: 16, padding: "14px 32px", opacity: confirmando ? 0.5 : 1 }}
+                      style={{ ...s.btnPrimary, background: "linear-gradient(135deg, #2a7a2a, #1a5a1a)", fontSize: 16, padding: "14px 32px", opacity: confirmando ? 0.5 : 1 }}
                       onClick={handleConfirmar} disabled={confirmando}>
                       {confirmando ? "Inscrevendo..." : `✅ Confirmar ${carrinho.length} inscrição${carrinho.length !== 1 ? "ões" : ""}`}
                     </button>
@@ -1815,13 +1817,13 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                 )}
 
                 <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginBottom: 12 }}>
-                  <button style={{ ...styles.btnGhost, borderColor: "#1976D244", color: "#7aacff" }} onClick={imprimirLote}>
+                  <button style={{ ...s.btnGhost, borderColor: "#1976D244", color: "#7aacff" }} onClick={imprimirLote}>
                     🖨️ Imprimir detalhamento
                   </button>
                 </div>
                 <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-                  <button style={styles.btnPrimary} onClick={resetCarrinho}>+ Novo Lote</button>
-                  <button style={styles.btnGhost} onClick={async () => { resetCarrinho(); setModoCarrinho(false); }}>
+                  <button style={s.btnPrimary} onClick={resetCarrinho}>+ Novo Lote</button>
+                  <button style={s.btnGhost} onClick={async () => { resetCarrinho(); setModoCarrinho(false); }}>
                     Ver Inscrições Salvas
                   </button>
                 </div>

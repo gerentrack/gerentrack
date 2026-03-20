@@ -4,6 +4,7 @@ import { getCategoria } from "../../shared/constants/categorias";
 import { getStatusEvento, labelStatusEvento } from "../eventos/eventoHelpers";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { getFasesProva, resKey } from "../../shared/constants/fases";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 const S = {
   page:       { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
@@ -34,16 +35,19 @@ const S = {
 };
 
 function Th({ children, style }) {
-  return <th style={{ ...S.th, ...style }}>{children}</th>;
+  const s = useStylesResponsivos(S);
+  return <th style={{ ...s.th, ...style }}>{children}</th>;
 }
 function Td({ children, style }) {
-  return <td style={{ ...S.td, ...style }}>{children}</td>;
+  const s = useStylesResponsivos(S);
+  return <td style={{ ...s.td, ...style }}>{children}</td>;
 }
 function StatCard({ value, label, color = "#1976D2" }) {
+  const s = useStylesResponsivos(S);
   return (
-    <div style={{ ...S.statCard }}>
-      <div style={{ ...S.statVal, color }}>{value}</div>
-      <div style={S.statLabel}>{label}</div>
+    <div style={{ ...s.statCard }}>
+      <div style={{ ...s.statVal, color }}>{value}</div>
+      <div style={s.statLabel}>{label}</div>
     </div>
   );
 }
@@ -60,6 +64,7 @@ export default function TelaPainelEquipe({
   desvincularAtleta, setAtletaEditandoId,
   notificacoes, marcarNotifLida,
 }) {
+  const s = useStylesResponsivos(S);
   const confirmar = useConfirm();
   const isTreinador = usuarioLogado?.tipo === "treinador";
   const equipeId    = isTreinador ? usuarioLogado?.equipeId : usuarioLogado?.id;
@@ -77,9 +82,9 @@ export default function TelaPainelEquipe({
   const minhasInscs   = (inscricoes || []).filter(i => meusAtletas.some(a => a.id === i.atletaId));
 
   // Vínculos pendentes para esta equipe responder
-  const vincPendentes      = (solicitacoesVinculo||[]).filter(s => s.equipeId === equipeId && s.status === "pendente" && s.aprovadorTipo !== "equipe_atual" && s.tipo !== "desvinculacao");
-  const desvinculacaoPend  = (solicitacoesVinculo||[]).filter(s => s.equipeId === equipeId && s.status === "pendente" && s.tipo === "desvinculacao");
-  const transferenciasPend = (solicitacoesVinculo||[]).filter(s => s.equipeAtualId === equipeId && s.status === "pendente" && s.tipo !== "desvinculacao");
+  const vincPendentes      = (solicitacoesVinculo||[]).filter(sol => sol.equipeId === equipeId && sol.status === "pendente" && sol.aprovadorTipo !== "equipe_atual" && sol.tipo !== "desvinculacao");
+  const desvinculacaoPend  = (solicitacoesVinculo||[]).filter(sol => sol.equipeId === equipeId && sol.status === "pendente" && sol.tipo === "desvinculacao");
+  const transferenciasPend = (solicitacoesVinculo||[]).filter(sol => sol.equipeAtualId === equipeId && sol.status === "pendente" && sol.tipo !== "desvinculacao");
   const totalPendentes     = vincPendentes.length + transferenciasPend.length + desvinculacaoPend.length;
 
   // Eventos com inscrições da equipe
@@ -177,11 +182,11 @@ export default function TelaPainelEquipe({
   ];
 
   return (
-    <div style={S.page}>
+    <div style={s.page}>
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16, marginBottom: 28 }}>
         <div>
-          <h1 style={S.title}>🎽 {equipe?.nome || "Painel da Equipe"}</h1>
+          <h1 style={s.title}>🎽 {equipe?.nome || "Painel da Equipe"}</h1>
           <div style={{ color: "#666", fontSize: 13 }}>
             {equipe?.sigla && <span>{equipe.sigla} · </span>}
             {equipe?.cidade && <span>{equipe.cidade}{equipe.estado ? `, ${equipe.estado}` : ""} · </span>}
@@ -196,7 +201,7 @@ export default function TelaPainelEquipe({
       </div>
 
       {/* Stats gerais */}
-      <div style={S.statsRow}>
+      <div style={s.statsRow}>
         <StatCard value={meusAtletas.length} label="Atletas" />
         <StatCard value={minhasInscs.length} label="Inscrições" color="#7acc44" />
         <StatCard value={meusTrein.length} label="Treinadores" color="#88aaff" />
@@ -224,7 +229,7 @@ export default function TelaPainelEquipe({
               <div>
                 <span style={{ color: "#ffaa44", fontWeight: 700 }}>🔔 {totalPendentes} solicitação(ões) de vínculo aguardando sua resposta</span>
               </div>
-              <button onClick={() => setAbaAtiva("vinculos")} style={{ ...S.btn, background: "#ffaa44", padding: "6px 16px", fontSize: 12 }}>
+              <button onClick={() => setAbaAtiva("vinculos")} style={{ ...s.btn, background: "#ffaa44", padding: "6px 16px", fontSize: 12 }}>
                 Ver agora →
               </button>
             </div>
@@ -232,10 +237,10 @@ export default function TelaPainelEquipe({
 
           {/* Últimas inscrições */}
           {eventosComInsc.length > 0 && (
-            <div style={S.card}>
+            <div style={s.card}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                <div style={S.secTitle}>📋 Competições com inscrições</div>
-                <button onClick={() => setAbaAtiva("inscricoes")} style={{ ...S.btnGhost, fontSize: 12, padding: "5px 14px" }}>Ver tudo →</button>
+                <div style={s.secTitle}>📋 Competições com inscrições</div>
+                <button onClick={() => setAbaAtiva("inscricoes")} style={{ ...s.btnGhost, fontSize: 12, padding: "5px 14px" }}>Ver tudo →</button>
               </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
                 {eventosComInsc.slice(0, 6).map(ev => {
@@ -246,7 +251,7 @@ export default function TelaPainelEquipe({
                       style={{ background: "#0a0b14", border: "1px solid #1E2130", borderRadius: 8, padding: "12px 16px", cursor: "pointer", minWidth: 200 }}>
                       <div style={{ color: "#fff", fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{ev.nome}</div>
                       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                        <span style={S.eventoStatusBadge(status)}>{labelStatusEvento(status)}</span>
+                        <span style={s.eventoStatusBadge(status)}>{labelStatusEvento(status)}</span>
                         <span style={{ color: "#7acc44", fontSize: 11 }}>{nInscs} inscrição(ões)</span>
                       </div>
                     </div>
@@ -258,10 +263,10 @@ export default function TelaPainelEquipe({
 
           {/* Eventos abertos */}
           {eventosAbertos.length > 0 && (
-            <div style={S.card}>
+            <div style={s.card}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                <div style={S.secTitle}>🏟️ Competições com inscrições abertas</div>
-                <button onClick={() => setAbaAtiva("eventos")} style={{ ...S.btnGhost, fontSize: 12, padding: "5px 14px" }}>Ver todas →</button>
+                <div style={s.secTitle}>🏟️ Competições com inscrições abertas</div>
+                <button onClick={() => setAbaAtiva("eventos")} style={{ ...s.btnGhost, fontSize: 12, padding: "5px 14px" }}>Ver todas →</button>
               </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
                 {eventosAbertos.slice(0, 4).map(ev => (
@@ -272,7 +277,7 @@ export default function TelaPainelEquipe({
                       {ev.dataEncerramentoInscricoes ? ` · até ${new Date(ev.dataEncerramentoInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}` : ""}
                     </div>
                     <button onClick={async () => { selecionarEvento(ev.id); setTela("gestao-inscricoes"); }}
-                      style={{ ...S.btn, padding: "5px 14px", fontSize: 11 }}>
+                      style={{ ...s.btn, padding: "5px 14px", fontSize: 11 }}>
                       📝 Inscrever atletas
                     </button>
                   </div>
@@ -285,22 +290,22 @@ export default function TelaPainelEquipe({
 
       {/* ── ABA: ATLETAS ── */}
       {abaAtiva === "atletas" && (
-        <div style={S.card}>
+        <div style={s.card}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
-            <div style={S.secTitle}>👥 Atletas da Equipe</div>
-            <button style={S.btn} onClick={() => setTela("cadastrar-atleta")}>+ Cadastrar</button>
+            <div style={s.secTitle}>👥 Atletas da Equipe</div>
+            <button style={s.btn} onClick={() => setTela("cadastrar-atleta")}>+ Cadastrar</button>
           </div>
           <input type="text" value={buscaAtl} onChange={e => setBuscaAtl(e.target.value)}
-            placeholder="🔍 Buscar nome, CPF..." style={S.input} />
+            placeholder="🔍 Buscar nome, CPF..." style={s.input} />
           {meusAtletas.length === 0 ? (
-            <div style={S.emptyState}>
+            <div style={s.emptyState}>
               <span style={{ fontSize: 40 }}>👤</span>
               <p>Nenhum atleta cadastrado</p>
-              <button style={S.btn} onClick={() => setTela("cadastrar-atleta")}>+ Cadastrar primeiro atleta</button>
+              <button style={s.btn} onClick={() => setTela("cadastrar-atleta")}>+ Cadastrar primeiro atleta</button>
             </div>
           ) : (
-            <div style={S.tableWrap}>
-              <table style={S.table}>
+            <div style={s.tableWrap}>
+              <table style={s.table}>
                 <thead><tr><Th>Nome</Th><Th>Sexo</Th><Th>Categoria</Th><Th>CPF</Th><Th></Th></tr></thead>
                 <tbody>
                   {meusAtletas.filter(a => {
@@ -310,10 +315,10 @@ export default function TelaPainelEquipe({
                   }).map(a => {
                     const cat = getCategoria(a.anoNasc, anoBase);
                     return (
-                      <tr key={a.id} style={S.tr}>
+                      <tr key={a.id} style={s.tr}>
                         <Td><strong style={{ color: "#fff" }}>{a.nome}</strong></Td>
-                        <Td><span style={S.badge(a.sexo === "M" ? "#88aaff" : "#ff88cc")}>{a.sexo === "M" ? "Masc." : "Fem."}</span></Td>
-                        <Td><span style={S.badge("#1976D2")}>{cat?.nome || "—"}</span></Td>
+                        <Td><span style={s.badge(a.sexo === "M" ? "#88aaff" : "#ff88cc")}>{a.sexo === "M" ? "Masc." : "Fem."}</span></Td>
+                        <Td><span style={s.badge("#1976D2")}>{cat?.nome || "—"}</span></Td>
                         <Td style={{ fontSize: 11, color: "#555" }}>{a.cpf || "—"}</Td>
                         <Td>
                           <div style={{ display: "flex", gap: 6 }}>
@@ -341,10 +346,10 @@ export default function TelaPainelEquipe({
       {abaAtiva === "inscricoes" && (
         <div>
           {eventosComInsc.length === 0 ? (
-            <div style={{ ...S.card, ...S.emptyState }}>
+            <div style={{ ...s.card, ...s.emptyState }}>
               <span style={{ fontSize: 40 }}>📋</span>
               <p>Nenhuma inscrição registrada ainda.</p>
-              <button style={S.btn} onClick={() => setAbaAtiva("eventos")}>Ver competições abertas</button>
+              <button style={s.btn} onClick={() => setAbaAtiva("eventos")}>Ver competições abertas</button>
             </div>
           ) : (
             eventosComInsc.map(ev => {
@@ -354,12 +359,12 @@ export default function TelaPainelEquipe({
                 <details key={ev.id} open style={{ background: "#0a0b14", border: "1px solid #1a2a3a", borderRadius: 10, marginBottom: 12, overflow: "hidden" }}>
                   <summary style={{ padding: "12px 18px", cursor: "pointer", color: "#1976D2", fontWeight: 700, fontSize: 14, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                     <span>{ev.nome}</span>
-                    <span style={S.badge("#7acc44")}>{inscsEvento.length} inscrição(ões)</span>
+                    <span style={s.badge("#7acc44")}>{inscsEvento.length} inscrição(ões)</span>
                     <span style={{ color: "#555", fontSize: 11, fontWeight: 400 }}>
                       📅 {ev.data ? new Date(ev.data + "T12:00:00").toLocaleDateString("pt-BR") : ""}
                     </span>
                     <button onClick={async (e) => { e.preventDefault(); e.stopPropagation(); selecionarEvento(ev.id); setTela("gestao-inscricoes"); }}
-                      style={{ ...S.btnSec, fontSize: 11, padding: "3px 12px", marginLeft: "auto" }}>
+                      style={{ ...s.btnSec, fontSize: 11, padding: "3px 12px", marginLeft: "auto" }}>
                       Gerenciar →
                     </button>
                   </summary>
@@ -371,8 +376,8 @@ export default function TelaPainelEquipe({
                         <div key={aId} style={{ background: "#0D0E14", border: "1px solid #1E2130", borderRadius: 8, padding: "10px 14px", marginBottom: 8 }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6, flexWrap: "wrap" }}>
                             <span style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>{atleta?.nome || "—"}</span>
-                            <span style={S.badge(atleta?.sexo === "M" ? "#88aaff" : "#ff88cc")}>{atleta?.sexo === "M" ? "M" : "F"}</span>
-                            <span style={S.badge("#1976D2")}>{inscAtleta[0]?.categoriaOficial || inscAtleta[0]?.categoria || "—"}</span>
+                            <span style={s.badge(atleta?.sexo === "M" ? "#88aaff" : "#ff88cc")}>{atleta?.sexo === "M" ? "M" : "F"}</span>
+                            <span style={s.badge("#1976D2")}>{inscAtleta[0]?.categoriaOficial || inscAtleta[0]?.categoria || "—"}</span>
                           </div>
                           <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
                             {inscAtleta.map(i => (
@@ -394,10 +399,10 @@ export default function TelaPainelEquipe({
 
       {/* ── ABA: COMPETIÇÕES ── */}
       {abaAtiva === "eventos" && (
-        <div style={S.card}>
-          <div style={S.secTitle}>🏟️ Competições com inscrições abertas</div>
+        <div style={s.card}>
+          <div style={s.secTitle}>🏟️ Competições com inscrições abertas</div>
           {eventosAbertos.length === 0 ? (
-            <div style={S.emptyState}>
+            <div style={s.emptyState}>
               <span style={{ fontSize: 40 }}>🏟️</span>
               <p>Nenhuma competição com inscrições abertas no momento.</p>
             </div>
@@ -410,7 +415,7 @@ export default function TelaPainelEquipe({
                   <div key={ev.id} style={{ background: "#0a0b14", border: "1px solid #1E2130", borderRadius: 10, padding: 20 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
                       <div style={{ color: "#fff", fontWeight: 700, fontSize: 15, flex: 1, marginRight: 8 }}>{ev.nome}</div>
-                      <span style={S.eventoStatusBadge(status)}>{labelStatusEvento(status)}</span>
+                      <span style={s.eventoStatusBadge(status)}>{labelStatusEvento(status)}</span>
                     </div>
                     <div style={{ color: "#666", fontSize: 12, marginBottom: 8 }}>
                       {ev.data ? `📅 ${new Date(ev.data + "T12:00:00").toLocaleDateString("pt-BR")}` : ""}
@@ -428,11 +433,11 @@ export default function TelaPainelEquipe({
                     )}
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       <button onClick={async () => { selecionarEvento(ev.id); setTela("gestao-inscricoes"); }}
-                        style={{ ...S.btn, padding: "7px 16px", fontSize: 12 }}>
+                        style={{ ...s.btn, padding: "7px 16px", fontSize: 12 }}>
                         📝 Inscrever atletas
                       </button>
                       <button onClick={async () => { selecionarEvento(ev.id); setTela("evento-detalhe"); }}
-                        style={{ ...S.btnGhost, padding: "7px 14px", fontSize: 12 }}>
+                        style={{ ...s.btnGhost, padding: "7px 14px", fontSize: 12 }}>
                         Ver detalhes
                       </button>
                     </div>
@@ -446,24 +451,24 @@ export default function TelaPainelEquipe({
 
       {/* ── ABA: TREINADORES ── */}
       {abaAtiva === "treinadores" && (
-        <div style={S.card}>
+        <div style={s.card}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-            <div style={S.secTitle}>👨‍🏫 Treinadores</div>
-            <button style={S.btn} onClick={() => setTela("treinadores")}>Gerenciar →</button>
+            <div style={s.secTitle}>👨‍🏫 Treinadores</div>
+            <button style={s.btn} onClick={() => setTela("treinadores")}>Gerenciar →</button>
           </div>
           {meusTrein.length === 0 ? (
-            <div style={S.emptyState}>
+            <div style={s.emptyState}>
               <span style={{ fontSize: 40 }}>👨‍🏫</span>
               <p>Nenhum treinador cadastrado</p>
-              <button style={S.btn} onClick={() => setTela("treinadores")}>+ Adicionar treinador</button>
+              <button style={s.btn} onClick={() => setTela("treinadores")}>+ Adicionar treinador</button>
             </div>
           ) : (
-            <div style={S.tableWrap}>
-              <table style={S.table}>
+            <div style={s.tableWrap}>
+              <table style={s.table}>
                 <thead><tr><Th>Nome</Th><Th>E-mail</Th><Th>Fone</Th></tr></thead>
                 <tbody>
                   {meusTrein.map(t => (
-                    <tr key={t.id} style={S.tr}>
+                    <tr key={t.id} style={s.tr}>
                       <Td><strong style={{ color: "#fff" }}>{t.nome}</strong></Td>
                       <Td style={{ fontSize: 12 }}>{t.email || "—"}</Td>
                       <Td style={{ fontSize: 12 }}>{t.fone || "—"}</Td>
@@ -506,7 +511,7 @@ export default function TelaPainelEquipe({
           )}
 
           {/* Stats medalhas */}
-          <div style={S.statsRow}>
+          <div style={s.statsRow}>
             <StatCard value={medalhas.total} label="Resultados" />
             <StatCard value={medalhas.ouro} label="🥇 Ouro" color="#FFD700" />
             <StatCard value={medalhas.prata} label="🥈 Prata" color="#C0C0C0" />
@@ -515,10 +520,10 @@ export default function TelaPainelEquipe({
 
           {/* Busca */}
           <input type="text" value={buscaRes} onChange={e => setBuscaRes(e.target.value)}
-            placeholder="🔍 Buscar atleta..." style={S.input} />
+            placeholder="🔍 Buscar atleta..." style={s.input} />
 
           {resultadosEquipe.length === 0 ? (
-            <div style={S.emptyState}>
+            <div style={s.emptyState}>
               <span style={{ fontSize: 40 }}>🏆</span>
               <p>Nenhum resultado registrado para atletas da equipe.</p>
             </div>
@@ -534,17 +539,17 @@ export default function TelaPainelEquipe({
                     <span style={{ color: "#1976D2", fontWeight: 700, fontSize: 14 }}>🏟 {ev.nome}</span>
                     {ev.data && <span style={{ color: "#555", fontSize: 11 }}>📅 {new Date(ev.data + "T12:00:00").toLocaleDateString("pt-BR")}</span>}
                     {ev.local && <span style={{ color: "#444", fontSize: 11 }}>· 📍 {ev.local}</span>}
-                    <span style={S.badge("#1976D2")}>{filtrados.length} resultado{filtrados.length !== 1 ? "s" : ""}</span>
+                    <span style={s.badge("#1976D2")}>{filtrados.length} resultado{filtrados.length !== 1 ? "s" : ""}</span>
                   </summary>
                   <div style={{ padding: "0 12px 14px" }}>
-                    <div style={S.tableWrap}>
-                      <table style={S.table}>
+                    <div style={s.tableWrap}>
+                      <table style={s.table}>
                         <thead>
                           <tr><Th>Atleta</Th><Th>Prova</Th><Th>Marca</Th><Th>Posição</Th><Th>Categoria</Th></tr>
                         </thead>
                         <tbody>
                           {filtrados.map((l, idx) => (
-                            <tr key={idx} style={S.tr}>
+                            <tr key={idx} style={s.tr}>
                               <Td><strong style={{ color: "#fff" }}>{l.atletaNome}</strong></Td>
                               <Td>{l.provaNome}</Td>
                               <Td>
@@ -557,7 +562,7 @@ export default function TelaPainelEquipe({
                                   {exibirPosicao(l.posicao)}
                                 </span>
                               </Td>
-                              <Td><span style={S.badge("#1976D2")}>{l.cat}</span></Td>
+                              <Td><span style={s.badge("#1976D2")}>{l.cat}</span></Td>
                             </tr>
                           ))}
                         </tbody>
@@ -579,20 +584,20 @@ export default function TelaPainelEquipe({
               <div style={{ fontWeight: 700, color: "#88aaff", fontSize: 14, marginBottom: 12 }}>
                 🔗 Solicitações de Vínculo — atletas pedindo para entrar
               </div>
-              <div style={S.tableWrap}>
-                <table style={S.table}>
+              <div style={s.tableWrap}>
+                <table style={s.table}>
                   <thead><tr><Th>Atleta</Th><Th>Data</Th><Th>Ação</Th></tr></thead>
                   <tbody>
-                    {vincPendentes.map(s => (
-                      <tr key={s.id} style={S.tr}>
-                        <Td><strong style={{ color: "#fff" }}>{s.atletaNome}</strong></Td>
-                        <Td style={{ fontSize: 11, color: "#555" }}>{new Date(s.data).toLocaleString("pt-BR")}</Td>
+                    {vincPendentes.map(sol => (
+                      <tr key={sol.id} style={s.tr}>
+                        <Td><strong style={{ color: "#fff" }}>{sol.atletaNome}</strong></Td>
+                        <Td style={{ fontSize: 11, color: "#555" }}>{new Date(sol.data).toLocaleString("pt-BR")}</Td>
                         <Td>
                           <div style={{ display: "flex", gap: 6 }}>
-                            <button onClick={() => responderVinculo(s.id, true)}
-                              style={{ ...S.btnGhost, fontSize: 12, padding: "4px 14px", color: "#7cfc7c", borderColor: "#2a5a2a" }}>✓ Aceitar</button>
-                            <button onClick={() => responderVinculo(s.id, false)}
-                              style={{ ...S.btnGhost, fontSize: 12, padding: "4px 12px", color: "#ff6b6b", borderColor: "#5a1a1a" }}>✗ Recusar</button>
+                            <button onClick={() => responderVinculo(sol.id, true)}
+                              style={{ ...s.btnGhost, fontSize: 12, padding: "4px 14px", color: "#7cfc7c", borderColor: "#2a5a2a" }}>✓ Aceitar</button>
+                            <button onClick={() => responderVinculo(sol.id, false)}
+                              style={{ ...s.btnGhost, fontSize: 12, padding: "4px 12px", color: "#ff6b6b", borderColor: "#5a1a1a" }}>✗ Recusar</button>
                           </div>
                         </Td>
                       </tr>
@@ -617,18 +622,18 @@ export default function TelaPainelEquipe({
                   </div>
                 </div>
               </div>
-              <div style={S.tableWrap}>
-                <table style={S.table}>
+              <div style={s.tableWrap}>
+                <table style={s.table}>
                   <thead><tr><Th>Atleta</Th><Th>Inscrições</Th><Th>Data</Th><Th>Ação</Th></tr></thead>
                   <tbody>
-                    {desvinculacaoPend.map(s => {
-                      const atletaObj = (atletas||[]).find(a => a.id === s.atletaId);
-                      const nInscricoes = inscricoes ? inscricoes.filter(i => i.atletaId === s.atletaId).length : 0;
+                    {desvinculacaoPend.map(sol => {
+                      const atletaObj = (atletas||[]).find(a => a.id === sol.atletaId);
+                      const nInscricoes = inscricoes ? inscricoes.filter(i => i.atletaId === sol.atletaId).length : 0;
                       return (
-                        <tr key={s.id} style={S.tr}>
+                        <tr key={sol.id} style={s.tr}>
                           <Td>
                             <div>
-                              <strong style={{ color: "#fff" }}>{s.atletaNome}</strong>
+                              <strong style={{ color: "#fff" }}>{sol.atletaNome}</strong>
                               {atletaObj?.clube && <div style={{ fontSize: 11, color: "#666" }}>{atletaObj.clube}</div>}
                             </div>
                           </Td>
@@ -639,7 +644,7 @@ export default function TelaPainelEquipe({
                                 : "Nenhuma inscrição"}
                             </span>
                           </Td>
-                          <Td style={{ fontSize: 11, color: "#555" }}>{new Date(s.data).toLocaleString("pt-BR")}</Td>
+                          <Td style={{ fontSize: 11, color: "#555" }}>{new Date(sol.data).toLocaleString("pt-BR")}</Td>
                           <Td>
                             <div style={{ display: "flex", gap: 6, flexDirection: "column", maxWidth: 220 }}>
                               <div style={{ fontSize: 11, color: "#666", lineHeight: 1.5, marginBottom: 4 }}>
@@ -647,9 +652,9 @@ export default function TelaPainelEquipe({
                               </div>
                               <div style={{ display: "flex", gap: 6 }}>
                                 <button
-                                  onClick={async () => { 
+                                  onClick={async () => {
                                     if (!await confirmar(
-                                      `Aprovar saída de "${s.atletaNome }" da equipe?
+                                      `Aprovar saída de "${sol.atletaNome }" da equipe?
 
 ` +
                                       `✅ O atleta será desvinculado.
@@ -661,15 +666,15 @@ export default function TelaPainelEquipe({
 ` +
                                       `Deseja aprovar?`
                                     )) return;
-                                    responderVinculo(s.id, true);
+                                    responderVinculo(sol.id, true);
                                   }}
-                                  style={{ ...S.btnGhost, fontSize: 12, padding: "4px 14px", color: "#7cfc7c", borderColor: "#2a5a2a" }}>
+                                  style={{ ...s.btnGhost, fontSize: 12, padding: "4px 14px", color: "#7cfc7c", borderColor: "#2a5a2a" }}>
                                   ✓ Aprovar saída
                                 </button>
                                 <button
-                                  onClick={async () => { 
+                                  onClick={async () => {
                                     if (!await confirmar(
-                                      `Recusar o pedido de saída de "${s.atletaNome }"?
+                                      `Recusar o pedido de saída de "${sol.atletaNome }"?
 
 ` +
                                       `O atleta continuará vinculado à equipe.
@@ -677,9 +682,9 @@ export default function TelaPainelEquipe({
 ` +
                                       `Deseja recusar?`
                                     )) return;
-                                    responderVinculo(s.id, false);
+                                    responderVinculo(sol.id, false);
                                   }}
-                                  style={{ ...S.btnGhost, fontSize: 12, padding: "4px 12px", color: "#ff6b6b", borderColor: "#5a1a1a" }}>
+                                  style={{ ...s.btnGhost, fontSize: 12, padding: "4px 12px", color: "#ff6b6b", borderColor: "#5a1a1a" }}>
                                   ✗ Recusar
                                 </button>
                               </div>
@@ -702,24 +707,24 @@ export default function TelaPainelEquipe({
               <p style={{ color: "#888", fontSize: 12, marginBottom: 12 }}>
                 Aprovar libera o atleta para a nova equipe.
               </p>
-              <div style={S.tableWrap}>
-                <table style={S.table}>
+              <div style={s.tableWrap}>
+                <table style={s.table}>
                   <thead><tr><Th>Atleta</Th><Th>Solicitante</Th><Th>Nova Equipe</Th><Th>Data</Th><Th>Ação</Th></tr></thead>
                   <tbody>
-                    {transferenciasPend.map(s => {
-                      const novaEquipe = equipes?.find(e => e.id === s.equipeId);
+                    {transferenciasPend.map(sol => {
+                      const novaEquipe = equipes?.find(e => e.id === sol.equipeId);
                       return (
-                        <tr key={s.id} style={S.tr}>
-                          <Td><strong style={{ color: "#fff" }}>{s.atletaNome}</strong></Td>
-                          <Td style={{ fontSize: 12, color: "#aaa" }}>{s.solicitanteNome || "—"}</Td>
-                          <Td style={{ color: "#cc88ff", fontSize: 13 }}>{novaEquipe?.nome || s.clube || "—"}</Td>
-                          <Td style={{ fontSize: 11, color: "#555" }}>{new Date(s.data).toLocaleString("pt-BR")}</Td>
+                        <tr key={sol.id} style={s.tr}>
+                          <Td><strong style={{ color: "#fff" }}>{sol.atletaNome}</strong></Td>
+                          <Td style={{ fontSize: 12, color: "#aaa" }}>{sol.solicitanteNome || "—"}</Td>
+                          <Td style={{ color: "#cc88ff", fontSize: 13 }}>{novaEquipe?.nome || sol.clube || "—"}</Td>
+                          <Td style={{ fontSize: 11, color: "#555" }}>{new Date(sol.data).toLocaleString("pt-BR")}</Td>
                           <Td>
                             <div style={{ display: "flex", gap: 6 }}>
-                              <button onClick={() => responderVinculo(s.id, true)}
-                                style={{ ...S.btnGhost, fontSize: 12, padding: "4px 14px", color: "#7cfc7c", borderColor: "#2a5a2a" }}>✓ Aprovar</button>
-                              <button onClick={() => responderVinculo(s.id, false)}
-                                style={{ ...S.btnGhost, fontSize: 12, padding: "4px 12px", color: "#ff6b6b", borderColor: "#5a1a1a" }}>✗ Recusar</button>
+                              <button onClick={() => responderVinculo(sol.id, true)}
+                                style={{ ...s.btnGhost, fontSize: 12, padding: "4px 14px", color: "#7cfc7c", borderColor: "#2a5a2a" }}>✓ Aprovar</button>
+                              <button onClick={() => responderVinculo(sol.id, false)}
+                                style={{ ...s.btnGhost, fontSize: 12, padding: "4px 12px", color: "#ff6b6b", borderColor: "#5a1a1a" }}>✗ Recusar</button>
                             </div>
                           </Td>
                         </tr>
@@ -733,8 +738,8 @@ export default function TelaPainelEquipe({
 
           {/* Histórico */}
           {(() => {
-            const hist = (solicitacoesVinculo||[]).filter(s =>
-              (s.equipeId === equipeId || s.equipeAtualId === equipeId) && s.status !== "pendente"
+            const hist = (solicitacoesVinculo||[]).filter(sol =>
+              (sol.equipeId === equipeId || sol.equipeAtualId === equipeId) && sol.status !== "pendente"
             ).sort((a,b) => new Date(b.resolvidoEm||b.data) - new Date(a.resolvidoEm||a.data)).slice(0,30);
             if (hist.length === 0) return null;
             return (
@@ -743,18 +748,18 @@ export default function TelaPainelEquipe({
                   📂 Histórico ({hist.length})
                 </summary>
                 <div style={{ marginTop: 12, overflowX: "auto" }}>
-                  <table style={S.table}>
+                  <table style={s.table}>
                     <thead><tr><Th>Atleta</Th><Th>Tipo</Th><Th>Status</Th><Th>Resolvido por</Th><Th>Data</Th></tr></thead>
                     <tbody>
-                      {hist.map(s => {
-                        const cor = s.status === "aceito" ? "#7cfc7c" : "#ff6b6b";
+                      {hist.map(sol => {
+                        const cor = sol.status === "aceito" ? "#7cfc7c" : "#ff6b6b";
                         return (
-                          <tr key={s.id} style={S.tr}>
-                            <Td><strong style={{ color: "#fff" }}>{s.atletaNome}</strong></Td>
-                            <Td style={{ fontSize: 11 }}>{s.tipo === "desvinculacao" ? "🚪 Saída" : s.aprovadorTipo === "equipe_atual" ? "🔄 Transferência" : "🔗 Vínculo"}</Td>
-                            <Td><span style={{ background: cor+"22", color: cor, border: `1px solid ${cor}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>{s.status === "aceito" ? "✓ Aceito" : "✗ Recusado"}</span></Td>
-                            <Td style={{ fontSize: 11, color: "#888" }}>{s.resolvidoPorNome || "—"} {s.resolvidoPorTipo ? `(${s.resolvidoPorTipo})` : ""}</Td>
-                            <Td style={{ fontSize: 11, color: "#555" }}>{s.resolvidoEm ? new Date(s.resolvidoEm).toLocaleString("pt-BR") : new Date(s.data).toLocaleString("pt-BR")}</Td>
+                          <tr key={sol.id} style={s.tr}>
+                            <Td><strong style={{ color: "#fff" }}>{sol.atletaNome}</strong></Td>
+                            <Td style={{ fontSize: 11 }}>{sol.tipo === "desvinculacao" ? "🚪 Saída" : sol.aprovadorTipo === "equipe_atual" ? "🔄 Transferência" : "🔗 Vínculo"}</Td>
+                            <Td><span style={{ background: cor+"22", color: cor, border: `1px solid ${cor}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>{sol.status === "aceito" ? "✓ Aceito" : "✗ Recusado"}</span></Td>
+                            <Td style={{ fontSize: 11, color: "#888" }}>{sol.resolvidoPorNome || "—"} {sol.resolvidoPorTipo ? `(${sol.resolvidoPorTipo})` : ""}</Td>
+                            <Td style={{ fontSize: 11, color: "#555" }}>{sol.resolvidoEm ? new Date(sol.resolvidoEm).toLocaleString("pt-BR") : new Date(sol.data).toLocaleString("pt-BR")}</Td>
                           </tr>
                         );
                       })}

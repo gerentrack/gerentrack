@@ -9,6 +9,7 @@ import { CombinedScoringEngine } from "../../shared/engines/combinedScoringEngin
 import { getFasesProva, buscarSeriacao, resKey, FASE_NOME, FASE_ORDEM } from "../../shared/constants/fases";
 import { gerarHtmlImpressao } from "../impressao/gerarHtmlImpressao";
 import { Th, Td } from "../ui/TableHelpers";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 const styles = {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
@@ -147,13 +148,14 @@ const getExibicaoEquipe = (atleta, equipes) => {
 };
 
 function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogado, eventoAtual, numeracaoPeito, equipes, getClubeAtleta, editarEvento, recordes }) {
+  const s = useStylesResponsivos(styles);
   const [filtroProva, setFiltroProva] = useState("todas");
   const [filtroCat, setFiltroCat] = useState("todas");
   const [filtroSexo, setFiltroSexo] = useState("todos");
 
   if (!eventoAtual) return (
-    <div style={styles.page}><div style={styles.emptyState}><p>Selecione uma competição primeiro.</p>
-      <button style={styles.btnPrimary} onClick={() => setTela("home")}>Ver Competições</button></div></div>
+    <div style={s.page}><div style={s.emptyState}><p>Selecione uma competição primeiro.</p>
+      <button style={s.btnPrimary} onClick={() => setTela("home")}>Ver Competições</button></div></div>
   );
 
   const eid = eventoAtual.id;
@@ -608,15 +610,15 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
   };
 
   return (
-    <div style={styles.page}>
-      <div style={styles.painelHeader}>
+    <div style={s.page}>
+      <div style={s.painelHeader}>
         <div>
-          <h1 style={styles.pageTitle}>🏆 Resultados</h1>
+          <h1 style={s.pageTitle}>🏆 Resultados</h1>
           <div style={{ color: "#666", fontSize: 13 }}>{eventoAtual.nome}</div>
         </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           {isAmplo && (blocosFiltrados.length > 0 || blocosCombinadas.length > 0 || classifEquipes.classificacao.length > 0) && (
-            <button style={{ ...styles.btnPrimary, display: "flex", alignItems: "center", gap: 8 }} onClick={handleImprimirResultados}>
+            <button style={{ ...s.btnPrimary, display: "flex", alignItems: "center", gap: 8 }} onClick={handleImprimirResultados}>
               🖨 Imprimir Resultados
               <span style={{ background: "#00000033", borderRadius: 10, padding: "1px 8px", fontSize: 11 }}>
                 {blocosFiltrados.length}
@@ -624,30 +626,30 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
             </button>
           )}
           {isAmplo && (
-            <button style={styles.btnSecondary} onClick={() => setTela("digitar-resultados")}>✏️ Inserir Resultados</button>
+            <button style={s.btnSecondary} onClick={() => setTela("digitar-resultados")}>✏️ Inserir Resultados</button>
           )}
-          <button style={styles.btnGhost} onClick={() => setTela("evento-detalhe")}>← Competição</button>
+          <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Competição</button>
         </div>
       </div>
 
-      <div style={styles.filtros}>
+      <div style={s.filtros}>
         <div>
-          <label style={styles.label}>Categoria</label>
-          <select style={styles.select} value={filtroCat} onChange={(e) => { setFiltroCat(e.target.value); setFiltroProva("todas"); }}>
+          <label style={s.label}>Categoria</label>
+          <select style={s.select} value={filtroCat} onChange={(e) => { setFiltroCat(e.target.value); setFiltroProva("todas"); }}>
             <option value="todas">Todas</option>
             {categoriasComInscricao.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
           </select>
         </div>
         <div>
-          <label style={styles.label}>Prova</label>
-          <select style={styles.select} value={filtroProva} onChange={(e) => setFiltroProva(e.target.value)}>
+          <label style={s.label}>Prova</label>
+          <select style={s.select} value={filtroProva} onChange={(e) => setFiltroProva(e.target.value)}>
             <option value="todas">Todas</option>
             {nomesProvasUnicos.map((nome) => <option key={nome} value={nome}>{nome}</option>)}
           </select>
         </div>
         <div>
-          <label style={styles.label}>Sexo</label>
-          <select style={styles.select} value={filtroSexo} onChange={(e) => setFiltroSexo(e.target.value)}>
+          <label style={s.label}>Sexo</label>
+          <select style={s.select} value={filtroSexo} onChange={(e) => setFiltroSexo(e.target.value)}>
             <option value="todos">Todos</option>
             <option value="M">Masculino</option>
             <option value="F">Feminino</option>
@@ -681,7 +683,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
             </div>
             {isAmplo && (
               <button
-                style={{ ...styles.btnGhost, fontSize: 12, padding: "6px 12px", whiteSpace: "nowrap" }}
+                style={{ ...s.btnGhost, fontSize: 12, padding: "6px 12px", whiteSpace: "nowrap" }}
                 onClick={() => {
                   const isFinal = classifEquipes.totalProvasComResultado >= classifEquipes.totalProvas;
                   const _br = (() => { try { return JSON.parse(localStorage.getItem("gt_branding")) || {}; } catch { return {}; } })();
@@ -826,7 +828,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
       )}
 
       {blocosFiltrados.length === 0 && blocosCombinadas.length === 0 ? (
-        <div style={styles.emptyState}>
+        <div style={s.emptyState}>
           <span style={{ fontSize: 48 }}>🏆</span>
           <p>Nenhum resultado publicado ainda.</p>
         </div>
@@ -851,8 +853,8 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                     </span>
                   </div>
                   <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap", marginTop:6 }}>
-                    <span style={styles.badgeGold}>{bc.categoria.nome}</span>
-                    <span style={styles.badge(bc.sexo === "M" ? "#1a6ef5" : "#e54f9b")}>
+                    <span style={s.badgeGold}>{bc.categoria.nome}</span>
+                    <span style={s.badge(bc.sexo === "M" ? "#1a6ef5" : "#e54f9b")}>
                       {bc.sexo === "M" ? "Masculino" : "Feminino"}
                     </span>
                     <span style={{ color: "#aaa", fontSize: 13 }}>
@@ -862,7 +864,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                 </div>
                 {isAmplo && (
                   <button
-                    style={{ ...styles.btnGhost, fontSize: 12, padding: "6px 12px", whiteSpace: "nowrap" }}
+                    style={{ ...s.btnGhost, fontSize: 12, padding: "6px 12px", whiteSpace: "nowrap" }}
                     onClick={() => {
                       const pontEqAtivo = eventoAtual.pontuacaoEquipes?.ativo && bc.todasCompletas;
                       const _br3 = (() => { try { return JSON.parse(localStorage.getItem("gt_branding")) || {}; } catch { return {}; } })();
@@ -1049,8 +1051,8 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                   )}
                 </div>
                 <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap", marginTop:6 }}>
-                  <span style={styles.badgeGold}>{b.categoria.nome}</span>
-                  <span style={styles.badge(b.sexo === "M" ? "#1a6ef5" : "#e54f9b")}>{b.sexo === "M" ? "Masculino" : "Feminino"}</span>
+                  <span style={s.badgeGold}>{b.categoria.nome}</span>
+                  <span style={s.badge(b.sexo === "M" ? "#1a6ef5" : "#e54f9b")}>{b.sexo === "M" ? "Masculino" : "Feminino"}</span>
                 </div>
                 {/* Recordes vinculados ao evento (recordesSumulas - independente de competicoesVinculadas) */}
                 {(() => {
@@ -1085,7 +1087,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
               </div>
               {isAmplo && (
                 <button
-                  style={{ ...styles.btnGhost, fontSize: 12, padding: "6px 12px", whiteSpace: "nowrap" }}
+                  style={{ ...s.btnGhost, fontSize: 12, padding: "6px 12px", whiteSpace: "nowrap" }}
                   onClick={() => {
                     const inscs = inscDoEvento.filter(ii =>
                       ii.provaId === b.prova.id && (ii.categoriaOficialId || ii.categoriaId) === b.categoria.id && ii.sexo === b.sexo
@@ -1224,9 +1226,9 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                 // Buscar seriação desta fase para agrupar por série
                 seriacaoFaseBlk = buscarSeriacao(eventoAtual.seriacao, b.prova.id, b.categoria.id, b.sexo, b.faseSufixo);
                 if (seriacaoFaseBlk?.series) {
-                  seriacaoFaseBlk.series.forEach(s => {
-                    s.atletas.forEach(a => {
-                      seriesPorAtleta[a.id || a.atletaId] = s.numero;
+                  seriacaoFaseBlk.series.forEach(ser => {
+                    ser.atletas.forEach(a => {
+                      seriesPorAtleta[a.id || a.atletaId] = ser.numero;
                     });
                   });
                 }
@@ -1239,8 +1241,8 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                   const serProxima = buscarSeriacao(eventoAtual.seriacao, b.prova.id, b.categoria.id, b.sexo, proximaFase);
                   if (serProxima?.series) {
                     // Atletas na próxima fase — verificar origemClassif
-                    serProxima.series.forEach(s => {
-                      s.atletas.forEach(a => {
+                    serProxima.series.forEach(ser => {
+                      ser.atletas.forEach(a => {
                         const aid = a.id || a.atletaId;
                         if (a.origemClassif === "posicao") classifQq[aid] = "Q";
                         else if (a.origemClassif === "tempo") classifQq[aid] = "q";
@@ -1326,7 +1328,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                 <>
                   {/* ── REVEZAMENTO: tabela por equipe ── */}
                   {b.isRevezamento ? (
-                    <table style={{ ...styles.table, fontSize: 13 }}>
+                    <table style={{ ...s.table, fontSize: 13 }}>
                       <thead><tr>
                         <Th>Pos.</Th>
                         <Th>Equipe</Th>
@@ -1349,7 +1351,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                             return ptsR[item.equipeId]?.pontos || 0;
                           })() : 0;
                           return (
-                            <tr key={item.equipeId} style={{ ...styles.tr, ...(item.isStatus ? {} : j===0?styles.trOuro:j===1?styles.trPrata:j===2?styles.trBronze:{}) }}>
+                            <tr key={item.equipeId} style={{ ...s.tr, ...(item.isStatus ? {} : j===0?s.trOuro:j===1?s.trPrata:j===2?s.trBronze:{}) }}>
                               <Td><strong style={{ color: item.isStatus ? "#666" : j<3?"#1976D2":"#fff", fontSize:15 }}>
                                 {item.isStatus ? "" : j===0?"🥇":j===1?"🥈":j===2?"🥉":`${j+1}º`}
                               </strong></Td>
@@ -1384,7 +1386,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                       <span style={{ color:"#888", marginLeft:6 }}>1º menor nº de saltos na última altura transposta (SU) · 2º menor nº total de falhas na prova (FP)</span>
                     </div>
                   )}
-                  <table style={{ ...styles.table, fontSize: isCampoBlk ? 12 : 13 }}>
+                  <table style={{ ...s.table, fontSize: isCampoBlk ? 12 : 13 }}>
                   <thead>
                     <tr>
                       <Th>Pos.</Th>
@@ -1440,7 +1442,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                       })() : null;
 
                       return (
-                        <tr key={item.atleta.id} style={{ ...styles.tr, ...(isSerieFinal && !item.isStatus ? (j===0?styles.trOuro:j===1?styles.trPrata:j===2?styles.trBronze:{}) : {}) }}>
+                        <tr key={item.atleta.id} style={{ ...s.tr, ...(isSerieFinal && !item.isStatus ? (j===0?s.trOuro:j===1?s.trPrata:j===2?s.trBronze:{}) : {}) }}>
                           <Td><strong style={{ color: item.isStatus ? "#666" : (isSerieFinal && j<3?"#1976D2":"#fff"), fontSize:15 }}>
                             {item.isStatus ? "" : (isSerieFinal ? (j===0?"🥇":j===1?"🥈":j===2?"🥉":posLabel) : posLabel)}
                           </strong></Td>
@@ -1537,7 +1539,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                               });
                             })()}
                           </Td>}
-                          <Td><strong style={styles.marca}>{item.isStatus ? (
+                          <Td><strong style={s.marca}>{item.isStatus ? (
                             <span style={{ color: item.status === "DQ" ? "#ff4444" : "#ff8844" }}>
                               {item.status}{item.status === "DQ" && item.dqRegra ? ` R.${item.dqRegra}` : ""}
                             </span>

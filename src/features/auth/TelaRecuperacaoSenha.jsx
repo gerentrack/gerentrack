@@ -2,8 +2,10 @@ import authStyles from "./authStyles";
 const styles = authStyles;
 import React, { useState } from "react";
 import { auth, sendPasswordResetEmail } from "../../firebase";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 function TelaRecuperacaoSenha({ setTela, equipes, organizadores, atletasUsuarios, funcionarios, treinadores, gerarSenhaTemp, aplicarSenhaTemp, adicionarSolicitacaoRecuperacao }) {
+  const s = useStylesResponsivos(styles);
   const [perfil, setPerfil]   = useState("");
   const [email, setEmail]     = useState("");
   const [docVal, setDocVal]   = useState("");
@@ -48,13 +50,13 @@ function TelaRecuperacaoSenha({ setTela, equipes, organizadores, atletasUsuarios
   const inputStyle = { background:"#1a1c22", border:"1px solid #2a2d3a", color:"#fff", borderRadius:6, padding:"10px 14px", width:"100%", fontSize:14, boxSizing:"border-box" };
 
   return (
-    <div style={styles.formPage}>
-      <div style={{ ...styles.formCard, maxWidth:480 }}>
-        <div style={styles.formIcon}>🔑</div>
-        <h2 style={styles.formTitle}>Recuperar Senha</h2>
+    <div style={s.formPage}>
+      <div style={{ ...s.formCard, maxWidth:480 }}>
+        <div style={s.formIcon}>🔑</div>
+        <h2 style={s.formTitle}>Recuperar Senha</h2>
 
         {passo === 1 && (<>
-          <p style={styles.formSub}>Selecione seu perfil e confirme sua identidade</p>
+          <p style={s.formSub}>Selecione seu perfil e confirme sua identidade</p>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8, marginBottom:18 }}>
             {PERFIS_REC.map(p => (
               <button key={p.id} onClick={() => { setPerfil(p.id); setErro(""); setDocVal(""); }}
@@ -64,30 +66,30 @@ function TelaRecuperacaoSenha({ setTela, equipes, organizadores, atletasUsuarios
               </button>
             ))}
           </div>
-          {erro && <div style={styles.erro}>{erro}</div>}
+          {erro && <div style={s.erro}>{erro}</div>}
           <div style={{ marginBottom:14 }}>
-            <label style={styles.label}>E-mail cadastrado</label>
+            <label style={s.label}>E-mail cadastrado</label>
             <input style={inputStyle} type="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} />
           </div>
           {perfil && (
             <div style={{ marginBottom:14 }}>
-              <label style={styles.label}>{usaCnpj ? "CNPJ" : "CPF"}</label>
+              <label style={s.label}>{usaCnpj ? "CNPJ" : "CPF"}</label>
               <input style={inputStyle} placeholder={usaCnpj ? "00.000.000/0001-00" : "000.000.000-00"} value={docVal} onChange={e => setDocVal(e.target.value)} onKeyDown={e => e.key === "Enter" && handleBuscar()} />
             </div>
           )}
-          <button style={styles.btnPrimary} onClick={handleBuscar}>Continuar →</button>
+          <button style={s.btnPrimary} onClick={handleBuscar}>Continuar →</button>
           <div style={{ textAlign:"center", marginTop:12 }}>
-            <button style={styles.linkBtn} onClick={() => setTela("login")}>← Voltar ao Login</button>
+            <button style={s.linkBtn} onClick={() => setTela("login")}>← Voltar ao Login</button>
           </div>
         </>)}
 
         {passo === 2 && (<>
-          <p style={styles.formSub}>Conta encontrada: <strong style={{ color:"#1976D2" }}>{usuario?.nome}</strong></p>
+          <p style={s.formSub}>Conta encontrada: <strong style={{ color:"#1976D2" }}>{usuario?.nome}</strong></p>
           <div style={{ background:"#0a1a2a", border:"1px solid #1976D2", borderRadius:10, padding:"18px 20px", marginBottom:16 }}>
             <div style={{ color:"#1976D2", fontWeight:700, fontSize:14, marginBottom:8 }}>📧 Recuperar por E-mail</div>
             <div style={{ color:"#aaa", fontSize:12, marginBottom:12, lineHeight:1.5 }}>Enviaremos um link para <strong style={{ color:"#fff" }}>{usuario?.email}</strong> para redefinir sua senha.</div>
-            {erro && <div style={{ ...styles.erro, marginBottom:10 }}>{erro}</div>}
-            <button style={styles.btnPrimary} onClick={async () => {
+            {erro && <div style={{ ...s.erro, marginBottom:10 }}>{erro}</div>}
+            <button style={s.btnPrimary} onClick={async () => {
               setErro("");
               try { await sendPasswordResetEmail(auth, usuario.email); setMetodo("email"); setPasso(3); }
               catch (err) { setErro(err.code === "auth/user-not-found" ? "Conta ainda não migrada. Solicite ao administrador abaixo." : "Erro ao enviar e-mail. Tente novamente."); }
@@ -99,7 +101,7 @@ function TelaRecuperacaoSenha({ setTela, equipes, organizadores, atletasUsuarios
             <div style={{ color:"#555", fontSize:11, marginTop:3 }}>O administrador poderá redefinir sua senha manualmente.</div>
           </button>
           <div style={{ textAlign:"center", marginTop:16 }}>
-            <button style={styles.linkBtn} onClick={() => { setPasso(1); setErro(""); }}>← Voltar</button>
+            <button style={s.linkBtn} onClick={() => { setPasso(1); setErro(""); }}>← Voltar</button>
           </div>
         </>)}
 
@@ -110,7 +112,7 @@ function TelaRecuperacaoSenha({ setTela, equipes, organizadores, atletasUsuarios
             <p style={{ color:"#aaa", fontSize:13, lineHeight:1.6 }}>Enviamos um link de recuperação para<br/><strong style={{ color:"#fff" }}>{usuario?.email}</strong></p>
             <p style={{ color:"#888", fontSize:12, lineHeight:1.6, marginTop:12 }}>Verifique sua caixa de entrada e a pasta de spam.<br/>O link expira em 1 hora.</p>
           </div>
-          <button style={styles.btnPrimary} onClick={() => setTela("login")}>← Voltar ao Login</button>
+          <button style={s.btnPrimary} onClick={() => setTela("login")}>← Voltar ao Login</button>
         </>)}
 
         {passo === 3 && metodo === "admin" && (<>
@@ -119,7 +121,7 @@ function TelaRecuperacaoSenha({ setTela, equipes, organizadores, atletasUsuarios
             <h3 style={{ color:"#88aaff", marginBottom:8 }}>Solicitação enviada!</h3>
             <p style={{ color:"#aaa", fontSize:13, lineHeight:1.7 }}>O administrador foi notificado e enviará uma senha temporária para<br/><strong style={{ color:"#1976D2" }}>{usuario?.email}</strong></p>
           </div>
-          <button style={{ ...styles.btnGhost, marginTop:20, width:"100%" }} onClick={() => setTela("login")}>← Voltar ao Login</button>
+          <button style={{ ...s.btnGhost, marginTop:20, width:"100%" }} onClick={() => setTela("login")}>← Voltar ao Login</button>
         </>)}
       </div>
     </div>

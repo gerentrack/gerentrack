@@ -5,6 +5,7 @@ import { CATEGORIAS, getCategoria } from "../../shared/constants/categorias";
 import { _getClubeAtleta, validarCPF } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -269,6 +270,7 @@ const styles = {
 };
 
 function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, excluirAtleta, excluirAtletasEmMassa, usuarioLogado, equipes, eventoAtual, atletas, atletasUsuarios, solicitarVinculo, solicitacoesVinculo, organizadores, desvincularAtleta, setAtletaEditandoId }) {
+  const s = useStylesResponsivos(styles);
   const confirmar = useConfirm();
   const _equipeDoUsuario = usuarioLogado?.tipo === "equipe" ? equipes?.find(e => e.id === usuarioLogado.id) : null;
   // equipeId e clube são auto-preenchidos para tipo "equipe" — não requerem input do usuário
@@ -491,14 +493,14 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
 
   // ── Sucesso ao cadastrar ──
   if (ok) return (
-    <div style={styles.formPage}>
-      <div style={styles.formCard}>
+    <div style={s.formPage}>
+      <div style={s.formCard}>
         <div style={{ fontSize: 64, textAlign: "center" }}>✅</div>
-        <h2 style={{ ...styles.formTitle, textAlign: "center" }}>Atleta cadastrado!</h2>
-        <div style={styles.heroBtns}>
-          <button style={styles.btnPrimary} onClick={async () => { setOk(false); setForm(FORM_VAZIO); setAtletaExistente(null); setVinculoEnviado(false); }}>Cadastrar outro</button>
-          <button style={styles.btnSecondary} onClick={() => setTela("inscricao-avulsa")}>Inscrever atleta</button>
-          <button style={styles.btnGhost} onClick={handleCancelar}>← Voltar à lista</button>
+        <h2 style={{ ...s.formTitle, textAlign: "center" }}>Atleta cadastrado!</h2>
+        <div style={s.heroBtns}>
+          <button style={s.btnPrimary} onClick={async () => { setOk(false); setForm(FORM_VAZIO); setAtletaExistente(null); setVinculoEnviado(false); }}>Cadastrar outro</button>
+          <button style={s.btnSecondary} onClick={() => setTela("inscricao-avulsa")}>Inscrever atleta</button>
+          <button style={s.btnGhost} onClick={handleCancelar}>← Voltar à lista</button>
         </div>
       </div>
     </div>
@@ -512,13 +514,13 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
     const totalF = meusAtletas.filter(a => a.sexo === "F").length;
 
     return (
-      <div style={styles.page}>
-        <div style={styles.painelHeader}>
+      <div style={s.page}>
+        <div style={s.painelHeader}>
           <div>
-            <h1 style={styles.pageTitle}>🏃 Atletas</h1>
+            <h1 style={s.pageTitle}>🏃 Atletas</h1>
             <p style={{ color: "#666", fontSize: 14 }}>Gerenciar atletas cadastrados</p>
           </div>
-          <button style={styles.btnGhost} onClick={() => setTela(voltarTela)}>← Voltar</button>
+          <button style={s.btnGhost} onClick={() => setTela(voltarTela)}>← Voltar</button>
         </div>
 
         {/* Stats */}
@@ -539,40 +541,40 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
 
         {/* Ações */}
         <div style={{ display: "flex", gap: 12, marginBottom: 12, flexWrap: "wrap", alignItems: "center" }}>
-          <button style={styles.btnPrimary} onClick={() => setModo("novo")}>+ Novo Atleta</button>
-          <button style={styles.btnSecondary} onClick={() => setTela("importar-atletas")}>📊 Importar Planilha</button>
+          <button style={s.btnPrimary} onClick={() => setModo("novo")}>+ Novo Atleta</button>
+          <button style={s.btnSecondary} onClick={() => setTela("importar-atletas")}>📊 Importar Planilha</button>
           <input
             type="text"
             placeholder="🔍 Buscar atleta, CPF ou equipe..."
             value={filtro}
             onChange={e => setFiltro(e.target.value)}
-            style={{ ...styles.input, flex: 1, minWidth: 200 }}
+            style={{ ...s.input, flex: 1, minWidth: 200 }}
           />
         </div>
 
         {/* Filtros de categoria e sexo */}
         <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
           <select value={filtroSexoAtl} onChange={e => setFiltroSexoAtl(e.target.value)}
-            style={{ ...styles.input, width: "auto", minWidth: 130, padding: "6px 10px", fontSize: 13 }}>
+            style={{ ...s.input, width: "auto", minWidth: 130, padding: "6px 10px", fontSize: 13 }}>
             <option value="todos">Todos os sexos</option>
             <option value="M">Masculino</option>
             <option value="F">Feminino</option>
           </select>
           <select value={filtroCatAtl} onChange={e => setFiltroCatAtl(e.target.value)}
-            style={{ ...styles.input, width: "auto", minWidth: 160, padding: "6px 10px", fontSize: 13 }}>
+            style={{ ...s.input, width: "auto", minWidth: 160, padding: "6px 10px", fontSize: 13 }}>
             <option value="todas">Todas as categorias</option>
             {CATEGORIAS.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
           </select>
           {equipesVisiveis.length > 0 && (
             <select value={filtroEquipeAtl} onChange={e => setFiltroEquipeAtl(e.target.value)}
-              style={{ ...styles.input, width: "auto", minWidth: 180, padding: "6px 10px", fontSize: 13 }}>
+              style={{ ...s.input, width: "auto", minWidth: 180, padding: "6px 10px", fontSize: 13 }}>
               <option value="todas">Todas as equipes</option>
               <option value="_sem">Sem equipe</option>
               {equipesVisiveis.map(eq => <option key={eq.id} value={eq.id}>{eq.nome}</option>)}
             </select>
           )}
           {(filtroSexoAtl !== "todos" || filtroCatAtl !== "todas" || filtroEquipeAtl !== "todas" || filtro) && (
-            <button style={{ ...styles.btnGhost, fontSize: 11, padding: "4px 10px" }}
+            <button style={{ ...s.btnGhost, fontSize: 11, padding: "4px 10px" }}
               onClick={async () => { setFiltroSexoAtl("todos"); setFiltroCatAtl("todas"); setFiltroEquipeAtl("todas"); setFiltro(""); }}>
               ✕ Limpar filtros
             </button>
@@ -603,7 +605,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
             </label>
             {selecionados.size > 0 && (
               <button
-                style={{ ...styles.btnGhost, fontSize: 12, padding: "5px 14px", color: "#ff6b6b", borderColor: "#3a1a1a" }}
+                style={{ ...s.btnGhost, fontSize: 12, padding: "5px 14px", color: "#ff6b6b", borderColor: "#3a1a1a" }}
                 onClick={async () => { 
                   if (!await confirmar(`⚠️ ATENÇÃO: Excluir ${selecionados.size } atleta(s)?\n\nEsta ação é IRREVERSÍVEL!`)) return;
                   excluirAtletasEmMassa(selecionados);
@@ -615,7 +617,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
             )}
             {selecionados.size > 0 && (
               <button
-                style={{ ...styles.btnGhost, fontSize: 11, padding: "4px 10px" }}
+                style={{ ...s.btnGhost, fontSize: 11, padding: "4px 10px" }}
                 onClick={() => setSelecionados(new Set())}
               >
                 ✕ Limpar seleção
@@ -639,8 +641,8 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                 <div style={{ fontSize: 18, marginBottom: 8 }}>Nenhum atleta cadastrado</div>
                 <div style={{ fontSize: 14, marginBottom: 16 }}>Cadastre o primeiro atleta manualmente ou importe uma planilha</div>
                 <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
-                  <button style={styles.btnPrimary} onClick={() => setModo("novo")}>+ Novo Atleta</button>
-                  <button style={styles.btnSecondary} onClick={() => setTela("importar-atletas")}>📊 Importar Planilha</button>
+                  <button style={s.btnPrimary} onClick={() => setModo("novo")}>+ Novo Atleta</button>
+                  <button style={s.btnSecondary} onClick={() => setTela("importar-atletas")}>📊 Importar Planilha</button>
                 </div>
               </>
             )}
@@ -714,7 +716,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                     {isEquipe && desvincularAtleta && (
                       <button
                         onClick={async () => { if (await confirmar(`Desvincular ${a.nome} da sua equipe?`)) desvincularAtleta(a.id); }}
-                        style={{ ...styles.btnGhost, fontSize: 11, padding: "4px 10px", color: "#ff6b6b", borderColor: "#3a1a1a" }}
+                        style={{ ...s.btnGhost, fontSize: 11, padding: "4px 10px", color: "#ff6b6b", borderColor: "#3a1a1a" }}
                       >
                         ✂️ Desvincular
                       </button>
@@ -761,14 +763,14 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                 </select>
               </div>
               <div style={{ display:"flex", gap:10 }}>
-                <button style={{ ...styles.btnPrimary }} onClick={async () => {
+                <button style={{ ...s.btnPrimary }} onClick={async () => {
                   if (!transfEquipeId) { alert("Selecione a equipe de destino."); return; }
                   const novaEquipe = equipes.find(e => e.id === transfEquipeId);
                   await atualizarAtleta({ ...transfAtleta, equipeId: transfEquipeId, clube: novaEquipe?.nome || "" });
                   setTransfAtleta(null);
                   setTransfEquipeId("");
                 }}>✅ Confirmar Transferência</button>
-                <button style={styles.btnGhost} onClick={() => setTransfAtleta(null)}>Cancelar</button>
+                <button style={s.btnGhost} onClick={() => setTransfAtleta(null)}>Cancelar</button>
               </div>
             </div>
           </div>
@@ -781,17 +783,17 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
   // MODO NOVO (formulário de cadastro)
   // ══════════════════════════════════════════════════════════════════════════════
   return (
-    <div style={styles.page}>
-      <div style={styles.painelHeader}>
+    <div style={s.page}>
+      <div style={s.painelHeader}>
         <div>
-          <h1 style={styles.pageTitle}>➕ Novo Atleta</h1>
+          <h1 style={s.pageTitle}>➕ Novo Atleta</h1>
           <p style={{ color: "#666", fontSize: 14 }}>Cadastrar atleta manualmente</p>
         </div>
-        <button style={styles.btnGhost} onClick={handleCancelar}>← Cancelar</button>
+        <button style={s.btnGhost} onClick={handleCancelar}>← Cancelar</button>
       </div>
 
       <div style={{ maxWidth: 700, margin: "0 auto", background: "#0D0E12", border: "1px solid #1E2130", borderRadius: 12, padding: "28px 32px" }}>
-        <div style={styles.grid2form}>
+        <div style={s.grid2form}>
           <FormField label="Nome Completo *"      value={form.nome}    onChange={(v) => setForm({ ...form, nome: v })}    error={erros.nome} />
           <FormField label="Data de Nascimento *"  value={form.dataNasc} onChange={handleDataNasc} type="date"           error={erros.dataNasc} />
           <div style={{ gridColumn:"1/-1" }}>
@@ -816,7 +818,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                   const atletaBase = atletas.find(a => a.cpf && a.cpf.replace(/\D/g,"") === atletaDuplicadoOrg.cpf?.replace(/\D/g,""));
                   if (!atletaBase) return null;
                   const jaEhMeu = atletaBase.equipeId === usuarioLogado?.id;
-                  const solPendente = (solicitacoesVinculo||[]).find(s => s.atletaId === atletaBase.id && s.status === "pendente");
+                  const solPendente = (solicitacoesVinculo||[]).find(sol => sol.atletaId === atletaBase.id && sol.status === "pendente");
                   const temEquipe = !!atletaBase.equipeId && !jaEhMeu;
                   if (jaEhMeu) return (
                     <div style={{ background:"#0a2a0a", borderRadius:6, padding:"8px 12px", color:"#7cfc7c", fontSize:13, marginBottom:10 }}>
@@ -966,10 +968,10 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
           <FormField label="Nº CBAt (opcional)"    value={form.cbat}    onChange={(v) => setForm({ ...form, cbat: v })}   placeholder="Número de registro CBAt" />
           <FormField label="E-mail (opcional)"     value={form.email}   onChange={(v) => setForm({ ...form, email: v })}  type="email" placeholder="email@exemplo.com" />
           <div>
-            <label style={styles.label}>Sexo *</label>
-            <div style={styles.radioGroup}>
+            <label style={s.label}>Sexo *</label>
+            <div style={s.radioGroup}>
               {[["M", "Masculino"], ["F", "Feminino"]].map(([v, l]) => (
-                <label key={v} style={{ ...styles.radioLabel, ...(form.sexo === v ? styles.radioLabelActive : {}) }}>
+                <label key={v} style={{ ...s.radioLabel, ...(form.sexo === v ? s.radioLabelActive : {}) }}>
                   <input type="radio" value={v} checked={form.sexo === v} onChange={() => setForm({ ...form, sexo: v })} style={{ display: "none" }} />
                   {l}
                 </label>
@@ -998,7 +1000,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                     <select
                       value={form.organizadorId}
                       onChange={(e) => setForm({ ...form, organizadorId: e.target.value })}
-                      style={styles.input}
+                      style={s.input}
                     >
                       <option value="">Selecione o organizador...</option>
                       {organizadores?.filter(o => o.status === "aprovado").map(org => (
@@ -1034,7 +1036,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                       value={form.clube}
                       onChange={(e) => setForm({ ...form, clube: e.target.value, equipeId: "" })}
                       placeholder="Digite o nome da equipe"
-                      style={styles.input}
+                      style={s.input}
                     />
                   ) : (
                     <select
@@ -1043,7 +1045,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                         const eqSel = equipes?.find(eq => eq.id === e.target.value);
                         setForm({ ...form, equipeId: e.target.value, clube: eqSel?.nome || "" });
                       }}
-                      style={styles.input}
+                      style={s.input}
                     >
                       <option value="">Selecione...</option>
                       {equipes?.filter(eq => {
@@ -1068,8 +1070,8 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
 
           {!usuarioLogado && (
             <div>
-              <label style={styles.label}>Equipe (opcional)</label>
-              <select style={styles.select} value={form.equipeId} onChange={(e) => setForm({ ...form, equipeId: e.target.value })}>
+              <label style={s.label}>Equipe (opcional)</label>
+              <select style={s.select} value={form.equipeId} onChange={(e) => setForm({ ...form, equipeId: e.target.value })}>
                 <option value="">Sem equipe</option>
                 {equipes.map((t) => <option key={t.id} value={t.id}>{t.nome} — {t.clube}</option>)}
               </select>
@@ -1077,7 +1079,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
           )}
         </div>
         {form.anoNasc && !isNaN(form.anoNasc) && (
-          <div style={styles.catPreview}>
+          <div style={s.catPreview}>
             Categoria detectada: <strong>{getCategoria(form.anoNasc, anoBase).display}</strong>
           </div>
         )}
@@ -1104,8 +1106,8 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
         {/* ── LGPD: Consentimento geral ── */}
         <BlocoLGPD aceite={lgpdAceite} onChange={setLgpdAceite} erro={erros.lgpd} />
 
-        <button style={{ ...styles.btnPrimary, marginTop: 16 }} onClick={handleSubmit}>✓ Cadastrar Atleta</button>
-        <button style={{ ...styles.btnGhost, marginTop: 8, width: "100%" }} onClick={handleCancelar}>← Cancelar</button>
+        <button style={{ ...s.btnPrimary, marginTop: 16 }} onClick={handleSubmit}>✓ Cadastrar Atleta</button>
+        <button style={{ ...s.btnGhost, marginTop: 8, width: "100%" }} onClick={handleCancelar}>← Cancelar</button>
       </div>
     </div>
   );

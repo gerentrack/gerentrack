@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { _getLocalEventoDisplay } from "../../shared/formatters/utils";
+import { useResponsivo } from "../../hooks/useResponsivo";
 
 function _dtInscricoes(data, hora) {
   if (!data) return null;
@@ -20,24 +21,39 @@ function getStatusInscricoes(ev) {
 const styles = {
   header: { background: "linear-gradient(90deg, #0D0E12 0%, #141720 100%)", borderBottom: "1px solid #1E2130", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 20px rgba(0,0,0,0.5)" },
   headerInner: { maxWidth: 1200, margin: "0 auto", padding: "14px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 },
+  headerInnerMobile: { maxWidth: 1200, margin: "0 auto", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 },
   logo: { background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 14 },
+  logoMobile: { background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 },
   logoTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 24, fontWeight: 900, color: "#1976D2", letterSpacing: 3, lineHeight: 1 },
+  logoTitleMobile: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 900, color: "#1976D2", letterSpacing: 2, lineHeight: 1 },
   logoSub: { fontSize: 11, color: "#666", letterSpacing: 1.5, marginTop: 3 },
   nav: { display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" },
   btnNav: { background: "transparent", border: "1px solid #2a2d3a", color: "#ccc", padding: "10px 20px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", whiteSpace: "nowrap" },
+  btnNavMobile: { background: "transparent", border: "1px solid #2a2d3a", color: "#ccc", padding: "10px 16px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", whiteSpace: "nowrap", width: "100%" },
   btnNavActive: { background: "#1a1c22", borderColor: "#1976D2", color: "#1976D2" },
   btnSair: { background: "transparent", border: "1px solid #3a1a1a", color: "#ff6b6b", padding: "10px 20px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow', sans-serif" },
+  btnSairMobile: { background: "transparent", border: "1px solid #3a1a1a", color: "#ff6b6b", padding: "10px 16px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow', sans-serif", width: "100%" },
   eventoBar: { background: "#0D0E12", borderTop: "1px solid #1a1c22", padding: "6px 24px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" },
+  eventoBarMobile: { background: "#0D0E12", borderTop: "1px solid #1a1c22", padding: "6px 12px", display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 4 },
   eventoBarLabel: { fontSize: 11, color: "#555", letterSpacing: 1, textTransform: "uppercase" },
   eventoBarNome: { fontSize: 13, fontWeight: 700, color: "#1976D2", fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
   eventoBarMeta: { fontSize: 12, color: "#555", marginLeft: "auto" },
+  eventoBarMetaMobile: { fontSize: 11, color: "#555" },
   statusDotInline: (cor) => ({ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: cor, background: cor + "22", border: `1px solid ${cor}44`, borderRadius: 10, padding: "2px 8px", whiteSpace: "nowrap" }),
   offlineBanner: { background: "#2a1500", borderBottom: "1px solid #ff880044", padding: "8px 24px", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontSize: 13, color: "#ff8800", fontWeight: 600, letterSpacing: 0.5 },
+  // Mobile menu
+  hamburger: { background: "none", border: "1px solid #2a2d3a", borderRadius: 6, cursor: "pointer", padding: "8px 10px", display: "flex", flexDirection: "column", gap: 4, alignItems: "center", justifyContent: "center" },
+  hamburgerLine: { width: 20, height: 2, background: "#ccc", borderRadius: 1 },
+  mobileMenu: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.7)", zIndex: 200, display: "flex", justifyContent: "flex-end" },
+  mobileMenuPanel: { background: "#0D0E12", width: 280, maxWidth: "80vw", height: "100%", overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", gap: 8, borderLeft: "1px solid #1E2130", boxShadow: "-4px 0 30px rgba(0,0,0,0.5)" },
+  mobileMenuHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, paddingBottom: 8, borderBottom: "1px solid #1E2130" },
+  mobileMenuClose: { background: "none", border: "none", color: "#888", fontSize: 24, cursor: "pointer", padding: "4px 8px" },
 };
 
-function NavBtn({ onClick, label, active }) {
+function NavBtn({ onClick, label, active, mobile }) {
+  const base = mobile ? styles.btnNavMobile : styles.btnNav;
   return (
-    <button onClick={onClick} style={{ ...styles.btnNav, fontWeight: 700, ...(active ? styles.btnNavActive : {}) }}>
+    <button onClick={onClick} style={{ ...base, fontWeight: 700, ...(active ? styles.btnNavActive : {}) }}>
       {label}
     </button>
   );
@@ -45,6 +61,9 @@ function NavBtn({ onClick, label, active }) {
 
 function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDisponiveis, gtIcon, gtNome, gtSlogan, pendenciasRecorde, temaClaro, setTemaClaro }) {
   const [online, setOnline] = useState(navigator.onLine);
+  const [menuAberto, setMenuAberto] = useState(false);
+  const { mobile } = useResponsivo();
+
   useEffect(() => {
     const handleOnline  = () => setOnline(true);
     const handleOffline = () => setOnline(false);
@@ -56,6 +75,108 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
     };
   }, []);
 
+  // Fecha menu ao navegar
+  const navegar = (t) => { setTela(t); setMenuAberto(false); };
+
+  const pendCount = usuarioLogado?.tipo === "admin" ? (pendenciasRecorde || []).filter(p => p.status === "pendente").length : 0;
+
+  const navItems = (
+    <>
+      <NavBtn onClick={() => navegar("home")} label="Competições" mobile={mobile} />
+      <div style={{ position: "relative", display: mobile ? "block" : "inline-block", width: mobile ? "100%" : "auto" }}>
+        <NavBtn onClick={() => navegar("recordes")} label="Recordes" mobile={mobile} />
+        {pendCount > 0 && (
+          <span style={{ position: "absolute", top: mobile ? 6 : -4, right: mobile ? 8 : -4, background: "#ff4444", color: "#fff", fontSize: 9,
+            fontWeight: 800, borderRadius: 10, padding: "1px 5px", minWidth: 16, textAlign: "center" }}>{pendCount}</span>
+        )}
+      </div>
+      {usuarioLogado ? (
+        <>
+          {usuarioLogado.tipo === "equipe"       && <NavBtn onClick={() => navegar("painel-equipe")}       label="Painel" active mobile={mobile} />}
+          {usuarioLogado.tipo === "treinador"    && <NavBtn onClick={() => navegar("painel-equipe")}       label="Painel" active mobile={mobile} />}
+          {usuarioLogado.tipo === "organizador" && <NavBtn onClick={() => navegar("painel-organizador")}  label="Painel" active mobile={mobile} />}
+          {usuarioLogado.tipo === "funcionario"  && <NavBtn onClick={() => navegar("painel-organizador")}  label="Painel" active mobile={mobile} />}
+          {usuarioLogado.tipo === "atleta"      && <NavBtn onClick={() => navegar("painel-atleta")}       label="Meu Painel" active mobile={mobile} />}
+          {usuarioLogado.tipo === "admin"       && <NavBtn onClick={() => navegar("admin")}               label="Admin" mobile={mobile} />}
+
+          {usuarioLogado._temOutrosPerfis && perfisDisponiveis?.length > 1 && (
+            <button
+              onClick={() => navegar("selecionar-perfil")}
+              title="Trocar perfil / organizador"
+              style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 10px", background: "#1a1800",
+                border: "1px solid #1976D244", borderRadius: 6, cursor: "pointer", fontSize: 11, color: "#1976D2",
+                fontFamily: "'Barlow', sans-serif", fontWeight: 600, ...(mobile ? { width: "100%", padding: "10px 16px", fontSize: 13, justifyContent: "center" } : {}) }}
+            >
+              Trocar Perfil
+            </button>
+          )}
+
+          <button
+            onClick={() => navegar("configuracoes")}
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", background: "#141720", border: "1px solid #252837", borderRadius: 6, cursor: "pointer", ...(mobile ? { width: "100%", padding: "10px 16px" } : {}) }}
+            title="Configurações da conta"
+          >
+            <span style={{ fontSize: 11, color: "#666" }}>👤</span>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+              <span style={{ fontSize: 12, color: "#aaa", maxWidth: mobile ? "none" : 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{usuarioLogado.nome}</span>
+              {usuarioLogado._organizadorNome && (
+                <span style={{ fontSize: 9, color: "#1976D2", maxWidth: mobile ? "none" : 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{usuarioLogado._organizadorNome}</span>
+              )}
+            </div>
+            <span style={{ fontSize: 9, color: "#555" }}>⚙</span>
+          </button>
+          <button style={mobile ? styles.btnSairMobile : styles.btnSair} onClick={() => { logout(); setMenuAberto(false); }}>Sair</button>
+        </>
+      ) : (
+        <button style={{ ...(mobile ? styles.btnNavMobile : styles.btnNav), background: "#1976D2", color: "#fff", fontWeight: 700 }} onClick={() => navegar("login")}>
+          Entrar
+        </button>
+      )}
+    </>
+  );
+
+  const temaToggle = (
+    <div style={{
+      display: "flex", alignItems: "center",
+      background: "#0D0E12",
+      border: "1px solid #1E2130",
+      borderRadius: 20,
+      padding: 3,
+      gap: 0,
+      flexShrink: 0,
+      ...(mobile ? { alignSelf: "center", marginTop: 8 } : { marginLeft: "auto" }),
+    }}>
+      <button
+        onClick={() => setTemaClaro(false)}
+        title="Modo escuro"
+        style={{
+          background: !temaClaro ? "#252837" : "transparent",
+          border: "none", borderRadius: 16, cursor: "pointer",
+          padding: "4px 10px", fontSize: 11,
+          color: !temaClaro ? "#ccc" : "#444",
+          fontFamily: "'Barlow', sans-serif", letterSpacing: 0.5, transition: "all 0.2s",
+        }}
+      >
+        escuro
+      </button>
+      <button
+        onClick={() => setTemaClaro(true)}
+        title="Modo claro"
+        style={{
+          background: temaClaro ? "#252837" : "transparent",
+          border: "none", borderRadius: 16, cursor: "pointer",
+          padding: "4px 10px", fontSize: 11,
+          color: temaClaro ? "#ccc" : "#444",
+          fontFamily: "'Barlow', sans-serif", letterSpacing: 0.5, transition: "all 0.2s",
+        }}
+      >
+        claro
+      </button>
+    </div>
+  );
+
+  const showEventoBar = eventoAtual && !["home","login","cadastro-equipe","cadastro-organizador","cadastro-atleta-login","recuperar-senha","trocar-senha","selecionar-perfil","configuracoes","recordes","painel","painel-organizador","gerenciar-equipes","funcionarios","cadastrar-atleta","editar-atleta","importar-atletas","treinadores","gerenciar-inscricoes","painel-atleta","admin"].includes(tela);
+
   return (
     <>
       {!online && (
@@ -64,151 +185,80 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
         </div>
       )}
       <header style={styles.header}>
-      <div style={styles.headerInner}>
-        <button style={styles.logo} onClick={() => setTela("home")}>
-          <img src={gtIcon} alt="GT" style={{ width:44, height:44, objectFit:"contain", borderRadius:6 }} />
-          <div>
-            <div style={styles.logoTitle}>{gtNome || "GERENTRACK"}</div>
-            <div style={styles.logoSub}>{gtSlogan || "COMPETIÇÃO COM PRECISÃO"}</div>
-          </div>
-        </button>
-        <nav style={styles.nav}>
-          <NavBtn onClick={() => setTela("home")} label="Competições" />
-          {(() => {
-            const pendCount = usuarioLogado?.tipo === "admin" ? (pendenciasRecorde || []).filter(p => p.status === "pendente").length : 0;
-            return (
-              <div style={{ position:"relative", display:"inline-block" }}>
-                <NavBtn onClick={() => setTela("recordes")} label="Recordes" />
-                {pendCount > 0 && (
-                  <span style={{ position:"absolute", top:-4, right:-4, background:"#ff4444", color:"#fff", fontSize:9,
-                    fontWeight:800, borderRadius:10, padding:"1px 5px", minWidth:16, textAlign:"center" }}>{pendCount}</span>
-                )}
-              </div>
-            );
-          })()}
-          {usuarioLogado ? (
+        <div style={mobile ? styles.headerInnerMobile : styles.headerInner}>
+          <button style={mobile ? styles.logoMobile : styles.logo} onClick={() => setTela("home")}>
+            <img src={gtIcon} alt="GT" style={{ width: mobile ? 34 : 44, height: mobile ? 34 : 44, objectFit: "contain", borderRadius: 6 }} />
+            <div>
+              <div style={mobile ? styles.logoTitleMobile : styles.logoTitle}>{gtNome || "GERENTRACK"}</div>
+              {!mobile && <div style={styles.logoSub}>{gtSlogan || "COMPETIÇÃO COM PRECISÃO"}</div>}
+            </div>
+          </button>
+
+          {mobile ? (
             <>
-              {usuarioLogado.tipo === "equipe"       && <NavBtn onClick={() => setTela("painel-equipe")}       label="Painel" active />}
-              {usuarioLogado.tipo === "treinador"    && <NavBtn onClick={() => setTela("painel-equipe")}       label="Painel" active />}
-              {usuarioLogado.tipo === "organizador" && <NavBtn onClick={() => setTela("painel-organizador")}  label="Painel" active />}
-              {usuarioLogado.tipo === "funcionario"  && <NavBtn onClick={() => setTela("painel-organizador")}  label="Painel" active />}
-              {usuarioLogado.tipo === "atleta"      && <NavBtn onClick={() => setTela("painel-atleta")}       label="Meu Painel" active />}
-              {usuarioLogado.tipo === "admin"       && <NavBtn onClick={() => setTela("admin")}               label="Admin" />}
-
-              {usuarioLogado._temOutrosPerfis && perfisDisponiveis?.length > 1 && (
-                <button
-                  onClick={() => setTela("selecionar-perfil")}
-                  title="Trocar perfil / organizador"
-                  style={{ display:"flex", alignItems:"center", gap:5, padding:"4px 10px", background:"#1a1800",
-                    border:"1px solid #1976D244", borderRadius:6, cursor:"pointer", fontSize:11, color:"#1976D2",
-                    fontFamily:"'Barlow', sans-serif", fontWeight:600 }}
-                >
-                  🔄 Trocar Perfil
-                </button>
-              )}
-
-              <button
-                onClick={() => setTela("configuracoes")}
-                style={{ display:"flex", alignItems:"center", gap:6, padding:"4px 10px", background:"#141720", border:"1px solid #252837", borderRadius:6, cursor:"pointer" }}
-                title="Configurações da conta"
-              >
-                <span style={{ fontSize:11, color:"#666" }}>👤</span>
-                <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-start" }}>
-                  <span style={{ fontSize:12, color:"#aaa", maxWidth:120, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{usuarioLogado.nome}</span>
-                  {usuarioLogado._organizadorNome && (
-                    <span style={{ fontSize:9, color:"#1976D2", maxWidth:120, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{usuarioLogado._organizadorNome}</span>
-                  )}
-                </div>
-                <span style={{ fontSize:9, color:"#555" }}>⚙</span>
+              {temaToggle}
+              <button style={styles.hamburger} onClick={() => setMenuAberto(true)} aria-label="Abrir menu">
+                <span style={styles.hamburgerLine} />
+                <span style={styles.hamburgerLine} />
+                <span style={styles.hamburgerLine} />
               </button>
-              <button style={styles.btnSair} onClick={logout}>Sair</button>
             </>
           ) : (
             <>
-              <button style={{ ...styles.btnNav, background:"#1976D2", color:"#fff", fontWeight:700 }} onClick={() => setTela("login")}>
-                Entrar
-              </button>
+              <nav style={styles.nav}>
+                {navItems}
+              </nav>
+              {temaToggle}
             </>
           )}
-        </nav>
-        {/* ── Toggle Claro / Escuro — direita total ── */}
-        <div style={{
-          display: "flex", alignItems: "center",
-          background: "#0D0E12",
-          border: "1px solid #1E2130",
-          borderRadius: 20,
-          padding: 3,
-          gap: 0,
-          marginLeft: "auto",
-          flexShrink: 0,
-        }}>
-          <button
-            onClick={() => setTemaClaro(false)}
-            title="Modo escuro"
-            style={{
-              background: !temaClaro ? "#252837" : "transparent",
-              border: "none",
-              borderRadius: 16,
-              cursor: "pointer",
-              padding: "4px 10px",
-              fontSize: 11,
-              color: !temaClaro ? "#ccc" : "#444",
-              fontFamily: "'Barlow', sans-serif",
-              letterSpacing: 0.5,
-              transition: "all 0.2s",
-            }}
-          >
-            escuro
-          </button>
-          <button
-            onClick={() => setTemaClaro(true)}
-            title="Modo claro"
-            style={{
-              background: temaClaro ? "#252837" : "transparent",
-              border: "none",
-              borderRadius: 16,
-              cursor: "pointer",
-              padding: "4px 10px",
-              fontSize: 11,
-              color: temaClaro ? "#ccc" : "#444",
-              fontFamily: "'Barlow', sans-serif",
-              letterSpacing: 0.5,
-              transition: "all 0.2s",
-            }}
-          >
-            claro
-          </button>
         </div>
-      </div>
-      {eventoAtual && !["home","login","cadastro-equipe","cadastro-organizador","cadastro-atleta-login","recuperar-senha","trocar-senha","selecionar-perfil","configuracoes","recordes","painel","painel-organizador","gerenciar-equipes","funcionarios","cadastrar-atleta","editar-atleta","importar-atletas","treinadores","gerenciar-inscricoes","painel-atleta","admin"].includes(tela) && (
-        <div style={styles.eventoBar}>
-          <span style={styles.eventoBarLabel}>Competição:</span>
-          <span style={styles.eventoBarNome}>{eventoAtual.nome}</span>
-          <span style={styles.eventoBarMeta}>
-            📅 {new Date(eventoAtual.data + "T12:00:00").toLocaleDateString("pt-BR")}
-            &nbsp;·&nbsp;📍 {_getLocalEventoDisplay(eventoAtual)}
-          </span>
-          <span style={styles.statusDotInline(getStatusInscricoes(eventoAtual) === "abertas" ? "#7acc44" : getStatusInscricoes(eventoAtual) === "em_breve" ? "#1976D2" : "#ff6b6b")}>
-            {getStatusInscricoes(eventoAtual) === "em_breve"
-              ? `📅 Em breve — abre em ${new Date(eventoAtual.dataAberturaInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}`
-              : getStatusInscricoes(eventoAtual) === "abertas"
-                ? "Inscrições abertas"
-                : "Inscrições encerradas"}
-          </span>
-          {eventoAtual.dataEncerramentoInscricoes && getStatusInscricoes(eventoAtual) === "abertas" && (
-            <span style={{ color:"#888", fontSize:12 }}>
-              até {new Date(eventoAtual.dataEncerramentoInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}
+
+        {/* Mobile menu overlay */}
+        {mobile && menuAberto && (
+          <div style={styles.mobileMenu} onClick={(e) => { if (e.target === e.currentTarget) setMenuAberto(false); }}>
+            <div style={styles.mobileMenuPanel}>
+              <div style={styles.mobileMenuHeader}>
+                <span style={{ color: "#888", fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, textTransform: "uppercase" }}>Menu</span>
+                <button style={styles.mobileMenuClose} onClick={() => setMenuAberto(false)} aria-label="Fechar menu">✕</button>
+              </div>
+              {navItems}
+            </div>
+          </div>
+        )}
+
+        {showEventoBar && (
+          <div style={mobile ? styles.eventoBarMobile : styles.eventoBar}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <span style={styles.eventoBarLabel}>Competição:</span>
+              <span style={styles.eventoBarNome}>{eventoAtual.nome}</span>
+            </div>
+            <span style={mobile ? styles.eventoBarMetaMobile : styles.eventoBarMeta}>
+              📅 {new Date(eventoAtual.data + "T12:00:00").toLocaleDateString("pt-BR")}
+              &nbsp;·&nbsp;📍 {_getLocalEventoDisplay(eventoAtual)}
             </span>
-          )}
-          {["admin","organizador","funcionario"].includes(usuarioLogado?.tipo) && !eventoAtual.sumulaLiberada && (
-            <span style={styles.statusDotInline("#555")}>Súmulas restritas</span>
-          )}
-          {eventoAtual.sumulaLiberada && (
-            <span style={styles.statusDotInline("#7acc44")}>Súmulas liberadas</span>
-          )}
-        </div>
-      )}
-    </header>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              <span style={styles.statusDotInline(getStatusInscricoes(eventoAtual) === "abertas" ? "#7acc44" : getStatusInscricoes(eventoAtual) === "em_breve" ? "#1976D2" : "#ff6b6b")}>
+                {getStatusInscricoes(eventoAtual) === "em_breve"
+                  ? `Em breve — abre em ${new Date(eventoAtual.dataAberturaInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}`
+                  : getStatusInscricoes(eventoAtual) === "abertas"
+                    ? "Inscrições abertas"
+                    : "Inscrições encerradas"}
+              </span>
+              {eventoAtual.dataEncerramentoInscricoes && getStatusInscricoes(eventoAtual) === "abertas" && (
+                <span style={{ color: "#888", fontSize: 12 }}>
+                  até {new Date(eventoAtual.dataEncerramentoInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}
+                </span>
+              )}
+              {["admin","organizador","funcionario"].includes(usuarioLogado?.tipo) && !eventoAtual.sumulaLiberada && (
+                <span style={styles.statusDotInline("#555")}>Súmulas restritas</span>
+              )}
+              {eventoAtual.sumulaLiberada && (
+                <span style={styles.statusDotInline("#7acc44")}>Súmulas liberadas</span>
+              )}
+            </div>
+          </div>
+        )}
+      </header>
     </>
   );
 }

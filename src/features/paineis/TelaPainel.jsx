@@ -4,6 +4,7 @@ import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { _getClubeAtleta } from "../../shared/formatters/utils";
 import { StatCard } from "../ui/StatCard";
 import { Th, Td } from "../ui/TableHelpers";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 const styles = {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
@@ -135,6 +136,7 @@ const styles = {
 };
 
 function InscricaoProvaRow({ insc, prova, atleta, provasDisp, inscAberta, atualizarInscricao, excluirInscricao }) {
+  const s = useStylesResponsivos(styles);
   const [editando, setEditando] = useState(false);
   const [novaProvaId, setNovaProvaId] = useState("");
 
@@ -154,11 +156,11 @@ function InscricaoProvaRow({ insc, prova, atleta, provasDisp, inscAberta, atuali
             atualizarInscricao({ ...insc, provaId: novaProvaId });
             setEditando(false); setNovaProvaId("");
           }}
-            style={{ ...styles.btnGhost, fontSize:10, padding:"2px 8px", color:"#7cfc7c", borderColor:"#2a5a2a" }}>
+            style={{ ...s.btnGhost, fontSize:10, padding:"2px 8px", color:"#7cfc7c", borderColor:"#2a5a2a" }}>
             ✓
           </button>
           <button onClick={async () => { setEditando(false); setNovaProvaId(""); }}
-            style={{ ...styles.btnGhost, fontSize:10, padding:"2px 8px" }}>
+            style={{ ...s.btnGhost, fontSize:10, padding:"2px 8px" }}>
             ✕
           </button>
         </div>
@@ -178,14 +180,14 @@ function InscricaoProvaRow({ insc, prova, atleta, provasDisp, inscAberta, atuali
           {inscAberta && (
             <div style={{ display:"flex", gap:4 }}>
               <button onClick={() => setEditando(true)}
-                style={{ ...styles.btnGhost, fontSize:10, padding:"2px 8px" }}
+                style={{ ...s.btnGhost, fontSize:10, padding:"2px 8px" }}
                 title="Trocar prova">
                 ✏️
               </button>
               <button onClick={async () => { 
                 if (await confirmar(`Excluir inscrição de ${atleta?.nome } em ${prova?.nome}?`)) excluirInscricao(insc.id, { confirmado: true });
               }}
-                style={{ ...styles.btnGhost, fontSize:10, padding:"2px 8px", color:"#ff6b6b", borderColor:"#3a1a1a" }}
+                style={{ ...s.btnGhost, fontSize:10, padding:"2px 8px", color:"#ff6b6b", borderColor:"#3a1a1a" }}
                 title="Excluir inscrição">
                 🗑
               </button>
@@ -199,28 +201,29 @@ function InscricaoProvaRow({ insc, prova, atleta, provasDisp, inscAberta, atuali
 
 
 function TelaPainel({ usuarioLogado, setTela, atletas, inscricoes, eventos, solicitacoesVinculo, responderVinculo, equipes, excluirInscricao, atualizarInscricao, treinadores }) {
+  const s = useStylesResponsivos(styles);
   const confirmar = useConfirm();
   const isTreinador = usuarioLogado?.tipo === "treinador";
   const equipeId = isTreinador ? usuarioLogado.equipeId : usuarioLogado?.id;
   
   if (usuarioLogado?.tipo !== "equipe" && !isTreinador) return (
-    <div style={styles.page}><div style={styles.emptyState}>
+    <div style={s.page}><div style={s.emptyState}>
       <span style={{ fontSize: 48 }}>🚫</span>
       <p style={{ color: "#ff6b6b", fontWeight: 700 }}>Acesso restrito a equipes</p>
-      <button style={styles.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
+      <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
     </div></div>
   );
 
   const meusAtletas    = atletas.filter((a) => a.equipeId === equipeId);
   // Solicitações de vínculo: atleta ou equipe pedindo para ser vinculado a mim
-  const vincPendentes     = (solicitacoesVinculo||[]).filter(s =>
-    s.equipeId === equipeId && s.status === "pendente"
-    && s.aprovadorTipo !== "equipe_atual"); // atleta sem equipe pedindo p/ mim
+  const vincPendentes     = (solicitacoesVinculo||[]).filter(sol =>
+    sol.equipeId === equipeId && sol.status === "pendente"
+    && sol.aprovadorTipo !== "equipe_atual"); // atleta sem equipe pedindo p/ mim
 
   // Transferências: outra equipe quer levar meu atleta
-  const transferenciasPend = (solicitacoesVinculo||[]).filter(s =>
-    s.equipeAtualId === equipeId && s.status === "pendente"
-    && s.aprovadorTipo === "equipe_atual");
+  const transferenciasPend = (solicitacoesVinculo||[]).filter(sol =>
+    sol.equipeAtualId === equipeId && sol.status === "pendente"
+    && sol.aprovadorTipo === "equipe_atual");
   // Inscrições da equipe — em todos os eventos, ou filtrado pelo atual
   const minhasInscricoes = inscricoes.filter((i) => {
     const atleta = atletas.find((a) => a.id === i.atletaId);
@@ -233,21 +236,21 @@ function TelaPainel({ usuarioLogado, setTela, atletas, inscricoes, eventos, soli
   const [buscaInscEq, setBuscaInscEq] = useState("");
 
   return (
-    <div style={styles.page}>
-      <div style={styles.painelHeader}>
+    <div style={s.page}>
+      <div style={s.painelHeader}>
         <div>
-          <h1 style={styles.pageTitle}>🎽 Painel da Equipe</h1>
+          <h1 style={s.pageTitle}>🎽 Painel da Equipe</h1>
           <p style={{ color: "#aaa", margin: "4px 0 0" }}>
             {usuarioLogado?.nome}{isTreinador ? ` (Treinador) — ${usuarioLogado?.equipeNome}` : (usuarioLogado?.entidade ? ` — ${usuarioLogado.entidade}` : "")}
           </p>
         </div>
-        <div style={styles.painelBtns}>
-          <button style={styles.btnPrimary} onClick={() => setTela("cadastrar-atleta")}>🏃 Atletas</button>
-          <button style={styles.btnSecondary} onClick={() => setTela("treinadores")}>👨‍🏫 Treinadores</button>
+        <div style={s.painelBtns}>
+          <button style={s.btnPrimary} onClick={() => setTela("cadastrar-atleta")}>🏃 Atletas</button>
+          <button style={s.btnSecondary} onClick={() => setTela("treinadores")}>👨‍🏫 Treinadores</button>
         </div>
       </div>
 
-      <div style={styles.statsRow}>
+      <div style={s.statsRow}>
         <StatCard value={meusAtletas.length} label="Meus Atletas" />
         <StatCard value={minhasInscricoes.length} label="Inscrições" />
         <StatCard value={meusTreinadores.length} label="Treinadores" />
@@ -266,8 +269,8 @@ function TelaPainel({ usuarioLogado, setTela, atletas, inscricoes, eventos, soli
         if (eventosComInsc.length === 0) return null;
         return (
           <div style={{ marginBottom: 24 }}>
-            <h2 style={styles.sectionTitle}>📋 Inscrições da Equipe</h2>
-            <input type="text" value={buscaInscEq} onChange={e => setBuscaInscEq(e.target.value)} placeholder="🔍 Buscar competição ou atleta..." style={{ ...styles.input, padding:"6px 12px", fontSize:12, marginBottom:8, maxWidth:350 }} />
+            <h2 style={s.sectionTitle}>📋 Inscrições da Equipe</h2>
+            <input type="text" value={buscaInscEq} onChange={e => setBuscaInscEq(e.target.value)} placeholder="🔍 Buscar competição ou atleta..." style={{ ...s.input, padding:"6px 12px", fontSize:12, marginBottom:8, maxWidth:350 }} />
             <div style={{ maxHeight:400, overflowY:"auto" }}>
             {eventosComInsc.filter(ev => {
               if (!buscaInscEq) return true;
@@ -318,7 +321,7 @@ function TelaPainel({ usuarioLogado, setTela, atletas, inscricoes, eventos, soli
                           </div>
                           <div style={{ flex:1 }}>
                             <span style={{ color:"#fff", fontWeight:600, fontSize:13 }}>{atleta?.nome || "—"}</span>
-                            <span style={{ ...styles.badgeGold, marginLeft:8, fontSize:10 }}>
+                            <span style={{ ...s.badgeGold, marginLeft:8, fontSize:10 }}>
                               {inscsAtleta[0]?.categoriaOficial || inscsAtleta[0]?.categoria || "—"}
                             </span>
                           </div>
@@ -357,19 +360,19 @@ function TelaPainel({ usuarioLogado, setTela, atletas, inscricoes, eventos, soli
       {vincPendentes.length > 0 && (
         <div style={{ background:"#0a1220", border:"1px solid #3a5a8a", borderRadius:10,
           padding:"16px 20px", marginBottom:24 }}>
-          <h2 style={{ ...styles.sectionTitle, color:"#88aaff", marginTop:0 }}>
+          <h2 style={{ ...s.sectionTitle, color:"#88aaff", marginTop:0 }}>
             🔗 Solicitações de Vínculo Pendentes
             <span style={{ background:"#1976D2", color:"#fff", borderRadius:12, fontSize:12,
               fontWeight:800, padding:"2px 9px", marginLeft:10 }}>{vincPendentes.length}</span>
           </h2>
-          <div style={styles.tableWrap}>
-            <table style={styles.table}>
+          <div style={s.tableWrap}>
+            <table style={s.table}>
               <thead><tr>
                 <Th>Atleta</Th><Th>Equipe Solicitada</Th><Th>Data</Th><Th>Ação</Th>
               </tr></thead>
               <tbody>
                 {vincPendentes.map(sol => (
-                  <tr key={sol.id} style={styles.tr}>
+                  <tr key={sol.id} style={s.tr}>
                     <Td><strong style={{ color:"#fff" }}>{sol.atletaNome}</strong></Td>
                     <Td><span style={{ color:"#88aaff" }}>{sol.clube||"—"}</span></Td>
                     <Td style={{ fontSize:11, color:"#555" }}>
@@ -378,12 +381,12 @@ function TelaPainel({ usuarioLogado, setTela, atletas, inscricoes, eventos, soli
                     <Td>
                       <div style={{ display:"flex", gap:6 }}>
                         <button onClick={() => responderVinculo(sol.id, true)}
-                          style={{ ...styles.btnGhost, fontSize:12, padding:"4px 14px",
+                          style={{ ...s.btnGhost, fontSize:12, padding:"4px 14px",
                             color:"#7cfc7c", borderColor:"#2a5a2a" }}>
                           ✓ Aceitar
                         </button>
                         <button onClick={() => responderVinculo(sol.id, false)}
-                          style={{ ...styles.btnGhost, fontSize:12, padding:"4px 12px",
+                          style={{ ...s.btnGhost, fontSize:12, padding:"4px 12px",
                             color:"#ff6b6b", borderColor:"#5a1a1a" }}>
                           ✗ Recusar
                         </button>
@@ -400,9 +403,9 @@ function TelaPainel({ usuarioLogado, setTela, atletas, inscricoes, eventos, soli
 
       {/* ── Histórico de Solicitações de Vínculo ───────────── */}
       {(() => {
-        const historico = (solicitacoesVinculo||[]).filter(s =>
-          (s.equipeId === equipeId || s.equipeAtualId === equipeId) &&
-          s.status !== "pendente"
+        const historico = (solicitacoesVinculo||[]).filter(sol =>
+          (sol.equipeId === equipeId || sol.equipeAtualId === equipeId) &&
+          sol.status !== "pendente"
         ).sort((a,b) => new Date(b.resolvidoEm || b.data) - new Date(a.resolvidoEm || a.data))
          .slice(0, 20);
         if (historico.length === 0) return null;
@@ -416,33 +419,33 @@ function TelaPainel({ usuarioLogado, setTela, atletas, inscricoes, eventos, soli
                 fontWeight:700, padding:"1px 8px" }}>{historico.length}</span>
             </summary>
             <div style={{ marginTop:12, overflowX:"auto" }}>
-              <table style={styles.table}>
+              <table style={s.table}>
                 <thead><tr>
                   <Th>Atleta</Th><Th>Tipo</Th><Th>Status</Th><Th>Resolvido por</Th><Th>Data</Th>
                 </tr></thead>
                 <tbody>
-                  {historico.map(s => {
-                    const statusColor = s.status === "aceito" ? "#7cfc7c" : "#ff6b6b";
-                    const foiTransf = s.equipeAtualId === equipeId;
+                  {historico.map(sol => {
+                    const statusColor = sol.status === "aceito" ? "#7cfc7c" : "#ff6b6b";
+                    const foiTransf = sol.equipeAtualId === equipeId;
                     return (
-                      <tr key={s.id} style={styles.tr}>
-                        <Td><strong style={{ color:"#fff" }}>{s.atletaNome}</strong></Td>
+                      <tr key={sol.id} style={s.tr}>
+                        <Td><strong style={{ color:"#fff" }}>{sol.atletaNome}</strong></Td>
                         <Td style={{ fontSize:11, color:"#888" }}>
-                          {foiTransf ? "🔄 Transferência saiu" : s.aprovadorTipo === "equipe_atual" ? "🔄 Transferência entrou" : "🔗 Vínculo"}
+                          {foiTransf ? "🔄 Transferência saiu" : sol.aprovadorTipo === "equipe_atual" ? "🔄 Transferência entrou" : "🔗 Vínculo"}
                         </Td>
                         <Td>
                           <span style={{ background: statusColor+"22", color: statusColor,
                             border: `1px solid ${statusColor}44`, borderRadius:4,
                             padding:"2px 8px", fontSize:11, fontWeight:700 }}>
-                            {s.status === "aceito" ? "✓ Aceito" : "✗ Recusado"}
+                            {sol.status === "aceito" ? "✓ Aceito" : "✗ Recusado"}
                           </span>
                         </Td>
                         <Td style={{ fontSize:11, color:"#888" }}>
-                          {s.resolvidoPorNome || "—"}
-                          {s.resolvidoPorTipo && <span style={{ color:"#555", marginLeft:4 }}>({s.resolvidoPorTipo})</span>}
+                          {sol.resolvidoPorNome || "—"}
+                          {sol.resolvidoPorTipo && <span style={{ color:"#555", marginLeft:4 }}>({sol.resolvidoPorTipo})</span>}
                         </Td>
                         <Td style={{ fontSize:11, color:"#555" }}>
-                          {s.resolvidoEm ? new Date(s.resolvidoEm).toLocaleString("pt-BR") : new Date(s.data).toLocaleString("pt-BR")}
+                          {sol.resolvidoEm ? new Date(sol.resolvidoEm).toLocaleString("pt-BR") : new Date(sol.data).toLocaleString("pt-BR")}
                         </Td>
                       </tr>
                     );
@@ -458,7 +461,7 @@ function TelaPainel({ usuarioLogado, setTela, atletas, inscricoes, eventos, soli
       {transferenciasPend.length > 0 && (
         <div style={{ background:"#1a0a1a", border:"1px solid #6a3a8a", borderRadius:10,
           padding:"16px 20px", marginBottom:24 }}>
-          <h2 style={{ ...styles.sectionTitle, color:"#cc88ff", marginTop:0 }}>
+          <h2 style={{ ...s.sectionTitle, color:"#cc88ff", marginTop:0 }}>
             🔄 Solicitações de Transferência
             <span style={{ background:"#1976D2", color:"#fff", borderRadius:12, fontSize:12,
               fontWeight:800, padding:"2px 9px", marginLeft:10 }}>{transferenciasPend.length}</span>
@@ -466,8 +469,8 @@ function TelaPainel({ usuarioLogado, setTela, atletas, inscricoes, eventos, soli
           <p style={{ color:"#888", fontSize:12, marginBottom:12, lineHeight:1.6 }}>
             Outra equipe está solicitando a transferência de um atleta seu. Aprovar libera o atleta para o novo vínculo.
           </p>
-          <div style={styles.tableWrap}>
-            <table style={styles.table}>
+          <div style={s.tableWrap}>
+            <table style={s.table}>
               <thead><tr>
                 <Th>Atleta</Th><Th>Nova Equipe</Th><Th>Clube</Th><Th>Data</Th><Th>Ação</Th>
               </tr></thead>
@@ -475,7 +478,7 @@ function TelaPainel({ usuarioLogado, setTela, atletas, inscricoes, eventos, soli
                 {transferenciasPend.map(sol => {
                   const novaEquipe = equipes?.find(t => t.id === sol.equipeId);
                   return (
-                    <tr key={sol.id} style={styles.tr}>
+                    <tr key={sol.id} style={s.tr}>
                       <Td><strong style={{ color:"#fff" }}>{sol.atletaNome}</strong></Td>
                       <Td><span style={{ color:"#cc88ff" }}>{novaEquipe?.nome || "—"}</span></Td>
                       <Td><span style={{ color:"#aaa", fontSize:12 }}>{sol.clube || "—"}</span></Td>
@@ -485,12 +488,12 @@ function TelaPainel({ usuarioLogado, setTela, atletas, inscricoes, eventos, soli
                       <Td>
                         <div style={{ display:"flex", gap:6 }}>
                           <button onClick={() => responderVinculo(sol.id, true)}
-                            style={{ ...styles.btnGhost, fontSize:12, padding:"4px 14px",
+                            style={{ ...s.btnGhost, fontSize:12, padding:"4px 14px",
                               color:"#7cfc7c", borderColor:"#2a5a2a" }}>
                             ✓ Aprovar
                           </button>
                           <button onClick={() => responderVinculo(sol.id, false)}
-                            style={{ ...styles.btnGhost, fontSize:12, padding:"4px 12px",
+                            style={{ ...s.btnGhost, fontSize:12, padding:"4px 12px",
                               color:"#ff6b6b", borderColor:"#5a1a1a" }}>
                             ✗ Recusar
                           </button>

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 const styles = {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
@@ -86,6 +87,7 @@ const styles = {
 };
 
 function TelaAuditoria({ usuarioLogado, setTela, historicoAcoes }) {
+  const s = useStylesResponsivos(styles);
   const { equipe } = usuarioLogado;
   const [filtro, setFiltro] = useState('todos');
   const [busca, setBusca] = useState('');
@@ -122,13 +124,13 @@ function TelaAuditoria({ usuarioLogado, setTela, historicoAcoes }) {
   const getModuloIcon = (mod) => ({ equipes:"🏢", atletas:"🏃", competicoes:"🏟️", inscricoes:"📝", resultados:"📊", sumulas:"📋", recordes:"🏆", numeracao:"🔢", membros:"👥", treinadores:"👨‍🏫", funcionarios:"👷", auth:"🔐", sistema:"⚙️" }[mod] || "📋");
 
   return (
-    <div style={styles.page}>
-      <div style={styles.painelHeader}>
+    <div style={s.page}>
+      <div style={s.painelHeader}>
         <div>
-          <h1 style={styles.pageTitle}>📊 Auditoria de Ações</h1>
+          <h1 style={s.pageTitle}>📊 Auditoria de Ações</h1>
           <p style={{ color: '#666', fontSize: 14 }}>Histórico de ações da equipe {equipe?.nome}</p>
         </div>
-        <button style={styles.btnGhost} onClick={() => setTela('painel-equipe')}>← Voltar</button>
+        <button style={s.btnGhost} onClick={() => setTela('painel-equipe')}>← Voltar</button>
       </div>
       <div style={{ background:"#0D0E12", border:"1px solid #1E2130", borderRadius:12, padding:24, marginBottom:24 }}>
         <div style={{ display:"flex", gap:16, flexWrap:"wrap", alignItems:"center" }}>
@@ -142,7 +144,7 @@ function TelaAuditoria({ usuarioLogado, setTela, historicoAcoes }) {
           </div>
           <div style={{ flex:"1 1 300px" }}>
             <label style={{ display:"block", color:"#aaa", fontSize:13, marginBottom:8 }}>Buscar:</label>
-            <input type="text" value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar por usuário, ação ou detalhe..." style={styles.input} />
+            <input type="text" value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar por usuário, ação ou detalhe..." style={s.input} />
           </div>
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(150px, 1fr))", gap:16, marginTop:20, paddingTop:20, borderTop:"1px solid #1E2130" }}>

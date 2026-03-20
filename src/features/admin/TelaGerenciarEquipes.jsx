@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { validarCNPJ } from "../../shared/formatters/utils";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
 
@@ -133,6 +134,7 @@ const styles = {
 };
 
 function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, editarEquipeFiliada, excluirEquipeFiliada, equipes, atletas, organizadores, gerarSenhaTemp }) {
+  const s = useStylesResponsivos(styles);
   const [modo, setModo] = useState("lista"); // lista | novo | editar | importar
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -443,15 +445,15 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
     };
 
     return (
-      <div style={styles.page}>
-        <div style={styles.painelHeader}>
+      <div style={s.page}>
+        <div style={s.painelHeader}>
           <div>
-            <h1 style={styles.pageTitle}>📊 Importar Equipes</h1>
+            <h1 style={s.pageTitle}>📊 Importar Equipes</h1>
             <p style={{ color: "#666", fontSize: 14 }}>
               Upload de planilha Excel com múltiplas equipes
             </p>
           </div>
-          <button style={styles.btnGhost} onClick={() => setModo("lista")}>
+          <button style={s.btnGhost} onClick={() => setModo("lista")}>
             ← Voltar
           </button>
         </div>
@@ -477,7 +479,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
               id="file-upload-equipes"
             />
             <label htmlFor="file-upload-equipes">
-              <div style={{ ...styles.btnPrimary, display: "inline-block", cursor: "pointer" }}>
+              <div style={{ ...s.btnPrimary, display: "inline-block", cursor: "pointer" }}>
                 Selecionar Arquivo Excel
               </div>
             </label>
@@ -544,7 +546,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
                   XL.utils.book_append_sheet(wb, ws, "Equipes");
                   XL.writeFile(wb, "modelo_importacao_equipes.xlsx");
                 }}
-                style={{ ...styles.btnSecondary, border: "none", cursor: "pointer" }}
+                style={{ ...s.btnSecondary, border: "none", cursor: "pointer" }}
               >
                 ⬇️ Baixar Modelo
               </button>
@@ -588,7 +590,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
                   value={organizadorSelecionado}
                   onChange={(e) => setOrganizadorSelecionado(e.target.value)}
                   style={{
-                    ...styles.input,
+                    ...s.input,
                     width: "100%",
                     background: organizadorSelecionado ? "#1a2a1a" : "#1a1a2a"
                   }}
@@ -622,22 +624,22 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
               </p>
 
               <div style={{ maxHeight: 400, overflowY: "auto" }}>
-                <table style={styles.table}>
+                <table style={s.table}>
                   <thead>
                     <tr>
-                      <th style={styles.th}>Nome</th>
-                      <th style={styles.th}>Sigla</th>
-                      <th style={styles.th}>Cidade/UF</th>
-                      <th style={styles.th}>CNPJ</th>
+                      <th style={s.th}>Nome</th>
+                      <th style={s.th}>Sigla</th>
+                      <th style={s.th}>Cidade/UF</th>
+                      <th style={s.th}>CNPJ</th>
                     </tr>
                   </thead>
                   <tbody>
                     {preview.map((eq, idx) => (
-                      <tr key={idx} style={styles.tr}>
-                        <td style={styles.td}>{eq.nome}</td>
-                        <td style={styles.td}>{eq.sigla}</td>
-                        <td style={styles.td}>{eq.cidade}/{eq.estado}</td>
-                        <td style={styles.td}>{eq.cnpj}</td>
+                      <tr key={idx} style={s.tr}>
+                        <td style={s.td}>{eq.nome}</td>
+                        <td style={s.td}>{eq.sigla}</td>
+                        <td style={s.td}>{eq.cidade}/{eq.estado}</td>
+                        <td style={s.td}>{eq.cnpj}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -646,13 +648,13 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
 
               <div style={{ marginTop: 24, display: "flex", gap: 12, justifyContent: "center" }}>
                 <button
-                  style={styles.btnGhost}
+                  style={s.btnGhost}
                   onClick={() => { setPreview(null); setFile(null); setOrganizadorSelecionado(""); }}
                 >
                   Cancelar
                 </button>
                 <button
-                  style={styles.btnPrimary}
+                  style={s.btnPrimary}
                   onClick={handleConfirmar}
                 >
                   ✓ Confirmar Importação ({preview.length} equipes)
@@ -668,15 +670,15 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
 
   if (modo === "lista") {
     return (
-      <div style={styles.page}>
-        <div style={styles.painelHeader}>
+      <div style={s.page}>
+        <div style={s.painelHeader}>
           <div>
-            <h1 style={styles.pageTitle}>🏟️ Equipes</h1>
+            <h1 style={s.pageTitle}>🏟️ Equipes</h1>
             <p style={{ color: "#666", fontSize: 14 }}>
               Gerenciar clubes e equipes cadastradas no sistema
             </p>
           </div>
-          <button style={styles.btnGhost} onClick={() => setTela(isAdmin ? "admin" : "painel-organizador")}>
+          <button style={s.btnGhost} onClick={() => setTela(isAdmin ? "admin" : "painel-organizador")}>
             ← Voltar
           </button>
         </div>
@@ -695,10 +697,10 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
 
         {/* Actions */}
         <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
-          <button style={styles.btnPrimary} onClick={() => setModo("novo")}>
+          <button style={s.btnPrimary} onClick={() => setModo("novo")}>
             + Nova Equipe
           </button>
-          <button style={styles.btnSecondary} onClick={() => setModo("importar")}>
+          <button style={s.btnSecondary} onClick={() => setModo("importar")}>
             📊 Importar Planilha
           </button>
           <input
@@ -706,7 +708,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
             placeholder="🔍 Buscar equipe..."
             value={filtro}
             onChange={(e) => setFiltro(e.target.value)}
-            style={{ ...styles.input, flex: 1 }}
+            style={{ ...s.input, flex: 1 }}
           />
         </div>
 
@@ -723,7 +725,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
               <>
                 <div style={{ fontSize: 18, marginBottom: 8 }}>Nenhuma equipe cadastrada</div>
                 <div style={{ fontSize: 14, marginBottom: 20 }}>Cadastre a primeira equipe</div>
-                <button style={styles.btnPrimary} onClick={() => setModo("novo")}>
+                <button style={s.btnPrimary} onClick={() => setModo("novo")}>
                   + Cadastrar Primeira Equipe
                 </button>
               </>
@@ -802,13 +804,13 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
 
                   <div style={{ display: "flex", gap: 8 }}>
                     <button
-                      style={styles.btnSecondary}
+                      style={s.btnSecondary}
                       onClick={() => handleEditar(equipe)}
                     >
                       ✏️ Editar
                     </button>
                     <button
-                      style={styles.btnGhost}
+                      style={s.btnGhost}
                       onClick={() => excluirEquipeFiliada(equipe.id)}
                     >
                       🗑️
@@ -826,17 +828,17 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
 
   // Formulário (Novo/Editar)
   return (
-    <div style={styles.page}>
-      <div style={styles.painelHeader}>
+    <div style={s.page}>
+      <div style={s.painelHeader}>
         <div>
-          <h1 style={styles.pageTitle}>
+          <h1 style={s.pageTitle}>
             {modo === "novo" ? "➕ Nova Equipe" : "✏️ Editar Equipe"}
           </h1>
           <p style={{ color: "#666", fontSize: 14 }}>
             {modo === "novo" ? "Cadastrar nova equipe" : `Editando: ${equipeSelecionada?.nome}`}
           </p>
         </div>
-        <button style={styles.btnGhost} onClick={handleCancelar}>
+        <button style={s.btnGhost} onClick={handleCancelar}>
           ← Cancelar
         </button>
       </div>
@@ -848,7 +850,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
           borderRadius: 12,
           padding: 32
         }}>
-          <div style={styles.grid2form}>
+          <div style={s.grid2form}>
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: "block", color: "#aaa", fontSize: 13, marginBottom: 6 }}>
                 Nome da Equipe *
@@ -858,7 +860,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
                 value={form.nome}
                 onChange={(e) => setForm({ ...form, nome: e.target.value })}
                 placeholder="Ex: Clube Atlético Paranaense"
-                style={{ ...styles.input, borderColor: erros.nome ? "#ff6b6b" : undefined }}
+                style={{ ...s.input, borderColor: erros.nome ? "#ff6b6b" : undefined }}
               />
               {erros.nome && <div style={{ color: "#ff6b6b", fontSize: 12, marginTop: 4 }}>{erros.nome}</div>}
             </div>
@@ -871,13 +873,13 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
                 value={form.sigla}
                 onChange={(e) => setForm({ ...form, sigla: e.target.value.toUpperCase() })}
                 placeholder="Ex: CAP"
-                style={{ ...styles.input, borderColor: erros.sigla ? "#ff6b6b" : undefined }}
+                style={{ ...s.input, borderColor: erros.sigla ? "#ff6b6b" : undefined }}
               />
               {erros.sigla && <div style={{ color: "#ff6b6b", fontSize: 12, marginTop: 4 }}>{erros.sigla}</div>}
             </div>
           </div>
 
-          <div style={styles.grid2form}>
+          <div style={s.grid2form}>
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: "block", color: "#aaa", fontSize: 13, marginBottom: 6 }}>
                 Cidade *
@@ -887,7 +889,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
                 value={form.cidade}
                 onChange={(e) => setForm({ ...form, cidade: e.target.value })}
                 placeholder="Ex: Curitiba"
-                style={{ ...styles.input, borderColor: erros.cidade ? "#ff6b6b" : undefined }}
+                style={{ ...s.input, borderColor: erros.cidade ? "#ff6b6b" : undefined }}
               />
               {erros.cidade && <div style={{ color: "#ff6b6b", fontSize: 12, marginTop: 4 }}>{erros.cidade}</div>}
             </div>
@@ -901,7 +903,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
                 onChange={(e) => setForm({ ...form, estado: e.target.value.toUpperCase() })}
                 placeholder="Ex: PR"
                 maxLength={2}
-                style={{ ...styles.input, borderColor: erros.estado ? "#ff6b6b" : undefined }}
+                style={{ ...s.input, borderColor: erros.estado ? "#ff6b6b" : undefined }}
               />
               {erros.estado && <div style={{ color: "#ff6b6b", fontSize: 12, marginTop: 4 }}>{erros.estado}</div>}
             </div>
@@ -915,7 +917,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
               <select
                 value={form.organizadorId}
                 onChange={(e) => setForm({ ...form, organizadorId: e.target.value })}
-                style={{ ...styles.input, borderColor: erros.organizadorId ? "#ff6b6b" : undefined }}
+                style={{ ...s.input, borderColor: erros.organizadorId ? "#ff6b6b" : undefined }}
               >
                 <option value="">Selecione o organizador...</option>
                 {organizadores.filter(o => o.status === "aprovado").map(org => (
@@ -940,7 +942,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
               value={form.cnpj}
               onChange={(e) => setForm({ ...form, cnpj: e.target.value })}
               placeholder="00.000.000/0000-00"
-              style={{ ...styles.input, borderColor: erros.cnpj ? "#ff6b6b" : undefined }}
+              style={{ ...s.input, borderColor: erros.cnpj ? "#ff6b6b" : undefined }}
             />
             {erros.cnpj && <div style={{ color: "#ff6b6b", fontSize: 12, marginTop: 4 }}>{erros.cnpj}</div>}
           </div>
@@ -954,11 +956,11 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
               value={form.contato}
               onChange={(e) => setForm({ ...form, contato: e.target.value })}
               placeholder="(00) 00000-0000"
-              style={styles.input}
+              style={s.input}
             />
           </div>
 
-          <div style={styles.grid2form}>
+          <div style={s.grid2form}>
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: "block", color: "#aaa", fontSize: 13, marginBottom: 6 }}>
                 E-mail *
@@ -968,7 +970,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 placeholder="contato@equipe.com"
-                style={{ ...styles.input, borderColor: erros.email ? "#ff6b6b" : undefined }}
+                style={{ ...s.input, borderColor: erros.email ? "#ff6b6b" : undefined }}
               />
               {erros.email && <div style={{ color: "#ff6b6b", fontSize: 12, marginTop: 4 }}>{erros.email}</div>}
             </div>
@@ -982,10 +984,10 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
                   value={form.senha}
                   onChange={(e) => setForm({ ...form, senha: e.target.value })}
                   placeholder={modo === "editar" ? "••••••" : "Senha de acesso"}
-                  style={{ ...styles.input, flex: 1, borderColor: erros.senha ? "#ff6b6b" : undefined }}
+                  style={{ ...s.input, flex: 1, borderColor: erros.senha ? "#ff6b6b" : undefined }}
                 />
                 {modo === "novo" && (
-                  <button type="button" style={{ ...styles.btnGhost, fontSize: 11, padding: "8px 12px", whiteSpace: "nowrap" }}
+                  <button type="button" style={{ ...s.btnGhost, fontSize: 11, padding: "8px 12px", whiteSpace: "nowrap" }}
                     onClick={() => {
                       const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
                       let s = "";
@@ -1004,7 +1006,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: "block", color: "#aaa", fontSize: 13, marginBottom: 6 }}>Status da Equipe</label>
               <select value={form.status || "ativa"} onChange={e => setForm({ ...form, status: e.target.value })}
-                style={styles.input}>
+                style={s.input}>
                 <option value="ativa">✅ Ativa</option>
                 <option value="pendente">⏳ Pendente</option>
                 <option value="inativa">❌ Inativa</option>
@@ -1014,10 +1016,10 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
           )}
 
           <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
-            <button style={styles.btnGhost} onClick={handleCancelar}>
+            <button style={s.btnGhost} onClick={handleCancelar}>
               Cancelar
             </button>
-            <button style={styles.btnPrimary} onClick={handleSalvar}>
+            <button style={s.btnPrimary} onClick={handleSalvar}>
               {modo === "novo" ? "✓ Cadastrar Equipe" : "✓ Salvar Alterações"}
             </button>
           </div>

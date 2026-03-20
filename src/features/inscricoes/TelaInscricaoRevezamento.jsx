@@ -3,6 +3,7 @@ import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas, nPernasRevezamento, isRevezamentoMisto } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/constants/categorias";
 import { ProvaSelector } from "../ui/ProvaSelector";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 // Verifica em tempo real se as inscrições estão encerradas,
 // levando em conta data+hora de encerramento além do flag salvo.
@@ -155,34 +156,35 @@ const styles = {
 };
 
 function TelaInscricaoRevezamento({ setTela, eventoAtual, inscricoes, atletas, equipes, excluirInscricao, adicionarInscricao, atualizarInscricao, usuarioLogado, registrarAcao, numeracaoPeito }) {
+  const s = useStylesResponsivos(styles);
   const confirmar = useConfirm();
-  if (!eventoAtual) return <div style={styles.page}><div style={styles.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
+  if (!eventoAtual) return <div style={s.page}><div style={s.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
 
   const tipoUser = usuarioLogado?.tipo;
   const isPrivileg = tipoUser === "admin" || tipoUser === "organizador" || tipoUser === "funcionario";
   if (!isPrivileg && isInscricaoEncerradaAgora(eventoAtual)) return (
-    <div style={styles.page}>
-      <div style={styles.emptyState}>
+    <div style={s.page}>
+      <div style={s.emptyState}>
         <span style={{ fontSize: 48 }}>🔒</span>
         <p style={{ fontWeight: 700, color: "#fff", fontSize: 18 }}>Inscrições Encerradas</p>
         <p style={{ color: "#666", fontSize: 14 }}>
           As inscrições para <strong>{eventoAtual.nome}</strong> estão encerradas.
         </p>
-        <button style={styles.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
+        <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
       </div>
     </div>
   );
 
   if (!isPrivileg && usuarioLogado?.lgpdConsentimentoRevogado) return (
-    <div style={styles.page}>
-      <div style={styles.emptyState}>
+    <div style={s.page}>
+      <div style={s.emptyState}>
         <span style={{ fontSize: 48 }}>🔓</span>
         <p style={{ fontWeight: 700, color: "#ff6b6b", fontSize: 18 }}>Consentimento Revogado</p>
         <p style={{ color: "#888", fontSize: 14, maxWidth: 420, textAlign: "center", lineHeight: 1.6 }}>
           Você revogou seu consentimento LGPD. Novas inscrições não são permitidas.<br/>
           Para voltar a se inscrever em competições, realize um novo cadastro.
         </p>
-        <button style={styles.btnGhost} onClick={() => setTela("home")}>← Voltar ao Início</button>
+        <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar ao Início</button>
       </div>
     </div>
   );
@@ -332,15 +334,15 @@ function TelaInscricaoRevezamento({ setTela, eventoAtual, inscricoes, atletas, e
   const inscsVisiveis = equipeIdUser ? inscsRevez.filter(i => i.equipeId === equipeIdUser) : inscsRevez;
 
   return (
-    <div style={styles.page}>
-      <div style={styles.painelHeader}>
+    <div style={s.page}>
+      <div style={s.painelHeader}>
         <div>
-          <h1 style={styles.pageTitle}>🏃‍♂️ Inscrição de Revezamento</h1>
+          <h1 style={s.pageTitle}>🏃‍♂️ Inscrição de Revezamento</h1>
           <div style={{ color: "#666", fontSize: 13 }}>
             {eventoAtual.nome} — {provasRevez.length} prova(s) · {inscsVisiveis.length} equipe(s) inscrita(s)
           </div>
         </div>
-        <button style={styles.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
+        <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
       </div>
 
       {feedback && (
@@ -355,15 +357,15 @@ function TelaInscricaoRevezamento({ setTela, eventoAtual, inscricoes, atletas, e
           <h2 style={{ color: "#1976D2", fontSize: 16, marginBottom: 10, fontFamily: "'Barlow Condensed', sans-serif" }}>
             Equipes Inscritas
           </h2>
-          <div style={styles.tableWrap}>
-            <table style={styles.table}>
+          <div style={s.tableWrap}>
+            <table style={s.table}>
               <thead><tr>
-                <th style={styles.th}>Prova</th>
-                <th style={styles.th}>Cat.</th>
-                <th style={styles.th}>Sexo</th>
-                <th style={styles.th}>Equipe</th>
-                <th style={styles.th}>Atletas</th>
-                <th style={styles.th}>Ações</th>
+                <th style={s.th}>Prova</th>
+                <th style={s.th}>Cat.</th>
+                <th style={s.th}>Sexo</th>
+                <th style={s.th}>Equipe</th>
+                <th style={s.th}>Atletas</th>
+                <th style={s.th}>Ações</th>
               </tr></thead>
               <tbody>
                 {inscsVisiveis.map(insc => {
@@ -375,23 +377,23 @@ function TelaInscricaoRevezamento({ setTela, eventoAtual, inscricoes, atletas, e
                   const temInvalidos = nomes.some(n => n === null);
                   const nomesStr = nomes.filter(Boolean).join(" · ");
                   return (
-                    <tr key={insc.id} style={styles.tr}>
-                      <td style={styles.td}>{prv?.nome || insc.provaId}</td>
-                      <td style={styles.td}>{CATEGORIAS.find(c => c.id === (insc.categoriaOficialId || insc.categoriaId))?.nome || "—"}</td>
-                      <td style={{ ...styles.td, textAlign: "center" }}>
+                    <tr key={insc.id} style={s.tr}>
+                      <td style={s.td}>{prv?.nome || insc.provaId}</td>
+                      <td style={s.td}>{CATEGORIAS.find(c => c.id === (insc.categoriaOficialId || insc.categoriaId))?.nome || "—"}</td>
+                      <td style={{ ...s.td, textAlign: "center" }}>
                         <span style={{ color: insc.sexo === "M" ? "#1a6ef5" : "#e54f9b" }}>{insc.sexo === "M" ? "Masc" : "Fem"}</span>
                       </td>
-                      <td style={{ ...styles.td, fontWeight: 600, color: "#1976D2" }}>{nomeEq}{siglaEq}</td>
-                      <td style={{ ...styles.td, fontSize: 11 }}>
+                      <td style={{ ...s.td, fontWeight: 600, color: "#1976D2" }}>{nomeEq}{siglaEq}</td>
+                      <td style={{ ...s.td, fontSize: 11 }}>
                         {nomesStr ? <span style={{ color: "#aaa" }}>{nomesStr}</span> : null}
                         {temInvalidos && <span style={{ color: "#ff6b6b", fontWeight: 600 }}> ⚠ {nomes.filter(n => n === null).length} ID(s) inválido(s) — edite para corrigir</span>}
                         {!nomesStr && !temInvalidos && <span style={{ color: "#666" }}>Sem atletas</span>}
                       </td>
-                      <td style={{ ...styles.td, whiteSpace: "nowrap" }}>
+                      <td style={{ ...s.td, whiteSpace: "nowrap" }}>
                         <button onClick={() => abrirEdicao(insc)}
-                          style={{ ...styles.btnGhost, fontSize: 11, padding: "3px 8px", marginRight: 6 }} title="Editar">✏️ Editar</button>
+                          style={{ ...s.btnGhost, fontSize: 11, padding: "3px 8px", marginRight: 6 }} title="Editar">✏️ Editar</button>
                         <button onClick={() => handleExcluir(insc)}
-                          style={{ ...styles.btnGhost, fontSize: 11, padding: "3px 8px", color: "#ff6b6b", borderColor: "#5a1a1a" }} title="Remover">🗑️</button>
+                          style={{ ...s.btnGhost, fontSize: 11, padding: "3px 8px", color: "#ff6b6b", borderColor: "#5a1a1a" }} title="Remover">🗑️</button>
                       </td>
                     </tr>
                   );
@@ -403,7 +405,7 @@ function TelaInscricaoRevezamento({ setTela, eventoAtual, inscricoes, atletas, e
       )}
 
       {inscsVisiveis.length === 0 && !revezForm && (
-        <div style={{ ...styles.emptyState, marginBottom: 24 }}>
+        <div style={{ ...s.emptyState, marginBottom: 24 }}>
           <span style={{ fontSize: 48 }}>🏃‍♂️</span>
           <p style={{ fontWeight: 700, color: "#fff", fontSize: 16 }}>Nenhuma equipe inscrita em revezamentos</p>
           <p style={{ color: "#888", fontSize: 13 }}>Clique no botão abaixo para inscrever a primeira equipe.</p>
@@ -412,7 +414,7 @@ function TelaInscricaoRevezamento({ setTela, eventoAtual, inscricoes, atletas, e
 
       {/* ── BOTÃO NOVA INSCRIÇÃO ── */}
       {!revezForm && (
-        <button style={{ ...styles.btnPrimary, marginBottom: 20 }}
+        <button style={{ ...s.btnPrimary, marginBottom: 20 }}
           onClick={() => setRevezForm({ provaId: provasRevez[0]?.id || "", catId: "", sexo: provasRevez[0]?.id?.startsWith("F_") ? "F" : "M", equipeId: equipesDisponiveis.length === 1 ? equipesDisponiveis[0].id : "", atletasIds: [] })}>
           ＋ Inscrever Equipe em Revezamento
         </button>
@@ -428,7 +430,7 @@ function TelaInscricaoRevezamento({ setTela, eventoAtual, inscricoes, atletas, e
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 18 }}>
             <div>
               <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>Prova</div>
-              <select style={{ ...styles.input, minWidth: 200 }} value={revezForm.provaId}
+              <select style={{ ...s.input, minWidth: 200 }} value={revezForm.provaId}
                 onChange={e => {
                   const newId = e.target.value;
                   const sexo = newId.startsWith("F_") ? "F" : "M";
@@ -444,7 +446,7 @@ function TelaInscricaoRevezamento({ setTela, eventoAtual, inscricoes, atletas, e
             </div>
             <div>
               <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>Sexo</div>
-              <select style={{ ...styles.input, minWidth: 120 }} value={revezForm.sexo}
+              <select style={{ ...s.input, minWidth: 120 }} value={revezForm.sexo}
                 onChange={e => setRevezForm(f => ({ ...f, sexo: e.target.value, atletasIds: [] }))}>
                 <option value="M">Masculino</option>
                 <option value="F">Feminino</option>
@@ -452,7 +454,7 @@ function TelaInscricaoRevezamento({ setTela, eventoAtual, inscricoes, atletas, e
             </div>
             <div>
               <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>Equipe</div>
-              <select style={{ ...styles.input, minWidth: 220 }} value={revezForm.equipeId}
+              <select style={{ ...s.input, minWidth: 220 }} value={revezForm.equipeId}
                 onChange={e => setRevezForm(f => ({ ...f, equipeId: e.target.value, atletasIds: [] }))}>
                 <option value="">Selecione a equipe...</option>
                 {equipesDisponiveis.map(eq => <option key={eq.id} value={eq.id}>{eq.nome}{eq.sigla ? ` (${eq.sigla})` : ""}</option>)}
@@ -491,7 +493,7 @@ function TelaInscricaoRevezamento({ setTela, eventoAtual, inscricoes, atletas, e
                             onFocus={() => setFocusIdx(idx)}
                             onBlur={() => setTimeout(() => setFocusIdx(-1), 200)}
                             onChange={e => { setRevezBusca(prev => { const n = [...prev]; n[idx] = e.target.value; return n; }); setFocusIdx(idx); }}
-                            style={{ ...styles.input, width: "100%", fontSize: 13 }} />
+                            style={{ ...s.input, width: "100%", fontSize: 13 }} />
                           {focusIdx === idx && resB.length > 0 && (
                             <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 999, background: "#1a1c22", border: "1px solid #333", borderRadius: 6, maxHeight: 220, overflowY: "auto" }}>
                               {resB.map(a => {
@@ -557,10 +559,10 @@ function TelaInscricaoRevezamento({ setTela, eventoAtual, inscricoes, atletas, e
           )}
 
           <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-            <button style={styles.btnPrimary} onClick={handleSalvar}>
+            <button style={s.btnPrimary} onClick={handleSalvar}>
               💾 {revezForm.editId ? "Atualizar Inscrição" : "Inscrever Equipe"}
             </button>
-            <button style={styles.btnGhost} onClick={async () => { setRevezForm(null); setRevezBusca(["","","","",""]); setFeedback(""); }}>
+            <button style={s.btnGhost} onClick={async () => { setRevezForm(null); setRevezBusca(["","","","",""]); setFeedback(""); }}>
               Cancelar
             </button>
           </div>

@@ -5,6 +5,7 @@ import { getCategoria } from "../../shared/constants/categorias";
 import { _getCbat } from "../../shared/formatters/utils";
 import { Th, Td } from "../ui/TableHelpers";
 import { SinoNotificacoes } from "../ui/SinoNotificacoes";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 const styles = {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
   pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 24, letterSpacing: 1 },
@@ -84,12 +85,13 @@ function VinculoSolicitarForm({ atletaId, atletaNome, clubeInicial, equipes, sol
 
 
 function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, inscricoes, eventos, equipes, eventoAtual, adicionarInscricao, atualizarAtletaUsuario, solicitarVinculo, solicitacoesVinculo, responderVinculo, notificacoes, marcarNotifLida, excluirInscricao, atualizarInscricao, resultados, organizadores, solicitarDesvinculo, perfisDisponiveis, solicitarRelatorio }) {
+  const s = useStylesResponsivos(styles);
   const confirmar = useConfirm();
   if (usuarioLogado?.tipo !== "atleta") return (
-    <div style={styles.page}><div style={styles.emptyState}>
+    <div style={s.page}><div style={s.emptyState}>
       <span style={{ fontSize: 48 }}>🚫</span>
       <p style={{ color: "#ff6b6b", fontWeight: 700 }}>Acesso restrito a atletas</p>
-      <button style={styles.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
+      <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
     </div></div>
   );
 
@@ -122,10 +124,10 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
     : [];
 
   return (
-    <div style={styles.page}>
-      <div style={styles.painelHeader}>
+    <div style={s.page}>
+      <div style={s.painelHeader}>
         <div>
-          <h1 style={styles.pageTitle}>🏃 Meu Painel</h1>
+          <h1 style={s.pageTitle}>🏃 Meu Painel</h1>
           <p style={{ color:"#aaa", margin:"4px 0 0" }}>
             {usuarioLogado?.nome}
           </p>
@@ -142,10 +144,10 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
         </div>
         <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
           {meuAtleta && (
-            <div style={styles.painelBtns}>
-              <button style={styles.btnSecondary} onClick={async () => { window.__atletaEditId = meuAtleta?.id; setTela("editar-atleta"); }}>✏️ Meus Dados</button>
-              <button style={styles.btnSecondary} onClick={() => setTela("gerenciar-inscricoes")}>📋 Minhas Inscrições</button>
-              <button style={styles.btnPrimary} onClick={() => setTela("inscricao-avulsa")}>✍️ Me Inscrever</button>
+            <div style={s.painelBtns}>
+              <button style={s.btnSecondary} onClick={async () => { window.__atletaEditId = meuAtleta?.id; setTela("editar-atleta"); }}>✏️ Meus Dados</button>
+              <button style={s.btnSecondary} onClick={() => setTela("gerenciar-inscricoes")}>📋 Minhas Inscrições</button>
+              <button style={s.btnPrimary} onClick={() => setTela("inscricao-avulsa")}>✍️ Me Inscrever</button>
             </div>
           )}
           <SinoNotificacoes
@@ -158,14 +160,14 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
 
       {/* Dados do atleta */}
       {meuAtleta ? (
-        <div style={{ ...styles.catBanner, marginBottom:16 }}>
+        <div style={{ ...s.catBanner, marginBottom:16 }}>
           <strong>Categoria:</strong> {getCategoria(meuAtleta.anoNasc, anoBase)?.nome || "—"} &nbsp;·&nbsp;
           <strong>Nº CBAt:</strong> {_getCbat(meuAtleta) || "—"} &nbsp;·&nbsp;
           <strong>Sexo:</strong> {meuAtleta.sexo === "M" ? "Masculino" : "Feminino"}
           {minhaEquipe && <> &nbsp;·&nbsp; <strong>Equipe:</strong> {minhaEquipe.nome}</>}
         </div>
       ) : (
-        <div style={{ ...styles.catBanner, border:"1px solid #cc444444", marginBottom:16 }}>
+        <div style={{ ...s.catBanner, border:"1px solid #cc444444", marginBottom:16 }}>
           ⚠️ Seu perfil de atleta não foi localizado no sistema. Peça à sua equipe para cadastrá-lo ou complete seu cadastro.
         </div>
       )}
@@ -184,7 +186,7 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
         return (
           <div style={{ marginBottom:24 }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
-              <h2 style={{ ...styles.sectionTitle, margin:0 }}>🤝 Competições Abertas para Você</h2>
+              <h2 style={{ ...s.sectionTitle, margin:0 }}>🤝 Competições Abertas para Você</h2>
               <span style={{ background:"#0a2a4a", color:"#5599ff", border:"1px solid #3a5a8a",
                 borderRadius:20, padding:"2px 10px", fontSize:12, fontWeight:700 }}>
                 {disponiveis.length}
@@ -217,7 +219,7 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
                         ✓ Já inscrito
                       </span>
                     ) : (
-                      <button style={{ ...styles.btnPrimary, fontSize:13, padding:"8px 16px" }}
+                      <button style={{ ...s.btnPrimary, fontSize:13, padding:"8px 16px" }}
                         onClick={async () => { window.__eventoParaInscricao = ev.id; setTela("inscricao-avulsa"); }}>
                         ✍️ Me Inscrever
                       </button>
@@ -231,23 +233,23 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
       })()}
 
       {!eventoAtual && !meuAtleta?.organizadorId && (
-        <div style={{ ...styles.catBanner, border:"1px solid #1976D244", marginBottom:16 }}>
-          💡 Selecione uma competição em <button style={styles.linkBtn} onClick={()=>setTela("home")}>Competições</button> para se inscrever.
+        <div style={{ ...s.catBanner, border:"1px solid #1976D244", marginBottom:16 }}>
+          💡 Selecione uma competição em <button style={s.linkBtn} onClick={()=>setTela("home")}>Competições</button> para se inscrever.
         </div>
       )}
       {eventoAtual?.inscricoesEncerradas && (
-        <div style={{ ...styles.catBanner, border:"1px solid #ff6b6b44", marginBottom:16 }}>
+        <div style={{ ...s.catBanner, border:"1px solid #ff6b6b44", marginBottom:16 }}>
           ⛔ As inscrições para <strong>{eventoAtual.nome}</strong> estão encerradas.
         </div>
       )}
 
       {/* ── Solicitar/Ver Vínculo ──────────────────────────── */}
       {(() => {
-        const minhasSol = (solicitacoesVinculo||[]).filter(s => s.atletaId === meuAtleta?.id);
+        const minhasSol = (solicitacoesVinculo||[]).filter(sol => sol.atletaId === meuAtleta?.id);
         // Separa: solicitações de vínculo vs desvinculação
-        const solPendente     = minhasSol.find(s => s.status === "pendente" && s.tipo !== "desvinculacao");
-        const solDesvinc      = minhasSol.find(s => s.status === "pendente" && s.tipo === "desvinculacao");
-        const solAceita       = minhasSol.find(s => s.status === "aceito"   && s.tipo !== "desvinculacao");
+        const solPendente     = minhasSol.find(sol => sol.status === "pendente" && sol.tipo !== "desvinculacao");
+        const solDesvinc      = minhasSol.find(sol => sol.status === "pendente" && sol.tipo === "desvinculacao");
+        const solAceita       = minhasSol.find(sol => sol.status === "aceito"   && sol.tipo !== "desvinculacao");
         const semVinculo      = !meuAtleta?.equipeId;
         const equipeVinculada = meuAtleta?.equipeId ? equipes.find(t => t.id === meuAtleta.equipeId) : null;
 
@@ -431,17 +433,17 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
         );
       })()}
 
-      <h2 style={styles.sectionTitle}>Minhas Inscrições</h2>
+      <h2 style={s.sectionTitle}>Minhas Inscrições</h2>
       {minhasInscricoes.length === 0 ? (
-        <div style={styles.emptyState}>
+        <div style={s.emptyState}>
           <span style={{ fontSize:48 }}>✍️</span>
           <p>Nenhuma inscrição ainda.</p>
         </div>
       ) : (
-        <div style={styles.tableWrap}>
-          <input type="text" value={buscaInsc} onChange={e => setBuscaInsc(e.target.value)} placeholder="🔍 Buscar inscrição..." style={{ ...styles.input, padding:"6px 12px", fontSize:12, marginBottom:8, maxWidth:350 }} />
+        <div style={s.tableWrap}>
+          <input type="text" value={buscaInsc} onChange={e => setBuscaInsc(e.target.value)} placeholder="🔍 Buscar inscrição..." style={{ ...s.input, padding:"6px 12px", fontSize:12, marginBottom:8, maxWidth:350 }} />
           <div style={{ maxHeight:320, overflowY:"auto" }}>
-          <table style={styles.table}>
+          <table style={s.table}>
             <thead><tr><Th>Competição</Th><Th>Prova</Th><Th>Categoria</Th><Th>Sexo</Th><Th>Origem</Th><Th>Ações</Th></tr></thead>
             <tbody>
               {minhasInscricoes.filter(i => {
@@ -454,7 +456,7 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
                 const ev = eventos.find(e=>e.id===i.eventoId);
                 const prova = todasAsProvas().find(p=>p.id===i.provaId);
                 return (
-                  <tr key={idx} style={styles.tr}>
+                  <tr key={idx} style={s.tr}>
                     <Td>{ev?.nome||"—"}</Td>
                     <Td>{prova?.nome || i.provaId}</Td>
                     <Td>{i.categoriaOficial || i.categoria || i.categoriaId}</Td>
@@ -475,7 +477,7 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
                         if (!inscAberta) return <span style={{color:"#444",fontSize:11}}>—</span>;
                         return (
                           <button onClick={async () => { if (await confirmar("⚠️ Excluir esta inscrição?\n\nEsta ação é IRREVERSÍVEL e removerá todos os resultados associados.")) excluirInscricao(i.id, { confirmado: true }); }}
-                            style={{...styles.btnGhost,fontSize:11,padding:"3px 10px",color:"#ff6b6b",borderColor:"#5a1a1a"}}
+                            style={{...s.btnGhost,fontSize:11,padding:"3px 10px",color:"#ff6b6b",borderColor:"#5a1a1a"}}
                             title="Excluir inscrição">
                             🗑 Excluir
                           </button>

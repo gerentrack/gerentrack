@@ -7,6 +7,7 @@ import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { SeriacaoEngine } from "../../shared/engines/seriacaoEngine";
 import { _getNascDisplay, NomeProvaComImplemento, formatarTempo } from "../../shared/formatters/utils";
 import { Th, Td } from "../ui/TableHelpers";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 const styles = {
   page:        { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
   pageTitle:   { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 24, letterSpacing: 1 },
@@ -35,6 +36,7 @@ const getExibicaoEquipe = (atleta, equipes) => {
 };
 
 function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual, resultados, registrarAcao, numeracaoPeito, getClubeAtleta, equipes, editarEvento, alterarStatusEvento, recordes, chamada, getPresencaProva }) {
+  const s = useStylesResponsivos(styles);
   const [filtroProva, setFiltroProva] = useState("todas");
   const [filtroCat, setFiltroCat] = useState("todas");
   const [filtroSexo, setFiltroSexo] = useState("todos");
@@ -53,8 +55,8 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
   const [seriacaoChaveAtiva, setSeriacaoChaveAtiva] = useState(null); // chave completa do item ativo (com sufixo de fase)
 
   if (!eventoAtual) return (
-    <div style={styles.page}><div style={styles.emptyState}><p>Selecione uma competição primeiro.</p>
-      <button style={styles.btnPrimary} onClick={() => setTela("home")}>Ver Competições</button></div></div>
+    <div style={s.page}><div style={s.emptyState}><p>Selecione uma competição primeiro.</p>
+      <button style={s.btnPrimary} onClick={() => setTela("home")}>Ver Competições</button></div></div>
   );
 
   // Controle de acesso: não-admins só acessam se sumulaLiberada = true
@@ -64,15 +66,15 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
     (usuarioLogado?.permissoes?.includes("sumulas") || usuarioLogado?.permissoes?.includes("resultados"));
   const isAmplo  = isAdmin || isOrg || isFuncS;
   if (!isAmplo && !eventoAtual.sumulaLiberada) return (
-    <div style={styles.page}>
-      <div style={styles.emptyState}>
+    <div style={s.page}>
+      <div style={s.emptyState}>
         <span style={{ fontSize: 56 }}>🔐</span>
         <p style={{ fontWeight: 700, color: "#fff", fontSize: 18 }}>Súmulas não disponíveis</p>
         <p style={{ color: "#666", fontSize: 14, maxWidth: 380, textAlign: "center" }}>
           As súmulas desta competição ainda não foram liberadas para consulta.
           Aguarde o encerramento das inscrições e a liberação pelo administrador.
         </p>
-        <button style={styles.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar à Competição</button>
+        <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar à Competição</button>
       </div>
     </div>
   );
@@ -182,17 +184,17 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
   const nomesProvasUnicos = [...new Set(provasFiltradas.map(p => p.nome))].sort();
 
   const sumuFiltradas = (() => {
-    const filtered = sumulas.filter((s) => {
-      if (s.prova.tipo === "combinada") return false;
-      if (filtroProva !== "todas" && s.prova.nome !== filtroProva) return false;
-      if (filtroCat !== "todas" && s.categoria.id !== filtroCat) return false;
-      if (filtroSexo !== "todos" && s.sexo !== filtroSexo) return false;
+    const filtered = sumulas.filter((sum) => {
+      if (sum.prova.tipo === "combinada") return false;
+      if (filtroProva !== "todas" && sum.prova.nome !== filtroProva) return false;
+      if (filtroCat !== "todas" && sum.categoria.id !== filtroCat) return false;
+      if (filtroSexo !== "todos" && sum.sexo !== filtroSexo) return false;
       return true;
     });
     // Deduplicar por chave única — protege contra provas geradas em duplicata
     const vistas = new Set();
-    return filtered.filter(s => {
-      const k = `${s.prova.id}_${s.categoria.id}_${s.sexo}${s.faseSufixo ? "__" + s.faseSufixo : ""}`;
+    return filtered.filter(sum => {
+      const k = `${sum.prova.id}_${sum.categoria.id}_${sum.sexo}${sum.faseSufixo ? "__" + sum.faseSufixo : ""}`;
       if (vistas.has(k)) return false;
       vistas.add(k);
       return true;
@@ -200,34 +202,34 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
   })();
 
   // Chave única por súmula
-  const sumuKey = (s) => `${s.prova.id}_${s.categoria.id}_${s.sexo}${s.faseSufixo ? "__" + s.faseSufixo : ""}`;
+  const sumuKey = (sum) => `${sum.prova.id}_${sum.categoria.id}_${sum.sexo}${sum.faseSufixo ? "__" + sum.faseSufixo : ""}`;
 
   // Orientação padrão: campo/altura = landscape, pista = portrait
-  const orientPadrao = (s) => {
-    if (s.prova.unidade !== "s") return "landscape";
+  const orientPadrao = (sum) => {
+    if (sum.prova.unidade !== "s") return "landscape";
     return "portrait";
   };
 
   // Orientação efetiva (configurada ou padrão)
-  const getOrient = (s) => orientacoes[sumuKey(s)] || orientPadrao(s);
+  const getOrient = (sum) => orientacoes[sumuKey(sum)] || orientPadrao(sum);
 
-  const toggleOrient = (s) => {
-    const key = sumuKey(s);
-    const atual = orientacoes[key] || orientPadrao(s);
+  const toggleOrient = (sum) => {
+    const key = sumuKey(sum);
+    const atual = orientacoes[key] || orientPadrao(sum);
     setOrientacoes(prev => ({ ...prev, [key]: atual === "portrait" ? "landscape" : "portrait" }));
   };
 
   // Aplicar orientação em lote
   const setTodas = (orient) => {
     const novo = {};
-    sumuFiltradas.forEach(s => { novo[sumuKey(s)] = orient; });
+    sumuFiltradas.forEach(sum => { novo[sumuKey(sum)] = orient; });
     setOrientacoes(prev => ({ ...prev, ...novo }));
   };
 
   // Resetar para padrão
   const resetOrient = () => {
     const novo = {};
-    sumuFiltradas.forEach(s => { novo[sumuKey(s)] = orientPadrao(s); });
+    sumuFiltradas.forEach(sum => { novo[sumuKey(sum)] = orientPadrao(sum); });
     setOrientacoes(prev => ({ ...prev, ...novo }));
   };
 
@@ -236,9 +238,9 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
     if (sumuFiltradas.length === 0) return;
     // Monta mapa de orientações para passar ao gerador
     const orientMap = {};
-    sumuFiltradas.forEach(s => { orientMap[sumuKey(s)] = getOrient(s); });
+    sumuFiltradas.forEach(sum => { orientMap[sumuKey(sum)] = getOrient(sum); });
     // Imprimir sempre em branco (sem resultados) — para preenchimento manual
-    const sumuEmBranco = sumuFiltradas.map(s => ({ ...s, resultados: {} }));
+    const sumuEmBranco = sumuFiltradas.map(sum => ({ ...sum, resultados: {} }));
     const html = gerarHtmlImpressao(sumuEmBranco, eventoAtual, atletas, {}, orientMap, numeracaoPeito[eventoAtual?.id] || {}, equipes, recordes);
     const win = window.open("", "_blank", "width=900,height=700");
     if (!win) { alert("Permita pop-ups para gerar a impressão."); return; }
@@ -249,15 +251,15 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
   };
 
   return (
-    <div style={styles.page}>
-      <div style={styles.painelHeader}>
+    <div style={s.page}>
+      <div style={s.painelHeader}>
         <div>
-          <h1 style={styles.pageTitle}>📋 Súmulas</h1>
+          <h1 style={s.pageTitle}>📋 Súmulas</h1>
           <div style={{ color: "#666", fontSize: 13 }}>{eventoAtual.nome}</div>
         </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           {isAmplo && sumuFiltradas.length > 0 && (
-            <button style={{ ...styles.btnPrimary, display: "flex", alignItems: "center", gap: 8 }} onClick={handleImprimir}>
+            <button style={{ ...s.btnPrimary, display: "flex", alignItems: "center", gap: 8 }} onClick={handleImprimir}>
               🖨 Imprimir Súmulas
               <span style={{ background: "#00000033", borderRadius: 10, padding: "1px 8px", fontSize: 11 }}>
                 {sumuFiltradas.length}
@@ -265,16 +267,16 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
             </button>
           )}
           {isAmplo && (
-            <button style={{ ...styles.btnSecondary, background: "#1a1a0a", borderColor: "#4a4a0a", color: "#1976D2" }}
+            <button style={{ ...s.btnSecondary, background: "#1a1a0a", borderColor: "#4a4a0a", color: "#1976D2" }}
               onClick={() => setShowSeriar(!showSeriar)}>
               🔀 Seriar Provas
             </button>
           )}
           {(isAdmin || isOrg || (usuarioLogado?.tipo === "funcionario" && usuarioLogado?.permissoes?.includes("resultados"))) && (
-            <button style={styles.btnSecondary} onClick={() => setTela("digitar-resultados")}>✏️ Digitar Resultados</button>
+            <button style={s.btnSecondary} onClick={() => setTela("digitar-resultados")}>✏️ Digitar Resultados</button>
           )}
-          <button style={styles.btnSecondary} onClick={() => setTela("resultados")}>📊 Ver Resultados</button>
-          <button style={styles.btnGhost} onClick={() => setTela("evento-detalhe")}>← Competição</button>
+          <button style={s.btnSecondary} onClick={() => setTela("resultados")}>📊 Ver Resultados</button>
+          <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Competição</button>
         </div>
       </div>
 
@@ -282,7 +284,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
       {isAmplo && sumuFiltradas.length > 0 && (filtroProva !== "todas" || filtroCat !== "todas" || filtroSexo !== "todos") && (
         <div style={{ background: "#141a10", border: "1px solid #4a8a2a", borderRadius: 8, padding: "10px 16px", marginBottom: 16, fontSize: 13, color: "#7acc44", display: "flex", alignItems: "center", gap: 8 }}>
           🖨 O botão de impressão irá gerar apenas as <strong>{sumuFiltradas.length} súmula(s)</strong> filtradas atualmente.
-          <button style={{ ...styles.linkBtn, marginLeft: 8 }} onClick={() => { setFiltroProva("todas"); setFiltroCat("todas"); setFiltroSexo("todos"); }}>
+          <button style={{ ...s.linkBtn, marginLeft: 8 }} onClick={() => { setFiltroProva("todas"); setFiltroCat("todas"); setFiltroSexo("todos"); }}>
             Limpar filtros para imprimir tudo
           </button>
         </div>
@@ -477,7 +479,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
               numero: parseInt(num),
               atletas: seriesMap[num].sort((a,b) => (a.raia || 99) - (b.raia || 99)),
             }));
-            const ordemSeries = seriesArr.map(s => s.numero);
+            const ordemSeries = seriesArr.map(ser => ser.numero);
             const regraAplicada = "Manual — sem regra automática";
             setSeriacaoPreview({ series: seriesArr, ordemSeries, modo: item.modo, chave: item.chave, regraAplicada, tipoLargada: isGrupo ? "grupo" : "raias" });
           } else if (seriacaoModo === "aleatorio") {
@@ -631,7 +633,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                   Configure modo e capacidade por prova, depois serie cada prova individualmente
                 </div>
               </div>
-              <button style={styles.btnGhost} onClick={() => setShowSeriar(false)}>✕ Fechar</button>
+              <button style={s.btnGhost} onClick={() => setShowSeriar(false)}>✕ Fechar</button>
             </div>
 
             {/* \u2500\u2500 CONFIGURAÇÃO POR PROVA \u2500\u2500 */}
@@ -825,7 +827,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                   </div>
                   <div style={{ display:"flex", gap:6 }}>
                     {itemAtivo.jaSeriada && (
-                      <button style={{ ...styles.btnGhost, fontSize:11, color:"#ff6b6b", borderColor:"#4a1a1a" }}
+                      <button style={{ ...s.btnGhost, fontSize:11, color:"#ff6b6b", borderColor:"#4a1a1a" }}
                         onClick={() => limparSeriacao(itemAtivo.chave)}>🗑 Limpar</button>
                     )}
                   </div>
@@ -1000,19 +1002,19 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                 })()}
 
                 <div style={{ display:"flex", gap:8, marginBottom:10, flexWrap:"wrap" }}>
-                  <button style={{ ...styles.btnPrimary, fontSize:12 }} onClick={gerarPreview}>
+                  <button style={{ ...s.btnPrimary, fontSize:12 }} onClick={gerarPreview}>
                     🔀 Gerar Seriação
                   </button>
                   {/* Botão "Gerar a partir da fase anterior" — só aparece para SEM e FIN com multi-fases */}
                   {itemAtivo?.faseAnterior && itemAtivo?.multiFases && (
                     <button
-                      style={{ ...styles.btnPrimary, fontSize:12, background:"#1a3a1a", borderColor:"#2a6a2a" }}
+                      style={{ ...s.btnPrimary, fontSize:12, background:"#1a3a1a", borderColor:"#2a6a2a" }}
                       onClick={gerarFromFaseAnterior}
                     >
                       ⬆️ Gerar a partir da {FASE_NOME[itemAtivo.faseAnterior]}
                     </button>
                   )}
-                  <button style={{ ...styles.btnGhost, fontSize:12 }}
+                  <button style={{ ...s.btnGhost, fontSize:12 }}
                     onClick={() => { setSeriacaoProvaId(null); setSeriacaoChaveAtiva(null); setSeriacaoPreview(null); }}>
                     Cancelar
                   </button>
@@ -1081,7 +1083,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                       ));
                     })()}
                     <div style={{ display:"flex", gap:8, alignItems:"center", marginTop:6 }}>
-                      <button style={{ ...styles.btnPrimary, fontSize:12 }} onClick={salvarSeriacao}>
+                      <button style={{ ...s.btnPrimary, fontSize:12 }} onClick={salvarSeriacao}>
                         💾 Salvar Seriação
                       </button>
                       <span style={{ fontSize:9, color:"#555" }}>RT 20.4.8 — Atleta não pode competir em série/raia diferente da designada</span>
@@ -1106,10 +1108,10 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                   </div>
                   <div style={{ display:"flex", gap:6 }}>
                     {itemAtivoRevez.jaSeriada && (
-                      <button style={{ ...styles.btnGhost, fontSize:11, color:"#ff6b6b", borderColor:"#4a1a1a" }}
+                      <button style={{ ...s.btnGhost, fontSize:11, color:"#ff6b6b", borderColor:"#4a1a1a" }}
                         onClick={() => limparSeriacao(itemAtivoRevez.chave)}>🗑 Limpar</button>
                     )}
-                    <button style={{ ...styles.btnGhost, fontSize:11 }}
+                    <button style={{ ...s.btnGhost, fontSize:11 }}
                       onClick={() => { setSeriacaoProvaId(null); setSeriacaoPreview(null); }}>✕</button>
                   </div>
                 </div>
@@ -1159,7 +1161,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                 </div>
 
                 <div style={{ display:"flex", gap:8, marginBottom:10 }}>
-                  <button style={{ ...styles.btnPrimary, fontSize:12 }} onClick={() => {
+                  <button style={{ ...s.btnPrimary, fontSize:12 }} onClick={() => {
                     // Gerar preview de seriação para revezamento
                     const seriesMap = {};
                     Object.entries(manualSeries).forEach(([eqId, cfg]) => {
@@ -1172,12 +1174,12 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                       numero: parseInt(num),
                       atletas: seriesMap[num].sort((a,b) => (a.raia || 99) - (b.raia || 99)),
                     }));
-                    const ordemSeries = seriesArr.map(s => s.numero);
+                    const ordemSeries = seriesArr.map(ser => ser.numero);
                     setSeriacaoPreview({ series: seriesArr, ordemSeries, modo: "manual", chave: itemAtivoRevez.chave, isRevez: true });
                   }}>
                     🔀 Gerar Seriação
                   </button>
-                  <button style={{ ...styles.btnGhost, fontSize:12 }}
+                  <button style={{ ...s.btnGhost, fontSize:12 }}
                     onClick={() => { setSeriacaoProvaId(null); setSeriacaoPreview(null); }}>
                     Cancelar
                   </button>
@@ -1217,7 +1219,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                         </table>
                       </div>
                     ))}
-                    <button style={{ ...styles.btnPrimary, fontSize:12, marginTop:6 }} onClick={salvarSeriacao}>
+                    <button style={{ ...s.btnPrimary, fontSize:12, marginTop:6 }} onClick={salvarSeriacao}>
                       💾 Salvar Seriação
                     </button>
                   </div>
@@ -1229,24 +1231,24 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
       })()}
 
       {/* Filtros */}
-      <div style={{ ...styles.filtros, background: "#0E1016", border: "1px solid #1E2130", borderRadius: 10, padding: "14px 18px", marginBottom: 20 }}>
+      <div style={{ ...s.filtros, background: "#0E1016", border: "1px solid #1E2130", borderRadius: 10, padding: "14px 18px", marginBottom: 20 }}>
         <div>
-          <label style={styles.label}>Categoria</label>
-          <select style={styles.select} value={filtroCat} onChange={(e) => { setFiltroCat(e.target.value); setFiltroProva("todas"); }}>
+          <label style={s.label}>Categoria</label>
+          <select style={s.select} value={filtroCat} onChange={(e) => { setFiltroCat(e.target.value); setFiltroProva("todas"); }}>
             <option value="todas">Todas</option>
             {categoriasDoPrograma.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
           </select>
         </div>
         <div>
-          <label style={styles.label}>Prova</label>
-          <select style={styles.select} value={filtroProva} onChange={(e) => setFiltroProva(e.target.value)}>
+          <label style={s.label}>Prova</label>
+          <select style={s.select} value={filtroProva} onChange={(e) => setFiltroProva(e.target.value)}>
             <option value="todas">Todas as provas</option>
             {nomesProvasUnicos.map((nome) => <option key={nome} value={nome}>{nome}</option>)}
           </select>
         </div>
         <div>
-          <label style={styles.label}>Sexo</label>
-          <select style={styles.select} value={filtroSexo} onChange={(e) => setFiltroSexo(e.target.value)}>
+          <label style={s.label}>Sexo</label>
+          <select style={s.select} value={filtroSexo} onChange={(e) => setFiltroSexo(e.target.value)}>
             <option value="todos">Todos</option>
             <option value="M">Masculino</option>
             <option value="F">Feminino</option>
@@ -1258,7 +1260,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
       {isAmplo && sumuFiltradas.length > 0 && (
         <div style={{ marginBottom: 16 }}>
           <button
-            style={{ ...styles.btnGhost, fontSize: 12, padding: "6px 14px", display: "flex", alignItems: "center", gap: 6 }}
+            style={{ ...s.btnGhost, fontSize: 12, padding: "6px 14px", display: "flex", alignItems: "center", gap: 6 }}
             onClick={() => setShowOrientConfig(!showOrientConfig)}
           >
             📐 Orientação das folhas {showOrientConfig ? "▲" : "▼"}
@@ -1267,33 +1269,33 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
             <div style={{ background: "#0E1016", border: "1px solid #1E2130", borderRadius: 10, padding: "14px 18px", marginTop: 8 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
                 <span style={{ color: "#888", fontSize: 12 }}>Ações em lote:</span>
-                <button style={{ ...styles.btnGhost, fontSize: 11, padding: "3px 10px" }} onClick={() => setTodas("portrait")}>
+                <button style={{ ...s.btnGhost, fontSize: 11, padding: "3px 10px" }} onClick={() => setTodas("portrait")}>
                   📄 Todas Retrato
                 </button>
-                <button style={{ ...styles.btnGhost, fontSize: 11, padding: "3px 10px" }} onClick={() => setTodas("landscape")}>
+                <button style={{ ...s.btnGhost, fontSize: 11, padding: "3px 10px" }} onClick={() => setTodas("landscape")}>
                   📄 Todas Paisagem
                 </button>
-                <button style={{ ...styles.linkBtn, fontSize: 11, color: "#888" }} onClick={resetOrient}>
+                <button style={{ ...s.linkBtn, fontSize: 11, color: "#888" }} onClick={resetOrient}>
                   ↺ Restaurar padrão
                 </button>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                {sumuFiltradas.map(s => {
-                  const orient = getOrient(s);
+                {sumuFiltradas.map(sum => {
+                  const orient = getOrient(sum);
                   const isLand = orient === "landscape";
                   return (
-                    <div key={sumuKey(s)} style={{
+                    <div key={sumuKey(sum)} style={{
                       display: "flex", alignItems: "center", gap: 10, padding: "6px 10px",
                       background: "#0a0b0f", borderRadius: 6, border: "1px solid #1a1d2a"
                     }}>
                       <span style={{ flex: 1, fontSize: 12, color: "#ccc" }}>
-                        <NomeProvaComImplemento nome={s.prova.nome} style={{ color: "#ccc" }} />
+                        <NomeProvaComImplemento nome={sum.prova.nome} style={{ color: "#ccc" }} />
                         <span style={{ color: "#666", marginLeft: 6, fontSize: 11 }}>
-                          {s.categoria.nome} · {s.sexo === "M" ? "Masc" : "Fem"}
+                          {sum.categoria.nome} · {sum.sexo === "M" ? "Masc" : "Fem"}
                         </span>
                       </span>
                       <button
-                        onClick={() => toggleOrient(s)}
+                        onClick={() => toggleOrient(sum)}
                         style={{
                           background: isLand ? "#1a2a1a" : "#1a1a2a",
                           border: `1px solid ${isLand ? "#4a8a2a" : "#4a4a8a"}`,
@@ -1315,7 +1317,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
       )}
 
       {sumuFiltradas.length === 0 ? (
-        <div style={styles.emptyState}>
+        <div style={s.emptyState}>
           <span style={{ fontSize: 48 }}>📋</span>
           <p>Nenhuma súmula encontrada. As inscrições vão gerar as súmulas automaticamente.</p>
         </div>
@@ -1340,8 +1342,8 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                     )}
                   </div>
                   <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap", marginTop:6 }}>
-                    <span style={styles.badgeGold}>{s.categoria.nome}</span>
-                    <span style={styles.badge(s.sexo === "M" ? "#1a6ef5" : "#e54f9b")}>
+                    <span style={s.badgeGold}>{s.categoria.nome}</span>
+                    <span style={s.badge(s.sexo === "M" ? "#1a6ef5" : "#e54f9b")}>
                       {s.sexo === "M" ? "Masculino" : "Feminino"}
                     </span>
                     <span style={{ color: "#aaa", fontSize: 13 }}>
@@ -1424,7 +1426,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                       {getOrient(s) === "landscape" ? "↔" : "↕"}
                     </button>
                     <button
-                      style={{ ...styles.btnGhost, fontSize: 12, padding: "6px 12px", whiteSpace: "nowrap" }}
+                      style={{ ...s.btnGhost, fontSize: 12, padding: "6px 12px", whiteSpace: "nowrap" }}
                       onClick={() => {
                       const orientMap = { [sumuKey(s)]: getOrient(s) };
                       const html = gerarHtmlImpressao([{ ...s, resultados: {} }], eventoAtual, atletas, {}, orientMap, numeracaoPeito[eventoAtual?.id] || {}, equipes, recordes);
@@ -1441,7 +1443,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
               </div>
               {s.isRevezamento ? (
                 /* ── REVEZAMENTO: tabela por equipe ── */
-                <table style={styles.table}>
+                <table style={s.table}>
                   <thead>
                     <tr>
                       <Th>#</Th><Th>Equipe</Th><Th>Atletas ({nPernasRevezamento(s.prova)})</Th>
@@ -1449,13 +1451,13 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                   </thead>
                   <tbody>
                     {(s.equipesRevez || []).map((eq, j) => (
-                      <tr key={`rev-${eq.equipeId || j}-${j}`} style={styles.tr}>
+                      <tr key={`rev-${eq.equipeId || j}-${j}`} style={s.tr}>
                         <Td>{j + 1}</Td>
                         <Td><strong style={{ color: "#1976D2" }}>{eq.nomeEquipe}{eq.sigla ? ` (${eq.sigla})` : ""}</strong></Td>
                         <Td>
                           {eq.atletas.length > 0
                             ? <span style={{ fontSize: 11, color: "#aaa" }}>{eq.atletas.map(a => a.nome).join(" · ")}</span>
-                            : <span style={{ fontSize: 11, color: "#ff6b6b" }}>⚠ Atletas não definidos — <button style={{ ...styles.linkBtn, fontSize: 11, color: "#1976D2" }} onClick={() => setTela("inscricao-revezamento")}>editar inscrição</button></span>
+                            : <span style={{ fontSize: 11, color: "#ff6b6b" }}>⚠ Atletas não definidos — <button style={{ ...s.linkBtn, fontSize: 11, color: "#1976D2" }} onClick={() => setTela("inscricao-revezamento")}>editar inscrição</button></span>
                           }
                         </Td>
                       </tr>
@@ -1463,7 +1465,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                   </tbody>
                 </table>
               ) : (
-              <table style={styles.table}>
+              <table style={s.table}>
                 <thead>
                   <tr>
                     <Th>#</Th><Th>Nº</Th><Th>Atleta</Th><Th>Nascimento</Th><Th>Clube/Equipe</Th>
@@ -1505,7 +1507,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                           const insc = s.inscs.find((ii) => ii.atletaId === a.id);
                           idx++;
                           return (
-                            <tr key={`${si}-${a.id}-${sai}`} style={styles.tr}>
+                            <tr key={`${si}-${a.id}-${sai}`} style={s.tr}>
                               <Td>{idx}</Td>
                               <Td><strong style={{ color:"#aaa", fontSize:12 }}>{(numeracaoPeito?.[eventoAtual?.id]||{})[a.id]||""}</strong></Td>
                               <Td><strong style={{ color: "#fff" }}>{a.nome}</strong></Td>
@@ -1515,12 +1517,12 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                               <Td><strong style={{ color:"#1a6ef5" }}>{sa.raia || "—"}</strong></Td>
                               <Td>
                                 {insc?.permissividade
-                                  ? <span style={styles.badgeOficial}>{insc.categoriaOficial}</span>
+                                  ? <span style={s.badgeOficial}>{insc.categoriaOficial}</span>
                                   : <span style={{ color: "#666", fontSize: 12 }}>—</span>}
                               </Td>
                               <Td>
                                 {insc?.permissividade
-                                  ? <span style={styles.badgeNorma} title={insc.permissividade}>⚖️ Exceção CBAt</span>
+                                  ? <span style={s.badgeNorma} title={insc.permissividade}>⚖️ Exceção CBAt</span>
                                   : <span style={{ color: "#555", fontSize: 12 }}>—</span>}
                               </Td>
                             </tr>
@@ -1536,7 +1538,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                     return atletasUnicos.map((a, j) => {
                       const insc = s.inscs.find((ii) => ii.atletaId === a.id);
                       return (
-                        <tr key={`std-${a.id}-${j}`} style={styles.tr}>
+                        <tr key={`std-${a.id}-${j}`} style={s.tr}>
                           <Td>{j + 1}</Td>
                           <Td><strong style={{ color:"#aaa", fontSize:12 }}>{(numeracaoPeito?.[eventoAtual?.id]||{})[a.id]||""}</strong></Td>
                           <Td><strong style={{ color: "#fff" }}>{a.nome}</strong></Td>
@@ -1544,12 +1546,12 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                           <Td>{getExibicaoEquipe(a, equipes) || "—"}</Td>
                           <Td>
                             {insc?.permissividade
-                              ? <span style={styles.badgeOficial}>{insc.categoriaOficial}</span>
+                              ? <span style={s.badgeOficial}>{insc.categoriaOficial}</span>
                               : <span style={{ color: "#666", fontSize: 12 }}>—</span>}
                           </Td>
                           <Td>
                             {insc?.permissividade
-                              ? <span style={styles.badgeNorma} title={insc.permissividade}>⚖️ Exceção CBAt</span>
+                              ? <span style={s.badgeNorma} title={insc.permissividade}>⚖️ Exceção CBAt</span>
                               : <span style={{ color: "#555", fontSize: 12 }}>—</span>}
                           </Td>
                         </tr>

@@ -3,6 +3,7 @@ import { todasAsProvas, getComposicaoCombinada } from "../../shared/athletics/pr
 import { CATEGORIAS, ESTADOS_BR, getCategoria } from "../../shared/constants/categorias";
 import FormField from "../ui/FormField";
 import { storage, storageRef, uploadBytes, getDownloadURL } from "../../firebase";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 // Faz upload da imagem para Firebase Storage e retorna a URL pública
 async function uploadLogo(file, eventoId, campo) {
@@ -270,19 +271,20 @@ function Acordeao({ keyName, titulo, icone, resumo, children, aberto, onToggle }
 
 function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtual, eventoAtualId, selecionarEvento, usuarioLogado, organizadores, recordes, equipes = [],
   cadEventoGoStep, setCadEventoGoStep, inscricoes = [], atletas = [] }) {
+  const s = useStylesResponsivos(styles);
   const editando = eventoAtual && eventoAtualId && true;
   const tipoEvt = usuarioLogado?.tipo;
   if (tipoEvt !== "admin" && tipoEvt !== "organizador" && tipoEvt !== "funcionario") return (
-    <div style={styles.page}><div style={styles.emptyState}>
+    <div style={s.page}><div style={s.emptyState}>
       <span style={{ fontSize: 48 }}>🚫</span>
       <p style={{ color: "#ff6b6b", fontWeight: 700 }}>Acesso não autorizado</p>
-      <button style={styles.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
+      <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
     </div></div>
   );
 
   // Bloqueio de edição se competição finalizada
   if (editando && eventoAtual.competicaoFinalizada) return (
-    <div style={styles.page}><div style={styles.emptyState}>
+    <div style={s.page}><div style={s.emptyState}>
       <span style={{ fontSize: 48 }}>🔒</span>
       <p style={{ color: "#ff6b6b", fontWeight: 700, fontSize: 18 }}>Competição Finalizada</p>
       <p style={{ color: "#888", fontSize: 14, maxWidth: 400, textAlign: "center", lineHeight: 1.6 }}>
@@ -292,7 +294,7 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
         Os dados estão <strong style={{ color: "#ff6b6b" }}>bloqueados para edição</strong>.
         Para desbloquear, solicite autorização a um <strong style={{ color: "#1976D2" }}>administrador</strong>.
       </p>
-      <button style={styles.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar à Competição</button>
+      <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar à Competição</button>
     </div></div>
   );
 
@@ -435,10 +437,10 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
   })();
 
   return (
-    <div style={styles.page}>
-      <div style={styles.painelHeader}>
+    <div style={s.page}>
+      <div style={s.painelHeader}>
         <div>
-          <h1 style={styles.pageTitle}>{editando ? "✏️ Editar Competição" : "🏟 Nova Competição"}</h1>
+          <h1 style={s.pageTitle}>{editando ? "✏️ Editar Competição" : "🏟 Nova Competição"}</h1>
           <p style={{ color: "#666", fontSize: 14 }}>
             {step === 1 ? `Passo 1 de ${totalSteps} — Dados da competição`
               : step === 2 ? `Passo 2 de ${totalSteps} — Configurações`
@@ -446,19 +448,19 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
               : `Passo 4 de ${totalSteps} — Programa horário`}
           </p>
         </div>
-        <button style={styles.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
+        <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
       </div>
 
       {/* ── Barra de steps ── */}
-      <div style={styles.stepBar}>
-        <div style={styles.stepItem(step >= 1)}>① Dados</div>
-        <div style={styles.stepDivider} />
-        <div style={styles.stepItem(step >= 2)}>② Config</div>
-        <div style={styles.stepDivider} />
-        <div style={styles.stepItem(step >= 3)}>③ Provas</div>
+      <div style={s.stepBar}>
+        <div style={s.stepItem(step >= 1)}>① Dados</div>
+        <div style={s.stepDivider} />
+        <div style={s.stepItem(step >= 2)}>② Config</div>
+        <div style={s.stepDivider} />
+        <div style={s.stepItem(step >= 3)}>③ Provas</div>
         {editando && <>
-          <div style={styles.stepDivider} />
-          <div style={styles.stepItem(step >= 4)}>④ Horários</div>
+          <div style={s.stepDivider} />
+          <div style={s.stepItem(step >= 4)}>④ Horários</div>
         </>}
       </div>
 
@@ -467,18 +469,18 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
       ══════════════════════════════════════════════════════════════════ */}
       {step === 1 && (
         <>
-          <div style={styles.formCard}>
+          <div style={s.formCard}>
             {/* Nome */}
             <div style={{ gridColumn: "1 / -1" }}>
               <FormField label="Nome da Competição *" value={form.nome} onChange={(v) => setForm({ ...form, nome: v })} placeholder="Ex: Competição Estadual de Atletismo 2025" error={erros.nome} />
             </div>
 
             {/* Data + Hora */}
-            <div style={styles.grid2form}>
+            <div style={s.grid2form}>
               <FormField label="Data *" value={form.data} onChange={(v) => setForm({ ...form, data: v })} type="date" error={erros.data} />
               <div style={{ width:130 }}>
-                <label style={styles.label}>Hora de Início</label>
-                <input type="time" style={styles.input} value={form.horaInicio || ""}
+                <label style={s.label}>Hora de Início</label>
+                <input type="time" style={s.input} value={form.horaInicio || ""}
                   onChange={(e) => setForm({ ...form, horaInicio: e.target.value })} />
               </div>
             </div>
@@ -492,8 +494,8 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
                 <FormField label="Cidade *" value={form.cidade || ""} onChange={(v) => setForm({ ...form, cidade: v })} placeholder="Ex: Belo Horizonte" error={erros.cidade} />
               </div>
               <div style={{ width:100 }}>
-                <label style={styles.label}>UF *</label>
-                <select style={{ ...styles.select, ...(erros.uf ? { border:"1px solid #e57373" } : {}) }}
+                <label style={s.label}>UF *</label>
+                <select style={{ ...s.select, ...(erros.uf ? { border:"1px solid #e57373" } : {}) }}
                   value={form.uf || ""} onChange={(e) => setForm({ ...form, uf: e.target.value })}>
                   <option value="">—</option>
                   {ESTADOS_BR.map(uf => <option key={uf} value={uf}>{uf}</option>)}
@@ -505,8 +507,8 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
             {/* Organizador vinculado */}
             {(tipoEvt === "admin" || tipoEvt === "funcionario") && (
               <div style={{ marginTop: 8 }}>
-                <label style={styles.label}>Organizador Responsável *</label>
-                <select style={styles.select} value={form.organizadorId || ""}
+                <label style={s.label}>Organizador Responsável *</label>
+                <select style={s.select} value={form.organizadorId || ""}
                   onChange={(e) => setForm({ ...form, organizadorId: e.target.value })}>
                   <option value="">— Selecione o organizador —</option>
                   {(organizadores || []).map(function(org) {
@@ -566,7 +568,7 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
           {/* ── Período de Inscrições ── */}
           <div style={{ background:"#0a0a1a", border:"1px solid #1a2a3a", borderRadius:10, padding:"16px 20px", marginBottom:16 }}>
             <div style={{ color:"#1976D2", fontWeight:700, fontSize:14, marginBottom:12 }}>📅 Período de Inscrições</div>
-            <div style={styles.grid2form}>
+            <div style={s.grid2form}>
               <div>
                 <FormField label="Abertura das Inscrições" value={form.dataAberturaInscricoes || ""} onChange={(v) => setForm({ ...form, dataAberturaInscricoes: v })} type="date" />
                 <FormField label="Hora de Abertura" value={form.horaAberturaInscricoes || ""} onChange={(v) => setForm({ ...form, horaAberturaInscricoes: v })} type="time" placeholder="HH:MM (opcional)" />
@@ -595,7 +597,7 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
             </p>
           </div>
 
-          <button style={{ ...styles.btnPrimary, marginTop: 8 }} onClick={() => { if (validarStep1()) setStep(2); }}>
+          <button style={{ ...s.btnPrimary, marginTop: 8 }} onClick={() => { if (validarStep1()) setStep(2); }}>
             Próximo: Configurações →
           </button>
         </>
@@ -686,15 +688,15 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
             </p>
             <div style={{ display:"flex", gap:16, flexWrap:"wrap" }}>
               <div style={{ flex:1, minWidth:180 }}>
-                <label style={styles.label}>Máx. provas individuais por atleta</label>
-                <input type="number" min="0" max="30" style={{ ...styles.input, width:"100%" }}
+                <label style={s.label}>Máx. provas individuais por atleta</label>
+                <input type="number" min="0" max="30" style={{ ...s.input, width:"100%" }}
                   value={form.limiteProvasIndividual || 0}
                   onChange={(e) => setForm({ ...form, limiteProvasIndividual: parseInt(e.target.value) || 0 })} />
                 <p style={{ fontSize:11, color:"#555", marginTop:4 }}>0 = sem limite</p>
               </div>
               <div style={{ flex:1, minWidth:180 }}>
-                <label style={styles.label}>Máx. revezamentos por atleta</label>
-                <input type="number" min="0" max="10" style={{ ...styles.input, width:"100%" }}
+                <label style={s.label}>Máx. revezamentos por atleta</label>
+                <input type="number" min="0" max="10" style={{ ...s.input, width:"100%" }}
                   value={form.limiteProvasRevezamento || 0}
                   onChange={(e) => setForm({ ...form, limiteProvasRevezamento: parseInt(e.target.value) || 0 })} />
                 <p style={{ fontSize:11, color:"#555", marginTop:4 }}>0 = sem limite</p>
@@ -761,7 +763,7 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
                         <div key={cat.id}>
                           <label style={{ fontSize:11, color:"#888", display:"block", marginBottom:3 }}>{cat.nome}</label>
                           <input type="number" min="0" max="30"
-                            style={{ ...styles.input, width:"100%", padding:"6px 10px", marginBottom:0 }}
+                            style={{ ...s.input, width:"100%", padding:"6px 10px", marginBottom:0 }}
                             value={(form.limitesProvasCat || {})[cat.id] ?? ""}
                             placeholder={String(form.limiteProvasIndividual)}
                             onChange={e => {
@@ -827,8 +829,8 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
               <div key={idx} style={{ background:"#0d0e16", border:"1px solid #1e2a3a", borderRadius:8, padding:"14px 16px", marginBottom:10 }}>
                 <div style={{ display:"flex", gap:10, alignItems:"flex-end", flexWrap:"wrap" }}>
                   <div style={{ minWidth:140 }}>
-                    <label style={styles.label}>Categoria</label>
-                    <select style={{ ...styles.select, marginBottom:0 }}
+                    <label style={s.label}>Categoria</label>
+                    <select style={{ ...s.select, marginBottom:0 }}
                       value={regra.catId}
                       onChange={e => setForm(f => ({
                         ...f,
@@ -839,9 +841,9 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
                     </select>
                   </div>
                   <div style={{ flex:1, minWidth:130 }}>
-                    <label style={styles.label}>Atleta federado (R$)</label>
+                    <label style={s.label}>Atleta federado (R$)</label>
                     <input type="number" min="0" step="0.01"
-                      style={{ ...styles.input, marginBottom:0 }}
+                      style={{ ...s.input, marginBottom:0 }}
                       placeholder="Ex: 45.00"
                       value={regra.precoComEquipe ?? ""}
                       onChange={e => setForm(f => ({
@@ -852,9 +854,9 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
                       }))} />
                   </div>
                   <div style={{ flex:1, minWidth:130 }}>
-                    <label style={styles.label}>Atleta não federado (R$)</label>
+                    <label style={s.label}>Atleta não federado (R$)</label>
                     <input type="number" min="0" step="0.01"
-                      style={{ ...styles.input, marginBottom:0 }}
+                      style={{ ...s.input, marginBottom:0 }}
                       placeholder="Ex: 65.00"
                       value={regra.precoSemEquipe ?? ""}
                       onChange={e => setForm(f => ({
@@ -873,7 +875,7 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
               </div>
             ))}
             <button
-              style={{ ...styles.btnGhost, fontSize:12, marginTop:4 }}
+              style={{ ...s.btnGhost, fontSize:12, marginTop:4 }}
               onClick={() => setForm(f => ({
                 ...f,
                 regrasPreco: [...(f.regrasPreco || []), { catId: "", precoComEquipe: null, precoSemEquipe: null }]
@@ -911,8 +913,8 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
               </div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:16 }}>
                 <div>
-                  <label style={styles.label}>Valor Global por Atleta (R$)</label>
-                  <input type="number" min="0" step="0.01" style={styles.input}
+                  <label style={s.label}>Valor Global por Atleta (R$)</label>
+                  <input type="number" min="0" step="0.01" style={s.input}
                     placeholder="Ex: 50.00 — deixe em branco se usar regras por categoria"
                     value={form.valorInscricao ?? ""}
                     onChange={e => setForm(f => ({ ...f, valorInscricao: e.target.value === "" ? "" : parseFloat(e.target.value) }))}
@@ -922,8 +924,8 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
                   </div>
                 </div>
                 <div>
-                  <label style={styles.label}>Forma de Pagamento</label>
-                  <select style={styles.select} value={form.formaPagamento || ""} onChange={e => setForm(f => ({ ...f, formaPagamento: e.target.value }))}>
+                  <label style={s.label}>Forma de Pagamento</label>
+                  <select style={s.select} value={form.formaPagamento || ""} onChange={e => setForm(f => ({ ...f, formaPagamento: e.target.value }))}>
                     <option value="">— Não informar —</option>
                     <option value="Pix">Pix</option>
                     <option value="Boleto">Boleto</option>
@@ -936,9 +938,9 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
                 </div>
               </div>
               <div>
-                <label style={styles.label}>Orientações de Pagamento</label>
+                <label style={s.label}>Orientações de Pagamento</label>
                 <textarea
-                  style={{ ...styles.input, minHeight:90, resize:"vertical" }}
+                  style={{ ...s.input, minHeight:90, resize:"vertical" }}
                   placeholder={"Ex: Pix: 11999999999 (João Silva)\nEnvie o comprovante para atletismo@email.com\nPrazo: até 3 dias antes da competição"}
                   value={form.orientacaoPagamento || ""}
                   onChange={e => setForm(f => ({ ...f, orientacaoPagamento: e.target.value }))}
@@ -1139,8 +1141,8 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
 
           {/* ── Navegação Step 2 ── */}
           <div style={{ display:"flex", gap:12, marginTop:8 }}>
-            <button style={styles.btnGhost} onClick={() => setStep(1)}>← Voltar</button>
-            <button style={styles.btnPrimary} onClick={() => setStep(3)}>
+            <button style={s.btnGhost} onClick={() => setStep(1)}>← Voltar</button>
+            <button style={s.btnPrimary} onClick={() => setStep(3)}>
               Próximo: Programa de Provas →
             </button>
           </div>
@@ -1219,14 +1221,14 @@ function FiltroProvasStep({ todasProvas, form, setForm, toggleProva, toggleGrupo
   return (
     <div>
       {/* ── Barra de filtros ── */}
-      <div style={styles.filtroProvasBar}>
+      <div style={s.filtroProvasBar}>
         {/* Sexo */}
-        <div style={styles.filtroProvasBloco}>
-          <div style={styles.filtroProvasLabel}>Sexo</div>
-          <div style={styles.filtroProvasPills}>
+        <div style={s.filtroProvasBloco}>
+          <div style={s.filtroProvasLabel}>Sexo</div>
+          <div style={s.filtroProvasPills}>
             {[["todos", "Ambos"], ["M", "Masculino"], ["F", "Feminino"]].map(([v, l]) => (
               <button key={v}
-                style={{ ...styles.filtroPill, ...(filtroSexo === v ? styles.filtroPillAtivo : {}) }}
+                style={{ ...s.filtroPill, ...(filtroSexo === v ? s.filtroPillAtivo : {}) }}
                 onClick={() => setFiltroSexo(v)}>
                 {l}
               </button>
@@ -1235,17 +1237,17 @@ function FiltroProvasStep({ todasProvas, form, setForm, toggleProva, toggleGrupo
         </div>
 
         {/* Categorias */}
-        <div style={styles.filtroProvasBloco}>
-          <div style={styles.filtroProvasLabel}>
+        <div style={s.filtroProvasBloco}>
+          <div style={s.filtroProvasLabel}>
             Categoria
             {filtroCats.length > 0 && (
-              <button style={styles.filtroClearBtn} onClick={() => setFiltroCats([])}>limpar</button>
+              <button style={s.filtroClearBtn} onClick={() => setFiltroCats([])}>limpar</button>
             )}
           </div>
-          <div style={styles.filtroProvasPills}>
+          <div style={s.filtroProvasPills}>
             {CATEGORIAS.map((c) => (
               <button key={c.id}
-                style={{ ...styles.filtroPill, ...(filtroCats.includes(c.id) ? styles.filtroPillAtivo : {}) }}
+                style={{ ...s.filtroPill, ...(filtroCats.includes(c.id) ? s.filtroPillAtivo : {}) }}
                 onClick={() => toggleFiltroCat(c.id)}>
                 {c.nome}
               </button>
@@ -1255,7 +1257,7 @@ function FiltroProvasStep({ todasProvas, form, setForm, toggleProva, toggleGrupo
       </div>
 
       {/* ── Cabeçalho contagem + ações ── */}
-      <div style={styles.formCard}>
+      <div style={s.formCard}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 12 }}>
           <div>
             <div style={{ fontWeight: 700, color: "#fff", marginBottom: 2 }}>Provas do programa</div>
@@ -1269,17 +1271,17 @@ function FiltroProvasStep({ todasProvas, form, setForm, toggleProva, toggleGrupo
             </div>
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button style={styles.btnGhost} onClick={selecionarVisiveis} title="Seleciona as provas visíveis com os filtros atuais">
+            <button style={s.btnGhost} onClick={selecionarVisiveis} title="Seleciona as provas visíveis com os filtros atuais">
               ✓ Todas visíveis
             </button>
-            <button style={styles.btnGhost} onClick={limparVisiveis} title="Desmarca as provas visíveis com os filtros atuais">
+            <button style={s.btnGhost} onClick={limparVisiveis} title="Desmarca as provas visíveis com os filtros atuais">
               ✗ Limpar visíveis
             </button>
-            <button style={{ ...styles.btnGhost, color: "#1976D2", borderColor: "#1976D233" }}
+            <button style={{ ...s.btnGhost, color: "#1976D2", borderColor: "#1976D233" }}
               onClick={() => setForm((f) => ({ ...f, provasPrograma: todasProvas.map((p) => p.id) }))}>
               Todas
             </button>
-            <button style={styles.btnGhost}
+            <button style={s.btnGhost}
               onClick={() => setForm((f) => ({ ...f, provasPrograma: [] }))}>
               Nenhuma
             </button>
@@ -1296,8 +1298,8 @@ function FiltroProvasStep({ todasProvas, form, setForm, toggleProva, toggleGrupo
             const todasSel = provasGrupo.every((p) => form.provasPrograma.includes(p.id));
             const algumaSel = provasGrupo.some((p) => form.provasPrograma.includes(p.id));
             return (
-              <div key={grupo} style={styles.grupoProvasBox}>
-                <div style={styles.grupoProvasHeader}>
+              <div key={grupo} style={s.grupoProvasBox}>
+                <div style={s.grupoProvasHeader}>
                   <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
                     <input type="checkbox" checked={todasSel}
                       ref={(el) => { if (el) el.indeterminate = algumaSel && !todasSel; }}
@@ -1311,12 +1313,12 @@ function FiltroProvasStep({ todasProvas, form, setForm, toggleProva, toggleGrupo
                     {provasGrupo.filter((p) => form.provasPrograma.includes(p.id)).length}/{provasGrupo.length}
                   </span>
                 </div>
-                <div style={styles.provaGrid}>
+                <div style={s.provaGrid}>
                   {provasGrupo.map((p) => {
                     const sel = form.provasPrograma.includes(p.id);
                     const catNome = CATEGORIAS.find((c) => p.id.includes(`_${c.id}_`) || p.id.endsWith(`_${c.id}`))?.nome || "";
                     return (
-                      <label key={p.id} style={{ ...styles.provaCheckBtn, ...(sel ? styles.provaCheckBtnSel : {}) }}>
+                      <label key={p.id} style={{ ...s.provaCheckBtn, ...(sel ? s.provaCheckBtnSel : {}) }}>
                         <input type="checkbox" checked={sel} onChange={() => toggleProva(p.id)} style={{ display: "none" }} />
                         {sel ? "✓ " : ""}{p.nome}
                         <span style={{ fontSize: 10, color: sel ? "#1976D288" : "#444", display: "block" }}>
@@ -1361,13 +1363,13 @@ function FiltroProvasStep({ todasProvas, form, setForm, toggleProva, toggleGrupo
       )}
 
       <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
-        <button style={styles.btnGhost} onClick={() => setStep(2)}>← Voltar</button>
+        <button style={s.btnGhost} onClick={() => setStep(2)}>← Voltar</button>
         {editando ? (
-          <button style={styles.btnPrimary} onClick={() => setStep(4)} disabled={form.provasPrograma.length === 0}>
+          <button style={s.btnPrimary} onClick={() => setStep(4)} disabled={form.provasPrograma.length === 0}>
             Próximo: Programa Horário →
           </button>
         ) : (
-          <button style={styles.btnPrimary} onClick={handleSalvar} disabled={form.provasPrograma.length === 0}>
+          <button style={s.btnPrimary} onClick={handleSalvar} disabled={form.provasPrograma.length === 0}>
             ✅ Criar Competição
           </button>
         )}
@@ -1696,7 +1698,7 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
   };
 
   return (
-    <div style={styles.formCard}>
+    <div style={s.formCard}>
       <div style={{ marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
           <div style={{ color: "#1976D2", fontWeight: 700, fontSize: 15 }}>🕐 Programa Horário</div>
@@ -1965,8 +1967,8 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
       </div>
 
       <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
-        <button style={styles.btnGhost} onClick={() => setStep(3)}>← Voltar</button>
-        <button style={styles.btnPrimary} onClick={handleSalvar}>
+        <button style={s.btnGhost} onClick={() => setStep(3)}>← Voltar</button>
+        <button style={s.btnPrimary} onClick={handleSalvar}>
           {editando ? "💾 Salvar Alterações" : "✅ Criar Competição"}
         </button>
       </div>

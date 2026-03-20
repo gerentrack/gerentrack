@@ -4,6 +4,7 @@ import { CATEGORIAS, getCategoria } from "../../shared/constants/categorias";
 import { resKey, getFasesProva, FASE_ORDEM } from "../../shared/constants/fases";
 import { abreviarProva } from "../../shared/formatters/utils";
 import { useMedalhasChamada } from "../../hooks/useMedalhasChamada";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 const STATUS_CHAMADA = {
@@ -57,6 +58,7 @@ const styles = {
 
 // ── Componente principal ──────────────────────────────────────────────────────
 function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados, usuarioLogado }) {
+  const s = useStylesResponsivos(styles);
   const [aba, setAba] = useState("chamada");
   const [filtroProva, setFiltroProva] = useState("");
   const [limiteParticipacao, setLimiteParticipacao] = useState(1);
@@ -248,48 +250,48 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
   }, [provasComAtletas, getPresenca]);
 
   if (!eventoAtual) return (
-    <div style={styles.page}>
-      <div style={styles.empty}>Nenhum evento selecionado.</div>
+    <div style={s.page}>
+      <div style={s.empty}>Nenhum evento selecionado.</div>
     </div>
   );
 
   return (
-    <div style={styles.page}>
+    <div style={s.page}>
       {/* Header */}
-      <div style={styles.header}>
+      <div style={s.header}>
         <div>
-          <h1 style={styles.title}>📋 SECRETARIA</h1>
-          <div style={styles.sub}>{eventoAtual.nome}</div>
+          <h1 style={s.title}>📋 SECRETARIA</h1>
+          <div style={s.sub}>{eventoAtual.nome}</div>
         </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <select
             value={filtroProva}
             onChange={e => setFiltroProva(e.target.value)}
-            style={styles.selectEvento}
+            style={s.selectEvento}
           >
             <option value="">Todas as provas</option>
             {provasUnicas.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
           </select>
-          <button style={styles.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
+          <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
         </div>
       </div>
 
       {/* Tabs */}
-      <div style={styles.tabs}>
+      <div style={s.tabs}>
         <button
-          style={{ ...styles.tab, ...(aba === "chamada" ? styles.tabActive : {}) }}
+          style={{ ...s.tab, ...(aba === "chamada" ? s.tabActive : {}) }}
           onClick={() => setAba("chamada")}
         >
           📋 CÂMARA DE CHAMADA
         </button>
         <button
-          style={{ ...styles.tab, ...(aba === "medalhas" ? styles.tabActive : {}) }}
+          style={{ ...s.tab, ...(aba === "medalhas" ? s.tabActive : {}) }}
           onClick={() => setAba("medalhas")}
         >
           🏅 MEDALHAS
         </button>
         <button
-          style={{ ...styles.tab, ...(aba === "relatorio" ? styles.tabActive : {}) }}
+          style={{ ...s.tab, ...(aba === "relatorio" ? s.tabActive : {}) }}
           onClick={() => setAba("relatorio")}
         >
           📊 RELATÓRIO
@@ -306,16 +308,16 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
               { label: "Ausente", valor: statsPresenca.ausente, cor: "#ff6b6b" },
               { label: "Presente", valor: statsPresenca.presente, cor: "#1976D2" },
               { label: "Confirmado", valor: statsPresenca.confirmado, cor: "#7acc44" },
-            ].map(s => (
-              <div key={s.label} style={{ background: "#0E1016", border: `1px solid ${s.cor}33`, borderRadius: 10, padding: "12px 20px", textAlign: "center", minWidth: 90 }}>
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 28, fontWeight: 900, color: s.cor }}>{s.valor}</div>
-                <div style={{ fontSize: 11, color: "#555", letterSpacing: 1, textTransform: "uppercase" }}>{s.label}</div>
+            ].map(stat => (
+              <div key={stat.label} style={{ background: "#0E1016", border: `1px solid ${stat.cor}33`, borderRadius: 10, padding: "12px 20px", textAlign: "center", minWidth: 90 }}>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 28, fontWeight: 900, color: stat.cor }}>{stat.valor}</div>
+                <div style={{ fontSize: 11, color: "#555", letterSpacing: 1, textTransform: "uppercase" }}>{stat.label}</div>
               </div>
             ))}
           </div>
 
           {provasFiltradas.length === 0 && (
-            <div style={styles.empty}>Nenhuma prova com atletas inscritos.</div>
+            <div style={s.empty}>Nenhuma prova com atletas inscritos.</div>
           )}
 
           {provasFiltradas.map(({ prova, cat, sexo, atletas: atls, horario }) => {
@@ -324,26 +326,26 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
             const nPresentes   = Object.values(presencaProva).filter(v => v === "presente").length;
 
             return (
-              <div key={`${prova.id}_${cat.id}_${sexo}`} style={styles.card}>
-                <div style={styles.cardHead}>
+              <div key={`${prova.id}_${cat.id}_${sexo}`} style={s.card}>
+                <div style={s.cardHead}>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    {horario && <span style={styles.horario}>{horario}</span>}
-                    <span style={styles.cardTitle}>{prova.nome}</span>
-                    <span style={styles.badge("#1976D2")}>{cat.nome}</span>
-                    <span style={styles.badge(sexo === "M" ? "#1976D2" : "#e54f9b")}>{sexo === "M" ? "Masc" : "Fem"}</span>
+                    {horario && <span style={s.horario}>{horario}</span>}
+                    <span style={s.cardTitle}>{prova.nome}</span>
+                    <span style={s.badge("#1976D2")}>{cat.nome}</span>
+                    <span style={s.badge(sexo === "M" ? "#1976D2" : "#e54f9b")}>{sexo === "M" ? "Masc" : "Fem"}</span>
                   </div>
-                  <div style={styles.cardMeta}>
-                    <span style={styles.pill("#7acc44", "#061206")}>{nConfirmados} confirmado(s)</span>
-                    <span style={styles.pill("#1976D2", "#0a1220")}>{nPresentes} presente(s)</span>
+                  <div style={s.cardMeta}>
+                    <span style={s.pill("#7acc44", "#061206")}>{nConfirmados} confirmado(s)</span>
+                    <span style={s.pill("#1976D2", "#0a1220")}>{nPresentes} presente(s)</span>
                     <span style={{ color: "#555", fontSize: 12 }}>{atls.length} atleta(s)</span>
                   </div>
                 </div>
-                <table style={styles.table}>
+                <table style={s.table}>
                   <thead>
                     <tr>
-                      <th style={styles.th}>Atleta</th>
-                      <th style={styles.th}>Clube / Equipe</th>
-                      <th style={{ ...styles.th, textAlign: "center", width: 160 }}>Status</th>
+                      <th style={s.th}>Atleta</th>
+                      <th style={s.th}>Clube / Equipe</th>
+                      <th style={{ ...s.th, textAlign: "center", width: 160 }}>Status</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -352,13 +354,13 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                       const conf = STATUS_CHAMADA[estado] || STATUS_CHAMADA.ausente;
                       return (
                         <tr key={`${prova.id}_${cat.id}_${sexo}_${atl.id}`} style={{ background: conf.bg }}>
-                          <td style={styles.td}>
-                            <span style={styles.nomeAtleta}>{atl.nome}</span>
+                          <td style={s.td}>
+                            <span style={s.nomeAtleta}>{atl.nome}</span>
                           </td>
-                          <td style={{ ...styles.td, color: "#555", fontSize: 12 }}>{atl.clube || "—"}</td>
-                          <td style={{ ...styles.td, textAlign: "center" }}>
+                          <td style={{ ...s.td, color: "#555", fontSize: 12 }}>{atl.clube || "—"}</td>
+                          <td style={{ ...s.td, textAlign: "center" }}>
                             <button
-                              style={styles.btn(conf.cor, conf.bg)}
+                              style={s.btn(conf.cor, conf.bg)}
                               onClick={() => atualizarPresenca(prova.id, cat.id, sexo, atl.id, conf.next)}
                             >
                               {conf.label} →
@@ -418,7 +420,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
           </div>
 
           {provasFiltradasMedalhas.length === 0 && (
-            <div style={styles.empty}>Nenhuma prova com atletas inscritos.</div>
+            <div style={s.empty}>Nenhuma prova com atletas inscritos.</div>
           )}
 
           {provasFiltradasMedalhas.map(({ prova, cat, sexo, atletas: atls, horario }) => {
@@ -444,29 +446,29 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
             ).length;
 
             return (
-              <div key={`${prova.id}_${cat.id}_${sexo}`} style={styles.card}>
-                <div style={styles.cardHead}>
+              <div key={`${prova.id}_${cat.id}_${sexo}`} style={s.card}>
+                <div style={s.cardHead}>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    {horario && <span style={styles.horario}>{horario}</span>}
-                    <span style={styles.cardTitle}>{prova.nome}</span>
-                    <span style={styles.badge("#1976D2")}>{cat.nome}</span>
-                    <span style={styles.badge(sexo === "M" ? "#1976D2" : "#e54f9b")}>{sexo === "M" ? "Masc" : "Fem"}</span>
+                    {horario && <span style={s.horario}>{horario}</span>}
+                    <span style={s.cardTitle}>{prova.nome}</span>
+                    <span style={s.badge("#1976D2")}>{cat.nome}</span>
+                    <span style={s.badge(sexo === "M" ? "#1976D2" : "#e54f9b")}>{sexo === "M" ? "Masc" : "Fem"}</span>
                   </div>
-                  <div style={styles.cardMeta}>
+                  <div style={s.cardMeta}>
                     {!temResultados && (
-                      <span style={styles.pill("#888", "#1a1a1a")}>⏳ Aguardando resultados</span>
+                      <span style={s.pill("#888", "#1a1a1a")}>⏳ Aguardando resultados</span>
                     )}
-                    <span style={styles.pill("#7acc44", "#061206")}>{entregues}/{atls.length} entregues</span>
+                    <span style={s.pill("#7acc44", "#061206")}>{entregues}/{atls.length} entregues</span>
                   </div>
                 </div>
-                <table style={styles.table}>
+                <table style={s.table}>
                   <thead>
                     <tr>
-                      <th style={{ ...styles.th, width: 44, textAlign: "center" }}>Pos.</th>
-                      <th style={styles.th}>Atleta</th>
-                      <th style={styles.th}>Clube / Equipe</th>
-                      <th style={{ ...styles.th, textAlign: "center", width: 120 }}>Medalha</th>
-                      <th style={{ ...styles.th, textAlign: "center", width: 180 }}>Entrega</th>
+                      <th style={{ ...s.th, width: 44, textAlign: "center" }}>Pos.</th>
+                      <th style={s.th}>Atleta</th>
+                      <th style={s.th}>Clube / Equipe</th>
+                      <th style={{ ...s.th, textAlign: "center", width: 120 }}>Medalha</th>
+                      <th style={{ ...s.th, textAlign: "center", width: 180 }}>Entrega</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -491,51 +493,51 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
 
                       return (
                         <tr key={`${prova.id}_${cat.id}_${sexo}_${atl.id}`} style={{ background: conf ? conf.bg : undefined }}>
-                          <td style={{ ...styles.td, textAlign: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 18, color: conf ? conf.cor : "#444" }}>
+                          <td style={{ ...s.td, textAlign: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 18, color: conf ? conf.cor : "#444" }}>
                             {posicao ? `${posicao}º` : "—"}
                           </td>
-                          <td style={styles.td}>
-                            <span style={styles.nomeAtleta}>{atl.nome}</span>
+                          <td style={s.td}>
+                            <span style={s.nomeAtleta}>{atl.nome}</span>
                           </td>
-                          <td style={{ ...styles.td, color: "#555", fontSize: 12 }}>{atl.clube || "—"}</td>
-                          <td style={{ ...styles.td, textAlign: "center" }}>
+                          <td style={{ ...s.td, color: "#555", fontSize: 12 }}>{atl.clube || "—"}</td>
+                          <td style={{ ...s.td, textAlign: "center" }}>
                             {conf ? (
-                              <span style={styles.pill(conf.cor, conf.bg)}>
+                              <span style={s.pill(conf.cor, conf.bg)}>
                                 {conf.emoji} {conf.label}
                               </span>
                             ) : (
                               <span style={{ color: "#333", fontSize: 12 }}>—</span>
                             )}
                           </td>
-                          <td style={{ ...styles.td, textAlign: "center" }}>
+                          <td style={{ ...s.td, textAlign: "center" }}>
                             {tipo ? (
                               <div style={{ display: "flex", flexDirection: "column", gap: 3, alignItems: "center" }}>
                                 {classificacaoBloqueio ? (
-                                  <button style={styles.btnDisabled} disabled>
+                                  <button style={s.btnDisabled} disabled>
                                     🏅 Tem classificação
                                   </button>
                                 ) : bloqueadoPorPendentes ? (
                                   <>
-                                    <button style={styles.btnDisabled} disabled>
+                                    <button style={s.btnDisabled} disabled>
                                       ⏳ Provas pendentes
                                     </button>
-                                    <span style={styles.entregueInfo}>
+                                    <span style={s.entregueInfo}>
                                       {pendentes.slice(0, 2).join(", ")}{pendentes.length > 2 ? ` +${pendentes.length - 2}` : ""}
                                     </span>
                                   </>
                                 ) : jaAtigindoLimite ? (
                                   <>
-                                    <button style={styles.btnDisabled} disabled>
+                                    <button style={s.btnDisabled} disabled>
                                       🚫 Limite atingido
                                     </button>
-                                    <span style={styles.entregueInfo}>
+                                    <span style={s.entregueInfo}>
                                       {participacoesEntregues.length} de {limiteParticipacao} entregues
                                     </span>
                                   </>
                                 ) : (
                                   <button
                                     style={{
-                                      ...styles.btn(
+                                      ...s.btn(
                                         medalha.entregue ? "#7acc44" : "#888",
                                         medalha.entregue ? "#061206" : "#141720"
                                       ),
@@ -552,10 +554,10 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                                 {medalha.entregue && (
                                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
                                     {medalha.entregueByNome && (
-                                      <span style={styles.entregue}>por {medalha.entregueByNome}</span>
+                                      <span style={s.entregue}>por {medalha.entregueByNome}</span>
                                     )}
                                     {medalha.entregueEm && (
-                                      <span style={styles.entregueInfo}>{fmtDataHora(medalha.entregueEm)}</span>
+                                      <span style={s.entregueInfo}>{fmtDataHora(medalha.entregueEm)}</span>
                                     )}
                                   </div>
                                 )}
@@ -641,19 +643,19 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
 
             {/* Tabela por equipe */}
             {Object.keys(porEquipe).length > 0 && (
-              <div style={styles.card}>
-                <div style={styles.cardHead}>
-                  <span style={styles.cardTitle}>Medalhas por Equipe / Clube</span>
+              <div style={s.card}>
+                <div style={s.cardHead}>
+                  <span style={s.cardTitle}>Medalhas por Equipe / Clube</span>
                 </div>
-                <table style={styles.table}>
+                <table style={s.table}>
                   <thead>
                     <tr>
-                      <th style={styles.th}>Equipe / Clube</th>
-                      <th style={{ ...styles.th, textAlign: "center", width: 80 }}>🥇</th>
-                      <th style={{ ...styles.th, textAlign: "center", width: 80 }}>🥈</th>
-                      <th style={{ ...styles.th, textAlign: "center", width: 80 }}>🥉</th>
-                      <th style={{ ...styles.th, textAlign: "center", width: 100 }}>🎖️</th>
-                      <th style={{ ...styles.th, textAlign: "center", width: 80 }}>Total</th>
+                      <th style={s.th}>Equipe / Clube</th>
+                      <th style={{ ...s.th, textAlign: "center", width: 80 }}>🥇</th>
+                      <th style={{ ...s.th, textAlign: "center", width: 80 }}>🥈</th>
+                      <th style={{ ...s.th, textAlign: "center", width: 80 }}>🥉</th>
+                      <th style={{ ...s.th, textAlign: "center", width: 100 }}>🎖️</th>
+                      <th style={{ ...s.th, textAlign: "center", width: 80 }}>Total</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -663,12 +665,12 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                         const total = dados.ouro + dados.prata + dados.bronze + dados.participacao;
                         return (
                           <tr key={equipe} style={{ background: dados.ouro > 0 ? "#1a170a" : undefined }}>
-                            <td style={{ ...styles.td, fontWeight: 600, color: "#fff" }}>{equipe}</td>
-                            <td style={{ ...styles.td, textAlign: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: "#FFD700" }}>{dados.ouro || "—"}</td>
-                            <td style={{ ...styles.td, textAlign: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: "#C0C0C0" }}>{dados.prata || "—"}</td>
-                            <td style={{ ...styles.td, textAlign: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: "#CD7F32" }}>{dados.bronze || "—"}</td>
-                            <td style={{ ...styles.td, textAlign: "center", color: "#888" }}>{dados.participacao || "—"}</td>
-                            <td style={{ ...styles.td, textAlign: "center", fontWeight: 700, color: "#aaa" }}>{total}</td>
+                            <td style={{ ...s.td, fontWeight: 600, color: "#fff" }}>{equipe}</td>
+                            <td style={{ ...s.td, textAlign: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: "#FFD700" }}>{dados.ouro || "—"}</td>
+                            <td style={{ ...s.td, textAlign: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: "#C0C0C0" }}>{dados.prata || "—"}</td>
+                            <td style={{ ...s.td, textAlign: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: "#CD7F32" }}>{dados.bronze || "—"}</td>
+                            <td style={{ ...s.td, textAlign: "center", color: "#888" }}>{dados.participacao || "—"}</td>
+                            <td style={{ ...s.td, textAlign: "center", fontWeight: 700, color: "#aaa" }}>{total}</td>
                           </tr>
                         );
                       })}
@@ -678,7 +680,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
             )}
 
             {totalGeral === 0 && (
-              <div style={styles.empty}>Nenhuma medalha registrada ainda.</div>
+              <div style={s.empty}>Nenhuma medalha registrada ainda.</div>
             )}
           </>
         );

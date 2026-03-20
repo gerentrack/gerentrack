@@ -3,6 +3,7 @@ import { CATEGORIAS, getCategoria } from "../../shared/constants/categorias";
 import { _getClubeAtleta, _getNascDisplay, _getCbat, validarCPF } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { Th, Td } from "../ui/TableHelpers";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 const styles = {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
@@ -92,6 +93,7 @@ const styles = {
 function TelaEditarAtleta({ usuarioLogado, atletas, atualizarAtleta, excluirAtleta,
   inscricoes, eventos, equipes, setTela, notificacoes, marcarNotifLida,
   atletaEditandoId, setAtletaEditandoId }) {
+  const s = useStylesResponsivos(styles);
 
   const atletaId = usuarioLogado?.tipo === "atleta"
     ? atletas.find(a => a.cpf && usuarioLogado.cpf &&
@@ -175,14 +177,14 @@ function TelaEditarAtleta({ usuarioLogado, atletas, atualizarAtleta, excluirAtle
 
   // ── LISTA ──────────────────────────────────────────────────────────────────
   if (modo === "lista") return (
-    <div style={styles.page}>
-      <div style={styles.painelHeader}>
-        <h1 style={styles.pageTitle}>🏃 Atletas</h1>
-        <button style={styles.btnGhost} onClick={() => setTela(
+    <div style={s.page}>
+      <div style={s.painelHeader}>
+        <h1 style={s.pageTitle}>🏃 Atletas</h1>
+        <button style={s.btnGhost} onClick={() => setTela(
           isAtleta ? "painel-atleta" : isEquipe ? "painel-equipe" : "admin")}>← Voltar</button>
       </div>
-      <div style={styles.tableWrap}>
-        <table style={styles.table}>
+      <div style={s.tableWrap}>
+        <table style={s.table}>
           <thead><tr>
             <Th>Nome</Th><Th>Sexo</Th><Th>Nasc.</Th><Th>Categoria</Th>
             <Th>Equipe</Th><Th>Equipe (usuário)</Th><Th>CPF</Th><Th>CBAt</Th><Th>Ações</Th>
@@ -192,7 +194,7 @@ function TelaEditarAtleta({ usuarioLogado, atletas, atualizarAtleta, excluirAtle
               const cat = getCategoria(a.anoNasc, anoBase);
               const tren = equipes.find(t => t.id === a.equipeId);
               return (
-                <tr key={a.id} style={styles.tr}>
+                <tr key={a.id} style={s.tr}>
                   <Td><strong style={{ color:"#fff" }}>{a.nome}</strong>
                     {a.desvinculadoEm && (
                       <span style={{ fontSize:10, color:"#888", display:"block" }}>
@@ -200,17 +202,17 @@ function TelaEditarAtleta({ usuarioLogado, atletas, atualizarAtleta, excluirAtle
                       </span>
                     )}
                   </Td>
-                  <Td><span style={styles.badge(a.sexo==="M"?"#1a6ef5":"#e54f9b")}>
+                  <Td><span style={s.badge(a.sexo==="M"?"#1a6ef5":"#e54f9b")}>
                     {a.sexo==="M"?"Masc":"Fem"}</span></Td>
                   <Td>{_getNascDisplay(a) || "—"}</Td>
-                  <Td><span style={styles.badgeGold}>{cat.nome}</span></Td>
+                  <Td><span style={s.badgeGold}>{cat.nome}</span></Td>
                   <Td>{_getClubeAtleta(a, equipes)||<span style={{color:"#444"}}>—</span>}</Td>
                   <Td>{tren?.nome||<span style={{color:"#444"}}>—</span>}</Td>
                   <Td style={{fontSize:11,color:"#555"}}>{a.cpf||"—"}</Td>
                   <Td style={{fontSize:11,color:"#555"}}>{_getCbat(a)||"—"}</Td>
                   <Td>
                     <button onClick={() => abrirAtleta(a.id)}
-                      style={{ ...styles.btnGhost, fontSize:12, padding:"3px 12px" }}>
+                      style={{ ...s.btnGhost, fontSize:12, padding:"3px 12px" }}>
                       {podeEditar ? "✏️ Ver/Editar" : "👁 Ver"}
                     </button>
                   </Td>
@@ -225,35 +227,35 @@ function TelaEditarAtleta({ usuarioLogado, atletas, atualizarAtleta, excluirAtle
 
   // ── VER / EDITAR ───────────────────────────────────────────────────────────
   if (!atleta || !form) return (
-    <div style={styles.page}>
-      <button style={styles.btnGhost} onClick={() => setModo("lista")}>← Lista</button>
+    <div style={s.page}>
+      <button style={s.btnGhost} onClick={() => setModo("lista")}>← Lista</button>
     </div>
   );
 
   const cat = getCategoria(form.anoNasc, anoBase);
 
   return (
-    <div style={styles.page}>
-      <div style={styles.painelHeader}>
+    <div style={s.page}>
+      <div style={s.painelHeader}>
         <div>
-          <h1 style={styles.pageTitle}>
+          <h1 style={s.pageTitle}>
             {modo === "editar" ? "✏️ Editar Atleta" : "👁 Dados do Atleta"}
           </h1>
           <p style={{ color:"#aaa", margin:"4px 0 0" }}>{atleta.nome}</p>
         </div>
-        <div style={styles.painelBtns}>
+        <div style={s.painelBtns}>
           {modo === "ver" && podeEditar && (
-            <button style={styles.btnPrimary} onClick={() => setModo("editar")}>✏️ Editar</button>
+            <button style={s.btnPrimary} onClick={() => setModo("editar")}>✏️ Editar</button>
           )}
           {modo === "editar" && (
             <>
-              <button style={styles.btnPrimary} onClick={handleSalvar}>💾 Salvar</button>
-              <button style={styles.btnGhost}   onClick={() => { setForm({...atleta}); setModo("ver"); }}>Cancelar</button>
+              <button style={s.btnPrimary} onClick={handleSalvar}>💾 Salvar</button>
+              <button style={s.btnGhost}   onClick={() => { setForm({...atleta}); setModo("ver"); }}>Cancelar</button>
             </>
           )}
           {podeExcluir && modo === "ver" && !confirmExcluir && (
             <button onClick={() => setConfirmExcluir(true)}
-              style={{ ...styles.btnGhost, color:"#ff6b6b", borderColor:"#5a1a1a", fontSize:13 }}>
+              style={{ ...s.btnGhost, color:"#ff6b6b", borderColor:"#5a1a1a", fontSize:13 }}>
               🗑 Excluir
             </button>
           )}
@@ -261,14 +263,14 @@ function TelaEditarAtleta({ usuarioLogado, atletas, atualizarAtleta, excluirAtle
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
               <span style={{ color:"#ff6b6b", fontSize:12 }}>Confirmar exclusão?</span>
               <button onClick={handleExcluir}
-                style={{ ...styles.btnGhost, color:"#ff6b6b", borderColor:"#5a1a1a", fontSize:12, padding:"4px 12px" }}>
+                style={{ ...s.btnGhost, color:"#ff6b6b", borderColor:"#5a1a1a", fontSize:12, padding:"4px 12px" }}>
                 Sim, excluir
               </button>
               <button onClick={() => setConfirmExcluir(false)}
-                style={{ ...styles.btnGhost, fontSize:12, padding:"4px 12px" }}>Não</button>
+                style={{ ...s.btnGhost, fontSize:12, padding:"4px 12px" }}>Não</button>
             </div>
           )}
-          <button style={styles.btnGhost} onClick={() => {
+          <button style={s.btnGhost} onClick={() => {
             if (isOrg || (usuarioLogado?.tipo === "funcionario")) setTela("cadastrar-atleta");
             else setModo("lista");
           }}>← Voltar</button>
@@ -317,10 +319,10 @@ function TelaEditarAtleta({ usuarioLogado, atletas, atualizarAtleta, excluirAtle
               onChange={v => setForm({...form, dataNasc:v, anoNasc: v?v.split("-")[0]:""})}
               type="date" />
             <div>
-              <label style={styles.label}>Sexo</label>
-              <div style={styles.radioGroup}>
+              <label style={s.label}>Sexo</label>
+              <div style={s.radioGroup}>
                 {[["M","Masculino"],["F","Feminino"]].map(([v,l]) => (
-                  <label key={v} style={{...styles.radioLabel,...(form.sexo===v?styles.radioLabelActive:{})}}>
+                  <label key={v} style={{...s.radioLabel,...(form.sexo===v?s.radioLabelActive:{})}}>
                     <input type="radio" value={v} checked={form.sexo===v}
                       onChange={() => setForm({...form,sexo:v})} style={{display:"none"}} />{l}
                   </label>
@@ -339,9 +341,9 @@ function TelaEditarAtleta({ usuarioLogado, atletas, atualizarAtleta, excluirAtle
       {/* Últimas inscrições */}
       {minhasInscricoes.length > 0 && (
         <div style={{ marginTop:24 }}>
-          <h2 style={styles.sectionTitle}>Últimas Inscrições</h2>
-          <div style={styles.tableWrap}>
-            <table style={styles.table}>
+          <h2 style={s.sectionTitle}>Últimas Inscrições</h2>
+          <div style={s.tableWrap}>
+            <table style={s.table}>
               <thead><tr>
                 <Th>Evento</Th><Th>Prova</Th><Th>Categoria</Th>
                 <Th>Equipe (cadastro)</Th><Th>Data</Th>
@@ -350,10 +352,10 @@ function TelaEditarAtleta({ usuarioLogado, atletas, atualizarAtleta, excluirAtle
                 {minhasInscricoes.map(insc => {
                   const ev = eventos.find(e => e.id === insc.eventoId);
                   return (
-                    <tr key={insc.id} style={styles.tr}>
+                    <tr key={insc.id} style={s.tr}>
                       <Td>{ev?.nome||"—"}</Td>
                       <Td style={{fontSize:12}}>{insc.provaId}</Td>
-                      <Td><span style={styles.badgeGold}>{insc.categoria}</span></Td>
+                      <Td><span style={s.badgeGold}>{insc.categoria}</span></Td>
                       <Td style={{fontSize:12, color:"#888"}}>
                         {insc.equipeCadastro||"—"}
                       </Td>

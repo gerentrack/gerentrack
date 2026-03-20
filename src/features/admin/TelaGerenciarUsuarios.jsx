@@ -5,6 +5,7 @@ import { validarCPF, validarCNPJ } from "../../shared/formatters/utils";
 
 const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
 
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 const styles = {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
   pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 24, letterSpacing: 1 },
@@ -135,6 +136,7 @@ const styles = {
 };
 
 function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuarios, funcionarios, atletas, adicionarOrganizador, editarOrganizadorAdmin, adicionarEquipe, editarEquipeAdmin, adicionarAtletaUsuario, editarAtletaUsuarioAdmin, adicionarAtleta, excluirOrganizador, excluirEquipeUsuario, excluirAtletaUsuario, excluirAtletaPorUsuario }) {
+  const s = useStylesResponsivos(styles);
   const confirmar = useConfirm();
   const [tipoUsuario, setTipoUsuario] = useState("organizadores"); // organizadores | equipes | atletas
   const [modo, setModo] = useState("lista"); // lista | novo | editar
@@ -370,15 +372,15 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
 
 
   return (
-    <div style={styles.page}>
-      <div style={styles.painelHeader}>
+    <div style={s.page}>
+      <div style={s.painelHeader}>
         <div>
-          <h1 style={styles.pageTitle}>👥 Gerenciar Usuários</h1>
+          <h1 style={s.pageTitle}>👥 Gerenciar Usuários</h1>
           <p style={{ color: "#666", fontSize: 14 }}>
             Criar, editar e excluir usuários do sistema
           </p>
         </div>
-        <button style={styles.btnGhost} onClick={() => setTela("admin")}>
+        <button style={s.btnGhost} onClick={() => setTela("admin")}>
           ← Voltar
         </button>
       </div>
@@ -387,7 +389,7 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
       <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
         <button
           style={{
-            ...styles.btnSecondary,
+            ...s.btnSecondary,
             background: tipoUsuario === "organizadores" ? "#1976D233" : undefined,
             borderColor: tipoUsuario === "organizadores" ? "#1976D2" : undefined
           }}
@@ -397,7 +399,7 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
         </button>
         <button
           style={{
-            ...styles.btnSecondary,
+            ...s.btnSecondary,
             background: tipoUsuario === "equipes" ? "#1976D233" : undefined,
             borderColor: tipoUsuario === "equipes" ? "#1976D2" : undefined
           }}
@@ -407,7 +409,7 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
         </button>
         <button
           style={{
-            ...styles.btnSecondary,
+            ...s.btnSecondary,
             background: tipoUsuario === "atletas" ? "#1976D233" : undefined,
             borderColor: tipoUsuario === "atletas" ? "#1976D2" : undefined
           }}
@@ -419,7 +421,7 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
 
       {/* Actions */}
       <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
-        <button style={styles.btnPrimary} onClick={() => setModo("novo")}>
+        <button style={s.btnPrimary} onClick={() => setModo("novo")}>
           + {tipoUsuario === "organizadores" ? "Novo Organizador" : tipoUsuario === "equipes" ? "Nova Equipe" : "Novo Atleta"}
         </button>
         <input
@@ -427,7 +429,7 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
           placeholder="🔍 Buscar usuário..."
           value={filtro}
           onChange={(e) => setFiltro(e.target.value)}
-          style={{ ...styles.input, flex: 1 }}
+          style={{ ...s.input, flex: 1 }}
         />
       </div>
 
@@ -457,7 +459,7 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
               value={form.nome}
               onChange={(e) => setForm({ ...form, nome: e.target.value })}
               placeholder="Nome completo"
-              style={{ ...styles.input, borderColor: erros.nome ? "#ff6b6b" : undefined }}
+              style={{ ...s.input, borderColor: erros.nome ? "#ff6b6b" : undefined }}
             />
             {erros.nome && <div style={{ color: "#ff6b6b", fontSize: 12, marginTop: 4 }}>{erros.nome}</div>}
           </div>
@@ -471,7 +473,7 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               placeholder="email@exemplo.com"
-              style={{ ...styles.input, borderColor: erros.email ? "#ff6b6b" : undefined }}
+              style={{ ...s.input, borderColor: erros.email ? "#ff6b6b" : undefined }}
             />
             {erros.email && <div style={{ color: "#ff6b6b", fontSize: 12, marginTop: 4 }}>{erros.email}</div>}
           </div>
@@ -530,7 +532,7 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
               value={form.senha}
               onChange={(e) => setForm({ ...form, senha: e.target.value })}
               placeholder="Senha"
-              style={{ ...styles.input, borderColor: erros.senha ? "#ff6b6b" : undefined }}
+              style={{ ...s.input, borderColor: erros.senha ? "#ff6b6b" : undefined }}
             />
             {erros.senha && <div style={{ color: "#ff6b6b", fontSize: 12, marginTop: 4 }}>{erros.senha}</div>}
           </div>
@@ -546,7 +548,7 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
                 value={form.entidade}
                 onChange={(e) => setForm({ ...form, entidade: e.target.value })}
                 placeholder={tipoUsuario === "organizadores" ? "Nome da entidade" : "Nome do clube"}
-                style={styles.input}
+                style={s.input}
               />
             </div>
           )}
@@ -561,7 +563,7 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
                 value={form.cnpj || ""}
                 onChange={(e) => handleDocChange("cnpj", e.target.value)}
                 placeholder="00.000.000/0001-00"
-                style={{ ...styles.input, borderColor: erros.cnpj ? "#ff6b6b" : undefined }}
+                style={{ ...s.input, borderColor: erros.cnpj ? "#ff6b6b" : undefined }}
               />
               {erros.cnpj && <div style={{ color: "#ff6b6b", fontSize: 12, marginTop: 4 }}>{erros.cnpj}</div>}
             </div>
@@ -577,7 +579,7 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
                 value={form.cnpj || ""}
                 onChange={(e) => handleDocChange("cnpj", e.target.value)}
                 placeholder="00.000.000/0001-00"
-                style={{ ...styles.input, borderColor: erros.cnpj ? "#ff6b6b" : undefined }}
+                style={{ ...s.input, borderColor: erros.cnpj ? "#ff6b6b" : undefined }}
               />
               {erros.cnpj && <div style={{ color: "#ff6b6b", fontSize: 12, marginTop: 4 }}>{erros.cnpj}</div>}
             </div>
@@ -594,7 +596,7 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
                   value={form.cpf || ""}
                   onChange={(e) => handleDocChange("cpf", e.target.value)}
                   placeholder="000.000.000-00"
-                  style={styles.input}
+                  style={s.input}
                 />
               </div>
               <div style={{ marginBottom: 16 }}>
@@ -605,7 +607,7 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
                   type="date"
                   value={form.dataNasc || ""}
                   onChange={(e) => setForm({ ...form, dataNasc: e.target.value })}
-                  style={{ ...styles.input, borderColor: erros.dataNasc ? "#ff6b6b" : undefined }}
+                  style={{ ...s.input, borderColor: erros.dataNasc ? "#ff6b6b" : undefined }}
                 />
                 {erros.dataNasc && <div style={{ color: "#ff6b6b", fontSize: 12, marginTop: 4 }}>{erros.dataNasc}</div>}
               </div>
@@ -638,7 +640,7 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
                   value={form.fone || ""}
                   onChange={(e) => setForm({ ...form, fone: e.target.value })}
                   placeholder="(00) 00000-0000"
-                  style={styles.input}
+                  style={s.input}
                 />
               </div>
             </>
@@ -652,7 +654,7 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
               <select
                 value={form.organizadorId || ""}
                 onChange={(e) => setForm({ ...form, organizadorId: e.target.value })}
-                style={{ ...styles.input, borderColor: erros.organizadorId ? "#ff6b6b" : undefined }}
+                style={{ ...s.input, borderColor: erros.organizadorId ? "#ff6b6b" : undefined }}
               >
                 <option value="">Selecione o organizador...</option>
                 {organizadores?.filter(o => o.status === "aprovado").map(org => (
@@ -664,14 +666,14 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
           )}
 
           <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
-            <button style={styles.btnGhost} onClick={async () => {
+            <button style={s.btnGhost} onClick={async () => {
               setModo("lista");
               setForm({ nome: "", email: "", senha: "", tipo: "organizador", entidade: "", cnpj: "", fone: "", equipeId: "", cpf: "", dataNasc: "", sexo: "M", organizadorId: "" });
               setErros({});
             }}>
               Cancelar
             </button>
-            <button style={styles.btnPrimary} onClick={handleSalvar}>
+            <button style={s.btnPrimary} onClick={handleSalvar}>
               {modo === "novo" ? "✓ Criar Usuário" : "✓ Salvar Alterações"}
             </button>
           </div>
@@ -734,13 +736,13 @@ function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuario
 
             <div style={{ display: "flex", gap: 8 }}>
               <button
-                style={styles.btnSecondary}
+                style={s.btnSecondary}
                 onClick={() => handleEditar(usuario)}
               >
                 ✏️ Editar
               </button>
               <button
-                style={styles.btnGhost}
+                style={s.btnGhost}
                 onClick={() => handleExcluir(usuario.id)}
               >
                 🗑️ Excluir

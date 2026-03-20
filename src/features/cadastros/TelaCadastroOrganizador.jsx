@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { validarCNPJ, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import inscricaoStyles from "../inscricoes/inscricaoStyles";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 const styles = inscricaoStyles;
 
@@ -70,6 +71,7 @@ function BlocoLGPD({ aceite, onChange, erro }) {
 }
 
 function TelaCadastroOrganizador({ setTela, adicionarOrganizador, login, organizadores }) {
+  const s = useStylesResponsivos(styles);
   const [form, setForm] = useState({ nome:"", email:"", senha:"", entidade:"", fone:"", cnpj:"", equipeId:"" });
   const [erros, setErros] = useState({});
   const [ok, setOk] = useState(false);
@@ -119,23 +121,23 @@ function TelaCadastroOrganizador({ setTela, adicionarOrganizador, login, organiz
   };
 
   if (ok) return (
-    <div style={styles.formPage}><div style={styles.formCard}>
+    <div style={s.formPage}><div style={s.formCard}>
       <div style={{ fontSize:64, textAlign:"center" }}>⏳</div>
-      <h2 style={{ ...styles.formTitle, textAlign:"center" }}>Cadastro enviado!</h2>
+      <h2 style={{ ...s.formTitle, textAlign:"center" }}>Cadastro enviado!</h2>
       <p style={{ textAlign:"center", color:"#aaa", lineHeight:1.6 }}>
         Seu cadastro como organizador foi recebido e está <strong style={{ color:"#1976D2" }}>aguardando aprovação</strong> do administrador do sistema.<br/><br/>
         Você receberá acesso assim que for aprovado.
       </p>
-      <button style={styles.btnGhost} onClick={() => setTela("login")}>← Voltar ao Login</button>
+      <button style={s.btnGhost} onClick={() => setTela("login")}>← Voltar ao Login</button>
     </div></div>
   );
 
   return (
-    <div style={styles.formPage}><div style={styles.formCard}>
-      <div style={styles.formIcon}>🏟️</div>
-      <h2 style={styles.formTitle}>Cadastro de Organizador</h2>
-      <p style={styles.formSub}>Crie sua conta para gerenciar competições</p>
-      <div style={styles.grid2form}>
+    <div style={s.formPage}><div style={s.formCard}>
+      <div style={s.formIcon}>🏟️</div>
+      <h2 style={s.formTitle}>Cadastro de Organizador</h2>
+      <p style={s.formSub}>Crie sua conta para gerenciar competições</p>
+      <div style={s.grid2form}>
         <FormField label="Nome Completo *"      value={form.nome}      onChange={v=>setForm({...form,nome:v})}      error={erros.nome} />
         <FormField label="Entidade / Federação *" value={form.entidade} onChange={v=>setForm({...form,entidade:v})} error={erros.entidade} />
         <FormField label="E-mail *"             value={form.email}     onChange={v=>setForm({...form,email:v})}     type="email" error={erros.email} />
@@ -144,9 +146,9 @@ function TelaCadastroOrganizador({ setTela, adicionarOrganizador, login, organiz
         <FormField label="CNPJ *"                value={form.cnpj}      onChange={v=>setForm({...form,cnpj:v})} placeholder="00.000.000/0001-00" error={erros.cnpj} />
       </div>
       <BlocoLGPD aceite={lgpdAceite} onChange={setLgpdAceite} erro={erros.lgpd} />
-      <button style={{ ...styles.btnPrimary, marginTop: 16 }} onClick={handleSubmit}>Criar Conta</button>
-      <div style={styles.formLink}>
-        Já tem conta? <button style={styles.linkBtn} onClick={()=>setTela("login")}>Entrar</button>
+      <button style={{ ...s.btnPrimary, marginTop: 16 }} onClick={handleSubmit}>Criar Conta</button>
+      <div style={s.formLink}>
+        Já tem conta? <button style={s.linkBtn} onClick={()=>setTela("login")}>Entrar</button>
       </div>
     </div></div>
   );

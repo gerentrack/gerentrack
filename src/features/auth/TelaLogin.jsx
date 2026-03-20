@@ -21,9 +21,11 @@ import React, { useState } from "react";
 import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, db, getDoc, doc } from "../../firebase";
 import { _getClubeAtleta } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, atletasUsuarios, funcionarios, treinadores, setPerfisDisponiveis, adminConfig, atletas: atletasBase,
   atualizarEquipePerfil, setOrganizadores, setAtletasUsuarios, setFuncionarios, setTreinadores, registrarAcao }) {
+  const s = useStylesResponsivos(styles);
   const [ident,   setIdent]   = useState("");
   const [senha,   setSenha]   = useState("");
   const [erro,    setErro]    = useState("");
@@ -274,7 +276,7 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
 
   // ── Tela de Consentimento Retroativo ─────────────────────────────────────
   if (modoConsentimento) return (
-    <div style={styles.formPage}>
+    <div style={s.formPage}>
       <LoginStyle />
 
       {/* Modal Política de Privacidade */}
@@ -315,10 +317,10 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
         </div>
       )}
 
-      <div style={{ ...styles.formCard, maxWidth:500 }}>
+      <div style={{ ...s.formCard, maxWidth:500 }}>
         <div style={{ fontSize:48, textAlign:"center", marginBottom:12 }}>🔒</div>
-        <h2 style={styles.formTitle}>Atualização da Política de Privacidade</h2>
-        <p style={{ ...styles.formSub, marginBottom:20 }}>
+        <h2 style={s.formTitle}>Atualização da Política de Privacidade</h2>
+        <p style={{ ...s.formSub, marginBottom:20 }}>
           Para continuar usando o GerenTrack, precisamos do seu consentimento conforme a
           <strong style={{ color:"#1976D2" }}> Lei Geral de Proteção de Dados (LGPD)</strong>.
         </p>
@@ -364,7 +366,7 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
 
         {/* Botões */}
         <button
-          style={{ ...styles.btnPrimary, opacity: consentimentoAceite ? 1 : 0.4,
+          style={{ ...s.btnPrimary, opacity: consentimentoAceite ? 1 : 0.4,
             cursor: consentimentoAceite ? "pointer" : "not-allowed", marginBottom:10 }}
           disabled={!consentimentoAceite}
           onClick={() => {
@@ -375,7 +377,7 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
           ✓ Aceitar e Entrar no Sistema
         </button>
 
-        <button style={{ ...styles.btnGhost, width:"100%", fontSize:13 }}
+        <button style={{ ...s.btnGhost, width:"100%", fontSize:13 }}
           onClick={() => {
             // Recusa → logout Firebase e volta ao login
             import("../../firebase").then(({ auth, signOut }) => signOut(auth).catch(() => {}));
@@ -396,45 +398,45 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
   );
 
   if (modoRecuperar) return (
-    <div style={styles.formPage}>
+    <div style={s.formPage}>
       <LoginStyle />
-      <div style={{ ...styles.formCard, maxWidth:460 }}>
-        <div style={styles.formIcon}>🔑</div>
-        <h2 style={styles.formTitle}>Recuperar Senha</h2>
-        <p style={styles.formSub}>Informe seu e-mail para receber o link de redefinição</p>
-        {erro && <div style={styles.erro}>{erro}</div>}
-        {feedbackRecuperar && <div style={{ ...styles.erro, background:"#0a2a0a", color:"#7acc44", borderColor:"#2a5a2a" }}>{feedbackRecuperar}</div>}
+      <div style={{ ...s.formCard, maxWidth:460 }}>
+        <div style={s.formIcon}>🔑</div>
+        <h2 style={s.formTitle}>Recuperar Senha</h2>
+        <p style={s.formSub}>Informe seu e-mail para receber o link de redefinição</p>
+        {erro && <div style={s.erro}>{erro}</div>}
+        {feedbackRecuperar && <div style={{ ...s.erro, background:"#0a2a0a", color:"#7acc44", borderColor:"#2a5a2a" }}>{feedbackRecuperar}</div>}
         <FormField label="E-mail cadastrado" value={emailRecuperar} onChange={setEmailRecuperar} placeholder="seuemail@exemplo.com" />
-        <button style={styles.btnPrimary} onClick={handleRecuperarSenha} disabled={loading}>{loading ? <span style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><span style={{width:16,height:16,borderRadius:"50%",border:"2px solid #ffffff44",borderTopColor:"#fff",display:"inline-block",animation:"spin 0.7s linear infinite"}} />Enviando...</span> : "Enviar Link de Recuperação"}</button>
+        <button style={s.btnPrimary} onClick={handleRecuperarSenha} disabled={loading}>{loading ? <span style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><span style={{width:16,height:16,borderRadius:"50%",border:"2px solid #ffffff44",borderTopColor:"#fff",display:"inline-block",animation:"spin 0.7s linear infinite"}} />Enviando...</span> : "Enviar Link de Recuperação"}</button>
         <div style={{ textAlign:"center", marginTop:16 }}>
-          <button style={styles.linkBtn} onClick={() => { setModoRecuperar(false); setErro(""); setFeedbackRecuperar(""); }}>← Voltar ao Login</button>
+          <button style={s.linkBtn} onClick={() => { setModoRecuperar(false); setErro(""); setFeedbackRecuperar(""); }}>← Voltar ao Login</button>
         </div>
       </div>
     </div>
   );
 
   return (
-    <div style={styles.formPage}>
+    <div style={s.formPage}>
       <LoginStyle />
-      <div style={{ ...styles.formCard, maxWidth:460, position:"relative", overflow:"hidden" }}>
+      <div style={{ ...s.formCard, maxWidth:460, position:"relative", overflow:"hidden" }}>
         {loading && <div style={{position:"absolute",inset:0,background:"rgba(10,11,13,0.6)",zIndex:10,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:12,backdropFilter:"blur(2px)"}}><span style={{width:36,height:36,borderRadius:"50%",border:"3px solid #1976D244",borderTopColor:"#1976D2",display:"inline-block",animation:"spin 0.7s linear infinite"}} /><span style={{color:"#1976D2",fontSize:14,fontWeight:600}}>{loadingMsg || "Aguarde..."}</span></div>}
-        <div style={styles.formIcon}>🔐</div>
-        <h2 style={styles.formTitle}>Entrar no Sistema</h2>
-        <p style={styles.formSub}>Use seu e-mail, CPF ou CNPJ para acessar</p>
-        {erro && <div style={styles.erro}>{erro}</div>}
+        <div style={s.formIcon}>🔐</div>
+        <h2 style={s.formTitle}>Entrar no Sistema</h2>
+        <p style={s.formSub}>Use seu e-mail, CPF ou CNPJ para acessar</p>
+        {erro && <div style={s.erro}>{erro}</div>}
         <FormField label="E-mail / CPF / CNPJ" value={ident} onChange={setIdent} placeholder="Digite seu e-mail, CPF ou CNPJ" />
         <div style={{ fontSize:11, color:"#555", marginTop:3, marginBottom:8 }}>O sistema buscará automaticamente seus perfis cadastrados</div>
         <FormField label="Senha" value={senha} onChange={setSenha} type="password" placeholder="••••••••" />
-        <button style={styles.btnPrimary} onClick={handleLogin} disabled={loading}>{loading ? <span style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><span style={{width:16,height:16,borderRadius:"50%",border:"2px solid #ffffff44",borderTopColor:"#fff",display:"inline-block",animation:"spin 0.7s linear infinite"}} />{loadingMsg || "Entrando..."}</span> : "Entrar"}</button>
+        <button style={s.btnPrimary} onClick={handleLogin} disabled={loading}>{loading ? <span style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><span style={{width:16,height:16,borderRadius:"50%",border:"2px solid #ffffff44",borderTopColor:"#fff",display:"inline-block",animation:"spin 0.7s linear infinite"}} />{loadingMsg || "Entrando..."}</span> : "Entrar"}</button>
         <div style={{ textAlign:"center", marginTop:12 }}>
-          <button style={styles.linkBtn} onClick={() => { setModoRecuperar(true); setErro(""); setEmailRecuperar(ident.includes("@") ? ident : ""); }}>🔑 Esqueci minha senha</button>
+          <button style={s.linkBtn} onClick={() => { setModoRecuperar(true); setErro(""); setEmailRecuperar(ident.includes("@") ? ident : ""); }}>🔑 Esqueci minha senha</button>
         </div>
         <div style={{ textAlign:"center", marginTop:16 }}>
           <p style={{ color:"#888", fontSize:13, marginBottom:12 }}>Não tem conta? Cadastre-se como:</p>
           <div style={{ display:"flex", gap:8, justifyContent:"center", flexWrap:"wrap" }}>
-            <button style={{ ...styles.linkBtn, padding:"6px 12px", border:"1px solid #1E2130", borderRadius:6, background:"#0D0E12" }} onClick={() => setTela("cadastro-equipe")}>🎽 Equipe</button>
-            <button style={{ ...styles.linkBtn, padding:"6px 12px", border:"1px solid #1E2130", borderRadius:6, background:"#0D0E12" }} onClick={() => setTela("cadastro-organizador")}>🏟️ Organizador</button>
-            <button style={{ ...styles.linkBtn, padding:"6px 12px", border:"1px solid #1E2130", borderRadius:6, background:"#0D0E12" }} onClick={() => setTela("cadastro-atleta-login")}>🏃 Atleta</button>
+            <button style={{ ...s.linkBtn, padding:"6px 12px", border:"1px solid #1E2130", borderRadius:6, background:"#0D0E12" }} onClick={() => setTela("cadastro-equipe")}>🎽 Equipe</button>
+            <button style={{ ...s.linkBtn, padding:"6px 12px", border:"1px solid #1E2130", borderRadius:6, background:"#0D0E12" }} onClick={() => setTela("cadastro-organizador")}>🏟️ Organizador</button>
+            <button style={{ ...s.linkBtn, padding:"6px 12px", border:"1px solid #1E2130", borderRadius:6, background:"#0D0E12" }} onClick={() => setTela("cadastro-atleta-login")}>🏃 Atleta</button>
           </div>
         </div>
       </div>

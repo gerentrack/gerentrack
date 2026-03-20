@@ -6,9 +6,11 @@ import { RecordHelper } from "../../shared/engines/recordHelper";
 import { RecordDetectionEngine } from "../../shared/engines/recordDetectionEngine";
 import { formatarMarca } from "../../shared/formatters/utils";
 import inscricaoStyles from "../inscricoes/inscricaoStyles";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 const styles = inscricaoStyles;
 function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClubeAtleta, usuarioLogado, setTela, pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes, registrarAcao }) {
+  const s = useStylesResponsivos(styles);
   const confirmar = useConfirm();
   const isAdmin = usuarioLogado?.tipo === "admin";
   const [tipoSel, setTipoSel] = useState(null); // id do tipo selecionado
@@ -310,7 +312,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
         const rawAtletas = get("atletas", "athletes", "componentes", "integrantes", "corredores");
         let atletasRevezamento = null;
         if (rawAtletas) {
-          atletasRevezamento = rawAtletas.split(/[,;\/|]/).map(s => s.trim()).filter(Boolean).slice(0, 4);
+          atletasRevezamento = rawAtletas.split(/[,;\/|]/).map(str => str.trim()).filter(Boolean).slice(0, 4);
         }
         const isRevez = provaMatch?.tipo === "revezamento" || (rawProva || "").match(/^[45]x\d/i);
 
@@ -478,7 +480,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
   const categoriasUnicas = tipoAtivo ? [...new Set(tipoAtivo.registros.map(r => r.categoriaId || r.categoriaNome || "").filter(Boolean))] : [];
 
   const S = {
-    page: { ...styles.page, maxWidth: 1100 },
+    page: { ...s.page, maxWidth: 1100 },
     card: { background:"#12141C", borderRadius:12, border:"1px solid #1E2130", padding:"16px 20px", marginBottom:14 },
     inputSm: { background:"#1a1c22", border:"1px solid #2a3050", borderRadius:4, color:"#1976D2", fontSize:12, padding:"5px 8px", fontWeight:600 },
   };
@@ -487,12 +489,12 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
     <div style={S.page}>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
         <div>
-          <h2 style={styles.pageTitle}>🏆 Recordes</h2>
+          <h2 style={s.pageTitle}>🏆 Recordes</h2>
           <p style={{ color:"#666", fontSize:13 }}>Acervo de recordes por tipo de competição</p>
         </div>
         <div style={{ display:"flex", gap:8, alignItems:"center" }}>
           {isAdmin && (
-            <button style={styles.btnPrimary} onClick={() => setShowNovoTipo(true)}>+ Novo Tipo de Recorde</button>
+            <button style={s.btnPrimary} onClick={() => setShowNovoTipo(true)}>+ Novo Tipo de Recorde</button>
           )}
         </div>
       </div>
@@ -531,7 +533,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
 
           {/* Escopo geográfico */}
           <div style={{ marginBottom:12 }}>
-            <label style={{ ...styles.label, marginBottom:6 }}>Abrangência geográfica</label>
+            <label style={{ ...s.label, marginBottom:6 }}>Abrangência geográfica</label>
             <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
               {ESCOPOS.map(esc => (
                 <button key={esc.id} onClick={() => setNovoTipo({ ...novoTipo, escopo: esc.id })}
@@ -551,29 +553,29 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
           {novoTipo.escopo !== "mundial" && (
             <div style={{ display:"flex", gap:10, flexWrap:"wrap", marginBottom:12 }}>
               <div>
-                <label style={styles.label}>País</label>
-                <input style={{ ...styles.input, width:160 }} placeholder="Brasil" value={novoTipo.pais}
+                <label style={s.label}>País</label>
+                <input style={{ ...s.input, width:160 }} placeholder="Brasil" value={novoTipo.pais}
                   onChange={e => setNovoTipo({ ...novoTipo, pais: e.target.value })} />
               </div>
               {["estado","municipio"].includes(novoTipo.escopo) && (
                 <div>
-                  <label style={styles.label}>Estado (UF)</label>
+                  <label style={s.label}>Estado (UF)</label>
                   {novoTipo.pais === "Brasil" ? (
-                    <select style={{ ...styles.input, width:80 }} value={novoTipo.estado}
+                    <select style={{ ...s.input, width:80 }} value={novoTipo.estado}
                       onChange={e => setNovoTipo({ ...novoTipo, estado: e.target.value })}>
                       <option value="">UF</option>
                       {ESTADOS_BR.map(uf => <option key={uf} value={uf}>{uf}</option>)}
                     </select>
                   ) : (
-                    <input style={{ ...styles.input, width:120 }} placeholder="Sigla" value={novoTipo.estado}
+                    <input style={{ ...s.input, width:120 }} placeholder="Sigla" value={novoTipo.estado}
                       onChange={e => setNovoTipo({ ...novoTipo, estado: e.target.value })} />
                   )}
                 </div>
               )}
               {novoTipo.escopo === "municipio" && (
                 <div>
-                  <label style={styles.label}>Município</label>
-                  <input style={{ ...styles.input, width:200 }} placeholder="Nome do município" value={novoTipo.municipio}
+                  <label style={s.label}>Município</label>
+                  <input style={{ ...s.input, width:200 }} placeholder="Nome do município" value={novoTipo.municipio}
                     onChange={e => setNovoTipo({ ...novoTipo, municipio: e.target.value })} />
                 </div>
               )}
@@ -583,17 +585,17 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
           {/* Nome e sigla */}
           <div style={{ display:"flex", gap:10, alignItems:"flex-end", flexWrap:"wrap" }}>
             <div>
-              <label style={styles.label}>Nome</label>
-              <input style={{ ...styles.input, width:280 }} placeholder="Ex: Recordes do Campeonato Mineiro"
+              <label style={s.label}>Nome</label>
+              <input style={{ ...s.input, width:280 }} placeholder="Ex: Recordes do Campeonato Mineiro"
                 value={novoTipo.nome} onChange={e => setNovoTipo({ ...novoTipo, nome: e.target.value })} />
             </div>
             <div>
-              <label style={styles.label}>Sigla</label>
-              <input style={{ ...styles.input, width:80 }} placeholder="CM" maxLength={6}
+              <label style={s.label}>Sigla</label>
+              <input style={{ ...s.input, width:80 }} placeholder="CM" maxLength={6}
                 value={novoTipo.sigla} onChange={e => setNovoTipo({ ...novoTipo, sigla: e.target.value })} />
             </div>
-            <button style={styles.btnPrimary} onClick={criarTipo}>✅ Criar</button>
-            <button style={styles.btnGhost} onClick={() => setShowNovoTipo(false)}>Cancelar</button>
+            <button style={s.btnPrimary} onClick={criarTipo}>✅ Criar</button>
+            <button style={s.btnGhost} onClick={() => setShowNovoTipo(false)}>Cancelar</button>
           </div>
         </div>
       )}
@@ -686,7 +688,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                     <input style={{ ...S.inputSm, width:140 }} placeholder="Município" value={tipoAtivo.municipio || ""}
                       onChange={e => editarTipo(tipoAtivo.id, "municipio", e.target.value)} />
                   )}
-                  <button style={{ ...styles.btnGhost, fontSize:11 }} onClick={() => setEditTipoId(null)}>OK</button>
+                  <button style={{ ...s.btnGhost, fontSize:11 }} onClick={() => setEditTipoId(null)}>OK</button>
                 </div>
               ) : (
                 <div>
@@ -710,15 +712,15 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
             </div>
             {isAdmin && (
               <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-                <button style={{ ...styles.btnPrimary, fontSize:11 }}
+                <button style={{ ...s.btnPrimary, fontSize:11 }}
                   onClick={() => setEditReg({ categoriaId:"", sexo:"M", provaNome:"", marca:"", atleta:"", equipe:"", ano:"", local:"", provaId:"", unidade:"", atletaId:null, fonte:"manual", atletasRevezamento:null })}>
                   + Adicionar
                 </button>
-                <label style={{ ...styles.btnGhost, fontSize:11, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
+                <label style={{ ...s.btnGhost, fontSize:11, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
                   📥 Importar Planilha
                   <input type="file" accept=".xlsx,.xls,.csv" style={{ display:"none" }} onChange={handleImport} />
                 </label>
-                <button style={{ ...styles.btnGhost, fontSize:11, color:"#6ab4ff", borderColor:"#1a2a4a" }}
+                <button style={{ ...s.btnGhost, fontSize:11, color:"#6ab4ff", borderColor:"#1a2a4a" }}
                   onClick={async () => {
                     try {
                       const XLSX = await import("https://cdn.sheetjs.com/xlsx-0.20.0/package/xlsx.mjs");
@@ -803,7 +805,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                   }}>
                   📋 Baixar Modelo
                 </button>
-                <button style={{ ...styles.btnGhost, fontSize:11, color:"#ff6b6b", borderColor:"#4a1a1a" }}
+                <button style={{ ...s.btnGhost, fontSize:11, color:"#ff6b6b", borderColor:"#4a1a1a" }}
                   onClick={() => excluirTipo(tipoAtivo.id)}>🗑 Excluir Tipo</button>
               </div>
             )}
@@ -946,10 +948,10 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                 </div>
               )}
               <div style={{ display:"flex", gap:8, alignItems:"center" }}>
-                <button style={{ ...styles.btnPrimary, opacity: paraImportar > 0 ? 1 : 0.5 }} onClick={confirmarImport} disabled={paraImportar === 0}>
+                <button style={{ ...s.btnPrimary, opacity: paraImportar > 0 ? 1 : 0.5 }} onClick={confirmarImport} disabled={paraImportar === 0}>
                   ✅ Importar {paraImportar} registro(s)
                 </button>
-                <button style={styles.btnGhost} onClick={() => setImportPreview(null)}>Cancelar</button>
+                <button style={s.btnGhost} onClick={() => setImportPreview(null)}>Cancelar</button>
                 {(inferiores + naoEncontradas + outroTipo) > 0 && (
                   <span style={{ fontSize:10, color:"#888" }}>
                     ({inferiores + naoEncontradas + outroTipo} não serão importados)
@@ -1010,8 +1012,8 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                 );
               })()}
               <div style={{ display:"flex", gap:8, marginTop:10 }}>
-                <button style={styles.btnPrimary} onClick={() => salvarRegistro(editReg)}>💾 Salvar</button>
-                <button style={styles.btnGhost} onClick={() => setEditReg(null)}>Cancelar</button>
+                <button style={s.btnPrimary} onClick={() => salvarRegistro(editReg)}>💾 Salvar</button>
+                <button style={s.btnGhost} onClick={() => setEditReg(null)}>Cancelar</button>
               </div>
             </div>
           )}

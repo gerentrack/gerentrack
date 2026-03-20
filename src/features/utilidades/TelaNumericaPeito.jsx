@@ -4,6 +4,7 @@ import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { _getCbat } from "../../shared/formatters/utils";
 import { getCategoria } from "../../shared/constants/categorias";
 import { Th, Td } from "../ui/TableHelpers";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 const styles = {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
@@ -91,8 +92,9 @@ const styles = {
 };
 
 function TelaNumericaPeito({ setTela, eventoAtual, inscricoes, atletas, equipes, numeracaoPeito, setNumeracaoPeito, usuarioLogado, registrarAcao }) {
+  const s = useStylesResponsivos(styles);
   const confirmar = useConfirm();
-  if (!eventoAtual) return <div style={styles.page}><div style={styles.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
+  if (!eventoAtual) return <div style={s.page}><div style={s.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
 
   const eid = eventoAtual.id;
   const anoComp = eventoAtual.data ? parseInt(eventoAtual.data.slice(0, 4)) : new Date().getFullYear();
@@ -291,13 +293,13 @@ function TelaNumericaPeito({ setTela, eventoAtual, inscricoes, atletas, equipes,
   let equipeAtual = "";
 
   return (
-    <div style={styles.page}>
-      <div style={styles.painelHeader}>
+    <div style={s.page}>
+      <div style={s.painelHeader}>
         <div>
-          <h1 style={styles.pageTitle}>🔢 Numeração de Peito</h1>
+          <h1 style={s.pageTitle}>🔢 Numeração de Peito</h1>
           <div style={{ color: "#666", fontSize: 13 }}>{eventoAtual.nome} — {atletasEvt.length} atletas</div>
         </div>
-        <button style={styles.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
+        <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
       </div>
 
       {feedback && (
@@ -307,21 +309,21 @@ function TelaNumericaPeito({ setTela, eventoAtual, inscricoes, atletas, equipes,
       )}
 
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 20 }}>
-        <button style={styles.btnPrimary} onClick={numerarAuto}>🔢 Numerar Automaticamente</button>
-        <button style={styles.btnSecondary} onClick={salvar}>💾 Salvar Numeração</button>
-        <button style={styles.btnSecondary} onClick={exportarCsv}>📥 Exportar CSV</button>
-        <button style={styles.btnSecondary} onClick={exportarPDF}>📄 Exportar PDF</button>
-        <button style={styles.btnGhost} onClick={limparTudo}>🗑️ Limpar</button>
+        <button style={s.btnPrimary} onClick={numerarAuto}>🔢 Numerar Automaticamente</button>
+        <button style={s.btnSecondary} onClick={salvar}>💾 Salvar Numeração</button>
+        <button style={s.btnSecondary} onClick={exportarCsv}>📥 Exportar CSV</button>
+        <button style={s.btnSecondary} onClick={exportarPDF}>📄 Exportar PDF</button>
+        <button style={s.btnGhost} onClick={limparTudo}>🗑️ Limpar</button>
         <div style={{ flex: 1 }} />
-        <input style={{ ...styles.input, maxWidth: 250 }} placeholder="🔍 Filtrar atleta ou equipe..." value={filtro} onChange={e => setFiltro(e.target.value)} />
+        <input style={{ ...s.input, maxWidth: 250 }} placeholder="🔍 Filtrar atleta ou equipe..." value={filtro} onChange={e => setFiltro(e.target.value)} />
       </div>
 
       <div style={{ fontSize: 11, color: "#888", marginBottom: 12 }}>
         💡 Numeração automática: agrupa por equipe e ordena por nome alfabeticamente.
       </div>
 
-      <div style={styles.tableWrap}>
-        <table style={styles.table}>
+      <div style={s.tableWrap}>
+        <table style={s.table}>
           <thead><tr><Th>Nº Peito</Th><Th>CBAt</Th><Th>Atleta</Th><Th>Categoria</Th><Th>Equipe</Th><Th>Sexo</Th><Th>Provas</Th></tr></thead>
           <tbody>
             {atletasFiltrados.map(a => {
@@ -335,18 +337,18 @@ function TelaNumericaPeito({ setTela, eventoAtual, inscricoes, atletas, equipes,
               }).join(", ");
               return [
                   novaEquipe && <tr key={"eq_"+a.id}><td colSpan={7} style={{ background: "#0a0b14", padding: "6px 12px", fontWeight: 700, color: "#1976D2", fontSize: 12, borderTop: "2px solid #1976D233" }}>🏟️ {eqNome}</td></tr>,
-                  <tr key={`num_${a.id}`} style={{ ...styles.tr, background: erroNum[a.id] ? "#1a0a0a" : undefined }}>
-                    <td style={{ ...styles.td, width: 80 }}>
+                  <tr key={`num_${a.id}`} style={{ ...s.tr, background: erroNum[a.id] ? "#1a0a0a" : undefined }}>
+                    <td style={{ ...s.td, width: 80 }}>
                       <input type="number" min={1} value={editNum[a.id] ?? ""} onChange={e => handleChangeNum(a.id, e.target.value)}
-                        style={{ ...styles.input, width: 65, textAlign: "center", padding: "4px 6px", fontSize: 14, fontWeight: 700, borderColor: erroNum[a.id] ? "#ff6b6b" : undefined }} />
+                        style={{ ...s.input, width: 65, textAlign: "center", padding: "4px 6px", fontSize: 14, fontWeight: 700, borderColor: erroNum[a.id] ? "#ff6b6b" : undefined }} />
                       {erroNum[a.id] && <div style={{ color: "#ff6b6b", fontSize: 9, marginTop: 2 }}>{erroNum[a.id]}</div>}
                     </td>
-                    <td style={{ ...styles.td, fontSize: 12, color: "#888", fontFamily: "'Barlow Condensed', sans-serif" }}>{_getCbat(a) || "—"}</td>
-                    <td style={{ ...styles.td, fontWeight: 600, color: "#fff" }}>{a.nome}</td>
-                    <td style={{ ...styles.td, fontSize: 12 }}><span style={{ background: "#1976D222", color: "#1976D2", border: "1px solid #1976D244", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }}>{cat?.nome || "—"}</span></td>
-                    <td style={styles.td}>{eqNome}</td>
-                    <td style={{ ...styles.td, textAlign: "center" }}>{a.sexo === "M" ? "M" : "F"}</td>
-                    <td style={{ ...styles.td, fontSize: 11, color: "#888", maxWidth: 300 }}>{provas}</td>
+                    <td style={{ ...s.td, fontSize: 12, color: "#888", fontFamily: "'Barlow Condensed', sans-serif" }}>{_getCbat(a) || "—"}</td>
+                    <td style={{ ...s.td, fontWeight: 600, color: "#fff" }}>{a.nome}</td>
+                    <td style={{ ...s.td, fontSize: 12 }}><span style={{ background: "#1976D222", color: "#1976D2", border: "1px solid #1976D244", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }}>{cat?.nome || "—"}</span></td>
+                    <td style={s.td}>{eqNome}</td>
+                    <td style={{ ...s.td, textAlign: "center" }}>{a.sexo === "M" ? "M" : "F"}</td>
+                    <td style={{ ...s.td, fontSize: 11, color: "#888", maxWidth: 300 }}>{provas}</td>
                   </tr>
               ];
             })}

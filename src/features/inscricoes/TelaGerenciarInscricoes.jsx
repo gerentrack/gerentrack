@@ -4,6 +4,7 @@ import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/constants/categorias";
 import { Th, Td } from "../ui/TableHelpers";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 const styles = {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
@@ -136,6 +137,7 @@ const styles = {
 
 function TelaGerenciarInscricoes({ usuarioLogado, setTela, atletas, inscricoes,
   eventos, eventoAtual, equipes, excluirInscricao, atualizarInscricao, organizadores = [] }) {
+  const s = useStylesResponsivos(styles);
   const confirmar = useConfirm();
 
   const isAdmin   = usuarioLogado?.tipo === "admin";
@@ -204,11 +206,11 @@ function TelaGerenciarInscricoes({ usuarioLogado, setTela, atletas, inscricoes,
 
   // Guard: funcionário sem permissão não pode gerenciar inscrições
   if (isFunc && !isAmplo) return (
-    <div style={styles.page}><div style={styles.emptyState}>
+    <div style={s.page}><div style={s.emptyState}>
       <span style={{ fontSize: 48 }}>🚫</span>
       <p style={{ color: "#ff6b6b", fontWeight: 700 }}>Permissão insuficiente</p>
       <p style={{ color: "#666", fontSize: 14 }}>Você não tem permissão para gerenciar inscrições.</p>
-      <button style={styles.btnGhost} onClick={() => setTela("painel-organizador")}>← Voltar</button>
+      <button style={s.btnGhost} onClick={() => setTela("painel-organizador")}>← Voltar</button>
     </div></div>
   );
 
@@ -230,23 +232,23 @@ function TelaGerenciarInscricoes({ usuarioLogado, setTela, atletas, inscricoes,
 
 
   return (
-    <div style={styles.page}>
-      <div style={styles.painelHeader}>
+    <div style={s.page}>
+      <div style={s.painelHeader}>
         <div>
-          <h1 style={styles.pageTitle}>✍️ Gerenciar Inscrições</h1>
+          <h1 style={s.pageTitle}>✍️ Gerenciar Inscrições</h1>
           <p style={{ color:"#aaa", margin:"4px 0 0", fontSize:13 }}>
             {isAmplo ? "Acesso amplo — todas as inscrições de todos os eventos" :
              isAtleta ? "Suas inscrições" : "Inscrições dos seus atletas"}
           </p>
         </div>
-        <button style={styles.btnGhost} onClick={voltarTela}>← Voltar</button>
+        <button style={s.btnGhost} onClick={voltarTela}>← Voltar</button>
       </div>
 
       {/* Filtros */}
       <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:16 }}>
         <div style={{ flex:1, minWidth:200 }}>
-          <label style={styles.label}>Competição</label>
-          <select style={styles.select} value={filtroEvento}
+          <label style={s.label}>Competição</label>
+          <select style={s.select} value={filtroEvento}
             onChange={e => setFiltroEvento(e.target.value)}>
             <option value="">Todas as competições</option>
             {eventos.map(ev => (
@@ -256,8 +258,8 @@ function TelaGerenciarInscricoes({ usuarioLogado, setTela, atletas, inscricoes,
         </div>
         {!isAtleta && (
           <div style={{ flex:1, minWidth:200 }}>
-            <label style={styles.label}>Atleta</label>
-            <select style={styles.select} value={filtroAtleta}
+            <label style={s.label}>Atleta</label>
+            <select style={s.select} value={filtroAtleta}
               onChange={e => setFiltroAtleta(e.target.value)}>
               <option value="">Todos os atletas</option>
               {(() => {
@@ -276,13 +278,13 @@ function TelaGerenciarInscricoes({ usuarioLogado, setTela, atletas, inscricoes,
       </div>
 
       {inscVisiveis.length === 0 ? (
-        <div style={styles.emptyState}>
+        <div style={s.emptyState}>
           <span style={{ fontSize:48 }}>✍️</span>
           <p>Nenhuma inscrição encontrada.</p>
         </div>
       ) : (
-        <div style={styles.tableWrap}>
-          <table style={styles.table}>
+        <div style={s.tableWrap}>
+          <table style={s.table}>
             <thead><tr>
               <Th>Atleta</Th>
               {!filtroEvento && <Th>Competição</Th>}
@@ -303,7 +305,7 @@ function TelaGerenciarInscricoes({ usuarioLogado, setTela, atletas, inscricoes,
                   const podeAlt = isAmplo || inscAberta;
 
                   return (
-                    <tr key={inscs.map(i=>i.id).join(",")} style={styles.tr}>
+                    <tr key={inscs.map(i=>i.id).join(",")} style={s.tr}>
                       <Td>
                         <strong style={{color:"#fff"}}>{atleta?.nome || "—"}</strong>
                         {/* ── Etapa 5: badge participação cruzada ── */}
@@ -351,13 +353,13 @@ function TelaGerenciarInscricoes({ usuarioLogado, setTela, atletas, inscricoes,
                         <div style={{ fontSize:11, color:"#555", marginTop:4 }}>{inscs.filter(i => !i.combinadaId).length} prova(s)</div>
                       </Td>
                       <Td>
-                        <span style={styles.badgeGold}>{first.categoriaOficial || first.categoria || "—"}</span>
+                        <span style={s.badgeGold}>{first.categoriaOficial || first.categoria || "—"}</span>
                         {first.permissividade && (
                           <sup style={{color:"#1976D2",fontSize:9,marginLeft:2}} title={first.permissividade}>*</sup>
                         )}
                       </Td>
                       <Td>
-                        <span style={styles.badge(first.sexo==="M"?"#1a6ef5":"#e54f9b")}>
+                        <span style={s.badge(first.sexo==="M"?"#1a6ef5":"#e54f9b")}>
                           {first.sexo==="M"?"Masc":"Fem"}
                         </span>
                       </Td>
@@ -378,7 +380,7 @@ function TelaGerenciarInscricoes({ usuarioLogado, setTela, atletas, inscricoes,
                               inscs.forEach(i => excluirInscricao(i.id));
                             }
                           }}
-                            style={{...styles.btnGhost,fontSize:11,padding:"3px 8px",color:"#ff6b6b",borderColor:"#5a1a1a"}}>
+                            style={{...s.btnGhost,fontSize:11,padding:"3px 8px",color:"#ff6b6b",borderColor:"#5a1a1a"}}>
                             🗑️ Todas
                           </button>
                         ) : (

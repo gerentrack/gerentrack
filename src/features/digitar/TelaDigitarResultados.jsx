@@ -7,6 +7,7 @@ import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { CombinedScoringEngine, temDuasCronometragens } from "../../shared/engines/combinedScoringEngine";
 import { getFasesProva, buscarSeriacao, resKey, FASE_NOME } from "../../shared/constants/fases";
 import { Th, Td } from "../ui/TableHelpers";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 const styles = {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
@@ -101,6 +102,7 @@ const getExibicaoEquipe = (atleta, equipes) => {
 };
 
 function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResultado, atualizarResultadosEmLote, limparResultado, limparTodosResultados, setTela, eventoAtual, editarEvento, usuarioLogado, registrarAcao, numeracaoPeito, getClubeAtleta, equipes, recordes }) {
+  const s = useStylesResponsivos(styles);
   const confirmar = useConfirm();
   // Guard: apenas admin, organizador ou funcionário com permissão
   const tipoUser = usuarioLogado?.tipo;
@@ -125,8 +127,8 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
   const [cronometragem, setCronometragem] = useState("ELE"); // "ELE" ou "MAN"
 
   if (!eventoAtual) return (
-    <div style={styles.page}><div style={styles.emptyState}><p>Selecione uma competição primeiro.</p>
-      <button style={styles.btnPrimary} onClick={() => setTela("home")}>Ver Competições</button></div></div>
+    <div style={s.page}><div style={s.emptyState}><p>Selecione uma competição primeiro.</p>
+      <button style={s.btnPrimary} onClick={() => setTela("home")}>Ver Competições</button></div></div>
   );
 
   const eid      = eventoAtual.id;
@@ -628,11 +630,11 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
         </div>
         <div style={{ display:"flex", gap:12, justifyContent:"center" }}>
           <button
-            style={{ ...styles.btnGhost, borderColor:"#555", minWidth:100 }}
+            style={{ ...s.btnGhost, borderColor:"#555", minWidth:100 }}
             onClick={cancelarLimpar}
           >Cancelar</button>
           <button
-            style={{ ...styles.btnPrimary, background:"#7a1a1a", borderColor:"#cc4444", minWidth:100 }}
+            style={{ ...s.btnPrimary, background:"#7a1a1a", borderColor:"#cc4444", minWidth:100 }}
             onClick={confirmarLimpar}
           >🗑️ Confirmar</button>
         </div>
@@ -641,35 +643,35 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
   ) : null;
 
   if (!temAcessoDigitar) return (
-    <div style={styles.page}>
-      <div style={styles.emptyState}>
+    <div style={s.page}>
+      <div style={s.emptyState}>
         <span style={{ fontSize: 48 }}>🚫</span>
         <p style={{ color: "#ff6b6b", fontWeight: 700 }}>Acesso não autorizado</p>
         <p style={{ color: "#666", fontSize: 14 }}>Você não tem permissão para digitar resultados.</p>
-        <button style={styles.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
+        <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
       </div>
     </div>
   );
 
   return (
-    <div style={styles.page}>
+    <div style={s.page}>
       {modalLimpar}
-      <div style={styles.painelHeader}>
+      <div style={s.painelHeader}>
         <div>
-          <h1 style={styles.pageTitle}>✏️ Digitar Resultados</h1>
+          <h1 style={s.pageTitle}>✏️ Digitar Resultados</h1>
           <div style={{ color: "#666", fontSize: 13 }}>{eventoAtual.nome}</div>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
-          <button style={styles.btnGhost} onClick={() => setTela("resultados")}>Ver Publicados</button>
-          <button style={styles.btnGhost} onClick={() => setTela("evento-detalhe")}>← Competição</button>
+          <button style={s.btnGhost} onClick={() => setTela("resultados")}>Ver Publicados</button>
+          <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Competição</button>
         </div>
       </div>
 
-      <div style={styles.formCard}>
-        <div style={styles.filtros}>
+      <div style={s.formCard}>
+        <div style={s.filtros}>
           <div>
-            <label style={styles.label}>Categoria *</label>
-            <select style={styles.select} value={filtroCat} onChange={(e) => {
+            <label style={s.label}>Categoria *</label>
+            <select style={s.select} value={filtroCat} onChange={(e) => {
               setFiltroCat(e.target.value); setFiltroProva(""); setMarcas({}); setTentativas({});
             }}>
               <option value="">— Selecione —</option>
@@ -677,8 +679,8 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
             </select>
           </div>
           <div>
-            <label style={styles.label}>Prova *</label>
-            <select style={styles.select} value={filtroProva} onChange={(e) => {
+            <label style={s.label}>Prova *</label>
+            <select style={s.select} value={filtroProva} onChange={(e) => {
               setFiltroProva(e.target.value); setMarcas({}); setSalvo(false);
               setAlturas([""]); setTentativas({});
             }}>
@@ -702,8 +704,8 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
             </select>
           </div>
           <div>
-            <label style={styles.label}>Sexo *</label>
-            <select style={styles.select} value={filtroSexo} onChange={(e) => {
+            <label style={s.label}>Sexo *</label>
+            <select style={s.select} value={filtroSexo} onChange={(e) => {
               setFiltroSexo(e.target.value); setFiltroProva(""); setMarcas({}); setTentativas({});
             }}>
               <option value="M">Masculino</option>
@@ -713,8 +715,8 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
           {/* Seletor de Fase — aparece quando a prova tem multi-fases no programaHorario */}
           {_temFases && (
             <div>
-              <label style={styles.label}>Fase *</label>
-              <select style={{ ...styles.select, borderColor: faseEfetiva === "ELI" ? "#5a3a1a" : faseEfetiva === "SEM" ? "#2a4a6a" : "#2a4a2a",
+              <label style={s.label}>Fase *</label>
+              <select style={{ ...s.select, borderColor: faseEfetiva === "ELI" ? "#5a3a1a" : faseEfetiva === "SEM" ? "#2a4a6a" : "#2a4a2a",
                 color: faseEfetiva === "ELI" ? "#ff8844" : faseEfetiva === "SEM" ? "#88aaff" : "#7cfc7c", fontWeight:700 }}
                 value={filtroFase || _provaFases[0] || ""}
                 onChange={(e) => { setFiltroFase(e.target.value); setMarcas({}); setTentativas({}); setSalvo(false); }}>
@@ -726,8 +728,8 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
       </div>
 
       {filtroProva && filtroCat && (
-        <div style={styles.digitarSection}>
-          <div style={styles.digitarHeader}>
+        <div style={s.digitarSection}>
+          <div style={s.digitarHeader}>
             <div>
               <strong style={{ color: "#1976D2" }}><NomeProvaComImplemento nome={provaSel?.nome} style={{ color: "#1976D2" }} /></strong>
               {_temFases && faseEfetiva && (
@@ -837,7 +839,7 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
                 📝 Esta prova já possui resultados salvos.
               </span>
               <button
-                style={{ ...styles.btnSecondary, fontSize:12, padding:"5px 14px" }}
+                style={{ ...s.btnSecondary, fontSize:12, padding:"5px 14px" }}
                 onClick={async () => {
                   // Pré-carrega todos os resultados existentes nos campos de edição
                   const loaded = {};
@@ -887,7 +889,7 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
             <div style={{ background:"#141a10", border:"1px solid #4a8a2a", borderRadius:8, padding:"8px 16px", marginBottom:16, display:"flex", alignItems:"center", gap:8, fontSize:12, color:"#7acc44" }}>
               ✏️ <strong>Modo edição</strong> — altere os valores e clique em "Salvar e Publicar"
               <button
-                style={{ ...styles.linkBtn, marginLeft:"auto", color:"#888", fontSize:11 }}
+                style={{ ...s.linkBtn, marginLeft:"auto", color:"#888", fontSize:11 }}
                 onClick={async () => { setMarcas({}); setTentativas({}); }}
               >Cancelar edição</button>
             </div>
@@ -898,9 +900,9 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
                INTERFACE REVEZAMENTO — resultado por equipe
             ════════════════════════════════════════════════════════════════ */
             equipesRevezNaProva.length === 0 ? (
-              <div style={styles.emptyState}>
+              <div style={s.emptyState}>
                 <span>Nenhuma equipe inscrita neste revezamento.</span>
-                <button style={{ ...styles.btnGhost, marginTop: 10 }} onClick={() => setTela("inscricao-revezamento")}>Ir para Inscrição de Revezamento</button>
+                <button style={{ ...s.btnGhost, marginTop: 10 }} onClick={() => setTela("inscricao-revezamento")}>Ir para Inscrição de Revezamento</button>
               </div>
             ) : (() => {
               const metros = parseInt((provaSel?.nome || provaSel?.id || "").match(/(\d+)m/)?.[1]) || 0;
@@ -974,21 +976,21 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
                   {Object.keys(marcas).length > 0 && temResExistRevez && (
                     <div style={{ background:"#141a10", border:"1px solid #4a8a2a", borderRadius:8, padding:"8px 16px", marginBottom:12, display:"flex", alignItems:"center", gap:8, fontSize:12, color:"#7acc44" }}>
                       ✏️ <strong>Modo edição</strong> — altere os valores e clique em "Salvar e Publicar"
-                      <button style={{ ...styles.linkBtn, marginLeft:"auto", color:"#888", fontSize:11 }}
+                      <button style={{ ...s.linkBtn, marginLeft:"auto", color:"#888", fontSize:11 }}
                         onClick={() => setMarcas({})}>Cancelar edição</button>
                     </div>
                   )}
-                  <table style={{ ...styles.table, fontSize: 13 }}>
+                  <table style={{ ...s.table, fontSize: 13 }}>
                     <thead><tr>
-                      <th style={styles.th}>#</th>
-                      <th style={{ ...styles.th, textAlign: "left" }}>EQUIPE</th>
-                      <th style={{ ...styles.th, textAlign: "left" }}>ATLETAS ({nPernas})</th>
-                      <th style={styles.th}>SÉRIE</th>
-                      {temRaia && <th style={styles.th}>RAIA</th>}
-                      {temVento && <th style={styles.th}>VENTO</th>}
-                      <th style={styles.th}>TEMPO (ms)</th>
-                      <th style={styles.th}>STATUS</th>
-                      <th style={styles.th}>ATUAL</th>
+                      <th style={s.th}>#</th>
+                      <th style={{ ...s.th, textAlign: "left" }}>EQUIPE</th>
+                      <th style={{ ...s.th, textAlign: "left" }}>ATLETAS ({nPernas})</th>
+                      <th style={s.th}>SÉRIE</th>
+                      {temRaia && <th style={s.th}>RAIA</th>}
+                      {temVento && <th style={s.th}>VENTO</th>}
+                      <th style={s.th}>TEMPO (ms)</th>
+                      <th style={s.th}>STATUS</th>
+                      <th style={s.th}>ATUAL</th>
                     </tr></thead>
                     <tbody>
                       {equipesRevezNaProva.map((eq, j) => {
@@ -1017,27 +1019,27 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
                         const valVento = m.vento !== undefined ? m.vento : existVento;
                         const isStatusAtivo = !!valStatus;
                         return (
-                          <tr key={eq.equipeId} style={{ ...styles.tr, ...(j < 3 ? { background: "#111210" } : {}) }}>
+                          <tr key={eq.equipeId} style={{ ...s.tr, ...(j < 3 ? { background: "#111210" } : {}) }}>
                             <Td><strong style={{ color: "#aaa" }}>{j + 1}</strong></Td>
                             <Td><strong style={{ color: "#1976D2" }}>{eq.nomeEquipe}{eq.sigla ? ` (${eq.sigla})` : ""}</strong></Td>
                             <Td>{eq.atletas.length > 0
                               ? <span style={{ fontSize: 11, color: "#aaa" }}>{eq.atletas.map(a => a.nome).join(" · ")}</span>
                               : <span style={{ fontSize: 11, color: "#ff6b6b" }}>⚠ Sem atletas</span>
                             }</Td>
-                            <Td><input type="number" min="1" max="20" style={{ ...styles.input, width: 45, textAlign: "center", fontSize: 12, padding: "6px 4px" }}
+                            <Td><input type="number" min="1" max="20" style={{ ...s.input, width: 45, textAlign: "center", fontSize: 12, padding: "6px 4px" }}
                               value={valSerie} onChange={e => setMarcas(prev => ({ ...prev, [eq.equipeId]: { ...prev[eq.equipeId], serie: e.target.value } }))} /></Td>
                             {temRaia && (
-                              <Td><input type="number" min="1" max="10" style={{ ...styles.input, width: 45, textAlign: "center", fontSize: 12, padding: "6px 4px" }}
+                              <Td><input type="number" min="1" max="10" style={{ ...s.input, width: 45, textAlign: "center", fontSize: 12, padding: "6px 4px" }}
                                 value={valRaia} onChange={e => setMarcas(prev => ({ ...prev, [eq.equipeId]: { ...prev[eq.equipeId], raia: e.target.value } }))} /></Td>
                             )}
                             {temVento && (
-                              <Td><input type="text" placeholder="±0.0" style={{ ...styles.input, width: 55, textAlign: "center", fontSize: 11, padding: "6px 4px" }}
+                              <Td><input type="text" placeholder="±0.0" style={{ ...s.input, width: 55, textAlign: "center", fontSize: 11, padding: "6px 4px" }}
                                 value={valVento} onChange={e => setMarcas(prev => ({ ...prev, [eq.equipeId]: { ...prev[eq.equipeId], vento: e.target.value } }))} /></Td>
                             )}
                             <Td>
                               <input
                                 type="text" inputMode="numeric" placeholder="ex: 42350"
-                                style={{ ...styles.input, width: 100, textAlign: "center", fontWeight: 700, fontSize: 14, padding: "8px 6px",
+                                style={{ ...s.input, width: 100, textAlign: "center", fontWeight: 700, fontSize: 14, padding: "8px 6px",
                                   color: isStatusAtivo ? "#666" : "#7cfc7c",
                                   background: isStatusAtivo ? "#111" : "#0D0E12" }}
                                 disabled={isStatusAtivo}
@@ -1049,7 +1051,7 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
                               />
                             </Td>
                             <Td>
-                              <select style={{ ...styles.input, width: 65, fontSize: 11, padding: "6px 4px" }}
+                              <select style={{ ...s.input, width: 65, fontSize: 11, padding: "6px 4px" }}
                                 value={valStatus} onChange={e => setMarcas(prev => ({ ...prev, [eq.equipeId]: { ...prev[eq.equipeId], status: e.target.value } }))}>
                                 <option value="">—</option>
                                 <option value="DNS">DNS</option>
@@ -1070,14 +1072,14 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
                     </tbody>
                   </table>
                   <div style={{ display: "flex", gap: 10, marginTop: 16, flexWrap: "wrap", alignItems: "center" }}>
-                    <button style={styles.btnPrimary} onClick={handleSalvarRevez}>
+                    <button style={s.btnPrimary} onClick={handleSalvarRevez}>
                       💾 Salvar e Publicar Revezamento
                     </button>
                     {Object.keys(marcas).length > 0 && (
-                      <button style={styles.btnGhost} onClick={() => setMarcas({})}>Limpar edições</button>
+                      <button style={s.btnGhost} onClick={() => setMarcas({})}>Limpar edições</button>
                     )}
                     {equipesRevezNaProva.some(eq => resExistentes[eq.equipeId] != null) && (
-                      <button style={{ ...styles.btnGhost, color: "#ff6b6b", borderColor: "#5a1a1a" }}
+                      <button style={{ ...s.btnGhost, color: "#ff6b6b", borderColor: "#5a1a1a" }}
                         onClick={async () => { 
                           if (!await confirmar(`⚠️ Limpar TODOS os resultados deste revezamento?\n\n${provaSel?.nome } — ${filtroCat} — ${filtroSexo === "M" ? "Masc." : "Fem."}\n\nEsta ação é IRREVERSÍVEL.`)) return;
                           _limparTodos(eid, filtroProva, filtroCat, filtroSexo);
@@ -1090,7 +1092,7 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
               );
             })()
           ) : atletasNaProva.length === 0 ? (
-            <div style={styles.emptyState}><span>Nenhum atleta inscrito nesta combinação.</span></div>
+            <div style={s.emptyState}><span>Nenhum atleta inscrito nesta combinação.</span></div>
           ) : isAltura ? (
 
             /* ════════════════════════════════════════════════════════════════
@@ -1300,19 +1302,19 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
               </div>
 
               <div style={{ marginTop:16, display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
-                <button style={styles.btnPrimary} onClick={handleSalvarAltura}>
+                <button style={s.btnPrimary} onClick={handleSalvarAltura}>
                   💾 Salvar e Publicar
                 </button>
                 <div style={{ marginLeft:"auto", display:"flex", gap:8 }}>
                   {atletasNaProva.some(a => resExistentes[a.id] != null) && (
                     <button
-                      style={{ ...styles.btnGhost, borderColor:"#7a2a2a", color:"#ff8888", fontSize:12 }}
+                      style={{ ...s.btnGhost, borderColor:"#7a2a2a", color:"#ff8888", fontSize:12 }}
                       onClick={pedirLimparTodos}
                       title="Limpar todos os resultados desta prova"
                     >🗑️ Limpar Todos</button>
                   )}
                 </div>
-                {salvo && <span style={styles.savedBadge} className="saved-pulse">✅ Resultados publicados!</span>}
+                {salvo && <span style={s.savedBadge} className="saved-pulse">✅ Resultados publicados!</span>}
               </div>
 
               {/* ── Painel Pontuação Acumulada da Combinada (Altura/Vara) ── */}
@@ -1536,8 +1538,8 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
                 return rank;
               };
 
-              const inputStyle = { ...styles.inputMarca, width: 72 };
-              const inputSmall = { ...styles.inputMarca, width: 52 };
+              const inputStyle = { ...s.inputMarca, width: 72 };
+              const inputSmall = { ...s.inputMarca, width: 52 };
               const tdStyle    = { padding: "4px 3px", textAlign: "center", verticalAlign: "middle" };
 
               return (
@@ -1545,7 +1547,7 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
                   {/* ── CAMPO: T1-T3-CP-T4-T6-Melhor-Pos ─────────────── */}
                   {isCampo ? (
                     <>
-                      <div style={styles.digitarDica}>
+                      <div style={s.digitarDica}>
                         Insira cada tentativa em metros (ex: 7.85) · X = nulo/falta · deixe em branco se não realizada
                       </div>
                       <div style={{ background:"#0a0b10", border:"1px solid #1a1d2a", borderRadius:8, padding:"8px 14px", marginBottom:10, fontSize:11, color:"#888", lineHeight:1.7 }}>
@@ -1660,7 +1662,7 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
                               </div>
                             )}
                             <div style={{ overflowX: "auto" }}>
-                              <table style={{ ...styles.table, minWidth: 900 }}>
+                              <table style={{ ...s.table, minWidth: 900 }}>
                                 <thead>
                                   <tr>
                                     <Th>#</Th>
@@ -1701,7 +1703,7 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
                                           </tr>
                                         )}
                                         <tr style={{
-                                          ...styles.tr,
+                                          ...s.tr,
                                           opacity: isEliminado ? 0.5 : 1,
                                           background: isEliminado ? "#0a0808" : undefined,
                                         }}>
@@ -1831,7 +1833,7 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
                   ) : (
                   /* ── CORRIDA: Raia · Vento · Marca ───────────────────── */
                     <>
-                      <div style={styles.digitarDica}>
+                      <div style={s.digitarDica}>
                         {`Digite apenas os números — o sistema formata automaticamente (ex: 10850 → 10,850 · 12345 → 1.23,450)${temRaia ? " · Raia: nº" : ""}${temVento ? " · Vento: ex +1,2" : ""}`}
                       </div>
                       {provaSel?.especBarreiras && (
@@ -1843,7 +1845,7 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
                           <span>Última→Cheg.: <strong style={{ color:"#fff" }}>{provaSel.especBarreiras.ultimaCheg}</strong></span>
                         </div>
                       )}
-                      <table style={styles.table}>
+                      <table style={s.table}>
                         <thead>
                           <tr>
                             <Th>#</Th><Th>Nº</Th><Th>Atleta</Th><Th>Clube/Equipe</Th>
@@ -1879,7 +1881,7 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
                                   Série {_si.serie}
                                 </td></tr>
                               )}
-                              <tr style={styles.tr}>
+                              <tr style={s.tr}>
                                 <Td>{i+1}</Td>
                                 <Td><strong style={{ color:"#aaa", fontSize:12 }}>{(numeracaoPeito?.[eventoAtual?.id]||{})[a.id]||""}</strong></Td>
                                 <Td><strong style={{ color:"#fff" }}>{a.nome}</strong></Td>
@@ -1937,7 +1939,7 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
                                 </Td>
                                 <Td>
                                   {getExist(a,"marca") || existStatus ? (
-                                    <span style={styles.marca}>{existStatus ? (
+                                    <span style={s.marca}>{existStatus ? (
                                       <span style={{ color: existStatus === "DQ" ? "#ff4444" : "#ff8844" }}>
                                         {existStatus}{existStatus === "DQ" && existDqRegra ? ` R.${existDqRegra}` : ""}
                                       </span>
@@ -1959,18 +1961,18 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
                     </>
                   )}
                   <div style={{ marginTop:16, display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
-                    <button style={styles.btnPrimary} onClick={handleSalvar}>
+                    <button style={s.btnPrimary} onClick={handleSalvar}>
                       💾 Salvar e Publicar
                     </button>
                     <div style={{ marginLeft:"auto", display:"flex", gap:8 }}>
                       {atletasNaProva.some(a => resExistentes[a.id] != null) && (
-                        <button style={{ ...styles.btnGhost, borderColor:"#7a2a2a", color:"#ff8888", fontSize:12 }}
+                        <button style={{ ...s.btnGhost, borderColor:"#7a2a2a", color:"#ff8888", fontSize:12 }}
                           onClick={pedirLimparTodos} title="Limpar todos os resultados desta prova">
                           🗑️ Limpar Todos
                         </button>
                       )}
                     </div>
-                    {salvo && <span style={styles.savedBadge} className="saved-pulse">✅ Resultados publicados!</span>}
+                    {salvo && <span style={s.savedBadge} className="saved-pulse">✅ Resultados publicados!</span>}
                   </div>
 
                   {/* ── Painel Pontuação Acumulada da Combinada ── */}

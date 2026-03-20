@@ -4,6 +4,7 @@ import { StatCard } from "../ui/StatCard";
 import { Th, Td } from "../ui/TableHelpers";
 import { SinoNotificacoes } from "../ui/SinoNotificacoes";
 import { gerarHtmlRelatorioParticipacao } from "../impressao/gerarHtmlRelatorioParticipacao";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 const PERMISSOES = [
   { id:"ver_competições",    grupo:"Competições",  label:"Visualizar competições" },
@@ -146,12 +147,13 @@ const styles = {
 };
 
 function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, atletas, selecionarEvento, adicionarEvento, editarEvento, excluirEvento, alterarStatusEvento, organizadores, funcionarios, solicitacoesVinculo, responderVinculo, equipes, solicitacoesEquipe=[], aprovarEquipe, recusarEquipe, atualizarAtleta, registrarAcao, setAtletaEditandoId, notificacoes, marcarNotifLida, resultados, solicitacoesRelatorio, resolverRelatorio, sincronizarNomesEquipes }) {
+  const s = useStylesResponsivos(styles);
   const tipoOrg = usuarioLogado?.tipo;
   if (tipoOrg !== "organizador" && tipoOrg !== "funcionario" && tipoOrg !== "admin") return (
-    <div style={styles.page}><div style={styles.emptyState}>
+    <div style={s.page}><div style={s.emptyState}>
       <span style={{ fontSize: 48 }}>🚫</span>
       <p style={{ color: "#ff6b6b", fontWeight: 700 }}>Acesso não autorizado</p>
-      <button style={styles.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
+      <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
     </div></div>
   );
 
@@ -179,10 +181,10 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
   const [relAssinatura, setRelAssinatura] = useState("");
 
   return (
-    <div style={styles.page}>
-      <div style={styles.painelHeader}>
+    <div style={s.page}>
+      <div style={s.painelHeader}>
         <div>
-          <h1 style={styles.pageTitle}>
+          <h1 style={s.pageTitle}>
             {isFuncionario ? "👥 Painel do Funcionário" : "🏟️ Painel do Organizador"}
           </h1>
           <p style={{ color:"#aaa", margin:"4px 0 0" }}>
@@ -206,20 +208,20 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
             </div>
           )}
         </div>
-        <div style={styles.painelBtns}>
+        <div style={s.painelBtns}>
           <SinoNotificacoes
             notificacoes={notificacoes}
             usuarioId={usuarioLogado?.id}
             marcarNotifLida={marcarNotifLida}
           />
           {(!isFuncionario || temPerm("funcionarios_ver")) &&
-            <button style={styles.btnSecondary} onClick={() => setTela("funcionarios")}>👥 Funcionários</button>}
+            <button style={s.btnSecondary} onClick={() => setTela("funcionarios")}>👥 Funcionários</button>}
           {(!isFuncionario || temPerm("inscricoes")) &&
-            <button style={styles.btnSecondary} onClick={() => setTela("gerenciar-equipes")}>🏟️ Equipes</button>}
+            <button style={s.btnSecondary} onClick={() => setTela("gerenciar-equipes")}>🏟️ Equipes</button>}
           {(!isFuncionario || temPerm("atletas")) &&
-            <button style={styles.btnSecondary} onClick={() => setTela("cadastrar-atleta")}>🏃 Atletas</button>}
+            <button style={s.btnSecondary} onClick={() => setTela("cadastrar-atleta")}>🏃 Atletas</button>}
           {temPerm("editar_competições") &&
-            <button style={styles.btnPrimary} onClick={() => { selecionarEvento(null); setTela("novo-evento"); }}>+ Nova Competição</button>}
+            <button style={s.btnPrimary} onClick={() => { selecionarEvento(null); setTela("novo-evento"); }}>+ Nova Competição</button>}
         </div>
       </div>
 
@@ -233,7 +235,7 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
         </div>
       )}
 
-      <div style={styles.statsRow}>
+      <div style={s.statsRow}>
         <StatCard value={meusEventos.length}  label="Competições" />
         <StatCard value={meusEventos.filter(e=>!e.inscricoesEncerradas).length} label="Com Inscrições Abertas" />
         <StatCard value={inscricoes.filter(i=>meusEventos.some(e=>e.id===i.eventoId)).length} label="Total Inscrições" />
@@ -257,9 +259,9 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
 
       {/* ── Solicitações de Relatório Pendentes ── */}
       {(() => {
-        const relPendentes = (solicitacoesRelatorio || []).filter(s => {
-          if (s.status !== "pendente") return false;
-          const evt = eventos.find(e => e.id === s.eventoId);
+        const relPendentes = (solicitacoesRelatorio || []).filter(sol => {
+          if (sol.status !== "pendente") return false;
+          const evt = eventos.find(e => e.id === sol.eventoId);
           return evt?.organizadorId === orgId;
         });
         if (relPendentes.length === 0) return null;
@@ -271,12 +273,12 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
                 {relPendentes.length} solicitação(ões) de relatório pendente(s)
               </div>
             </div>
-            <div style={styles.tableWrap}>
-              <table style={styles.table}>
+            <div style={s.tableWrap}>
+              <table style={s.table}>
                 <thead><tr><Th>Solicitante</Th><Th>Tipo</Th><Th>Competição</Th><Th>Data</Th><Th>Ações</Th></tr></thead>
                 <tbody>
                   {relPendentes.map(sol => (
-                    <tr key={sol.id} style={styles.tr}>
+                    <tr key={sol.id} style={s.tr}>
                       <Td><strong style={{ color: "#fff" }}>{sol.solicitanteNome}</strong></Td>
                       <Td><span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 4, background: sol.solicitanteTipo === "atleta" ? "#0a1a2a" : "#0a2a1a", color: sol.solicitanteTipo === "atleta" ? "#88aaff" : "#7acc44" }}>
                         {sol.solicitanteTipo === "atleta" ? "🏃 Atleta" : "🎽 Equipe"}
@@ -314,7 +316,7 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
       {/* ── Equipes Aguardando Aprovação ── */}
       {(() => {
         const meuOrgId = usuarioLogado?.tipo === "organizador" ? usuarioLogado?.id : usuarioLogado?.organizadorId;
-        const pendentes = (solicitacoesEquipe||[]).filter(s => s.status === "pendente" && s.organizadorId === meuOrgId);
+        const pendentes = (solicitacoesEquipe||[]).filter(sol => sol.status === "pendente" && sol.organizadorId === meuOrgId);
         if (pendentes.length === 0) return null;
         return (
           <div style={{ background:"#0a0f1a", border:"1px solid #1a2a4a", borderRadius:12, padding:"16px 20px", marginBottom:16 }}>
@@ -347,12 +349,12 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
       {(() => {
         const meuOrgId = usuarioLogado?.tipo === "organizador" ? usuarioLogado?.id : usuarioLogado?.organizadorId;
         const minhasEquipesIds = new Set((equipes||[]).filter(e => e.organizadorId === meuOrgId).map(e => e.id));
-        const pertenceAoOrg = (s) =>
-          s.organizadorId === meuOrgId ||
-          minhasEquipesIds.has(s.equipeId) ||
-          minhasEquipesIds.has(s.equipeAtualId);
-        const pendentes = (solicitacoesVinculo||[]).filter(s =>
-          s.status === "pendente" && pertenceAoOrg(s)
+        const pertenceAoOrg = (sol) =>
+          sol.organizadorId === meuOrgId ||
+          minhasEquipesIds.has(sol.equipeId) ||
+          minhasEquipesIds.has(sol.equipeAtualId);
+        const pendentes = (solicitacoesVinculo||[]).filter(sol =>
+          sol.status === "pendente" && pertenceAoOrg(sol)
         );
         if (pendentes.length === 0) return null;
         return (
@@ -360,31 +362,31 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
               <span style={{ fontWeight:700, color:"#88aaff", fontSize:14 }}>🔗 {pendentes.length} vínculo(s) pendente(s)</span>
             </div>
-            <div style={styles.tableWrap}>
-              <table style={styles.table}>
+            <div style={s.tableWrap}>
+              <table style={s.table}>
                 <thead><tr>
                   <Th>Atleta</Th><Th>Solicitante</Th><Th>Equipe Atual</Th><Th>Nova Equipe</Th><Th>Tipo</Th><Th>Data</Th><Th>Ação</Th>
                 </tr></thead>
                 <tbody>
-                  {pendentes.map(s => {
-                    const equipeNova = equipes?.find(e => e.id === s.equipeId);
+                  {pendentes.map(sol => {
+                    const equipeNova = equipes?.find(e => e.id === sol.equipeId);
                     return (
-                      <tr key={s.id} style={styles.tr}>
-                        <Td><strong style={{ color:"#fff" }}>{s.atletaNome}</strong></Td>
-                        <Td style={{ fontSize:12, color:"#aaa" }}>{s.solicitanteNome || "—"}</Td>
-                        <Td style={{ fontSize:12, color:"#cc88ff" }}>{s.equipeAtualNome || (s.equipeAtualId ? "—" : "Sem equipe")}</Td>
-                        <Td style={{ color:"#88aaff", fontSize:13 }}>{equipeNova?.nome || s.clube || "—"}</Td>
+                      <tr key={sol.id} style={s.tr}>
+                        <Td><strong style={{ color:"#fff" }}>{sol.atletaNome}</strong></Td>
+                        <Td style={{ fontSize:12, color:"#aaa" }}>{sol.solicitanteNome || "—"}</Td>
+                        <Td style={{ fontSize:12, color:"#cc88ff" }}>{sol.equipeAtualNome || (sol.equipeAtualId ? "—" : "Sem equipe")}</Td>
+                        <Td style={{ color:"#88aaff", fontSize:13 }}>{equipeNova?.nome || sol.clube || "—"}</Td>
                         <Td style={{ fontSize:11, color:"#888" }}>
-                          {s.aprovadorTipo === "equipe_atual" ? "🔄 Transferência" : "🔗 Vínculo novo"}
+                          {sol.aprovadorTipo === "equipe_atual" ? "🔄 Transferência" : "🔗 Vínculo novo"}
                         </Td>
-                        <Td style={{ fontSize:11, color:"#555" }}>{new Date(s.data).toLocaleString("pt-BR")}</Td>
+                        <Td style={{ fontSize:11, color:"#555" }}>{new Date(sol.data).toLocaleString("pt-BR")}</Td>
                         <Td>
                           <div style={{ display:"flex", gap:6 }}>
-                            <button onClick={() => responderVinculo(s.id, true)}
-                              style={{ ...styles.btnGhost, fontSize:12, padding:"4px 14px",
+                            <button onClick={() => responderVinculo(sol.id, true)}
+                              style={{ ...s.btnGhost, fontSize:12, padding:"4px 14px",
                                 color:"#7cfc7c", borderColor:"#2a5a2a" }}>✓ Aceitar</button>
-                            <button onClick={() => responderVinculo(s.id, false)}
-                              style={{ ...styles.btnGhost, fontSize:12, padding:"4px 12px",
+                            <button onClick={() => responderVinculo(sol.id, false)}
+                              style={{ ...s.btnGhost, fontSize:12, padding:"4px 12px",
                                 color:"#ff6b6b", borderColor:"#5a1a1a" }}>✗ Recusar</button>
                           </div>
                         </Td>
@@ -402,19 +404,19 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
           SEÇÃO 2: COMPETIÇÕES — Core operacional
          ═══════════════════════════════════════════════════════════════ */}
 
-      <h2 style={styles.sectionTitle}>Competições</h2>
+      <h2 style={s.sectionTitle}>Competições</h2>
       {meusEventos.length === 0 ? (
-        <div style={styles.emptyState}>
+        <div style={s.emptyState}>
           <span style={{ fontSize:48 }}>🏟️</span>
           <p>Nenhum competição criado ainda.</p>
           {temPerm("editar_competições") &&
-            <button style={styles.btnPrimary} onClick={() => { selecionarEvento(null); setTela("novo-evento"); }}>Criar Competição</button>}
+            <button style={s.btnPrimary} onClick={() => { selecionarEvento(null); setTela("novo-evento"); }}>Criar Competição</button>}
         </div>
       ) : (
-        <div style={styles.tableWrap}>
-          <input type="text" value={buscaComp} onChange={e => setBuscaComp(e.target.value)} placeholder="🔍 Buscar competição..." style={{ ...styles.input, padding:"6px 12px", fontSize:12, marginBottom:8, maxWidth:350 }} />
+        <div style={s.tableWrap}>
+          <input type="text" value={buscaComp} onChange={e => setBuscaComp(e.target.value)} placeholder="🔍 Buscar competição..." style={{ ...s.input, padding:"6px 12px", fontSize:12, marginBottom:8, maxWidth:350 }} />
           <div style={{ maxHeight:320, overflowY:"auto" }}>
-          <table style={styles.table}>
+          <table style={s.table}>
             <thead><tr><Th>Competição</Th><Th>Data</Th><Th>Local</Th><Th>Inscrições</Th><Th>Status</Th><Th>Ações</Th></tr></thead>
             <tbody>
               {meusEventos.filter(ev => {
@@ -424,11 +426,11 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
               }).map(ev => {
                 const nInsc = inscricoes.filter(i=>i.eventoId===ev.id).length;
                 return (
-                  <tr key={ev.id} style={styles.tr}>
+                  <tr key={ev.id} style={s.tr}>
                     <Td><strong style={{ color:"#1976D2" }}>{ev.nome}</strong></Td>
                     <Td>{new Date(ev.data+"T12:00:00").toLocaleDateString("pt-BR")}</Td>
                     <Td>{_getLocalEventoDisplay(ev)}</Td>
-                    <Td><span style={styles.marca}>{nInsc}</span></Td>
+                    <Td><span style={s.marca}>{nInsc}</span></Td>
                     <Td>
                       {ev.statusAprovacao === "pendente" && (
                         <span style={{ color:"#1976D2", fontSize:11, fontWeight:700, display:"block" }}>⏳ Aguard. aprovação</span>
@@ -454,16 +456,16 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
                     <Td>
                       <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
                         {(temPerm("sumulas") || (ev.sumulaLiberada && usuarioLogado)) && (
-                          <button style={{ ...styles.btnSecondary, fontSize:12, padding:"4px 10px" }} onClick={()=>{ selecionarEvento(ev.id); setTela("sumulas"); }} title="Ver súmulas">
+                          <button style={{ ...s.btnSecondary, fontSize:12, padding:"4px 10px" }} onClick={()=>{ selecionarEvento(ev.id); setTela("sumulas"); }} title="Ver súmulas">
                             📋
                           </button>
                         )}
-                        <button style={{ ...styles.btnSecondary, fontSize:12, padding:"4px 10px" }} onClick={()=>{ selecionarEvento(ev.id); setTela("resultados"); }} title="Ver resultados">
+                        <button style={{ ...s.btnSecondary, fontSize:12, padding:"4px 10px" }} onClick={()=>{ selecionarEvento(ev.id); setTela("resultados"); }} title="Ver resultados">
                           🏆
                         </button>
-                        <button style={{ ...styles.btnGhost, fontSize:12, padding:"4px 10px" }} onClick={()=>{ selecionarEvento(ev.id); setTela("evento-detalhe"); }}>Abrir</button>
+                        <button style={{ ...s.btnGhost, fontSize:12, padding:"4px 10px" }} onClick={()=>{ selecionarEvento(ev.id); setTela("evento-detalhe"); }}>Abrir</button>
                         {temPerm("editar_competições") && (
-                          <button style={{ ...styles.btnGhost, fontSize:12, padding:"4px 10px", color:"#88aaff", borderColor:"#88aaff66" }}
+                          <button style={{ ...s.btnGhost, fontSize:12, padding:"4px 10px", color:"#88aaff", borderColor:"#88aaff66" }}
                             onClick={()=>{ selecionarEvento(ev.id); setTela("novo-evento"); }}>
                             ⚙️ Editar
                           </button>
@@ -480,7 +482,7 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
                             // Só mostrar Encerrar quando abertas
                             if (dtEnc && agora < dtEnc) return null; // encerramento programado, não precisa do botão
                             return (
-                              <button style={{ ...styles.btnGhost, fontSize:12, padding:"4px 10px", color:"#ff6b6b", borderColor:"#5a1a1a" }}
+                              <button style={{ ...s.btnGhost, fontSize:12, padding:"4px 10px", color:"#ff6b6b", borderColor:"#5a1a1a" }}
                                 onClick={()=>alterarStatusEvento(ev.id,{inscricoesEncerradas:true,inscricoesForceEncerradas:true,inscricoesForceAbertas:false})}>
                                 🔴 Encerrar
                               </button>
@@ -489,7 +491,7 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
                             // Só mostrar Reabrir quando fechadas
                             if (dtEnc && agora >= dtEnc) return null; // prazo vencido, não pode reabrir manualmente
                             return (
-                              <button style={{ ...styles.btnGhost, fontSize:12, padding:"4px 10px", color:"#7acc44", borderColor:"#2a5a2a" }}
+                              <button style={{ ...s.btnGhost, fontSize:12, padding:"4px 10px", color:"#7acc44", borderColor:"#2a5a2a" }}
                                 onClick={()=>alterarStatusEvento(ev.id,{inscricoesEncerradas:false,inscricoesForceAbertas:true,inscricoesForceEncerradas:false,sumulaLiberada:false})}>
                                 🟢 Reabrir
                               </button>
@@ -497,7 +499,7 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
                           }
                         })()}
                         {temPerm("sumulas") && (
-                          <button style={{ ...styles.btnGhost, fontSize:12, padding:"4px 10px", color:"#1976D2", borderColor:"#1976D266" }}
+                          <button style={{ ...s.btnGhost, fontSize:12, padding:"4px 10px", color:"#1976D2", borderColor:"#1976D266" }}
                             onClick={()=>alterarStatusEvento(ev.id,{sumulaLiberada:!ev.sumulaLiberada})}>
                             {ev.sumulaLiberada ? "🔒 Restringir" : "🔓 Súmula"}
                           </button>
@@ -523,7 +525,7 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
         );
         return (
           <div style={{ marginTop: 40 }}>
-            <h2 style={{ ...styles.sectionTitle, marginBottom: 16, display:"flex", alignItems:"center", gap:10 }}>
+            <h2 style={{ ...s.sectionTitle, marginBottom: 16, display:"flex", alignItems:"center", gap:10 }}>
               🤝 Competições Cruzadas
               {eventosCruzados.length > 0 && (
                 <span style={{ background:"#0a2a4a", color:"#5599ff", border:"1px solid #3a5a8a",
@@ -547,8 +549,8 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
                 </div>
               </div>
             ) : (
-              <div style={styles.tableWrap}>
-                <table style={styles.table}>
+              <div style={s.tableWrap}>
+                <table style={s.table}>
                   <thead><tr>
                     <Th>Competição</Th><Th>Organizador</Th><Th>Data</Th><Th>Local</Th>
                     <Th>Seus Atletas</Th><Th>Inscrições</Th><Th>Ações</Th>
@@ -562,7 +564,7 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
                         (i.participacaoCruzada && atletas.find(a => a.id === i.atletaId)?.organizadorId === orgId)
                       );
                       return (
-                        <tr key={ev.id} style={styles.tr}>
+                        <tr key={ev.id} style={s.tr}>
                           <Td><strong style={{ color:"#1976D2" }}>{ev.nome}</strong></Td>
                           <Td><span style={{ color:"#5599ff", fontSize:12 }}>
                             {orgDoEvento?.entidade || orgDoEvento?.nome || "—"}
@@ -584,16 +586,16 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
                           <Td>
                             <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
                               {!ev.inscricoesEncerradas && (
-                                <button style={{ ...styles.btnPrimary, fontSize:12, padding:"4px 10px" }}
+                                <button style={{ ...s.btnPrimary, fontSize:12, padding:"4px 10px" }}
                                   onClick={() => { selecionarEvento(ev.id); setTela("inscricao-avulsa"); }}>
                                   + Inscrever
                                 </button>
                               )}
-                              <button style={{ ...styles.btnSecondary, fontSize:12, padding:"4px 10px" }}
+                              <button style={{ ...s.btnSecondary, fontSize:12, padding:"4px 10px" }}
                                 onClick={() => { selecionarEvento(ev.id); setTela("resultados"); }}>
                                 🏆 Resultados
                               </button>
-                              <button style={{ ...styles.btnGhost, fontSize:12, padding:"4px 10px" }}
+                              <button style={{ ...s.btnGhost, fontSize:12, padding:"4px 10px" }}
                                 onClick={() => { selecionarEvento(ev.id); setTela("evento-detalhe"); }}>
                                 Abrir
                               </button>
@@ -625,7 +627,7 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
               <div>
                 <label style={{ display:"block", fontSize:11, fontWeight:600, color:"#888", letterSpacing:1, marginBottom:4, textTransform:"uppercase" }}>Competição</label>
                 <select value={relEvento} onChange={e => { setRelEvento(e.target.value); setRelAtletasSel([]); setRelEquipeId(""); }}
-                  style={styles.select}>
+                  style={s.select}>
                   <option value="">— Selecione —</option>
                   {meusEventos.map(ev => <option key={ev.id} value={ev.id}>{ev.nome}</option>)}
                 </select>
@@ -634,7 +636,7 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
                 <div>
                   <label style={{ display:"block", fontSize:11, fontWeight:600, color:"#888", letterSpacing:1, marginBottom:4, textTransform:"uppercase" }}>Filtrar por</label>
                   <select value={relFiltro} onChange={e => { setRelFiltro(e.target.value); setRelAtletasSel([]); setRelEquipeId(""); }}
-                    style={styles.select}>
+                    style={s.select}>
                     <option value="todos">Todos os atletas</option>
                     <option value="equipe">Por equipe</option>
                     <option value="atleta">Por atleta</option>
@@ -651,7 +653,7 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
                 return (
                   <div>
                     <label style={{ display:"block", fontSize:11, fontWeight:600, color:"#888", letterSpacing:1, marginBottom:4, textTransform:"uppercase" }}>Equipe</label>
-                    <select value={relEquipeId} onChange={e => setRelEquipeId(e.target.value)} style={styles.select}>
+                    <select value={relEquipeId} onChange={e => setRelEquipeId(e.target.value)} style={s.select}>
                       <option value="">— Selecione —</option>
                       {eqsComInsc.map(eq => <option key={eq.id} value={eq.id}>{eq.nome}</option>)}
                     </select>
@@ -662,7 +664,7 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
                 <div>
                   <label style={{ display:"block", fontSize:11, fontWeight:600, color:"#888", letterSpacing:1, marginBottom:4, textTransform:"uppercase" }}>Buscar atleta</label>
                   <input type="text" value={relBuscaAtl} onChange={e => setRelBuscaAtl(e.target.value)}
-                    placeholder="Nome do atleta..." style={{ ...styles.select, minWidth: 200 }} />
+                    placeholder="Nome do atleta..." style={{ ...s.select, minWidth: 200 }} />
                 </div>
               )}
             </div>
@@ -741,9 +743,9 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
 
       {/* ── Histórico de Relatórios ── */}
       {temPerm("inscricoes") && (() => {
-        const relHistorico = (solicitacoesRelatorio || []).filter(s => {
-          if (s.status === "pendente") return false;
-          const evt = eventos.find(e => e.id === s.eventoId);
+        const relHistorico = (solicitacoesRelatorio || []).filter(sol => {
+          if (sol.status === "pendente") return false;
+          const evt = eventos.find(e => e.id === sol.eventoId);
           return evt?.organizadorId === orgId;
         }).sort((a, b) => (b.resolvidoEm || b.data || "").localeCompare(a.resolvidoEm || a.data || "")).slice(0, 20);
         if (relHistorico.length === 0) return null;
@@ -753,19 +755,19 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
               📂 Histórico de relatórios ({relHistorico.length})
             </summary>
             <div style={{ marginTop: 12, overflowX: "auto" }}>
-              <table style={styles.table}>
+              <table style={s.table}>
                 <thead><tr><Th>Solicitante</Th><Th>Competição</Th><Th>Status</Th><Th>Data</Th></tr></thead>
                 <tbody>
-                  {relHistorico.map(s => {
-                    const cor = s.status === "gerado" ? "#7cfc7c" : "#ff6b6b";
+                  {relHistorico.map(sol => {
+                    const cor = sol.status === "gerado" ? "#7cfc7c" : "#ff6b6b";
                     return (
-                      <tr key={s.id} style={styles.tr}>
-                        <Td><strong style={{ color: "#fff" }}>{s.solicitanteNome}</strong></Td>
-                        <Td>{s.eventoNome}</Td>
+                      <tr key={sol.id} style={s.tr}>
+                        <Td><strong style={{ color: "#fff" }}>{sol.solicitanteNome}</strong></Td>
+                        <Td>{sol.eventoNome}</Td>
                         <Td><span style={{ background: cor + "22", color: cor, border: `1px solid ${cor}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
-                          {s.status === "gerado" ? "✓ Gerado" : "✗ Recusado"}
+                          {sol.status === "gerado" ? "✓ Gerado" : "✗ Recusado"}
                         </span></Td>
-                        <Td style={{ fontSize: 11, color: "#555" }}>{s.resolvidoEm ? new Date(s.resolvidoEm).toLocaleString("pt-BR") : "—"}</Td>
+                        <Td style={{ fontSize: 11, color: "#555" }}>{sol.resolvidoEm ? new Date(sol.resolvidoEm).toLocaleString("pt-BR") : "—"}</Td>
                       </tr>
                     );
                   })}
@@ -780,12 +782,12 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
       {temPerm("inscricoes") && (() => {
         const meuOrgId = usuarioLogado?.tipo === "organizador" ? usuarioLogado?.id : usuarioLogado?.organizadorId;
         const minhasEquipesIds = new Set((equipes||[]).filter(e => e.organizadorId === meuOrgId).map(e => e.id));
-        const pertenceAoOrg = (s) =>
-          s.organizadorId === meuOrgId ||
-          minhasEquipesIds.has(s.equipeId) ||
-          minhasEquipesIds.has(s.equipeAtualId);
-        const historico = (solicitacoesVinculo||[]).filter(s =>
-          s.status !== "pendente" && pertenceAoOrg(s)
+        const pertenceAoOrg = (sol) =>
+          sol.organizadorId === meuOrgId ||
+          minhasEquipesIds.has(sol.equipeId) ||
+          minhasEquipesIds.has(sol.equipeAtualId);
+        const historico = (solicitacoesVinculo||[]).filter(sol =>
+          sol.status !== "pendente" && pertenceAoOrg(sol)
         ).sort((a,b) => new Date(b.resolvidoEm||b.data) - new Date(a.resolvidoEm||a.data)).slice(0,30);
         if (historico.length === 0) return null;
         return (
@@ -794,31 +796,31 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
               📂 Histórico de vínculos ({historico.length})
             </summary>
             <div style={{ marginTop:12, overflowX:"auto" }}>
-              <table style={styles.table}>
+              <table style={s.table}>
                 <thead><tr>
                   <Th>Atleta</Th><Th>Equipe Atual</Th><Th>Nova Equipe</Th><Th>Status</Th><Th>Resolvido por</Th><Th>Data</Th>
                 </tr></thead>
                 <tbody>
-                  {historico.map(s => {
-                    const statusColor = s.status === "aceito" ? "#7cfc7c" : "#ff6b6b";
-                    const equipeNova = equipes?.find(e => e.id === s.equipeId);
+                  {historico.map(sol => {
+                    const statusColor = sol.status === "aceito" ? "#7cfc7c" : "#ff6b6b";
+                    const equipeNova = equipes?.find(e => e.id === sol.equipeId);
                     return (
-                      <tr key={s.id} style={styles.tr}>
-                        <Td><strong style={{ color:"#fff" }}>{s.atletaNome}</strong></Td>
-                        <Td style={{ fontSize:12, color:"#cc88ff" }}>{s.equipeAtualNome || (s.equipeAtualId ? "—" : "Sem equipe")}</Td>
-                        <Td style={{ fontSize:12, color:"#88aaff" }}>{equipeNova?.nome || s.clube || "—"}</Td>
+                      <tr key={sol.id} style={s.tr}>
+                        <Td><strong style={{ color:"#fff" }}>{sol.atletaNome}</strong></Td>
+                        <Td style={{ fontSize:12, color:"#cc88ff" }}>{sol.equipeAtualNome || (sol.equipeAtualId ? "—" : "Sem equipe")}</Td>
+                        <Td style={{ fontSize:12, color:"#88aaff" }}>{equipeNova?.nome || sol.clube || "—"}</Td>
                         <Td>
                           <span style={{ background:statusColor+"22", color:statusColor,
                             border:`1px solid ${statusColor}44`, borderRadius:4,
                             padding:"2px 8px", fontSize:11, fontWeight:700 }}>
-                            {s.status === "aceito" ? "✓ Aceito" : "✗ Recusado"}
+                            {sol.status === "aceito" ? "✓ Aceito" : "✗ Recusado"}
                           </span>
                         </Td>
                         <Td style={{ fontSize:11, color:"#888" }}>
-                          {s.resolvidoPorNome || "—"} {s.resolvidoPorTipo ? `(${s.resolvidoPorTipo})` : ""}
+                          {sol.resolvidoPorNome || "—"} {sol.resolvidoPorTipo ? `(${sol.resolvidoPorTipo})` : ""}
                         </Td>
                         <Td style={{ fontSize:11, color:"#555" }}>
-                          {s.resolvidoEm ? new Date(s.resolvidoEm).toLocaleString("pt-BR") : new Date(s.data).toLocaleString("pt-BR")}
+                          {sol.resolvidoEm ? new Date(sol.resolvidoEm).toLocaleString("pt-BR") : new Date(sol.data).toLocaleString("pt-BR")}
                         </Td>
                       </tr>
                     );

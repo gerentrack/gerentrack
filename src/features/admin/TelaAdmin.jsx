@@ -6,6 +6,7 @@ import { StatCard } from "../ui/StatCard";
 import FormField from "../ui/FormField";
 import { Th, Td } from "../ui/TableHelpers";
 import { auth, createUserWithEmailAndPassword, signOut as firebaseSignOut, sendPasswordResetEmail } from "../../firebase";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 const badgeStatus = (s) => ({
@@ -15,7 +16,7 @@ const badgeStatus = (s) => ({
 }[s] || { bg:"#1a1c22", color:"#888", label: s || "—" });
 
 // ── Styles ───────────────────────────────────────────────────────────────────
-const s = {
+const styles = {
   page:       { maxWidth:1200, margin:"0 auto", padding:"36px 24px 80px" },
   title:      { fontFamily:"'Barlow Condensed',sans-serif", fontSize:34, fontWeight:800, color:"#fff", letterSpacing:1, margin:0 },
   card:       { background:"#0E1016", border:"1px solid #1E2130", borderRadius:12, padding:"20px 24px", marginBottom:20 },
@@ -78,12 +79,13 @@ function TelaAdmin({
   setHistoricoAcoes, setAuditoria, auditoria=[],
   registrarAcao,
 }) {
+  const s = useStylesResponsivos(styles);
   const confirmar = useConfirm();
   const pendOrg = organizadores.filter(o => o.status === "pendente");
   const pendEv  = eventos.filter(e => e.statusAprovacao === "pendente");
-  const pendRec = (solicitacoesRecuperacao || []).filter(s => s.status === "pendente");
-  const pendEq  = (solicitacoesEquipe || []).filter(s => s.status === "pendente");
-  const pendPort = (solicitacoesPortabilidade || []).filter(s => s.status === "pendente");
+  const pendRec = (solicitacoesRecuperacao || []).filter(sol => sol.status === "pendente");
+  const pendEq  = (solicitacoesEquipe || []).filter(sol => sol.status === "pendente");
+  const pendPort = (solicitacoesPortabilidade || []).filter(sol => sol.status === "pendente");
   const totalPend = pendOrg.length + pendEv.length + pendRec.length + pendEq.length + pendPort.length;
 
   // ── Guard ──────────────────────────────────────────────────────────────────

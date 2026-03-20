@@ -4,6 +4,7 @@ import { getStatusEvento, getStatusInscricoes, labelStatusEvento } from "./event
 import { _getLocalEventoDisplay } from "../../shared/formatters/utils";
 import { todasAsProvas, getComposicaoCombinada } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/constants/categorias";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 const styles = {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
@@ -173,6 +174,7 @@ function StatCard({ value, label }) {
 
 function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultados, usuarioLogado, alterarStatusEvento, selecionarEvento, recordes, setRecordes, equipes, getClubeAtleta, editarEvento, pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes, RecordDetectionEngine, organizadores = [],
   setCadEventoGoStep, funcionarios }) {
+  const s = useStylesResponsivos(styles);
   const confirmar = useConfirm();
 
   // ── Aba ativa: inicializa conforme perfil ────────────────────────────────
@@ -187,10 +189,10 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
 
   if (!eventoAtual) {
     return (
-      <div style={styles.page}>
-        <div style={styles.emptyState}>
+      <div style={s.page}>
+        <div style={s.emptyState}>
           <p>Nenhuma competição selecionada.</p>
-          <button style={styles.btnPrimary} onClick={() => setTela("home")}>Ver Competições</button>
+          <button style={s.btnPrimary} onClick={() => setTela("home")}>Ver Competições</button>
         </div>
       </div>
     );
@@ -287,20 +289,20 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
     // ── Público (não logado) ─────────────────────────────────────────────
     if (!usuarioLogado) {
       return (
-        <div style={styles.eventoAcoesGrid}>
-          <button style={styles.eventoAcaoBtn} onClick={() => setTela("login")}>
+        <div style={s.eventoAcoesGrid}>
+          <button style={s.eventoAcaoBtn} onClick={() => setTela("login")}>
             <span style={{ fontSize: 36 }}>✍️</span>
             <strong>Inscreva-se</strong>
             <span style={{ color: "#888", fontSize: 13 }}>Faça login ou cadastre-se para inscrever atletas</span>
           </button>
           {podeVerResultados ? (
-            <button style={styles.eventoAcaoBtn} onClick={() => setTela("resultados")}>
+            <button style={s.eventoAcaoBtn} onClick={() => setTela("resultados")}>
               <span style={{ fontSize: 36 }}>🏆</span>
               <strong>Resultados</strong>
               <span style={{ color: "#666", fontSize: 13 }}>Classificação e marcas publicadas</span>
             </button>
           ) : (
-            <div style={{ ...styles.eventoAcaoBtn, opacity: 0.35, cursor: "not-allowed" }}>
+            <div style={{ ...s.eventoAcaoBtn, opacity: 0.35, cursor: "not-allowed" }}>
               <span style={{ fontSize: 36 }}>🏆</span>
               <strong>Resultados</strong>
               <span style={{ color: "#666", fontSize: 13 }}>Disponível a partir do dia da competição</span>
@@ -315,15 +317,15 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
       // ── Atleta ────────────────────────────────────────────────────────────
       case "participacao":
         return (
-          <div style={styles.eventoAcoesGrid}>
+          <div style={s.eventoAcoesGrid}>
             {!eventoAtual.inscricoesEncerradas ? (
-              <button style={styles.eventoAcaoBtn} onClick={() => setTela("inscricao-avulsa")}>
+              <button style={s.eventoAcaoBtn} onClick={() => setTela("inscricao-avulsa")}>
                 <span style={{ fontSize: 36 }}>✍️</span>
                 <strong>Inscrever-se</strong>
                 <span style={{ color: "#666", fontSize: 13 }}>Inscrição individual em provas</span>
               </button>
             ) : (
-              <div style={{ ...styles.eventoAcaoBtn, opacity: 0.4, cursor: "not-allowed" }}>
+              <div style={{ ...s.eventoAcaoBtn, opacity: 0.4, cursor: "not-allowed" }}>
                 <span style={{ fontSize: 36 }}>🔒</span>
                 <strong>Inscrições Encerradas</strong>
                 <span style={{ color: "#666", fontSize: 13 }}>Novas inscrições não são permitidas</span>
@@ -335,22 +337,22 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
       // ── Equipe / Treinador ────────────────────────────────────────────────
       case "inscricoes":
         return (
-          <div style={styles.eventoAcoesGrid}>
+          <div style={s.eventoAcoesGrid}>
             {!eventoAtual.inscricoesEncerradas ? (
-              <button style={styles.eventoAcaoBtn} onClick={() => setTela("gestao-inscricoes")}>
+              <button style={s.eventoAcaoBtn} onClick={() => setTela("gestao-inscricoes")}>
                 <span style={{ fontSize: 36 }}>✍️</span>
                 <strong>Inscrever Atletas</strong>
                 <span style={{ color: "#666", fontSize: 13 }}>Montar lote e confirmar inscrições</span>
               </button>
             ) : (
-              <div style={{ ...styles.eventoAcaoBtn, opacity: 0.4, cursor: "not-allowed" }}>
+              <div style={{ ...s.eventoAcaoBtn, opacity: 0.4, cursor: "not-allowed" }}>
                 <span style={{ fontSize: 36 }}>🔒</span>
                 <strong>Inscrições Encerradas</strong>
                 <span style={{ color: "#666", fontSize: 13 }}>Novas inscrições não são permitidas</span>
               </div>
             )}
             {provasRevez.length > 0 && (
-              <button style={{ ...styles.eventoAcaoBtn, borderColor: "#5dade266" }} onClick={() => setTela("inscricao-revezamento")}>
+              <button style={{ ...s.eventoAcaoBtn, borderColor: "#5dade266" }} onClick={() => setTela("inscricao-revezamento")}>
                 <span style={{ fontSize: 36 }}>🏃‍♂️</span>
                 <strong>Inscrição de Revezamento</strong>
                 <span style={{ color: "#666", fontSize: 13 }}>
@@ -364,9 +366,9 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
       // ── Acompanhamento (todos logados) ────────────────────────────────────
       case "acompanhamento":
         return (
-          <div style={styles.eventoAcoesGrid}>
+          <div style={s.eventoAcoesGrid}>
             {temAcessoSumulas ? (
-              <button style={styles.eventoAcaoBtn} onClick={() => setTela("sumulas")}>
+              <button style={s.eventoAcaoBtn} onClick={() => setTela("sumulas")}>
                 <span style={{ fontSize: 36 }}>📋</span>
                 <strong>Súmulas</strong>
                 <span style={{ color: "#666", fontSize: 13 }}>
@@ -376,20 +378,20 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                 </span>
               </button>
             ) : (
-              <div style={{ ...styles.eventoAcaoBtn, opacity: 0.35, cursor: "not-allowed" }}>
+              <div style={{ ...s.eventoAcaoBtn, opacity: 0.35, cursor: "not-allowed" }}>
                 <span style={{ fontSize: 36 }}>🔐</span>
                 <strong>Súmulas</strong>
                 <span style={{ color: "#666", fontSize: 13 }}>Disponível após encerramento das inscrições</span>
               </div>
             )}
             {podeVerResultados ? (
-              <button style={styles.eventoAcaoBtn} onClick={() => setTela("resultados")}>
+              <button style={s.eventoAcaoBtn} onClick={() => setTela("resultados")}>
                 <span style={{ fontSize: 36 }}>🏆</span>
                 <strong>Resultados</strong>
                 <span style={{ color: "#666", fontSize: 13 }}>Classificação e marcas publicadas</span>
               </button>
             ) : (
-              <div style={{ ...styles.eventoAcaoBtn, opacity: 0.35, cursor: "not-allowed" }}>
+              <div style={{ ...s.eventoAcaoBtn, opacity: 0.35, cursor: "not-allowed" }}>
                 <span style={{ fontSize: 36 }}>🏆</span>
                 <strong>Resultados</strong>
                 <span style={{ color: "#666", fontSize: 13 }}>Disponível a partir do dia da competição</span>
@@ -403,30 +405,30 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
         const _perms = tpU === "funcionario" ? (usuarioLogado?.permissoes || []) : null;
         const _temPerm = (p) => _perms === null || _perms.includes(p);
         return (
-          <div style={styles.eventoAcoesGrid}>
+          <div style={s.eventoAcoesGrid}>
             {_temPerm("resultados") && (
-              <button style={{ ...styles.eventoAcaoBtn, borderColor: "#1976D266" }} onClick={() => setTela("digitar-resultados")}>
+              <button style={{ ...s.eventoAcaoBtn, borderColor: "#1976D266" }} onClick={() => setTela("digitar-resultados")}>
                 <span style={{ fontSize: 36 }}>✏️</span>
                 <strong style={{ color: "#1976D2" }}>Digitar Resultados</strong>
                 <span style={{ color: "#666", fontSize: 13 }}>Inserir marcas e publicar</span>
               </button>
             )}
             {_temPerm("inscricoes") && (
-              <button style={{ ...styles.eventoAcaoBtn, borderColor: "#ffaa4466" }} onClick={() => setTela("gestao-inscricoes")}>
+              <button style={{ ...s.eventoAcaoBtn, borderColor: "#ffaa4466" }} onClick={() => setTela("gestao-inscricoes")}>
                 <span style={{ fontSize: 36 }}>🔄</span>
                 <strong>Gestão de Inscrições</strong>
                 <span style={{ color: "#666", fontSize: 13 }}>Excluir, trocar prova ou inserir atleta</span>
               </button>
             )}
             {_temPerm("inscricoes") && (
-              <button style={{ ...styles.eventoAcaoBtn, borderColor: "#88ff8866" }} onClick={() => setTela("numeracao-peito")}>
+              <button style={{ ...s.eventoAcaoBtn, borderColor: "#88ff8866" }} onClick={() => setTela("numeracao-peito")}>
                 <span style={{ fontSize: 36 }}>🔢</span>
                 <strong>Numeração de Peito</strong>
                 <span style={{ color: "#666", fontSize: 13 }}>Numerar atletas automaticamente ou manualmente</span>
               </button>
             )}
             {provasRevez.length > 0 && _temPerm("inscricoes") && (
-              <button style={{ ...styles.eventoAcaoBtn, borderColor: "#5dade266" }} onClick={() => setTela("inscricao-revezamento")}>
+              <button style={{ ...s.eventoAcaoBtn, borderColor: "#5dade266" }} onClick={() => setTela("inscricao-revezamento")}>
                 <span style={{ fontSize: 36 }}>🏃‍♂️</span>
                 <strong>Inscrição de Revezamento</strong>
                 <span style={{ color: "#666", fontSize: 13 }}>
@@ -435,7 +437,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
               </button>
             )}
             {(tpU === "admin" || tpU === "organizador") && (
-              <button style={{ ...styles.eventoAcaoBtn, borderColor: "#1976D266" }} onClick={() => setTela("config-pontuacao-equipes")}>
+              <button style={{ ...s.eventoAcaoBtn, borderColor: "#1976D266" }} onClick={() => setTela("config-pontuacao-equipes")}>
                 <span style={{ fontSize: 36 }}>🏅</span>
                 <strong>Pontuação por Equipes</strong>
                 <span style={{ color: "#666", fontSize: 13 }}>
@@ -444,7 +446,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
               </button>
             )}
             {_temPerm("camara_chamada") && (
-              <button style={{ ...styles.eventoAcaoBtn, borderColor: "#2a6a6a66" }} onClick={() => setTela("secretaria")}>
+              <button style={{ ...s.eventoAcaoBtn, borderColor: "#2a6a6a66" }} onClick={() => setTela("secretaria")}>
                 <span style={{ fontSize: 36 }}>📋</span>
                 <strong>Secretaria</strong>
                 <span style={{ color: "#666", fontSize: 13 }}>Câmara de chamada · Entrega de medalhas</span>
@@ -457,20 +459,20 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
       // ── Configuração (admin / org) ─────────────────────────────────────────
       case "configuracao":
         return (
-          <div style={styles.eventoAcoesGrid}>
-            <button style={{ ...styles.eventoAcaoBtn, borderColor: "#88aaff66" }}
+          <div style={s.eventoAcoesGrid}>
+            <button style={{ ...s.eventoAcaoBtn, borderColor: "#88aaff66" }}
                     onClick={async () => { selecionarEvento(eventoAtual.id); setTela("novo-evento"); }}>
               <span style={{ fontSize: 36 }}>⚙️</span>
               <strong>Editar Competição</strong>
               <span style={{ color: "#666", fontSize: 13 }}>Alterar dados, provas e configurações</span>
             </button>
-            <button style={{ ...styles.eventoAcaoBtn, borderColor: "#ffcc0066" }}
+            <button style={{ ...s.eventoAcaoBtn, borderColor: "#ffcc0066" }}
                     onClick={async () => { selecionarEvento(eventoAtual.id); setCadEventoGoStep("step3"); setTela("novo-evento"); }}>
               <span style={{ fontSize: 36 }}>🕐</span>
               <strong>Programa Horário</strong>
               <span style={{ color: "#666", fontSize: 13 }}>Definir horários e fases das provas</span>
             </button>
-            <button style={{ ...styles.eventoAcaoBtn, borderColor: "#88cccc66" }}
+            <button style={{ ...s.eventoAcaoBtn, borderColor: "#88cccc66" }}
                     onClick={() => setAbaAtiva("func_acesso")}>
               <span style={{ fontSize: 36 }}>👥</span>
               <strong>Acesso de Funcionários</strong>
@@ -577,10 +579,10 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
 
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div style={styles.page}>
+    <div style={s.page}>
 
       {/* ══ CABEÇALHO ═══════════════════════════════════════════════════════ */}
-      <div style={styles.painelHeader}>
+      <div style={s.painelHeader}>
         <div style={{ flex: 1 }}>
           {eventoAtual.logoCompeticao && (
             <div style={{ marginBottom: 14, padding: 16, background: "#fff", borderRadius: 12, border: "1px solid #2a3050", display: "inline-block" }}>
@@ -592,14 +594,14 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
             {eventoAtual.horaInicio && <> · ⏰ {eventoAtual.horaInicio}h</>}
             &nbsp;·&nbsp; 📍 {_getLocalEventoDisplay(eventoAtual)}
             <span style={{ marginLeft: 10 }}>
-              <span style={styles.eventoStatusBadge(getStatusEvento(eventoAtual, resultados))}>
+              <span style={s.eventoStatusBadge(getStatusEvento(eventoAtual, resultados))}>
                 {labelStatusEvento(getStatusEvento(eventoAtual, resultados), eventoAtual)}
               </span>
             </span>
           </div>
-          <h1 style={{ ...styles.pageTitle, marginBottom: 4 }}>{eventoAtual.nome}</h1>
+          <h1 style={{ ...s.pageTitle, marginBottom: 4 }}>{eventoAtual.nome}</h1>
           {eventoAtual.permissividadeNorma && (
-            <span style={styles.permissividadeTag(true)}>⚖️ Permissividade de norma ativa</span>
+            <span style={s.permissividadeTag(true)}>⚖️ Permissividade de norma ativa</span>
           )}
           {(eventoAtual.orgsAutorizadas || []).length > 0 && (() => {
             const orgsNomes = (eventoAtual.orgsAutorizadas || [])
@@ -653,11 +655,11 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
             </div>
           )}
         </div>
-        <button style={styles.btnGhost} onClick={() => setTela("home")}>← Competições</button>
+        <button style={s.btnGhost} onClick={() => setTela("home")}>← Competições</button>
       </div>
 
       {/* ══ STATS ════════════════════════════════════════════════════════════ */}
-      <div style={styles.statsRow}>
+      <div style={s.statsRow}>
         <StatCard value={nProvas}     label="Provas no Prog." />
         <StatCard value={nAtletas}    label="Atletas" />
         <StatCard value={nInscs}      label="Inscrições" />
@@ -708,14 +710,14 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
       {/* ══ ABAS — admin/org: ficam acima do programa horário ══════════════ */}
       {isAdmin && (
         <>
-          <div style={styles.tabsWrapper}>
+          <div style={s.tabsWrapper}>
             {tabs.length > 1 && (
-              <div style={styles.tabsBar}>
+              <div style={s.tabsBar}>
                 {tabs.map((tab, idx) => (
                   <button
                     key={tab.id}
                     style={{
-                      ...styles.tabBtn(abaEfetiva === tab.id),
+                      ...s.tabBtn(abaEfetiva === tab.id),
                       borderRightWidth: idx < tabs.length - 1 ? 1 : 0,
                     }}
                     onClick={() => setAbaAtiva(tab.id)}
@@ -730,9 +732,9 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
 
           <div style={{ height: 1, background: "#1E2130", marginBottom: 28 }} />
 
-          <div style={styles.statusControlsCard}>
-            <div style={styles.statusControlsTitle}>🔧 Controles de Status da Competição</div>
-            <div style={styles.statusControlsGrid}>
+          <div style={s.statusControlsCard}>
+            <div style={s.statusControlsTitle}>🔧 Controles de Status da Competição</div>
+            <div style={s.statusControlsGrid}>
               {(() => {
                 const agora = new Date();
                 const dtAb  = _dtInsc(eventoAtual.dataAberturaInscricoes, eventoAtual.horaAberturaInscricoes);
@@ -745,7 +747,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                     : null;
                 const bloqEncerrar = dtEnc && agora < dtEnc ? `Encerramento programado: ${dtEnc.toLocaleString("pt-BR")}` : null;
                 return (
-                  <div style={styles.statusControlBox(encerradas, "#c0392b", "#3a0a0a")}>
+                  <div style={s.statusControlBox(encerradas, "#c0392b", "#3a0a0a")}>
                     <div style={{ fontWeight:700, fontSize:14, color: encerradas ? "#ff6b6b" : "#7acc44", marginBottom:8 }}>
                       {encerradas ? "🔒 Inscrições Encerradas" : "🟢 Inscrições Abertas"}
                     </div>
@@ -768,8 +770,8 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                   </div>
                 );
               })()}
-              <div style={styles.statusControlBox(eventoAtual.sumulaLiberada, "#27ae60", "#0a2a0a", !eventoAtual.inscricoesEncerradas)}>
-                <label style={{ ...styles.statusControlLabel, opacity: eventoAtual.inscricoesEncerradas ? 1 : 0.45, cursor: eventoAtual.inscricoesEncerradas ? "pointer" : "not-allowed" }}>
+              <div style={s.statusControlBox(eventoAtual.sumulaLiberada, "#27ae60", "#0a2a0a", !eventoAtual.inscricoesEncerradas)}>
+                <label style={{ ...s.statusControlLabel, opacity: eventoAtual.inscricoesEncerradas ? 1 : 0.45, cursor: eventoAtual.inscricoesEncerradas ? "pointer" : "not-allowed" }}>
                   <input type="checkbox" checked={!!eventoAtual.sumulaLiberada} disabled={!eventoAtual.inscricoesEncerradas} onChange={toggleSumula}
                     style={{ width:18, height:18, accentColor:"#1976D2", cursor: eventoAtual.inscricoesEncerradas ? "pointer" : "not-allowed", marginRight:10, flexShrink:0 }} />
                   <div>
@@ -784,8 +786,8 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                   </div>
                 </label>
               </div>
-              <div style={styles.statusControlBox(eventoAtual.competicaoEncerrada, "#8e44ad", "#1a0a2a")}>
-                <label style={styles.statusControlLabel}>
+              <div style={s.statusControlBox(eventoAtual.competicaoEncerrada, "#8e44ad", "#1a0a2a")}>
+                <label style={s.statusControlLabel}>
                   <input type="checkbox" checked={!!eventoAtual.competicaoEncerrada}
                     onChange={() => alterarStatusEvento(eventoAtual.id, { competicaoEncerrada: !eventoAtual.competicaoEncerrada })}
                     style={{ width:18, height:18, accentColor:"#8e44ad", cursor:"pointer", marginRight:10, flexShrink:0 }} />
@@ -1093,14 +1095,14 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
 
       {/* ══ ABAS — perfis não-admin: ficam após programa horário ════════════ */}
       {!isAdmin && (
-        <div style={styles.tabsWrapper}>
+        <div style={s.tabsWrapper}>
           {tabs.length > 1 && (
-            <div style={styles.tabsBar}>
+            <div style={s.tabsBar}>
               {tabs.map((tab, idx) => (
                 <button
                   key={tab.id}
                   style={{
-                    ...styles.tabBtn(abaEfetiva === tab.id),
+                    ...s.tabBtn(abaEfetiva === tab.id),
                     borderRightWidth: idx < tabs.length - 1 ? 1 : 0,
                   }}
                   onClick={() => setAbaAtiva(tab.id)}
@@ -1116,9 +1118,9 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
 
       {/* ── Barra de status somente-leitura (não-admin logado) ── */}
       {!isAdmin && usuarioLogado && (
-        <div style={styles.statusBar}>
-          <div style={styles.statusBarItem}>
-            <span style={styles.statusDot(
+        <div style={s.statusBar}>
+          <div style={s.statusBarItem}>
+            <span style={s.statusDot(
               getStatusInscricoes(eventoAtual) === "abertas" ? "#7acc44" :
               getStatusInscricoes(eventoAtual) === "em_breve" ? "#1976D2" : "#ff6b6b"
             )} />
@@ -1133,8 +1135,8 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
               }
             </span>
           </div>
-          <div style={styles.statusBarItem}>
-            <span style={styles.statusDot(eventoAtual.sumulaLiberada ? "#7acc44" : "#555")} />
+          <div style={s.statusBarItem}>
+            <span style={s.statusDot(eventoAtual.sumulaLiberada ? "#7acc44" : "#555")} />
             <span style={{ color:"#aaa", fontSize:13 }}>
               {eventoAtual.sumulaLiberada ? "Súmulas disponíveis" : "Súmulas não disponíveis"}
             </span>

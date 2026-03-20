@@ -1,14 +1,16 @@
 import authStyles from "./authStyles";
 const styles = authStyles;
 import React from "react";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 function TelaSelecaoPerfil({ perfisDisponiveis, loginComSelecao, setTela, logout }) {
+  const s = useStylesResponsivos(styles);
   if (!perfisDisponiveis || perfisDisponiveis.length === 0) return (
-    <div style={styles.formPage}><div style={styles.formCard}>
+    <div style={s.formPage}><div style={s.formCard}>
       <div style={{ fontSize:64, textAlign:"center" }}>🔍</div>
-      <h2 style={{ ...styles.formTitle, textAlign:"center" }}>Nenhum perfil encontrado</h2>
+      <h2 style={{ ...s.formTitle, textAlign:"center" }}>Nenhum perfil encontrado</h2>
       <p style={{ textAlign:"center", color:"#aaa" }}>Não foram encontrados perfis ativos vinculados à sua conta.</p>
-      <button style={styles.btnGhost} onClick={() => setTela("login")}>← Voltar ao Login</button>
+      <button style={s.btnGhost} onClick={() => setTela("login")}>← Voltar ao Login</button>
     </div></div>
   );
 
@@ -23,11 +25,11 @@ function TelaSelecaoPerfil({ perfisDisponiveis, loginComSelecao, setTela, logout
   });
 
   return (
-    <div style={styles.formPage}>
-      <div style={{ ...styles.formCard, maxWidth:540 }}>
+    <div style={s.formPage}>
+      <div style={{ ...s.formCard, maxWidth:540 }}>
         <div style={{ textAlign:"center", marginBottom:24 }}>
           <div style={{ fontSize:48, marginBottom:8 }}>👋</div>
-          <h2 style={{ ...styles.formTitle, margin:0 }}>Olá, {nome}!</h2>
+          <h2 style={{ ...s.formTitle, margin:0 }}>Olá, {nome}!</h2>
           <p style={{ color:"#aaa", fontSize:14, marginTop:8 }}>
             Você possui <strong style={{ color:"#1976D2" }}>{perfisDisponiveis.length} perfil(is)</strong> cadastrado(s). Selecione o contexto para esta sessão:
           </p>
@@ -54,8 +56,8 @@ function TelaSelecaoPerfil({ perfisDisponiveis, loginComSelecao, setTela, logout
           ))}
         </div>
         <div style={{ borderTop:"1px solid #1E2130", marginTop:20, paddingTop:16, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-          <button style={styles.linkBtn} onClick={() => setTela("login")}>← Voltar ao Login</button>
-          <button style={{ ...styles.btnGhost, fontSize:12 }} onClick={logout}>Sair</button>
+          <button style={s.linkBtn} onClick={() => setTela("login")}>← Voltar ao Login</button>
+          <button style={{ ...s.btnGhost, fontSize:12 }} onClick={logout}>Sair</button>
         </div>
       </div>
     </div>

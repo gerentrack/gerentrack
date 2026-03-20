@@ -4,6 +4,7 @@ import { validarCPF, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { Th, Td } from "../ui/TableHelpers";
 
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
 
 const styles = {
@@ -151,6 +152,7 @@ const painelDestino = (u) =>
 function TelaTreinadores({ usuarioLogado, setTela, treinadores, adicionarTreinador,
   atualizarTreinador, removerTreinador, registrarAcao, gerarSenhaTemp, historicoAcoes,
   equipes, atletasUsuarios, funcionarios, organizadores }) {
+  const s = useStylesResponsivos(styles);
   const confirmar = useConfirm();
 
   const tipoUsr = usuarioLogado?.tipo;
@@ -158,10 +160,10 @@ function TelaTreinadores({ usuarioLogado, setTela, treinadores, adicionarTreinad
   const equipeId = isTreinador ? usuarioLogado.equipeId : usuarioLogado?.id;
   
   if (tipoUsr !== "equipe" && !isTreinador) return (
-    <div style={styles.page}><div style={styles.emptyState}>
+    <div style={s.page}><div style={s.emptyState}>
       <span style={{ fontSize: 48 }}>🚫</span>
       <p style={{ color: "#ff6b6b", fontWeight: 700 }}>Acesso restrito a equipes</p>
-      <button style={styles.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
+      <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
     </div></div>
   );
 
@@ -350,17 +352,17 @@ function TelaTreinadores({ usuarioLogado, setTela, treinadores, adicionarTreinad
   });
 
   return (
-    <div style={styles.page}>
-      <div style={styles.painelHeader}>
+    <div style={s.page}>
+      <div style={s.painelHeader}>
         <div>
-          <h1 style={styles.pageTitle}>👨‍🏫 Treinadores</h1>
+          <h1 style={s.pageTitle}>👨‍🏫 Treinadores</h1>
           <p style={{ color:"#aaa", margin:"4px 0 0" }}>
             Gerencie os treinadores da sua equipe
           </p>
         </div>
-        <div style={styles.painelBtns}>
-          {podeGerenciar && <button style={styles.btnPrimary} onClick={abrirNovo}>+ Novo Treinador</button>}
-          <button style={styles.btnGhost} onClick={() => setTela(painelDestino(usuarioLogado))}>← Voltar</button>
+        <div style={s.painelBtns}>
+          {podeGerenciar && <button style={s.btnPrimary} onClick={abrirNovo}>+ Novo Treinador</button>}
+          <button style={s.btnGhost} onClick={() => setTela(painelDestino(usuarioLogado))}>← Voltar</button>
         </div>
       </div>
 
@@ -381,16 +383,16 @@ function TelaTreinadores({ usuarioLogado, setTela, treinadores, adicionarTreinad
       {/* ── LISTA ─────────────────────────────────────────────────── */}
       {aba === "lista" && (
         meusTreinadores.length === 0 ? (
-          <div style={styles.emptyState}>
+          <div style={s.emptyState}>
             <span style={{ fontSize:48 }}>👨‍🏫</span>
             <p>Nenhum treinador cadastrado ainda.</p>
-            {podeGerenciar && <button style={styles.btnPrimary} onClick={abrirNovo}>+ Adicionar Primeiro</button>}
+            {podeGerenciar && <button style={s.btnPrimary} onClick={abrirNovo}>+ Adicionar Primeiro</button>}
           </div>
         ) : (
-          <div style={styles.tableWrap}>
-            <input type="text" value={buscaTrein} onChange={e => setBuscaTrein(e.target.value)} placeholder="🔍 Buscar treinador..." style={{ ...styles.input, padding:"6px 12px", fontSize:12, marginBottom:8, maxWidth:350 }} />
+          <div style={s.tableWrap}>
+            <input type="text" value={buscaTrein} onChange={e => setBuscaTrein(e.target.value)} placeholder="🔍 Buscar treinador..." style={{ ...s.input, padding:"6px 12px", fontSize:12, marginBottom:8, maxWidth:350 }} />
             <div style={{ maxHeight:320, overflowY:"auto" }}>
-            <table style={styles.table}>
+            <table style={s.table}>
               <thead><tr>
                 <Th>Nome</Th><Th>E-mail</Th><Th>Cargo</Th><Th>Permissões</Th><Th>Status</Th><Th>Cadastro</Th>
                 {podeGerenciar && <Th>Ações</Th>}
@@ -401,7 +403,7 @@ function TelaTreinadores({ usuarioLogado, setTela, treinadores, adicionarTreinad
                   const b = buscaTrein.toLowerCase();
                   return (t.nome||"").toLowerCase().includes(b) || (t.email||"").toLowerCase().includes(b) || (t.cargo||"").toLowerCase().includes(b);
                 }).map(t => (
-                  <tr key={t.id} style={{ ...styles.tr, opacity: t.ativo===false ? 0.45 : 1 }}>
+                  <tr key={t.id} style={{ ...s.tr, opacity: t.ativo===false ? 0.45 : 1 }}>
                     <Td><strong style={{ color:"#fff" }}>{t.nome}</strong></Td>
                     <Td>{t.email}</Td>
                     <Td><span style={{ color:"#aaa", fontSize:12 }}>{t.cargo||"—"}</span></Td>
@@ -438,15 +440,15 @@ function TelaTreinadores({ usuarioLogado, setTela, treinadores, adicionarTreinad
                       <Td>
                         <div style={{ display:"flex", gap:5 }}>
                           <button onClick={() => abrirEditar(t)}
-                            style={{ ...styles.btnGhost, fontSize:11, padding:"3px 10px" }}>✏️</button>
+                            style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px" }}>✏️</button>
                           <button onClick={() => handleToggleAtivo(t)}
-                            style={{ ...styles.btnGhost, fontSize:11, padding:"3px 10px",
+                            style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px",
                               color: t.ativo===false ? "#7cfc7c" : "#ffaa44",
                               borderColor: t.ativo===false ? "#2a5a2a" : "#5a3a0a" }}>
                             {t.ativo===false ? "Ativar" : "Desativar"}
                           </button>
                           <button onClick={() => handleRemover(t)}
-                            style={{ ...styles.btnGhost, fontSize:11, padding:"3px 10px",
+                            style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px",
                               color:"#ff6b6b", borderColor:"#5a1a1a" }}>🗑️</button>
                         </div>
                       </Td>
@@ -463,7 +465,7 @@ function TelaTreinadores({ usuarioLogado, setTela, treinadores, adicionarTreinad
       {/* ── FORMULÁRIO NOVO / EDITAR ──────────────────────────────── */}
       {aba === "novo" && (
         <div style={{ maxWidth:620 }}>
-          <h2 style={styles.sectionTitle}>{editando ? "Editar Treinador" : "Novo Treinador"}</h2>
+          <h2 style={s.sectionTitle}>{editando ? "Editar Treinador" : "Novo Treinador"}</h2>
 
           {/* CPF primeiro — para verificar se já existe */}
           {!editando && (
@@ -498,21 +500,21 @@ function TelaTreinadores({ usuarioLogado, setTela, treinadores, adicionarTreinad
 
           {(docModo !== "login" || editando) && (
             <>
-          <div style={styles.grid2form}>
+          <div style={s.grid2form}>
             <FormField label="Nome Completo *" value={form.nome} onChange={v=>setForm({...form,nome:v})} error={erros.nome} />
             <FormField label="Cargo / Função"  value={form.cargo} onChange={v=>setForm({...form,cargo:v})} placeholder="Ex: Treinador, Assistente, Preparador" />
             <FormField label="E-mail *"        value={form.email} onChange={v=>setForm({...form,email:v})} type="email" error={erros.email} />
             {editando && <FormField label="CPF" value={form.cpf} onChange={v=>setForm({...form,cpf:v})} placeholder="000.000.000-00" />}
             {docModo !== "vincular" && (
             <div>
-              <label style={styles.label}>Senha {editando ? "(deixe em branco para manter)" : "(gerada automaticamente)"}</label>
+              <label style={s.label}>Senha {editando ? "(deixe em branco para manter)" : "(gerada automaticamente)"}</label>
               <div style={{ display:"flex", gap:6, alignItems:"center" }}>
-                <input style={{ ...styles.inputMarca, flex:1, fontFamily:"monospace", letterSpacing:2 }}
+                <input style={{ ...s.inputMarca, flex:1, fontFamily:"monospace", letterSpacing:2 }}
                   type={senhaVis === "form" ? "text" : "password"}
                   value={form.senha}
                   onChange={e => setForm({...form, senha:e.target.value})} />
                 <button onClick={() => setSenhaVis(senhaVis==="form" ? null : "form")}
-                  style={{ ...styles.btnGhost, fontSize:12, padding:"6px 10px" }}>
+                  style={{ ...s.btnGhost, fontSize:12, padding:"6px 10px" }}>
                   {senhaVis==="form" ? "🙈" : "👁️"}
                 </button>
               </div>
@@ -522,7 +524,7 @@ function TelaTreinadores({ usuarioLogado, setTela, treinadores, adicionarTreinad
 
           {/* Permissões por grupo */}
           <div style={{ marginTop:20 }}>
-            <label style={{ ...styles.label, fontSize:13, marginBottom:10, display:"block" }}>
+            <label style={{ ...s.label, fontSize:13, marginBottom:10, display:"block" }}>
               🔐 Permissões de Acesso
             </label>
             {grupos.map(grupo => (
@@ -550,11 +552,11 @@ function TelaTreinadores({ usuarioLogado, setTela, treinadores, adicionarTreinad
           </div>
 
           <div style={{ display:"flex", gap:10, marginTop:24 }}>
-            <button style={{ ...styles.btnPrimary, opacity: treinDuplicadoOrg ? 0.4 : 1 }}
+            <button style={{ ...s.btnPrimary, opacity: treinDuplicadoOrg ? 0.4 : 1 }}
               onClick={handleSalvar} disabled={!!treinDuplicadoOrg}>
               {editando ? "💾 Salvar Alterações" : docModo === "vincular" ? "🔗 Vincular Treinador" : "✅ Cadastrar Treinador"}
             </button>
-            <button style={styles.btnGhost} onClick={async () => { setAba("lista"); setDocModo("novo"); setDocExistente(null); setLoginForm({email:"",senha:""}); }}>Cancelar</button>
+            <button style={s.btnGhost} onClick={async () => { setAba("lista"); setDocModo("novo"); setDocExistente(null); setLoginForm({email:"",senha:""}); }}>Cancelar</button>
           </div>
             </>
           )}
@@ -564,17 +566,17 @@ function TelaTreinadores({ usuarioLogado, setTela, treinadores, adicionarTreinad
       {/* ── HISTÓRICO ─────────────────────────────────────────────── */}
       {aba === "historico" && (
         <>
-          <h2 style={styles.sectionTitle}>📜 Histórico de Ações</h2>
+          <h2 style={s.sectionTitle}>📜 Histórico de Ações</h2>
           {meuHistorico.length === 0 ? (
-            <div style={styles.emptyState}>
+            <div style={s.emptyState}>
               <span style={{ fontSize:40 }}>📜</span>
               <p>Nenhuma ação registrada ainda.</p>
             </div>
           ) : (
-            <div style={styles.tableWrap}>
-              <input type="text" value={buscaHistT} onChange={e => setBuscaHistT(e.target.value)} placeholder="🔍 Buscar ação..." style={{ ...styles.input, padding:"6px 12px", fontSize:12, marginBottom:8, maxWidth:350 }} />
+            <div style={s.tableWrap}>
+              <input type="text" value={buscaHistT} onChange={e => setBuscaHistT(e.target.value)} placeholder="🔍 Buscar ação..." style={{ ...s.input, padding:"6px 12px", fontSize:12, marginBottom:8, maxWidth:350 }} />
               <div style={{ maxHeight:320, overflowY:"auto" }}>
-              <table style={styles.table}>
+              <table style={s.table}>
                 <thead><tr>
                   <Th>Data / Hora</Th><Th>Usuário</Th><Th>Ação</Th><Th>Detalhe</Th>
                 </tr></thead>
@@ -584,7 +586,7 @@ function TelaTreinadores({ usuarioLogado, setTela, treinadores, adicionarTreinad
                     const b = buscaHistT.toLowerCase();
                     return (h.nomeUsuario||"").toLowerCase().includes(b) || (h.acao||"").toLowerCase().includes(b) || (h.detalhe||"").toLowerCase().includes(b);
                   }).map(h => (
-                    <tr key={h.id} style={styles.tr}>
+                    <tr key={h.id} style={s.tr}>
                       <Td style={{ fontSize:11, color:"#666", whiteSpace:"nowrap" }}>
                         {new Date(h.data).toLocaleString("pt-BR")}
                       </Td>

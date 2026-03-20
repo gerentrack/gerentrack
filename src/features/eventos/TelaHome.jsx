@@ -1,6 +1,7 @@
 import React from "react";
 import { getStatusEvento, labelStatusEvento } from "./eventoHelpers";
 import { _getLocalEventoDisplay } from "../../shared/formatters/utils";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 
 const styles = {
@@ -144,13 +145,14 @@ function StatCard({ value, label }) {
 }
 
 function InfoCard({ icon, title, items }) {
+  const s = useStylesResponsivos(styles);
   return (
-    <div style={styles.infoCard}>
-      <div style={styles.infoCardTitle}>{icon ? `${icon} ` : ""}{title}</div>
-      <ul style={styles.infoList}>
+    <div style={s.infoCard}>
+      <div style={s.infoCardTitle}>{icon ? `${icon} ` : ""}{title}</div>
+      <ul style={s.infoList}>
         {items.map((item, i) => (
-          <li key={i} style={styles.infoItem}>
-            <span style={styles.infoItemDot}>›</span> {item}
+          <li key={i} style={s.infoItem}>
+            <span style={s.infoItemDot}>›</span> {item}
           </li>
         ))}
       </ul>
@@ -159,6 +161,7 @@ function InfoCard({ icon, title, items }) {
 }
 
 export default function TelaHome({ setTela, eventos, inscricoes, atletas, resultados, selecionarEvento, usuarioLogado, excluirEvento, organizadores, equipes, siteBranding }) {
+  const s = useStylesResponsivos(styles);
   const totalResultados = resultados && typeof resultados === "object"
     ? Object.values(resultados).reduce((a, b) => a + (b && typeof b === "object" ? Object.keys(b).length : 0), 0)
     : 0;
@@ -209,7 +212,7 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
     const dataEv = new Date(ev.data + "T12:00:00");
     const status = getStatusEvento(ev, resultados);
     return (
-      <div key={ev.id} style={{ ...styles.eventoCard, padding:0, overflow:"hidden" }}>
+      <div key={ev.id} style={{ ...s.eventoCard, padding:0, overflow:"hidden" }}>
         <div style={{ position:"relative", width:"100%", minHeight: ev.logoCompeticao ? 0 : 60, background: ev.logoCompeticao ? "transparent" : "linear-gradient(135deg, #0a1a2a 0%, #1a0a2a 100%)", borderBottom:"1px solid #1E2130", overflow:"hidden" }}>
           {ev.logoCompeticao ? (
             <img src={ev.logoCompeticao} alt="" style={{ width:"100%", display:"block", objectFit:"contain" }} />
@@ -217,25 +220,25 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
             <span style={{ fontSize:28, opacity:0.3 }}>🏟️</span>
           )}
           <div style={{ position:"absolute", top:10, left:12, display:"flex", flexDirection:"column", gap:4 }}>
-            <div style={styles.eventoStatusBadge(status)}>{labelStatusEvento(status, ev)}</div>
+            <div style={s.eventoStatusBadge(status)}>{labelStatusEvento(status, ev)}</div>
           </div>
           {usuarioLogado?.tipo === "admin" && (
             <div style={{ position:"absolute", top:8, right:10, display:"flex", gap:6 }}>
-              <button style={{ ...styles.btnIconSm, background:"rgba(0,0,0,0.5)", backdropFilter:"blur(4px)" }} onClick={() => { selecionarEvento(ev.id); setTela("novo-evento"); }} title="Editar">✏️</button>
-              <button style={{ ...styles.btnIconSmDanger, background:"rgba(0,0,0,0.5)", backdropFilter:"blur(4px)" }} onClick={() => excluirEvento(ev.id)} title="Excluir">🗑</button>
+              <button style={{ ...s.btnIconSm, background:"rgba(0,0,0,0.5)", backdropFilter:"blur(4px)" }} onClick={() => { selecionarEvento(ev.id); setTela("novo-evento"); }} title="Editar">✏️</button>
+              <button style={{ ...s.btnIconSmDanger, background:"rgba(0,0,0,0.5)", backdropFilter:"blur(4px)" }} onClick={() => excluirEvento(ev.id)} title="Excluir">🗑</button>
             </div>
           )}
         </div>
         <div style={{ padding:"14px 20px 20px" }}>
-          <div style={styles.eventoCardNome}>{ev.nome}</div>
-          <div style={styles.eventoCardMeta}>
+          <div style={s.eventoCardNome}>{ev.nome}</div>
+          <div style={s.eventoCardMeta}>
             <span>📅 {dataEv.toLocaleDateString("pt-BR", { day:"2-digit", month:"long", year:"numeric" })}
               {ev.horaInicio && <> · ⏰ {ev.horaInicio}h</>}
             </span>
           </div>
-          <div style={styles.eventoCardMeta}><span>📍 {_getLocalEventoDisplay(ev)}</span></div>
+          <div style={s.eventoCardMeta}><span>📍 {_getLocalEventoDisplay(ev)}</span></div>
           {(ev.dataAberturaInscricoes || ev.dataEncerramentoInscricoes) && (
-            <div style={styles.eventoCardMeta}>
+            <div style={s.eventoCardMeta}>
               <span>📋 Inscrições:&nbsp;
                 {ev.dataAberturaInscricoes && <>{new Date(ev.dataAberturaInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}</>}
                 {ev.dataAberturaInscricoes && ev.dataEncerramentoInscricoes && " a "}
@@ -243,7 +246,7 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
               </span>
             </div>
           )}
-          <div style={styles.eventoCardStats}>
+          <div style={s.eventoCardStats}>
             <span>🎯 {nProvas} prova{nProvas !== 1 ? "s" : ""}</span>
             <span>🏃 {nAtletas} atleta{nAtletas !== 1 ? "s" : ""}</span>
             <span>✍️ {nInscs} {nInscs !== 1 ? "inscrições" : "inscrição"}</span>
@@ -255,18 +258,18 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
                 (tpU === "funcionario" && (usuarioLogado?.permissoes?.includes("sumulas") || usuarioLogado?.permissoes?.includes("resultados"))) ||
                 (ev.sumulaLiberada && usuarioLogado);
               return temAcessoSumula && (
-                <button style={{...styles.btnSecondary, flex:1}} onClick={() => { selecionarEvento(ev.id); setTela("sumulas"); }}>
+                <button style={{...s.btnSecondary, flex:1}} onClick={() => { selecionarEvento(ev.id); setTela("sumulas"); }}>
                   📋 Súmulas
                 </button>
               );
             })()}
             {(status === "ao_vivo" || status === "encerrado" || status === "hoje_pre") && (
-              <button style={{...styles.btnSecondary, flex:1}} onClick={() => { selecionarEvento(ev.id); setTela("resultados"); }}>
+              <button style={{...s.btnSecondary, flex:1}} onClick={() => { selecionarEvento(ev.id); setTela("resultados"); }}>
                 🏆 Resultados
               </button>
             )}
           </div>
-          <button style={styles.btnPrimary} onClick={() => selecionarEvento(ev.id)}>
+          <button style={s.btnPrimary} onClick={() => selecionarEvento(ev.id)}>
             Acessar Competição →
           </button>
         </div>
@@ -276,9 +279,9 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
 
 
   return (
-    <div style={styles.page}>
+    <div style={s.page}>
       <div style={{
-        ...styles.heroSection,
+        ...s.heroSection,
         ...(siteBranding?.heroBg ? {
           backgroundImage: `url(${siteBranding.heroBg})`,
           backgroundSize: "cover",
@@ -287,10 +290,10 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
           background: undefined,
         } : {}),
       }}>
-        {siteBranding?.heroBg && <div style={styles.heroOverlay} />}
-        <div style={styles.heroContent}>
-        <div style={styles.heroBadge}>PLATAFORMA DE COMPETIÇÕES</div>
-        <h1 style={styles.heroTitle}>GERENTRACK</h1>
+        {siteBranding?.heroBg && <div style={s.heroOverlay} />}
+        <div style={s.heroContent}>
+        <div style={s.heroBadge}>PLATAFORMA DE COMPETIÇÕES</div>
+        <h1 style={s.heroTitle}>GERENTRACK</h1>
         <p style={{ color:"#888", fontSize:16, marginBottom:32 }}>
           Gerencie competições, inscrições, súmulas e resultados em um só lugar.
         </p>
@@ -300,9 +303,9 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
           <StatCard value={equipes?.length || 0} label="Equipes" />
           <StatCard value={atletas.length} label="Atletas" />
         </div>
-        <div style={styles.heroBtns}>
+        <div style={s.heroBtns}>
           {usuarioLogado?.tipo === "admin" && (
-            <button style={{ ...styles.btnPrimary, width:"auto" }} onClick={() => { selecionarEvento(null); setTela("novo-evento"); }}>
+            <button style={{ ...s.btnPrimary, width:"auto" }} onClick={() => { selecionarEvento(null); setTela("novo-evento"); }}>
               + Nova Competição
             </button>
           )}
@@ -312,11 +315,11 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
 
       {/* ── PRÓXIMOS EVENTOS (mês atual) ── */}
       {aprovados.length === 0 ? (
-        <div style={styles.emptyState}>
+        <div style={s.emptyState}>
           <span style={{ fontSize:56 }}>🏟</span>
           <p>Nenhuma competição cadastrada ainda.</p>
           {usuarioLogado?.tipo === "admin" && (
-            <button style={{ ...styles.btnPrimary, width:"auto" }} onClick={() => { selecionarEvento(null); setTela("novo-evento"); }}>
+            <button style={{ ...s.btnPrimary, width:"auto" }} onClick={() => { selecionarEvento(null); setTela("novo-evento"); }}>
               Cadastrar primeira competição
             </button>
           )}
@@ -325,8 +328,8 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
         <>
           {proximosEventos.length > 0 && (
             <div style={{ marginBottom:48 }}>
-              <h2 style={styles.sectionTitle}>📅 Próximos Eventos</h2>
-              <div style={styles.eventosGrid}>
+              <h2 style={s.sectionTitle}>📅 Próximos Eventos</h2>
+              <div style={s.eventosGrid}>
                 {proximosEventos.map(ev => renderEvCard(ev))}
               </div>
             </div>
@@ -334,8 +337,8 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
 
           {eventosPassados.length > 0 && (
             <div style={{ marginBottom:48 }}>
-              <h2 style={styles.sectionTitle}>🏆 Eventos Passados</h2>
-              <div style={styles.eventosGrid}>
+              <h2 style={s.sectionTitle}>🏆 Eventos Passados</h2>
+              <div style={s.eventosGrid}>
                 {eventosPassados.map(ev => renderEvCard(ev))}
               </div>
             </div>
@@ -344,7 +347,7 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
           {maisEventos.length > 0 && (
             <div style={{ marginBottom:48 }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:24 }}>
-                <h2 style={{ ...styles.sectionTitle, margin:0 }}>
+                <h2 style={{ ...s.sectionTitle, margin:0 }}>
                   📋 Mais Eventos
                   {totalPagsMais > 1 && <span style={{ color:"#555", fontSize:16, fontWeight:400, marginLeft:10 }}>— Seção {maisEventosPag + 1} de {totalPagsMais}</span>}
                 </h2>
@@ -352,18 +355,18 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
                   <div style={{ display:"flex", gap:8 }}>
                     <button disabled={maisEventosPag === 0}
                       onClick={() => setMaisEventosPag(p => p - 1)}
-                      style={{ ...styles.btnGhost, opacity: maisEventosPag === 0 ? 0.3 : 1, cursor: maisEventosPag === 0 ? "default" : "pointer" }}>
+                      style={{ ...s.btnGhost, opacity: maisEventosPag === 0 ? 0.3 : 1, cursor: maisEventosPag === 0 ? "default" : "pointer" }}>
                       ‹ Anterior
                     </button>
                     <button disabled={maisEventosPag >= totalPagsMais - 1}
                       onClick={() => setMaisEventosPag(p => p + 1)}
-                      style={{ ...styles.btnGhost, opacity: maisEventosPag >= totalPagsMais - 1 ? 0.3 : 1, cursor: maisEventosPag >= totalPagsMais - 1 ? "default" : "pointer" }}>
+                      style={{ ...s.btnGhost, opacity: maisEventosPag >= totalPagsMais - 1 ? 0.3 : 1, cursor: maisEventosPag >= totalPagsMais - 1 ? "default" : "pointer" }}>
                       Próximo ›
                     </button>
                   </div>
                 )}
               </div>
-              <div style={styles.eventosGrid}>
+              <div style={s.eventosGrid}>
                 {maisEventosPagAtual.map(ev => renderEvCard(ev))}
               </div>
             </div>

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 const styles = {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
@@ -87,9 +88,10 @@ const styles = {
 };
 
 function TelaConfigPontuacaoEquipes({ setTela, eventoAtual, editarEvento, equipes, inscricoes, atletas, recordes }) {
+  const s = useStylesResponsivos(styles);
   if (!eventoAtual) return (
-    <div style={styles.page}><div style={styles.emptyState}><p>Selecione uma competição.</p>
-      <button style={styles.btnPrimary} onClick={() => setTela("home")}>Voltar</button></div></div>
+    <div style={s.page}><div style={s.emptyState}><p>Selecione uma competição.</p>
+      <button style={s.btnPrimary} onClick={() => setTela("home")}>Voltar</button></div></div>
   );
 
   const config = eventoAtual.pontuacaoEquipes || {};
@@ -202,16 +204,16 @@ function TelaConfigPontuacaoEquipes({ setTela, eventoAtual, editarEvento, equipe
   };
 
   return (
-    <div style={styles.page}>
-      <div style={styles.painelHeader}>
+    <div style={s.page}>
+      <div style={s.painelHeader}>
         <div>
-          <h1 style={styles.pageTitle}>🏅 Pontuação por Equipes</h1>
+          <h1 style={s.pageTitle}>🏅 Pontuação por Equipes</h1>
           <div style={{ color: "#666", fontSize: 13 }}>{eventoAtual.nome}</div>
         </div>
-        <button style={styles.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
+        <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
       </div>
 
-      <div style={styles.formCard}>
+      <div style={s.formCard}>
         {/* Toggle ativo */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24, padding: "12px 16px", background: ativo ? "#0a1a0a" : "#1a0a0a", border: "1px solid " + (ativo ? "#2a8a2a" : "#3a2a2a"), borderRadius: 8 }}>
           <input type="checkbox" checked={ativo} onChange={function() { setAtivo(!ativo); }}
@@ -255,11 +257,11 @@ function TelaConfigPontuacaoEquipes({ setTela, eventoAtual, editarEvento, equipe
                 </div>
               )}
               <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
-                <button style={{ ...styles.btnGhost, fontSize: 11, padding: "4px 10px" }}
+                <button style={{ ...s.btnGhost, fontSize: 11, padding: "4px 10px" }}
                   onClick={function() { setEquipeSel(equipesDisponiveis.map(function(e) { return e.id; })); }}>
                   Selecionar todas
                 </button>
-                <button style={{ ...styles.btnGhost, fontSize: 11, padding: "4px 10px" }}
+                <button style={{ ...s.btnGhost, fontSize: 11, padding: "4px 10px" }}
                   onClick={function() { setEquipeSel([]); }}>
                   Limpar
                 </button>
@@ -284,12 +286,12 @@ function TelaConfigPontuacaoEquipes({ setTela, eventoAtual, editarEvento, equipe
                       <tr key={idx}>
                         <td style={{ padding: "4px 12px" }}>
                           <input type="number" min="1" value={r.pos} onChange={function(e) { updateLinha(false, idx, "pos", e.target.value); }}
-                            style={{ ...styles.input, width: 60, textAlign: "center" }} />
+                            style={{ ...s.input, width: 60, textAlign: "center" }} />
                           <span style={{ color: "#666", marginLeft: 4 }}>º</span>
                         </td>
                         <td style={{ padding: "4px 12px" }}>
                           <input type="number" min="0" value={r.pts} onChange={function(e) { updateLinha(false, idx, "pts", e.target.value); }}
-                            style={{ ...styles.input, width: 70, textAlign: "center" }} />
+                            style={{ ...s.input, width: 70, textAlign: "center" }} />
                         </td>
                         <td style={{ padding: "4px 6px" }}>
                           <button onClick={function() { removeLinha(false, idx); }} style={{ background: "transparent", border: "none", color: "#ff6b6b", cursor: "pointer", fontSize: 14 }}>✕</button>
@@ -299,7 +301,7 @@ function TelaConfigPontuacaoEquipes({ setTela, eventoAtual, editarEvento, equipe
                   })}
                 </tbody>
               </table>
-              <button onClick={function() { addLinha(false); }} style={{ ...styles.btnGhost, fontSize: 11, marginTop: 8, padding: "4px 12px" }}>+ Adicionar colocação</button>
+              <button onClick={function() { addLinha(false); }} style={{ ...s.btnGhost, fontSize: 11, marginTop: 8, padding: "4px 12px" }}>+ Adicionar colocação</button>
             </div>
 
             {/* Tabela de pontuação — revezamentos */}
@@ -321,12 +323,12 @@ function TelaConfigPontuacaoEquipes({ setTela, eventoAtual, editarEvento, equipe
                         <tr key={idx}>
                           <td style={{ padding: "4px 12px" }}>
                             <input type="number" min="1" value={r.pos} onChange={function(e) { updateLinha(true, idx, "pos", e.target.value); }}
-                              style={{ ...styles.input, width: 60, textAlign: "center" }} />
+                              style={{ ...s.input, width: 60, textAlign: "center" }} />
                             <span style={{ color: "#666", marginLeft: 4 }}>º</span>
                           </td>
                           <td style={{ padding: "4px 12px" }}>
                             <input type="number" min="0" value={r.pts} onChange={function(e) { updateLinha(true, idx, "pts", e.target.value); }}
-                              style={{ ...styles.input, width: 70, textAlign: "center" }} />
+                              style={{ ...s.input, width: 70, textAlign: "center" }} />
                           </td>
                           <td style={{ padding: "4px 6px" }}>
                             <button onClick={function() { removeLinha(true, idx); }} style={{ background: "transparent", border: "none", color: "#ff6b6b", cursor: "pointer", fontSize: 14 }}>✕</button>
@@ -336,7 +338,7 @@ function TelaConfigPontuacaoEquipes({ setTela, eventoAtual, editarEvento, equipe
                     })}
                   </tbody>
                 </table>
-                <button onClick={function() { addLinha(true); }} style={{ ...styles.btnGhost, fontSize: 11, marginTop: 8, padding: "4px 12px" }}>+ Adicionar colocação</button>
+                <button onClick={function() { addLinha(true); }} style={{ ...s.btnGhost, fontSize: 11, marginTop: 8, padding: "4px 12px" }}>+ Adicionar colocação</button>
               </div>
             )}
 
@@ -350,7 +352,7 @@ function TelaConfigPontuacaoEquipes({ setTela, eventoAtual, editarEvento, equipe
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <input type="number" min="1" max="20" value={atletasPorEquipe}
                   onChange={function(e) { setAtletasPorEquipe(Math.max(1, parseInt(e.target.value) || 1)); }}
-                  style={{ ...styles.input, width: 70, textAlign: "center", fontSize: 18, fontWeight: 700 }} />
+                  style={{ ...s.input, width: 70, textAlign: "center", fontSize: 18, fontWeight: 700 }} />
                 <span style={{ color: "#888", fontSize: 13 }}>atleta(s) por equipe por prova</span>
               </div>
             </div>
@@ -393,7 +395,7 @@ function TelaConfigPontuacaoEquipes({ setTela, eventoAtual, editarEvento, equipe
                           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                             <input type="number" min="0" value={val}
                               onChange={function(e) { setBonusRecordes(function(prev) { return { ...prev, [tipo.id]: parseInt(e.target.value) || 0 }; }); }}
-                              style={{ ...styles.input, width: 70, textAlign: "center", fontSize: 16, fontWeight: 700 }} />
+                              style={{ ...s.input, width: 70, textAlign: "center", fontSize: 16, fontWeight: 700 }} />
                             <span style={{ color: "#888", fontSize: 12 }}>pts</span>
                           </div>
                         </div>
@@ -406,16 +408,16 @@ function TelaConfigPontuacaoEquipes({ setTela, eventoAtual, editarEvento, equipe
 
             {/* Salvar */}
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <button style={styles.btnPrimary} onClick={handleSalvar}>💾 Salvar Configuração</button>
-              {salvo && <span style={styles.savedBadge}>✅ Salvo!</span>}
+              <button style={s.btnPrimary} onClick={handleSalvar}>💾 Salvar Configuração</button>
+              {salvo && <span style={s.savedBadge}>✅ Salvo!</span>}
             </div>
           </>
         )}
 
         {!ativo && (
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <button style={styles.btnPrimary} onClick={handleSalvar}>💾 Salvar (Desativado)</button>
-            {salvo && <span style={styles.savedBadge}>✅ Salvo!</span>}
+            <button style={s.btnPrimary} onClick={handleSalvar}>💾 Salvar (Desativado)</button>
+            {salvo && <span style={s.savedBadge}>✅ Salvo!</span>}
           </div>
         )}
       </div>

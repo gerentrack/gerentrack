@@ -6,6 +6,7 @@ import FormField from "../ui/FormField";
 import { ProvaSelector } from "../ui/ProvaSelector";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { getLimiteCat, validarLimiteProvas, calcularPrecoInscricao, formatarPreco } from "../../shared/engines/inscricaoEngine";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 // Verifica em tempo real se as inscrições estão encerradas,
 // levando em conta data+hora de encerramento além do flag salvo.
@@ -117,6 +118,7 @@ const styles = {
 };
 
 function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equipes, inscricoes, usuarioLogado, setTela, eventoAtual, eventoAtualId, eventos, selecionarEvento, adicionarAtletaUsuario, atualizarAtletaUsuario, login, loginComSelecao, atletasUsuarios=[], organizadores=[] }) {
+    const s = useStylesResponsivos(styles);
     const [modo, setModo] = useState("existente");
   const [atletaId, setAtletaId] = useState("");
   const [buscaAtleta, setBuscaAtleta] = useState("");
@@ -205,11 +207,11 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
   }, []);
 
   if (!eventoParaInscricao && !isAtleta) return (
-    <div style={styles.page}>
-      <div style={styles.emptyState}>
+    <div style={s.page}>
+      <div style={s.emptyState}>
         <span style={{ fontSize: 48 }}>🏟</span>
         <p>Selecione uma competição antes de inscrever atletas.</p>
-        <button style={styles.btnPrimary} onClick={() => setTela("home")}>Ver Competições</button>
+        <button style={s.btnPrimary} onClick={() => setTela("home")}>Ver Competições</button>
       </div>
     </div>
   );
@@ -217,20 +219,20 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
   // Atleta: sempre mostrar lista de competições primeiro (antes de escolher evento)
   if (isAtleta && !eventoSelecionadoAtleta) {
     if (eventosAbertos.length === 0) return (
-      <div style={styles.page}>
-        <div style={styles.emptyState}>
+      <div style={s.page}>
+        <div style={s.emptyState}>
           <span style={{ fontSize: 48 }}>📭</span>
           <p style={{ fontWeight: 700, color: "#fff", fontSize: 18 }}>Nenhuma competição com inscrições abertas</p>
           <p style={{ color: "#666", fontSize: 14 }}>Aguarde a abertura de inscrições de uma competição.</p>
-          <button style={styles.btnGhost} onClick={() => setTela("painel-atleta")}>← Meu Painel</button>
+          <button style={s.btnGhost} onClick={() => setTela("painel-atleta")}>← Meu Painel</button>
         </div>
       </div>
     );
     return (
-      <div style={styles.page}>
-        <div style={styles.painelHeader}>
-          <h1 style={styles.pageTitle}>✍️ Me Inscrever</h1>
-          <button style={styles.btnGhost} onClick={() => setTela("painel-atleta")}>← Meu Painel</button>
+      <div style={s.page}>
+        <div style={s.painelHeader}>
+          <h1 style={s.pageTitle}>✍️ Me Inscrever</h1>
+          <button style={s.btnGhost} onClick={() => setTela("painel-atleta")}>← Meu Painel</button>
         </div>
         <p style={{ color: "#aaa", marginBottom: 16 }}>Selecione a competição em que deseja se inscrever:</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 700 }}>
@@ -309,19 +311,19 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
       setProvasSel([]);
     };
     return (
-      <div style={{ ...styles.formPage }}>
-        <div style={{ ...styles.formCard, maxWidth: 480 }}>
+      <div style={{ ...s.formPage }}>
+        <div style={{ ...s.formCard, maxWidth: 480 }}>
           <div style={{ fontSize: 52, textAlign: "center", marginBottom: 12 }}>🏟️</div>
-          <h2 style={{ ...styles.formTitle, textAlign: "center" }}>Competição de outro organizador</h2>
+          <h2 style={{ ...s.formTitle, textAlign: "center" }}>Competição de outro organizador</h2>
           <p style={{ color: "#aaa", fontSize: 14, textAlign: "center", lineHeight: 1.6, margin: "12px 0 20px" }}>
             Esta competição pertence a <strong style={{ color: "#fff" }}>{modalNovoOrg.orgNome}</strong>.<br/>
             Para se inscrever, será criado um perfil seu neste organizador.<br/>
             Você poderá alternar entre perfis na hora do login.
           </p>
-          <button style={{ ...styles.btnPrimary, width: "100%", marginBottom: 12 }} onClick={handleCriarNovoPerfilOrg}>
+          <button style={{ ...s.btnPrimary, width: "100%", marginBottom: 12 }} onClick={handleCriarNovoPerfilOrg}>
             ✅ Criar perfil e continuar
           </button>
-          <button style={{ ...styles.btnGhost, width: "100%" }} onClick={() => setModalNovoOrg(null)}>
+          <button style={{ ...s.btnGhost, width: "100%" }} onClick={() => setModalNovoOrg(null)}>
             Cancelar
           </button>
         </div>
@@ -333,12 +335,12 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
   if (!eventoParaInscricao) return null;
 
   if (!usuarioLogado) return (
-    <div style={styles.page}>
-      <div style={styles.emptyState}>
+    <div style={s.page}>
+      <div style={s.emptyState}>
         <span style={{ fontSize: 48 }}>🔐</span>
         <p style={{ fontWeight: 700, color: "#fff", fontSize: 18 }}>Login Necessário</p>
         <p style={{ color: "#666", fontSize: 14 }}>Faça login para inscrever atletas nesta competição.</p>
-        <button style={styles.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
+        <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
       </div>
     </div>
   );
@@ -346,28 +348,28 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
   const tipoInsc   = usuarioLogado?.tipo;
   const isPrivileg = tipoInsc === "admin" || tipoInsc === "organizador" || tipoInsc === "funcionario";
   if (!isPrivileg && isInscricaoEncerradaAgora(eventoParaInscricao)) return (
-    <div style={styles.page}>
-      <div style={styles.emptyState}>
+    <div style={s.page}>
+      <div style={s.emptyState}>
         <span style={{ fontSize: 48 }}>🔒</span>
         <p style={{ fontWeight: 700, color: "#fff", fontSize: 18 }}>Inscrições Encerradas</p>
         <p style={{ color: "#666", fontSize: 14 }}>
           As inscrições para <strong>{eventoParaInscricao.nome}</strong> estão encerradas.
         </p>
-        <button style={styles.btnGhost} onClick={() => isAtleta ? setEventoSelecionadoAtleta(null) : setTela("evento-detalhe")}>← Voltar</button>
+        <button style={s.btnGhost} onClick={() => isAtleta ? setEventoSelecionadoAtleta(null) : setTela("evento-detalhe")}>← Voltar</button>
       </div>
     </div>
   );
 
   if (!isPrivileg && usuarioLogado?.lgpdConsentimentoRevogado) return (
-    <div style={styles.page}>
-      <div style={styles.emptyState}>
+    <div style={s.page}>
+      <div style={s.emptyState}>
         <span style={{ fontSize: 48 }}>🔓</span>
         <p style={{ fontWeight: 700, color: "#ff6b6b", fontSize: 18 }}>Consentimento Revogado</p>
         <p style={{ color: "#888", fontSize: 14, maxWidth: 420, textAlign: "center", lineHeight: 1.6 }}>
           Você revogou seu consentimento LGPD. Novas inscrições não são permitidas.<br/>
           Para voltar a se inscrever em competições, realize um novo cadastro.
         </p>
-        <button style={styles.btnGhost} onClick={() => setTela("home")}>← Voltar ao Início</button>
+        <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar ao Início</button>
       </div>
     </div>
   );
@@ -570,10 +572,10 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
   };
 
   if (ok) return (
-    <div style={styles.formPage}>
-      <div style={styles.formCard}>
+    <div style={s.formPage}>
+      <div style={s.formCard}>
         <div style={{ fontSize: 64, textAlign: "center" }}>🎉</div>
-        <h2 style={{ ...styles.formTitle, textAlign: "center" }}>Inscrição realizada!</h2>
+        <h2 style={{ ...s.formTitle, textAlign: "center" }}>Inscrição realizada!</h2>
         <p style={{ textAlign: "center", color: "#aaa" }}>{provasSel.length} prova(s) em <strong style={{ color: "#1976D2" }}>{eventoParaInscricao.nome}</strong>.</p>
 
         {/* ── Informações de pagamento — Etapa 2: preço calculado por categoria + equipe ── */}
@@ -620,19 +622,19 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
           );
         })()}
 
-        <div style={{ ...styles.resumoInscricao, margin:"12px 0 16px" }}>
+        <div style={{ ...s.resumoInscricao, margin:"12px 0 16px" }}>
           <strong style={{ color:"#aaa", fontSize:12 }}>Provas inscritas:</strong>
           <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginTop:8 }}>
             {provasSel.map(pid => {
               const p = todasAsProvas().find(x => x.id === pid);
-              return <span key={pid} style={{ ...styles.tagProva, cursor:"default" }}>✓ {p?.nome || pid}</span>;
+              return <span key={pid} style={{ ...s.tagProva, cursor:"default" }}>✓ {p?.nome || pid}</span>;
             })}
           </div>
         </div>
 
-        <div style={styles.heroBtns}>
-          <button style={styles.btnPrimary} onClick={() => setTela(isAtleta ? "painel-atleta" : "sumulas")}>{isAtleta ? "← Meu Painel" : "Ver Súmulas"}</button>
-          <button style={styles.btnGhost} onClick={() => { setOk(false); setProvasSel([]); if (isAtleta) { setEventoSelecionadoAtleta(null); } else { setAtletaId(""); setBuscaAtleta(""); } setNovoAtleta({ nome:"", dataNasc:"", anoNasc:"", sexo:"M", cbat:"", clube:"", equipeId:"" }); }}>
+        <div style={s.heroBtns}>
+          <button style={s.btnPrimary} onClick={() => setTela(isAtleta ? "painel-atleta" : "sumulas")}>{isAtleta ? "← Meu Painel" : "Ver Súmulas"}</button>
+          <button style={s.btnGhost} onClick={() => { setOk(false); setProvasSel([]); if (isAtleta) { setEventoSelecionadoAtleta(null); } else { setAtletaId(""); setBuscaAtleta(""); } setNovoAtleta({ nome:"", dataNasc:"", anoNasc:"", sexo:"M", cbat:"", clube:"", equipeId:"" }); }}>
             {isAtleta ? "Inscrever em outra competição" : "Nova Inscrição"}
           </button>
         </div>
@@ -641,10 +643,10 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
   );
 
   return (
-    <div style={styles.page}>
-      <div style={styles.painelHeader}>
-        <h1 style={styles.pageTitle}>✍️ {isAtleta ? "Me Inscrever" : "Inscrição em Provas"}</h1>
-        <button style={styles.btnGhost} onClick={() => isAtleta ? setEventoSelecionadoAtleta(null) : setTela("evento-detalhe")}>← {isAtleta ? "Escolher Competição" : eventoParaInscricao.nome}</button>
+    <div style={s.page}>
+      <div style={s.painelHeader}>
+        <h1 style={s.pageTitle}>✍️ {isAtleta ? "Me Inscrever" : "Inscrição em Provas"}</h1>
+        <button style={s.btnGhost} onClick={() => isAtleta ? setEventoSelecionadoAtleta(null) : setTela("evento-detalhe")}>← {isAtleta ? "Escolher Competição" : eventoParaInscricao.nome}</button>
       </div>
 
       {/* Info da competição para atletas */}
@@ -660,25 +662,25 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
 
       {!isAtleta && (
         <>
-      <div style={styles.modoSwitch}>
-        <button style={{ ...styles.modoBtn, ...(modo === "existente" ? styles.modoBtnActive : {}) }} onClick={() => setModo("existente")}>
+      <div style={s.modoSwitch}>
+        <button style={{ ...s.modoBtn, ...(modo === "existente" ? s.modoBtnActive : {}) }} onClick={() => setModo("existente")}>
           👤 Atleta Cadastrado
         </button>
-          <button style={{ ...styles.modoBtn, ...(modo === "novo" ? styles.modoBtnActive : {}) }} onClick={() => setModo("novo")}>
+          <button style={{ ...s.modoBtn, ...(modo === "novo" ? s.modoBtnActive : {}) }} onClick={() => setModo("novo")}>
             ➕ Novo Atleta
           </button>
       </div>
         </>
       )}
 
-      {erro && <div style={styles.erro}>{erro}</div>}
+      {erro && <div style={s.erro}>{erro}</div>}
 
       {/* Para atletas: mostrar seus dados diretamente */}
       {isAtleta && meuAtletaInsc && (
-        <div style={{ ...styles.atletaInfo, marginBottom: 12 }}>
+        <div style={{ ...s.atletaInfo, marginBottom: 12 }}>
           <span>🏃 {meuAtletaInsc.nome}</span>
-          <span style={styles.badgeGold}>{getCategoria(meuAtletaInsc.anoNasc, anoComp)?.nome}</span>
-          <span style={styles.badge(meuAtletaInsc.sexo === "M" ? "#1a6ef5" : "#e54f9b")}>{meuAtletaInsc.sexo === "M" ? "Masculino" : "Feminino"}</span>
+          <span style={s.badgeGold}>{getCategoria(meuAtletaInsc.anoNasc, anoComp)?.nome}</span>
+          <span style={s.badge(meuAtletaInsc.sexo === "M" ? "#1a6ef5" : "#e54f9b")}>{meuAtletaInsc.sexo === "M" ? "Masculino" : "Feminino"}</span>
           {_getClubeAtleta(meuAtletaInsc, equipes) && (
             <span style={{ fontSize: 12, color: "#888" }}>{_getClubeAtleta(meuAtletaInsc, equipes)}</span>
           )}
@@ -686,11 +688,11 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
       )}
 
       {!isAtleta && (modo === "existente" ? (
-        <div style={styles.formCard}>
-          <label style={styles.label}>Selecionar Atleta</label>
+        <div style={s.formCard}>
+          <label style={s.label}>Selecionar Atleta</label>
           <input
             type="text"
-            style={{ ...styles.input, marginBottom:12 }}
+            style={{ ...s.input, marginBottom:12 }}
             placeholder={`🔍 Filtrar por nome... (${atletasFiltrados.length} disponíveis)`}
             value={buscaAtleta}
             onChange={(e) => { setBuscaAtleta(e.target.value); }}
@@ -743,19 +745,19 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
             )}
           </div>
           {atletaSel && (
-            <div style={{ ...styles.atletaInfo, marginTop:12 }}>
+            <div style={{ ...s.atletaInfo, marginTop:12 }}>
               <span>🏃 {atletaSel.nome}</span>
-              <span style={styles.badgeGold}>{categoria?.nome}</span>
-              <span style={styles.badge(atletaSel.sexo === "M" ? "#1a6ef5" : "#e54f9b")}>{atletaSel.sexo === "M" ? "Masculino" : "Feminino"}</span>
+              <span style={s.badgeGold}>{categoria?.nome}</span>
+              <span style={s.badge(atletaSel.sexo === "M" ? "#1a6ef5" : "#e54f9b")}>{atletaSel.sexo === "M" ? "Masculino" : "Feminino"}</span>
               <button onClick={() => { setAtletaId(""); setBuscaAtleta(""); }}
-                style={{ ...styles.btnGhost, fontSize:11, padding:"2px 8px", color:"#ff6b6b", borderColor:"#3a1a1a", marginLeft:8 }}>✕ Limpar</button>
+                style={{ ...s.btnGhost, fontSize:11, padding:"2px 8px", color:"#ff6b6b", borderColor:"#3a1a1a", marginLeft:8 }}>✕ Limpar</button>
             </div>
           )}
         </div>
       ) : (
-        <div style={styles.formCard}>
+        <div style={s.formCard}>
           <h3 style={{ color:"#1976D2", margin:"0 0 16px" }}>Dados do Atleta</h3>
-          <div style={styles.grid2form}>
+          <div style={s.grid2form}>
 
             {/* CPF — recomendado para identificação futura */}
             <div>
@@ -785,7 +787,7 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
                     setModo("existente");
                     setCpfNovoStatus(null);
                     setAtletaCpfExistente(null);
-                  }} style={{ ...styles.btnPrimary, fontSize:12, padding:"6px 14px", marginTop:8 }}>
+                  }} style={{ ...s.btnPrimary, fontSize:12, padding:"6px 14px", marginTop:8 }}>
                     ✅ Usar atleta existente
                   </button>
                 </div>
@@ -816,10 +818,10 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
 
             {/* Sexo */}
             <div>
-              <label style={styles.label}>Sexo</label>
-              <div style={styles.radioGroup}>
+              <label style={s.label}>Sexo</label>
+              <div style={s.radioGroup}>
                 {[["M","Masculino"],["F","Feminino"]].map(([v,l]) => (
-                  <label key={v} style={{ ...styles.radioLabel, ...(novoAtleta.sexo===v ? styles.radioLabelActive : {}) }}>
+                  <label key={v} style={{ ...s.radioLabel, ...(novoAtleta.sexo===v ? s.radioLabelActive : {}) }}>
                     <input type="radio" value={v} checked={novoAtleta.sexo===v}
                       onChange={() => setNovoAtleta({ ...novoAtleta, sexo: v })}
                       style={{ display:"none" }} />
@@ -834,11 +836,11 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
 
             {/* Equipe / Clube */}
             <div style={{ gridColumn:"1/-1" }}>
-              <label style={styles.label}>
+              <label style={s.label}>
                 Equipe / Clube <span style={{ color:"#555", fontSize:11 }}>(opcional)</span>
               </label>
               <select
-                style={styles.select}
+                style={s.select}
                 value={novoAtleta.equipeId}
                 onChange={e => {
                   const eqId = e.target.value;
@@ -874,7 +876,7 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
 
           {/* Preview categoria */}
           {novoAtleta.dataNasc && (
-            <div style={styles.catPreview}>
+            <div style={s.catPreview}>
               Categoria: <strong>{getCategoria(novoAtleta.anoNasc, anoComp).display}</strong>
             </div>
           )}
@@ -918,7 +920,7 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
           todasAsProvas().forEach((p) => { todasProvasMap[p.id] = p; });
           return (
             <div>
-              <h2 style={styles.sectionTitle}>Selecionar Provas</h2>
+              <h2 style={s.sectionTitle}>Selecionar Provas</h2>
               {limInd > 0 && (
                 <div style={{
                   display:"inline-flex", alignItems:"center", gap:8, padding:"6px 14px", borderRadius:8, marginBottom:12,
@@ -936,17 +938,17 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
                   )}
                 </div>
               )}
-              <div style={styles.catBanner}>
+              <div style={s.catBanner}>
                 Provas no programa para: <strong>{catOficial.nome}</strong> · <strong>{atletaAtivo.sexo === "M" ? "Masculino" : "Feminino"}</strong>
                 {provasDisp.length === 0 && <span style={{ color: "#ff6b6b", marginLeft: 12 }}>⚠ Nenhuma prova desta categoria/sexo no programa desta competição</span>}
               </div>
               {permissividade && (
-                <div style={styles.permissividadeAlert}>
-                  <div style={styles.permissividadeAlertIcon}>⚖️</div>
+                <div style={s.permissividadeAlert}>
+                  <div style={s.permissividadeAlertIcon}>⚖️</div>
                   <div>
-                    <div style={styles.permissividadeAlertTitle}>Participação por Exceção de Norma CBAt</div>
-                    <div style={styles.permissividadeAlertBody}>{permissividade.obs}</div>
-                    <div style={styles.permissividadeAlertRodape}>
+                    <div style={s.permissividadeAlertTitle}>Participação por Exceção de Norma CBAt</div>
+                    <div style={s.permissividadeAlertBody}>{permissividade.obs}</div>
+                    <div style={s.permissividadeAlertRodape}>
                       Categoria oficial do atleta: <strong>{catOficial.nome}</strong> · A súmula conterá esta observação.
                     </div>
                   </div>
@@ -957,18 +959,18 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
                   titulo={grupo} selecionadas={provasSel} onToggle={toggleProva} jaInscrito={jaInscrito} />
               ))}
               {provasSel.length > 0 && (
-                <div style={styles.resumoInscricao}>
+                <div style={s.resumoInscricao}>
                   <strong>Provas selecionadas: {provasSel.length}</strong>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
                     {provasSel.map((id) => {
                       const p = todasProvasMap[id];
-                      return <span key={id} style={styles.tagProva}>{p?.nome} ×</span>;
+                      return <span key={id} style={s.tagProva}>{p?.nome} ×</span>;
                     })}
                   </div>
                 </div>
               )}
               {provasDisp.length > 0 && (
-                <button style={{ ...styles.btnPrimary, marginTop: 24, opacity: enviando ? 0.5 : 1 }} onClick={handleSubmit} disabled={enviando}>
+                <button style={{ ...s.btnPrimary, marginTop: 24, opacity: enviando ? 0.5 : 1 }} onClick={handleSubmit} disabled={enviando}>
                   {enviando ? "Inscrevendo..." : "Confirmar Inscrição"}
                 </button>
               )}
@@ -1002,7 +1004,7 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
                   {" · "}{provasRevezEvento.length} prova(s) disponível(eis)
                 </p>
               </div>
-              <button style={styles.btnPrimary} onClick={() => setTela("inscricao-revezamento")}>
+              <button style={s.btnPrimary} onClick={() => setTela("inscricao-revezamento")}>
                 Gerenciar Revezamentos →
               </button>
             </div>

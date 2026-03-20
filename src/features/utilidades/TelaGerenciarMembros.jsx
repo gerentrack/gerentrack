@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 const styles = {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
@@ -86,6 +87,7 @@ const styles = {
 };
 
 function TelaGerenciarMembros({ usuarioLogado, setTela, equipes, atualizarEquipe, registrarAcao }) {
+  const s = useStylesResponsivos(styles);
   const { equipe } = usuarioLogado;
   const [modo, setModo] = useState('lista'); // lista | novo | editar
   const [equipeSelecionada, setEquipeSelecionada] = useState(null);
@@ -215,15 +217,15 @@ function TelaGerenciarMembros({ usuarioLogado, setTela, equipes, atualizarEquipe
   };
 
   return (
-    <div style={styles.page}>
-      <div style={styles.painelHeader}>
+    <div style={s.page}>
+      <div style={s.painelHeader}>
         <div>
-          <h1 style={styles.pageTitle}>👥 Gerenciar Membros</h1>
+          <h1 style={s.pageTitle}>👥 Gerenciar Membros</h1>
           <p style={{ color: '#666', fontSize: 14 }}>
             Adicione e gerencie membros da equipe {equipe.nome}
           </p>
         </div>
-        <button style={styles.btnGhost} onClick={() => setTela('painel-equipe')}>
+        <button style={s.btnGhost} onClick={() => setTela('painel-equipe')}>
           ← Voltar
         </button>
       </div>
@@ -231,7 +233,7 @@ function TelaGerenciarMembros({ usuarioLogado, setTela, equipes, atualizarEquipe
       {/* Botão Adicionar */}
       {modo === 'lista' && (
         <button 
-          style={styles.btnPrimary}
+          style={s.btnPrimary}
           onClick={() => setModo('novo')}
         >
           + Adicionar Membro
@@ -261,7 +263,7 @@ function TelaGerenciarMembros({ usuarioLogado, setTela, equipes, atualizarEquipe
                 type="text"
                 value={form.nome}
                 onChange={(e) => setForm({ ...form, nome: e.target.value })}
-                style={{ ...styles.input, borderColor: erros.nome ? '#ff6b6b' : undefined }}
+                style={{ ...s.input, borderColor: erros.nome ? '#ff6b6b' : undefined }}
               />
               {erros.nome && <div style={{ color: '#ff6b6b', fontSize: 12, marginTop: 4 }}>{erros.nome}</div>}
             </div>
@@ -274,7 +276,7 @@ function TelaGerenciarMembros({ usuarioLogado, setTela, equipes, atualizarEquipe
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                style={{ ...styles.input, borderColor: erros.email ? '#ff6b6b' : undefined }}
+                style={{ ...s.input, borderColor: erros.email ? '#ff6b6b' : undefined }}
               />
               {erros.email && <div style={{ color: '#ff6b6b', fontSize: 12, marginTop: 4 }}>{erros.email}</div>}
             </div>
@@ -287,7 +289,7 @@ function TelaGerenciarMembros({ usuarioLogado, setTela, equipes, atualizarEquipe
                 type="password"
                 value={form.senha}
                 onChange={(e) => setForm({ ...form, senha: e.target.value })}
-                style={{ ...styles.input, borderColor: erros.senha ? '#ff6b6b' : undefined }}
+                style={{ ...s.input, borderColor: erros.senha ? '#ff6b6b' : undefined }}
               />
               {erros.senha && <div style={{ color: '#ff6b6b', fontSize: 12, marginTop: 4 }}>{erros.senha}</div>}
             </div>
@@ -301,7 +303,7 @@ function TelaGerenciarMembros({ usuarioLogado, setTela, equipes, atualizarEquipe
                 value={form.cpf}
                 onChange={(e) => setForm({ ...form, cpf: e.target.value })}
                 placeholder="000.000.000-00"
-                style={{ ...styles.input, borderColor: erros.cpf ? '#ff6b6b' : undefined }}
+                style={{ ...s.input, borderColor: erros.cpf ? '#ff6b6b' : undefined }}
               />
               {erros.cpf && <div style={{ color: '#ff6b6b', fontSize: 12, marginTop: 4 }}>{erros.cpf}</div>}
             </div>
@@ -315,7 +317,7 @@ function TelaGerenciarMembros({ usuarioLogado, setTela, equipes, atualizarEquipe
                 value={form.cargo}
                 onChange={(e) => setForm({ ...form, cargo: e.target.value })}
                 placeholder="Ex: Técnico Principal, Assistente..."
-                style={styles.input}
+                style={s.input}
               />
             </div>
 
@@ -369,7 +371,7 @@ function TelaGerenciarMembros({ usuarioLogado, setTela, equipes, atualizarEquipe
 
           <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
             <button
-              style={styles.btnGhost}
+              style={s.btnGhost}
               onClick={() => {
                 setModo('lista');
                 setForm({ nome: '', email: '', senha: '', cpf: '', telefone: '', cargo: '', permissoes: [] });
@@ -378,7 +380,7 @@ function TelaGerenciarMembros({ usuarioLogado, setTela, equipes, atualizarEquipe
             >
               Cancelar
             </button>
-            <button style={styles.btnPrimary} onClick={handleSalvar}>
+            <button style={s.btnPrimary} onClick={handleSalvar}>
               {modo === 'novo' ? '✓ Adicionar' : '✓ Salvar Alterações'}
             </button>
           </div>
@@ -431,13 +433,13 @@ function TelaGerenciarMembros({ usuarioLogado, setTela, equipes, atualizarEquipe
 
               <div style={{ display: 'flex', gap: 8 }}>
                 <button
-                  style={styles.btnSecondary}
+                  style={s.btnSecondary}
                   onClick={() => handleEditar(membro)}
                 >
                   ✏️ Editar
                 </button>
                 <button
-                  style={styles.btnGhost}
+                  style={s.btnGhost}
                   onClick={() => handleRemover(membro.id)}
                 >
                   🗑️ Remover

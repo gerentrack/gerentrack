@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { auth, signOut as firebaseSignOut, createUserWithEmailAndPassword } from "../../firebase";
 import { validarCPF, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 const styles = {
   formPage:    { maxWidth: 640, margin: "60px auto", padding: "0 24px 80px" },
   formCard:    { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 16, padding: 32, marginBottom: 20 },
@@ -130,6 +131,7 @@ function BlocoConsentimentoParental({ responsavel, onResponsavel, aceite, onChan
 }
 
 function TelaCadastroAtletaLogin({ setTela, adicionarAtletaUsuario, adicionarAtleta, atualizarAtleta, atletasUsuarios, atletas, equipes, login, adicionarSolicitacaoRecuperacao, gerarSenhaTemp, organizadores, funcionarios, treinadores, solicitarVinculo }) {
+  const s = useStylesResponsivos(styles);
   const [form, setForm] = useState({
     nome:"", email:"", senha:"", dataNasc:"", anoNasc:"", sexo:"M", clube:"", cpf:"", cbat:"", equipeId:""
   });
@@ -353,9 +355,9 @@ function TelaCadastroAtletaLogin({ setTela, adicionarAtletaUsuario, adicionarAtl
   };
 
   if (ok) return (
-    <div style={styles.formPage}><div style={styles.formCard}>
+    <div style={s.formPage}><div style={s.formCard}>
       <div style={{ fontSize:64, textAlign:"center" }}>✅</div>
-      <h2 style={{ ...styles.formTitle, textAlign:"center" }}>
+      <h2 style={{ ...s.formTitle, textAlign:"center" }}>
         {docModo === "vincular" ? "Vínculo criado!" : "Conta criada!"}
       </h2>
       <p style={{ textAlign:"center", color:"#aaa" }}>Bem-vindo, {form.nome}!</p>
@@ -364,15 +366,15 @@ function TelaCadastroAtletaLogin({ setTela, adicionarAtletaUsuario, adicionarAtl
           ⏳ Sua solicitação de vínculo com a equipe foi enviada e aguarda aprovação.
         </div>
       )}
-      <button style={styles.btnPrimary} onClick={() => setTela("painel-atleta")}>Ir para Meu Painel</button>
+      <button style={s.btnPrimary} onClick={() => setTela("painel-atleta")}>Ir para Meu Painel</button>
     </div></div>
   );
 
   return (
-    <div style={styles.formPage}><div style={styles.formCard}>
-      <div style={styles.formIcon}>🏃</div>
-      <h2 style={styles.formTitle}>Cadastro de Atleta</h2>
-      <p style={styles.formSub}>Crie sua conta para se inscrever em competições</p>
+    <div style={s.formPage}><div style={s.formCard}>
+      <div style={s.formIcon}>🏃</div>
+      <h2 style={s.formTitle}>Cadastro de Atleta</h2>
+      <p style={s.formSub}>Crie sua conta para se inscrever em competições</p>
 
       {/* CPF — sempre primeiro */}
       <div style={{ marginBottom: 16 }}>
@@ -427,12 +429,12 @@ function TelaCadastroAtletaLogin({ setTela, adicionarAtletaUsuario, adicionarAtl
           <div style={{ color: "#888", fontSize: 12, marginBottom: 12 }}>
             Para criar um novo vínculo como atleta, confirme suas credenciais:
           </div>
-          {loginErro && <div style={{ ...styles.erro, marginBottom: 12 }}>{loginErro}</div>}
+          {loginErro && <div style={{ ...s.erro, marginBottom: 12 }}>{loginErro}</div>}
           <FormField label="E-mail da conta" value={loginForm.email} onChange={v => setLoginForm({ ...loginForm, email: v })} type="email" placeholder="E-mail cadastrado" />
           <FormField label="Senha" value={loginForm.senha} onChange={v => setLoginForm({ ...loginForm, senha: v })} type="password" placeholder="Senha da conta" />
-          <button style={{ ...styles.btnPrimary, marginTop: 8 }} onClick={handleLoginExistente}>🔐 Confirmar Identidade</button>
+          <button style={{ ...s.btnPrimary, marginTop: 8 }} onClick={handleLoginExistente}>🔐 Confirmar Identidade</button>
           <div style={{ textAlign: "center", marginTop: 8 }}>
-            <button style={styles.linkBtn} onClick={() => setTela("recuperar-senha")}>Esqueci minha senha</button>
+            <button style={s.linkBtn} onClick={() => setTela("recuperar-senha")}>Esqueci minha senha</button>
           </div>
         </div>
       )}
@@ -488,13 +490,13 @@ function TelaCadastroAtletaLogin({ setTela, adicionarAtletaUsuario, adicionarAtl
             </div>
           )}
 
-          <div style={styles.grid2form}>
+          <div style={s.grid2form}>
             <FormField label="Nome Completo *"  value={form.nome}    onChange={v=>setForm({...form,nome:v})}    error={erros.nome} />
             <FormField label="Data de Nascimento *" value={form.dataNasc} onChange={v=>setForm({...form,dataNasc:v,anoNasc:v?v.split("-")[0]:""})} type="date" error={erros.dataNasc} />
             <FormField label="E-mail *"         value={form.email}   onChange={v=>setForm({...form,email:v})}   type="email" error={erros.email} />
             <div>
-              <label style={styles.label}>Sexo</label>
-              <select style={styles.select} value={form.sexo} onChange={e=>setForm({...form,sexo:e.target.value})}>
+              <label style={s.label}>Sexo</label>
+              <select style={s.select} value={form.sexo} onChange={e=>setForm({...form,sexo:e.target.value})}>
                 <option value="M">Masculino</option>
                 <option value="F">Feminino</option>
               </select>
@@ -504,8 +506,8 @@ function TelaCadastroAtletaLogin({ setTela, adicionarAtletaUsuario, adicionarAtl
             )}
             <FormField label="Nº CBAt"          value={form.cbat}    onChange={v=>setForm({...form,cbat:v})} />
             <div style={{ gridColumn:"1/-1" }}>
-              <label style={styles.label}>Vinculado a uma Equipe? (opcional)</label>
-              <select style={styles.select} value={form.equipeId} onChange={e=>{
+              <label style={s.label}>Vinculado a uma Equipe? (opcional)</label>
+              <select style={s.select} value={form.equipeId} onChange={e=>{
                 const novoEqId = e.target.value;
                 const eqSel = equipes.find(t => t.id === novoEqId);
                 setForm({...form, equipeId: novoEqId, clube: eqSel?.nome || ""});
@@ -542,14 +544,14 @@ function TelaCadastroAtletaLogin({ setTela, adicionarAtletaUsuario, adicionarAtl
           {/* ── LGPD: Consentimento geral ── */}
           <BlocoLGPD aceite={lgpdAceite} onChange={setLgpdAceite} erro={erros.lgpd} />
 
-          <button style={{ ...styles.btnPrimary, marginTop: 16 }} onClick={handleSubmit}>
+          <button style={{ ...s.btnPrimary, marginTop: 16 }} onClick={handleSubmit}>
             {docModo === "vincular" ? "✅ Realizar Cadastro" : "Criar Conta"}
           </button>
         </>
       )}
 
-      <div style={styles.formLink}>
-        Já tem conta? <button style={styles.linkBtn} onClick={() => setTela("login")}>Entrar</button>
+      <div style={s.formLink}>
+        Já tem conta? <button style={s.linkBtn} onClick={() => setTela("login")}>Entrar</button>
       </div>
     </div></div>
   );

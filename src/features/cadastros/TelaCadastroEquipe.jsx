@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { validarCNPJ, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import inscricaoStyles from "../inscricoes/inscricaoStyles";
+import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 const styles = inscricaoStyles;
 
@@ -70,6 +71,7 @@ function BlocoLGPD({ aceite, onChange, erro }) {
 }
 
 function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, usuarioLogado, equipes, atletasUsuarios, funcionarios, treinadores, adicionarSolicitacaoEquipe }) {
+  const s = useStylesResponsivos(styles);
   const [form, setForm] = useState({ nome: "", sigla: "", cidade: "", uf: "", email: "", senha: "", cnpj: "", fone: "", organizadorId: "" });
   const [ok, setOk] = useState(false);
   const [erros, setErros] = useState({});
@@ -222,10 +224,10 @@ function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, us
   };
 
   if (ok) return (
-    <div style={styles.formPage}>
-      <div style={styles.formCard}>
+    <div style={s.formPage}>
+      <div style={s.formCard}>
         <div style={{ fontSize: 64, textAlign: "center" }}>⏳</div>
-        <h2 style={{ ...styles.formTitle, textAlign: "center" }}>Cadastro enviado!</h2>
+        <h2 style={{ ...s.formTitle, textAlign: "center" }}>Cadastro enviado!</h2>
         <p style={{ textAlign: "center", color: "#aaa", marginBottom: 8 }}>
           Seu cadastro foi recebido e está aguardando aprovação.
         </p>
@@ -234,17 +236,17 @@ function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, us
             ? "O organizador responsável e o administrador serão notificados para aprovar sua equipe."
             : "Como não foi selecionado um organizador, o administrador irá revisar e vincular sua equipe."}
         </p>
-        <button style={styles.btnPrimary} onClick={() => setTela("login")}>Voltar ao Login</button>
+        <button style={s.btnPrimary} onClick={() => setTela("login")}>Voltar ao Login</button>
       </div>
     </div>
   );
 
   return (
-    <div style={styles.formPage}>
-      <div style={styles.formCard}>
-        <div style={styles.formIcon}>🎽</div>
-        <h2 style={styles.formTitle}>Cadastro de Equipe</h2>
-        <p style={styles.formSub}>Crie sua conta para gerenciar atletas e inscrições</p>
+    <div style={s.formPage}>
+      <div style={s.formCard}>
+        <div style={s.formIcon}>🎽</div>
+        <h2 style={s.formTitle}>Cadastro de Equipe</h2>
+        <p style={s.formSub}>Crie sua conta para gerenciar atletas e inscrições</p>
 
         {/* Banner de duplicidade */}
         {erros._duplicados && (
@@ -268,12 +270,12 @@ function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, us
             <div style={{ color: "#888", fontSize: 12, marginBottom: 12 }}>
               Para vincular esta equipe a outro organizador, confirme suas credenciais:
             </div>
-            {loginErro && <div style={{ ...styles.erro, marginBottom: 12 }}>{loginErro}</div>}
+            {loginErro && <div style={{ ...s.erro, marginBottom: 12 }}>{loginErro}</div>}
             <FormField label="E-mail da conta" value={loginForm.email} onChange={v => setLoginForm({ ...loginForm, email: v })} type="email" placeholder="E-mail cadastrado" />
             <FormField label="Senha" value={loginForm.senha} onChange={v => setLoginForm({ ...loginForm, senha: v })} type="password" placeholder="Senha da conta" />
-            <button style={{ ...styles.btnPrimary, marginTop: 8 }} onClick={handleLoginExistente}>🔐 Confirmar Identidade</button>
+            <button style={{ ...s.btnPrimary, marginTop: 8 }} onClick={handleLoginExistente}>🔐 Confirmar Identidade</button>
             <div style={{ textAlign: "center", marginTop: 8 }}>
-              <button style={styles.linkBtn} onClick={() => setTela("recuperar-senha")}>Esqueci minha senha</button>
+              <button style={s.linkBtn} onClick={() => setTela("recuperar-senha")}>Esqueci minha senha</button>
             </div>
           </div>
         )}
@@ -289,7 +291,7 @@ function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, us
         {/* Formulário de dados (novo cadastro ou modo vincular) */}
         {(docModo === "novo" || docModo === "vincular") && (
           <>
-            <div style={styles.grid2form}>
+            <div style={s.grid2form}>
               <FormField label="Nome da Equipe *" value={form.nome} onChange={(v) => setForm({ ...form, nome: v })} error={erros.nome} />
               <FormField label="Sigla *" value={form.sigla} onChange={(v) => setForm({ ...form, sigla: v.toUpperCase() })} placeholder="Ex: FMA" error={erros.sigla} />
               <FormField label="Cidade *" value={form.cidade} onChange={(v) => setForm({ ...form, cidade: v })} error={erros.cidade} />
@@ -313,7 +315,7 @@ function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, us
                 <select
                   value={form.organizadorId}
                   onChange={(e) => setForm({ ...form, organizadorId: e.target.value })}
-                  style={styles.input}
+                  style={s.input}
                 >
                   <option value="">Selecione o organizador...</option>
                   {organizadores?.filter(o => o.status === "aprovado").map(org => (
@@ -329,15 +331,15 @@ function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, us
 
             <BlocoLGPD aceite={lgpdAceite} onChange={setLgpdAceite} erro={erros.lgpd} />
 
-            <button style={{ ...styles.btnPrimary, marginTop: 16 }} onClick={handleSubmit}>
+            <button style={{ ...s.btnPrimary, marginTop: 16 }} onClick={handleSubmit}>
               {docModo === "vincular" ? "🔗 Criar Vínculo" : "Criar Conta"}
             </button>
           </>
         )}
 
-        <div style={styles.formLink}>
+        <div style={s.formLink}>
           Já tem conta?{" "}
-          <button style={styles.linkBtn} onClick={() => setTela("login")}>Entrar</button>
+          <button style={s.linkBtn} onClick={() => setTela("login")}>Entrar</button>
         </div>
       </div>
     </div>
