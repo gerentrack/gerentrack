@@ -61,6 +61,19 @@ export function useInscricoes({ atletas = [], registrarAcao, usuarioLogado } = {
   // ── Adicionar 1 inscrição ────────────────────────────────────────────────
   const adicionarInscricao = useCallback(
     async (insc) => {
+      // Guarda contra duplicatas: mesmo atleta + prova + evento + categoria + sexo
+      const duplicada = inscricoesRef.current.some(i =>
+        i.atletaId === insc.atletaId &&
+        i.provaId === insc.provaId &&
+        i.eventoId === insc.eventoId &&
+        (i.categoriaOficialId || i.categoriaId) === (insc.categoriaOficialId || insc.categoriaId) &&
+        i.sexo === insc.sexo
+      );
+      if (duplicada) {
+        console.warn("[useInscricoes] Inscrição duplicada bloqueada:", insc.atletaId, insc.provaId);
+        return;
+      }
+
       const docRef = doc(db, COLLECTION, insc.id);
       await setDoc(docRef, sanitize(insc));
 
@@ -207,6 +220,38 @@ export function useInscricoes({ atletas = [], registrarAcao, usuarioLogado } = {
     [resetInscricoes]
   );
 
+  // ── Migração: sincronizar nome da equipe em todas as inscrições ──────────
+  const sincronizarNomesEquipes = useCallback(async (atletasArr, equipesArr) => {
+    if (!atletasArr || !equipesArr) return 0;
+    const atletaMap = Object.fromEntries(atletasArr.map(a => [a.id, a]));
+    const equipeMap = Object.fromEntries(equipesArr.map(e => [e.id, e]));
+    const atualizacoes = [];
+
+    inscricoesRef.current.forEach(insc => {
+      const atleta = atletaMap[insc.atletaId];
+      if (!atleta) return;
+      const eqId = insc.equipeCadastroId || atleta.equipeId;
+      if (!eqId) return;
+      const equipe = equipeMap[eqId];
+      if (!equipe) return;
+      const nomeAtual = equipe.nome || "";
+      if (insc.equipeCadastro !== nomeAtual) {
+        atualizacoes.push({ ...insc, equipeCadastro: nomeAtual });
+      }
+    });
+
+    if (atualizacoes.length === 0) return 0;
+    const LOTE = 500;
+    for (let i = 0; i < atualizacoes.length; i += LOTE) {
+      const batch = writeBatch(db);
+      atualizacoes.slice(i, i + LOTE).forEach(insc => {
+        batch.set(doc(db, COLLECTION, insc.id), sanitize(insc));
+      });
+      await batch.commit();
+    }
+    return atualizacoes.length;
+  }, []);
+
   return {
     inscricoes,
     carregando,
@@ -217,5 +262,6 @@ export function useInscricoes({ atletas = [], registrarAcao, usuarioLogado } = {
     excluirInscricoesPorEvento,
     resetInscricoes,
     importarInscricoes,
+    sincronizarNomesEquipes,
   };
 }

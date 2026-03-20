@@ -938,6 +938,7 @@ function App() {
     excluirInscricoesPorEvento,
     resetInscricoes,
     importarInscricoes,
+    sincronizarNomesEquipes,
   } = useInscricoes({ atletas, registrarAcao, usuarioLogado });
 
   // ── Notificação à secretaria quando prova é concluída ────────────────────
@@ -1296,6 +1297,7 @@ function App() {
     solicitacoesRecuperacao, adicionarSolicitacaoRecuperacao, resolverSolicitacaoRecuperacao,
     solicitacoesPortabilidade, adicionarSolicitacaoPortabilidade, resolverSolicitacaoPortabilidade, excluirSolicitacaoPortabilidade,
     solicitacoesRelatorio, solicitarRelatorio, resolverRelatorio,
+    sincronizarNomesEquipes,
     funcionarios, adicionarFuncionario, atualizarFuncionario, removerFuncionario,
     treinadores, adicionarTreinador, atualizarTreinador, removerTreinador,
     historicoAcoes, registrarAcao,

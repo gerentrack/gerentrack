@@ -14,7 +14,7 @@ import { resKey } from "../../shared/constants/fases";
  * @param {object[]} equipes          - lista de equipes
  * @param {object}   organizador      - { nome, entidade } do organizador
  */
-export function gerarHtmlRelatorioParticipacao(evento, atletasFiltrados, inscricoes, resultados, equipes, organizador) {
+export function gerarHtmlRelatorioParticipacao(evento, atletasFiltrados, inscricoes, resultados, equipes, organizador, assinatura) {
   if (!evento || !atletasFiltrados || atletasFiltrados.length === 0) return;
 
   const _branding = (() => { try { return JSON.parse(localStorage.getItem("gt_branding")) || {}; } catch { return {}; } })();
@@ -64,6 +64,7 @@ export function gerarHtmlRelatorioParticipacao(evento, atletasFiltrados, inscric
       const catId = insc.categoriaOficialId || insc.categoriaId;
       const sexo = insc.sexo;
       const prova = provas.find(p => p.id === provaId);
+      let encontrou = false;
 
       for (const fase of FASE_PRIO) {
         const chave = resKey(evento.id, provaId, catId, sexo, fase || undefined);
@@ -79,13 +80,26 @@ export function gerarHtmlRelatorioParticipacao(evento, atletasFiltrados, inscric
             fase: FASE_LABEL[fase] || fase,
             cat: insc.categoriaOficial || insc.categoria || "",
           });
+          encontrou = true;
           break;
         }
+      }
+
+      // Sem resultado ainda — exibe prova com marca em branco
+      if (!encontrou) {
+        linhas.push({
+          provaNome: prova?.nome || provaId,
+          unidade: prova?.unidade || "",
+          marca: null,
+          posicao: null,
+          fase: "",
+          cat: insc.categoriaOficial || insc.categoria || "",
+        });
       }
     });
 
     return { atleta, linhas };
-  }).filter(b => b.linhas.length > 0);
+  });
 
   const orgNome = organizador?.entidade || organizador?.nome || "";
   const localEvento = evento.local || "";
@@ -137,7 +151,7 @@ export function gerarHtmlRelatorioParticipacao(evento, atletasFiltrados, inscric
     .rod-wrap{margin-top:auto;padding-bottom:3mm;}
     .rod-assinaturas{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:6px;}
     .rod-ass{flex:1;max-width:200px;}
-    .rod-ln{border-bottom:1px solid #aaa;margin-bottom:4px;height:28px;}
+    .rod-ln{border-bottom:1px solid #aaa;margin-bottom:4px;height:64px;display:flex;align-items:flex-end;justify-content:center;}
     .rod-lb{font-size:9px;color:#888;text-align:center;font-style:italic;}
     .rod-info{font-size:9px;color:#aaa;text-align:center;line-height:1.4;}
     @media print{
@@ -170,7 +184,7 @@ export function gerarHtmlRelatorioParticipacao(evento, atletasFiltrados, inscric
   const rodape = `
     <div class="rod-wrap">
       <div class="rod-assinaturas">
-        <div class="rod-ass"><div class="rod-ln"></div><div class="rod-lb">Organizador Respons\u00e1vel</div></div>
+        <div class="rod-ass"><div class="rod-ln">${assinatura ? `<img src="${assinatura}" alt="Assinatura" style="max-height:60px;max-width:190px;object-fit:contain;object-position:bottom;" />` : ""}</div><div class="rod-lb">Organizador Respons\u00e1vel</div></div>
         <div style="flex:1"></div>
         <div class="rod-ass"><div class="rod-ln"></div><div class="rod-lb">Carimbo / Selo</div></div>
       </div>

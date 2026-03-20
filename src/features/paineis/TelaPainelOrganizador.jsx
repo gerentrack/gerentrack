@@ -145,7 +145,7 @@ const styles = {
   provaCheckBtnSel: { background: "#1a1c22", borderColor: "#1976D2", color: "#1976D2" },
 };
 
-function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, atletas, selecionarEvento, adicionarEvento, editarEvento, excluirEvento, alterarStatusEvento, organizadores, funcionarios, solicitacoesVinculo, responderVinculo, equipes, solicitacoesEquipe=[], aprovarEquipe, recusarEquipe, atualizarAtleta, registrarAcao, setAtletaEditandoId, notificacoes, marcarNotifLida, resultados, solicitacoesRelatorio, resolverRelatorio }) {
+function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, atletas, selecionarEvento, adicionarEvento, editarEvento, excluirEvento, alterarStatusEvento, organizadores, funcionarios, solicitacoesVinculo, responderVinculo, equipes, solicitacoesEquipe=[], aprovarEquipe, recusarEquipe, atualizarAtleta, registrarAcao, setAtletaEditandoId, notificacoes, marcarNotifLida, resultados, solicitacoesRelatorio, resolverRelatorio, sincronizarNomesEquipes }) {
   const tipoOrg = usuarioLogado?.tipo;
   if (tipoOrg !== "organizador" && tipoOrg !== "funcionario" && tipoOrg !== "admin") return (
     <div style={styles.page}><div style={styles.emptyState}>
@@ -169,6 +169,7 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
   const [relEquipeId, setRelEquipeId] = useState("");
   const [relBuscaAtl, setRelBuscaAtl] = useState("");
   const [relAtletasSel, setRelAtletasSel] = useState([]);
+  const [relAssinatura, setRelAssinatura] = useState("");
 
   return (
     <div style={styles.page}>
@@ -281,7 +282,7 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
                             const atletasFiltrados = (sol.atletaIds || []).map(aid => atletas.find(a => a.id === aid)).filter(Boolean);
                             if (atletasFiltrados.length === 0) return;
                             const org = organizadores?.find(o => o.id === evt.organizadorId);
-                            gerarHtmlRelatorioParticipacao(evt, atletasFiltrados, inscricoes, resultados || {}, equipes, org);
+                            gerarHtmlRelatorioParticipacao(evt, atletasFiltrados, inscricoes, resultados || {}, equipes, org, relAssinatura);
                             resolverRelatorio(sol.id, "gerado");
                           }} style={{ background: "#0d2a2a", border: "1px solid #2a6a6a", color: "#88cccc", borderRadius: 6, padding: "4px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700, fontFamily: "'Barlow', sans-serif" }}>
                             📄 Gerar e Enviar
@@ -680,6 +681,29 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
             {relAtletasSel.length > 0 && relFiltro === "atleta" && (
               <div style={{ fontSize: 11, color: "#88cccc", marginBottom: 10 }}>{relAtletasSel.length} atleta(s) selecionado(s)</div>
             )}
+            {/* Upload de assinatura */}
+            <div style={{ background: "#0d0e12", border: "1px solid #252837", borderRadius: 8, padding: "12px 16px", marginBottom: 14 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#888", marginBottom: 8 }}>✍️ ASSINATURA DO ORGANIZADOR (opcional)</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                <label style={{ background: "#141720", border: "1px solid #252837", borderRadius: 6, padding: "6px 14px", cursor: "pointer", fontSize: 12, color: "#aaa" }}>
+                  📁 Selecionar imagem
+                  <input type="file" accept="image/*" style={{ display: "none" }} onChange={e => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (ev) => setRelAssinatura(ev.target.result);
+                    reader.readAsDataURL(file);
+                  }} />
+                </label>
+                {relAssinatura && (
+                  <>
+                    <img src={relAssinatura} alt="Assinatura" style={{ maxHeight: 48, maxWidth: 160, objectFit: "contain" }} />
+                    <button onClick={() => setRelAssinatura("")} style={{ background: "none", border: "none", color: "#ff6b6b", cursor: "pointer", fontSize: 11 }}>✕ Remover</button>
+                  </>
+                )}
+                {!relAssinatura && <span style={{ fontSize: 11, color: "#555" }}>PNG com fundo transparente recomendado</span>}
+              </div>
+            </div>
             <button disabled={!relEvento} onClick={() => {
               const evt = eventos.find(e => e.id === relEvento);
               if (!evt) return;
@@ -698,7 +722,7 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
               const atletasFiltrados = atletaIds.map(aid => atletas.find(a => a.id === aid)).filter(Boolean);
               if (atletasFiltrados.length === 0) { alert("Nenhum atleta encontrado para os filtros selecionados."); return; }
               const org = organizadores?.find(o => o.id === evt.organizadorId);
-              gerarHtmlRelatorioParticipacao(evt, atletasFiltrados, inscricoes, resultados || {}, equipes, org);
+              gerarHtmlRelatorioParticipacao(evt, atletasFiltrados, inscricoes, resultados || {}, equipes, org, relAssinatura);
             }} style={{ background: relEvento ? "linear-gradient(135deg, #1976D2, #1565C0)" : "#222", color: relEvento ? "#fff" : "#555", border: "none", padding: "10px 24px", borderRadius: 8, cursor: relEvento ? "pointer" : "not-allowed", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 }}>
               📄 Gerar Relatório
             </button>

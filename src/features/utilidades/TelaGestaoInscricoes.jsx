@@ -231,6 +231,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
 
   // ── Carrinho ─────────────────────────────────────────────────────────────
   const [carrinho, setCarrinho]           = useState([]);
+  const [confirmando, setConfirmando]     = useState(false);
   const [modoCarrinho, setModoCarrinho]   = useState(false);
   const [inserirAtletaId, setInserirAtletaId] = useState("");
   const [inserirProvasIds, setInserirProvasIds] = useState(new Set()); // multi-seleção
@@ -490,6 +491,8 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
 
   // ── Confirmar e gravar lote ──────────────────────────────────────────────
   const handleConfirmar = async () => {
+    if (confirmando) return;
+    setConfirmando(true);
     for (const item of carrinho) {
       const atl = atletas.find(a => a.id === item.atletaId);
       const prv = todasAsProvas().find(p => p.id === item.provaId);
@@ -531,6 +534,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
       "Inscreveu atletas em lote", `${carrinho.length} inscrição(ões)`,
       usuarioLogado?.organizadorId || usuarioLogado?.id, { modulo: "inscricoes" }
     );
+    setConfirmando(false);
     setEtapa("concluido");
   };
 
@@ -1759,9 +1763,9 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                       🖨️ Imprimir detalhamento
                     </button>
                     <button
-                      style={{ ...styles.btnPrimary, background: "linear-gradient(135deg, #2a7a2a, #1a5a1a)", fontSize: 16, padding: "14px 32px" }}
-                      onClick={handleConfirmar}>
-                      ✅ Confirmar {carrinho.length} inscrição{carrinho.length !== 1 ? "ões" : ""}
+                      style={{ ...styles.btnPrimary, background: "linear-gradient(135deg, #2a7a2a, #1a5a1a)", fontSize: 16, padding: "14px 32px", opacity: confirmando ? 0.5 : 1 }}
+                      onClick={handleConfirmar} disabled={confirmando}>
+                      {confirmando ? "Inscrevendo..." : `✅ Confirmar ${carrinho.length} inscrição${carrinho.length !== 1 ? "ões" : ""}`}
                     </button>
                   </div>
                 </div>

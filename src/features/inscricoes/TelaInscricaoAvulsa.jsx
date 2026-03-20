@@ -127,6 +127,7 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
   const [atletaCpfExistente, setAtletaCpfExistente] = useState(null);
   const [ok, setOk] = useState(false);
   const [erro, setErro] = useState("");
+  const [enviando, setEnviando] = useState(false);
   const buscaRef = useRef(null);
   const [eventoSelecionadoAtleta, setEventoSelecionadoAtleta] = useState(null);
 
@@ -438,7 +439,8 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
   const novasContam = provasSel.filter(pId => !excecoesLimite.has(pId)).length;
   const restantes = limInd > 0 ? limInd - inscAtletaAtual - novasContam : Infinity;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (enviando) return;
     if (!isAtleta && modo === "existente" && !atletaId) { setErro("Selecione um atleta"); return; }
     if (isAtleta && !atletaId) { setErro("Dados do atleta não encontrados"); return; }
     if (!isAtleta && modo === "novo") {
@@ -493,6 +495,7 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
     const catInscricao = catOficial;
     const idadeAtleta = anoComp - parseInt(atleta.anoNasc);
 
+    setEnviando(true);
     const baseTs = Date.now();
     // ── Etapa 2: snapshot do preço no momento da inscrição ──
     const precoInfoInscricao = calcularPrecoInscricao(atleta, catOficial?.id || null, eventoParaInscricao);
@@ -562,6 +565,7 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
         inscricoesComp.forEach(ic => adicionarInscricao(ic));
       }
     });
+    setEnviando(false);
     setOk(true);
   };
 
@@ -964,8 +968,8 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
                 </div>
               )}
               {provasDisp.length > 0 && (
-                <button style={{ ...styles.btnPrimary, marginTop: 24 }} onClick={handleSubmit}>
-                  Confirmar Inscrição
+                <button style={{ ...styles.btnPrimary, marginTop: 24, opacity: enviando ? 0.5 : 1 }} onClick={handleSubmit} disabled={enviando}>
+                  {enviando ? "Inscrevendo..." : "Confirmar Inscrição"}
                 </button>
               )}
             </div>
