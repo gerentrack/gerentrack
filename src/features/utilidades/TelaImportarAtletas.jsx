@@ -170,11 +170,11 @@ function TelaImportarAtletas({ setTela, atletas, adicionarAtleta, adicionarAtlet
           // Fallback: try script tag
           try {
             await new Promise((resolve, reject) => {
-              const s = document.createElement('script');
-              s.src = 'https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js';
-              s.onload = resolve;
-              s.onerror = reject;
-              document.head.appendChild(s);
+              const scriptEl = document.createElement('script');
+              scriptEl.src = 'https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js';
+              scriptEl.onload = resolve;
+              scriptEl.onerror = reject;
+              document.head.appendChild(scriptEl);
             });
             XL = window.XLSX;
           } catch(e2) {}
@@ -535,11 +535,11 @@ function TelaImportarAtletas({ setTela, atletas, adicionarAtleta, adicionarAtlet
                   } catch(e) {
                     try {
                       await new Promise((resolve, reject) => {
-                        const s = document.createElement('script');
-                        s.src = 'https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js';
-                        s.onload = resolve;
-                        s.onerror = reject;
-                        document.head.appendChild(s);
+                        const scriptEl = document.createElement('script');
+                        scriptEl.src = 'https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js';
+                        scriptEl.onload = resolve;
+                        scriptEl.onerror = reject;
+                        document.head.appendChild(scriptEl);
                       });
                       XL = window.XLSX;
                     } catch(e2) {}

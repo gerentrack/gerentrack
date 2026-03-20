@@ -385,7 +385,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
     });
   }, [carrinho, atletas, anoComp, eventoAtual, inscsEvt]);
 
-  const totalGeral = resumoCarrinho.reduce((s, r) => s + r.valorCobrar, 0);
+  const totalGeral = resumoCarrinho.reduce((acc, r) => acc + r.valorCobrar, 0);
   const temPreco   = true; // sempre mostrar coluna valor (exibe "Gratuito" quando sem preço)
   const temPrecoConfig = !!(eventoAtual.regrasPreco?.length > 0 || eventoAtual.valorInscricao);
 
@@ -580,11 +580,11 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
       if (pago) porEquipe[equipeNome].pago += valor;
       totalGlobalSalvo += valor;
     });
-    const totalPago = _porAtletaArr.reduce((s, [atletaId, inscs]) => {
+    const totalPago = _porAtletaArr.reduce((acc, [atletaId, inscs]) => {
       const atl = atletas.find(a => a.id === atletaId);
       const cat = atl ? getCategoria(atl.anoNasc, anoComp) : null;
       const precoInfo = calcularPrecoInscricao(atl, cat?.id || null, eventoAtual);
-      return s + (isPago(inscs) ? (precoInfo?.preco || 0) : 0);
+      return acc + (isPago(inscs) ? (precoInfo?.preco || 0) : 0);
     }, 0);
     return { porEquipe, totalGlobalSalvo, totalPago };
   }, [_porAtletaArr, atletas, anoComp, eventoAtual]);
@@ -672,10 +672,10 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
     }).join("");
 
     const nCols = 7 + (mostrarEquipe ? 1 : 0) + (mostrarPago ? 1 : 0);
-    const totalGeral = _porAtletaArr.reduce((s, [, inscs]) => {
+    const totalGeral = _porAtletaArr.reduce((acc, [, inscs]) => {
       const atl = atletas.find(a => a.id === inscs[0]?.atletaId || a.id === _porAtletaArr[0]?.[0]);
       const cat = atl ? getCategoria(atl.anoNasc, anoComp) : null;
-      return s + (calcularPrecoInscricao(atl, cat?.id || null, eventoAtual)?.preco || 0);
+      return acc + (calcularPrecoInscricao(atl, cat?.id || null, eventoAtual)?.preco || 0);
     }, 0);
 
     const cabecalho = `
@@ -764,7 +764,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
   // ── Bloco HTML base de 1 recibo ───────────────────────────────────────────
   const _blocoRecibo = ({ titulo, pagador, atletasLista, org, dataEmissao, assinatura, isEquipe = false }) => {
     const temPrecoConfig = !!(eventoAtual.regrasPreco?.length > 0 || eventoAtual.valorInscricao);
-    const total = atletasLista.reduce((s, { precoInfo }) => s + (precoInfo?.preco || 0), 0);
+    const total = atletasLista.reduce((acc, { precoInfo }) => acc + (precoInfo?.preco || 0), 0);
     const logoEsq   = eventoAtual.logoCabecalho       || "";
     const logoDir   = eventoAtual.logoCabecalhoDireito || "";
     const logoRodap = eventoAtual.logoRodape           || "";

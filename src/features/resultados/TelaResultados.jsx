@@ -584,7 +584,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
               ${classifEquipes.classificacao.map((eq, idx) => {
                 const pos = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : (idx+1)+"º";
                 const nProvas = Object.keys(eq.pontosPorProva).length;
-                const totalBonus = (eq.bonusRecordes || []).reduce((s, b) => s + b.pontos, 0);
+                const totalBonus = (eq.bonusRecordes || []).reduce((acc, b) => acc + b.pontos, 0);
                 const bonusDetail = (eq.bonusRecordes || []).map(b => `${b.tipoSigla} ${b.provaNome} (+${b.pontos})`).join(", ");
                 return `<tr style="border-bottom:1px solid #ddd;${idx < 3 ? "background:#f9f9f0" : ""}">
                   <td style="padding:6px 8px;font-weight:700">${pos}</td>
@@ -722,7 +722,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                     </tr></thead><tbody>
                     ${classifEquipes.classificacao.map((eq, idx) => {
                       const nProvas = Object.keys(eq.pontosPorProva).length;
-                      const totalBonus = (eq.bonusRecordes || []).reduce((s, b) => s + b.pontos, 0);
+                      const totalBonus = (eq.bonusRecordes || []).reduce((acc, b) => acc + b.pontos, 0);
                       const bonusDetail = (eq.bonusRecordes || []).map(b => `${b.tipoSigla} ${b.provaNome} (+${b.pontos})`).join(", ");
                       return `<tr${idx < 3 ? ` class="top3"` : ""}>
                         <td style="font-weight:700">${idx < 3 ? ["🥇","🥈","🥉"][idx] : (idx+1)+"º"}</td>
@@ -774,7 +774,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
               <tbody>
                 {classifEquipes.classificacao.map(function(eq, idx) {
                   var nProvasPontuadas = Object.keys(eq.pontosPorProva).length;
-                  var totalBonus = (eq.bonusRecordes || []).reduce(function(s, b) { return s + b.pontos; }, 0);
+                  var totalBonus = (eq.bonusRecordes || []).reduce(function(acc, b) { return acc + b.pontos; }, 0);
                   return (
                     <React.Fragment key={eq.equipeId}>
                     <tr style={{

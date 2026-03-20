@@ -191,17 +191,17 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
   // Para fases SEM/FIN: só mostrar atletas que estão na seriação dessa fase
   const _serDigitar = faseEfetiva ? buscarSeriacao(eventoAtual.seriacao, filtroProva, filtroCat, filtroSexo, faseEfetiva) : null;
   if (_serDigitar?.series && _serDigitar.series.length > 0 && !isRevezamento) {
-    const idsNaSeriacao = _serDigitar.series.flatMap(s => s.atletas.map(a => a.id || a.atletaId));
+    const idsNaSeriacao = _serDigitar.series.flatMap(serie => serie.atletas.map(a => a.id || a.atletaId));
     const filtrados = atletasNaProva.filter(a => idsNaSeriacao.includes(a.id));
     if (filtrados.length > 0) {
       // Ordenar por série → raia
       atletasNaProva = filtrados.sort((a, b) => {
         let sA = 99, rA = 99, sB = 99, rB = 99;
-        for (const s of _serDigitar.series) {
-          const fA = s.atletas.find(x => (x.id || x.atletaId) === a.id);
-          if (fA) { sA = s.numero; rA = fA.raia || 99; }
-          const fB = s.atletas.find(x => (x.id || x.atletaId) === b.id);
-          if (fB) { sB = s.numero; rB = fB.raia || 99; }
+        for (const serie of _serDigitar.series) {
+          const fA = serie.atletas.find(x => (x.id || x.atletaId) === a.id);
+          if (fA) { sA = serie.numero; rA = fA.raia || 99; }
+          const fB = serie.atletas.find(x => (x.id || x.atletaId) === b.id);
+          if (fB) { sB = serie.numero; rB = fB.raia || 99; }
         }
         return sA !== sB ? sA - sB : rA - rB;
       });
@@ -210,9 +210,9 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
   // Helper: buscar série/raia de um atleta na seriação da fase
   const _getSerInfo = (atletaId) => {
     if (!_serDigitar?.series) return { serie: "", raia: "" };
-    for (const s of _serDigitar.series) {
-      const found = s.atletas.find(x => (x.id || x.atletaId) === atletaId);
-      if (found) return { serie: String(s.numero), raia: found.raia ? String(found.raia) : "" };
+    for (const serie of _serDigitar.series) {
+      const found = serie.atletas.find(x => (x.id || x.atletaId) === atletaId);
+      if (found) return { serie: String(serie.numero), raia: found.raia ? String(found.raia) : "" };
     }
     return { serie: "", raia: "" };
   };

@@ -269,11 +269,11 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
           } catch(e) {
             try {
               await new Promise((resolve, reject) => {
-                const s = document.createElement('script');
-                s.src = 'https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js';
-                s.onload = resolve;
-                s.onerror = reject;
-                document.head.appendChild(s);
+                const scriptEl = document.createElement('script');
+                scriptEl.src = 'https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js';
+                scriptEl.onload = resolve;
+                scriptEl.onerror = reject;
+                document.head.appendChild(scriptEl);
               });
               XL = window.XLSX;
             } catch(e2) {}
@@ -368,9 +368,9 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
           // Gerar senha se não fornecida
           const senhaFinal = senha || (() => {
             const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            let s = "";
-            for (let i = 0; i < 8; i++) s += chars[Math.floor(Math.random() * chars.length)];
-            return s;
+            let pwd = "";
+            for (let i = 0; i < 8; i++) pwd += chars[Math.floor(Math.random() * chars.length)];
+            return pwd;
           })();
 
           equipesParaImportar.push({
@@ -522,11 +522,11 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
                     } catch(e) {
                       try {
                         await new Promise((resolve, reject) => {
-                          const s = document.createElement('script');
-                          s.src = 'https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js';
-                          s.onload = resolve;
-                          s.onerror = reject;
-                          document.head.appendChild(s);
+                          const scriptEl = document.createElement('script');
+                          scriptEl.src = 'https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js';
+                          scriptEl.onload = resolve;
+                          scriptEl.onerror = reject;
+                          document.head.appendChild(scriptEl);
                         });
                         XL = window.XLSX;
                       } catch(e2) {}
@@ -990,9 +990,9 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
                   <button type="button" style={{ ...s.btnGhost, fontSize: 11, padding: "8px 12px", whiteSpace: "nowrap" }}
                     onClick={() => {
                       const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-                      let s = "";
-                      for (let i = 0; i < 8; i++) s += chars[Math.floor(Math.random() * chars.length)];
-                      setForm({ ...form, senha: s });
+                      let pwd = "";
+                      for (let i = 0; i < 8; i++) pwd += chars[Math.floor(Math.random() * chars.length)];
+                      setForm({ ...form, senha: pwd });
                     }}>
                     🎲 Gerar
                   </button>

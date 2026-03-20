@@ -149,7 +149,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
             // Filtrar atletas pela seriação da fase se disponível
             let atletasFase = atletasInsc;
             if (serFase?.series) {
-              const ids = serFase.series.flatMap(s => s.atletas.map(a => a.id || a.atletaId));
+              const ids = serFase.series.flatMap(serie => serie.atletas.map(a => a.id || a.atletaId));
               const filtrados = atletasInsc.filter(a => ids.includes(a.id));
               if (filtrados.length > 0) atletasFase = filtrados;
             }

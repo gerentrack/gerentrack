@@ -107,7 +107,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
     if (match) return match;
     
     // 2) Sem pontos separadores de milhar e sem parênteses de peso/altura
-    const strip = (s) => s.toLowerCase().replace(/\./g, "").replace(/\s*\(.*?\)/g, "").replace(/\s+/g, " ").trim();
+    const strip = (str) => str.toLowerCase().replace(/\./g, "").replace(/\s*\(.*?\)/g, "").replace(/\s+/g, " ").trim();
     match = _allProvas.find(p => strip(p.nome) === strip(ni));
     if (match) return match;
 
@@ -192,8 +192,8 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
   const _matchSexo = (txt) => {
     if (!txt) return "";
     const n = txt.toLowerCase().trim();
-    if (["f","fem","feminino","female","w","women","mulher","meninas","girls"].some(s => n === s || n.includes(s))) return "F";
-    if (["m","masc","masculino","male","men","homem","h","meninos","boys"].some(s => n === s || n.includes(s))) return "M";
+    if (["f","fem","feminino","female","w","women","mulher","meninas","girls"].some(str => n === str || n.includes(str))) return "F";
+    if (["m","masc","masculino","male","men","homem","h","meninos","boys"].some(str => n === str || n.includes(str))) return "M";
     return "";
   };
 
@@ -273,7 +273,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
 
       const colMap = (row) => {
         // Match flexível de colunas: ignora case, acentos, espaços extras
-        const normalizeCol = (s) => s.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
+        const normalizeCol = (str) => str.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
         const get = (...keys) => {
           for (const k of keys) {
             const nk = normalizeCol(k);
