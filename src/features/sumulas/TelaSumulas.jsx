@@ -1329,34 +1329,34 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
             {isAmplo && <span style={{ marginLeft: 8 }}>— use os filtros para imprimir provas específicas</span>}
           </div>
 
-          {sumuFiltradas.map((s, i) => (
-            <div key={sumuKey(s)} style={{ background:"#0E1016", border:"1px solid #1E2130", borderRadius:12, marginBottom:20, overflow:"hidden" }}>
+          {sumuFiltradas.map((sum, i) => (
+            <div key={sumuKey(sum)} style={{ background:"#0E1016", border:"1px solid #1E2130", borderRadius:12, marginBottom:20, overflow:"hidden" }}>
               <div style={{ padding:"14px 20px", background:"#0D0E12", borderBottom:"1px solid #1E2130", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12 }}>
                 <div>
                   <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:22, fontWeight:800, color:"#fff", marginBottom:4 }}>
-                    <NomeProvaComImplemento nome={s.prova.nome} />
-                    {s.prova.origemCombinada && (
+                    <NomeProvaComImplemento nome={sum.prova.nome} />
+                    {sum.prova.origemCombinada && (
                       <span style={{ fontSize: 11, background: "#0a1a2a", color: "#1976D2", padding: "2px 8px", borderRadius: 4, marginLeft: 8, fontWeight: 600 }}>
-                        🏅 {s.prova.nomeCombinada} ({s.prova.ordem}/{s.prova.totalProvas})
+                        🏅 {sum.prova.nomeCombinada} ({sum.prova.ordem}/{sum.prova.totalProvas})
                       </span>
                     )}
                   </div>
                   <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap", marginTop:6 }}>
-                    <span style={s.badgeGold}>{s.categoria.nome}</span>
-                    <span style={s.badge(s.sexo === "M" ? "#1a6ef5" : "#e54f9b")}>
-                      {s.sexo === "M" ? "Masculino" : "Feminino"}
+                    <span style={s.badgeGold}>{sum.categoria.nome}</span>
+                    <span style={s.badge(sum.sexo === "M" ? "#1a6ef5" : "#e54f9b")}>
+                      {sum.sexo === "M" ? "Masculino" : "Feminino"}
                     </span>
                     <span style={{ color: "#aaa", fontSize: 13 }}>
-                      {s.isRevezamento
-                        ? `${(s.equipesRevez||[]).length} equipe(s)`
-                        : `${s.atletas.length} atleta(s)`}
+                      {sum.isRevezamento
+                        ? `${(sum.equipesRevez||[]).length} equipe(s)`
+                        : `${sum.atletas.length} atleta(s)`}
                     </span>
                     {/* Badge câmara de chamada */}
-                    {!s.isRevezamento && getPresencaProva && (() => {
-                      const presenca = getPresencaProva(s.prova.id, s.categoria.id, s.sexo);
+                    {!sum.isRevezamento && getPresencaProva && (() => {
+                      const presenca = getPresencaProva(sum.prova.id, sum.categoria.id, sum.sexo);
                       const confirmados = Object.values(presenca).filter(v => v === "confirmado").length;
                       const presentes   = Object.values(presenca).filter(v => v === "presente").length;
-                      const total = s.atletas.length;
+                      const total = sum.atletas.length;
                       if (confirmados === 0 && presentes === 0) return null;
                       const cor = confirmados === total ? "#7acc44" : "#1976D2";
                       return (
@@ -1366,40 +1366,40 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                         </span>
                       );
                     })()}
-                    {s.isRevezamento && (
+                    {sum.isRevezamento && (
                       <span style={{ fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:600, background:"#1a1a2a", color:"#88aaff", border:"1px solid #2a2a6a" }}>
-                        🏃‍♂️ Revezamento ({nPernasRevezamento(s.prova)} pernas)
+                        🏃‍♂️ Revezamento ({nPernasRevezamento(sum.prova)} pernas)
                       </span>
                     )}
-                    {s.faseNome && (
+                    {sum.faseNome && (
                       <span style={{ fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:700,
-                        background: s.faseSufixo === "ELI" ? "#2a1a0a" : s.faseSufixo === "SEM" ? "#0a1a2a" : "#0a2a0a",
-                        color: s.faseSufixo === "ELI" ? "#ff8844" : s.faseSufixo === "SEM" ? "#88aaff" : "#7cfc7c",
-                        border: `1px solid ${s.faseSufixo === "ELI" ? "#5a3a1a" : s.faseSufixo === "SEM" ? "#2a4a6a" : "#2a4a2a"}` }}>
-                        {s.faseNome}
+                        background: sum.faseSufixo === "ELI" ? "#2a1a0a" : sum.faseSufixo === "SEM" ? "#0a1a2a" : "#0a2a0a",
+                        color: sum.faseSufixo === "ELI" ? "#ff8844" : sum.faseSufixo === "SEM" ? "#88aaff" : "#7cfc7c",
+                        border: `1px solid ${sum.faseSufixo === "ELI" ? "#5a3a1a" : sum.faseSufixo === "SEM" ? "#2a4a6a" : "#2a4a2a"}` }}>
+                        {sum.faseNome}
                       </span>
                     )}
                     {(() => {
-                      const chaveSer = s.faseSufixo ? serKey(s.prova.id, s.categoria.id, s.sexo, s.faseSufixo) : `${s.prova.id}_${s.categoria.id}_${s.sexo}`;
+                      const chaveSer = sum.faseSufixo ? serKey(sum.prova.id, sum.categoria.id, sum.sexo, sum.faseSufixo) : `${sum.prova.id}_${sum.categoria.id}_${sum.sexo}`;
                       let serSalva = eventoAtual.seriacao?.[chaveSer];
                       if (!serSalva) {
-                        const _fsBdg = getFasesProva(s.prova.id, eventoAtual.programaHorario || {});
-                        for (const _fb of _fsBdg) { const _kb = serKey(s.prova.id, s.categoria.id, s.sexo, _fb); if (eventoAtual.seriacao?.[_kb]?.series) { serSalva = eventoAtual.seriacao[_kb]; break; } }
+                        const _fsBdg = getFasesProva(sum.prova.id, eventoAtual.programaHorario || {});
+                        for (const _fb of _fsBdg) { const _kb = serKey(sum.prova.id, sum.categoria.id, sum.sexo, _fb); if (eventoAtual.seriacao?.[_kb]?.series) { serSalva = eventoAtual.seriacao[_kb]; break; } }
                       }
-                      const cfgBadge = eventoAtual.configSeriacao?.[s.prova.id];
+                      const cfgBadge = eventoAtual.configSeriacao?.[sum.prova.id];
                       const modo = (typeof cfgBadge === "string") ? cfgBadge : (cfgBadge?.modo || "semifinal_final");
                       if (serSalva) return (
                         <span style={{ fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:600, background:"#0a2a0a", color:"#7cfc7c", border:"1px solid #2a6a2a" }}>
                           ✓ Seriada ({serSalva.series?.length || 0} sér.) · {modo === "final_tempo" ? "Final/Tempo" : "Semi+Final"}
                         </span>
                       );
-                      if (s.prova.unidade === "s" && !s.prova.origemCombinada && !s.isRevezamento) {
-                        const _mBdg = s.prova.id.match(/[_x]?(\d+)m/);
+                      if (sum.prova.unidade === "s" && !sum.prova.origemCombinada && !sum.isRevezamento) {
+                        const _mBdg = sum.prova.id.match(/[_x]?(\d+)m/);
                         const metrosBdg = _mBdg ? parseInt(_mBdg[1]) : 0;
                         if (metrosBdg > 0 && metrosBdg <= 400) {
-                          const cfgS = eventoAtual.configSeriacao?.[s.prova.id];
+                          const cfgS = eventoAtual.configSeriacao?.[sum.prova.id];
                           const nRaiasS = (typeof cfgS === "object" && cfgS?.nRaias) ? cfgS.nRaias : 8;
-                          if (s.atletas.length > nRaiasS) return (
+                          if (sum.atletas.length > nRaiasS) return (
                             <span style={{ fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:500, background:"#2a1a0a", color:"#1976D2", border:"1px solid #4a3a0a" }}>
                               ⚠ Sem seriação
                             </span>
@@ -1414,22 +1414,22 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                 {isAmplo && (
                   <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                     <button
-                      onClick={() => toggleOrient(s)}
-                      title={getOrient(s) === "landscape" ? "Paisagem → Retrato" : "Retrato → Paisagem"}
+                      onClick={() => toggleOrient(sum)}
+                      title={getOrient(sum) === "landscape" ? "Paisagem → Retrato" : "Retrato → Paisagem"}
                       style={{
                         background: "transparent",
-                        border: `1px solid ${getOrient(s) === "landscape" ? "#4a8a2a" : "#4a4a8a"}`,
+                        border: `1px solid ${getOrient(sum) === "landscape" ? "#4a8a2a" : "#4a4a8a"}`,
                         borderRadius: 6, padding: "4px 8px", cursor: "pointer",
-                        fontSize: 11, color: getOrient(s) === "landscape" ? "#7acc44" : "#88aaff",
+                        fontSize: 11, color: getOrient(sum) === "landscape" ? "#7acc44" : "#88aaff",
                       }}
                     >
-                      {getOrient(s) === "landscape" ? "↔" : "↕"}
+                      {getOrient(sum) === "landscape" ? "↔" : "↕"}
                     </button>
                     <button
                       style={{ ...s.btnGhost, fontSize: 12, padding: "6px 12px", whiteSpace: "nowrap" }}
                       onClick={() => {
-                      const orientMap = { [sumuKey(s)]: getOrient(s) };
-                      const html = gerarHtmlImpressao([{ ...s, resultados: {} }], eventoAtual, atletas, {}, orientMap, numeracaoPeito[eventoAtual?.id] || {}, equipes, recordes);
+                      const orientMap = { [sumuKey(sum)]: getOrient(sum) };
+                      const html = gerarHtmlImpressao([{ ...sum, resultados: {} }], eventoAtual, atletas, {}, orientMap, numeracaoPeito[eventoAtual?.id] || {}, equipes, recordes);
                       const win = window.open("", "_blank", "width=900,height=700");
                       if (!win) { alert("Permita pop-ups para gerar a impressão."); return; }
                       win.document.open(); win.document.write(html); win.document.close();
@@ -1441,16 +1441,16 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                   </div>
                 )}
               </div>
-              {s.isRevezamento ? (
+              {sum.isRevezamento ? (
                 /* ── REVEZAMENTO: tabela por equipe ── */
                 <table style={s.table}>
                   <thead>
                     <tr>
-                      <Th>#</Th><Th>Equipe</Th><Th>Atletas ({nPernasRevezamento(s.prova)})</Th>
+                      <Th>#</Th><Th>Equipe</Th><Th>Atletas ({nPernasRevezamento(sum.prova)})</Th>
                     </tr>
                   </thead>
                   <tbody>
-                    {(s.equipesRevez || []).map((eq, j) => (
+                    {(sum.equipesRevez || []).map((eq, j) => (
                       <tr key={`rev-${eq.equipeId || j}-${j}`} style={s.tr}>
                         <Td>{j + 1}</Td>
                         <Td><strong style={{ color: "#1976D2" }}>{eq.nomeEquipe}{eq.sigla ? ` (${eq.sigla})` : ""}</strong></Td>
@@ -1470,9 +1470,9 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                   <tr>
                     <Th>#</Th><Th>Nº</Th><Th>Atleta</Th><Th>Nascimento</Th><Th>Clube/Equipe</Th>
                     {(() => {
-                      const _serH = s.faseSufixo
-                        ? buscarSeriacao(eventoAtual.seriacao, s.prova.id, s.categoria.id, s.sexo, s.faseSufixo)
-                        : (() => { let r = eventoAtual.seriacao?.[`${s.prova.id}_${s.categoria.id}_${s.sexo}`]; if (!r) { const _fsH = getFasesProva(s.prova.id, eventoAtual.programaHorario || {}); for (const _fh of _fsH) { const _kh = serKey(s.prova.id, s.categoria.id, s.sexo, _fh); if (eventoAtual.seriacao?.[_kh]?.series) { r = eventoAtual.seriacao[_kh]; break; } } } return r; })();
+                      const _serH = sum.faseSufixo
+                        ? buscarSeriacao(eventoAtual.seriacao, sum.prova.id, sum.categoria.id, sum.sexo, sum.faseSufixo)
+                        : (() => { let r = eventoAtual.seriacao?.[`${sum.prova.id}_${sum.categoria.id}_${sum.sexo}`]; if (!r) { const _fsH = getFasesProva(sum.prova.id, eventoAtual.programaHorario || {}); for (const _fh of _fsH) { const _kh = serKey(sum.prova.id, sum.categoria.id, sum.sexo, _fh); if (eventoAtual.seriacao?.[_kh]?.series) { r = eventoAtual.seriacao[_kh]; break; } } } return r; })();
                       return _serH ? <><Th>Série</Th><Th>Raia</Th></> : null;
                     })()}
                     <Th>Cat. Oficial</Th><Th>Obs.</Th>
@@ -1480,9 +1480,9 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                 </thead>
                 <tbody>
                   {(() => {
-                    let serSalva = s.faseSufixo
-                      ? buscarSeriacao(eventoAtual.seriacao, s.prova.id, s.categoria.id, s.sexo, s.faseSufixo)
-                      : (() => { let r = eventoAtual.seriacao?.[`${s.prova.id}_${s.categoria.id}_${s.sexo}`]; if (!r) { const _fsB = getFasesProva(s.prova.id, eventoAtual.programaHorario || {}); for (const _fb of _fsB) { const _kb = serKey(s.prova.id, s.categoria.id, s.sexo, _fb); if (eventoAtual.seriacao?.[_kb]?.series) { r = eventoAtual.seriacao[_kb]; break; } } } return r; })();
+                    let serSalva = sum.faseSufixo
+                      ? buscarSeriacao(eventoAtual.seriacao, sum.prova.id, sum.categoria.id, sum.sexo, sum.faseSufixo)
+                      : (() => { let r = eventoAtual.seriacao?.[`${sum.prova.id}_${sum.categoria.id}_${sum.sexo}`]; if (!r) { const _fsB = getFasesProva(sum.prova.id, eventoAtual.programaHorario || {}); for (const _fb of _fsB) { const _kb = serKey(sum.prova.id, sum.categoria.id, sum.sexo, _fb); if (eventoAtual.seriacao?.[_kb]?.series) { r = eventoAtual.seriacao[_kb]; break; } } } return r; })();
 
                     // Se tem seriação, renderizar agrupado por série
                     if (serSalva && serSalva.series) {
@@ -1502,9 +1502,9 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                         ) : null;
 
                         const rows = serie.atletas.map((sa, sai) => {
-                          const a = s.atletas.find(aa => aa.id === sa.id || aa.id === sa.atletaId);
+                          const a = sum.atletas.find(aa => aa.id === sa.id || aa.id === sa.atletaId);
                           if (!a) return null;
-                          const insc = s.inscs.find((ii) => ii.atletaId === a.id);
+                          const insc = sum.inscs.find((ii) => ii.atletaId === a.id);
                           idx++;
                           return (
                             <tr key={`${si}-${a.id}-${sai}`} style={s.tr}>
@@ -1534,9 +1534,9 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                     }
 
                     // Sem seriação: renderização padrão
-                    const atletasUnicos = s.atletas.filter((a, i, arr) => arr.findIndex(x => x.id === a.id) === i);
+                    const atletasUnicos = sum.atletas.filter((a, i, arr) => arr.findIndex(x => x.id === a.id) === i);
                     return atletasUnicos.map((a, j) => {
-                      const insc = s.inscs.find((ii) => ii.atletaId === a.id);
+                      const insc = sum.inscs.find((ii) => ii.atletaId === a.id);
                       return (
                         <tr key={`std-${a.id}-${j}`} style={s.tr}>
                           <Td>{j + 1}</Td>
