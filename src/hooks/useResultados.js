@@ -16,6 +16,7 @@ import {
   collection,
   doc,
   setDoc,
+  getDoc,
   deleteDoc,
   onSnapshot,
   writeBatch,
@@ -113,8 +114,19 @@ function calcularPosicoes(docResultados, provaId) {
   });
 
   const resultado = {};
+  let posAtual = 1;
   entradas.forEach((e, idx) => {
-    resultado[e.id] = { ...e.raw, posicao: e.isStatus ? null : idx + 1 };
+    if (e.isStatus) {
+      resultado[e.id] = { ...e.raw, posicao: null };
+      return;
+    }
+    // Empate: mesma marca que o anterior → mesma posição
+    if (idx > 0 && !entradas[idx - 1].isStatus && e.marca != null && entradas[idx - 1].marca != null && e.marca === entradas[idx - 1].marca) {
+      resultado[e.id] = { ...e.raw, posicao: posAtual };
+    } else {
+      posAtual = idx + 1; // pula posições (ex: 1º, 1º, 3º)
+      resultado[e.id] = { ...e.raw, posicao: posAtual };
+    }
   });
   return resultado;
 }
@@ -172,8 +184,10 @@ export function useResultados({ eventos = [], recordes = [], editarEvento } = {}
           )
         : tentativas;
 
-      // Mescla com dado existente
-      const docAtual = resultadosRef.current[chave] || {};
+      // Lê estado mais recente do Firestore (evita race condition entre fiscais)
+      const docRef = doc(db, COLLECTION, chave);
+      const snap = await getDoc(docRef);
+      const docAtual = snap.exists() ? snap.data() : {};
       const prev = docAtual[atletaId];
       const entry = typeof prev === "object" && prev !== null ? prev : { marca: prev };
 
@@ -186,7 +200,6 @@ export function useResultados({ eventos = [], recordes = [], editarEvento } = {}
       });
 
       const docComPosicoes = calcularPosicoes({ ...docAtual, [atletaId]: novoEntry }, provId);
-      const docRef = doc(db, COLLECTION, chave);
       await setDoc(docRef, sanitize(docComPosicoes));
 
       // ── Snapshot de recordes (lazy: cria na primeira digitação se não existir) ──
@@ -239,7 +252,9 @@ export function useResultados({ eventos = [], recordes = [], editarEvento } = {}
       // entradas = [{ atletaId, marca, tentData, statusData }]
       if (!entradas || entradas.length === 0) return;
       const chave = resKey(eventoId, provId, catId, sexo, faseSufixo || "");
-      const docAtual = { ...(resultadosRef.current[chave] || {}) };
+      const docRef = doc(db, COLLECTION, chave);
+      const snap = await getDoc(docRef);
+      const docAtual = snap.exists() ? { ...snap.data() } : {};
 
       entradas.forEach(({ atletaId, marca, tentData, statusData }) => {
         const normMarca = marca != null ? String(marca).replace(",", ".") : marca;
@@ -262,7 +277,6 @@ export function useResultados({ eventos = [], recordes = [], editarEvento } = {}
       });
 
       const docComPosicoes = calcularPosicoes(docAtual, provId);
-      const docRef = doc(db, COLLECTION, chave);
       await setDoc(docRef, sanitize(docComPosicoes));
     },
     []

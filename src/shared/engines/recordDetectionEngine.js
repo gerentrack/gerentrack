@@ -128,6 +128,12 @@ const RecordDetectionEngine = {
         const marcaNum = parseFloat(String(m).replace(",", "."));
         if (isNaN(marcaNum)) return;
 
+        // Vento > +2.0 m/s invalida recorde para provas de pista (WA Rule 17.10.2)
+        if (prova.unidade === "s") {
+          const ventoVal = (raw != null && typeof raw === "object") ? parseFloat(String(raw.vento || "").replace(",", ".")) : NaN;
+          if (!isNaN(ventoVal) && ventoVal > 2.0) return;
+        }
+
         const isRevez = prova.tipo === "revezamento";
         const atletaObj = isRevez ? null : atletas.find(a => a.id === aId);
         const equipeObj = isRevez ? equipes.find(e => e.id === aId) : null;

@@ -158,7 +158,14 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
   const isFuncionario = usuarioLogado?.tipo === "funcionario";
   const orgId         = isFuncionario ? usuarioLogado?.organizadorId : usuarioLogado?.id;
   const meuOrg        = organizadores?.find(o => o.id === orgId);
-  const meusEventos   = eventos.filter(e => e.organizadorId === orgId);
+  const _todosEventosOrg = eventos.filter(e => e.organizadorId === orgId);
+  const meusEventos = isFuncionario && !(usuarioLogado?.permissoes || []).includes("editar_competições")
+    ? _todosEventosOrg.filter(e => {
+        const vis = e.funcionariosVisiveis;
+        if (!vis || vis.length === 0) return false; // sem liberação explícita → não vê
+        return vis.includes(usuarioLogado?.id);
+      })
+    : _todosEventosOrg;
   const isPendente    = meuOrg?.status === "pendente";
 
   const perms = isFuncionario ? (usuarioLogado?.permissoes || []) : null;
@@ -207,8 +214,10 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
           />
           {(!isFuncionario || temPerm("funcionarios_ver")) &&
             <button style={styles.btnSecondary} onClick={() => setTela("funcionarios")}>👥 Funcionários</button>}
-          <button style={styles.btnSecondary} onClick={() => setTela("gerenciar-equipes")}>🏟️ Equipes</button>
-          <button style={styles.btnSecondary} onClick={() => setTela("cadastrar-atleta")}>🏃 Atletas</button>
+          {(!isFuncionario || temPerm("inscricoes")) &&
+            <button style={styles.btnSecondary} onClick={() => setTela("gerenciar-equipes")}>🏟️ Equipes</button>}
+          {(!isFuncionario || temPerm("atletas")) &&
+            <button style={styles.btnSecondary} onClick={() => setTela("cadastrar-atleta")}>🏃 Atletas</button>}
           {temPerm("editar_competições") &&
             <button style={styles.btnPrimary} onClick={() => { selecionarEvento(null); setTela("novo-evento"); }}>+ Nova Competição</button>}
         </div>
@@ -606,7 +615,7 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
          ═══════════════════════════════════════════════════════════════ */}
 
       {/* ── Gerar Relatório de Participação ── */}
-      {temPerm("resultados") && meusEventos.length > 0 && (
+      {temPerm("inscricoes") && meusEventos.length > 0 && (
         <details style={{ background: "#0a0f14", border: "1px solid #1E2130", borderRadius: 12, padding: "16px 20px", marginBottom: 16 }}>
           <summary style={{ cursor: "pointer", fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 800, color: "#88cccc", letterSpacing: 1 }}>
             📄 Relatório Oficial de Participação
@@ -731,7 +740,7 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
       )}
 
       {/* ── Histórico de Relatórios ── */}
-      {(() => {
+      {temPerm("inscricoes") && (() => {
         const relHistorico = (solicitacoesRelatorio || []).filter(s => {
           if (s.status === "pendente") return false;
           const evt = eventos.find(e => e.id === s.eventoId);
@@ -768,7 +777,7 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
       })()}
 
       {/* ── Histórico de Vínculos ── */}
-      {(() => {
+      {temPerm("inscricoes") && (() => {
         const meuOrgId = usuarioLogado?.tipo === "organizador" ? usuarioLogado?.id : usuarioLogado?.organizadorId;
         const minhasEquipesIds = new Set((equipes||[]).filter(e => e.organizadorId === meuOrgId).map(e => e.id));
         const pertenceAoOrg = (s) =>

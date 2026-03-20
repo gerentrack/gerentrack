@@ -972,7 +972,10 @@ function App() {
         if (!r) return false;
         const marca = typeof r === "object" ? r.marca : r;
         const status = typeof r === "object" ? (r.status || "") : "";
-        return marca != null || STATUS_FINAL.includes(String(status).toUpperCase()) || STATUS_FINAL.includes(String(marca).toUpperCase());
+        if (STATUS_FINAL.includes(String(status).toUpperCase())) return true;
+        if (marca == null || marca === "") return false;
+        const num = parseFloat(String(marca).replace(",", "."));
+        return !isNaN(num) && num > 0;
       });
       if (!completa) return;
       provasNotificadasRef.current.add(`${eid}_${key}`);

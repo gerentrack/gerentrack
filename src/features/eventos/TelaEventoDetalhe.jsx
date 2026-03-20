@@ -172,7 +172,7 @@ function StatCard({ value, label }) {
 }
 
 function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultados, usuarioLogado, alterarStatusEvento, selecionarEvento, recordes, setRecordes, equipes, getClubeAtleta, editarEvento, pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes, RecordDetectionEngine, organizadores = [],
-  setCadEventoGoStep }) {
+  setCadEventoGoStep, funcionarios }) {
   const confirmar = useConfirm();
 
   // ── Aba ativa: inicializa conforme perfil ────────────────────────────────
@@ -399,27 +399,33 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
         );
 
       // ── Operacional (admin / org / func) ──────────────────────────────────
-      case "operacional":
+      case "operacional": {
+        const _perms = tpU === "funcionario" ? (usuarioLogado?.permissoes || []) : null;
+        const _temPerm = (p) => _perms === null || _perms.includes(p);
         return (
           <div style={styles.eventoAcoesGrid}>
-            {tpU === "admin" && (
+            {_temPerm("resultados") && (
               <button style={{ ...styles.eventoAcaoBtn, borderColor: "#1976D266" }} onClick={() => setTela("digitar-resultados")}>
                 <span style={{ fontSize: 36 }}>✏️</span>
                 <strong style={{ color: "#1976D2" }}>Digitar Resultados</strong>
                 <span style={{ color: "#666", fontSize: 13 }}>Inserir marcas e publicar</span>
               </button>
             )}
-            <button style={{ ...styles.eventoAcaoBtn, borderColor: "#ffaa4466" }} onClick={() => setTela("gestao-inscricoes")}>
-              <span style={{ fontSize: 36 }}>🔄</span>
-              <strong>Gestão de Inscrições</strong>
-              <span style={{ color: "#666", fontSize: 13 }}>Excluir, trocar prova ou inserir atleta</span>
-            </button>
-            <button style={{ ...styles.eventoAcaoBtn, borderColor: "#88ff8866" }} onClick={() => setTela("numeracao-peito")}>
-              <span style={{ fontSize: 36 }}>🔢</span>
-              <strong>Numeração de Peito</strong>
-              <span style={{ color: "#666", fontSize: 13 }}>Numerar atletas automaticamente ou manualmente</span>
-            </button>
-            {provasRevez.length > 0 && (
+            {_temPerm("inscricoes") && (
+              <button style={{ ...styles.eventoAcaoBtn, borderColor: "#ffaa4466" }} onClick={() => setTela("gestao-inscricoes")}>
+                <span style={{ fontSize: 36 }}>🔄</span>
+                <strong>Gestão de Inscrições</strong>
+                <span style={{ color: "#666", fontSize: 13 }}>Excluir, trocar prova ou inserir atleta</span>
+              </button>
+            )}
+            {_temPerm("inscricoes") && (
+              <button style={{ ...styles.eventoAcaoBtn, borderColor: "#88ff8866" }} onClick={() => setTela("numeracao-peito")}>
+                <span style={{ fontSize: 36 }}>🔢</span>
+                <strong>Numeração de Peito</strong>
+                <span style={{ color: "#666", fontSize: 13 }}>Numerar atletas automaticamente ou manualmente</span>
+              </button>
+            )}
+            {provasRevez.length > 0 && _temPerm("inscricoes") && (
               <button style={{ ...styles.eventoAcaoBtn, borderColor: "#5dade266" }} onClick={() => setTela("inscricao-revezamento")}>
                 <span style={{ fontSize: 36 }}>🏃‍♂️</span>
                 <strong>Inscrição de Revezamento</strong>
@@ -437,7 +443,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                 </span>
               </button>
             )}
-            {(tpU === "admin" || tpU === "organizador" || tpU === "funcionario") && (
+            {_temPerm("camara_chamada") && (
               <button style={{ ...styles.eventoAcaoBtn, borderColor: "#2a6a6a66" }} onClick={() => setTela("secretaria")}>
                 <span style={{ fontSize: 36 }}>📋</span>
                 <strong>Secretaria</strong>
@@ -446,6 +452,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
             )}
           </div>
         );
+      }
 
       // ── Configuração (admin / org) ─────────────────────────────────────────
       case "configuracao":
@@ -463,8 +470,105 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
               <strong>Programa Horário</strong>
               <span style={{ color: "#666", fontSize: 13 }}>Definir horários e fases das provas</span>
             </button>
+            <button style={{ ...styles.eventoAcaoBtn, borderColor: "#88cccc66" }}
+                    onClick={() => setAbaAtiva("func_acesso")}>
+              <span style={{ fontSize: 36 }}>👥</span>
+              <strong>Acesso de Funcionários</strong>
+              <span style={{ color: "#666", fontSize: 13 }}>Definir quem pode ver esta competição</span>
+            </button>
           </div>
         );
+
+      case "func_acesso": {
+        const orgId = usuarioLogado?.tipo === "organizador" ? usuarioLogado?.id : usuarioLogado?.organizadorId;
+        const meusFuncs = (funcionarios || []).filter(f => f.organizadorId === orgId);
+        const acessoAtual = eventoAtual.funcionariosVisiveis || [];
+
+        const toggleFunc = (fId) => {
+          const novo = acessoAtual.includes(fId)
+            ? acessoAtual.filter(id => id !== fId)
+            : [...acessoAtual, fId];
+          editarEvento({ ...eventoAtual, funcionariosVisiveis: novo });
+        };
+        const marcarTodos = () => {
+          const ids = meusFuncs.filter(f => !(f.permissoes || []).includes("editar_competições")).map(f => f.id);
+          editarEvento({ ...eventoAtual, funcionariosVisiveis: ids });
+        };
+        const desmarcarTodos = () => {
+          editarEvento({ ...eventoAtual, funcionariosVisiveis: [] });
+        };
+
+        return (
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+              <button style={{ background: "none", border: "none", color: "#888", cursor: "pointer", fontSize: 14 }}
+                onClick={() => setAbaAtiva("configuracao")}>← Voltar</button>
+              <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: "#fff", margin: 0 }}>
+                👥 Acesso de Funcionários
+              </h3>
+            </div>
+
+            <div style={{ background: "#0d0e12", border: "1px solid #252837", borderRadius: 8, padding: "10px 16px", marginBottom: 16, fontSize: 12, color: "#888", lineHeight: 1.6 }}>
+              ℹ️ Funcionários com permissão <strong style={{ color: "#aaa" }}>"Criar / editar competições"</strong> sempre têm acesso a todas as competições.
+              Marque abaixo os demais funcionários que devem ter acesso a esta competição.
+            </div>
+
+            <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+              <button onClick={marcarTodos}
+                style={{ background: "#0a1a1a", border: "1px solid #2a5a5a", color: "#88cccc", borderRadius: 6, padding: "6px 14px", cursor: "pointer", fontSize: 12, fontFamily: "'Barlow', sans-serif" }}>
+                ☑ Marcar todos
+              </button>
+              <button onClick={desmarcarTodos}
+                style={{ background: "#0d0e12", border: "1px solid #252837", color: "#888", borderRadius: 6, padding: "6px 14px", cursor: "pointer", fontSize: 12, fontFamily: "'Barlow', sans-serif" }}>
+                ☐ Desmarcar todos
+              </button>
+              <span style={{ fontSize: 12, color: "#555", marginLeft: "auto", alignSelf: "center" }}>
+                {acessoAtual.length} funcionário(s) com acesso
+              </span>
+            </div>
+
+            {meusFuncs.length === 0 ? (
+              <div style={{ color: "#555", fontSize: 13, padding: "20px 0", textAlign: "center" }}>
+                Nenhum funcionário cadastrado.
+              </div>
+            ) : (
+              <div style={{ display: "grid", gap: 8 }}>
+                {meusFuncs.map(f => {
+                  const temEditar = (f.permissoes || []).includes("editar_competições");
+                  const selecionado = acessoAtual.includes(f.id);
+                  return (
+                    <label key={f.id} style={{
+                      display: "flex", alignItems: "center", gap: 12, padding: "10px 14px",
+                      background: temEditar ? "#0a0f1a" : selecionado ? "#0a1a1a" : "#0d0e12",
+                      border: `1px solid ${temEditar ? "#1a3a6a" : selecionado ? "#2a5a5a" : "#1E2130"}`,
+                      borderRadius: 8, cursor: temEditar ? "default" : "pointer",
+                      opacity: temEditar ? 0.7 : 1,
+                    }}>
+                      <input type="checkbox"
+                        checked={temEditar || selecionado}
+                        disabled={temEditar}
+                        onChange={() => !temEditar && toggleFunc(f.id)}
+                        style={{ width: 16, height: 16, accentColor: "#88cccc", cursor: temEditar ? "default" : "pointer" }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}>
+                          {f.nome}
+                          {f.cargo && <span style={{ color: "#666", fontWeight: 400 }}> — {f.cargo}</span>}
+                        </div>
+                        <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>
+                          {(f.permissoes || []).map(pid => (
+                            <span key={pid} style={{ fontSize: 9, background: "#1a1a2a", color: "#888", padding: "1px 6px", borderRadius: 3 }}>{pid}</span>
+                          ))}
+                        </div>
+                      </div>
+                      {temEditar && <span style={{ fontSize: 10, color: "#88aaff" }}>acesso total</span>}
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      }
 
       default:
         return null;
