@@ -714,7 +714,7 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
               <select style={{ ...styles.select, borderColor: faseEfetiva === "ELI" ? "#5a3a1a" : faseEfetiva === "SEM" ? "#2a4a6a" : "#2a4a2a",
                 color: faseEfetiva === "ELI" ? "#ff8844" : faseEfetiva === "SEM" ? "#88aaff" : "#7cfc7c", fontWeight:700 }}
                 value={filtroFase || _provaFases[0] || ""}
-                onChange={(e) => { setFiltroFase(e.target.value); setMarcas({}); setSalvo(false); }}>
+                onChange={(e) => { setFiltroFase(e.target.value); setMarcas({}); setTentativas({}); setSalvo(false); }}>
                 {_provaFases.map(f => <option key={f} value={f}>{FASE_NOME[f] || f}</option>)}
               </select>
             </div>

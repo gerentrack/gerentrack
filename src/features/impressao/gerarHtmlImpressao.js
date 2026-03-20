@@ -717,8 +717,9 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
               </div>`);
           }
 
-          // Se não é final por tempo E tem múltiplas séries E não é já uma fase FIN/ELI → adicionar página de final em branco
-          if (!isFinalTempo && temMultiSeries && s.faseSufixo !== "FIN" && s.faseSufixo !== "ELI") {
+          // Se não é final por tempo E tem múltiplas séries E não é já uma fase FIN/ELI E a prova tem fase FIN configurada → adicionar página de final em branco
+          const _fasesConf = getFasesProva(s.prova.id, evento.programaHorario || {});
+          if (!isFinalTempo && temMultiSeries && s.faseSufixo !== "FIN" && s.faseSufixo !== "ELI" && _fasesConf.includes("FIN")) {
             numPag++;
             const nRaias = nRaiasProva;
             pags.push(`

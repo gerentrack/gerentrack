@@ -16,6 +16,7 @@ import {
   collection,
   doc,
   setDoc,
+  getDoc,
   deleteDoc,
   onSnapshot,
   writeBatch,
@@ -23,6 +24,13 @@ import {
 import { sanitize } from "../lib/utils/sanitize";
 
 const COLLECTION = "inscricoes";
+const RES_COLLECTION = "resultados";
+
+// Mesma lógica de chave do useResultados
+const _resKey = (eventoId, provaId, catId, sexo, faseSufixo) =>
+  faseSufixo
+    ? `${eventoId}_${provaId}_${catId}_${sexo}__${faseSufixo}`
+    : `${eventoId}_${provaId}_${catId}_${sexo}`;
 
 
 /**
@@ -132,10 +140,32 @@ export function useInscricoes({ atletas = [], registrarAcao, usuarioLogado } = {
         }
       }
 
-      // Deletar em lote
+      // Deletar inscrições em lote
       const batch = writeBatch(db);
       idsParaRemover.forEach((iid) => batch.delete(doc(db, COLLECTION, iid)));
       await batch.commit();
+
+      // Limpar resultados órfãos das inscrições removidas
+      try {
+        const inscsRemovidas = idsParaRemover.map(iid => inscricoesRef.current.find(i => i.id === iid)).filter(Boolean);
+        for (const ir of inscsRemovidas) {
+          const catId = ir.categoriaOficialId || ir.categoriaId;
+          // Tentar todas as fases possíveis + sem fase
+          const fases = ["FIN", "SEM", "ELI", ""];
+          for (const fase of fases) {
+            const rk = _resKey(ir.eventoId, ir.provaId, catId, ir.sexo, fase || undefined);
+            const resRef = doc(db, RES_COLLECTION, rk);
+            const resSnap = await getDoc(resRef);
+            if (resSnap.exists()) {
+              const resData = resSnap.data();
+              if (resData[ir.atletaId] != null) {
+                delete resData[ir.atletaId];
+                await setDoc(resRef, sanitize(resData));
+              }
+            }
+          }
+        }
+      } catch (_e) { /* silently ignore cleanup errors */ }
 
       if (usuarioLogado && registrarAcao && insc) {
         const atl = atletas.find((a) => a.id === insc.atletaId);
