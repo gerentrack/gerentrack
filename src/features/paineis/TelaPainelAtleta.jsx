@@ -83,7 +83,7 @@ function VinculoSolicitarForm({ atletaId, atletaNome, clubeInicial, equipes, sol
 
 
 
-function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, inscricoes, eventos, equipes, eventoAtual, adicionarInscricao, atualizarAtletaUsuario, solicitarVinculo, solicitacoesVinculo, responderVinculo, notificacoes, marcarNotifLida, excluirInscricao, atualizarInscricao, resultados, organizadores, solicitarDesvinculo, perfisDisponiveis }) {
+function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, inscricoes, eventos, equipes, eventoAtual, adicionarInscricao, atualizarAtletaUsuario, solicitarVinculo, solicitacoesVinculo, responderVinculo, notificacoes, marcarNotifLida, excluirInscricao, atualizarInscricao, resultados, organizadores, solicitarDesvinculo, perfisDisponiveis, solicitarRelatorio }) {
   const confirmar = useConfirm();
   if (usuarioLogado?.tipo !== "atleta") return (
     <div style={styles.page}><div style={styles.emptyState}>
@@ -113,6 +113,13 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
   
   const anoBase = new Date().getFullYear();
   const [buscaInsc, setBuscaInsc] = useState("");
+  const [relatorioEvId, setRelatorioEvId] = useState("");
+  const [relatorioEnviado, setRelatorioEnviado] = useState(false);
+
+  // Eventos onde o atleta tem inscrições (para seletor de relatório)
+  const eventosComInsc = meuAtleta
+    ? [...new Set(minhasInscricoes.map(i => i.eventoId))].map(evId => eventos.find(e => e.id === evId)).filter(Boolean)
+    : [];
 
   return (
     <div style={styles.page}>
@@ -497,6 +504,7 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
           const linhas = inscsEv.map(i => {
             const prova = todasAsProvas().find(p => p.id === i.provaId);
             let marcaEncontrada = null;
+            let posicaoEncontrada = null;
             let faseEncontrada = "";
             for (const fase of FASE_PRIO) {
               const chave = fase
@@ -508,12 +516,13 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
                 marcaEncontrada = typeof entrada === "object"
                   ? (entrada.status && entrada.status !== "" ? entrada.status : (entrada.marca ?? "—"))
                   : entrada;
+                posicaoEncontrada = typeof entrada === "object" ? (entrada.posicao ?? null) : null;
                 faseEncontrada = fase;
                 break;
               }
             }
             if (!marcaEncontrada) return null;
-            return { prova, fase: faseEncontrada, marca: marcaEncontrada, cat: i.categoriaOficial || i.categoria || "" };
+            return { prova, fase: faseEncontrada, marca: marcaEncontrada, posicao: posicaoEncontrada, cat: i.categoriaOficial || i.categoria || "" };
           }).filter(Boolean);
           if (linhas.length === 0) return null;
           return { ev, linhas };
@@ -522,9 +531,38 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
         if (cards.length === 0) return null;
         return (
           <>
-            <h2 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:26, fontWeight:800, color:"#fff", marginBottom:20, letterSpacing:1, marginTop:32 }}>
-              Meus Resultados
-            </h2>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12, marginTop:32, marginBottom:20 }}>
+              <h2 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:26, fontWeight:800, color:"#fff", letterSpacing:1, margin:0 }}>
+                Meus Resultados
+              </h2>
+              {solicitarRelatorio && eventosComInsc.length > 0 && (
+                <details style={{ position:"relative" }}>
+                  <summary style={{ cursor:"pointer", background:"transparent", color:"#88cccc", border:"1px solid #2a5a5a", borderRadius:8, padding:"8px 16px", fontSize:13, fontWeight:700, fontFamily:"'Barlow Condensed', sans-serif", letterSpacing:0.5, listStyle:"none" }}>
+                    📄 Solicitar Relatório Oficial
+                  </summary>
+                  <div style={{ marginTop:8, background:"#0d1117", border:"1px solid #2a5a5a", borderRadius:8, padding:"14px 16px", minWidth:280 }}>
+                    {relatorioEnviado ? (
+                      <div style={{ color:"#7cfc7c", fontSize:13 }}>✓ Solicitação enviada! O organizador será notificado.</div>
+                    ) : (
+                      <>
+                        <label style={{ fontSize:11, color:"#888", display:"block", marginBottom:4 }}>Competição</label>
+                        <select value={relatorioEvId} onChange={e => setRelatorioEvId(e.target.value)}
+                          style={{ width:"100%", background:"#141720", border:"1px solid #252837", borderRadius:6, padding:"8px 10px", color:"#fff", fontSize:13, marginBottom:10 }}>
+                          <option value="">— Selecione —</option>
+                          {eventosComInsc.map(ev => <option key={ev.id} value={ev.id}>{ev.nome}</option>)}
+                        </select>
+                        <button disabled={!relatorioEvId} onClick={() => {
+                          const ev = eventos.find(e => e.id === relatorioEvId);
+                          if (ev && meuAtleta) { solicitarRelatorio(meuAtleta.id, meuAtleta.nome, "atleta", ev.id, ev.nome, [meuAtleta.id]); setRelatorioEnviado(true); setTimeout(() => setRelatorioEnviado(false), 4000); }
+                        }} style={{ background: relatorioEvId ? "#1a3a3a" : "#111", border:"1px solid", borderColor: relatorioEvId ? "#3a7a7a" : "#222", color: relatorioEvId ? "#88cccc" : "#444", borderRadius:6, padding:"8px 16px", cursor: relatorioEvId ? "pointer" : "not-allowed", fontSize:13, fontWeight:700 }}>
+                          Enviar Solicitação
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </details>
+              )}
+            </div>
             {cards.map(({ ev, linhas }) => (
               <div key={ev.id} style={{
                 background:"#0E1016", border:"1px solid #1E2130",
@@ -598,6 +636,15 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
                         }}>
                           {l.marca}
                         </div>
+
+                        {/* Posição */}
+                        {l.posicao != null && (
+                          <div style={{
+                            fontSize:12, fontWeight:700, color: l.posicao <= 3 ? "#FFD700" : "#888",
+                          }}>
+                            {l.posicao === 1 ? "🥇" : l.posicao === 2 ? "🥈" : l.posicao === 3 ? "🥉" : `${l.posicao}º`} lugar
+                          </div>
+                        )}
 
                         {/* Fase + Categoria */}
                         <div style={{ display:"flex", gap:5, flexWrap:"wrap", marginTop:"auto" }}>

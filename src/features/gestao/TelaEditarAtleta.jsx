@@ -120,7 +120,8 @@ function TelaEditarAtleta({ usuarioLogado, atletas, atualizarAtleta, excluirAtle
   const isAdmin = usuarioLogado?.tipo === "admin";
   const isEquipe = usuarioLogado?.tipo === "equipe";
   const isAtleta = usuarioLogado?.tipo === "atleta";
-  const podeEditar = isAdmin || isEquipe ||
+  const isOrg = usuarioLogado?.tipo === "organizador";
+  const podeEditar = isAdmin || isEquipe || isOrg ||
     (usuarioLogado?.tipo === "funcionario" && usuarioLogado?.permissoes?.includes("atletas")) ||
     (isAtleta && selId === atletaId);
   const podeExcluir = isAdmin;
@@ -267,7 +268,10 @@ function TelaEditarAtleta({ usuarioLogado, atletas, atualizarAtleta, excluirAtle
                 style={{ ...styles.btnGhost, fontSize:12, padding:"4px 12px" }}>Não</button>
             </div>
           )}
-          <button style={styles.btnGhost} onClick={() => setModo("lista")}>← Lista</button>
+          <button style={styles.btnGhost} onClick={() => {
+            if (isOrg || (usuarioLogado?.tipo === "funcionario")) setTela("cadastrar-atleta");
+            else setModo("lista");
+          }}>← Voltar</button>
         </div>
       </div>
 

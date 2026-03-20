@@ -12,6 +12,8 @@ const ICONES = {
   sumulas_liberadas:  "📋",
   desvinculacao:      "🔔",
   medals_ready:       "🏅",
+  relatorio_solicitado: "📄",
+  relatorio_gerado:    "📄",
   info:               "ℹ️",
 };
 
@@ -22,6 +24,8 @@ const CORES = {
   sumulas_liberadas:  { bg: "#0a1a10", border: "#2a5a3a", txt: "#4acc84" },
   desvinculacao:      { bg: "#1a0a0a", border: "#5a1a1a", txt: "#ff6b6b" },
   medals_ready:       { bg: "#1a1500", border: "#5a4a00", txt: "#FFD700" },
+  relatorio_solicitado: { bg: "#0a1a1a", border: "#2a5a5a", txt: "#88cccc" },
+  relatorio_gerado:    { bg: "#0a1a0a", border: "#2a6a2a", txt: "#7acc44" },
   info:               { bg: "#0a0f1a", border: "#2a3a5a", txt: "#aaa" },
 };
 

@@ -169,6 +169,7 @@ function App() {
   const [solicitacoesRecuperacao, setSolicitacoesRecuperacao] = useLocalStorage("atl_recuperacao", []);
   const [solicitacoesEquipe,  setSolicitacoesEquipe]  = useLocalStorage("atl_sol_equipe",   []);
   const [solicitacoesPortabilidade, setSolicitacoesPortabilidade] = useLocalStorage("atl_portabilidade", []);
+  const [solicitacoesRelatorio, setSolicitacoesRelatorio] = useLocalStorage("atl_sol_relatorio", []);
 
   // Multi-evento: cada evento tem { id, nome, data, local, permissividadeNorma, provasPrograma: Set de provaIds }
   // atl_eventos migrado para coleção Firestore própria via useEventos (ver abaixo)
@@ -720,6 +721,33 @@ function App() {
   const marcarNotifLida = (id) =>
     setNotificacoes(p => p.map(n => n.id === id ? {...n, lida: true} : n));
 
+  // ── Solicitações de relatório de participação ──
+  const solicitarRelatorio = (solicitanteId, solicitanteNome, solicitanteTipo, eventoId, eventoNome, atletaIds = [], equipeId = null) => {
+    const id = Date.now().toString() + Math.random().toString(36).slice(2,6);
+    setSolicitacoesRelatorio(p => [...p, {
+      id, solicitanteId, solicitanteNome, solicitanteTipo,
+      eventoId, eventoNome, atletaIds, equipeId,
+      status: "pendente", data: new Date().toISOString()
+    }]);
+    const evt = eventos.find(e => e.id === eventoId);
+    if (evt?.organizadorId) {
+      adicionarNotificacao(evt.organizadorId, "relatorio_solicitado",
+        `${solicitanteNome} solicitou relatório oficial de participação para "${eventoNome}".`);
+    }
+  };
+  const resolverRelatorio = (solId, status) => {
+    const sol = solicitacoesRelatorio.find(s => s.id === solId);
+    setSolicitacoesRelatorio(p => p.map(s =>
+      s.id === solId ? { ...s, status, resolvidoEm: new Date().toISOString() } : s
+    ));
+    if (sol) {
+      adicionarNotificacao(sol.solicitanteId, "relatorio_gerado",
+        status === "gerado"
+          ? `Seu relatório oficial de participação para "${sol.eventoNome}" foi gerado pelo organizador.`
+          : `Sua solicitação de relatório para "${sol.eventoNome}" foi recusada.`);
+    }
+  };
+
   const excluirAtleta = async (atletaId) => {
     const atleta = atletas.find(a => a.id === atletaId);
     const nomeAtleta = atleta?.nome || "este atleta";
@@ -1267,6 +1295,7 @@ function App() {
     gerarSenhaTemp, aplicarSenhaTemp, atualizarSenha,
     solicitacoesRecuperacao, adicionarSolicitacaoRecuperacao, resolverSolicitacaoRecuperacao,
     solicitacoesPortabilidade, adicionarSolicitacaoPortabilidade, resolverSolicitacaoPortabilidade, excluirSolicitacaoPortabilidade,
+    solicitacoesRelatorio, solicitarRelatorio, resolverRelatorio,
     funcionarios, adicionarFuncionario, atualizarFuncionario, removerFuncionario,
     treinadores, adicionarTreinador, atualizarTreinador, removerTreinador,
     historicoAcoes, registrarAcao,

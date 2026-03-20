@@ -3,6 +3,7 @@ import { _getLocalEventoDisplay } from "../../shared/formatters/utils";
 import { StatCard } from "../ui/StatCard";
 import { Th, Td } from "../ui/TableHelpers";
 import { SinoNotificacoes } from "../ui/SinoNotificacoes";
+import { gerarHtmlRelatorioParticipacao } from "../impressao/gerarHtmlRelatorioParticipacao";
 
 const PERMISSOES = [
   { id:"ver_competições",    grupo:"Competições",  label:"Visualizar competições" },
@@ -144,7 +145,7 @@ const styles = {
   provaCheckBtnSel: { background: "#1a1c22", borderColor: "#1976D2", color: "#1976D2" },
 };
 
-function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, atletas, selecionarEvento, adicionarEvento, editarEvento, excluirEvento, alterarStatusEvento, organizadores, funcionarios, solicitacoesVinculo, responderVinculo, equipes, solicitacoesEquipe=[], aprovarEquipe, recusarEquipe, atualizarAtleta, registrarAcao, setAtletaEditandoId, notificacoes, marcarNotifLida }) {
+function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, atletas, selecionarEvento, adicionarEvento, editarEvento, excluirEvento, alterarStatusEvento, organizadores, funcionarios, solicitacoesVinculo, responderVinculo, equipes, solicitacoesEquipe=[], aprovarEquipe, recusarEquipe, atualizarAtleta, registrarAcao, setAtletaEditandoId, notificacoes, marcarNotifLida, resultados, solicitacoesRelatorio, resolverRelatorio }) {
   const tipoOrg = usuarioLogado?.tipo;
   if (tipoOrg !== "organizador" && tipoOrg !== "funcionario" && tipoOrg !== "admin") return (
     <div style={styles.page}><div style={styles.emptyState}>
@@ -163,8 +164,11 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
   const perms = isFuncionario ? (usuarioLogado?.permissoes || []) : null;
   const temPerm = (p) => perms === null || perms.includes(p);
   const [buscaComp, setBuscaComp] = useState("");
-  const [modalTransf, setModalTransf] = useState(null);
-  const [transfEquipeId, setTransfEquipeId] = useState("");
+  const [relEvento, setRelEvento] = useState("");
+  const [relFiltro, setRelFiltro] = useState("todos"); // todos | equipe | atleta
+  const [relEquipeId, setRelEquipeId] = useState("");
+  const [relBuscaAtl, setRelBuscaAtl] = useState("");
+  const [relAtletasSel, setRelAtletasSel] = useState([]);
 
   return (
     <div style={styles.page}>
@@ -236,6 +240,158 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
           </p>
         </div>
       )}
+
+      {/* ═══════════════════════════════════════════════════════════════
+          SEÇÃO 1: ALERTAS — Pendências que requerem ação
+         ═══════════════════════════════════════════════════════════════ */}
+
+      {/* ── Solicitações de Relatório Pendentes ── */}
+      {(() => {
+        const relPendentes = (solicitacoesRelatorio || []).filter(s => {
+          if (s.status !== "pendente") return false;
+          const evt = eventos.find(e => e.id === s.eventoId);
+          return evt?.organizadorId === orgId;
+        });
+        if (relPendentes.length === 0) return null;
+        return (
+          <div style={{ background: "#0a1a1a", border: "1px solid #2a5a5a", borderRadius: 12, padding: "16px 20px", marginBottom: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+              <span style={{ fontSize: 20 }}>📄</span>
+              <div style={{ fontWeight: 700, color: "#88cccc", fontSize: 14 }}>
+                {relPendentes.length} solicitação(ões) de relatório pendente(s)
+              </div>
+            </div>
+            <div style={styles.tableWrap}>
+              <table style={styles.table}>
+                <thead><tr><Th>Solicitante</Th><Th>Tipo</Th><Th>Competição</Th><Th>Data</Th><Th>Ações</Th></tr></thead>
+                <tbody>
+                  {relPendentes.map(sol => (
+                    <tr key={sol.id} style={styles.tr}>
+                      <Td><strong style={{ color: "#fff" }}>{sol.solicitanteNome}</strong></Td>
+                      <Td><span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 4, background: sol.solicitanteTipo === "atleta" ? "#0a1a2a" : "#0a2a1a", color: sol.solicitanteTipo === "atleta" ? "#88aaff" : "#7acc44" }}>
+                        {sol.solicitanteTipo === "atleta" ? "🏃 Atleta" : "🎽 Equipe"}
+                      </span></Td>
+                      <Td>{sol.eventoNome}</Td>
+                      <Td style={{ fontSize: 11, color: "#555" }}>{new Date(sol.data).toLocaleString("pt-BR")}</Td>
+                      <Td>
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <button onClick={() => {
+                            const evt = eventos.find(e => e.id === sol.eventoId);
+                            if (!evt) return;
+                            const atletasFiltrados = (sol.atletaIds || []).map(aid => atletas.find(a => a.id === aid)).filter(Boolean);
+                            if (atletasFiltrados.length === 0) return;
+                            const org = organizadores?.find(o => o.id === evt.organizadorId);
+                            gerarHtmlRelatorioParticipacao(evt, atletasFiltrados, inscricoes, resultados || {}, equipes, org);
+                            resolverRelatorio(sol.id, "gerado");
+                          }} style={{ background: "#0d2a2a", border: "1px solid #2a6a6a", color: "#88cccc", borderRadius: 6, padding: "4px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700, fontFamily: "'Barlow', sans-serif" }}>
+                            📄 Gerar e Enviar
+                          </button>
+                          <button onClick={() => resolverRelatorio(sol.id, "recusado")}
+                            style={{ background: "#1a0a0a", border: "1px solid #5a1a1a", color: "#ff6b6b", borderRadius: 6, padding: "4px 12px", cursor: "pointer", fontSize: 12 }}>
+                            ✗ Recusar
+                          </button>
+                        </div>
+                      </Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Equipes Aguardando Aprovação ── */}
+      {(() => {
+        const meuOrgId = usuarioLogado?.tipo === "organizador" ? usuarioLogado?.id : usuarioLogado?.organizadorId;
+        const pendentes = (solicitacoesEquipe||[]).filter(s => s.status === "pendente" && s.organizadorId === meuOrgId);
+        if (pendentes.length === 0) return null;
+        return (
+          <div style={{ background:"#0a0f1a", border:"1px solid #1a2a4a", borderRadius:12, padding:"16px 20px", marginBottom:16 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+              <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:16, fontWeight:800, color:"#fff" }}>⏳ {pendentes.length} equipe(s) aguardando aprovação</span>
+            </div>
+            {pendentes.map(sol => (
+              <div key={sol.id} style={{ background:"#0d1220", border:"1px solid #252837", borderRadius:8, padding:14, marginBottom:10 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", flexWrap:"wrap", gap:8, marginBottom:10 }}>
+                  <div>
+                    <div style={{ color:"#fff", fontWeight:700 }}>{sol.equipeNome} <span style={{ color:"#1976D2", fontSize:13 }}>({sol.equipeSigla})</span></div>
+                    <div style={{ color:"#888", fontSize:12 }}>{sol.equipeEmail} · CNPJ: {sol.equipeCnpj}</div>
+                    <div style={{ color:"#888", fontSize:12 }}>{sol.equipeCidade}/{sol.equipeUf}</div>
+                  </div>
+                  <div style={{ color:"#555", fontSize:11 }}>{new Date(sol.data).toLocaleDateString("pt-BR")}</div>
+                </div>
+                <div style={{ display:"flex", gap:8 }}>
+                  <button style={{ background:"linear-gradient(135deg,#1976D2,#1565C0)", color:"#fff", border:"none", borderRadius:6, cursor:"pointer", fontSize:13, fontWeight:700, padding:"6px 16px" }}
+                    onClick={() => aprovarEquipe?.(sol.equipeId, meuOrgId)}>✅ Aprovar</button>
+                  <button style={{ background:"#2a0a0a", color:"#ff6b6b", border:"1px solid #5a1a1a", borderRadius:6, cursor:"pointer", fontSize:13, fontWeight:700, padding:"6px 16px" }}
+                    onClick={() => recusarEquipe?.(sol.equipeId)}>❌ Recusar</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+
+      {/* ── Vínculos Pendentes ── */}
+      {(() => {
+        const meuOrgId = usuarioLogado?.tipo === "organizador" ? usuarioLogado?.id : usuarioLogado?.organizadorId;
+        const minhasEquipesIds = new Set((equipes||[]).filter(e => e.organizadorId === meuOrgId).map(e => e.id));
+        const pertenceAoOrg = (s) =>
+          s.organizadorId === meuOrgId ||
+          minhasEquipesIds.has(s.equipeId) ||
+          minhasEquipesIds.has(s.equipeAtualId);
+        const pendentes = (solicitacoesVinculo||[]).filter(s =>
+          s.status === "pendente" && pertenceAoOrg(s)
+        );
+        if (pendentes.length === 0) return null;
+        return (
+          <div style={{ background:"#0a1220", border:"1px solid #3a5a8a", borderRadius:12, padding:"16px 20px", marginBottom:16 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
+              <span style={{ fontWeight:700, color:"#88aaff", fontSize:14 }}>🔗 {pendentes.length} vínculo(s) pendente(s)</span>
+            </div>
+            <div style={styles.tableWrap}>
+              <table style={styles.table}>
+                <thead><tr>
+                  <Th>Atleta</Th><Th>Solicitante</Th><Th>Equipe Atual</Th><Th>Nova Equipe</Th><Th>Tipo</Th><Th>Data</Th><Th>Ação</Th>
+                </tr></thead>
+                <tbody>
+                  {pendentes.map(s => {
+                    const equipeNova = equipes?.find(e => e.id === s.equipeId);
+                    return (
+                      <tr key={s.id} style={styles.tr}>
+                        <Td><strong style={{ color:"#fff" }}>{s.atletaNome}</strong></Td>
+                        <Td style={{ fontSize:12, color:"#aaa" }}>{s.solicitanteNome || "—"}</Td>
+                        <Td style={{ fontSize:12, color:"#cc88ff" }}>{s.equipeAtualNome || (s.equipeAtualId ? "—" : "Sem equipe")}</Td>
+                        <Td style={{ color:"#88aaff", fontSize:13 }}>{equipeNova?.nome || s.clube || "—"}</Td>
+                        <Td style={{ fontSize:11, color:"#888" }}>
+                          {s.aprovadorTipo === "equipe_atual" ? "🔄 Transferência" : "🔗 Vínculo novo"}
+                        </Td>
+                        <Td style={{ fontSize:11, color:"#555" }}>{new Date(s.data).toLocaleString("pt-BR")}</Td>
+                        <Td>
+                          <div style={{ display:"flex", gap:6 }}>
+                            <button onClick={() => responderVinculo(s.id, true)}
+                              style={{ ...styles.btnGhost, fontSize:12, padding:"4px 14px",
+                                color:"#7cfc7c", borderColor:"#2a5a2a" }}>✓ Aceitar</button>
+                            <button onClick={() => responderVinculo(s.id, false)}
+                              style={{ ...styles.btnGhost, fontSize:12, padding:"4px 12px",
+                                color:"#ff6b6b", borderColor:"#5a1a1a" }}>✗ Recusar</button>
+                          </div>
+                        </Td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ═══════════════════════════════════════════════════════════════
+          SEÇÃO 2: COMPETIÇÕES — Core operacional
+         ═══════════════════════════════════════════════════════════════ */}
+
       <h2 style={styles.sectionTitle}>Competições</h2>
       {meusEventos.length === 0 ? (
         <div style={styles.emptyState}>
@@ -444,259 +600,203 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
         );
       })()}
 
-      {/* ── Equipes Aguardando Aprovação ── */}
-      {(() => {
-        const meuOrgId = usuarioLogado?.tipo === "organizador" ? usuarioLogado?.id : usuarioLogado?.organizadorId;
-        const pendentes = (solicitacoesEquipe||[]).filter(s => s.status === "pendente" && s.organizadorId === meuOrgId);
-        if (pendentes.length === 0) return null;
-        return (
-          <div style={{ background:"#0a0f1a", border:"1px solid #1a2a4a", borderRadius:12, padding:20, marginBottom:20 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
-              <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:20, fontWeight:800, color:"#fff" }}>⏳ Equipes Aguardando Aprovação</span>
-              <span style={{ background:"#1a2a0a", color:"#7cfc7c", border:"1px solid #2a5a2a", borderRadius:20, padding:"2px 10px", fontSize:12, fontWeight:700 }}>{pendentes.length}</span>
-            </div>
-            {pendentes.map(sol => (
-              <div key={sol.id} style={{ background:"#0d1220", border:"1px solid #252837", borderRadius:8, padding:14, marginBottom:10 }}>
-                <div style={{ display:"flex", justifyContent:"space-between", flexWrap:"wrap", gap:8, marginBottom:10 }}>
-                  <div>
-                    <div style={{ color:"#fff", fontWeight:700 }}>{sol.equipeNome} <span style={{ color:"#1976D2", fontSize:13 }}>({sol.equipeSigla})</span></div>
-                    <div style={{ color:"#888", fontSize:12 }}>{sol.equipeEmail} · CNPJ: {sol.equipeCnpj}</div>
-                    <div style={{ color:"#888", fontSize:12 }}>{sol.equipeCidade}/{sol.equipeUf}</div>
-                  </div>
-                  <div style={{ color:"#555", fontSize:11 }}>{new Date(sol.data).toLocaleDateString("pt-BR")}</div>
-                </div>
-                <div style={{ display:"flex", gap:8 }}>
-                  <button style={{ background:"linear-gradient(135deg,#1976D2,#1565C0)", color:"#fff", border:"none", borderRadius:6, cursor:"pointer", fontSize:13, fontWeight:700, padding:"6px 16px" }}
-                    onClick={() => aprovarEquipe?.(sol.equipeId, meuOrgId)}>✅ Aprovar</button>
-                  <button style={{ background:"#2a0a0a", color:"#ff6b6b", border:"1px solid #5a1a1a", borderRadius:6, cursor:"pointer", fontSize:13, fontWeight:700, padding:"6px 16px" }}
-                    onClick={() => recusarEquipe?.(sol.equipeId)}>❌ Recusar</button>
-                </div>
+      {/* ═══════════════════════════════════════════════════════════════
+          SEÇÃO 3: FERRAMENTAS — Colapsáveis, uso menos frequente
+         ═══════════════════════════════════════════════════════════════ */}
+
+      {/* ── Gerar Relatório de Participação ── */}
+      {temPerm("resultados") && meusEventos.length > 0 && (
+        <details style={{ background: "#0a0f14", border: "1px solid #1E2130", borderRadius: 12, padding: "16px 20px", marginBottom: 16 }}>
+          <summary style={{ cursor: "pointer", fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 800, color: "#88cccc", letterSpacing: 1 }}>
+            📄 Relatório Oficial de Participação
+          </summary>
+          <div style={{ marginTop: 14 }}>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 14, alignItems: "flex-end" }}>
+              <div>
+                <label style={{ display:"block", fontSize:11, fontWeight:600, color:"#888", letterSpacing:1, marginBottom:4, textTransform:"uppercase" }}>Competição</label>
+                <select value={relEvento} onChange={e => { setRelEvento(e.target.value); setRelAtletasSel([]); setRelEquipeId(""); }}
+                  style={styles.select}>
+                  <option value="">— Selecione —</option>
+                  {meusEventos.map(ev => <option key={ev.id} value={ev.id}>{ev.nome}</option>)}
+                </select>
               </div>
-            ))}
+              {relEvento && (
+                <div>
+                  <label style={{ display:"block", fontSize:11, fontWeight:600, color:"#888", letterSpacing:1, marginBottom:4, textTransform:"uppercase" }}>Filtrar por</label>
+                  <select value={relFiltro} onChange={e => { setRelFiltro(e.target.value); setRelAtletasSel([]); setRelEquipeId(""); }}
+                    style={styles.select}>
+                    <option value="todos">Todos os atletas</option>
+                    <option value="equipe">Por equipe</option>
+                    <option value="atleta">Por atleta</option>
+                  </select>
+                </div>
+              )}
+              {relEvento && relFiltro === "equipe" && (() => {
+                const inscsEv = (inscricoes || []).filter(i => i.eventoId === relEvento);
+                const eqIds = [...new Set(inscsEv.map(i => {
+                  const at = atletas.find(a => a.id === i.atletaId);
+                  return at?.equipeId;
+                }).filter(Boolean))];
+                const eqsComInsc = eqIds.map(eid => equipes.find(e => e.id === eid)).filter(Boolean);
+                return (
+                  <div>
+                    <label style={{ display:"block", fontSize:11, fontWeight:600, color:"#888", letterSpacing:1, marginBottom:4, textTransform:"uppercase" }}>Equipe</label>
+                    <select value={relEquipeId} onChange={e => setRelEquipeId(e.target.value)} style={styles.select}>
+                      <option value="">— Selecione —</option>
+                      {eqsComInsc.map(eq => <option key={eq.id} value={eq.id}>{eq.nome}</option>)}
+                    </select>
+                  </div>
+                );
+              })()}
+              {relEvento && relFiltro === "atleta" && (
+                <div>
+                  <label style={{ display:"block", fontSize:11, fontWeight:600, color:"#888", letterSpacing:1, marginBottom:4, textTransform:"uppercase" }}>Buscar atleta</label>
+                  <input type="text" value={relBuscaAtl} onChange={e => setRelBuscaAtl(e.target.value)}
+                    placeholder="Nome do atleta..." style={{ ...styles.select, minWidth: 200 }} />
+                </div>
+              )}
+            </div>
+            {relEvento && relFiltro === "atleta" && relBuscaAtl.length >= 2 && (() => {
+              const inscsEv = (inscricoes || []).filter(i => i.eventoId === relEvento);
+              const atletaIdsEv = [...new Set(inscsEv.map(i => i.atletaId))];
+              const encontrados = atletaIdsEv
+                .map(aid => atletas.find(a => a.id === aid))
+                .filter(a => a && a.nome.toLowerCase().includes(relBuscaAtl.toLowerCase()))
+                .slice(0, 20);
+              return encontrados.length > 0 ? (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+                  {encontrados.map(a => {
+                    const sel = relAtletasSel.includes(a.id);
+                    return (
+                      <button key={a.id} onClick={() => setRelAtletasSel(p => sel ? p.filter(x => x !== a.id) : [...p, a.id])}
+                        style={{ background: sel ? "#0d2a2a" : "#0d0e12", border: `1px solid ${sel ? "#3a7a7a" : "#252837"}`, color: sel ? "#88cccc" : "#888", borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: 11, fontFamily: "'Barlow', sans-serif" }}>
+                        {sel ? "✓ " : ""}{a.nome}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : null;
+            })()}
+            {relAtletasSel.length > 0 && relFiltro === "atleta" && (
+              <div style={{ fontSize: 11, color: "#88cccc", marginBottom: 10 }}>{relAtletasSel.length} atleta(s) selecionado(s)</div>
+            )}
+            <button disabled={!relEvento} onClick={() => {
+              const evt = eventos.find(e => e.id === relEvento);
+              if (!evt) return;
+              const inscsEv = (inscricoes || []).filter(i => i.eventoId === relEvento);
+              let atletaIds;
+              if (relFiltro === "equipe" && relEquipeId) {
+                atletaIds = [...new Set(inscsEv.map(i => i.atletaId).filter(aid => {
+                  const at = atletas.find(a => a.id === aid);
+                  return at?.equipeId === relEquipeId;
+                }))];
+              } else if (relFiltro === "atleta" && relAtletasSel.length > 0) {
+                atletaIds = relAtletasSel;
+              } else {
+                atletaIds = [...new Set(inscsEv.map(i => i.atletaId))];
+              }
+              const atletasFiltrados = atletaIds.map(aid => atletas.find(a => a.id === aid)).filter(Boolean);
+              if (atletasFiltrados.length === 0) { alert("Nenhum atleta encontrado para os filtros selecionados."); return; }
+              const org = organizadores?.find(o => o.id === evt.organizadorId);
+              gerarHtmlRelatorioParticipacao(evt, atletasFiltrados, inscricoes, resultados || {}, equipes, org);
+            }} style={{ background: relEvento ? "linear-gradient(135deg, #1976D2, #1565C0)" : "#222", color: relEvento ? "#fff" : "#555", border: "none", padding: "10px 24px", borderRadius: 8, cursor: relEvento ? "pointer" : "not-allowed", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 }}>
+              📄 Gerar Relatório
+            </button>
           </div>
+        </details>
+      )}
+
+      {/* ── Histórico de Relatórios ── */}
+      {(() => {
+        const relHistorico = (solicitacoesRelatorio || []).filter(s => {
+          if (s.status === "pendente") return false;
+          const evt = eventos.find(e => e.id === s.eventoId);
+          return evt?.organizadorId === orgId;
+        }).sort((a, b) => (b.resolvidoEm || b.data || "").localeCompare(a.resolvidoEm || a.data || "")).slice(0, 20);
+        if (relHistorico.length === 0) return null;
+        return (
+          <details style={{ background: "#0a0a10", border: "1px solid #1E2130", borderRadius: 10, padding: "12px 18px", marginBottom: 16 }}>
+            <summary style={{ cursor: "pointer", color: "#666", fontSize: 13, fontWeight: 600 }}>
+              📂 Histórico de relatórios ({relHistorico.length})
+            </summary>
+            <div style={{ marginTop: 12, overflowX: "auto" }}>
+              <table style={styles.table}>
+                <thead><tr><Th>Solicitante</Th><Th>Competição</Th><Th>Status</Th><Th>Data</Th></tr></thead>
+                <tbody>
+                  {relHistorico.map(s => {
+                    const cor = s.status === "gerado" ? "#7cfc7c" : "#ff6b6b";
+                    return (
+                      <tr key={s.id} style={styles.tr}>
+                        <Td><strong style={{ color: "#fff" }}>{s.solicitanteNome}</strong></Td>
+                        <Td>{s.eventoNome}</Td>
+                        <Td><span style={{ background: cor + "22", color: cor, border: `1px solid ${cor}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
+                          {s.status === "gerado" ? "✓ Gerado" : "✗ Recusado"}
+                        </span></Td>
+                        <Td style={{ fontSize: 11, color: "#555" }}>{s.resolvidoEm ? new Date(s.resolvidoEm).toLocaleString("pt-BR") : "—"}</Td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </details>
         );
       })()}
 
-      {/* ── Solicitações de Vínculo (todas as equipes do organizador) ── */}
+      {/* ── Histórico de Vínculos ── */}
       {(() => {
         const meuOrgId = usuarioLogado?.tipo === "organizador" ? usuarioLogado?.id : usuarioLogado?.organizadorId;
-        // Equipes que pertencem a este organizador (para pegar solicitações sem organizadorId)
         const minhasEquipesIds = new Set((equipes||[]).filter(e => e.organizadorId === meuOrgId).map(e => e.id));
         const pertenceAoOrg = (s) =>
           s.organizadorId === meuOrgId ||
           minhasEquipesIds.has(s.equipeId) ||
           minhasEquipesIds.has(s.equipeAtualId);
-        const pendentes = (solicitacoesVinculo||[]).filter(s =>
-          s.status === "pendente" && pertenceAoOrg(s)
-        );
         const historico = (solicitacoesVinculo||[]).filter(s =>
           s.status !== "pendente" && pertenceAoOrg(s)
         ).sort((a,b) => new Date(b.resolvidoEm||b.data) - new Date(a.resolvidoEm||a.data)).slice(0,30);
-
-        if (pendentes.length === 0 && historico.length === 0) return null;
+        if (historico.length === 0) return null;
         return (
-          <div style={{ marginTop: 32 }}>
-            <h2 style={{ ...styles.sectionTitle, marginBottom: 16, display:"flex", alignItems:"center", gap:10 }}>
-              🔗 Solicitações de Vínculo
-              {pendentes.length > 0 && (
-                <span style={{ background:"#1976D2", color:"#fff", borderRadius:12, fontSize:13,
-                  fontWeight:800, padding:"2px 10px" }}>{pendentes.length} pendente{pendentes.length !== 1 ? "s" : ""}</span>
-              )}
-            </h2>
-
-            {pendentes.length > 0 && (
-              <div style={{ background:"#0a1220", border:"1px solid #3a5a8a", borderRadius:12,
-                padding:"16px 20px", marginBottom:20 }}>
-                <div style={{ fontWeight:700, color:"#88aaff", fontSize:13, marginBottom:12 }}>
-                  ⏳ Pendentes — aguardando sua decisão
-                </div>
-                <div style={styles.tableWrap}>
-                  <table style={styles.table}>
-                    <thead><tr>
-                      <Th>Atleta</Th><Th>Solicitante</Th><Th>Equipe Atual</Th><Th>Nova Equipe</Th><Th>Tipo</Th><Th>Data</Th><Th>Ação</Th>
-                    </tr></thead>
-                    <tbody>
-                      {pendentes.map(s => {
-                        const equipeNova = equipes?.find(e => e.id === s.equipeId);
-                        return (
-                          <tr key={s.id} style={styles.tr}>
-                            <Td><strong style={{ color:"#fff" }}>{s.atletaNome}</strong></Td>
-                            <Td style={{ fontSize:12, color:"#aaa" }}>{s.solicitanteNome || "—"}</Td>
-                            <Td style={{ fontSize:12, color:"#cc88ff" }}>{s.equipeAtualNome || (s.equipeAtualId ? "—" : "Sem equipe")}</Td>
-                            <Td style={{ color:"#88aaff", fontSize:13 }}>{equipeNova?.nome || s.clube || "—"}</Td>
-                            <Td style={{ fontSize:11, color:"#888" }}>
-                              {s.aprovadorTipo === "equipe_atual" ? "🔄 Transferência" : "🔗 Vínculo novo"}
-                            </Td>
-                            <Td style={{ fontSize:11, color:"#555" }}>{new Date(s.data).toLocaleString("pt-BR")}</Td>
-                            <Td>
-                              <div style={{ display:"flex", gap:6 }}>
-                                <button onClick={() => responderVinculo(s.id, true)}
-                                  style={{ ...styles.btnGhost, fontSize:12, padding:"4px 14px",
-                                    color:"#7cfc7c", borderColor:"#2a5a2a" }}>✓ Aceitar</button>
-                                <button onClick={() => responderVinculo(s.id, false)}
-                                  style={{ ...styles.btnGhost, fontSize:12, padding:"4px 12px",
-                                    color:"#ff6b6b", borderColor:"#5a1a1a" }}>✗ Recusar</button>
-                              </div>
-                            </Td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-            {historico.length > 0 && (
-              <details style={{ background:"#0a0a10", border:"1px solid #1E2130",
-                borderRadius:10, padding:"12px 18px" }}>
-                <summary style={{ cursor:"pointer", color:"#666", fontSize:13, fontWeight:600,
-                  display:"flex", alignItems:"center", gap:8 }}>
-                  📂 Histórico ({historico.length})
-                </summary>
-                <div style={{ marginTop:12, overflowX:"auto" }}>
-                  <table style={styles.table}>
-                    <thead><tr>
-                      <Th>Atleta</Th><Th>Equipe Atual</Th><Th>Nova Equipe</Th><Th>Status</Th><Th>Resolvido por</Th><Th>Data</Th>
-                    </tr></thead>
-                    <tbody>
-                      {historico.map(s => {
-                        const statusColor = s.status === "aceito" ? "#7cfc7c" : "#ff6b6b";
-                        const equipeNova = equipes?.find(e => e.id === s.equipeId);
-                        return (
-                          <tr key={s.id} style={styles.tr}>
-                            <Td><strong style={{ color:"#fff" }}>{s.atletaNome}</strong></Td>
-                            <Td style={{ fontSize:12, color:"#cc88ff" }}>{s.equipeAtualNome || (s.equipeAtualId ? "—" : "Sem equipe")}</Td>
-                            <Td style={{ fontSize:12, color:"#88aaff" }}>{equipeNova?.nome || s.clube || "—"}</Td>
-                            <Td>
-                              <span style={{ background:statusColor+"22", color:statusColor,
-                                border:`1px solid ${statusColor}44`, borderRadius:4,
-                                padding:"2px 8px", fontSize:11, fontWeight:700 }}>
-                                {s.status === "aceito" ? "✓ Aceito" : "✗ Recusado"}
-                              </span>
-                            </Td>
-                            <Td style={{ fontSize:11, color:"#888" }}>
-                              {s.resolvidoPorNome || "—"} {s.resolvidoPorTipo ? `(${s.resolvidoPorTipo})` : ""}
-                            </Td>
-                            <Td style={{ fontSize:11, color:"#555" }}>
-                              {s.resolvidoEm ? new Date(s.resolvidoEm).toLocaleString("pt-BR") : new Date(s.data).toLocaleString("pt-BR")}
-                            </Td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </details>
-            )}
-          </div>
+          <details style={{ background:"#0a0a10", border:"1px solid #1E2130", borderRadius:10, padding:"12px 18px", marginBottom:16 }}>
+            <summary style={{ cursor:"pointer", color:"#666", fontSize:13, fontWeight:600 }}>
+              📂 Histórico de vínculos ({historico.length})
+            </summary>
+            <div style={{ marginTop:12, overflowX:"auto" }}>
+              <table style={styles.table}>
+                <thead><tr>
+                  <Th>Atleta</Th><Th>Equipe Atual</Th><Th>Nova Equipe</Th><Th>Status</Th><Th>Resolvido por</Th><Th>Data</Th>
+                </tr></thead>
+                <tbody>
+                  {historico.map(s => {
+                    const statusColor = s.status === "aceito" ? "#7cfc7c" : "#ff6b6b";
+                    const equipeNova = equipes?.find(e => e.id === s.equipeId);
+                    return (
+                      <tr key={s.id} style={styles.tr}>
+                        <Td><strong style={{ color:"#fff" }}>{s.atletaNome}</strong></Td>
+                        <Td style={{ fontSize:12, color:"#cc88ff" }}>{s.equipeAtualNome || (s.equipeAtualId ? "—" : "Sem equipe")}</Td>
+                        <Td style={{ fontSize:12, color:"#88aaff" }}>{equipeNova?.nome || s.clube || "—"}</Td>
+                        <Td>
+                          <span style={{ background:statusColor+"22", color:statusColor,
+                            border:`1px solid ${statusColor}44`, borderRadius:4,
+                            padding:"2px 8px", fontSize:11, fontWeight:700 }}>
+                            {s.status === "aceito" ? "✓ Aceito" : "✗ Recusado"}
+                          </span>
+                        </Td>
+                        <Td style={{ fontSize:11, color:"#888" }}>
+                          {s.resolvidoPorNome || "—"} {s.resolvidoPorTipo ? `(${s.resolvidoPorTipo})` : ""}
+                        </Td>
+                        <Td style={{ fontSize:11, color:"#555" }}>
+                          {s.resolvidoEm ? new Date(s.resolvidoEm).toLocaleString("pt-BR") : new Date(s.data).toLocaleString("pt-BR")}
+                        </Td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </details>
         );
       })()}
 
-
-      {/* ── Atletas por Equipe ── */}
-      {(() => {
-        const minhasEquipes = (equipes||[])
-          .filter(e => e.organizadorId === orgId && (e.status === "ativa" || e.status === "aprovado"))
-          .sort((a,b) => (a.nome||"").localeCompare(b.nome||"","pt-BR"));
-        const meusAtletas = (atletas||[]).filter(a => minhasEquipes.some(e => e.id === a.equipeId));
-        if (minhasEquipes.length === 0) return null;
-        return (
-          <div style={{ background:"#0a0f1a", border:"1px solid #1a2a4a", borderRadius:12, padding:20, marginBottom:20 }}>
-            <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:20, fontWeight:800, color:"#fff", marginBottom:16 }}>
-              🏃 Atletas por Equipe
-            </div>
-            {minhasEquipes.map(eq => {
-              const atletasEq = meusAtletas
-                .filter(a => a.equipeId === eq.id)
-                .sort((a,b) => (a.nome||"").localeCompare(b.nome||"","pt-BR"));
-              return (
-                <details key={eq.id} style={{ marginBottom:10, background:"#0d1220", border:"1px solid #252837", borderRadius:8 }}>
-                  <summary style={{ padding:"12px 16px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"space-between", listStyle:"none" }}>
-                    <span style={{ color:"#fff", fontWeight:700, fontSize:14 }}>{eq.nome} <span style={{ color:"#888", fontSize:12, fontWeight:400 }}>({eq.sigla||"—"})</span></span>
-                    <span style={{ background:"#1976D222", color:"#1976D2", border:"1px solid #1976D244", borderRadius:20, padding:"2px 10px", fontSize:12, fontWeight:700 }}>
-                      {atletasEq.length} atleta{atletasEq.length !== 1 ? "s" : ""}
-                    </span>
-                  </summary>
-                  {atletasEq.length === 0 ? (
-                    <div style={{ padding:"12px 16px", color:"#555", fontSize:13 }}>Nenhum atleta nesta equipe.</div>
-                  ) : (
-                    <div style={{ borderTop:"1px solid #1a1d2a" }}>
-                      {atletasEq.map((a, i) => (
-                        <div key={a.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 16px",
-                          borderBottom: i < atletasEq.length - 1 ? "1px solid #1a1d2a" : "none",
-                          background: i % 2 === 0 ? "transparent" : "#0a0c14" }}>
-                          <div>
-                            <div style={{ color:"#ddd", fontSize:13, fontWeight:600 }}>{a.nome}</div>
-                            <div style={{ color:"#666", fontSize:11, marginTop:2 }}>
-                              {a.sexo === "M" ? "Masc" : "Fem"} · {a.dataNasc || a.anoNasc || "—"} · CPF: {a.cpf || "—"}
-                            </div>
-                          </div>
-                          <div style={{ display:"flex", gap:6 }}>
-                            <button style={{ background:"#0a1a2a", color:"#88aaff", border:"1px solid #1a3a5a", borderRadius:4, cursor:"pointer", fontSize:11, padding:"3px 10px" }}
-                              onClick={() => { setAtletaEditandoId?.(a.id); setTela("editar-atleta"); }}>
-                              👁 Ver/Editar
-                            </button>
-                            <button style={{ background:"#1a1500", color:"#e6c430", border:"1px solid #5a4a00", borderRadius:4, cursor:"pointer", fontSize:11, padding:"3px 10px" }}
-                              onClick={() => { setModalTransf({ atleta: a }); setTransfEquipeId(""); }}>
-                              🔀 Transferir
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </details>
-              );
-            })}
-          </div>
-        );
-      })()}
-
-      {/* ── Modal de Transferência ── */}
-      {modalTransf && (
-        <div style={{ position:"fixed", inset:0, background:"#000a", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center" }}
-          onClick={() => setModalTransf(null)}>
-          <div style={{ background:"#0E1016", border:"1px solid #1E2130", borderRadius:14, padding:28, width:420, maxWidth:"95vw" }}
-            onClick={e => e.stopPropagation()}>
-            <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:22, fontWeight:800, color:"#fff", marginBottom:4 }}>
-              🔀 Transferir Atleta
-            </h3>
-            <p style={{ color:"#888", fontSize:13, marginBottom:20 }}>{modalTransf.atleta.nome}</p>
-            <div style={{ marginBottom:12 }}>
-              <label style={{ color:"#aaa", fontSize:12, display:"block", marginBottom:4 }}>Equipe atual</label>
-              <div style={{ color:"#fff", fontSize:14, padding:"8px 12px", background:"#141720", borderRadius:6, border:"1px solid #252837" }}>
-                {equipes.find(e => e.id === modalTransf.atleta.equipeId)?.nome || <span style={{ color:"#555" }}>Sem equipe</span>}
-              </div>
-            </div>
-            <div style={{ marginBottom:20 }}>
-              <label style={{ color:"#aaa", fontSize:12, display:"block", marginBottom:4 }}>Nova equipe *</label>
-              <select value={transfEquipeId} onChange={e => setTransfEquipeId(e.target.value)}
-                style={{ width:"100%", background:"#141720", border:"1px solid #252837", borderRadius:6, color:"#fff", padding:"8px 12px", fontSize:13 }}>
-                <option value="">Selecione a equipe de destino...</option>
-                {(equipes||[])
-                  .filter(e => e.id !== modalTransf.atleta.equipeId && e.organizadorId === orgId && (e.status === "ativa" || e.status === "aprovado"))
-                  .sort((a,b) => (a.nome||"").localeCompare(b.nome||"","pt-BR"))
-                  .map(e => <option key={e.id} value={e.id}>{e.nome} ({e.sigla||"—"})</option>)
-                }
-              </select>
-            </div>
-            <div style={{ display:"flex", gap:10 }}>
-              <button style={{ ...styles.btnPrimary, flex:1 }} onClick={async () => {
-                if (!transfEquipeId) { alert("Selecione a equipe de destino."); return; }
-                const novaEquipe = equipes.find(e => e.id === transfEquipeId);
-                const equipeOrigem = equipes.find(e => e.id === modalTransf.atleta.equipeId)?.nome || "Sem equipe";
-                await atualizarAtleta?.({ ...modalTransf.atleta, equipeId: transfEquipeId, clube: novaEquipe?.nome || "" });
-                registrarAcao?.(usuarioLogado.id, usuarioLogado.nome, "Transferiu atleta",
-                  `${modalTransf.atleta.nome}: ${equipeOrigem} → ${novaEquipe?.nome}`, orgId, { modulo: "atletas" });
-                setModalTransf(null);
-                setTransfEquipeId("");
-              }}>✅ Confirmar Transferência</button>
-              <button style={{ ...styles.btnGhost }} onClick={() => setModalTransf(null)}>Cancelar</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

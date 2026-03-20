@@ -268,7 +268,7 @@ const styles = {
   provaCheckBtnSel: { background: "#1a1c22", borderColor: "#1976D2", color: "#1976D2" },
 };
 
-function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, excluirAtleta, excluirAtletasEmMassa, usuarioLogado, equipes, eventoAtual, atletas, atletasUsuarios, solicitarVinculo, solicitacoesVinculo, organizadores, desvincularAtleta }) {
+function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, excluirAtleta, excluirAtletasEmMassa, usuarioLogado, equipes, eventoAtual, atletas, atletasUsuarios, solicitarVinculo, solicitacoesVinculo, organizadores, desvincularAtleta, setAtletaEditandoId }) {
   const confirmar = useConfirm();
   const _equipeDoUsuario = usuarioLogado?.tipo === "equipe" ? equipes?.find(e => e.id === usuarioLogado.id) : null;
   // equipeId e clube são auto-preenchidos para tipo "equipe" — não requerem input do usuário
@@ -287,7 +287,10 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
   const [filtro, setFiltro] = useState("");
   const [filtroSexoAtl, setFiltroSexoAtl] = useState("todos");
   const [filtroCatAtl, setFiltroCatAtl] = useState("todas");
+  const [filtroEquipeAtl, setFiltroEquipeAtl] = useState("todas");
   const [selecionados, setSelecionados] = useState(new Set());
+  const [transfAtleta, setTransfAtleta] = useState(null);
+  const [transfEquipeId, setTransfEquipeId] = useState("");
   const [lgpdAceite, setLgpdAceite] = useState(false);
   const [consentimentoParentalAceite, setConsentimentoParentalAceite] = useState(false);
   const [responsavelLegal, setResponsavelLegal] = useState("");
@@ -310,11 +313,20 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
       : atletas;
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Equipes visíveis para filtro
+  const equipesVisiveis = (isOrg || isAdmin)
+    ? [...new Set(meusAtletas.map(a => a.equipeId).filter(Boolean))].map(eid => equipes.find(e => e.id === eid)).filter(Boolean).sort((a,b) => (a.nome||"").localeCompare(b.nome||"","pt-BR"))
+    : [];
+
   const atletasFiltrados = meusAtletas.filter(a => {
     if (filtroSexoAtl !== "todos" && a.sexo !== filtroSexoAtl) return false;
     if (filtroCatAtl !== "todas") {
       const cat = getCategoria(a.anoNasc, anoBase);
       if (cat.id !== filtroCatAtl) return false;
+    }
+    if (filtroEquipeAtl !== "todas") {
+      if (filtroEquipeAtl === "_sem") { if (a.equipeId) return false; }
+      else if (a.equipeId !== filtroEquipeAtl) return false;
     }
     if (filtro) {
       const f = filtro.toLowerCase();
@@ -551,9 +563,17 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
             <option value="todas">Todas as categorias</option>
             {CATEGORIAS.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
           </select>
-          {(filtroSexoAtl !== "todos" || filtroCatAtl !== "todas" || filtro) && (
+          {equipesVisiveis.length > 0 && (
+            <select value={filtroEquipeAtl} onChange={e => setFiltroEquipeAtl(e.target.value)}
+              style={{ ...styles.input, width: "auto", minWidth: 180, padding: "6px 10px", fontSize: 13 }}>
+              <option value="todas">Todas as equipes</option>
+              <option value="_sem">Sem equipe</option>
+              {equipesVisiveis.map(eq => <option key={eq.id} value={eq.id}>{eq.nome}</option>)}
+            </select>
+          )}
+          {(filtroSexoAtl !== "todos" || filtroCatAtl !== "todas" || filtroEquipeAtl !== "todas" || filtro) && (
             <button style={{ ...styles.btnGhost, fontSize: 11, padding: "4px 10px" }}
-              onClick={async () => { setFiltroSexoAtl("todos"); setFiltroCatAtl("todas"); setFiltro(""); }}>
+              onClick={async () => { setFiltroSexoAtl("todos"); setFiltroCatAtl("todas"); setFiltroEquipeAtl("todas"); setFiltro(""); }}>
               ✕ Limpar filtros
             </button>
           )}
@@ -636,11 +656,8 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                   background: selecionados.has(a.id) ? "#0a1a2a" : "#0D0E12",
                   border: `1px solid ${selecionados.has(a.id) ? "#1976D2" : "#1E2130"}`,
                   borderRadius: 8,
-                  padding: "12px 16px", display: "flex", alignItems: "center", gap: 14, cursor: "pointer"
+                  padding: "12px 16px", display: "flex", alignItems: "center", gap: 14
                 }}
-                  onClick={async () => { window.__atletaEditId = a.id; setTela("editar-atleta"); }}
-                  onMouseEnter={e => { if (!selecionados.has(a.id)) e.currentTarget.style.borderColor = "#1976D2"; }}
-                  onMouseLeave={e => { if (!selecionados.has(a.id)) e.currentTarget.style.borderColor = "#1E2130"; }}
                 >
                   {(isAdmin || isOrg) && (
                     <input type="checkbox"
@@ -677,14 +694,32 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                       {a.cpf ? ` · CPF: ${a.cpf}` : ""}
                     </div>
                   </div>
-                  {isEquipe && desvincularAtleta && (
+                  <div style={{ display: "flex", gap: 6, flexShrink: 0 }} onClick={e => e.stopPropagation()}>
                     <button
-                      onClick={async (e) => {  e.stopPropagation(); if (await confirmar(`Desvincular ${a.nome } da sua equipe?`)) desvincularAtleta(a.id); }}
-                      style={{ ...styles.btnGhost, fontSize: 11, padding: "4px 10px", color: "#ff6b6b", borderColor: "#3a1a1a", flexShrink: 0 }}
+                      onClick={() => { if (setAtletaEditandoId) setAtletaEditandoId(a.id); else window.__atletaEditId = a.id; setTela("editar-atleta"); }}
+                      style={{ background: "#0a1a2a", color: "#88aaff", border: "1px solid #1a3a5a", borderRadius: 6, cursor: "pointer", fontSize: 11, padding: "4px 10px", fontFamily: "'Barlow', sans-serif" }}
+                      title="Ver e editar dados do atleta"
                     >
-                      ✂️ Desvincular
+                      👁 Ver/Editar
                     </button>
-                  )}
+                    {(isOrg || isAdmin) && a.equipeId && (
+                      <button
+                        onClick={() => { setTransfAtleta(a); setTransfEquipeId(""); }}
+                        style={{ background: "#1a1500", color: "#e6c430", border: "1px solid #5a4a00", borderRadius: 6, cursor: "pointer", fontSize: 11, padding: "4px 10px", fontFamily: "'Barlow', sans-serif" }}
+                        title="Transferir para outra equipe"
+                      >
+                        🔀 Transferir
+                      </button>
+                    )}
+                    {isEquipe && desvincularAtleta && (
+                      <button
+                        onClick={async () => { if (await confirmar(`Desvincular ${a.nome} da sua equipe?`)) desvincularAtleta(a.id); }}
+                        style={{ ...styles.btnGhost, fontSize: 11, padding: "4px 10px", color: "#ff6b6b", borderColor: "#3a1a1a" }}
+                      >
+                        ✂️ Desvincular
+                      </button>
+                    )}
+                  </div>
                 </div>
               );
             })}
@@ -693,6 +728,48 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                 Mostrando 200 de {atletasFiltrados.length} atletas. Use os filtros para refinar.
               </div>
             )}
+            </div>
+          </div>
+        )}
+
+        {/* ── Modal de Transferência ── */}
+        {transfAtleta && (
+          <div style={{ position:"fixed", inset:0, background:"#000a", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center" }}
+            onClick={() => setTransfAtleta(null)}>
+            <div style={{ background:"#0E1016", border:"1px solid #1E2130", borderRadius:14, padding:28, width:420, maxWidth:"95vw" }}
+              onClick={e => e.stopPropagation()}>
+              <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:22, fontWeight:800, color:"#fff", marginBottom:4 }}>
+                🔀 Transferir Atleta
+              </h3>
+              <p style={{ color:"#888", fontSize:13, marginBottom:20 }}>{transfAtleta.nome}</p>
+              <div style={{ marginBottom:12 }}>
+                <label style={{ color:"#aaa", fontSize:12, display:"block", marginBottom:4 }}>Equipe atual</label>
+                <div style={{ color:"#fff", fontSize:14, padding:"8px 12px", background:"#141720", borderRadius:6, border:"1px solid #252837" }}>
+                  {equipes.find(e => e.id === transfAtleta.equipeId)?.nome || <span style={{ color:"#555" }}>Sem equipe</span>}
+                </div>
+              </div>
+              <div style={{ marginBottom:20 }}>
+                <label style={{ color:"#aaa", fontSize:12, display:"block", marginBottom:4 }}>Nova equipe *</label>
+                <select value={transfEquipeId} onChange={e => setTransfEquipeId(e.target.value)}
+                  style={{ width:"100%", background:"#141720", border:"1px solid #252837", borderRadius:6, color:"#fff", padding:"8px 12px", fontSize:13 }}>
+                  <option value="">Selecione a equipe de destino...</option>
+                  {(equipes||[])
+                    .filter(e => e.id !== transfAtleta.equipeId && e.organizadorId === _autoOrgId && (e.status === "ativa" || e.status === "aprovado" || !e.status))
+                    .sort((a,b) => (a.nome||"").localeCompare(b.nome||"","pt-BR"))
+                    .map(e => <option key={e.id} value={e.id}>{e.nome}{e.sigla ? ` (${e.sigla})` : ""}</option>)
+                  }
+                </select>
+              </div>
+              <div style={{ display:"flex", gap:10 }}>
+                <button style={{ ...styles.btnPrimary }} onClick={async () => {
+                  if (!transfEquipeId) { alert("Selecione a equipe de destino."); return; }
+                  const novaEquipe = equipes.find(e => e.id === transfEquipeId);
+                  await atualizarAtleta({ ...transfAtleta, equipeId: transfEquipeId, clube: novaEquipe?.nome || "" });
+                  setTransfAtleta(null);
+                  setTransfEquipeId("");
+                }}>✅ Confirmar Transferência</button>
+                <button style={styles.btnGhost} onClick={() => setTransfAtleta(null)}>Cancelar</button>
+              </div>
             </div>
           </div>
         )}

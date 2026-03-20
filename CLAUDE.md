@@ -83,6 +83,7 @@ Environment variables are prefixed with `VITE_FIREBASE_*` and loaded via `.env`.
 
 ## Deploy e Git
 
+- **git push é sempre manual** — nunca executar push automaticamente
 - Push para `main` dispara deploy automático na Vercel — nunca commitar código quebrado
 - Rodar `npm run build` localmente antes de commitar mudanças estruturais
 - GitHub: `github.com/gerentrack/gerentrack` | Domínio: `gerentrack.com.br`

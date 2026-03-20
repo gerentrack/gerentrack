@@ -2,6 +2,8 @@ import React, { useState, useMemo } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { getCategoria } from "../../shared/constants/categorias";
 import { getStatusEvento, labelStatusEvento } from "../eventos/eventoHelpers";
+import { todasAsProvas } from "../../shared/athletics/provasDef";
+import { getFasesProva, resKey } from "../../shared/constants/fases";
 
 const S = {
   page:       { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
@@ -51,6 +53,8 @@ import { SinoNotificacoes } from "../ui/SinoNotificacoes";
 export default function TelaPainelEquipe({
   usuarioLogado, setTela, logout,
   atletas, inscricoes, eventos, equipes, treinadores,
+  resultados,
+  solicitarRelatorio,
   solicitacoesVinculo, responderVinculo,
   selecionarEvento,
   desvincularAtleta, setAtletaEditandoId,
@@ -61,8 +65,11 @@ export default function TelaPainelEquipe({
   const equipeId    = isTreinador ? usuarioLogado?.equipeId : usuarioLogado?.id;
   const equipe      = equipes?.find(e => e.id === equipeId) || usuarioLogado;
 
-  const [abaAtiva, setAbaAtiva] = useState("visao-geral"); // visao-geral | atletas | inscricoes | eventos | treinadores
+  const [abaAtiva, setAbaAtiva] = useState("visao-geral");
   const [buscaAtl, setBuscaAtl] = useState("");
+  const [buscaRes, setBuscaRes] = useState("");
+  const [relEvId, setRelEvId] = useState("");
+  const [relEnviado, setRelEnviado] = useState(false);
 
   const anoBase = new Date().getFullYear();
   const meusAtletas   = (atletas  || []).filter(a => a.equipeId === equipeId);
@@ -87,11 +94,84 @@ export default function TelaPainelEquipe({
     [eventos]
   );
 
+  // ── Resultados dos atletas da equipe ──
+  const FASE_PRIO = ["FIN", "SEM", "ELI", ""];
+  const FASE_LABEL_MAP = { FIN:"Final", SEM:"Semifinal", ELI:"Eliminatória", "":"" };
+  const resultadosEquipe = useMemo(() => {
+    if (!resultados || meusAtletas.length === 0) return [];
+    const atletaIdSet = new Set(meusAtletas.map(a => a.id));
+    const provas = todasAsProvas();
+    const linhas = [];
+
+    minhasInscs.forEach(insc => {
+      const atletaId = insc.atletaId;
+      if (!atletaIdSet.has(atletaId)) return;
+      const evId = insc.eventoId;
+      const provaId = insc.provaId;
+      const catId = insc.categoriaOficialId || insc.categoriaId;
+      const sexo = insc.sexo;
+
+      for (const fase of FASE_PRIO) {
+        const chave = resKey(evId, provaId, catId, sexo, fase || undefined);
+        const docRes = resultados[chave];
+        if (docRes && docRes[atletaId] != null) {
+          const entrada = docRes[atletaId];
+          const obj = typeof entrada === "object" ? entrada : { marca: entrada };
+          const status = obj.status || "";
+          const isStatus = ["DNS","DNF","DQ","NM","NH"].includes(status);
+          const marca = isStatus ? status : (obj.marca ?? "—");
+          const posicao = obj.posicao ?? null;
+          const prova = provas.find(p => p.id === provaId);
+          linhas.push({
+            atletaId, evId, provaId, fase,
+            atletaNome: meusAtletas.find(a => a.id === atletaId)?.nome || "—",
+            provaNome: prova?.nome || provaId,
+            marca, posicao, isStatus,
+            cat: insc.categoriaOficial || insc.categoria || "",
+          });
+          break;
+        }
+      }
+    });
+
+    // Agrupar por evento, ordenar por data desc
+    const porEvento = {};
+    linhas.forEach(l => {
+      if (!porEvento[l.evId]) porEvento[l.evId] = [];
+      porEvento[l.evId].push(l);
+    });
+    return Object.entries(porEvento)
+      .map(([evId, items]) => ({ ev: (eventos||[]).find(e => e.id === evId), items }))
+      .filter(g => g.ev)
+      .sort((a, b) => (b.ev.data || "").localeCompare(a.ev.data || ""));
+  }, [resultados, meusAtletas, minhasInscs, eventos]);
+
+  const medalhas = useMemo(() => {
+    let ouro = 0, prata = 0, bronze = 0, total = 0;
+    resultadosEquipe.forEach(g => g.items.forEach(l => {
+      if (l.isStatus) return;
+      total++;
+      if (l.posicao === 1) ouro++;
+      else if (l.posicao === 2) prata++;
+      else if (l.posicao === 3) bronze++;
+    }));
+    return { ouro, prata, bronze, total };
+  }, [resultadosEquipe]);
+
+  const exibirPosicao = (pos) => {
+    if (pos == null) return "—";
+    if (pos === 1) return "🥇";
+    if (pos === 2) return "🥈";
+    if (pos === 3) return "🥉";
+    return `${pos}º`;
+  };
+
   const abas = [
     { id: "visao-geral",  label: "🏠 Visão Geral" },
     { id: "atletas",      label: `👥 Atletas (${meusAtletas.length})` },
     { id: "inscricoes",   label: `📋 Inscrições (${minhasInscs.length})` },
     { id: "eventos",      label: `🏟️ Competições (${eventosAbertos.length} abertas)` },
+    { id: "resultados",   label: `🏆 Resultados (${medalhas.total})` },
     { id: "treinadores",  label: `👨‍🏫 Treinadores (${meusTrein.length})` },
     ...(totalPendentes > 0 ? [{ id: "vinculos", label: `🔗 Vínculos (${totalPendentes})`, badge: true }] : []),
   ];
@@ -392,6 +472,101 @@ export default function TelaPainelEquipe({
                 </tbody>
               </table>
             </div>
+          )}
+        </div>
+      )}
+
+      {/* ── ABA: RESULTADOS ── */}
+      {abaAtiva === "resultados" && (
+        <div>
+          {/* Nota informativa */}
+          <div style={{ background: "#0d0e12", border: "1px solid #252837", borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 12, color: "#666", lineHeight: 1.6 }}>
+            ℹ️ Esta exibição é meramente informativa e não constitui relatório oficial de participação. O relatório oficial é de responsabilidade do organizador da competição.
+          </div>
+
+          {/* Solicitar relatório */}
+          {solicitarRelatorio && eventosComInsc.length > 0 && (
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16, flexWrap:"wrap" }}>
+              <select value={relEvId} onChange={e => setRelEvId(e.target.value)}
+                style={{ background:"#141720", border:"1px solid #252837", borderRadius:6, padding:"8px 12px", color:"#fff", fontSize:12 }}>
+                <option value="">— Selecione competição —</option>
+                {eventosComInsc.map(ev => <option key={ev.id} value={ev.id}>{ev.nome}</option>)}
+              </select>
+              {relEnviado ? (
+                <span style={{ color:"#7cfc7c", fontSize:12, fontWeight:700 }}>✓ Solicitação enviada!</span>
+              ) : (
+                <button disabled={!relEvId} onClick={() => {
+                  const ev = (eventos||[]).find(e => e.id === relEvId);
+                  if (ev) { solicitarRelatorio(equipeId, equipe?.nome || "", "equipe", ev.id, ev.nome, meusAtletas.map(a => a.id), equipeId); setRelEnviado(true); setTimeout(() => setRelEnviado(false), 4000); }
+                }} style={{ background: relEvId ? "#1a3a3a" : "#111", border:"1px solid", borderColor: relEvId ? "#3a7a7a" : "#222", color: relEvId ? "#88cccc" : "#444", borderRadius:6, padding:"8px 16px", cursor: relEvId ? "pointer" : "not-allowed", fontSize:12, fontWeight:700, fontFamily:"'Barlow Condensed', sans-serif" }}>
+                  📄 Solicitar Relatório Oficial
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Stats medalhas */}
+          <div style={S.statsRow}>
+            <StatCard value={medalhas.total} label="Resultados" />
+            <StatCard value={medalhas.ouro} label="🥇 Ouro" color="#FFD700" />
+            <StatCard value={medalhas.prata} label="🥈 Prata" color="#C0C0C0" />
+            <StatCard value={medalhas.bronze} label="🥉 Bronze" color="#CD7F32" />
+          </div>
+
+          {/* Busca */}
+          <input type="text" value={buscaRes} onChange={e => setBuscaRes(e.target.value)}
+            placeholder="🔍 Buscar atleta..." style={S.input} />
+
+          {resultadosEquipe.length === 0 ? (
+            <div style={S.emptyState}>
+              <span style={{ fontSize: 40 }}>🏆</span>
+              <p>Nenhum resultado registrado para atletas da equipe.</p>
+            </div>
+          ) : (
+            resultadosEquipe.map(({ ev, items }) => {
+              const filtrados = buscaRes
+                ? items.filter(l => l.atletaNome.toLowerCase().includes(buscaRes.toLowerCase()))
+                : items;
+              if (filtrados.length === 0) return null;
+              return (
+                <details key={ev.id} open style={{ background: "#0a0b14", border: "1px solid #1E2130", borderRadius: 10, marginBottom: 12, overflow: "hidden" }}>
+                  <summary style={{ padding: "12px 18px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                    <span style={{ color: "#1976D2", fontWeight: 700, fontSize: 14 }}>🏟 {ev.nome}</span>
+                    {ev.data && <span style={{ color: "#555", fontSize: 11 }}>📅 {new Date(ev.data + "T12:00:00").toLocaleDateString("pt-BR")}</span>}
+                    {ev.local && <span style={{ color: "#444", fontSize: 11 }}>· 📍 {ev.local}</span>}
+                    <span style={S.badge("#1976D2")}>{filtrados.length} resultado{filtrados.length !== 1 ? "s" : ""}</span>
+                  </summary>
+                  <div style={{ padding: "0 12px 14px" }}>
+                    <div style={S.tableWrap}>
+                      <table style={S.table}>
+                        <thead>
+                          <tr><Th>Atleta</Th><Th>Prova</Th><Th>Marca</Th><Th>Posição</Th><Th>Categoria</Th></tr>
+                        </thead>
+                        <tbody>
+                          {filtrados.map((l, idx) => (
+                            <tr key={idx} style={S.tr}>
+                              <Td><strong style={{ color: "#fff" }}>{l.atletaNome}</strong></Td>
+                              <Td>{l.provaNome}</Td>
+                              <Td>
+                                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 800, color: l.isStatus ? "#555" : "#1976D2" }}>
+                                  {l.marca}
+                                </span>
+                              </Td>
+                              <Td>
+                                <span style={{ fontWeight: 700, color: l.posicao != null && l.posicao <= 3 ? "#FFD700" : "#888" }}>
+                                  {exibirPosicao(l.posicao)}
+                                </span>
+                              </Td>
+                              <Td><span style={S.badge("#1976D2")}>{l.cat}</span></Td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </details>
+              );
+            })
           )}
         </div>
       )}

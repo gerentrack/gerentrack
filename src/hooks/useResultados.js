@@ -21,6 +21,7 @@ import {
   writeBatch,
 } from "../firebase";
 import { sanitize } from "../lib/utils/sanitize";
+import { todasAsProvas } from "../shared/athletics/provasDef";
 
 const COLLECTION = "resultados";
 
@@ -29,6 +30,94 @@ const resKey = (eventoId, provaId, catId, sexo, faseSufixo) =>
   faseSufixo
     ? `${eventoId}_${provaId}_${catId}_${sexo}__${faseSufixo}`
     : `${eventoId}_${provaId}_${catId}_${sexo}`;
+
+// ── Calcula posição de cada atleta/equipe no doc de resultados ────────────────
+function calcularPosicoes(docResultados, provaId) {
+  const provas = todasAsProvas();
+  const prova = provas.find(p => p.id === provaId);
+  if (!prova) return docResultados;
+
+  const isPista = prova.unidade === "s";
+  const isAltVara = prova.tipo === "salto" && (prova.id.includes("altura") || prova.id.includes("vara"));
+
+  const entradas = Object.entries(docResultados).map(([id, raw]) => {
+    const obj = (raw != null && typeof raw === "object") ? raw : { marca: raw };
+    const status = obj.status || "";
+    const isStatus = ["DNS","DNF","DQ","NM","NH"].includes(status);
+    const marca = (!isStatus && obj.marca != null) ? parseFloat(obj.marca) : null;
+    return { id, raw: obj, marca, status, isStatus };
+  });
+
+  entradas.sort((a, b) => {
+    if (a.isStatus && !b.isStatus) return 1;
+    if (!a.isStatus && b.isStatus) return -1;
+    if (a.isStatus && b.isStatus) {
+      const ord = isPista ? { DNF:0, DNS:1, DQ:2 } : { NM:0, DNS:1, DQ:2 };
+      return (ord[a.status] ?? 9) - (ord[b.status] ?? 9);
+    }
+    if (a.marca == null && b.marca == null) return 0;
+    if (a.marca == null) return 1;
+    if (b.marca == null) return -1;
+
+    if (isPista) return a.marca - b.marca;
+    if (b.marca !== a.marca) return b.marca - a.marca;
+
+    // Desempate altura/vara: RT 26.9
+    if (isAltVara) {
+      const getSU = (r) => {
+        if (!r || typeof r !== "object") return 0;
+        const tObj = (r.tentativas && typeof r.tentativas === "object") ? r.tentativas : {};
+        const melhor = parseFloat(r.marca);
+        if (isNaN(melhor)) return 0;
+        const alts = Array.isArray(r.alturas) ? r.alturas : [];
+        const key = alts.find(h => Math.abs(parseFloat(h) - melhor) < 0.001);
+        if (!key) return 0;
+        const arr = Array.isArray(tObj[key]) ? tObj[key] : Array.isArray(tObj[parseFloat(key).toFixed(2)]) ? tObj[parseFloat(key).toFixed(2)] : [];
+        return arr.filter(t => t === "X" || t === "O").length;
+      };
+      const getFP = (r) => {
+        if (!r || typeof r !== "object") return 0;
+        const tObj = (r.tentativas && typeof r.tentativas === "object") ? r.tentativas : {};
+        const alts = Array.isArray(r.alturas) ? r.alturas : [];
+        let total = 0;
+        alts.forEach(h => {
+          const kStr = parseFloat(h).toFixed(2);
+          const arr = Array.isArray(tObj[h]) ? tObj[h] : Array.isArray(tObj[kStr]) ? tObj[kStr] : [];
+          if (arr.includes("O")) total += arr.filter(t => t === "X").length;
+        });
+        return total;
+      };
+      const suA = getSU(a.raw), suB = getSU(b.raw);
+      if (suA !== suB) return suA - suB;
+      const fpA = getFP(a.raw), fpB = getFP(b.raw);
+      if (fpA !== fpB) return fpA - fpB;
+      return 0;
+    }
+
+    // Desempate campo: RT 25.22 (sequência de melhores tentativas)
+    const seqDesc = (r) => {
+      if (r == null) return [];
+      const obj = typeof r === "object" ? r : { marca: r };
+      return [obj.t1,obj.t2,obj.t3,obj.t4,obj.t5,obj.t6]
+        .map(v => { const n = parseFloat(v); return isNaN(n) ? null : n; })
+        .filter(n => n !== null).sort((x,y) => y - x);
+    };
+    const sa = seqDesc(a.raw), sb = seqDesc(b.raw);
+    const len = Math.max(sa.length, sb.length);
+    for (let i = 0; i < len; i++) {
+      const va = sa[i] ?? -Infinity, vb = sb[i] ?? -Infinity;
+      if (vb > va) return  1;
+      if (va > vb) return -1;
+    }
+    return 0;
+  });
+
+  const resultado = {};
+  entradas.forEach((e, idx) => {
+    resultado[e.id] = { ...e.raw, posicao: e.isStatus ? null : idx + 1 };
+  });
+  return resultado;
+}
 
 // ── Sanitize: Firestore rejeita undefined, NaN, Infinity ─────────────────────
 
@@ -96,8 +185,9 @@ export function useResultados({ eventos = [], recordes = [], editarEvento } = {}
         ...(normTent  !== undefined ? normTent             : {}),
       });
 
+      const docComPosicoes = calcularPosicoes({ ...docAtual, [atletaId]: novoEntry }, provId);
       const docRef = doc(db, COLLECTION, chave);
-      await setDoc(docRef, sanitize({ ...docAtual, [atletaId]: novoEntry }));
+      await setDoc(docRef, sanitize(docComPosicoes));
 
       // ── Snapshot de recordes (lazy: cria na primeira digitação se não existir) ──
       try {
@@ -171,8 +261,9 @@ export function useResultados({ eventos = [], recordes = [], editarEvento } = {}
         });
       });
 
+      const docComPosicoes = calcularPosicoes(docAtual, provId);
       const docRef = doc(db, COLLECTION, chave);
-      await setDoc(docRef, sanitize(docAtual));
+      await setDoc(docRef, sanitize(docComPosicoes));
     },
     []
   );
