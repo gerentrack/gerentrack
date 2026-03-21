@@ -144,7 +144,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
   const getClassificados = (prova, cat, sexo) => {
     // Busca a fase final (FIN) ou fase única
     const fases = getFasesProva(prova.id, eventoAtual?.programaHorario || {});
-    const fasesOrdenadas = fases.length > 0
+    const fasesOrdenadas = fases.length > 1
       ? [...fases].sort((a, b) => (FASE_ORDEM[b] || 0) - (FASE_ORDEM[a] || 0))
       : [null];
 
@@ -221,7 +221,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
       if (!cat) return acc;
       // Verifica se tem resultado (qualquer fase)
       const fases = getFasesProva(prova.id, eventoAtual?.programaHorario || {});
-      const fasesCheck = fases.length > 0 ? fases : [null];
+      const fasesCheck = fases.length > 1 ? fases : [null];
       const temRes = fasesCheck.some(fase => {
         const key = resKey(eid, prova.id, cat.id, insc.sexo || atl.sexo, fase);
         const res = resultados?.[key]?.[atletaId];

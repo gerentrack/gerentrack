@@ -191,10 +191,15 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
     return ["M", "F"].map((sexo) => {
       return CATEGORIAS.flatMap((cat) => {
         // Determinar chaves de resultados a verificar (com fases ou legado)
+        // Nota: TelaDigitarResultados só usa fase quando _provaFases.length > 1,
+        // então com 1 fase o resultado é salvo sem sufixo. Precisamos verificar ambos.
         const _fases = getFasesProva(prova.id, eventoAtual.programaHorario || {});
-        const _keysToCheck = _fases.length > 0
+        const _semFase = { key: `${eid}_${prova.id}_${cat.id}_${sexo}`, fase: "" };
+        const _keysToCheck = _fases.length > 1
           ? _fases.map(f => ({ key: resKey(eid, prova.id, cat.id, sexo, f), fase: f }))
-          : [{ key: `${eid}_${prova.id}_${cat.id}_${sexo}`, fase: "" }];
+          : [_semFase];
+        // Fallback: se multi-fase não encontrou nada, tentar sem sufixo (migração/legado)
+        if (_fases.length > 1) _keysToCheck.push(_semFase);
 
         return _keysToCheck.map(({ key, fase }) => {
         const res = resultados[key];

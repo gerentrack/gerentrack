@@ -988,7 +988,7 @@ function App() {
     Object.entries(grupos).forEach(([key, { provaId, catId, sexo, atletaIds }]) => {
       if (provasNotificadasRef.current.has(`${eid}_${key}`)) return;
       const fases = getFasesProva(provaId, eventoAtual.programaHorario || {});
-      const fasesCheck = fases.length > 0 ? fases : [null];
+      const fasesCheck = fases.length > 1 ? fases : [null];
       const faseFinal = fasesCheck[fasesCheck.length - 1];
       const rKey = resKey(eid, provaId, catId, sexo, faseFinal);
       const res = resultados[rKey];
