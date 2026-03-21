@@ -174,6 +174,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
   };
 
   const getTipoMedalha = (posicao, totalClassificados) => {
+    if (eventoAtual?.medalhasApenasParticipacao) return "participacao";
     if (posicao === 1) return "ouro";
     if (posicao === 2) return "prata";
     if (posicao === 3) return "bronze";
@@ -415,8 +416,20 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
             </div>
           </label>
 
+          {eventoAtual?.medalhasApenasParticipacao && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20, background: "#1a1400", border: "1px solid #e67e2244", borderRadius: 10, padding: "12px 18px" }}>
+              <span style={{ fontSize: 22 }}>🎖️</span>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#f0a040" }}>Modo: Somente Medalhas de Participação</div>
+                <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>Todos os atletas recebem medalha de participação. Para habilitar ouro/prata/bronze, desative esta opção nos controles da competição.</div>
+              </div>
+            </div>
+          )}
+
           <div style={{ color: "#555", fontSize: 13, marginBottom: 20 }}>
-            Posições calculadas automaticamente a partir dos resultados. Clique em "Entregar" para confirmar a entrega física.
+            {eventoAtual?.medalhasApenasParticipacao
+              ? "Clique em \"Entregar\" para confirmar a entrega física da medalha de participação."
+              : "Posições calculadas automaticamente a partir dos resultados. Clique em \"Entregar\" para confirmar a entrega física."}
           </div>
 
           {provasFiltradasMedalhas.length === 0 && (
