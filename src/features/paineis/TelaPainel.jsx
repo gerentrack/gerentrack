@@ -137,6 +137,7 @@ const styles = {
 
 function InscricaoProvaRow({ insc, prova, atleta, provasDisp, inscAberta, atualizarInscricao, excluirInscricao }) {
   const s = useStylesResponsivos(styles);
+  const confirmar = useConfirm();
   const [editando, setEditando] = useState(false);
   const [novaProvaId, setNovaProvaId] = useState("");
 

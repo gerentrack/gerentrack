@@ -1,8 +1,9 @@
 import { _getClubeAtleta, _getLocalEventoDisplay, _getNascDisplay, _getCbat, nomeProvaHtml, formatarMarca, formatarMarcaExibicaoHtml, _marcasComEmpateCentesimal } from "../../shared/formatters/utils";
 import { GT_DEFAULT_LOGO } from "../../shared/branding";
-import { getFasesProva, buscarSeriacao, serKey } from "../../shared/constants/fases";
+import { getFasesProva, buscarSeriacao, serKey, FASE_ORDEM } from "../../shared/constants/fases";
 import { RecordHelper } from "../../shared/engines/recordHelper";
 import { nPernasRevezamento } from "../../shared/athletics/provasDef";
+import { TeamScoringEngine } from "../../shared/engines/teamScoringEngine";
 
 // ─── GERADOR DE HTML DE IMPRESSÃO ─────────────────────────────────────────────
 function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = {}, numPeito = {}, equipes = [], recordesAll = [], opts = {}) {

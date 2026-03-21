@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
-import { todasAsProvas, getComposicaoCombinada } from "../../shared/athletics/provasDef";
+import { todasAsProvas, getComposicaoCombinada, nPernasRevezamento } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/constants/categorias";
 import { NomeProvaComImplemento, abreviarProva, formatarMarca, normalizarMarca, exibirMarcaInput, formatarTempo, autoFormatTempo, parseTempoPista } from "../../shared/formatters/utils";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
