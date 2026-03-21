@@ -142,10 +142,10 @@ const confirmar = (...args) => _confirmarRef.current ? _confirmarRef.current(...
 function App() {
   const [tela, _setTela] = useState("home");
 
-  // Aguarda Firebase Auth restaurar sessão antes de ativar listeners que exigem auth
-  const [authReady, setAuthReady] = useState(false);
+  // Rastreia se Firebase Auth tem sessão ativa (necessário para listeners que exigem auth)
+  const [firebaseAuthed, setFirebaseAuthed] = useState(!!auth.currentUser);
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, () => { setAuthReady(true); unsub(); });
+    const unsub = onAuthStateChanged(auth, (user) => { setFirebaseAuthed(!!user); });
     return unsub;
   }, []);
 
@@ -895,9 +895,9 @@ function App() {
   } = useEquipes();
 
   // ── Câmara de Chamada / Medalhas via Firestore (tempo real) ──────────────
-  // Só ativa listeners de chamada/medalhas após Firebase Auth restaurar sessão
+  // Só ativa listeners de chamada/medalhas quando Firebase Auth tem sessão ativa
   // (essas coleções exigem request.auth != null para leitura)
-  const eventoAtualIdForChamada = (authReady && usuarioLogado) ? (eventoAtual?.id || null) : null;
+  const eventoAtualIdForChamada = (firebaseAuthed && usuarioLogado) ? (eventoAtual?.id || null) : null;
   const { chamada, getPresencaProva } = useMedalhasChamada(eventoAtualIdForChamada);
 
   // ── Atletas via Firestore ─────────────────────────────────────────────────
