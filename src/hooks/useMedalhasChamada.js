@@ -14,7 +14,7 @@
  */
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { db, doc, setDoc, onSnapshot, collection } from "../firebase";
+import { db, doc, setDoc, onSnapshot, collection, auth, onAuthStateChanged } from "../firebase";
 
 // ── Helpers de chave ─────────────────────────────────────────────────────────
 export const chamadaKey  = (eId, pId, cId, sx) => `${eId}_${pId}_${cId}_${sx}`;
@@ -31,9 +31,19 @@ export function useMedalhasChamada(eventoId) {
   useEffect(() => {
     if (!eventoId) return;
 
-    // Limpa listeners anteriores
-    unsubsRef.current.forEach(u => u());
-    unsubsRef.current = [];
+    // Aguarda Firebase Auth estar pronto antes de criar listeners
+    // (coleções chamada/medalhas exigem request.auth != null para leitura)
+    const unsubAuth = onAuthStateChanged(auth, (user) => {
+      // Limpa listeners anteriores
+      unsubsRef.current.forEach(u => u());
+      unsubsRef.current = [];
+
+      if (!user) {
+        setChamada({});
+        setMedalhas({});
+        setLoading(false);
+        return;
+      }
 
     // ── Câmara de chamada ──
     const chamadaCol = collection(db, "chamada");
@@ -66,7 +76,12 @@ export function useMedalhasChamada(eventoId) {
     });
 
     unsubsRef.current = [unsubChamada, unsubMedalhas];
-    return () => unsubsRef.current.forEach(u => u());
+    }); // fim onAuthStateChanged callback
+
+    return () => {
+      unsubAuth();
+      unsubsRef.current.forEach(u => u());
+    };
   }, [eventoId]);
 
   // ── Câmara: atualiza estado de um atleta ─────────────────────────────────
