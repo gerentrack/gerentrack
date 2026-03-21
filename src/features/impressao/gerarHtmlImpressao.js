@@ -1,6 +1,7 @@
 import { _getClubeAtleta, _getLocalEventoDisplay, _getNascDisplay, _getCbat, nomeProvaHtml } from "../../shared/formatters/utils";
 import { GT_DEFAULT_LOGO } from "../../shared/branding";
 import { getFasesProva } from "../../shared/constants/fases";
+import { RecordHelper } from "../../shared/engines/recordHelper";
 
 // ─── GERADOR DE HTML DE IMPRESSÃO ─────────────────────────────────────────────
 function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = {}, numPeito = {}, equipes = [], recordesAll = [], opts = {}) {
