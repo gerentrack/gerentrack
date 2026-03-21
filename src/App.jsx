@@ -142,6 +142,13 @@ const confirmar = (...args) => _confirmarRef.current ? _confirmarRef.current(...
 function App() {
   const [tela, _setTela] = useState("home");
 
+  // Aguarda Firebase Auth restaurar sessão antes de ativar listeners que exigem auth
+  const [authReady, setAuthReady] = useState(false);
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, () => { setAuthReady(true); unsub(); });
+    return unsub;
+  }, []);
+
   const [usuarioLogado, setUsuarioLogado] = useLocalOnly("atl_usuario", null);
   const [temaClaro, setTemaClaro] = useLocalOnly("gt_tema_claro", false);
   const [auditoria, _setAuditoria] = useLocalStorage("atl_auditoria", []);
@@ -888,7 +895,9 @@ function App() {
   } = useEquipes();
 
   // ── Câmara de Chamada / Medalhas via Firestore (tempo real) ──────────────
-  const eventoAtualIdForChamada = usuarioLogado ? (eventoAtual?.id || null) : null;
+  // Só ativa listeners de chamada/medalhas após Firebase Auth restaurar sessão
+  // (essas coleções exigem request.auth != null para leitura)
+  const eventoAtualIdForChamada = (authReady && usuarioLogado) ? (eventoAtual?.id || null) : null;
   const { chamada, getPresencaProva } = useMedalhasChamada(eventoAtualIdForChamada);
 
   // ── Atletas via Firestore ─────────────────────────────────────────────────

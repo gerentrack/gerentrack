@@ -45,6 +45,8 @@ export function useMedalhasChamada(eventoId) {
         }
       });
       setChamada(data);
+    }, (err) => {
+      console.warn("[useMedalhasChamada] chamada listener error:", err.code);
     });
 
     // ── Medalhas ──
@@ -57,6 +59,9 @@ export function useMedalhasChamada(eventoId) {
         }
       });
       setMedalhas(data);
+      setLoading(false);
+    }, (err) => {
+      console.warn("[useMedalhasChamada] medalhas listener error:", err.code);
       setLoading(false);
     });
 

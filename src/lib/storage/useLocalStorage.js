@@ -15,7 +15,7 @@
  * Extraído de App.jsx (linha 26) — Etapa 1 da refatoração.
  */
 import { useState, useEffect, useRef, useCallback } from "react";
-import { db, doc, setDoc, onSnapshot } from "../../firebase";
+import { db, doc, setDoc, onSnapshot, auth } from "../../firebase";
 import { sanitizeForFirestore } from "../firestore/sanitize";
 
 export function useLocalStorage(key, initialValue) {
@@ -74,8 +74,9 @@ export function useLocalStorage(key, initialValue) {
         console.warn(`[useLocalStorage] localStorage cheio ao gravar "${key}":`, quotaErr);
       }
 
-      // Firestore: só grava após carregamento inicial para não sobrescrever dados remotos
-      if (firestoreLoaded.current) {
+      // Firestore: só grava após carregamento inicial E com usuário autenticado
+      // (regras exigem request.auth != null para escrita em state/{id})
+      if (firestoreLoaded.current && auth.currentUser) {
         const docRef = doc(db, "state", key);
         setDoc(docRef, { value: sanitizeForFirestore(valueToStore) }).catch(
           (err) => console.error(`[useLocalStorage] Firestore write error "${key}":`, err)
