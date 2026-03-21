@@ -1329,6 +1329,7 @@ function App() {
     recordes, setRecordes,
     pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes,
     siteBranding, setSiteBranding, gtIcon, gtLogo, gtNome, gtSlogan,
+    RecordDetectionEngine,
     // ⚠️ SEGURANÇA: adminConfig removido do spread global.
     // Injetado explicitamente apenas em TelaLogin, TelaConfiguracoes e TelaAdmin.
   };

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import DOMPurify from "dompurify";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { getStatusEvento, getStatusInscricoes, labelStatusEvento } from "./eventoHelpers";
 import { _getLocalEventoDisplay } from "../../shared/formatters/utils";
@@ -1088,7 +1089,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
           <div style={{ color:"#1976D2", fontWeight:700, fontSize:14, marginBottom:12 }}>📝 Informações</div>
           <div
             style={{ color:"#ddd", fontFamily:"'Inter', sans-serif", fontSize:14, lineHeight:1.7, wordBreak:"break-word", whiteSpace:"pre-wrap", maxHeight: isAdmin ? 320 : undefined, overflowY: isAdmin ? "auto" : undefined }}
-            dangerouslySetInnerHTML={{ __html: eventoAtual.descricao }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(eventoAtual.descricao) }}
           />
         </div>
       )}
