@@ -338,6 +338,23 @@ function App() {
     setTela("home");
   };
 
+  // ── Guard: usuário local sem sessão Firebase Auth → forçar relogin ─────────
+  // Acontece quando o app reabre ou abre em outro dispositivo: o localStorage
+  // tem usuarioLogado mas o Firebase Auth não tem token válido.
+  useEffect(() => {
+    if (!usuarioLogado) return;
+    // Espera o onAuthStateChanged resolver (firebaseAuthed começa como !!auth.currentUser)
+    const timeout = setTimeout(() => {
+      if (!auth.currentUser) {
+        console.warn("[App] Sessão Firebase Auth ausente — forçando relogin");
+        setUsuarioLogado(null);
+        setPerfisDisponiveis([]);
+        setTela("login");
+      }
+    }, 2000); // 2s de tolerância para o auth resolver
+    return () => clearTimeout(timeout);
+  }, [usuarioLogado, firebaseAuthed]);
+
   // ── Expiração de sessão ────────────────────────────────────────────────────
   const SESSAO_DURACAO_MS  = 24 * 60 * 60 * 1000; // 24 horas
   const AVISO_ANTECEDENCIA = 2 * 60 * 1000;        // aviso 2 minutos antes
