@@ -488,7 +488,9 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                     {atletasOrdenados.map(({ atl, posicao, tipoCalculado }) => {
                       if (!atl) return null;
                       const medalha = getMedalha(prova.id, cat.id, sexo, atl.id);
-                      const tipo = medalha.tipo || tipoCalculado;
+                      const tipo = eventoAtual?.medalhasApenasParticipacao
+                        ? "participacao"
+                        : (medalha.tipo || tipoCalculado);
                       const conf = tipo ? MEDALHA_CONFIG[tipo] : null;
 
                       // Verificar bloqueios de participação
