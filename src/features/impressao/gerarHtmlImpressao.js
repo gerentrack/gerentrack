@@ -923,14 +923,21 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
         // Layout: cabeçalho com alturas progressivas (em branco) + linha/atleta
         // ════════════════════════════════════════════════════════════════════
 
-        // Número padrão de colunas de altura — árbitro preenche os valores
-        // Deixamos 15 colunas em branco para as barras (pode ser ajustado)
         const N_BARRAS = 15;
-        const barras   = Array.from({length: N_BARRAS});
+        const barras = Array.from({length: N_BARRAS});
 
-        // CSS extra para a tabela de altura (compact, células quadradas)
-        const cssAltura = `
-          .th-barra { width:28px; font-size:8px; text-align:center; padding:3px 1px; }
+        // CSS para súmula em branco — cada altura de 28px dividida em 3 sub-colunas
+        const cssAlturaSumula = `
+          .td-barra-sub { width:9px; font-size:8px; text-align:center; padding:3px 0; border:1px solid #ccc; border-left:none; }
+          .td-barra-sub:first-child, .td-barra-sub.bl { border-left:1px solid #ccc; }
+          .td-barra-h { font-size:8px; font-weight:700; text-align:center;
+            padding:2px 1px; background:#1a1a1a; color:#FFD700; border:1px solid #333; }
+          .td-tent-num { font-size:6px; color:#666; text-align:center; padding:1px 0;
+            background:#0d0d0d; border:1px solid #333; border-left:none; }
+          .td-tent-num.bl { border-left:1px solid #333; }
+        `;
+        // CSS para versão com resultados (inalterado)
+        const cssAlturaRes = `
           .td-barra { width:28px; font-size:10px; text-align:center; padding:4px 1px; border:1px solid #ccc; }
           .td-barra-h { width:28px; font-size:9px; font-weight:700; text-align:center;
             padding:3px 1px; background:#1a1a1a; color:#FFD700; border:1px solid #333; }
@@ -943,20 +950,20 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
           <th style="width:110px" class="thal">ATLETA</th>
           <th style="width:64px">NASCIMENTO</th>
           <th style="width:90px" class="thal">EQUIPE</th>
-          <th colspan="${N_BARRAS}" style="text-align:center;letter-spacing:1.5px;background:#222;color:#FFD700;border:1px solid #444;font-size:9px">ANOTAÇÕES DAS TENTATIVAS</th>
-          <th style="width:28px;font-size:8px;background:#2a1a1a;color:#ff8888;text-align:center;border:1px solid #444" title="Saltos na Última">SU</th>
+          ${barras.map((_, i) => `<th colspan="3" class="td-barra-h">${i+1}</th>`).join("")}
+          <th style="width:28px;font-size:8px;background:#2a1a1a;color:#ff8888;text-align:center;border:1px solid #444" title="Saltos na \u00daltima">SU</th>
           <th style="width:28px;font-size:8px;background:#2a1a1a;color:#ff8888;text-align:center;border:1px solid #444" title="Falhas na Prova">FP</th>
           <th style="width:52px">MELHOR</th>
           <th style="width:30px">POS.</th>
         </tr>
-        <tr style="background:#1a1a1a">
+        <tr style="background:#0d0d0d">
           <td style="border:1px solid #333"></td>
           <td style="border:1px solid #333"></td>
           <td style="border:1px solid #333"></td>
+          <td style="border:1px solid #333;font-size:7px;color:#888;text-align:center">Altura \u2192</td>
           <td style="border:1px solid #333"></td>
           <td style="border:1px solid #333"></td>
-          <td style="border:1px solid #333"></td>
-          ${barras.map(() => `<td class="td-barra-h"></td>`).join("")}
+          ${barras.map(() => [1,2,3].map((n,i) => `<td class="td-tent-num${i===0?" bl":""}">${n}\u00aa</td>`).join("")).join("")}
           <td style="border:1px solid #333"></td>
           <td style="border:1px solid #333"></td>
           <td style="border:1px solid #333"></td>
@@ -971,7 +978,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
             <td class="tdal"><span class="anome">${a.nome}</span>${excTag(getInsc(a))}</td>
             <td class="tdat">${fmtNasc(a)}</td>
             <td class="tdcl">${getSiglaEquipe(a)}</td>
-            ${barras.map(() => `<td class="td-barra"></td>`).join("")}
+            ${barras.map(() => [0,1,2].map((i) => `<td class="td-barra-sub${i===0?" bl":""}"></td>`).join("")).join("")}
             <td style="width:28px;text-align:center;border:1px solid #ddd"></td>
             <td style="width:28px;text-align:center;border:1px solid #ddd"></td>
             <td class="tdmb"></td>
@@ -988,7 +995,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
             const lblG = totalGrupos > 1 ? `GRUPO ${gi+1} / ${totalGrupos}` : null;
             pags.push(`
               <div class="${pgClass(s)}">
-                <style>${cssAltura}</style>
+                <style>${cssAlturaSumula}</style>
                 ${cabPrv(s, numPag, lblG)}
                 <div class="blk blk-parc">S\u00daMULA<span class="blk-s">${grp.length} atleta${grp.length!==1?"s":""} \u00b7 preencher alturas no cabe\u00e7alho</span></div>
                 <div style="padding:3px 13px;font-size:8px;color:#999;background:#fafafa;border:1px solid #e0e0e0;border-top:none">
@@ -1097,7 +1104,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
               <td class="tdcl">${getSiglaEquipe(a)}</td>
               ${alturasRes.map(h => {
                 const key = h.toFixed(2);
-                const tent = Array.isArray(tentsObj[key]) ? tentsObj[key] : 
+                const tent = Array.isArray(tentsObj[key]) ? tentsObj[key] :
                              Array.isArray(tentsObj[String(h)]) ? tentsObj[String(h)] : ["","",""];
                 return [0,1,2].map(i => {
                   const v = tent[i] || "";
@@ -1124,7 +1131,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
             const lblG = totalGruposR > 1 ? `GRUPO ${gi+1} / ${totalGruposR}` : null;
             pags.push(`
               <div class="${pgClass(s)}">
-                <style>${cssAltura}</style>
+                <style>${cssAlturaRes}</style>
                 ${cabPrv(s, numPag, lblG)}
                 <div class="blk blk-cfin">RESULTADO<span class="blk-s">${classAltura.length} classificado${classAltura.length!==1?"s":""}</span></div>
                 ${avisoDesempateAlt}
