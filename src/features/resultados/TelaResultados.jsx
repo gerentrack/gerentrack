@@ -251,8 +251,12 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
         const classificados = Object.entries(res)
           .map(([atletaId, raw]) => {
             const marca = (raw != null && typeof raw === "object") ? (raw.marca ?? null) : raw;
-            const status = (raw != null && typeof raw === "object") ? (raw.status || "") : "";
+            let status = (raw != null && typeof raw === "object") ? (raw.status || "") : "";
             const dqRegra = (raw != null && typeof raw === "object") ? (raw.dqRegra || "") : "";
+            // Detectar status pela marca quando status está vazio (ex: marca="NM" sem status="NM")
+            if (!status && marca != null && ["DNS","DNF","NM","NH","DQ"].includes(String(marca).toUpperCase())) {
+              status = String(marca).toUpperCase();
+            }
             const isStatus = ["DNS","DNF","NM","NH","DQ"].indexOf(status) !== -1;
             // Tenta achar pelo ID; se não achar (atleta excluído e reimportado),
             // recupera via inscrição pelo nome
