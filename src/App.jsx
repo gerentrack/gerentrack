@@ -338,22 +338,71 @@ function App() {
     setTela("home");
   };
 
-  // ── Guard: usuário local sem sessão Firebase Auth → forçar relogin ─────────
+  // ── Guard: usuário local sem sessão Firebase Auth → pedir relogin in-place ─
   // Acontece quando o app reabre ou abre em outro dispositivo: o localStorage
   // tem usuarioLogado mas o Firebase Auth não tem token válido.
+  // Em vez de navegar para a tela de login (perdendo dados em tela), mostra um
+  // modal de relogin por cima da tela atual.
+  const [reloginNecessario, setReloginNecessario] = useState(false);
+  const [reloginSenha, setReloginSenha] = useState("");
+  const [reloginErro, setReloginErro] = useState("");
+  const [reloginLoading, setReloginLoading] = useState(false);
+
   useEffect(() => {
     if (!usuarioLogado) return;
-    // Espera o onAuthStateChanged resolver (firebaseAuthed começa como !!auth.currentUser)
     const timeout = setTimeout(() => {
       if (!auth.currentUser) {
-        console.warn("[App] Sessão Firebase Auth ausente — forçando relogin");
-        setUsuarioLogado(null);
-        setPerfisDisponiveis([]);
-        setTela("login");
+        console.warn("[App] Sessão Firebase Auth ausente — solicitando relogin in-place");
+        setReloginNecessario(true);
       }
-    }, 2000); // 2s de tolerância para o auth resolver
+    }, 2000);
     return () => clearTimeout(timeout);
   }, [usuarioLogado, firebaseAuthed]);
+
+  // Quando a sessão Firebase Auth é restaurada (ex: após relogin), fechar o modal
+  useEffect(() => {
+    if (firebaseAuthed && reloginNecessario) {
+      setReloginNecessario(false);
+      setReloginSenha("");
+      setReloginErro("");
+    }
+  }, [firebaseAuthed, reloginNecessario]);
+
+  const handleRelogin = async () => {
+    const email = usuarioLogado?.email;
+    if (!email) {
+      // Sem email salvo, não tem como relogar in-place — fallback para login normal
+      setUsuarioLogado(null);
+      setPerfisDisponiveis([]);
+      setTela("login");
+      return;
+    }
+    setReloginLoading(true);
+    setReloginErro("");
+    try {
+      await signInWithEmailAndPassword(auth, email, reloginSenha);
+      // onAuthStateChanged vai setar firebaseAuthed=true → useEffect fecha o modal
+    } catch (err) {
+      if (err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
+        setReloginErro("Senha incorreta.");
+      } else if (err.code === "auth/too-many-requests") {
+        setReloginErro("Muitas tentativas. Aguarde alguns minutos.");
+      } else {
+        setReloginErro("Erro ao reconectar. Tente novamente.");
+      }
+    } finally {
+      setReloginLoading(false);
+    }
+  };
+
+  const handleReloginDesistir = () => {
+    setReloginNecessario(false);
+    setReloginSenha("");
+    setReloginErro("");
+    setUsuarioLogado(null);
+    setPerfisDisponiveis([]);
+    setTela("login");
+  };
 
   // ── Expiração de sessão ────────────────────────────────────────────────────
   const SESSAO_DURACAO_MS  = 24 * 60 * 60 * 1000; // 24 horas
@@ -1391,6 +1440,50 @@ function App() {
                 onClick={logout}
                 style={{ background: "transparent", color: "#888", border: "1px solid #2a2d3a", padding: "12px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" }}>
                 Sair agora
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal relogin in-place (sessão Firebase Auth expirada) ── */}
+      {reloginNecessario && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)", zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ background: "#0E1016", border: "1px solid #1976D244", borderRadius: 16, padding: "36px 40px", maxWidth: 380, width: "90%", textAlign: "center" }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>🔒</div>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 20, color: "#fff", marginBottom: 8, letterSpacing: 1 }}>
+              SESSÃO EXPIRADA
+            </div>
+            <div style={{ color: "#888", fontSize: 13, marginBottom: 20, lineHeight: 1.6 }}>
+              Sua sessão de autenticação expirou.<br />
+              Digite sua senha para reconectar sem perder os dados em tela.
+            </div>
+            <div style={{ color: "#aaa", fontSize: 12, marginBottom: 12 }}>
+              {usuarioLogado?.email}
+            </div>
+            <input
+              type="password"
+              placeholder="Senha"
+              value={reloginSenha}
+              onChange={e => setReloginSenha(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && !reloginLoading && handleRelogin()}
+              autoFocus
+              style={{ width: "100%", padding: "12px 14px", borderRadius: 8, border: "1px solid #2a2d3a", background: "#181a20", color: "#fff", fontSize: 14, fontFamily: "'Barlow', sans-serif", marginBottom: 10, boxSizing: "border-box", outline: "none" }}
+            />
+            {reloginErro && (
+              <div style={{ color: "#ff6b6b", fontSize: 12, marginBottom: 10 }}>{reloginErro}</div>
+            )}
+            <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 8 }}>
+              <button
+                onClick={handleRelogin}
+                disabled={reloginLoading || !reloginSenha}
+                style={{ background: reloginLoading || !reloginSenha ? "#333" : "linear-gradient(135deg, #1976D2, #1565C0)", color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: reloginLoading || !reloginSenha ? "not-allowed" : "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, opacity: reloginLoading ? 0.6 : 1 }}>
+                {reloginLoading ? "Reconectando..." : "Reconectar"}
+              </button>
+              <button
+                onClick={handleReloginDesistir}
+                style={{ background: "transparent", color: "#888", border: "1px solid #2a2d3a", padding: "12px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" }}>
+                Sair
               </button>
             </div>
           </div>
