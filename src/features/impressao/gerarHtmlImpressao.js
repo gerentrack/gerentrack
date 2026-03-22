@@ -106,20 +106,20 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
       box-shadow:0 4px 24px rgba(0,0,0,.2);}
     .pg.landscape{width:297mm;min-height:210mm;padding:10mm 12mm 8mm;}
     .cab{display:flex;align-items:flex-start;justify-content:space-between;
-      padding-bottom:7px;margin-bottom:7px;border-bottom:3px solid #111;gap:10px;
+      padding-bottom:4px;margin-bottom:4px;border-bottom:2px solid #111;gap:6px;
       font-size:initial;}
     .cab-logo{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;
       color:#111;letter-spacing:2px;white-space:nowrap;display:flex;align-items:center;gap:6px;}
-    .cab-logo img{max-height:18mm;max-width:32mm;object-fit:contain;}
-    .cab-left{display:flex;align-items:center;min-width:32mm;}
-    .cab-left img{max-height:18mm;max-width:32mm;object-fit:contain;}
+    .cab-logo img{max-height:9mm;max-width:20mm;object-fit:contain;}
+    .cab-left{display:flex;align-items:center;min-width:20mm;}
+    .cab-left img{max-height:9mm;max-width:20mm;object-fit:contain;}
     .cab-c{flex:1;text-align:center;}
-    .cab-ev{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;
+    .cab-ev{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;
       color:#111;text-transform:uppercase;letter-spacing:.5px;line-height:1.2;}
-    .cab-dt{font-size:10px;color:#555;margin-top:3px;}
+    .cab-dt{font-size:8px;color:#555;margin-top:2px;}
     .cab-n{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
       color:#888;text-align:right;white-space:nowrap;}
-    .cab-nbig{font-size:20px;font-weight:900;color:#bbb;display:block;line-height:1.1;}
+    .cab-nbig{font-size:14px;font-weight:900;color:#bbb;display:block;line-height:1.1;}
     .faixa{background:#111;padding:5px 13px;border-radius:3px 3px 0 0;
       display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;}
     .faixa-nome{font-family:'Barlow Condensed',sans-serif;font-size:22px;
@@ -145,7 +145,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
     th{padding:3px 3px;font-size:9px;font-weight:700;font-family:'Barlow Condensed',sans-serif;
       letter-spacing:.6px;text-align:center;border:1px solid #444;text-transform:uppercase;}
     .thal{text-align:left!important;padding-left:5px!important;}
-    td{padding:3px 3px;font-size:11px;border:1px solid #ddd;text-align:center;vertical-align:middle;line-height:1.2;}
+    td{padding:2px 3px;font-size:10px;border:1px solid #ddd;text-align:center;vertical-align:middle;line-height:1.15;}
     .tdal{text-align:left;padding-left:5px;}
     .tdn{font-weight:700;color:#888;font-size:10px;width:22px;}
     .tdcbat{width:48px;font-size:9px;color:#555;text-align:center;}
@@ -158,7 +158,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
     .tdpc{width:42px;background:#f0f7ea;font-size:9px;color:#446;}
     .tdp{width:30px;background:#f0f0f0;font-weight:700;font-size:12px;}
     .tdpf{width:30px;background:#fff8d0;font-weight:800;font-size:13px;color:#b8860b;border:1px solid #1976D244!important;}
-    .anome{font-weight:600;font-size:11px;color:#111;}
+    .anome{font-weight:600;font-size:10px;color:#111;}
     .par{background:#fff;} .imp{background:#f8f8f8;}
     .exc td{color:#bbb!important;} .exc .anome{color:#ccc!important;}
     .cond-prova{display:flex;justify-content:space-between;gap:6px;padding:4px 10px;
@@ -176,7 +176,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
     .rod-ass{flex:1;max-width:185px;}
     .rod-ln{border-bottom:1px solid #aaa;margin-bottom:4px;height:22px;}
     .rod-lb{font-size:9px;color:#888;text-align:center;font-style:italic;}
-    .rod-info{font-size:9px;color:#aaa;text-align:center;line-height:1.4;}
+    .rod-info{font-size:9px;color:#aaa;text-align:center;line-height:0.5;margin-bottom:0;padding-bottom:0;}
     @media print{
       @page{size:A4 portrait;margin:0;}
       @page landscape-page{size:A4 landscape;margin:0;}
@@ -219,13 +219,13 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
       </div>
       <div class="rod-info">
         <div>Gerado em: ${dataGeracao}</div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:2px;">
+        <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:0;margin-bottom:0;">
           <span>Plataforma de Competições -</span>
           <img src="${_gtLogo}" alt="GERENTRACK" style="max-height:20mm;object-fit:contain;opacity:0.7;vertical-align:middle;" />
         </div>
       </div>
     </div>
-    ${evento.logoRodape ? `<div style="margin-top:10px;text-align:center;"><img src="${evento.logoRodape}" alt="" style="max-width:100%;max-height:28mm;object-fit:contain;"/></div>` : ""}
+    ${evento.logoRodape ? `<div style="margin-top:1px;text-align:center;"><img src="${evento.logoRodape}" alt="" style="max-width:100%;max-height:28mm;object-fit:contain;"/></div>` : ""}
     </div>`;
   };
 
@@ -239,7 +239,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
         <div class="cab-dt">\u{1F4C5} ${dataEvento} \u00a0\u00b7\u00a0 \u{1F4CD} ${_getLocalEventoDisplay(evento)}</div>
       </div>
       <div style="text-align:right;">
-        ${evento.logoCabecalhoDireito ? `<div class="cab-logo"><img src="${evento.logoCabecalhoDireito}" alt="" style="max-height:18mm;max-width:32mm;object-fit:contain;" /></div>` : ""}
+        ${evento.logoCabecalhoDireito ? `<div class="cab-logo"><img src="${evento.logoCabecalhoDireito}" alt="" style="max-height:9mm;max-width:20mm;object-fit:contain;" /></div>` : ""}
         <div class="cab-n">
           ${"`"}${lblExtra ? `<span style="font-size:10px;color:#1976D2;font-weight:800;letter-spacing:1px">${lblExtra}</span><br>` : ""}${"`"}
           S\u00fam. <span class="cab-nbig">#${"`"}${String(num).padStart(3,"0")}${"`"}</span>
@@ -344,7 +344,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
   let numPag = 0;
   const pags = [];
   const MAX_TOP8 = 8;  // Regra técnica: top 8 avançam para T4-T6
-  const MAX = 50;      // Limite de exibição por página — auto-scale ajusta a fonte
+  const MAX = 30;      // Limite de exibição por página
 
   // ── Escala de fonte proporcional ao número de atletas por página ───────────
   // Quanto menos atletas, maior a fonte — preenche melhor a página.
@@ -1305,8 +1305,8 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
         var pxPerMm = 96 / 25.4; // ~3.78 px/mm
         var availPx = availMm * pxPerMm;
 
-        // Reservar espaço fixo para o rodapé (~35mm)
-        var rodapeMm = 35;
+        // Reservar espaço fixo para o rodapé (~45mm)
+        var rodapeMm = 45;
         availPx -= rodapeMm * pxPerMm;
 
         var scale = 100;
