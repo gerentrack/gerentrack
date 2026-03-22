@@ -168,6 +168,88 @@ const sty = {
 };
 
 /* ════════════════════════════════════════════════════════════════════════════
+   CondicoesProvaPanel — painel de condições (horário/umidade/temp) com estado
+   local para evitar re-render a cada keystroke. Salva no blur.
+   ════════════════════════════════════════════════════════════════════════════ */
+function CondicoesProvaPanel({ eid, filtroProva, catId, filtroSexo, eventoAtual, editarEvento }) {
+  const condKey = `${eid}_${filtroProva}_${catId}_${filtroSexo}`;
+  const condAll = eventoAtual.condicoesProva || {};
+  const condSalva = condAll[condKey] || {};
+
+  const [local, setLocal] = React.useState(condSalva);
+  const prevKeyRef = React.useRef(condKey);
+
+  // Resetar estado local quando a chave muda (troca de prova/cat/sexo)
+  React.useEffect(() => {
+    if (prevKeyRef.current !== condKey) {
+      prevKeyRef.current = condKey;
+      setLocal(condAll[condKey] || {});
+    }
+  }, [condKey, condAll]);
+
+  const salvar = (campo, val) => {
+    const novoLocal = { ...local, [campo]: val };
+    setLocal(novoLocal);
+    const novas = { ...(eventoAtual.condicoesProva || {}), [condKey]: novoLocal };
+    editarEvento({ ...eventoAtual, condicoesProva: novas });
+  };
+
+  const handleChange = (campo, val) => {
+    setLocal(prev => ({ ...prev, [campo]: val }));
+  };
+
+  const handleBlur = (campo) => {
+    salvar(campo, local[campo] || "");
+  };
+
+  const inputSt = { background: "#0D0E12", border: "1px solid #1E2130", borderRadius: 6, padding: "6px 10px", color: "#fff", fontSize: 13, width: 100, textAlign: "center", outline: "none" };
+  const lblSt = { color: "#888", fontSize: 11, marginBottom: 2 };
+  const grpSt = { display: "flex", flexDirection: "column", alignItems: "center" };
+
+  return (
+    <div style={{ background: "#0a0b10", border: "1px solid #1E2130", borderRadius: 10, padding: "14px 18px", marginBottom: 16 }}>
+      <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-end" }}>
+        <div style={{ flex: 1, minWidth: 280 }}>
+          <div style={{ color: "#7cfc7c", fontSize: 12, fontWeight: 700, marginBottom: 8, letterSpacing: 1 }}>▶ INÍCIO DA PROVA</div>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <div style={grpSt}>
+              <div style={lblSt}>Horário</div>
+              <input type="time" style={{ ...inputSt, width: 110 }} value={local.inicioHorario || ""} onChange={e => handleChange("inicioHorario", e.target.value)} onBlur={() => handleBlur("inicioHorario")} />
+            </div>
+            <div style={grpSt}>
+              <div style={lblSt}>Umidade (%)</div>
+              <input type="number" min="0" max="100" step="1" placeholder="—" style={inputSt} value={local.inicioUmidade || ""} onChange={e => handleChange("inicioUmidade", e.target.value)} onBlur={() => handleBlur("inicioUmidade")} />
+            </div>
+            <div style={grpSt}>
+              <div style={lblSt}>Temp. (°C)</div>
+              <input type="number" step="0.1" placeholder="—" style={inputSt} value={local.inicioTemp || ""} onChange={e => handleChange("inicioTemp", e.target.value)} onBlur={() => handleBlur("inicioTemp")} />
+            </div>
+          </div>
+        </div>
+        <div style={{ width: 1, height: 60, background: "#1E2130", alignSelf: "center" }} />
+        <div style={{ flex: 1, minWidth: 280 }}>
+          <div style={{ color: "#ff6b6b", fontSize: 12, fontWeight: 700, marginBottom: 8, letterSpacing: 1 }}>⏹ TÉRMINO DA PROVA</div>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <div style={grpSt}>
+              <div style={lblSt}>Horário</div>
+              <input type="time" style={{ ...inputSt, width: 110 }} value={local.terminoHorario || ""} onChange={e => handleChange("terminoHorario", e.target.value)} onBlur={() => handleBlur("terminoHorario")} />
+            </div>
+            <div style={grpSt}>
+              <div style={lblSt}>Umidade (%)</div>
+              <input type="number" min="0" max="100" step="1" placeholder="—" style={inputSt} value={local.terminoUmidade || ""} onChange={e => handleChange("terminoUmidade", e.target.value)} onBlur={() => handleBlur("terminoUmidade")} />
+            </div>
+            <div style={grpSt}>
+              <div style={lblSt}>Temp. (°C)</div>
+              <input type="number" step="0.1" placeholder="—" style={inputSt} value={local.terminoTemp || ""} onChange={e => handleChange("terminoTemp", e.target.value)} onBlur={() => handleBlur("terminoTemp")} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
    BlocoDigitarCategoria — sub-componente que renderiza a seção de digitação
    para UMA categoria específica (catId). Possui estado próprio.
    ════════════════════════════════════════════════════════════════════════════ */
@@ -678,62 +760,7 @@ function BlocoDigitarCategoria({
       </div>
 
       {/* ── Condições da Prova: Horário / Umidade / Temperatura ── */}
-      {(() => {
-        const condKey = `${eid}_${filtroProva}_${catId}_${filtroSexo}`;
-        const condAll = eventoAtual.condicoesProva || {};
-        const cond = condAll[condKey] || {};
-        const setCond = (campo, val) => {
-          const novas = { ...condAll, [condKey]: { ...cond, [campo]: val } };
-          editarEvento({ ...eventoAtual, condicoesProva: novas });
-        };
-        const inputSt = { background: "#0D0E12", border: "1px solid #1E2130", borderRadius: 6, padding: "6px 10px", color: "#fff", fontSize: 13, width: 100, textAlign: "center" };
-        const lblSt = { color: "#888", fontSize: 11, marginBottom: 2 };
-        const grpSt = { display: "flex", flexDirection: "column", alignItems: "center" };
-        return (
-          <div style={{ background: "#0a0b10", border: "1px solid #1E2130", borderRadius: 10, padding: "14px 18px", marginBottom: 16 }}>
-            <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-end" }}>
-              {/* INÍCIO */}
-              <div style={{ flex: 1, minWidth: 280 }}>
-                <div style={{ color: "#7cfc7c", fontSize: 12, fontWeight: 700, marginBottom: 8, letterSpacing: 1 }}>▶ INÍCIO DA PROVA</div>
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                  <div style={grpSt}>
-                    <div style={lblSt}>Horário</div>
-                    <input type="time" style={{ ...inputSt, width: 110 }} value={cond.inicioHorario || ""} onChange={e => setCond("inicioHorario", e.target.value)} />
-                  </div>
-                  <div style={grpSt}>
-                    <div style={lblSt}>Umidade (%)</div>
-                    <input type="number" min="0" max="100" step="1" placeholder="—" style={inputSt} value={cond.inicioUmidade || ""} onChange={e => setCond("inicioUmidade", e.target.value)} />
-                  </div>
-                  <div style={grpSt}>
-                    <div style={lblSt}>Temp. (°C)</div>
-                    <input type="number" step="0.1" placeholder="—" style={inputSt} value={cond.inicioTemp || ""} onChange={e => setCond("inicioTemp", e.target.value)} />
-                  </div>
-                </div>
-              </div>
-              {/* Separador */}
-              <div style={{ width: 1, height: 60, background: "#1E2130", alignSelf: "center" }} />
-              {/* TÉRMINO */}
-              <div style={{ flex: 1, minWidth: 280 }}>
-                <div style={{ color: "#ff6b6b", fontSize: 12, fontWeight: 700, marginBottom: 8, letterSpacing: 1 }}>⏹ TÉRMINO DA PROVA</div>
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                  <div style={grpSt}>
-                    <div style={lblSt}>Horário</div>
-                    <input type="time" style={{ ...inputSt, width: 110 }} value={cond.terminoHorario || ""} onChange={e => setCond("terminoHorario", e.target.value)} />
-                  </div>
-                  <div style={grpSt}>
-                    <div style={lblSt}>Umidade (%)</div>
-                    <input type="number" min="0" max="100" step="1" placeholder="—" style={inputSt} value={cond.terminoUmidade || ""} onChange={e => setCond("terminoUmidade", e.target.value)} />
-                  </div>
-                  <div style={grpSt}>
-                    <div style={lblSt}>Temp. (°C)</div>
-                    <input type="number" step="0.1" placeholder="—" style={inputSt} value={cond.terminoTemp || ""} onChange={e => setCond("terminoTemp", e.target.value)} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
+      <CondicoesProvaPanel eid={eid} filtroProva={filtroProva} catId={catId} filtroSexo={filtroSexo} eventoAtual={eventoAtual} editarEvento={editarEvento} />
 
       {/* Banner de resultados existentes */}
       {atletasNaProva.some(a => resExistentes[a.id] != null) && Object.keys(marcas).length === 0 && (
