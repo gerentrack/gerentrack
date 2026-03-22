@@ -268,6 +268,18 @@ function BlocoDigitarCategoria({
     provaSel.tipo === "salto" &&
     (provaSel.id.includes("altura") || provaSel.id.includes("vara"));
 
+  // Helper: status do atleta (DNS, NM, DQ, DNF, ou "")
+  const getStatusAtleta = (a) => {
+    const d = { ...(resExistentes[a.id] || {}), ...(marcas[a.id] || {}) };
+    return d.status || "";
+  };
+  // DNS/DQ/DNF = atleta não competiu ou foi desqualificado → campos bloqueados
+  // NM = atleta competiu mas falhou (todos X) → campos NÃO bloqueados
+  const isStatusInativo = (a) => {
+    const st = getStatusAtleta(a);
+    return st === "DNS" || st === "DQ" || st === "DNF";
+  };
+
   // ── cronometragem: detectar se prova componente tem tabelas MAN+ELE ────────
   const provaPossuiDuasCrono = provaSel?.origemCombinada && provaSel?.combinadaId && provaSel?.provaOriginalSufixo
     ? temDuasCronometragens(provaSel.combinadaId, provaSel.provaOriginalSufixo) : false;
@@ -303,6 +315,20 @@ function BlocoDigitarCategoria({
       cp[atletaId] = atl;
       return cp;
     });
+  };
+
+  // Auto-NM para altura: atleta tem tentativas mas nenhum "O"
+  const isAutoNMAltura = (a) => {
+    const tent = tentativas[a.id] || {};
+    const alt = Array.isArray(alturas) ? alturas.filter(h => h) : [];
+    if (alt.length === 0) return false;
+    const temTentativa = alt.some(h => {
+      const arr = tent[h] || [];
+      return Array.isArray(arr) && arr.some(t => t === "X" || t === "O");
+    });
+    if (!temTentativa) return false;
+    // Tem tentativas mas nenhum O → NM
+    return !alt.some(h => (tent[h] || []).includes("O"));
   };
 
   const melhorAltura = (atletaId) => {
@@ -436,6 +462,19 @@ function BlocoDigitarCategoria({
           alturas: alturasNorm,
           tentativas: _normTent(tentativas[a.id] || {}),
         }});
+      } else {
+        // Auto-NM: atleta tem tentativas mas nenhum "O" (não transpôs nenhuma altura)
+        const tent = tentativas[a.id] || {};
+        const temTentativa = alturasNorm.some(h => {
+          const arr = tent[h] || tent[parseFloat(h)?.toFixed(2)] || [];
+          return Array.isArray(arr) && arr.some(t => t === "X" || t === "O");
+        });
+        if (temTentativa) {
+          entradas.push({ atletaId: a.id, marca: "NM", tentData: {
+            alturas: alturasNorm,
+            tentativas: _normTent(tent),
+          }, statusData: { status: "NM" } });
+        }
       }
     });
     if (entradas.length > 0) {
@@ -1018,17 +1057,30 @@ function BlocoDigitarCategoria({
                 </tr>
               </thead>
               <tbody>
-                {atletasNaProva.map((a, ai) => {
-                  const melhor = melhorAltura(a.id);
+                {/* Ordenar: ativos primeiro, inativos (DNS/DQ/DNF) e NM no final */}
+                {[...atletasNaProva].sort((a, b) => {
+                  const aInativo = (isStatusInativo(a) || (melhorAltura(a.id) == null && isAutoNMAltura(a))) ? 1 : 0;
+                  const bInativo = (isStatusInativo(b) || (melhorAltura(b.id) == null && isAutoNMAltura(b))) ? 1 : 0;
+                  return aInativo - bInativo;
+                }).map((a, ai) => {
+                  const atletaInativo = isStatusInativo(a);
+                  const atletaNMAltura = !atletaInativo && melhorAltura(a.id) == null && isAutoNMAltura(a);
+                  const foraDeProva = atletaInativo || atletaNMAltura;
+                  const melhor = foraDeProva ? null : melhorAltura(a.id);
                   return (
-                    <tr key={a.id} style={{ background: ai%2===0 ? "#0e0f14" : "#111318" }}>
+                    <tr key={a.id} style={{ background: ai%2===0 ? "#0e0f14" : "#111318", opacity: foraDeProva ? 0.4 : 1 }}>
                       {/* nome */}
                       <td style={{ padding:"8px 12px", borderBottom:"1px solid #1E2130", whiteSpace:"nowrap" }}>
                         <div style={{ fontWeight:700, color:"#fff", fontSize:13 }}>{a.nome}</div>
-                        <div style={{ color:"#555", fontSize:11 }}>{getExibicaoEquipe(a, equipes)||"—"}</div>
+                        <div style={{ color:"#555", fontSize:11 }}>{getExibicaoEquipe(a, equipes)||"—"}{atletaInativo ? ` — ${getStatusAtleta(a)}` : atletaNMAltura ? " — NM" : ""}</div>
                       </td>
                       {/* tentativas por altura */}
                       {(Array.isArray(alturas) ? alturas : []).filter(h=>h!=="").flatMap((h, hIdx) => {
+                        if (atletaInativo) return [0,1,2].map(ti => (
+                          <td key={`${h}-${ti}`} style={{ padding:"6px 4px", textAlign:"center", borderBottom:"1px solid #1E2130", borderLeft: ti===0 ? "2px solid #1E2130" : "1px solid #0d0e12", background:"#0a0a0e" }}>
+                            <div style={{ fontSize:9, color:"#444" }}>—</div>
+                          </td>
+                        ));
                         const rawTent = tentativas[a.id]?.[h];
                         const tent    = Array.isArray(rawTent) ? rawTent : ["","",""];
                         const passou  = tent.includes("O");
@@ -1340,18 +1392,6 @@ function BlocoDigitarCategoria({
               if (va < vb) return  1;
             }
             return 0;
-          };
-
-          // Helper: status do atleta (DNS, NM, DQ, DNF, ou "")
-          const getStatusAtleta = (a) => {
-            const d = { ...(resExistentes[a.id] || {}), ...(marcas[a.id] || {}) };
-            return d.status || "";
-          };
-          // DNS/DQ/DNF = atleta não competiu ou foi desqualificado → campos bloqueados
-          // NM = atleta competiu mas falhou (todos X) → campos NÃO bloqueados (NM é derivado)
-          const isStatusInativo = (a) => {
-            const st = getStatusAtleta(a);
-            return st === "DNS" || st === "DQ" || st === "DNF";
           };
 
           // Auto-detecta NM: T1-T3 todos X (sem marca válida nenhuma)
@@ -1764,17 +1804,19 @@ function BlocoDigitarCategoria({
                               Série {_si.serie}
                             </td></tr>
                           )}
-                          <tr style={s.tr}>
+                          <tr style={{ ...s.tr, opacity: isStatusInativo(a) ? 0.4 : 1 }}>
                             <Td><strong style={{ color:"#aaa", fontSize:12 }}>{(numeracaoPeito?.[eventoAtual?.id]||{})[a.id]||""}</strong></Td>
                             <Td><strong style={{ color:"#fff" }}>{a.nome}</strong></Td>
                             <Td>{getExibicaoEquipe(a, equipes)||"—"}</Td>
                             {_serDigitar?.series?.length > 0 && <Td><span style={{ color:"#88aaff", fontWeight:700 }}>{_si.serie||"—"}</span></Td>}
                             {temRaia && (
                               <Td><input type="number" min="1" max="10" style={inputSmall} placeholder="4"
+                                disabled={isStatusInativo(a)}
                                 value={raiaVal} onChange={e => setDado(a,"raia",e.target.value)} /></Td>
                             )}
                             {temVento && (
                               <Td><input type="text" inputMode="decimal" style={inputSmall} placeholder="+1,2"
+                                disabled={isStatusInativo(a)}
                                 value={exibirMarcaInput(ventoVal)} onChange={e => setDado(a,"vento",normalizarMarca(e.target.value))} /></Td>
                             )}
                             <Td>
