@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { CATEGORIAS, ESTADOS_BR } from "../../shared/constants/categorias";
@@ -22,42 +22,6 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
   const [showNovoTipo, setShowNovoTipo] = useState(false);
   const [editTipoId, setEditTipoId] = useState(null);
   const [abaRecordes, setAbaRecordes] = useState("registros"); // "registros" | "pendencias" | "historico"
-
-  // ── Migração: corrigir provaId dos registros existentes ───────────────────
-  const _migracaoRef = useRef(false);
-  useEffect(() => {
-    if (_migracaoRef.current || !recordes || recordes.length === 0) return;
-    _migracaoRef.current = true;
-    const allProvas = todasAsProvas();
-    // Strip parênteses para match parcial (ex: "Arremesso do Peso (7,26kg)" → "Arremesso do Peso")
-    const stripParen = (s) => s.replace(/\s*\(.*?\)/g, "").trim();
-    let corrigidos = 0;
-    const recordesCorrigidos = recordes.map(tipo => {
-      const novosRegistros = tipo.registros.map(reg => {
-        if (!reg.provaNome || !reg.categoriaId || !reg.sexo) return reg;
-        const prefixoEsperado = reg.sexo + "_" + reg.categoriaId;
-        // Já correto?
-        if (reg.provaId && reg.provaId.startsWith(prefixoEsperado)) return reg;
-        // 1) Match exato por nome + prefixo
-        let match = allProvas.find(p => p.nome === reg.provaNome && p.id.startsWith(prefixoEsperado));
-        // 2) Match parcial: ignorar parênteses (peso/dardo/disco/martelo/barreiras têm specs diferentes por categoria)
-        if (!match) {
-          const nomeBase = stripParen(reg.provaNome).toLowerCase();
-          match = allProvas.find(p => stripParen(p.nome).toLowerCase() === nomeBase && p.id.startsWith(prefixoEsperado));
-        }
-        if (match && match.id !== reg.provaId) {
-          corrigidos++;
-          return { ...reg, provaId: match.id };
-        }
-        return reg;
-      });
-      return { ...tipo, registros: novosRegistros };
-    });
-    if (corrigidos > 0) {
-      console.log(`[Recordes] Migração: corrigido provaId de ${corrigidos} registro(s)`);
-      setRecordes(recordesCorrigidos);
-    }
-  }, [recordes]);
 
   // Escopos geográficos
   const ESCOPOS = [
