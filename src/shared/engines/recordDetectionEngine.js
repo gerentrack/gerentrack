@@ -14,6 +14,13 @@ import { _marcaParaMs }       from '../formatters/utils.jsx';
 import { _getClubeAtleta }    from '../formatters/utils.jsx';
 import { _getLocalRecorde }   from '../formatters/utils.jsx';
 
+const _nomeProvaMatch = (a, b) => {
+  if (!a || !b) return false;
+  if (a === b) return true;
+  const strip = (s) => s.replace(/\s*\(.*?\)/g, "").trim().toLowerCase();
+  return strip(a) === strip(b);
+};
+
 const RecordDetectionEngine = {
 
   // Compara marca do atleta contra o recorde existente
@@ -157,7 +164,7 @@ const RecordDetectionEngine = {
           const regsRef = hasSnap ? (snapshot[tipo.id] || []) : (tipo.registros || []);
           // Match por provaId exato, ou por nome da prova + categoria + sexo
           const regExistente = regsRef.find(r =>
-            (r.provaId === provId || (!r.provaId && r.provaNome === prova.nome) || (r.provaNome === prova.nome))
+            (r.provaId === provId || _nomeProvaMatch(r.provaNome, prova.nome))
             && r.categoriaId === catId && r.sexo === sexo
           );
 

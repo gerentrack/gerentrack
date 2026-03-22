@@ -16,6 +16,13 @@ import { CombinedScoringEngine }   from './combinedScoringEngine';
 import { _getEquipeIdAtleta }      from '../formatters/utils.jsx';
 import { _marcaParaMs }            from '../formatters/utils.jsx';
 
+const _nomeProvaMatch = (a, b) => {
+  if (!a || !b) return false;
+  if (a === b) return true;
+  const strip = (s) => s.replace(/\s*\(.*?\)/g, "").trim().toLowerCase();
+  return strip(a) === strip(b);
+};
+
 // ─── TEAM SCORING ENGINE ────────────────────────────────────────────────────
 // Responsável pelo cálculo de pontuação por equipes
 const TeamScoringEngine = {
@@ -410,7 +417,7 @@ const TeamScoringEngine = {
 
           // Buscar recorde de referência para esta prova/cat/sexo (match por nome quando provaId difere por categoria)
           const snapRec = regsRef.find(r =>
-            (r.provaId === provId || (!r.provaId && r.provaNome === prova.nome) || (r.provaNome === prova.nome))
+            (r.provaId === provId || _nomeProvaMatch(r.provaNome, prova.nome))
             && r.categoriaId === catId && r.sexo === sexo
           );
           if (!snapRec) return;

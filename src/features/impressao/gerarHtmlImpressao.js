@@ -5,6 +5,13 @@ import { RecordHelper } from "../../shared/engines/recordHelper";
 import { nPernasRevezamento } from "../../shared/athletics/provasDef";
 import { TeamScoringEngine } from "../../shared/engines/teamScoringEngine";
 
+const _nomeProvaMatch = (a, b) => {
+  if (!a || !b) return false;
+  if (a === b) return true;
+  const strip = (s) => s.replace(/\s*\(.*?\)/g, "").trim().toLowerCase();
+  return strip(a) === strip(b);
+};
+
 // ─── GERADOR DE HTML DE IMPRESSÃO ─────────────────────────────────────────────
 function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = {}, numPeito = {}, equipes = [], recordesAll = [], opts = {}) {
   const getClubeAtleta = (a) => _getClubeAtleta(a, equipes);
@@ -250,7 +257,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
         const tipo = recordesAll.find(r => r.id === recId);
         if (!tipo) return;
         const reg = tipo.registros.find(r =>
-          (r.provaId === s.prova.id || (!r.provaId && r.provaNome === s.prova.nome) || (r.provaNome === s.prova.nome))
+          (r.provaId === s.prova.id || _nomeProvaMatch(r.provaNome, s.prova.nome))
           && r.categoriaId === s.categoria.id && r.sexo === s.sexo
         );
         if (reg) {

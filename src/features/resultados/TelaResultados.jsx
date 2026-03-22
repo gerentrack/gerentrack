@@ -147,6 +147,14 @@ const getExibicaoEquipe = (atleta, equipes) => {
   return atleta?.clube || "—";
 };
 
+// Match de nome de prova ignorando parênteses (specs de implemento diferem por categoria)
+const _nomeProvaMatch = (a, b) => {
+  if (!a || !b) return false;
+  if (a === b) return true;
+  const strip = (s) => s.replace(/\s*\(.*?\)/g, "").trim().toLowerCase();
+  return strip(a) === strip(b);
+};
+
 function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogado, eventoAtual, numeracaoPeito, equipes, getClubeAtleta, editarEvento, recordes }) {
   const s = useStylesResponsivos(styles);
   const [filtroProva, setFiltroProva] = useState("todas");
@@ -1564,7 +1572,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                                   if (!tipo) return;
                                   const regsRef = hasSnap ? (snap[tipo.id] || []) : (tipo.registros || []);
                                   const sr = regsRef.find(r =>
-                                    (r.provaId === b.prova.id || (!r.provaId && r.provaNome === b.prova.nome) || (r.provaNome === b.prova.nome))
+                                    (r.provaId === b.prova.id || _nomeProvaMatch(r.provaNome, b.prova.nome))
                                     && r.categoriaId === b.categoria.id && r.sexo === b.sexo
                                   );
                                   if (!sr) return;
@@ -1591,7 +1599,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                               const regsRef = hasSnap ? (snapshot[tipo.id] || []) : (tipo.registros || []);
                               // Match por provaId exato, ou por nome da prova + categoria + sexo
                               const snapRec = regsRef.find(r =>
-                                (r.provaId === b.prova.id || (!r.provaId && r.provaNome === b.prova.nome) || (r.provaNome === b.prova.nome))
+                                (r.provaId === b.prova.id || _nomeProvaMatch(r.provaNome, b.prova.nome))
                                 && r.categoriaId === b.categoria.id && r.sexo === b.sexo
                               );
                               if (!snapRec) return;
