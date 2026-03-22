@@ -252,7 +252,7 @@ function App() {
   const eventoAtualIdRef = useRef(eventoAtualId);
   eventoAtualIdRef.current = eventoAtualId;
 
-  const setTela = useCallback((novaTela) => {
+  const setTela = useCallback((novaTela, { replace = false } = {}) => {
     _setTela(novaTela);
     const evtId = eventoAtualIdRef.current;
     let path = "";
@@ -267,8 +267,32 @@ function App() {
     else if (novaTela === "recordes") path = "/recordes";
     else if (novaTela === "login") path = "/entrar";
     else if (novaTela === "home") path = "/";
-    if (path) window.history.replaceState(null, "", path);
+    if (path) {
+      const state = { tela: novaTela, eventoId: evtId || null };
+      if (replace) window.history.replaceState(state, "", path);
+      else         window.history.pushState(state, "", path);
+    }
   }, []);
+
+  // Resolver tela a partir do pathname (usado na inicialização e no popstate)
+  const resolverTelaDoPath = useCallback((path) => {
+    if (!path || path === "/") return { tela: "home" };
+    const matchResultados = path.match(/^\/competicao\/(.+)\/resultados$/);
+    if (matchResultados) {
+      const param = matchResultados[1];
+      const existe = eventos.find(e => e.slug === param || e.id === param);
+      if (existe) return { tela: "resultados", eventoId: existe.id };
+    }
+    const match = path.match(/^\/competicao\/(.+)$/);
+    if (match) {
+      const param = match[1];
+      const existe = eventos.find(e => e.slug === param || e.id === param);
+      if (existe) return { tela: "evento-detalhe", eventoId: existe.id };
+    }
+    if (path === "/recordes") return { tela: "recordes" };
+    if (path === "/entrar") return { tela: "login" };
+    return null;
+  }, [eventos]);
 
   // Ler path na inicialização (apenas uma vez quando eventos carregam)
   const hashProcessado = useRef(false);
@@ -276,31 +300,45 @@ function App() {
     if (hashProcessado.current) return;
     if (eventos.length === 0) return; // esperar Firestore carregar
     hashProcessado.current = true;
-    const path = window.location.pathname;
-    if (!path || path === "/") return;
-    const matchResultados = path.match(/^\/competicao\/(.+)\/resultados$/);
-    if (matchResultados) {
-      const param = matchResultados[1];
-      const existe = eventos.find(e => e.slug === param || e.id === param);
-      if (existe) {
-        setEventoAtualId(existe.id);
-        _setTela("resultados");
+    const resultado = resolverTelaDoPath(window.location.pathname);
+    if (resultado) {
+      if (resultado.eventoId) {
+        setEventoAtualId(resultado.eventoId);
+        eventoAtualIdRef.current = resultado.eventoId;
       }
-      return;
+      _setTela(resultado.tela);
+      // Setar state inicial no histórico para que popstate funcione
+      window.history.replaceState({ tela: resultado.tela, eventoId: resultado.eventoId || null }, "");
     }
-    const match = path.match(/^\/competicao\/(.+)$/);
-    if (match) {
-      const param = match[1];
-      const existe = eventos.find(e => e.slug === param || e.id === param);
-      if (existe) {
-        setEventoAtualId(existe.id);
-        _setTela("evento-detalhe");
-      }
-      return;
-    }
-    if (path === "/recordes") { _setTela("recordes"); return; }
-    if (path === "/entrar") { _setTela("login"); return; }
   }, [eventos.length]);
+
+  // ── Listener do botão voltar/avançar do navegador ──────────────────────────
+  useEffect(() => {
+    const handlePopState = (e) => {
+      const state = e.state;
+      if (state?.tela) {
+        if (state.eventoId) {
+          setEventoAtualId(state.eventoId);
+          eventoAtualIdRef.current = state.eventoId;
+        }
+        _setTela(state.tela);
+      } else {
+        // Fallback: resolver a partir da URL atual
+        const resultado = resolverTelaDoPath(window.location.pathname);
+        if (resultado) {
+          if (resultado.eventoId) {
+            setEventoAtualId(resultado.eventoId);
+            eventoAtualIdRef.current = resultado.eventoId;
+          }
+          _setTela(resultado.tela);
+        } else {
+          _setTela("home");
+        }
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [resolverTelaDoPath]);
 
   const login = (dados) => {
     const dadosComSessao = { ...dados, _loginEm: Date.now() };
@@ -1357,7 +1395,7 @@ function App() {
     _setTela("evento-detalhe");
     if (id) {
       const ev = eventos.find(e => e.id === id);
-      window.history.replaceState(null, "", `/competicao/${ev?.slug || id}`);
+      window.history.pushState({ tela: "evento-detalhe", eventoId: id }, "", `/competicao/${ev?.slug || id}`);
     }
   };
 
