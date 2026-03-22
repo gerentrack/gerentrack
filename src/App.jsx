@@ -340,6 +340,37 @@ function App() {
     return () => window.removeEventListener("popstate", handlePopState);
   }, [resolverTelaDoPath]);
 
+  // ── Migração: gerar slugs para eventos legados que não têm ─────────────────
+  const slugsMigrados = useRef(false);
+  useEffect(() => {
+    if (slugsMigrados.current) return;
+    if (eventos.length === 0) return;
+    const semSlug = eventos.filter(e => !e.slug);
+    if (semSlug.length === 0) { slugsMigrados.current = true; return; }
+    slugsMigrados.current = true;
+    const gerarSlugMigr = (nome, data, id) => {
+      const base = (nome || "competicao")
+        .toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s-]/g, "")
+        .trim()
+        .replace(/\s+/g, "-")
+        .slice(0, 60);
+      const ano = data ? data.slice(0, 4) : new Date().getFullYear();
+      return `${base}-${ano}`;
+    };
+    // Gera slugs garantindo unicidade
+    const slugsUsados = new Set(eventos.filter(e => e.slug).map(e => e.slug));
+    const atualizacoes = semSlug.map(ev => {
+      let slug = gerarSlugMigr(ev.nome, ev.data, ev.id);
+      if (slugsUsados.has(slug)) slug = `${slug}-${ev.id.slice(-4)}`;
+      slugsUsados.add(slug);
+      return { id: ev.id, slug };
+    });
+    _atualizarEventosEmLote(atualizacoes.map(u => ({ ...eventos.find(e => e.id === u.id), slug: u.slug })));
+    console.log(`[App] Slugs gerados para ${atualizacoes.length} evento(s) legado(s)`);
+  }, [eventos.length]);
+
   const login = (dados) => {
     const dadosComSessao = { ...dados, _loginEm: Date.now() };
     setUsuarioLogado(dadosComSessao);
