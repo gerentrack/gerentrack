@@ -123,6 +123,7 @@ import { useStorageSync }  from "./lib/storage/useStorageSync";
 // Migração de dados legados (executa imediatamente ao importar)
 import "./lib/migration/migrarDadosLegacy";
 import { ConfirmProvider, useConfirm } from "./features/ui/ConfirmContext";
+import { Analytics } from '@vercel/analytics/react';
 
 // SheetJS for Excel file handling - will be loaded via script tag in HTML
 
@@ -1555,6 +1556,7 @@ function App() {
         <span style={{ opacity: 0.4 }}>Desenvolvido por: GERENTRACK</span>
       </footer>
     </div>
+    <Analytics />
     </ConfirmProvider>
   );
 }
