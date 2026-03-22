@@ -483,6 +483,15 @@ function BlocoDigitarCategoria({
         if (melhor !== null && !isNaN(melhor) && melhor > 0) {
           const { marca, raia, vento, alturas: _a, tentativas: _t, status: _s, dqRegra: _dq, ...tentData } = d;
           entradas.push({ atletaId: a.id, marca: melhor, tentData });
+        } else {
+          // Auto-NM: T1-T3 todos X → marcar como NM
+          const t1 = String(d.t1 || "").trim().toUpperCase();
+          const t2 = String(d.t2 || "").trim().toUpperCase();
+          const t3 = String(d.t3 || "").trim().toUpperCase();
+          if (t1 === "X" && t2 === "X" && t3 === "X") {
+            const { marca, raia, vento, alturas: _a, tentativas: _t, status: _s, dqRegra: _dq, ...tentData } = d;
+            entradas.push({ atletaId: a.id, marca: "NM", tentData, statusData: { status: "NM" } });
+          }
         }
       });
       if (entradas.length > 0) {
@@ -1333,6 +1342,27 @@ function BlocoDigitarCategoria({
             return 0;
           };
 
+          // Helper: status do atleta (DNS, NM, DQ, DNF, ou "")
+          const getStatusAtleta = (a) => {
+            const d = { ...(resExistentes[a.id] || {}), ...(marcas[a.id] || {}) };
+            return d.status || "";
+          };
+          // DNS/DQ/DNF = atleta não competiu ou foi desqualificado → campos bloqueados
+          // NM = atleta competiu mas falhou (todos X) → campos NÃO bloqueados (NM é derivado)
+          const isStatusInativo = (a) => {
+            const st = getStatusAtleta(a);
+            return st === "DNS" || st === "DQ" || st === "DNF";
+          };
+
+          // Auto-detecta NM: T1-T3 todos X (sem marca válida nenhuma)
+          const isAutoNM = (a) => {
+            const d = { ...(resExistentes[a.id] || {}), ...(marcas[a.id] || {}) };
+            const t1 = String(d.t1 || "").trim().toUpperCase();
+            const t2 = String(d.t2 || "").trim().toUpperCase();
+            const t3 = String(d.t3 || "").trim().toUpperCase();
+            return t1 === "X" && t2 === "X" && t3 === "X";
+          };
+
           const tentsParcial = (a) => {
             const d = { ...(marcas[a.id] || {}), ...(resExistentes[a.id] || {}) };
             return [d.t1, d.t2, d.t3];
@@ -1344,10 +1374,14 @@ function BlocoDigitarCategoria({
           };
 
           const calcCP = (atletaId, todosAtletas) => {
+            // Atletas inativos (DNS/DQ/DNF) ou auto-NM (T1-T3 todos X) não têm CP
+            if (isStatusInativo({ id: atletaId })) return null;
+            if (isAutoNM({ id: atletaId })) return null;
             const seqMinha = sequenciaDesc(tentsParcial({ id: atletaId }));
             if (seqMinha.length === 0) return null;
             const rank = todosAtletas.filter(a => {
               if (a.id === atletaId) return false;
+              if (isStatusInativo(a) || isAutoNM(a)) return false;
               const seqDele = sequenciaDesc(tentsParcial(a));
               if (seqDele.length === 0) return false;
               return comparaSeq(seqDele, seqMinha) < 0;
@@ -1356,15 +1390,18 @@ function BlocoDigitarCategoria({
           };
 
           const melhorFinal = (a) => {
+            if (isStatusInativo(a) || isAutoNM(a)) return null;
             const d = { ...(resExistentes[a.id] || {}), ...(marcas[a.id] || {}) };
             return melhorDe([d.t1,d.t2,d.t3,d.t4,d.t5,d.t6]);
           };
 
           const calcPosicaoFinal = (atletaId, todosAtletas) => {
+            if (isStatusInativo({ id: atletaId }) || isAutoNM({ id: atletaId })) return null;
             const seqMinha = sequenciaDesc(tentsFinal({ id: atletaId }));
             if (seqMinha.length === 0) return null;
             const rank = todosAtletas.filter(a => {
               if (a.id === atletaId) return false;
+              if (isStatusInativo(a) || isAutoNM(a)) return false;
               const seqDele = sequenciaDesc(tentsFinal(a));
               if (seqDele.length === 0) return false;
               return comparaSeq(seqDele, seqMinha) < 0;
@@ -1409,14 +1446,20 @@ function BlocoDigitarCategoria({
                              posFinais.length > 0 && new Set(posFinais).size === posFinais.length;
                     })();
 
+                    // Atletas com status inativo ou auto-NM contam como "completos" para não bloquear a inversão
                     const todosComT3 = atletasComCP.every(({ a }) => {
+                      if (isStatusInativo(a) || isAutoNM(a)) return true;
                       const d = { ...(marcas[a.id] || {}), ...(resExistentes[a.id] || {}) };
                       const v3 = d.t3;
                       return v3 != null && String(v3).trim() !== "";
                     });
 
-                    const classificados = atletasComCP.filter(x => x.cp !== null && x.cp <= 8);
-                    const eliminados = atletasComCP.filter(x => x.cp === null || x.cp > 8);
+                    // Atletas inativos (DNS/DQ/DNF) e auto-NM ficam separados
+                    const isForaDeProva = (a) => isStatusInativo(a) || isAutoNM(a);
+                    const atletasAtivos = atletasComCP.filter(({ a }) => !isForaDeProva(a));
+                    const atletasInativos = atletasComCP.filter(({ a }) => isForaDeProva(a));
+                    const classificados = atletasAtivos.filter(x => x.cp !== null && x.cp <= 8);
+                    const eliminados = atletasAtivos.filter(x => x.cp === null || x.cp > 8);
 
                     const todosTop8ComT6 = todosComT3 && classificados.length > 0 && classificados.every(({ a }) => {
                       const d = { ...(marcas[a.id] || {}), ...(resExistentes[a.id] || {}) };
@@ -1430,7 +1473,9 @@ function BlocoDigitarCategoria({
                     let separadorIdx = -1;
 
                     if (estadoProva === 1) {
-                      ordemExibicao = atletasComCP;
+                      // Ordem original, inativos e NM auto no final
+                      const ativos = atletasComCP.filter(({ a }) => !isForaDeProva(a));
+                      ordemExibicao = [...ativos, ...atletasInativos];
                     } else if (estadoProva === 2) {
                       const top8Inverso = [...classificados].sort((a2, b2) => {
                         const cpA = a2.cp ?? 999;
@@ -1445,9 +1490,10 @@ function BlocoDigitarCategoria({
                         return a2.idxOriginal - b2.idxOriginal;
                       });
                       separadorIdx = top8Inverso.length;
-                      ordemExibicao = [...top8Inverso, ...elimOrdenados];
+                      // Inativos (DNS/NM/DQ) vão no final, após eliminados
+                      ordemExibicao = [...top8Inverso, ...elimOrdenados, ...atletasInativos];
                     } else {
-                      ordemExibicao = [...atletasComCP].sort((a2, b2) => {
+                      const ativos = [...atletasComCP].filter(({ a }) => !isForaDeProva(a)).sort((a2, b2) => {
                         const mfA = a2.mf, mfB = b2.mf;
                         if (mfA == null && mfB == null) return 0;
                         if (mfA == null) return 1;
@@ -1457,6 +1503,7 @@ function BlocoDigitarCategoria({
                         const seqB = sequenciaDesc(tentsFinal(b2.a));
                         return comparaSeq(seqA, seqB);
                       });
+                      ordemExibicao = [...ativos, ...atletasInativos];
                     }
 
                     return (
@@ -1504,8 +1551,13 @@ function BlocoDigitarCategoria({
                               {ordemExibicao.map(({ a, cp, mf, pos, idxOriginal }, i) => {
                                 const tGet = (t) => marcas[a.id]?.[t] ?? getExist(a, t, "");
                                 const top8 = cp !== null && cp <= 8;
-                                const isEliminado = estadoProva >= 2 && !top8;
+                                const atletaInativo = isStatusInativo(a);
+                                const atletaNM = isAutoNM(a);
+                                const isEliminado = (estadoProva >= 2 && !top8) || atletaInativo || atletaNM;
                                 const showSeparador = estadoProva === 2 && i === separadorIdx && eliminados.length > 0;
+                                // Separador para inativos (DNS/NM/DQ)
+                                const idxInativos = ordemExibicao.length - atletasInativos.length;
+                                const showSeparadorInativos = atletasInativos.length > 0 && i === idxInativos && !atletasInativos.some(x => x === ordemExibicao[0]);
 
                                 return (
                                   <React.Fragment key={a.id}>
@@ -1520,10 +1572,21 @@ function BlocoDigitarCategoria({
                                         </td>
                                       </tr>
                                     )}
+                                    {showSeparadorInativos && (
+                                      <tr>
+                                        <td colSpan={14} style={{
+                                          padding: "6px 12px", background: "#0a0a10",
+                                          borderTop: "2px solid #2a2a4a", borderBottom: "1px solid #1a1a2a",
+                                          fontSize: 11, color: "#888", fontWeight: 700, textAlign: "center"
+                                        }}>
+                                          🚫 DNS / NM / DQ
+                                        </td>
+                                      </tr>
+                                    )}
                                     <tr style={{
                                       ...s.tr,
                                       opacity: isEliminado ? 0.5 : 1,
-                                      background: isEliminado ? "#0a0808" : undefined,
+                                      background: atletaInativo ? "#08080a" : atletaNM ? "#0a0808" : isEliminado ? "#0a0808" : undefined,
                                     }}>
                                     <Td>
                                       {estadoProva === 3 ? (
@@ -1539,14 +1602,15 @@ function BlocoDigitarCategoria({
                                     {["t1","t2","t3"].map(t => {
                                       const isSaltoHoriz = provaSel?.nome?.includes("Distância") || provaSel?.nome?.includes("Triplo");
                                       return (
-                                      <td key={t} style={{ ...tdStyle, background:"#0d1a0d" }}>
+                                      <td key={t} style={{ ...tdStyle, background: atletaInativo ? "#0a0a0e" : "#0d1a0d" }}>
                                         <input
-                                          style={{ ...inputStyle, width:64, background:"#0a150a", color:"#7cfc7c" }}
+                                          style={{ ...inputStyle, width:64, background: atletaInativo ? "#0a0a0e" : "#0a150a", color: atletaInativo ? "#555" : "#7cfc7c", cursor: atletaInativo ? "not-allowed" : "text" }}
                                           placeholder="—"
-                                          value={exibirMarcaInput(tGet(t))}
+                                          disabled={atletaInativo}
+                                          value={atletaInativo ? "" : exibirMarcaInput(tGet(t))}
                                           onChange={e => setDado(a, t, normalizarMarca(e.target.value))}
                                         />
-                                        {isSaltoHoriz && (
+                                        {isSaltoHoriz && !atletaInativo && (
                                           <input
                                             style={{ ...inputStyle, width:54, background:"#0a1020", color:"#6ab4ff", fontSize:9, marginTop:2, textAlign:"center", border:"1px solid #1a2a4a" }}
                                             placeholder="💨 m/s"
@@ -1559,31 +1623,44 @@ function BlocoDigitarCategoria({
                                     })}
                                     {/* CP automático */}
                                     <td style={{ ...tdStyle, background:"#0a120a" }}>
-                                      <span style={{
-                                        fontFamily:"'Barlow Condensed',sans-serif", fontWeight:800,
-                                        fontSize:15, color: top8 ? "#1976D2" : "#666",
-                                      }}>
-                                        {cp !== null ? `${cp}º` : "—"}
-                                      </span>
-                                      {top8 && <div style={{ fontSize:9, color:"#888" }}>→ fin.</div>}
+                                      {atletaInativo ? (
+                                        <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontWeight:700, fontSize:12, color:"#ff8844" }}>
+                                          {getStatusAtleta(a)}
+                                        </span>
+                                      ) : atletaNM ? (
+                                        <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontWeight:700, fontSize:12, color:"#ff8844" }}>
+                                          NM
+                                        </span>
+                                      ) : (
+                                        <>
+                                          <span style={{
+                                            fontFamily:"'Barlow Condensed',sans-serif", fontWeight:800,
+                                            fontSize:15, color: top8 ? "#1976D2" : "#666",
+                                          }}>
+                                            {cp !== null ? `${cp}º` : "—"}
+                                          </span>
+                                          {top8 && <div style={{ fontSize:9, color:"#888" }}>→ fin.</div>}
+                                        </>
+                                      )}
                                     </td>
                                     {/* T4-T6 */}
                                     {["t4","t5","t6"].map(t => {
                                       const isSaltoHoriz = provaSel?.nome?.includes("Distância") || provaSel?.nome?.includes("Triplo");
+                                      const podeEditar = top8 && !atletaInativo;
                                       return (
-                                      <td key={t} style={{ ...tdStyle, background: top8 ? "#1a0f00" : "#111", opacity: top8 ? 1 : 0.4 }}>
+                                      <td key={t} style={{ ...tdStyle, background: podeEditar ? "#1a0f00" : "#111", opacity: podeEditar ? 1 : 0.4 }}>
                                         <input
                                           style={{ ...inputStyle, width:64,
-                                            background: top8 ? "#150d00" : "#0e0e0e",
-                                            color: top8 ? "#ffaa44" : "#555",
-                                            cursor: top8 ? "text" : "not-allowed",
+                                            background: podeEditar ? "#150d00" : "#0e0e0e",
+                                            color: podeEditar ? "#ffaa44" : "#555",
+                                            cursor: podeEditar ? "text" : "not-allowed",
                                           }}
                                           placeholder="—"
-                                          disabled={!top8}
-                                          value={exibirMarcaInput(tGet(t))}
+                                          disabled={!podeEditar}
+                                          value={atletaInativo ? "" : exibirMarcaInput(tGet(t))}
                                           onChange={e => setDado(a, t, normalizarMarca(e.target.value))}
                                         />
-                                        {isSaltoHoriz && top8 && (
+                                        {isSaltoHoriz && podeEditar && (
                                           <input
                                             style={{ ...inputStyle, width:54, background:"#0a1020", color:"#6ab4ff", fontSize:9, marginTop:2, textAlign:"center", border:"1px solid #1a2a4a" }}
                                             placeholder="💨 m/s"
