@@ -993,6 +993,21 @@ function BlocoDigitarCategoria({
            INTERFACE ALTURA / VARA
         ════════════════════════════════════════════════════════════════ */
         <>
+          {/* Banner de prova concluída */}
+          {atletasNaProva.length > 0 && atletasNaProva.every(a => {
+            if (isStatusInativo(a)) return true;
+            if (isAutoNMAltura(a)) return true;
+            const st = getStatusAtleta(a);
+            if (st) return true;
+            const r = resExistentes[a.id];
+            const marca = r ? (typeof r === "object" ? r.marca : r) : null;
+            return marca != null && marca !== "";
+          }) && (
+            <div style={{ background:"#0a2a0a", border:"1px solid #2a6a2a", borderRadius:8, padding:"6px 14px", marginBottom:10, fontSize:11, color:"#7cfc7c" }}>
+              🏆 <strong>Prova Concluída</strong>
+              <span style={{ color:"#888", marginLeft:8 }}>Todos os atletas possuem resultado</span>
+            </div>
+          )}
           {/* ── Linha de configuração das barras ───────────────────── */}
           <div style={{ background:"#0D0E12", border:"1px solid #1E2130", borderRadius:8, padding:"14px 18px", marginBottom:16 }}>
             <div style={{ display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
@@ -1758,6 +1773,19 @@ function BlocoDigitarCategoria({
               ) : (
               /* ── CORRIDA: Raia · Vento · Marca ───────────────────── */
                 <>
+                  {/* Banner de prova concluída */}
+                  {atletasNaProva.length > 0 && atletasNaProva.every(a => {
+                    const st = getStatusAtleta(a);
+                    if (st) return true;
+                    const r = resExistentes[a.id];
+                    const marca = r ? (typeof r === "object" ? r.marca : r) : null;
+                    return marca != null && marca !== "";
+                  }) && (
+                    <div style={{ background:"#0a2a0a", border:"1px solid #2a6a2a", borderRadius:8, padding:"6px 14px", marginBottom:10, fontSize:11, color:"#7cfc7c" }}>
+                      🏆 <strong>Prova Concluída</strong>
+                      <span style={{ color:"#888", marginLeft:8 }}>Todos os atletas possuem resultado</span>
+                    </div>
+                  )}
                   <div style={s.digitarDica}>
                     {`Digite apenas os números — o sistema formata automaticamente (ex: 10850 → 10,850 · 12345 → 1.23,450)${temRaia ? " · Raia: nº" : ""}${temVento ? " · Vento: ex +1,2" : ""}`}
                   </div>
