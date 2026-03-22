@@ -1965,8 +1965,17 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
   );
   const nomesProvasUnicos = [...new Set(provasComInscFiltradas.map(p => p.nome))].sort();
 
-  // Detectar fases da prova selecionada (needed for filter UI)
-  const _provaFases = filtroProva ? getFasesProva(filtroProva, eventoAtual?.programaHorario || {}) : [];
+  // Resolver provaIds a partir do nome/label selecionado no filtro
+  const provaIdsDaSelecao = filtroProva
+    ? todasProvasComCombinadas.filter(p => {
+        const label = p.origemCombinada ? `🏅 ${p.nome} (${p.nomeCombinada} ${p.ordem}/${p.totalProvas})` : p.nome;
+        return label === filtroProva && p.tipo !== "combinada" && inscDoEvento.some(i => i.provaId === p.id);
+      })
+    : [];
+
+  // Detectar fases da prova selecionada (usar o primeiro provaId para o seletor de fases)
+  const _primeiroProvaId = provaIdsDaSelecao[0]?.id || "";
+  const _provaFases = _primeiroProvaId ? getFasesProva(_primeiroProvaId, eventoAtual?.programaHorario || {}) : [];
   const _temFases = _provaFases.length > 1;
   const faseEfetiva = _temFases ? (filtroFase || _provaFases[0] || "") : "";
 
@@ -2003,14 +2012,23 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
             }}>
               <option value="">— Selecione —</option>
               {(() => {
+                // Agrupar provas por nome — provasDef tem IDs por categoria (M_adulto_comp, M_sub16_comp, etc.)
+                // Mostrar cada nome de prova uma única vez
                 const provasFilt = todasProvasComCombinadas.filter(p =>
                   p.tipo !== "combinada" &&
                   inscDoEvento.some(i => i.provaId === p.id)
                 );
-                return provasFilt.map(p => (
-                  <option key={p.id} value={p.id}>
-                    {p.origemCombinada ? `🏅 ${p.nome} (${p.nomeCombinada} ${p.ordem}/${p.totalProvas})` : p.nome}
-                  </option>
+                const nomesVistos = new Set();
+                const provasUnicas = [];
+                provasFilt.forEach(p => {
+                  const label = p.origemCombinada ? `🏅 ${p.nome} (${p.nomeCombinada} ${p.ordem}/${p.totalProvas})` : p.nome;
+                  if (!nomesVistos.has(label)) {
+                    nomesVistos.add(label);
+                    provasUnicas.push({ label, nome: p.nome, origemCombinada: p.origemCombinada, nomeCombinada: p.nomeCombinada, ordem: p.ordem, totalProvas: p.totalProvas });
+                  }
+                });
+                return provasUnicas.map(p => (
+                  <option key={p.label} value={p.label}>{p.label}</option>
                 ));
               })()}
             </select>
@@ -2022,10 +2040,18 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
             }}>
               <option value="">— Todas —</option>
               {(() => {
+                // Categorias que têm inscrição em provas com o nome selecionado
+                const provaIdsSel = filtroProva
+                  ? todasProvasComCombinadas.filter(p => {
+                      const label = p.origemCombinada ? `🏅 ${p.nome} (${p.nomeCombinada} ${p.ordem}/${p.totalProvas})` : p.nome;
+                      return label === filtroProva;
+                    }).map(p => p.id)
+                  : [];
                 const cats = CATEGORIAS.filter(c =>
                   inscDoEvento.some(i =>
                     (i.categoriaOficialId || i.categoriaId) === c.id &&
-                    (!filtroProva || i.provaId === filtroProva)
+                    i.sexo === filtroSexo &&
+                    (provaIdsSel.length === 0 || provaIdsSel.includes(i.provaId))
                   )
                 );
                 return cats.map(c => <option key={c.id} value={c.id}>{c.nome}</option>);
@@ -2057,22 +2083,31 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
       </div>
 
       {filtroProva && (() => {
-        // Determine categories to show
-        const catsParaExibir = filtroCat
-          ? [{ id: filtroCat, nome: CATEGORIAS.find(c => c.id === filtroCat)?.nome || filtroCat }]
-          : CATEGORIAS.filter(c =>
-              inscDoEvento.some(i =>
-                i.provaId === filtroProva &&
-                (i.categoriaOficialId || i.categoriaId) === c.id &&
-                i.sexo === filtroSexo
-              )
-            );
-        if (catsParaExibir.length === 0) return <div style={s.emptyState}><span>Nenhum atleta inscrito nesta prova.</span></div>;
-        return catsParaExibir.map(cat => (
+        // Cada provaId no provasDef embute a categoria (ex: M_adulto_comp, M_sub16_comp).
+        // Montar pares (provaId, catId) com inscrições no sexo selecionado.
+        let pares = provaIdsDaSelecao.flatMap(p => {
+          // Encontrar categorias com inscrição neste provaId + sexo
+          const cats = [...new Set(
+            inscDoEvento
+              .filter(i => i.provaId === p.id && i.sexo === filtroSexo)
+              .map(i => i.categoriaOficialId || i.categoriaId)
+          )];
+          return cats.map(catId => ({ provaId: p.id, catId, catOrdem: CATEGORIAS.findIndex(c => c.id === catId) }));
+        });
+        // Filtrar por categoria se selecionada
+        if (filtroCat) pares = pares.filter(p => p.catId === filtroCat);
+        // Ordenar por categoria (ordem do CATEGORIAS)
+        pares.sort((a, b) => a.catOrdem - b.catOrdem);
+        // Deduplicar por catId (pode haver múltiplos provaIds para mesma categoria em combinadas)
+        const vistos = new Set();
+        pares = pares.filter(p => { if (vistos.has(p.catId)) return false; vistos.add(p.catId); return true; });
+
+        if (pares.length === 0) return <div style={s.emptyState}><span>Nenhum atleta inscrito nesta prova.</span></div>;
+        return pares.map(par => (
           <BlocoDigitarCategoria
-            key={`${filtroProva}_${cat.id}_${filtroSexo}`}
-            catId={cat.id}
-            filtroProva={filtroProva}
+            key={`${par.provaId}_${par.catId}_${filtroSexo}`}
+            catId={par.catId}
+            filtroProva={par.provaId}
             filtroSexo={filtroSexo}
             filtroFase={filtroFase}
             eid={eid}
