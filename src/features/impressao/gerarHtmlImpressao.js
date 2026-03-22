@@ -64,11 +64,8 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
 
   const fmtMarca = (v, unidade, casas) => {
     if (v == null || v === "") return "\u2014";
-    const sv = String(v).toUpperCase();
-    if (["DNS","DNF","DQ","NM","NH"].includes(sv)) return sv;
     if (unidade === "m") {
       const n = parseFloat(v);
-      if (isNaN(n)) return "\u2014";
       return n.toFixed(2).replace(".",",") + "m";
     }
     const raw = parseFloat(v);
