@@ -257,11 +257,11 @@ function App() {
     const evtId = eventoAtualIdRef.current;
     let path = "";
     if (novaTela === "evento-detalhe" && evtId) {
-      const ev = eventos.find(e => e.id === evtId);
+      const ev = eventosRef.current.find(e => e.id === evtId);
       path = `/competicao/${ev?.slug || evtId}`;
     }
     else if (novaTela === "resultados" && evtId) {
-      const ev = eventos.find(e => e.id === evtId);
+      const ev = eventosRef.current.find(e => e.id === evtId);
       path = `/competicao/${ev?.slug || evtId}/resultados`;
     }
     else if (novaTela === "recordes") path = "/recordes";
