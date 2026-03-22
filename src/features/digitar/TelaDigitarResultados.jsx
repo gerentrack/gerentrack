@@ -1530,9 +1530,7 @@ function BlocoDigitarCategoria({
                           <table style={{ ...s.table, minWidth: 900 }}>
                             <thead>
                               <tr>
-                                <Th>#</Th>
                                 <Th>Nº</Th>
-                                <Th style={{ minWidth:30, fontSize:9, color:"#666" }} title="Ordem do sorteio original">Sort.</Th>
                                 <Th>Atleta</Th><Th>Clube/Equipe</Th>
                                 <Th style={{ background:"#1a2a1a", color:"#7cfc7c" }}>T1</Th>
                                 <Th style={{ background:"#1a2a1a", color:"#7cfc7c" }}>T2</Th>
@@ -1563,7 +1561,7 @@ function BlocoDigitarCategoria({
                                   <React.Fragment key={a.id}>
                                     {showSeparador && (
                                       <tr>
-                                        <td colSpan={14} style={{
+                                        <td colSpan={12} style={{
                                           padding: "6px 12px", background: "#1a0a0a",
                                           borderTop: "2px solid #4a2a2a", borderBottom: "1px solid #2a1a1a",
                                           fontSize: 11, color: "#ff6b6b", fontWeight: 700, textAlign: "center"
@@ -1574,7 +1572,7 @@ function BlocoDigitarCategoria({
                                     )}
                                     {showSeparadorInativos && (
                                       <tr>
-                                        <td colSpan={14} style={{
+                                        <td colSpan={12} style={{
                                           padding: "6px 12px", background: "#0a0a10",
                                           borderTop: "2px solid #2a2a4a", borderBottom: "1px solid #1a1a2a",
                                           fontSize: 11, color: "#888", fontWeight: 700, textAlign: "center"
@@ -1588,15 +1586,7 @@ function BlocoDigitarCategoria({
                                       opacity: isEliminado ? 0.5 : 1,
                                       background: atletaInativo ? "#08080a" : atletaNM ? "#0a0808" : isEliminado ? "#0a0808" : undefined,
                                     }}>
-                                    <Td>
-                                      {estadoProva === 3 ? (
-                                        <strong style={{ color: i === 0 ? "#FFD700" : i === 1 ? "#C0C0C0" : i === 2 ? "#CD7F32" : "#888", fontSize: 14 }}>
-                                          {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : (i+1) + "º"}
-                                        </strong>
-                                      ) : (i+1)}
-                                    </Td>
                                     <Td><strong style={{ color:"#aaa", fontSize:12 }}>{(numeracaoPeito?.[eventoAtual?.id]||{})[a.id]||""}</strong></Td>
-                                    <Td><span style={{ fontSize:10, color:"#555" }}>{idxOriginal+1}</span></Td>
                                     <Td><strong style={{ color:"#fff" }}>{a.nome}</strong></Td>
                                     <Td>{getExibicaoEquipe(a, equipes)||"—"}</Td>
                                     {["t1","t2","t3"].map(t => {
@@ -1743,7 +1733,7 @@ function BlocoDigitarCategoria({
                   <table style={s.table}>
                     <thead>
                       <tr>
-                        <Th>#</Th><Th>Nº</Th><Th>Atleta</Th><Th>Clube/Equipe</Th>
+                        <Th>Nº</Th><Th>Atleta</Th><Th>Clube/Equipe</Th>
                         {_serDigitar?.series?.length > 0 && <Th>Série</Th>}
                         {temRaia  && <Th>Raia</Th>}
                         {temVento && <Th>Vento</Th>}
@@ -1766,7 +1756,7 @@ function BlocoDigitarCategoria({
                         const raiaVal  = marcas[a.id]?.raia  ?? (getExist(a,"raia","") || _getSerInfo(a.id).raia);
                         const ventoVal = marcas[a.id]?.vento ?? getExist(a,"vento","");
                         const previewFormatado = inputVal && !statusVal ? autoFormatTempo(inputVal) : "";
-                        const _nCols = 10 + (temRaia?1:0) + (temVento?1:0) + (_serDigitar?.series?.length>0?1:0);
+                        const _nCols = 9 + (temRaia?1:0) + (temVento?1:0) + (_serDigitar?.series?.length>0?1:0);
                         return (
                           <React.Fragment key={a.id}>
                           {showSerieHeader && (
@@ -1775,7 +1765,6 @@ function BlocoDigitarCategoria({
                             </td></tr>
                           )}
                           <tr style={s.tr}>
-                            <Td>{i+1}</Td>
                             <Td><strong style={{ color:"#aaa", fontSize:12 }}>{(numeracaoPeito?.[eventoAtual?.id]||{})[a.id]||""}</strong></Td>
                             <Td><strong style={{ color:"#fff" }}>{a.nome}</strong></Td>
                             <Td>{getExibicaoEquipe(a, equipes)||"—"}</Td>
