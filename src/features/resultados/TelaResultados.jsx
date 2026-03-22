@@ -8,6 +8,7 @@ import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { CombinedScoringEngine } from "../../shared/engines/combinedScoringEngine";
 import { getFasesProva, buscarSeriacao, resKey, FASE_NOME, FASE_ORDEM } from "../../shared/constants/fases";
 import { gerarHtmlImpressao } from "../impressao/gerarHtmlImpressao";
+import { GT_DEFAULT_LOGO } from "../../shared/branding";
 import { Th, Td } from "../ui/TableHelpers";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
