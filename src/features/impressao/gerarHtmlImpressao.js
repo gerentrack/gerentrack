@@ -15,6 +15,10 @@ const _nomeProvaMatch = (a, b) => {
 // ─── GERADOR DE HTML DE IMPRESSÃO ─────────────────────────────────────────────
 function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = {}, numPeito = {}, equipes = [], recordesAll = [], opts = {}) {
   const getClubeAtleta = (a) => _getClubeAtleta(a, equipes);
+  const getSiglaEquipe = (a) => {
+    const eq = equipes.find(e => e.id === a?.equipeId);
+    return eq?.sigla?.trim() || eq?.nome || getClubeAtleta(a) || "\u2014";
+  };
   // Ler branding personalizado (ou usar padrão)
   const _branding = (() => { try { return JSON.parse(localStorage.getItem("gt_branding")) || {}; } catch { return {}; } })();
   const _gtLogo = _branding.logo || GT_DEFAULT_LOGO;
@@ -116,8 +120,8 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
     .cab-n{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
       color:#888;text-align:right;white-space:nowrap;}
     .cab-nbig{font-size:20px;font-weight:900;color:#bbb;display:block;line-height:1.1;}
-    .faixa{background:#111;padding:7px 13px;border-radius:3px 3px 0 0;
-      display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+    .faixa{background:#111;padding:5px 13px;border-radius:3px 3px 0 0;
+      display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;}
     .faixa-nome{font-family:'Barlow Condensed',sans-serif;font-size:22px;
       font-weight:900;letter-spacing:1px;color:#FFD700;}
     .faixa-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
@@ -126,7 +130,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
     .b-sx{border-radius:3px;padding:1px 8px;font-size:11px;font-weight:700;font-family:'Barlow Condensed',sans-serif;}
     .b-info{background:rgba(255,255,255,.09);color:#ccc;border:1px solid rgba(255,255,255,.13);
       border-radius:3px;padding:1px 8px;font-size:10px;}
-    .blk{padding:5px 13px;font-family:'Barlow Condensed',sans-serif;font-size:12px;
+    .blk{padding:3px 13px;font-family:'Barlow Condensed',sans-serif;font-size:11px;
       font-weight:800;letter-spacing:1px;text-transform:uppercase;
       display:flex;justify-content:space-between;align-items:center;}
     .blk-semi{background:#444;color:#ddd;}
@@ -138,23 +142,23 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
     .gap{height:5px;}
     table{width:100%;border-collapse:collapse;border:1px solid #ccc;}
     thead tr{background:#222;color:#fff;}
-    th{padding:5px 4px;font-size:9px;font-weight:700;font-family:'Barlow Condensed',sans-serif;
+    th{padding:3px 3px;font-size:9px;font-weight:700;font-family:'Barlow Condensed',sans-serif;
       letter-spacing:.6px;text-align:center;border:1px solid #444;text-transform:uppercase;}
-    .thal{text-align:left!important;padding-left:7px!important;}
-    td{padding:5px 4px;font-size:11px;border:1px solid #ddd;text-align:center;vertical-align:middle;}
-    .tdal{text-align:left;padding-left:7px;}
-    .tdn{font-weight:700;color:#888;font-size:10px;width:24px;}
-    .tdcbat{width:52px;font-size:10px;color:#555;text-align:center;}
-    .tdat{font-size:10px;color:#555;width:68px;white-space:nowrap;}
-    .tdcl{text-align:left;padding-left:6px;font-size:10px;color:#444;}
-    .tdm{width:46px;background:#fafafa;}
-    .tdv{width:38px;background:#f5faff;font-size:10px;color:#668;}
-    .tdmb{width:60px;background:#fffbec;font-weight:700;}
-    .tdmbd{width:60px;background:#fff8d0;font-weight:700;border:2px solid #1976D2!important;}
-    .tdpc{width:46px;background:#f0f7ea;font-size:10px;color:#446;}
-    .tdp{width:34px;background:#f0f0f0;font-weight:700;font-size:13px;}
-    .tdpf{width:34px;background:#fff8d0;font-weight:800;font-size:14px;color:#b8860b;border:1px solid #1976D244!important;}
-    .anome{font-weight:600;font-size:12px;color:#111;}
+    .thal{text-align:left!important;padding-left:5px!important;}
+    td{padding:3px 3px;font-size:11px;border:1px solid #ddd;text-align:center;vertical-align:middle;line-height:1.2;}
+    .tdal{text-align:left;padding-left:5px;}
+    .tdn{font-weight:700;color:#888;font-size:10px;width:22px;}
+    .tdcbat{width:48px;font-size:9px;color:#555;text-align:center;}
+    .tdat{font-size:9px;color:#555;width:62px;white-space:nowrap;}
+    .tdcl{text-align:left;padding-left:5px;font-size:9px;color:#444;}
+    .tdm{width:40px;background:#fafafa;}
+    .tdv{width:34px;background:#f5faff;font-size:9px;color:#668;}
+    .tdmb{width:56px;background:#fffbec;font-weight:700;}
+    .tdmbd{width:56px;background:#fff8d0;font-weight:700;border:2px solid #1976D2!important;}
+    .tdpc{width:42px;background:#f0f7ea;font-size:9px;color:#446;}
+    .tdp{width:30px;background:#f0f0f0;font-weight:700;font-size:12px;}
+    .tdpf{width:30px;background:#fff8d0;font-weight:800;font-size:13px;color:#b8860b;border:1px solid #1976D244!important;}
+    .anome{font-weight:600;font-size:11px;color:#111;}
     .par{background:#fff;} .imp{background:#f8f8f8;}
     .exc td{color:#bbb!important;} .exc .anome{color:#ccc!important;}
     .cond-prova{display:flex;justify-content:space-between;gap:6px;padding:4px 10px;
@@ -304,42 +308,43 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
   // th templates — PTS EQ. column is added dynamically per sumula via _thPtsEq
   const thCor200Base = `
     <th style="width:24px">#</th><th style="width:34px">Nº</th><th style="width:52px">CBAt</th><th class="thal">ATLETA</th>
-    <th style="width:66px">NASCIMENTO</th><th class="thal">CLUBE / EQUIPE</th>
+    <th style="width:66px">NASCIMENTO</th><th class="thal">EQUIPE</th>
     <th style="width:40px">SÉR.</th><th style="width:34px">RAIA</th>
     <th style="width:38px">VENTO</th><th style="width:68px">MARCA</th><th style="width:32px">POS.</th>`;
 
   const thCor400Base = `
     <th style="width:24px">#</th><th style="width:34px">Nº</th><th style="width:52px">CBAt</th><th class="thal">ATLETA</th>
-    <th style="width:66px">NASCIMENTO</th><th class="thal">CLUBE / EQUIPE</th>
+    <th style="width:66px">NASCIMENTO</th><th class="thal">EQUIPE</th>
     <th style="width:40px">SÉR.</th><th style="width:34px">RAIA</th>
     <th style="width:68px">MARCA</th><th style="width:32px">POS.</th>`;
 
   const thCorLongBase = `
     <th style="width:24px">#</th><th style="width:34px">Nº</th><th style="width:52px">CBAt</th><th class="thal">ATLETA</th>
-    <th style="width:66px">NASCIMENTO</th><th class="thal">CLUBE / EQUIPE</th>
+    <th style="width:66px">NASCIMENTO</th><th class="thal">EQUIPE</th>
     <th style="width:68px">MARCA</th><th style="width:32px">POS.</th>`;
 
   const thCampoParBase = `
     <th style="width:24px">#</th><th style="width:34px">Nº</th><th style="width:52px">CBAt</th><th class="thal">ATLETA</th>
-    <th style="width:68px">NASCIMENTO</th><th class="thal">CLUBE / EQUIPE</th>
+    <th style="width:68px">NASCIMENTO</th><th class="thal">EQUIPE</th>
     <th style="width:46px">T1</th><th style="width:46px">T2</th><th style="width:46px">T3</th>
     <th style="width:60px">MELHOR</th><th style="width:46px">CL.PARC.</th><th style="width:34px">\u2192FIN.</th>`;
 
   const thCampoFinBase = `
     <th style="width:24px">#</th><th style="width:34px">Nº</th><th style="width:52px">CBAt</th><th class="thal">ATLETA</th>
-    <th style="width:68px">NASCIMENTO</th><th class="thal">CLUBE / EQUIPE</th>
+    <th style="width:68px">NASCIMENTO</th><th class="thal">EQUIPE</th>
     <th style="width:46px">T4</th><th style="width:46px">T5</th><th style="width:46px">T6</th>
     <th style="width:60px">MELHOR</th><th style="width:34px">POS.</th>`;
 
   const thExc = `<tr>
     <th style="width:24px">#</th><th style="width:34px">Nº</th><th style="width:52px">CBAt</th><th class="thal">ATLETA</th>
-    <th style="width:68px">NASCIMENTO</th><th class="thal">CLUBE / EQUIPE</th>
+    <th style="width:68px">NASCIMENTO</th><th class="thal">EQUIPE</th>
     <th style="width:60px">MELHOR T1-T3</th><th style="width:34px">CLASS.</th>
   </tr>`;
 
   let numPag = 0;
   const pags = [];
-  const MAX = 8;
+  const MAX_TOP8 = 8;  // Regra técnica: top 8 avançam para T4-T6
+  const MAX = 50;      // Limite de exibição por página — auto-scale ajusta a fonte
 
   // ── Escala de fonte proporcional ao número de atletas por página ───────────
   // Quanto menos atletas, maior a fonte — preenche melhor a página.
@@ -599,7 +604,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
           <td class="tdn" style="font-weight:700;color:#333">${numPeito[a.id]||""}</td>
           <td class="tdcbat">${_getCbat(a)}</td>
           <td class="tdal"><span class="anome">${a.nome}</span>${excTag(getInsc(a))}</td>
-          <td class="tdat">${fmtNasc(a)}</td><td class="tdcl">${getClubeAtleta(a)||"\u2014"}</td>
+          <td class="tdat">${fmtNasc(a)}</td><td class="tdcl">${getSiglaEquipe(a)}</td>
           ${tdSerie(serieNum)}${tdRaiaVazio}${tdVentoVazio}<td class="tdmb"></td><td class="tdp"></td>${_tdClassifVazio}${_tdPtsEqVazio}
         </tr>`;
       const linhaRes = (a, j, m, isFin, rawRes, serieNum) => {
@@ -611,7 +616,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
           <td class="tdn" style="font-weight:700;color:#333">${numPeito[a.id]||""}</td>
           <td class="tdcbat">${_getCbat(a)}</td>
           <td class="tdal"><span class="anome">${a.nome}</span>${excTag(getInsc(a))}</td>
-          <td class="tdat">${fmtNasc(a)}</td><td class="tdcl">${getClubeAtleta(a)||"\u2014"}</td>
+          <td class="tdat">${fmtNasc(a)}</td><td class="tdcl">${getSiglaEquipe(a)}</td>
           ${tdSerieRes(serieNum)}${raiaDisp}${ventoDisp}<td class="${isFin?"tdmbd":"tdmb"}">${formatarMarcaExibicaoHtml(m,"s",_msEmpatadosSumula,false)}</td>
           <td class="${isFin?"tdpf":"tdp"}">${j+1}\u00b0</td>${_tdClassifVal(a.id)}${_tdPtsEqVal(a.id)}
         </tr>`;
@@ -723,7 +728,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
                     <td class="tdn" style="font-weight:700;color:#333">${numPeito[a.id]||""}</td>
                     <td class="tdcbat">${_getCbat(a)}</td>
                     <td class="tdal"><span class="anome">${a.nome}</span>${excTag(getInsc(a))}</td>
-                    <td class="tdat">${fmtNasc(a)}</td><td class="tdcl">${getClubeAtleta(a)||"\u2014"}</td>
+                    <td class="tdat">${fmtNasc(a)}</td><td class="tdcl">${getSiglaEquipe(a)}</td>
                     <td class="tdm"></td>${metros <= 400 ? `<td class="tdm" style="font-weight:700;color:#1a6ef5">${raia||""}</td>` : ""}${tdVentoVazio}<td class="tdmb"></td><td class="tdp"></td>${_tdClassifVazio}${_tdPtsEqVazio}
                   </tr>`).join("")}</tbody></table>
                 ${rodape(s)}
@@ -837,7 +842,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
                     <td class="tdn" style="font-weight:700;color:#333">${numPeito[a.id]||""}</td>
                     <td class="tdcbat">${_getCbat(a)}</td>
                     <td class="tdal"><span class="anome">${a.nome}</span></td>
-                    <td class="tdat">${fmtNasc(a)}</td><td class="tdcl">${getClubeAtleta(a)||"\u2014"}</td>
+                    <td class="tdat">${fmtNasc(a)}</td><td class="tdcl">${getSiglaEquipe(a)}</td>
                     ${tdSerieRes("")}${tdRaiaVazio}${tdVentoVazio}<td class="tdmb" style="color:#c44">${status}</td>
                     <td class="tdp"></td>${_tdClassifVazio}${_tdPtsEqVazio}
                   </tr>`;
@@ -937,7 +942,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
           <th style="width:50px">CBAt</th>
           <th style="width:110px" class="thal">ATLETA</th>
           <th style="width:64px">NASCIMENTO</th>
-          <th style="width:90px" class="thal">CLUBE / EQUIPE</th>
+          <th style="width:90px" class="thal">EQUIPE</th>
           <th colspan="${N_BARRAS}" style="text-align:center;letter-spacing:1.5px;background:#222;color:#FFD700;border:1px solid #444;font-size:9px">ANOTAÇÕES DAS TENTATIVAS</th>
           <th style="width:28px;font-size:8px;background:#2a1a1a;color:#ff8888;text-align:center;border:1px solid #444" title="Saltos na Última">SU</th>
           <th style="width:28px;font-size:8px;background:#2a1a1a;color:#ff8888;text-align:center;border:1px solid #444" title="Falhas na Prova">FP</th>
@@ -965,7 +970,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
             <td class="tdcbat">${_getCbat(a)}</td>
             <td class="tdal"><span class="anome">${a.nome}</span>${excTag(getInsc(a))}</td>
             <td class="tdat">${fmtNasc(a)}</td>
-            <td class="tdcl">${getClubeAtleta(a)||"\u2014"}</td>
+            <td class="tdcl">${getSiglaEquipe(a)}</td>
             ${barras.map(() => `<td class="td-barra"></td>`).join("")}
             <td style="width:28px;text-align:center;border:1px solid #ddd"></td>
             <td style="width:28px;text-align:center;border:1px solid #ddd"></td>
@@ -1068,7 +1073,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
             <th style="width:50px">CBAt</th>
             <th style="width:110px" class="thal">ATLETA</th>
             <th style="width:64px">NASCIMENTO</th>
-            <th style="width:90px" class="thal">CLUBE / EQUIPE</th>
+            <th style="width:90px" class="thal">EQUIPE</th>
             ${alturasRes.map(h => `<th colspan="3" class="td-barra-h" style="font-size:9px;min-width:60px">${h.toFixed(2).replace(".",",")}</th>`).join("")}
             <th style="width:28px;font-size:8px;background:#2a1a1a;color:#ff8888;text-align:center;border:1px solid #444">SU</th>
             <th style="width:28px;font-size:8px;background:#2a1a1a;color:#ff8888;text-align:center;border:1px solid #444">FP</th>
@@ -1089,7 +1094,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
               <td class="tdcbat">${_getCbat(a)}</td>
               <td class="tdal"><span class="anome">${a.nome}</span>${excTag(getInsc(a))}</td>
               <td class="tdat">${fmtNasc(a)}</td>
-              <td class="tdcl">${getClubeAtleta(a)||"\u2014"}</td>
+              <td class="tdcl">${getSiglaEquipe(a)}</td>
               ${alturasRes.map(h => {
                 const key = h.toFixed(2);
                 const tent = Array.isArray(tentsObj[key]) ? tentsObj[key] : 
@@ -1138,58 +1143,47 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
         // Layout: # CBAt Atleta Nasc Clube T1 T2 T3 Marca CP T4 T5 T6 Marca Pos
         // ════════════════════════════════════════════════════════════════════
 
-        const isSaltoHorizPrint = s.prova.nome?.includes("Distância") || s.prova.nome?.includes("Triplo");
-        const ventoHint = isSaltoHorizPrint ? '<div style="font-size:7px;color:#4a80cc;font-weight:400">vento</div>' : '';
         const thCampoUnico = `<tr>
           <th style="width:22px">#</th>
           <th style="width:30px">Nº</th>
           <th style="width:52px">CBAt</th>
           <th class="thal">ATLETA</th>
           <th style="width:66px">NASCIMENTO</th>
-          <th class="thal">CLUBE / EQUIPE</th>
-          <th style="width:48px">T1${ventoHint}</th>
-          <th style="width:48px">T2${ventoHint}</th>
-          <th style="width:48px">T3${ventoHint}</th>
+          <th class="thal">EQUIPE</th>
+          <th style="width:48px">T1</th>
+          <th style="width:48px">T2</th>
+          <th style="width:48px">T3</th>
           <th style="width:58px">MARCA</th>
           <th style="width:36px">CP</th>
-          <th style="width:48px">T4${ventoHint}</th>
-          <th style="width:48px">T5${ventoHint}</th>
-          <th style="width:48px">T6${ventoHint}</th>
+          <th style="width:48px">T4</th>
+          <th style="width:48px">T5</th>
+          <th style="width:48px">T6</th>
           <th style="width:58px">MARCA</th>
           <th style="width:32px">POS.</th>
           ${_thPtsEq}
         </tr>`;
 
-        const linhaCampoVazia = (a, j) => {
-          const vSpace = isSaltoHorizPrint
-            ? '<div style="font-size:7px;color:#bbb;margin-top:4px;border-top:1px dashed #ddd;padding-top:2px;text-align:center;">___m/s</div>'
-            : '';
-          const tdTent = isSaltoHorizPrint
-            ? 'style="vertical-align:top;padding-top:6px;height:44px;"'
-            : '';
-          return `
+        const linhaCampoVazia = (a, j) => `
           <tr class="${j%2===0?"par":"imp"}">
             <td class="tdn">${j+1}</td>
             <td class="tdn" style="font-weight:700;color:#333">${numPeito[a.id]||""}</td>
             <td class="tdcbat">${_getCbat(a)}</td>
             <td class="tdal"><span class="anome">${a.nome}</span>${excTag(getInsc(a))}</td>
             <td class="tdat">${fmtNasc(a)}</td>
-            <td class="tdcl">${getClubeAtleta(a)||"\u2014"}</td>
-            <td class="tdm" ${tdTent}>${vSpace}</td><td class="tdm" ${tdTent}>${vSpace}</td><td class="tdm" ${tdTent}>${vSpace}</td>
+            <td class="tdcl">${getSiglaEquipe(a)}</td>
+            <td class="tdm"></td><td class="tdm"></td><td class="tdm"></td>
             <td class="tdmb"></td>
             <td class="tdpc"></td>
-            <td class="tdm" ${tdTent}>${vSpace}</td><td class="tdm" ${tdTent}>${vSpace}</td><td class="tdm" ${tdTent}>${vSpace}</td>
+            <td class="tdm"></td><td class="tdm"></td><td class="tdm"></td>
             <td class="tdmbd"></td>
             <td class="tdpf"></td>
             ${_tdClassifVazio}${_tdPtsEqVazio}
           </tr>`;
-        };
 
         const linhaCampoRes = (a, m, j, posG, resData) => {
-          const vaiFin = posG <= 8;
+          const vaiFin = posG <= MAX_TOP8;
           const estilo = vaiFin ? "" : "opacity:.45";
           const d = resData && typeof resData === "object" ? resData : {};
-          const isSaltoH = s.prova.nome?.includes("Distância") || s.prova.nome?.includes("Triplo");
           const fmtT = (key) => {
             const v = d[key];
             if (!v && v !== 0) return "\u2014";
@@ -1199,12 +1193,6 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
             if (isNaN(n)) return sv;
             return n.toFixed(2).replace(".",",");
           };
-          const ventoT = (key) => {
-            if (!isSaltoH) return "";
-            const vv = d[key+"v"];
-            if (!vv) return "";
-            return `<div style="font-size:7px;color:#4a80cc;margin-top:1px">${vv}</div>`;
-          };
           const hasTent = d.t1 != null || d.t2 != null || d.t3 != null;
           return `
           <tr class="${j%2===0?"par":"imp"}" style="${estilo}">
@@ -1213,15 +1201,15 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
             <td class="tdcbat">${_getCbat(a)}</td>
             <td class="tdal"><span class="anome">${a.nome}</span>${excTag(getInsc(a))}</td>
             <td class="tdat">${fmtNasc(a)}</td>
-            <td class="tdcl">${getClubeAtleta(a)||"\u2014"}</td>
-            <td class="tdm">${hasTent ? fmtT("t1") + ventoT("t1") : "\u2014"}</td>
-            <td class="tdm">${hasTent ? fmtT("t2") + ventoT("t2") : "\u2014"}</td>
-            <td class="tdm">${hasTent ? fmtT("t3") + ventoT("t3") : "\u2014"}</td>
+            <td class="tdcl">${getSiglaEquipe(a)}</td>
+            <td class="tdm">${hasTent ? fmtT("t1") : "\u2014"}</td>
+            <td class="tdm">${hasTent ? fmtT("t2") : "\u2014"}</td>
+            <td class="tdm">${hasTent ? fmtT("t3") : "\u2014"}</td>
             <td class="tdmb">${fmtMarca(m,"m")}</td>
             <td class="tdpc" style="${vaiFin?"color:#2a8a2a;font-weight:800":"color:#aaa"}">${posG}\u00b0${vaiFin?" \u2192":""}</td>
-            <td class="tdm" style="${vaiFin?"":"background:#f0f0f0;color:#ccc"}">${hasTent && vaiFin ? fmtT("t4") + ventoT("t4") : "\u2014"}</td>
-            <td class="tdm" style="${vaiFin?"":"background:#f0f0f0;color:#ccc"}">${hasTent && vaiFin ? fmtT("t5") + ventoT("t5") : "\u2014"}</td>
-            <td class="tdm" style="${vaiFin?"":"background:#f0f0f0;color:#ccc"}">${hasTent && vaiFin ? fmtT("t6") + ventoT("t6") : "\u2014"}</td>
+            <td class="tdm" style="${vaiFin?"":"background:#f0f0f0;color:#ccc"}">${hasTent && vaiFin ? fmtT("t4") : "\u2014"}</td>
+            <td class="tdm" style="${vaiFin?"":"background:#f0f0f0;color:#ccc"}">${hasTent && vaiFin ? fmtT("t5") : "\u2014"}</td>
+            <td class="tdm" style="${vaiFin?"":"background:#f0f0f0;color:#ccc"}">${hasTent && vaiFin ? fmtT("t6") : "\u2014"}</td>
             <td class="${vaiFin?"tdmbd":"tdmb"}" style="${vaiFin?"":"color:#aaa"}">${fmtMarca(m,"m")}</td>
             <td class="${vaiFin?"tdpf":"tdp"}" style="${vaiFin?"":"color:#aaa"}">${posG}\u00b0</td>
             ${_tdClassifVal(a.id)}${_tdPtsEqVal(a.id)}
@@ -1302,13 +1290,40 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
   <script>
     window.addEventListener('DOMContentLoaded', function() {
       document.querySelectorAll('.pg').forEach(function(pg) {
-        var rows = pg.querySelectorAll('tbody tr').length;
+        var tbl = pg.querySelector('table');
+        if (!tbl) return;
+        var rows = tbl.querySelectorAll('tbody tr').length;
         if (rows === 0) return;
-        // Scale: 8 rows = 100%, fewer = bigger, more = smaller
-        var scale = Math.min(1.35, Math.max(0.82, 8 / rows));
-        if (Math.abs(scale - 1.0) > 0.04) {
-          pg.style.fontSize = Math.round(scale * 100) + '%';
+
+        // Abordagem iterativa: reduzir fontSize até o conteúdo caber na página
+        // A4 portrait: 297mm; landscape: 210mm
+        var isLand = pg.classList.contains('landscape');
+        var pgStyleH = isLand ? 210 : 297; // mm
+        var padTop = isLand ? 10 : 12; // mm (do CSS .pg padding)
+        var padBot = isLand ? 8 : 10;
+        var availMm = pgStyleH - padTop - padBot;
+        var pxPerMm = 96 / 25.4; // ~3.78 px/mm
+        var availPx = availMm * pxPerMm;
+
+        // Reservar espaço fixo para o rodapé (~35mm)
+        var rodapeMm = 35;
+        availPx -= rodapeMm * pxPerMm;
+
+        var scale = 100;
+        for (var i = 0; i < 30; i++) {
+          pg.style.fontSize = scale + '%';
+          // Medir tudo EXCETO o rod-wrap (que tem margin-top:auto)
+          var totalH = 0;
+          for (var c = 0; c < pg.children.length; c++) {
+            if (pg.children[c].classList && pg.children[c].classList.contains('rod-wrap')) continue;
+            totalH += pg.children[c].offsetHeight;
+          }
+          if (totalH <= availPx) break;
+          scale -= 2;
+          if (scale < 40) { scale = 40; break; }
         }
+        if (scale < 100) pg.style.fontSize = scale + '%';
+        else pg.style.fontSize = '';
       });
     });
   </script>
