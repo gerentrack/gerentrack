@@ -810,7 +810,33 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
 
         const classGeral = [...atl]
           .map((a) => ({ a, m: res[a.id] != null ? parseFloat(getMarca(res[a.id])) : null }))
-          .filter((x) => x.m != null).sort((a,b) => a.m - b.m);
+          .filter((x) => x.m != null && !isNaN(x.m)).sort((a,b) => a.m - b.m);
+
+        // Atletas com status (DNS/DNF/NM/DQ) — mostrar no final
+        const statusGeralPrint = [...atl].filter(a => {
+          const raw = res[a.id];
+          if (!raw) return false;
+          const st = (typeof raw === "object") ? (raw.status || "") : "";
+          const mk = String(getMarca(raw) || "").toUpperCase();
+          return ["DNS","DNF","NM","NH","DQ"].includes(st) || ["DNS","DNF","NM","NH","DQ"].includes(mk);
+        }).map(a => {
+          const raw = res[a.id];
+          const st = (typeof raw === "object") ? (raw.status || "") : "";
+          const mk = String(getMarca(raw) || "").toUpperCase();
+          return { a, status: st || mk };
+        });
+
+        const linhaStatus = (a, status, j) => `
+          <tr class="${j%2===0?"par":"imp"}">
+            <td class="tdn"></td>
+            <td class="tdn" style="font-weight:700;color:#333">${numPeito[a.id]||""}</td>
+            <td class="tdcbat">${_getCbat(a)}</td>
+            <td class="tdal"><span class="anome">${a.nome}</span></td>
+            <td class="tdat">${fmtNasc(a)}</td><td class="tdcl">${getSiglaEquipe(a)}</td>
+            ${isProvaLonga ? "" : `<td class="tdm"></td>`}${metros <= 400 ? `<td class="tdm"></td>` : ""}${metros <= 200 ? `<td class="tdv"></td>` : ""}
+            <td class="tdmb" style="color:#c44">${status}</td>
+            <td class="tdp"></td>${_tdClassifVazio}${_tdPtsEqVazio}
+          </tr>`;
 
         // ── Fases ELI/SEM: agrupar por série com Q/q ──
         if (_isFaseComSeriesPrint && serSalva2?.series) {
@@ -878,7 +904,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
                   ${cabPrv(s, numPag, null)}
                   <div class="blk blk-final">CLASSIFICA\u00c7\u00c3O GERAL${lblPag}<span class="blk-s">${classGeral.length} atleta${classGeral.length!==1?"s":""} \u00b7 resultado final</span></div>
                   ${infoBarreiras}
-                  <table><thead>${thCor}</thead><tbody>${fatia.map(({a,m},j) => linhaRes(a, pi*MAX_FT+j, m, true, res[a.id], serDoAtl[a.id] || "")).join("")}</tbody></table>
+                  <table><thead>${thCor}</thead><tbody>${fatia.map(({a,m},j) => linhaRes(a, pi*MAX_FT+j, m, true, res[a.id], serDoAtl[a.id] || "")).join("")}${pi === totalPags - 1 ? statusGeralPrint.map(({a,status},j) => linhaStatus(a, status, classGeral.length+j)).join("") : ""}</tbody></table>
                   ${rodape(s)}
                 </div>`);
             }
@@ -895,7 +921,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
                 ${cabPrv(s, numPag, null)}
                 <div class="blk blk-semi">${lbl}<span class="blk-s">${serie.length} atleta${serie.length!==1?"s":""}</span></div>
                 ${infoBarreiras}
-                <table><thead>${thCor}</thead><tbody>${serieOrd.map(({a,m},j)=>linhaRes(a,j,m,false,res[a.id])).join("")}</tbody></table>
+                <table><thead>${thCor}</thead><tbody>${serieOrd.map(({a,m},j)=>linhaRes(a,j,m,false,res[a.id])).join("")}${statusGeralPrint.filter(({a:sa}) => serie.some(s2=>s2.id===sa.id)).map(({a,status},j) => linhaStatus(a, status, serieOrd.length+j)).join("")}</tbody></table>
                 ${rodape(s)}
               </div>`);
           }
@@ -1192,7 +1218,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
 
         const linhaCampoRes = (a, m, j, posG, resData) => {
           const vaiFin = posG <= MAX_TOP8;
-          const estilo = vaiFin ? "" : "opacity:.45";
+          const estilo = "";
           const d = resData && typeof resData === "object" ? resData : {};
           const fmtT = (key) => {
             const v = d[key];
@@ -1249,11 +1275,25 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
         } else {
           const classGeral = [...atl]
             .map((a) => ({ a, m: res[a.id] != null ? parseFloat(getMarca(res[a.id])) : null, raw: res[a.id] }))
-            .filter((x) => x.m != null)
+            .filter((x) => x.m != null && !isNaN(x.m))
             .sort((a, b) => {
               if (b.m !== a.m) return b.m - a.m;          // 1º critério: melhor marca
               return cmpCampo(res[a.a.id], res[b.a.id]);  // desempate: sequência completa
             });
+
+          // Atletas com status (DNS/DNF/NM/DQ) no campo
+          const statusCampoPrint = [...atl].filter(a => {
+            const raw = res[a.id];
+            if (!raw) return false;
+            const st = (typeof raw === "object") ? (raw.status || "") : "";
+            const mk = String(getMarca(raw) || "").toUpperCase();
+            return ["DNS","DNF","NM","NH","DQ"].includes(st) || ["DNS","DNF","NM","NH","DQ"].includes(mk);
+          }).map(a => {
+            const raw = res[a.id];
+            const st = (typeof raw === "object") ? (raw.status || "") : "";
+            const mk = String(getMarca(raw) || "").toUpperCase();
+            return { a, status: st || mk };
+          });
 
           // Detectar se houve desempate por RT 25.22
           const marcasIguais = classGeral.some((c, idx) => idx > 0 && c.m === classGeral[idx-1].m);
@@ -1280,7 +1320,22 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
                   ${grpClass.map(({a,m,raw}, j) => {
                     const posG = classGeral.findIndex((c) => c.a.id === a.id) + 1;
                     return linhaCampoRes(a, m, gi*MAX + j, posG, raw);
-                  }).join("")}
+                  }).join("")}${gi === totalGrupos - 1 ? statusCampoPrint.map(({a,status},j) => `
+                  <tr class="${(classGeral.length+j)%2===0?"par":"imp"}" style="opacity:.5">
+                    <td class="tdn"></td>
+                    <td class="tdn" style="font-weight:700;color:#333">${numPeito[a.id]||""}</td>
+                    <td class="tdcbat">${_getCbat(a)}</td>
+                    <td class="tdal"><span class="anome">${a.nome}</span></td>
+                    <td class="tdat">${fmtNasc(a)}</td>
+                    <td class="tdcl">${getSiglaEquipe(a)}</td>
+                    <td class="tdm"></td><td class="tdm"></td><td class="tdm"></td>
+                    <td class="tdmb" style="color:#c44">${status}</td>
+                    <td class="tdpc"></td>
+                    <td class="tdm"></td><td class="tdm"></td><td class="tdm"></td>
+                    <td class="tdmb" style="color:#c44">${status}</td>
+                    <td class="tdp"></td>
+                    ${_tdClassifVazio}${_tdPtsEqVazio}
+                  </tr>`).join("") : ""}
                 </tbody></table>
                 ${rodape(s)}
               </div>`);
