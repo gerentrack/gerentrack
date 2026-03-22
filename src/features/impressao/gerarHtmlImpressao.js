@@ -249,7 +249,10 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
       recIds.forEach(recId => {
         const tipo = recordesAll.find(r => r.id === recId);
         if (!tipo) return;
-        const reg = tipo.registros.find(r => r.provaId === s.prova.id && r.categoriaId === s.categoria.id && r.sexo === s.sexo);
+        const reg = tipo.registros.find(r =>
+          (r.provaId === s.prova.id || (!r.provaId && r.provaNome === s.prova.nome) || (r.provaNome === s.prova.nome))
+          && r.categoriaId === s.categoria.id && r.sexo === s.sexo
+        );
         if (reg) {
           const atletasTxt = RecordHelper.getAtletaTexto(reg);
           const equipeTxt = RecordHelper.getEquipeTexto(reg);

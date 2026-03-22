@@ -408,8 +408,11 @@ const TeamScoringEngine = {
             if (fasesConf.length > 1) return;
           }
 
-          // Buscar recorde de referência para esta prova/cat/sexo
-          const snapRec = regsRef.find(r => r.provaId === provId && r.categoriaId === catId && r.sexo === sexo);
+          // Buscar recorde de referência para esta prova/cat/sexo (match por nome quando provaId difere por categoria)
+          const snapRec = regsRef.find(r =>
+            (r.provaId === provId || (!r.provaId && r.provaNome === prova.nome) || (r.provaNome === prova.nome))
+            && r.categoriaId === catId && r.sexo === sexo
+          );
           if (!snapRec) return;
           const isMenor = prova.unidade === "s";
           const recMs = isMenor ? _marcaParaMs(snapRec.marca) : parseFloat(snapRec.marca);

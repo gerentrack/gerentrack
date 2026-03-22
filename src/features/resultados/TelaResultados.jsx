@@ -1563,7 +1563,10 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                                   const tipo = (recordes || []).find(t => t.id === recId);
                                   if (!tipo) return;
                                   const regsRef = hasSnap ? (snap[tipo.id] || []) : (tipo.registros || []);
-                                  const sr = regsRef.find(r => r.provaId === b.prova.id && r.categoriaId === b.categoria.id && r.sexo === b.sexo);
+                                  const sr = regsRef.find(r =>
+                                    (r.provaId === b.prova.id || (!r.provaId && r.provaNome === b.prova.nome) || (r.provaNome === b.prova.nome))
+                                    && r.categoriaId === b.categoria.id && r.sexo === b.sexo
+                                  );
                                   if (!sr) return;
                                   const recVal = isMenor ? _marcaParaMs(sr.marca) : parseFloat(sr.marca);
                                   if (recVal != null && (isMenor ? mn < recVal : mn > recVal)) _superouRec = true;
@@ -1586,7 +1589,11 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                               const tipo = (recordes || []).find(t => t.id === recId);
                               if (!tipo) return;
                               const regsRef = hasSnap ? (snapshot[tipo.id] || []) : (tipo.registros || []);
-                              const snapRec = regsRef.find(r => r.provaId === b.prova.id && r.categoriaId === b.categoria.id && r.sexo === b.sexo);
+                              // Match por provaId exato, ou por nome da prova + categoria + sexo
+                              const snapRec = regsRef.find(r =>
+                                (r.provaId === b.prova.id || (!r.provaId && r.provaNome === b.prova.nome) || (r.provaNome === b.prova.nome))
+                                && r.categoriaId === b.categoria.id && r.sexo === b.sexo
+                              );
                               if (!snapRec) return;
                               const recMarca = isMenor ? _marcaParaMs(snapRec.marca) : parseFloat(snapRec.marca);
                               if (recMarca == null || isNaN(recMarca)) return;

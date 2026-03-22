@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { CATEGORIAS, ESTADOS_BR } from "../../shared/constants/categorias";
@@ -22,6 +22,33 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
   const [showNovoTipo, setShowNovoTipo] = useState(false);
   const [editTipoId, setEditTipoId] = useState(null);
   const [abaRecordes, setAbaRecordes] = useState("registros"); // "registros" | "pendencias" | "historico"
+
+  // ── Migração: corrigir provaId dos registros existentes ───────────────────
+  const _migracaoRef = useRef(false);
+  useEffect(() => {
+    if (_migracaoRef.current || !recordes || recordes.length === 0) return;
+    _migracaoRef.current = true;
+    const allProvas = todasAsProvas();
+    let corrigidos = 0;
+    const recordesCorrigidos = recordes.map(tipo => {
+      const novosRegistros = tipo.registros.map(reg => {
+        if (!reg.provaNome || !reg.categoriaId || !reg.sexo) return reg;
+        const prefixoEsperado = reg.sexo + "_" + reg.categoriaId;
+        if (reg.provaId && reg.provaId.startsWith(prefixoEsperado)) return reg;
+        const matchExato = allProvas.find(p => p.nome === reg.provaNome && p.id.startsWith(prefixoEsperado));
+        if (matchExato && matchExato.id !== reg.provaId) {
+          corrigidos++;
+          return { ...reg, provaId: matchExato.id };
+        }
+        return reg;
+      });
+      return { ...tipo, registros: novosRegistros };
+    });
+    if (corrigidos > 0) {
+      console.log(`[Recordes] Migração: corrigido provaId de ${corrigidos} registro(s)`);
+      setRecordes(recordesCorrigidos);
+    }
+  }, [recordes]);
 
   // Escopos geográficos
   const ESCOPOS = [
@@ -294,16 +321,31 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
         const rawMarca = get("marca", "mark", "result", "resultado", "tempo", "time", "record");
         const rawTipoRec = get("tipo recorde", "tipo recorde (sigla)", "tipo", "sigla", "recorde", "record type");
 
-        const provaMatch = _matchProva(rawProva);
+        const provaMatchGenerico = _matchProva(rawProva);
         const catId = _matchCategoria(rawCat);
         let sexo = _matchSexo(rawSexo);
-        
+
         // Fallback: tentar extrair sexo do ID da prova ou da categoria
-        if (!sexo && provaMatch) {
-          if (provaMatch.id.startsWith("F_")) sexo = "F";
-          else if (provaMatch.id.startsWith("M_")) sexo = "M";
+        if (!sexo && provaMatchGenerico) {
+          if (provaMatchGenerico.id.startsWith("F_")) sexo = "F";
+          else if (provaMatchGenerico.id.startsWith("M_")) sexo = "M";
         }
         if (!sexo) sexo = "M"; // default final
+
+        // Resolver provaId específico por categoria+sexo (ex: M_sub16_comp em vez de M_adulto_comp)
+        // provasDef tem IDs como M_adulto_comp, M_sub16_comp, F_adulto_comp, etc.
+        const provaMatch = (() => {
+          if (!provaMatchGenerico) return null;
+          const provaNome = provaMatchGenerico.nome;
+          // Buscar a prova com mesmo nome que pertence à categoria e sexo corretos
+          const prefixo = (sexo || "M") + "_" + (catId || "");
+          const matchExato = _allProvas.find(p => p.nome === provaNome && p.id.startsWith(prefixo));
+          if (matchExato) return matchExato;
+          // Fallback: qualquer prova com o nome certo e prefixo de sexo
+          const matchSexo = _allProvas.find(p => p.nome === provaNome && p.id.startsWith((sexo || "M") + "_"));
+          if (matchSexo) return matchSexo;
+          return provaMatchGenerico;
+        })();
 
         const unidade = provaMatch ? (provaMatch.unidade || "s") : (rawMarca.includes(":") ? "s" : "");
         const marca = _normMarca(rawMarca, unidade);

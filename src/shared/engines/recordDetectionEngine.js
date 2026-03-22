@@ -155,7 +155,11 @@ const RecordDetectionEngine = {
         pool.forEach(tipo => {
           const hasSnap = Object.keys(snapshot).length > 0;
           const regsRef = hasSnap ? (snapshot[tipo.id] || []) : (tipo.registros || []);
-          const regExistente = regsRef.find(r => r.provaId === provId && r.categoriaId === catId && r.sexo === sexo);
+          // Match por provaId exato, ou por nome da prova + categoria + sexo
+          const regExistente = regsRef.find(r =>
+            (r.provaId === provId || (!r.provaId && r.provaNome === prova.nome) || (r.provaNome === prova.nome))
+            && r.categoriaId === catId && r.sexo === sexo
+          );
 
           const resultado = this._compararMarca(marcaNum, regExistente, prova.unidade);
           if (!resultado) return; // pior ou inválido
