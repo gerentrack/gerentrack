@@ -1039,12 +1039,12 @@ function BlocoDigitarCategoria({
               <span style={{ color:"#888", marginLeft:8 }}>1º menor nº de saltos na última altura transposta (SU) · 2º menor nº total de falhas na prova (FP)</span>
             </div>
           )}
-          <div style={{ overflowX:"auto" }}>
+          <div style={{ overflowX:"auto", maxHeight:"80vh", overflowY:"auto" }}>
             <table style={{ borderCollapse:"collapse", background:"#0D0E12", minWidth:"100%" }}>
-              <thead>
+              <thead style={{ position:"sticky", top:0, zIndex:2 }}>
                 {/* linha 1: altura em cada coluna */}
                 <tr>
-                  <th style={{ ...sty.th, textAlign:"left", minWidth:180 }}>ATLETA</th>
+                  <th style={{ ...sty.th, textAlign:"left", minWidth:200, position:"sticky", left:0, zIndex:3, background:"#0D0E12" }}>ATLETA</th>
                   {(Array.isArray(alturas) ? alturas : []).filter(h=>h!=="").map(h => (
                     <th key={h} colSpan={3} style={{ ...sty.th, background:"#111", color:"#1976D2", minWidth:90, textAlign:"center", borderBottom:"2px solid #1976D2" }}>
                       {parseFloat(h).toFixed(2).replace(".",",")}m
@@ -1058,7 +1058,7 @@ function BlocoDigitarCategoria({
                 </tr>
                 {/* linha 2: numeração das tentativas */}
                 <tr>
-                  <th style={{ ...sty.th, background:"#0a0b0e" }}></th>
+                  <th style={{ ...sty.th, background:"#0a0b0e", position:"sticky", left:0, zIndex:3 }}></th>
                   {(Array.isArray(alturas) ? alturas : []).filter(h=>h!=="").flatMap(h =>
                     [1,2,3].map(n => (
                       <th key={`${h}-${n}`} style={{ ...sty.th, background:"#0a0b0e", color:"#555", fontSize:9, minWidth:30 }}>{n}ª</th>
@@ -1084,10 +1084,17 @@ function BlocoDigitarCategoria({
                   const melhor = foraDeProva ? null : melhorAltura(a.id);
                   return (
                     <tr key={a.id} style={{ background: ai%2===0 ? "#0e0f14" : "#111318", opacity: foraDeProva ? 0.4 : 1 }}>
-                      {/* nome */}
-                      <td style={{ padding:"8px 12px", borderBottom:"1px solid #1E2130", whiteSpace:"nowrap" }}>
-                        <div style={{ fontWeight:700, color:"#fff", fontSize:13 }}>{a.nome}</div>
-                        <div style={{ color:"#555", fontSize:11 }}>{getExibicaoEquipe(a, equipes)||"—"}{atletaInativo ? ` — ${getStatusAtleta(a)}` : atletaNMAltura ? " — NM" : ""}</div>
+                      {/* nome + nº peito — sticky */}
+                      <td style={{ padding:"8px 12px", borderBottom:"1px solid #1E2130", whiteSpace:"nowrap", position:"sticky", left:0, zIndex:1, background: ai%2===0 ? "#0e0f14" : "#111318" }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                          {(numeracaoPeito?.[eventoAtual?.id]||{})[a.id] && (
+                            <span style={{ fontWeight:700, color:"#aaa", fontSize:12, minWidth:24 }}>{(numeracaoPeito[eventoAtual.id])[a.id]}</span>
+                          )}
+                          <div>
+                            <div style={{ fontWeight:700, color:"#fff", fontSize:13 }}>{a.nome}</div>
+                            <div style={{ color:"#555", fontSize:11 }}>{getExibicaoEquipe(a, equipes)||"—"}{atletaInativo ? ` — ${getStatusAtleta(a)}` : atletaNMAltura ? " — NM" : ""}</div>
+                          </div>
+                        </div>
                       </td>
                       {/* tentativas por altura */}
                       {(Array.isArray(alturas) ? alturas : []).filter(h=>h!=="").flatMap((h, hIdx) => {
