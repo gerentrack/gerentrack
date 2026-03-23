@@ -376,8 +376,9 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
     const peito = peitos[atletaId] || "";
     const nomeDisplay = `${peito ? "#" + peito + " " : ""}${atl.nome}`;
 
-    // Buscar todas as provas do atleta com info de medalha
-    const provasDoAtleta = provasFiltradasMedalhas
+    // Buscar TODAS as provas do atleta (sem filtro de prova)
+    const todasProvasMedalha = provasComAtletas.filter(g => !g.prova.origemCombinada);
+    const provasDoAtleta = todasProvasMedalha
       .filter(g => g.atletas.some(a => a.id === atletaId))
       .map(g => {
         const classificados = getClassificados(g.prova, g.cat, g.sexo);
@@ -410,7 +411,8 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
       return { status: "aviso", msg: `⚠️ ${nomeDisplay} sem provas para medalha`, cor: "amarelo" };
     }
 
-    // Mostrar modal com cards
+    // Fechar scanner e mostrar modal com cards
+    setScannerMedalhaAberto(false);
     setMedalhaAtletaInfo({ atl, peito, provas: provasDoAtleta });
     beepOk(); vibrarOk();
     return { status: "ok", msg: `🏅 ${nomeDisplay} — ${provasDoAtleta.length} prova(s)`, cor: "verde" };
