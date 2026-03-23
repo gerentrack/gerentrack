@@ -162,16 +162,28 @@ export default function QrScanner({
     if (onFechar) onFechar();
   };
 
-  // Iniciar ao abrir
+  // Iniciar ao abrir / limpar ao fechar externamente
   useEffect(() => {
     if (aberto && !cameraAtiva && !erro) {
-      // Delay para garantir que o DOM está pronto
+      setMostrarResumo(false);
       setTimeout(() => iniciarCamera(), 300);
+    }
+    if (!aberto) {
+      // Fechado externamente (ex: scan de medalha) — parar câmera sem mostrar resumo
+      if (scannerRef.current) {
+        scannerRef.current.stop().catch(() => {});
+        try { scannerRef.current.clear(); } catch {}
+        scannerRef.current = null;
+      }
+      setCameraAtiva(false);
+      setLanterna(false);
+      if (inatividadeRef.current) clearTimeout(inatividadeRef.current);
+      setMostrarResumo(false);
     }
     return () => {
       if (scannerRef.current) {
         scannerRef.current.stop().catch(() => {});
-        scannerRef.current.clear().catch(() => {});
+        try { scannerRef.current.clear(); } catch {}
         scannerRef.current = null;
       }
       if (inatividadeRef.current) clearTimeout(inatividadeRef.current);
