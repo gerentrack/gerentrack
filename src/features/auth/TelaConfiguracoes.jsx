@@ -26,7 +26,9 @@ function getS(t) {
 }
 
 // ── Info badge ────────────────────────────────────────────────────────────────
-function InfoBadge({ children, color = "#1976D2" }) {
+function InfoBadge({ children, color }) {
+  const tFallback = useTema();
+  if (!color) color = tFallback.accent;
   return (
     <div style={{ background: color + "11", border: `1px solid ${color}33`, borderRadius: 8,
       padding: "10px 14px", fontSize: 12, color: color, lineHeight: 1.6, marginBottom: 12 }}>
@@ -376,7 +378,7 @@ function TelaConfiguracoes({
             <h3 style={s.sectionTitle}>Informações da Conta</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
               {[
-                { label: "Tipo de conta", value: tipoLabel[usuarioLogado?.tipo] || "—", color: "#1976D2" },
+                { label: "Tipo de conta", value: tipoLabel[usuarioLogado?.tipo] || "—", color: t.accent },
                 { label: "Nome",          value: meuRegistro?.nome  || "—" },
                 { label: "E-mail",        value: meuRegistro?.email || "—" },
                 orgVinculado    ? { label: "Organização",    value: orgVinculado }    : null,
@@ -423,8 +425,8 @@ function TelaConfiguracoes({
                   Histórico Esportivo
                 </div>
                 <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-                  <div style={{ background: t.bgHeaderSolid, border: "1px solid #1976D233", borderRadius: 7, padding: "10px 16px", textAlign: "center" }}>
-                    <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 28, fontWeight: 900, color: "#1976D2", lineHeight: 1 }}>{nInscricoes}</div>
+                  <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.accentBorder}`, borderRadius: 7, padding: "10px 16px", textAlign: "center" }}>
+                    <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 28, fontWeight: 900, color: t.accent, lineHeight: 1 }}>{nInscricoes}</div>
                     <div style={{ fontSize: 11, color: t.textDimmed, marginTop: 3 }}>Inscrição(ões)</div>
                   </div>
                   <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 7, padding: "10px 16px", fontSize: 12, color: t.textMuted, display: "flex", flexDirection: "column", gap: 3, justifyContent: "center" }}>
@@ -478,7 +480,7 @@ function TelaConfiguracoes({
               </div>
 
               {/* Explicação dos direitos */}
-              <div style={{ background: t.bgHeaderSolid, border: "1px solid #1976D222", borderRadius: 8,
+              <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.accentBg}`, borderRadius: 8,
                 padding: "12px 14px", marginBottom: 16, fontSize: 12, color: t.textMuted, lineHeight: 1.7 }}>
                 <strong style={{ color: t.accent }}>Seus direitos (Art. 18º LGPD):</strong> Você pode revogar
                 este consentimento a qualquer momento. Ao revogar, seus dados pessoais (nome, CPF, e-mail, telefone)
@@ -523,7 +525,7 @@ function TelaConfiguracoes({
 
           {/* ── PORTABILIDADE DE DADOS (Art. 18º, V LGPD) ──────────────────── */}
           {!isAdmin && (
-            <div style={{ ...s.card, borderColor:"#1976D233" }}>
+            <div style={{ ...s.card, borderColor: t.accentBorder }}>
               <h3 style={s.sectionTitle}>📦 Portabilidade dos Meus Dados</h3>
               <p style={{ color:t.textDimmed, fontSize:13, marginBottom:14, lineHeight:1.6 }}>
                 Conforme o <strong style={{ color:t.textPrimary }}>Art. 18º, V da LGPD</strong>, você tem direito a receber
@@ -798,7 +800,7 @@ function TelaConfiguracoes({
               <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                 {siteBranding?.icon && <img src={siteBranding.icon} alt="" style={{ width:28, height:28, objectFit:"contain", borderRadius:4 }} />}
                 <div>
-                  <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:16, fontWeight:900, color:"#1976D2", letterSpacing:2 }}>
+                  <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:16, fontWeight:900, color: t.accent, letterSpacing:2 }}>
                     {siteBranding?.nome || "GERENTRACK"}
                   </div>
                   <div style={{ fontSize:10, color:t.textDimmed }}>{siteBranding?.slogan || "COMPETIÇÃO COM PRECISÃO"}</div>
@@ -1162,7 +1164,7 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(ts => `   • ${ts}`).joi
               <div style={{ fontSize:11, color:t.textDisabled, marginBottom:10 }}>
                 Use no portal:{" "}
                 <a href="https://peticionamento.anpd.gov.br" target="_blank" rel="noopener noreferrer"
-                  style={{ color:"#1976D2" }}>peticionamento.anpd.gov.br →</a>
+                  style={{ color: t.accent }}>peticionamento.anpd.gov.br →</a>
               </div>
               <pre style={{ background:t.bgCardAlt, border:`1px solid ${t.border}`, borderRadius:8,
                 padding:"14px 16px", fontSize:11, color:t.textTertiary, lineHeight:1.8,

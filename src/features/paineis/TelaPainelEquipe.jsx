@@ -46,8 +46,9 @@ function Td({ children, style }) {
   const s = useStylesResponsivos(getS(t));
   return <td style={{ ...s.td, ...style }}>{children}</td>;
 }
-function StatCard({ value, label, color = "#1976D2" }) {
+function StatCard({ value, label, color }) {
   const t = useTema();
+  if (!color) color = t.accent;
   const s = useStylesResponsivos(getS(t));
   return (
     <div style={{ ...s.statCard }}>

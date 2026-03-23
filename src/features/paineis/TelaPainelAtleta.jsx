@@ -25,10 +25,10 @@ function getStyles(t) {
   select: { width: "100%", background: t.bgInput, borderWidth: 1, borderStyle: "solid", borderColor: t.borderInput, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
   emptyState: { textAlign: "center", padding: "60px 20px", color: t.textDisabled, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, fontSize: 15 },
   btnPrimary: { background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, transition: "all 0.2s" },
-  btnSecondary: { background: "transparent", color: t.accent, border: "2px solid #1976D2", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
+  btnSecondary: { background: "transparent", color: t.accent, border: `2px solid ${t.accent}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
   btnGhost: { background: "transparent", color: t.textMuted, border: `1px solid ${t.borderLight}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
   linkBtn: { background: "none", border: "none", color: t.accent, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", padding: 0 },
-  badgeGold: { background: "#1976D222", color: t.accent, border: "1px solid #1976D244", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 },
+  badgeGold: { background: t.accentBg, color: t.accent, border: `1px solid ${t.accentBorder}`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 },
   badge: (color) => ({ background: color + "22", color: color, border: `1px solid ${color}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }),
   catBanner: { background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 14, color: t.textTertiary },
   marca: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: t.accent },
@@ -238,7 +238,7 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
       })()}
 
       {!eventoAtual && !meuAtleta?.organizadorId && (
-        <div style={{ ...s.catBanner, border:"1px solid #1976D244", marginBottom:16 }}>
+        <div style={{ ...s.catBanner, border:`1px solid ${t.accentBorder}`, marginBottom:16 }}>
           💡 Selecione uma competição em <button style={s.linkBtn} onClick={()=>setTela("home")}>Competições</button> para se inscrever.
         </div>
       )}
@@ -599,8 +599,8 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
                         <span style={{ fontSize:12, color: t.textDimmed }}>· 📍 {ev.local}</span>
                       )}
                       <span style={{
-                        background:"#1976D222", color: t.accent,
-                        border:"1px solid #1976D244", borderRadius:4,
+                        background: t.accentBg, color: t.accent,
+                        border:`1px solid ${t.accentBorder}`, borderRadius:4,
                         padding:"2px 8px", fontSize:11, fontWeight:600,
                       }}>
                         {linhas.length} prova{linhas.length !== 1 ? "s" : ""}
@@ -638,7 +638,7 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
                         <div style={{
                           fontFamily:"'Barlow Condensed',sans-serif",
                           fontSize:30, fontWeight:900, lineHeight:1,
-                          color: isDNS ? "#555" : "#1976D2",
+                          color: isDNS ? "#555" : t.accent,
                           marginTop:2, marginBottom:2,
                         }}>
                           {l.marca}

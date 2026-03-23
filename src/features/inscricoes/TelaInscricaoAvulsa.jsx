@@ -997,7 +997,7 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
         const equipeIdUser = tipoInsc === "equipe" ? usuarioLogado.id : tipoInsc === "treinador" ? usuarioLogado.equipeId : null;
         const nMinhas = equipeIdUser ? inscsRevezEvt.filter(i => i.equipeId === equipeIdUser).length : inscsRevezEvt.length;
         return (
-          <div style={{ marginTop: 32, padding: 20, background: t.bgHeaderSolid, border: "1px solid #1976D233", borderRadius: 12 }}>
+          <div style={{ marginTop: 32, padding: 20, background: t.bgHeaderSolid, border: `1px solid ${t.accentBorder}`, borderRadius: 12 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
               <div>
                 <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.accent, margin: 0 }}>

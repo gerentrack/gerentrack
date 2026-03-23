@@ -424,7 +424,7 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
     <div style={s.formPage}>
       <LoginStyle />
       <div style={{ ...s.formCard, maxWidth:460, position:"relative", overflow:"hidden" }}>
-        {loading && <div style={{position:"absolute",inset:0,background:"rgba(10,11,13,0.6)",zIndex:10,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:12,backdropFilter:"blur(2px)"}}><span style={{width:36,height:36,borderRadius:"50%",border:"3px solid #1976D244",borderTopColor:"#1976D2",display:"inline-block",animation:"spin 0.7s linear infinite"}} /><span style={{color:t.accent,fontSize:14,fontWeight:600}}>{loadingMsg || "Aguarde..."}</span></div>}
+        {loading && <div style={{position:"absolute",inset:0,background:"rgba(10,11,13,0.6)",zIndex:10,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:12,backdropFilter:"blur(2px)"}}><span style={{width:36,height:36,borderRadius:"50%",border:`3px solid ${t.accentBorder}`,borderTopColor:t.accent,display:"inline-block",animation:"spin 0.7s linear infinite"}} /><span style={{color:t.accent,fontSize:14,fontWeight:600}}>{loadingMsg || "Aguarde..."}</span></div>}
         <div style={s.formIcon}>🔐</div>
         <h2 style={s.formTitle}>Entrar no Sistema</h2>
         <p style={s.formSub}>Use seu e-mail, CPF ou CNPJ para acessar</p>

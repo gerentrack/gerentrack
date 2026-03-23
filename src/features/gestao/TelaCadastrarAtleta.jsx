@@ -30,7 +30,7 @@ function BlocoLGPD({ aceite, onChange, erro }) {
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.8)", zIndex:2000,
           display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}
           onClick={() => setModalAberto(false)}>
-          <div style={{ background:t.bgCard, border:"1px solid #1976D2", borderRadius:14,
+          <div style={{ background:t.bgCard, border:`1px solid ${t.accent}`, borderRadius:14,
             padding:28, maxWidth:560, width:"100%", maxHeight:"80vh", overflowY:"auto" }}
             onClick={e => e.stopPropagation()}>
             <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:22, fontWeight:800,
@@ -55,7 +55,7 @@ function BlocoLGPD({ aceite, onChange, erro }) {
               <p style={{ marginBottom:0 }}><strong style={{ color: t.textPrimary }}>9. Contato</strong><br/>
               Para exercer seus direitos ou tirar dúvidas: <span style={{ color: t.accent }}>gerentrack@gmail.com</span></p>
             </div>
-            <button style={{ marginTop:20, background:"#1976D2", color: t.textPrimary, border:"none",
+            <button style={{ marginTop:20, background: t.accent, color: t.textPrimary, border:"none",
               borderRadius:8, padding:"10px 24px", cursor:"pointer", fontSize:13, fontWeight:700,
               fontFamily:"'Barlow Condensed',sans-serif" }}
               onClick={() => setModalAberto(false)}>✓ Fechar</button>
@@ -605,7 +605,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                     setSelecionados(new Set());
                   }
                 }}
-                style={{ width: 16, height: 16, accentColor: "#1976D2", cursor: "pointer" }}
+                style={{ width: 16, height: 16, accentColor: t.accent, cursor: "pointer" }}
               />
               {selecionados.size > 0 ? `${selecionados.size} selecionado(s)` : "Selecionar todos"}
             </label>
@@ -662,7 +662,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
               return (
                 <div key={a.id} style={{
                   background: selecionados.has(a.id) ? `${t.accent}18` : t.bgHeaderSolid,
-                  border: `1px solid ${selecionados.has(a.id) ? "#1976D2" : t.border}`,
+                  border: `1px solid ${selecionados.has(a.id) ? t.accent : t.border}`,
                   borderRadius: 8,
                   padding: "12px 16px", display: "flex", alignItems: "center", gap: 14
                 }}
@@ -679,7 +679,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                           return next;
                         });
                       }}
-                      style={{ width: 16, height: 16, accentColor: "#1976D2", cursor: "pointer", flexShrink: 0 }}
+                      style={{ width: 16, height: 16, accentColor: t.accent, cursor: "pointer", flexShrink: 0 }}
                     />
                   )}
                   <div style={{
@@ -888,7 +888,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                 s => s.atletaId === atletaExistente.id && s.status === "pendente");
 
               return (
-                <div style={{ background:`${t.accent}12`, border:"2px solid #1976D2",
+                <div style={{ background:`${t.accent}12`, border:`2px solid ${t.accent}`,
                   borderRadius:8, padding:"14px 16px", marginTop:8 }}>
                   <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
                     <span style={{ fontSize:20 }}>⚠️</span>
@@ -911,7 +911,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                   </div>
 
                   {atletaExistente.desvinculadoEm && !jaEhMeu && (
-                    <div style={{ background:`${t.accent}12`, border:"1px solid #1976D244",
+                    <div style={{ background:`${t.accent}12`, border:`1px solid ${t.accentBorder}`,
                       borderRadius:6, padding:"8px 12px", marginBottom:8, fontSize:12, color: t.textTertiary }}>
                       ℹ️ Atleta foi desvinculado da equipe
                       <strong style={{ color: t.accent }}>{atletaExistente.equipeAnterior ? ` ${atletaExistente.equipeAnterior}` : ""}</strong> em{" "}

@@ -306,7 +306,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                 const key = alts.find(h => Math.abs(parseFloat(h) - melhor) < 0.001);
                 if (!key) return 0;
                 const arr = Array.isArray(tObj[key]) ? tObj[key] : Array.isArray(tObj[parseFloat(key).toFixed(2)]) ? tObj[parseFloat(key).toFixed(2)] : [];
-                return arr.filter(t => t === "X" || t === "O").length;
+                return arr.filter(v => v === "X" || v === "O").length;
               };
               const getFP = (raw) => {
                 if (!raw || typeof raw !== "object") return 0;
@@ -318,7 +318,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                   const arr = Array.isArray(tObj[h]) ? tObj[h] : Array.isArray(tObj[kStr]) ? tObj[kStr] : [];
                   // Só conta X das alturas que o atleta transpôs
                   if (arr.includes("O")) {
-                    total += arr.filter(t => t === "X").length;
+                    total += arr.filter(v => v === "X").length;
                   }
                 });
                 return total;

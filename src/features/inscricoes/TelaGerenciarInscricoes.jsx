@@ -57,7 +57,7 @@ function getStyles(t) {
   radioGroup: { display: "flex", gap: 8, marginBottom: 16 },
   radioLabel: { flex: 1, background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px", textAlign: "center", cursor: "pointer", fontSize: 14, color: t.textMuted, transition: "all 0.2s" },
   radioLabelActive: { background: t.bgHover, border: `1px solid ${t.accent}`, color: t.accent },
-  resumoInscricao: { background: t.bgCard, border: "1px solid #1976D233", borderRadius: 10, padding: "16px 20px", marginTop: 16 },
+  resumoInscricao: { background: t.bgCard, border: `1px solid ${t.accentBorder}`, borderRadius: 10, padding: "16px 20px", marginTop: 16 },
   tagProva: { background: t.accentBg, color: t.accent, border: `1px solid ${t.accentBorder}`, borderRadius: 6, padding: "4px 12px", fontSize: 12, cursor: "pointer" },
   sumuCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, marginBottom: 20, overflow: "hidden" },
   sumuHeader: { padding: "16px 20px", background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" },

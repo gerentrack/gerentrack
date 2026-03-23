@@ -3,7 +3,7 @@ import { useConfirm } from "../../features/ui/ConfirmContext";
 import { validarCPF, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { Th, Td } from "../ui/TableHelpers";
-
+import { secondaryAuth, createUserWithEmailAndPassword, signOut as firebaseSignOut } from "../../firebase";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
@@ -274,7 +274,7 @@ function TelaTreinadores({ usuarioLogado, setTela, treinadores, adicionarTreinad
     return e;
   };
 
-  const handleSalvar = () => {
+  const handleSalvar = async () => {
     const e = validar();
     if (Object.keys(e).length) { setErros(e); return; }
 
@@ -314,6 +314,19 @@ function TelaTreinadores({ usuarioLogado, setTela, treinadores, adicionarTreinad
             cargo: form.cargo || "", permissoes: form.permissoes || [], nome: form.nome || docExistente.nome,
             ativo: true, senhaTemporaria: docExistente.senhaTemporaria || false }
         : (() => { const { senha: _s, ...formSemSenha } = form; return { ...formSemSenha, id: genId(), equipeId, ativo: true, dataCadastro: new Date().toISOString(), senhaTemporaria: true }; })();
+      // Criar no Firebase Auth apenas se for perfil novo
+      if (!docExistente) {
+        try {
+          await createUserWithEmailAndPassword(secondaryAuth, form.email.trim(), form.senha);
+          await firebaseSignOut(secondaryAuth).catch(() => {});
+        } catch (err) {
+          if (err.code !== "auth/email-already-in-use") {
+            setFeedback(`❌ Erro ao criar conta: ${err.message}`);
+            setTimeout(() => setFeedback(""), 5000);
+            return;
+          }
+        }
+      }
       adicionarTreinador(novo);
       registrarAcao(usuarioLogado.id, usuarioLogado.nome,
         "Adicionou treinador", `${form.nome} (${form.email}) — cargo: ${form.cargo||"—"}`,
@@ -348,7 +361,7 @@ function TelaTreinadores({ usuarioLogado, setTela, treinadores, adicionarTreinad
   const grupos = [...new Set(PERMISSOES_TREINADOR.map(p => p.grupo))];
 
   const tabStyle = (id) => ({
-    padding:"8px 20px", background: aba===id ? "#1976D2" : t.bgHeaderSolid,
+    padding:"8px 20px", background: aba===id ? t.accent : t.bgHeaderSolid,
     color: aba===id ? "#000" : t.textTertiary, border:"1px solid",
     borderColor: aba===id ? t.accent : t.borderLight,
     borderRadius:6, cursor:"pointer", fontWeight: aba===id ? 700 : 400,

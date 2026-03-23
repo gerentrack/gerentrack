@@ -421,7 +421,7 @@ function BlocoDigitarCategoria({
     if (alt.length === 0) return false;
     const temTentativa = alt.some(h => {
       const arr = tent[h] || [];
-      return Array.isArray(arr) && arr.some(t => t === "X" || t === "O");
+      return Array.isArray(arr) && arr.some(v => v === "X" || v === "O");
     });
     if (!temTentativa) return false;
     // Tem tentativas mas nenhum O → NM
@@ -564,7 +564,7 @@ function BlocoDigitarCategoria({
         const tent = tentativas[a.id] || {};
         const temTentativa = alturasNorm.some(h => {
           const arr = tent[h] || tent[parseFloat(h)?.toFixed(2)] || [];
-          return Array.isArray(arr) && arr.some(t => t === "X" || t === "O");
+          return Array.isArray(arr) && arr.some(v => v === "X" || v === "O");
         });
         if (temTentativa) {
           entradas.push({ atletaId: a.id, marca: "NM", tentData: {
@@ -1088,7 +1088,7 @@ function BlocoDigitarCategoria({
                 <tr>
                   <th style={{ ...sty.th, textAlign:"left", minWidth:200, position:"sticky", left:0, zIndex:3, background:t.bgHeaderSolid }}>ATLETA</th>
                   {(Array.isArray(alturas) ? alturas : []).filter(h=>h!=="").map(h => (
-                    <th key={h} colSpan={3} style={{ ...sty.th, background:t.bgHeaderSolid, color: t.accent, minWidth:90, textAlign:"center", borderBottom:"2px solid #1976D2" }}>
+                    <th key={h} colSpan={3} style={{ ...sty.th, background:t.bgHeaderSolid, color: t.accent, minWidth:90, textAlign:"center", borderBottom:`2px solid ${t.accent}` }}>
                       {parseFloat(h).toFixed(2).replace(".",",")}m
                     </th>
                   ))}

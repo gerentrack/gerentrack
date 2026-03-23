@@ -1856,7 +1856,7 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
                         onDrop={(e) => handleDrop(e, chave)}
                         onDragEnd={handleDragEnd}
                         style={{ display: "flex", flexDirection: "column", gap: 4,
-                          outline: isDragOver ? "2px solid #1976D2" : "none",
+                          outline: isDragOver ? `2px solid ${t.accent}` : "none",
                           borderRadius: 6, transition: "outline 0.1s" }}
                       >
                         <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", background: t.bgHeaderSolid, borderRadius: 6, border: `1px solid ${t.border}` }}>

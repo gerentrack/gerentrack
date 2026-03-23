@@ -221,7 +221,7 @@ function TelaConfigPontuacaoEquipes({ setTela, eventoAtual, editarEvento, equipe
         {/* Toggle ativo */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24, padding: "12px 16px", background: ativo ? `${t.success}15` : `${t.danger}15`, border: `1px solid ${ativo ? `${t.success}44` : `${t.danger}44`}`, borderRadius: 8 }}>
           <input type="checkbox" checked={ativo} onChange={function() { setAtivo(!ativo); }}
-            style={{ width: 20, height: 20, accentColor: "#1976D2", cursor: "pointer" }} />
+            style={{ width: 20, height: 20, accentColor: t.accent, cursor: "pointer" }} />
           <div>
             <div style={{ fontWeight: 700, color: ativo ? t.success : t.danger, fontSize: 15 }}>
               {ativo ? "✅ Pontuação por Equipes ATIVA" : "❌ Pontuação por Equipes DESATIVADA"}
@@ -251,7 +251,7 @@ function TelaConfigPontuacaoEquipes({ setTela, eventoAtual, editarEvento, equipe
                         borderRadius: 8, cursor: "pointer", fontSize: 13
                       }}>
                         <input type="checkbox" checked={sel} onChange={function() { toggleEquipe(eq.id); }}
-                          style={{ accentColor: "#1976D2", cursor: "pointer" }} />
+                          style={{ accentColor: t.accent, cursor: "pointer" }} />
                         <span style={{ color: sel ? t.success : t.textMuted, fontWeight: sel ? 600 : 400 }}>
                           {eq.clube || eq.nome} {eq.sigla ? "(" + eq.sigla + ")" : ""}
                         </span>

@@ -327,7 +327,7 @@ function TelaFuncionarios({ usuarioLogado, setTela, funcionarios, adicionarFunci
   const grupos = [...new Set(PERMISSOES.map(p => p.grupo))];
 
   const tabStyle = (id) => ({
-    padding:"8px 20px", background: aba===id ? "#1976D2" : t.bgHeaderSolid,
+    padding:"8px 20px", background: aba===id ? t.accent : t.bgHeaderSolid,
     color: aba===id ? "#000" : t.textTertiary, border:"1px solid",
     borderColor: aba===id ? t.accent : t.borderLight,
     borderRadius:6, cursor:"pointer", fontWeight: aba===id ? 700 : 400,

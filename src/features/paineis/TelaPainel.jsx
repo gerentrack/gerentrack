@@ -368,7 +368,7 @@ function TelaPainel({ usuarioLogado, setTela, atletas, inscricoes, eventos, soli
           padding:"16px 20px", marginBottom:24 }}>
           <h2 style={{ ...s.sectionTitle, color:t.accent, marginTop:0 }}>
             🔗 Solicitações de Vínculo Pendentes
-            <span style={{ background:"#1976D2", color: t.textPrimary, borderRadius:12, fontSize:12,
+            <span style={{ background: t.accent, color: t.textPrimary, borderRadius:12, fontSize:12,
               fontWeight:800, padding:"2px 9px", marginLeft:10 }}>{vincPendentes.length}</span>
           </h2>
           <div style={s.tableWrap}>
@@ -469,7 +469,7 @@ function TelaPainel({ usuarioLogado, setTela, atletas, inscricoes, eventos, soli
           padding:"16px 20px", marginBottom:24 }}>
           <h2 style={{ ...s.sectionTitle, color:t.warning, marginTop:0 }}>
             🔄 Solicitações de Transferência
-            <span style={{ background:"#1976D2", color: t.textPrimary, borderRadius:12, fontSize:12,
+            <span style={{ background: t.accent, color: t.textPrimary, borderRadius:12, fontSize:12,
               fontWeight:800, padding:"2px 9px", marginLeft:10 }}>{transferenciasPend.length}</span>
           </h2>
           <p style={{ color: t.textMuted, fontSize:12, marginBottom:12, lineHeight:1.6 }}>

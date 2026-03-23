@@ -142,7 +142,7 @@ function TelaAuditoria({ usuarioLogado, setTela, historicoAcoes }) {
             <label style={{ display:"block", color: t.textTertiary, fontSize:13, marginBottom:8 }}>Período:</label>
             <div style={{ display:"flex", gap:8 }}>
               {[{ id:"todos", label:"Todos" },{ id:"hoje", label:"Hoje" },{ id:"semana", label:"7 dias" },{ id:"mes", label:"30 dias" }].map(o => (
-                <button key={o.id} onClick={() => setFiltro(o.id)} style={{ padding:"8px 16px", background: filtro===o.id ? "#1976D2" : t.bgInput, color: filtro===o.id ? "#fff" : t.textTertiary, border:`1px solid ${filtro===o.id ? "#1976D2" : t.border}`, borderRadius:6, cursor:"pointer", fontSize:13, fontWeight: filtro===o.id ? 600 : 400 }}>{o.label}</button>
+                <button key={o.id} onClick={() => setFiltro(o.id)} style={{ padding:"8px 16px", background: filtro===o.id ? t.accent : t.bgInput, color: filtro===o.id ? "#fff" : t.textTertiary, border:`1px solid ${filtro===o.id ? t.accent : t.border}`, borderRadius:6, cursor:"pointer", fontSize:13, fontWeight: filtro===o.id ? 600 : 400 }}>{o.label}</button>
               ))}
             </div>
           </div>

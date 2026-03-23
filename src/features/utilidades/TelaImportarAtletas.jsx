@@ -474,7 +474,7 @@ function TelaImportarAtletas({ setTela, atletas, adicionarAtleta, adicionarAtlet
         {/* Upload area */}
         <div style={{
           background: t.bgHeaderSolid,
-          border: "2px dashed #1976D2",
+          border: `2px dashed ${t.accent}`,
           borderRadius: 12,
           padding: 40,
           textAlign: "center",

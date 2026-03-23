@@ -346,7 +346,7 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
                   <div style={{ color: t.textDimmed, fontSize:11 }}>{new Date(sol.data).toLocaleDateString("pt-BR")}</div>
                 </div>
                 <div style={{ display:"flex", gap:8 }}>
-                  <button style={{ background:"linear-gradient(135deg,#1976D2,#1565C0)", color: t.textPrimary, border:"none", borderRadius:6, cursor:"pointer", fontSize:13, fontWeight:700, padding:"6px 16px" }}
+                  <button style={{ background:`linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: t.textPrimary, border:"none", borderRadius:6, cursor:"pointer", fontSize:13, fontWeight:700, padding:"6px 16px" }}
                     onClick={() => aprovarEquipe?.(sol.equipeId, meuOrgId)}>✅ Aprovar</button>
                   <button style={{ background:`${t.danger}18`, color: t.danger, border:`1px solid ${t.danger}66`, borderRadius:6, cursor:"pointer", fontSize:13, fontWeight:700, padding:"6px 16px" }}
                     onClick={() => recusarEquipe?.(sol.equipeId)}>❌ Recusar</button>

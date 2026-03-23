@@ -26,8 +26,8 @@ function getStyles(t) {
   table:      { width:"100%", borderCollapse:"collapse" },
   tr:         { transition:"background 0.15s" },
   empty:      { textAlign:"center", padding:"40px 20px", color: t.textDisabled, display:"flex", flexDirection:"column", alignItems:"center", gap:12, fontSize:14 },
-  btnPrimary: { background:"linear-gradient(135deg,#1976D2,#1565C0)", color: "#fff", border:"none", padding:"9px 20px", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:700, fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:1, transition:"all 0.2s", whiteSpace:"nowrap" },
-  btnSecondary:{ background:"transparent", color: t.accent, border:"2px solid #1976D2", padding:"8px 18px", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:700, fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:1, whiteSpace:"nowrap" },
+  btnPrimary: { background:`linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border:"none", padding:"9px 20px", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:700, fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:1, transition:"all 0.2s", whiteSpace:"nowrap" },
+  btnSecondary:{ background:"transparent", color: t.accent, border:`2px solid ${t.accent}`, padding:"8px 18px", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:700, fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:1, whiteSpace:"nowrap" },
   btnGhost:   { background:"transparent", color: t.textMuted, border:`1px solid ${t.borderLight}`, padding:"8px 18px", borderRadius:8, cursor:"pointer", fontSize:13, fontFamily:"'Barlow',sans-serif", whiteSpace:"nowrap" },
   input:      { width:"100%", background:t.bgInput, border:`1px solid ${t.borderInput}`, borderRadius:7, padding:"9px 12px", color: t.textSecondary, fontSize:13, fontFamily:"'Barlow',sans-serif", outline:"none", marginBottom:4 },
   label:      { display:"block", fontSize:11, fontWeight:700, color: t.textDimmed, letterSpacing:1, marginBottom:5, textTransform:"uppercase" },
@@ -292,7 +292,7 @@ function TelaAdmin({
                 { icon:"📋",  label:"Ver Inscrições",     action:() => setTela("gerenciar-inscricoes") },
               ].map(a => (
                 <button key={a.label} onClick={a.action} style={{
-                  background: a.primary ? "linear-gradient(135deg,#1976D2,#1565C0)" : t.bgHeaderSolid,
+                  background: a.primary ? `linear-gradient(135deg, ${t.accent}, ${t.accentDark})` : t.bgHeaderSolid,
                   border: a.primary ? "none" : `1px solid ${t.border}`,
                   borderRadius:10, padding:"16px 10px",
                   cursor:"pointer", color: a.primary ? "#fff" : t.textTertiary,
