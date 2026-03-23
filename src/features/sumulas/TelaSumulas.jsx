@@ -8,25 +8,28 @@ import { SeriacaoEngine } from "../../shared/engines/seriacaoEngine";
 import { _getNascDisplay, NomeProvaComImplemento, formatarTempo } from "../../shared/formatters/utils";
 import { Th, Td } from "../ui/TableHelpers";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
-const styles = {
+import { useTema } from "../../shared/TemaContext";
+function getStyles(t) {
+  return {
   page:        { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
-  pageTitle:   { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 24, letterSpacing: 1 },
+  pageTitle:   { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: t.textPrimary, marginBottom: 24, letterSpacing: 1 },
   painelHeader:{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 32 },
   filtros:     { display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 },
-  label:       { display: "block", fontSize: 12, fontWeight: 600, color: "#888", letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" },
-  select:      { background: "#141720", border: "1px solid #252837", borderRadius: 8, padding: "10px 14px", color: "#E0E0E0", fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none" },
+  label:       { display: "block", fontSize: 12, fontWeight: 600, color: t.textMuted, letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" },
+  select:      { background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none" },
   table:       { width: "100%", borderCollapse: "collapse" },
   tr:          { transition: "background 0.15s" },
-  btnPrimary:  { background: "linear-gradient(135deg, #1976D2, #1565C0)", color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, transition: "all 0.2s" },
-  btnSecondary:{ background: "transparent", color: "#1976D2", border: "2px solid #1976D2", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
-  btnGhost:    { background: "transparent", color: "#888", border: "1px solid #2a2d3a", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
-  linkBtn:     { background: "none", border: "none", color: "#1976D2", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", padding: 0 },
-  emptyState:  { textAlign: "center", padding: "60px 20px", color: "#444", display: "flex", flexDirection: "column", alignItems: "center", gap: 12, fontSize: 15 },
+  btnPrimary:  { background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, transition: "all 0.2s" },
+  btnSecondary:{ background: "transparent", color: t.accent, border: `2px solid ${t.accentBorder}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
+  btnGhost:    { background: "transparent", color: t.textMuted, border: `1px solid ${t.borderLight}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
+  linkBtn:     { background: "none", border: "none", color: t.accent, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", padding: 0 },
+  emptyState:  { textAlign: "center", padding: "60px 20px", color: t.textDisabled, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, fontSize: 15 },
   badge:       (color) => ({ background: color + "22", color: color, border: `1px solid ${color}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }),
-  badgeGold:   { background: "#1976D222", color: "#1976D2", border: "1px solid #1976D244", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 },
-  badgeOficial:{ background: "#1a1a2a", color: "#8888cc", border: "1px solid #333366", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 },
-  badgeNorma:  { background: "#1a2a0a", color: "#7acc44", border: "1px solid #3a6a1a", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600, cursor: "help" },
+  badgeGold:   { background: t.accentBg, color: t.accent, border: `1px solid ${t.accentBorder}`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 },
+  badgeOficial:{ background: t.bgCardAlt, color: t.textTertiary, border: `1px solid ${t.border}`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 },
+  badgeNorma:  { background: `${t.success}15`, color: t.success, border: `1px solid ${t.success}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600, cursor: "help" },
 };
+}
 
 // Item 8: exibe sigla da equipe quando disponível, com fallback para nome/clube
 const getExibicaoEquipe = (atleta, equipes) => {
@@ -36,7 +39,8 @@ const getExibicaoEquipe = (atleta, equipes) => {
 };
 
 function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual, resultados, registrarAcao, numeracaoPeito, getClubeAtleta, equipes, editarEvento, alterarStatusEvento, recordes, chamada, getPresencaProva }) {
-  const s = useStylesResponsivos(styles);
+  const t = useTema();
+  const s = useStylesResponsivos(getStyles(t));
   const [filtroProva, setFiltroProva] = useState("todas");
   const [filtroCat, setFiltroCat] = useState("todas");
   const [filtroSexo, setFiltroSexo] = useState("todos");
@@ -69,8 +73,8 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
     <div style={s.page}>
       <div style={s.emptyState}>
         <span style={{ fontSize: 56 }}>🔐</span>
-        <p style={{ fontWeight: 700, color: "#fff", fontSize: 18 }}>Súmulas não disponíveis</p>
-        <p style={{ color: "#666", fontSize: 14, maxWidth: 380, textAlign: "center" }}>
+        <p style={{ fontWeight: 700, color: t.textPrimary, fontSize: 18 }}>Súmulas não disponíveis</p>
+        <p style={{ color: t.textDimmed, fontSize: 14, maxWidth: 380, textAlign: "center" }}>
           As súmulas desta competição ainda não foram liberadas para consulta.
           Aguarde o encerramento das inscrições e a liberação pelo administrador.
         </p>
@@ -255,7 +259,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
       <div style={s.painelHeader}>
         <div>
           <h1 style={s.pageTitle}>📋 Súmulas</h1>
-          <div style={{ color: "#666", fontSize: 13 }}>{eventoAtual.nome}</div>
+          <div style={{ color: t.textDimmed, fontSize: 13 }}>{eventoAtual.nome}</div>
         </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           {isAmplo && sumuFiltradas.length > 0 && (
@@ -267,7 +271,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
             </button>
           )}
           {isAmplo && (
-            <button style={{ ...s.btnSecondary, background: "#1a1a0a", borderColor: "#4a4a0a", color: "#1976D2" }}
+            <button style={{ ...s.btnSecondary, background: t.accentBg, borderColor: t.accentBorder, color: t.accent }}
               onClick={() => setShowSeriar(!showSeriar)}>
               🔀 Seriar Provas
             </button>
@@ -282,7 +286,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
 
       {/* Aviso de impressão filtrada */}
       {isAmplo && sumuFiltradas.length > 0 && (filtroProva !== "todas" || filtroCat !== "todas" || filtroSexo !== "todos") && (
-        <div style={{ background: "#141a10", border: "1px solid #4a8a2a", borderRadius: 8, padding: "10px 16px", marginBottom: 16, fontSize: 13, color: "#7acc44", display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ background: `${t.success}12`, border: `1px solid ${t.success}44`, borderRadius: 8, padding: "10px 16px", marginBottom: 16, fontSize: 13, color: t.success, display: "flex", alignItems: "center", gap: 8 }}>
           🖨 O botão de impressão irá gerar apenas as <strong>{sumuFiltradas.length} súmula(s)</strong> filtradas atualmente.
           <button style={{ ...s.linkBtn, marginLeft: 8 }} onClick={() => { setFiltroProva("todas"); setFiltroCat("todas"); setFiltroSexo("todos"); }}>
             Limpar filtros para imprimir tudo
@@ -623,13 +627,13 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
         });
 
         return (
-          <div style={{ background:"#0a0a14", border:"1px solid #2a2a0a", borderRadius:12, padding:"16px 20px", marginBottom:20 }}>
+          <div style={{ background: t.bgCardAlt, border:"1px solid #2a2a0a", borderRadius:12, padding:"16px 20px", marginBottom:20 }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
               <div>
-                <div style={{ color:"#1976D2", fontWeight:800, fontSize:16, fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:1 }}>
+                <div style={{ color: t.accent, fontWeight:800, fontSize:16, fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:1 }}>
                   🔀 SERIAÇÃO — RT 20.3 a 20.8
                 </div>
-                <div style={{ color:"#666", fontSize:11, marginTop:2 }}>
+                <div style={{ color: t.textDimmed, fontSize:11, marginTop:2 }}>
                   Configure modo e capacidade por prova, depois serie cada prova individualmente
                 </div>
               </div>
@@ -637,28 +641,28 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
             </div>
 
             {/* \u2500\u2500 CONFIGURAÇÃO POR PROVA \u2500\u2500 */}
-            <div style={{ background:"#0d0e16", border:"1px solid #1a2a3a", borderRadius:8, padding:"12px 14px", marginBottom:14 }}>
-              <div style={{ color:"#aaa", fontWeight:700, fontSize:12, marginBottom:8 }}>⚙️ Configuração por Prova</div>
+            <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, padding:"12px 14px", marginBottom:14 }}>
+              <div style={{ color: t.textTertiary, fontWeight:700, fontSize:12, marginBottom:8 }}>⚙️ Configuração por Prova</div>
               <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
                 {Object.keys(nomesConfig).map(nome => {
                   const { provas, metros: mt, isLonga } = nomesConfig[nome];
                   const cfgP = getConfigProva(provas[0].id);
                   return (
-                    <div key={nome} style={{ display:"flex", alignItems:"center", gap:10, padding:"6px 10px", background:"#0a0b10", borderRadius:6, border:"1px solid #1a1d2a", flexWrap:"wrap" }}>
-                      <span style={{ color:"#fff", fontWeight:600, fontSize:12, minWidth:130 }}>{nome}</span>
-                      <span style={{ fontSize:9, color:"#555", minWidth:40 }}>{mt}m</span>
+                    <div key={nome} style={{ display:"flex", alignItems:"center", gap:10, padding:"6px 10px", background:t.bgHeaderSolid, borderRadius:6, border:`1px solid ${t.border}`, flexWrap:"wrap" }}>
+                      <span style={{ color: t.textPrimary, fontWeight:600, fontSize:12, minWidth:130 }}>{nome}</span>
+                      <span style={{ fontSize:9, color: t.textDimmed, minWidth:40 }}>{mt}m</span>
                       <div style={{ display:"flex", alignItems:"center", gap:4 }}>
-                        <span style={{ color:"#888", fontSize:10 }}>{isLonga ? "Atl/série:" : "Raias:"}</span>
+                        <span style={{ color: t.textMuted, fontSize:10 }}>{isLonga ? "Atl/série:" : "Raias:"}</span>
                         {isLonga ? (
                           <input
                             type="number" min="1" max="99"
-                            style={{ background:"#1a1c22", border:"1px solid #2a3050", borderRadius:4, color:"#1976D2", fontSize:12, fontWeight:700, padding:"3px 6px", width:48, textAlign:"center" }}
+                            style={{ background:t.bgHover, border:`1px solid ${t.border}`, borderRadius:4, color: t.accent, fontSize:12, fontWeight:700, padding:"3px 6px", width:48, textAlign:"center" }}
                             value={cfgP.atlPorSerie || 12}
                             onChange={(e) => { const v = parseInt(e.target.value) || 1; salvarConfigProva(provas[0].id, "atlPorSerie", Math.max(1, Math.min(99, v))); }}
                           />
                         ) : (
                           <select
-                            style={{ background:"#1a1c22", border:"1px solid #2a3050", borderRadius:4, color:"#1976D2", fontSize:12, fontWeight:700, padding:"3px 6px", cursor:"pointer", width:52 }}
+                            style={{ background:t.bgHover, border:`1px solid ${t.border}`, borderRadius:4, color: t.accent, fontSize:12, fontWeight:700, padding:"3px 6px", cursor:"pointer", width:52 }}
                             value={cfgP.nRaias || 8}
                             onChange={(e) => salvarConfigProva(provas[0].id, "nRaias", parseInt(e.target.value))}
                           >
@@ -672,9 +676,9 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                             style={{
                               padding:"3px 9px", borderRadius:4, border:"1px solid",
                               fontSize:10, fontWeight:600, cursor:"pointer",
-                              background: cfgP.modo === val ? (val === "semifinal_final" ? "#1a2a1a" : "#2a2a0a") : "#111",
+                              background: cfgP.modo === val ? (val === "semifinal_final" ? "#1a2a1a" : `${t.warning}22`) : t.bgHeaderSolid,
                               color: cfgP.modo === val ? (val === "semifinal_final" ? "#7cfc7c" : "#1976D2") : "#555",
-                              borderColor: cfgP.modo === val ? (val === "semifinal_final" ? "#2a6a2a" : "#6a6a0a") : "#1a1d2a",
+                              borderColor: cfgP.modo === val ? (val === "semifinal_final" ? "#2a6a2a" : "#6a6a0a") : t.border,
                             }}
                             onClick={() => salvarConfigProva(provas[0].id, "modo", val)}
                           >{lbl}</button>
@@ -683,17 +687,17 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                       {/* Progressão P+T: aparece quando prova tem multi-fases */}
                       {temMultiFases(provas[0].id, progHorario) && (
                         <div style={{ display:"flex", alignItems:"center", gap:4, borderLeft:"2px solid #2a3050", paddingLeft:6 }}>
-                          <span style={{ fontSize:9, color:"#888" }}>Progressão:</span>
-                          <span style={{ fontSize:9, color:"#7cfc7c" }}>P</span>
+                          <span style={{ fontSize:9, color: t.textMuted }}>Progressão:</span>
+                          <span style={{ fontSize:9, color: t.success }}>P</span>
                           <input type="number" min="0" max="8"
-                            style={{ width:32, padding:"2px 3px", background:"#1a1c22", border:"1px solid #2a4a2a", borderRadius:3, color:"#7cfc7c", textAlign:"center", fontSize:11, fontWeight:700 }}
+                            style={{ width:32, padding:"2px 3px", background:t.bgHover, border:"1px solid #2a4a2a", borderRadius:3, color: t.success, textAlign:"center", fontSize:11, fontWeight:700 }}
                             value={cfgP.porPosicao ?? 3}
                             onChange={(e) => salvarConfigProva(provas[0].id, "porPosicao", Math.max(0, Math.min(8, parseInt(e.target.value) || 0)))}
                             title="Classificados por posição (primeiros de cada série)"
                           />
-                          <span style={{ fontSize:9, color:"#1976D2" }}>+T</span>
+                          <span style={{ fontSize:9, color: t.accent }}>+T</span>
                           <input type="number" min="0" max="16"
-                            style={{ width:32, padding:"2px 3px", background:"#1a1c22", border:"1px solid #4a4a0a", borderRadius:3, color:"#1976D2", textAlign:"center", fontSize:11, fontWeight:700 }}
+                            style={{ width:32, padding:"2px 3px", background:t.bgHover, border:"1px solid #4a4a0a", borderRadius:3, color: t.accent, textAlign:"center", fontSize:11, fontWeight:700 }}
                             value={cfgP.porTempo ?? 2}
                             onChange={(e) => salvarConfigProva(provas[0].id, "porTempo", Math.max(0, Math.min(16, parseInt(e.target.value) || 0)))}
                             title="Classificados por tempo (melhores tempos entre os restantes)"
@@ -721,7 +725,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                     style={{
                       padding:"6px 12px", borderRadius:6, fontSize:11, cursor:"pointer",
                       border: item.jaSeriada ? "1px solid #2a6a2a" : "1px solid #2a2a3a",
-                      background: ativo ? "#1a2a3a" : item.jaSeriada ? "#0a1a0a" : "#111",
+                      background: ativo ? t.accentBg : item.jaSeriada ? t.bgCardAlt : t.bgHeaderSolid,
                       color: ativo ? "#fff" : item.jaSeriada ? "#7cfc7c" : "#aaa",
                       fontWeight: ativo ? 700 : 500,
                       outline: ativo ? "2px solid #1976D2" : "none",
@@ -732,7 +736,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                   >
                     {item.prova.nome} · {item.cat.nome} · {item.sexo === "M" ? "M" : "F"}
                     {item.multiFases && (
-                      <span style={{ fontSize:8, marginLeft:3, padding:"1px 5px", borderRadius:3, fontWeight:700, background: item.faseSufixo === "ELI" ? "#2a1a0a" : item.faseSufixo === "SEM" ? "#0a1a2a" : "#0a2a0a", color: faseColor, border:`1px solid ${faseColor}33` }}>
+                      <span style={{ fontSize:8, marginLeft:3, padding:"1px 5px", borderRadius:3, fontWeight:700, background: item.faseSufixo === "ELI" ? `${t.warning}15` : item.faseSufixo === "SEM" ? t.accentBg : `${t.success}15`, color: faseColor, border:`1px solid ${faseColor}33` }}>
                         {item.faseNome}
                       </span>
                     )}
@@ -741,20 +745,20 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                       {item.jaSeriada && " ✓"}
                     </span>
                     {proxFaseAutoGerada && (
-                      <span style={{ fontSize:8, marginLeft:3, padding:"1px 4px", borderRadius:3, background:"#0a2a0a", color:"#7cfc7c", border:"1px solid #2a6a2a33" }}>
+                      <span style={{ fontSize:8, marginLeft:3, padding:"1px 4px", borderRadius:3, background:`${t.success}15`, color: t.success, border:"1px solid #2a6a2a33" }}>
                         → Final ✓
                       </span>
                     )}
                   </button>
                 );
               })}
-              {provasPista.length === 0 && <span style={{ color:"#555", fontSize:12 }}>Nenhuma prova de pista com inscritos encontrada.</span>}
+              {provasPista.length === 0 && <span style={{ color: t.textDimmed, fontSize:12 }}>Nenhuma prova de pista com inscritos encontrada.</span>}
             </div>
 
             {/* ── REVEZAMENTOS ── */}
             {provasRevezPista.length > 0 && (
               <div style={{ marginBottom:16 }}>
-                <div style={{ color:"#88aaff", fontWeight:700, fontSize:12, marginBottom:6, borderTop:"1px solid #1a2a3a", paddingTop:10 }}>
+                <div style={{ color: t.accent, fontWeight:700, fontSize:12, marginBottom:6, borderTop:`1px solid ${t.border}`, paddingTop:10 }}>
                   🏃‍♂️ Revezamentos
                 </div>
                 <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
@@ -765,7 +769,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                         style={{
                           padding:"6px 12px", borderRadius:6, fontSize:11, cursor:"pointer",
                           border: item.jaSeriada ? "1px solid #2a6a2a" : "1px solid #2a2a6a",
-                          background: ativo ? "#1a2a3a" : item.jaSeriada ? "#0a1a0a" : "#0a0a1a",
+                          background: ativo ? t.accentBg : item.jaSeriada ? t.bgCardAlt : t.bgHeaderSolid,
                           color: ativo ? "#fff" : item.jaSeriada ? "#7cfc7c" : "#88aaff",
                           fontWeight: ativo ? 700 : 500,
                           outline: ativo ? "2px solid #1976D2" : "none",
@@ -807,27 +811,27 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
 
             {/* \u2500\u2500 PAINEL DE EDIÇÃO \u2500\u2500 */}
             {itemAtivo && (
-              <div style={{ background:"#0d0e16", border:"1px solid #1a2a3a", borderRadius:8, padding:"14px 16px" }}>
+              <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, padding:"14px 16px" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
                   <div>
-                    <strong style={{ color:"#fff", fontSize:14 }}>{itemAtivo.prova.nome}</strong>
-                    <span style={{ color:"#888", fontSize:12, marginLeft:8 }}>
+                    <strong style={{ color: t.textPrimary, fontSize:14 }}>{itemAtivo.prova.nome}</strong>
+                    <span style={{ color: t.textMuted, fontSize:12, marginLeft:8 }}>
                       {itemAtivo.cat.nome} · {itemAtivo.sexo === "M" ? "Masculino" : "Feminino"} · {itemAtivo.nInscritos} atletas
                     </span>
                     <span style={{
                       marginLeft:8, fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:600,
-                      background: itemAtivo.modo === "final_tempo" ? "#2a2a0a" : "#0a2a0a",
+                      background: itemAtivo.modo === "final_tempo" ? `${t.warning}22` : `${t.success}15`,
                       color: itemAtivo.modo === "final_tempo" ? "#1976D2" : "#7cfc7c",
                     }}>
                       {itemAtivo.modo === "final_tempo" ? "Final por Tempo" : "Semifinal + Final"}
                     </span>
-                    <span style={{ marginLeft:6, fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:600, background:"#0a1a2a", color:"#6ab4ff" }}>
+                    <span style={{ marginLeft:6, fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:600, background: t.accentBg, color: t.accent }}>
                       {itemAtivo.isLonga ? `${itemAtivo.atlPorSerie} atl/série` : `${itemAtivo.nRaias} raias`}
                     </span>
                   </div>
                   <div style={{ display:"flex", gap:6 }}>
                     {itemAtivo.jaSeriada && (
-                      <button style={{ ...s.btnGhost, fontSize:11, color:"#ff6b6b", borderColor:"#4a1a1a" }}
+                      <button style={{ ...s.btnGhost, fontSize:11, color: t.danger, borderColor:"#4a1a1a" }}
                         onClick={() => limparSeriacao(itemAtivo.chave)}>🗑 Limpar</button>
                     )}
                   </div>
@@ -840,9 +844,9 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                       style={{
                         padding:"5px 14px", borderRadius:5, border:"1px solid",
                         fontSize:11, fontWeight:600, cursor:"pointer",
-                        background: seriacaoModo === val ? "#1a2a3a" : "#111",
+                        background: seriacaoModo === val ? t.accentBg : t.bgHeaderSolid,
                         color: seriacaoModo === val ? "#fff" : "#666",
-                        borderColor: seriacaoModo === val ? "#4a8aff" : "#1a1d2a",
+                        borderColor: seriacaoModo === val ? "#4a8aff" : t.border,
                       }}
                       onClick={() => { setSeriacaoModo(val); setSeriacaoPreview(null); }}
                     >{lbl}</button>
@@ -852,19 +856,19 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                 {/* RT 20.4.1/20.4.2 — Seletor de Fase (afeta regra de raias) */}
                 {seriacaoModo !== "manual" && (
                   <div style={{ display:"flex", gap:4, marginBottom:10, alignItems:"center" }}>
-                    <span style={{ fontSize:10, color:"#888", marginRight:4 }}>Fase:</span>
+                    <span style={{ fontSize:10, color: t.textMuted, marginRight:4 }}>Fase:</span>
                     {[["eliminatoria","Eliminatória"],["semifinal","Semifinal"],["final","Final"]].map(([val,lbl]) => (
                       <button key={val}
                         style={{
                           padding:"4px 10px", borderRadius:4, border:"1px solid", fontSize:10, fontWeight:600, cursor:"pointer",
-                          background: seriacaoFase === val ? (val === "eliminatoria" ? "#2a1a0a" : val === "semifinal" ? "#0a1a2a" : "#0a2a0a") : "#111",
+                          background: seriacaoFase === val ? (val === "eliminatoria" ? `${t.warning}15` : val === "semifinal" ? t.accentBg : `${t.success}15`) : t.bgHeaderSolid,
                           color: seriacaoFase === val ? (val === "eliminatoria" ? "#ff9d3a" : val === "semifinal" ? "#6ab4ff" : "#7cfc7c") : "#555",
-                          borderColor: seriacaoFase === val ? (val === "eliminatoria" ? "#5a3a1a" : val === "semifinal" ? "#2a4a6a" : "#2a4a2a") : "#1a1d2a",
+                          borderColor: seriacaoFase === val ? (val === "eliminatoria" ? "#5a3a1a" : val === "semifinal" ? "#2a4a6a" : "#2a4a2a") : t.border,
                         }}
                         onClick={() => { setSeriacaoFase(val); setSeriacaoPreview(null); }}
                       >{lbl}</button>
                     ))}
-                    <span style={{ fontSize:9, color:"#555", marginLeft:8, fontStyle:"italic" }}>
+                    <span style={{ fontSize:9, color: t.textDimmed, marginLeft:8, fontStyle:"italic" }}>
                       {seriacaoFase === "eliminatoria"
                         ? "RT 20.4.1 — Raias por sorteio livre"
                         : itemAtivo.isLonga || (itemAtivo.metros === 800 && seriacao800m === "grupo")
@@ -882,14 +886,14 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                 {/* RT 20.4.5/20.4.6 — Modo 800m (raias ou largada em grupo) */}
                 {itemAtivo.metros === 800 && seriacaoModo !== "manual" && (
                   <div style={{ display:"flex", gap:4, marginBottom:10, alignItems:"center" }}>
-                    <span style={{ fontSize:10, color:"#888", marginRight:4 }}>800m:</span>
+                    <span style={{ fontSize:10, color: t.textMuted, marginRight:4 }}>800m:</span>
                     {[["raias","Em Raias (RT 20.4.5)"],["grupo","Largada em Grupo (RT 20.4.6)"]].map(([val,lbl]) => (
                       <button key={val}
                         style={{
                           padding:"4px 10px", borderRadius:4, border:"1px solid", fontSize:10, fontWeight:600, cursor:"pointer",
-                          background: seriacao800m === val ? "#1a2a3a" : "#111",
+                          background: seriacao800m === val ? t.accentBg : t.bgHeaderSolid,
                           color: seriacao800m === val ? "#fff" : "#555",
-                          borderColor: seriacao800m === val ? "#4a8aff" : "#1a1d2a",
+                          borderColor: seriacao800m === val ? "#4a8aff" : t.border,
                         }}
                         onClick={() => { setSeriacao800m(val); setSeriacaoPreview(null); }}
                       >{lbl}</button>
@@ -900,17 +904,17 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                 {/* Modo POR MARCA */}
                 {seriacaoModo === "marca" && (
                   <div>
-                    <div style={{ fontSize:11, color:"#888", marginBottom:8 }}>
+                    <div style={{ fontSize:11, color: t.textMuted, marginBottom:8 }}>
                       Informe a marca de referência (SB/PB) para rankeamento. Distribuição por séries (RT 20.3.3) com raias/posições conforme regra da fase selecionada (RT 20.4).
                     </div>
                     <div style={{ maxHeight:300, overflowY:"auto", marginBottom:10 }}>
                       <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
                         <thead>
                           <tr style={{ borderBottom:"2px solid #2a3050" }}>
-                            <th style={{ padding:"4px 8px", textAlign:"left", color:"#888", fontSize:10 }}>#</th>
-                            <th style={{ padding:"4px 8px", textAlign:"left", color:"#888", fontSize:10 }}>Atleta</th>
-                            <th style={{ padding:"4px 8px", textAlign:"left", color:"#888", fontSize:10 }}>Clube/Equipe</th>
-                            <th style={{ padding:"4px 8px", textAlign:"center", color:"#1976D2", fontSize:10, width:120 }}>Marca Ref. (s)</th>
+                            <th style={{ padding:"4px 8px", textAlign:"left", color: t.textMuted, fontSize:10 }}>#</th>
+                            <th style={{ padding:"4px 8px", textAlign:"left", color: t.textMuted, fontSize:10 }}>Atleta</th>
+                            <th style={{ padding:"4px 8px", textAlign:"left", color: t.textMuted, fontSize:10 }}>Clube/Equipe</th>
+                            <th style={{ padding:"4px 8px", textAlign:"center", color: t.accent, fontSize:10, width:120 }}>Marca Ref. (s)</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -918,13 +922,13 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                             const a = atletas.find(aa => aa.id === insc.atletaId);
                             if (!a) return null;
                             return (
-                              <tr key={insc.id || `ref-${idx}`} style={{ borderBottom:"1px solid #1a1d2a" }}>
-                                <td style={{ padding:"4px 8px", color:"#555" }}>{idx+1}</td>
-                                <td style={{ padding:"4px 8px", color:"#fff", fontWeight:500 }}>{a.nome}</td>
-                                <td style={{ padding:"4px 8px", color:"#666", fontSize:11 }}>{getExibicaoEquipe(a, equipes)||"—"}</td>
+                              <tr key={insc.id || `ref-${idx}`} style={{ borderBottom:`1px solid ${t.border}` }}>
+                                <td style={{ padding:"4px 8px", color: t.textDimmed }}>{idx+1}</td>
+                                <td style={{ padding:"4px 8px", color: t.textPrimary, fontWeight:500 }}>{a.nome}</td>
+                                <td style={{ padding:"4px 8px", color: t.textDimmed, fontSize:11 }}>{getExibicaoEquipe(a, equipes)||"—"}</td>
                                 <td style={{ padding:"4px 8px", textAlign:"center" }}>
                                   <input
-                                    style={{ width:100, padding:"4px 8px", background:"#1a1c22", border:"1px solid #2a3050", borderRadius:4, color:"#1976D2", textAlign:"center", fontSize:12, fontWeight:600 }}
+                                    style={{ width:100, padding:"4px 8px", background:t.bgHover, border:`1px solid ${t.border}`, borderRadius:4, color: t.accent, textAlign:"center", fontSize:12, fontWeight:600 }}
                                     type="text" inputMode="decimal" placeholder="ex: 11.50"
                                     value={marcasRef[a.id] || ""}
                                     onChange={(e) => setMarcasRef(prev => ({ ...prev, [a.id]: e.target.value }))}
@@ -941,7 +945,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
 
                 {/* Modo ALEATÓRIO */}
                 {seriacaoModo === "aleatorio" && (
-                  <div style={{ fontSize:12, color:"#888", marginBottom:10, padding:"10px 14px", background:"#0a0d14", borderRadius:6, border:"1px solid #1a2a3a" }}>
+                  <div style={{ fontSize:12, color: t.textMuted, marginBottom:10, padding:"10px 14px", background:t.bgHeaderSolid, borderRadius:6, border:`1px solid ${t.border}` }}>
                     🎲 As séries e raias serão sorteadas aleatoriamente. Clique em "Gerar" para sortear. Gere novamente se quiser outro resultado.
                   </div>
                 )}
@@ -951,18 +955,18 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                   const isGrupoManual = itemAtivo.isLonga || (itemAtivo.metros === 800 && seriacao800m === "grupo");
                   return (
                   <div>
-                    <div style={{ fontSize:11, color:"#888", marginBottom:8 }}>
+                    <div style={{ fontSize:11, color: t.textMuted, marginBottom:8 }}>
                       Defina manualmente a série{!isGrupoManual ? " e raia" : " e posição"} de cada atleta.
                     </div>
                     <div style={{ maxHeight:350, overflowY:"auto", marginBottom:10 }}>
                       <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
                         <thead>
                           <tr style={{ borderBottom:"2px solid #2a3050" }}>
-                            <th style={{ padding:"4px 8px", textAlign:"left", color:"#888", fontSize:10 }}>#</th>
-                            <th style={{ padding:"4px 8px", textAlign:"left", color:"#888", fontSize:10 }}>Atleta</th>
-                            <th style={{ padding:"4px 8px", textAlign:"left", color:"#888", fontSize:10 }}>Clube/Equipe</th>
-                            <th style={{ padding:"4px 8px", textAlign:"center", color:"#1976D2", fontSize:10, width:60 }}>Série</th>
-                            {!isGrupoManual && <th style={{ padding:"4px 8px", textAlign:"center", color:"#1a6ef5", fontSize:10, width:60 }}>Raia</th>}
+                            <th style={{ padding:"4px 8px", textAlign:"left", color: t.textMuted, fontSize:10 }}>#</th>
+                            <th style={{ padding:"4px 8px", textAlign:"left", color: t.textMuted, fontSize:10 }}>Atleta</th>
+                            <th style={{ padding:"4px 8px", textAlign:"left", color: t.textMuted, fontSize:10 }}>Clube/Equipe</th>
+                            <th style={{ padding:"4px 8px", textAlign:"center", color: t.accent, fontSize:10, width:60 }}>Série</th>
+                            {!isGrupoManual && <th style={{ padding:"4px 8px", textAlign:"center", color: t.accent, fontSize:10, width:60 }}>Raia</th>}
                           </tr>
                         </thead>
                         <tbody>
@@ -971,13 +975,13 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                             if (!a) return null;
                             const ms = manualSeries[a.id] || { serie: 1, raia: "" };
                             return (
-                              <tr key={insc.id || `manual-${idx}`} style={{ borderBottom:"1px solid #1a1d2a" }}>
-                                <td style={{ padding:"4px 8px", color:"#555" }}>{idx+1}</td>
-                                <td style={{ padding:"4px 8px", color:"#fff", fontWeight:500 }}>{a.nome}</td>
-                                <td style={{ padding:"4px 8px", color:"#666", fontSize:11 }}>{getExibicaoEquipe(a, equipes)||"—"}</td>
+                              <tr key={insc.id || `manual-${idx}`} style={{ borderBottom:`1px solid ${t.border}` }}>
+                                <td style={{ padding:"4px 8px", color: t.textDimmed }}>{idx+1}</td>
+                                <td style={{ padding:"4px 8px", color: t.textPrimary, fontWeight:500 }}>{a.nome}</td>
+                                <td style={{ padding:"4px 8px", color: t.textDimmed, fontSize:11 }}>{getExibicaoEquipe(a, equipes)||"—"}</td>
                                 <td style={{ padding:"4px 4px", textAlign:"center" }}>
                                   <input type="number" min="1" max="20"
-                                    style={{ width:44, padding:"3px 4px", background:"#1a1c22", border:"1px solid #2a3050", borderRadius:4, color:"#1976D2", textAlign:"center", fontSize:12, fontWeight:700 }}
+                                    style={{ width:44, padding:"3px 4px", background:t.bgHover, border:`1px solid ${t.border}`, borderRadius:4, color: t.accent, textAlign:"center", fontSize:12, fontWeight:700 }}
                                     value={ms.serie}
                                     onChange={(e) => setManualSeries(prev => ({ ...prev, [a.id]: { ...prev[a.id], serie: parseInt(e.target.value) || 1 } }))}
                                   />
@@ -985,7 +989,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                                 {!isGrupoManual && (
                                   <td style={{ padding:"4px 4px", textAlign:"center" }}>
                                     <input type="number" min="1" max="10"
-                                      style={{ width:44, padding:"3px 4px", background:"#1a1c22", border:"1px solid #2a3050", borderRadius:4, color:"#1a6ef5", textAlign:"center", fontSize:12, fontWeight:700 }}
+                                      style={{ width:44, padding:"3px 4px", background:t.bgHover, border:`1px solid ${t.border}`, borderRadius:4, color: t.accent, textAlign:"center", fontSize:12, fontWeight:700 }}
                                       value={ms.raia}
                                       onChange={(e) => setManualSeries(prev => ({ ...prev, [a.id]: { ...prev[a.id], raia: e.target.value } }))}
                                     />
@@ -1021,20 +1025,20 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                 </div>
 
                 {seriacaoPreview && (
-                  <div style={{ background:"#0a0d14", border:"1px solid #2a4a2a", borderRadius:8, padding:"12px 14px" }}>
-                    <div style={{ color:"#7cfc7c", fontWeight:700, fontSize:13, marginBottom:4 }}>
+                  <div style={{ background:t.bgHeaderSolid, border:"1px solid #2a4a2a", borderRadius:8, padding:"12px 14px" }}>
+                    <div style={{ color: t.success, fontWeight:700, fontSize:13, marginBottom:4 }}>
                       ✅ Seriação gerada — {seriacaoPreview.series.length} série(s)
-                      <span style={{ color:"#888", fontWeight:400, fontSize:11, marginLeft:8 }}>
+                      <span style={{ color: t.textMuted, fontWeight:400, fontSize:11, marginLeft:8 }}>
                         Ordem de realização: {seriacaoPreview.ordemSeries.join(" → ")}
                       </span>
                     </div>
                     {seriacaoPreview.regraAplicada && (
-                      <div style={{ fontSize:10, color:"#6ab4ff", marginBottom:4, padding:"3px 8px", background:"#0a1a2a", borderRadius:4, display:"inline-block" }}>
+                      <div style={{ fontSize:10, color: t.accent, marginBottom:4, padding:"3px 8px", background: t.accentBg, borderRadius:4, display:"inline-block" }}>
                         📐 {seriacaoPreview.regraAplicada}
                       </div>
                     )}
                     {seriacaoPreview.classificadosInfo && (
-                      <div style={{ fontSize:10, color:"#7cfc7c", marginBottom:8, padding:"3px 8px", background:"#0a2a0a", borderRadius:4, display:"inline-block", marginLeft:4 }}>
+                      <div style={{ fontSize:10, color: t.success, marginBottom:8, padding:"3px 8px", background:`${t.success}15`, borderRadius:4, display:"inline-block", marginLeft:4 }}>
                         ✅ {seriacaoPreview.classificadosInfo.porPosicao}P + {seriacaoPreview.classificadosInfo.porTempo}T = {seriacaoPreview.classificadosInfo.total} classificados da {seriacaoPreview.classificadosInfo.faseOrigem}
                       </div>
                     )}
@@ -1043,31 +1047,31 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                       const temOrigem = !!seriacaoPreview.classificadosInfo;
                       return seriacaoPreview.series.map((serie, si) => (
                       <div key={si} style={{ marginBottom:8 }}>
-                        <div style={{ color:"#1976D2", fontWeight:700, fontSize:12, marginBottom:4 }}>
+                        <div style={{ color: t.accent, fontWeight:700, fontSize:12, marginBottom:4 }}>
                           Série {serie.numero} ({seriacaoPreview.ordemSeries.indexOf(serie.numero)+1}ª a correr)
-                          <span style={{ color:"#666", fontWeight:400, marginLeft:6 }}>({serie.atletas.length} atletas)</span>
+                          <span style={{ color: t.textDimmed, fontWeight:400, marginLeft:6 }}>({serie.atletas.length} atletas)</span>
                         </div>
                         <table style={{ width:"100%", borderCollapse:"collapse", fontSize:11, marginBottom:4 }}>
                           <thead>
                             <tr style={{ borderBottom:"1px solid #2a3050" }}>
-                              {!isGrupoPreview && <th style={{ padding:"3px 6px", textAlign:"center", color:"#888", fontSize:9 }}>Raia</th>}
-                              {isGrupoPreview && <th style={{ padding:"3px 6px", textAlign:"center", color:"#888", fontSize:9 }}>Pos.</th>}
-                              <th style={{ padding:"3px 6px", textAlign:"center", color:"#888", fontSize:9 }}>Rank</th>
-                              <th style={{ padding:"3px 6px", textAlign:"left", color:"#888", fontSize:9 }}>Atleta</th>
-                              <th style={{ padding:"3px 6px", textAlign:"left", color:"#888", fontSize:9 }}>Clube/Equipe</th>
-                              <th style={{ padding:"3px 6px", textAlign:"center", color:"#888", fontSize:9 }}>Marca Ref.</th>
-                              {temOrigem && <th style={{ padding:"3px 6px", textAlign:"center", color:"#888", fontSize:9 }}>Classif.</th>}
+                              {!isGrupoPreview && <th style={{ padding:"3px 6px", textAlign:"center", color: t.textMuted, fontSize:9 }}>Raia</th>}
+                              {isGrupoPreview && <th style={{ padding:"3px 6px", textAlign:"center", color: t.textMuted, fontSize:9 }}>Pos.</th>}
+                              <th style={{ padding:"3px 6px", textAlign:"center", color: t.textMuted, fontSize:9 }}>Rank</th>
+                              <th style={{ padding:"3px 6px", textAlign:"left", color: t.textMuted, fontSize:9 }}>Atleta</th>
+                              <th style={{ padding:"3px 6px", textAlign:"left", color: t.textMuted, fontSize:9 }}>Clube/Equipe</th>
+                              <th style={{ padding:"3px 6px", textAlign:"center", color: t.textMuted, fontSize:9 }}>Marca Ref.</th>
+                              {temOrigem && <th style={{ padding:"3px 6px", textAlign:"center", color: t.textMuted, fontSize:9 }}>Classif.</th>}
                             </tr>
                           </thead>
                           <tbody>
                             {serie.atletas.map((atl, ai) => (
                               <tr key={`${si}-${atl.id || atl.atletaId || ai}`} style={{ borderBottom:"1px solid #111" }}>
-                                {!isGrupoPreview && <td style={{ padding:"3px 6px", textAlign:"center", color:"#1976D2", fontWeight:700 }}>{atl.raia || "\u2014"}</td>}
-                                {isGrupoPreview && <td style={{ padding:"3px 6px", textAlign:"center", color:"#6ab4ff", fontWeight:700 }}>{atl.posicao || (ai+1)}</td>}
-                                <td style={{ padding:"3px 6px", textAlign:"center", color:"#888" }}>{atl.ranking ? `${atl.ranking}º` : "\u2014"}</td>
-                                <td style={{ padding:"3px 6px", color:"#fff" }}>{atl.nome}</td>
-                                <td style={{ padding:"3px 6px", color:"#666", fontSize:10 }}>{getExibicaoEquipe(atl, equipes)||"—"}</td>
-                                <td style={{ padding:"3px 6px", textAlign:"center", color:"#1976D2" }}>{atl.marcaRef ? formatarTempo(atl.marcaRef, 2) : "\u2014"}</td>
+                                {!isGrupoPreview && <td style={{ padding:"3px 6px", textAlign:"center", color: t.accent, fontWeight:700 }}>{atl.raia || "\u2014"}</td>}
+                                {isGrupoPreview && <td style={{ padding:"3px 6px", textAlign:"center", color: t.accent, fontWeight:700 }}>{atl.posicao || (ai+1)}</td>}
+                                <td style={{ padding:"3px 6px", textAlign:"center", color: t.textMuted }}>{atl.ranking ? `${atl.ranking}º` : "\u2014"}</td>
+                                <td style={{ padding:"3px 6px", color: t.textPrimary }}>{atl.nome}</td>
+                                <td style={{ padding:"3px 6px", color: t.textDimmed, fontSize:10 }}>{getExibicaoEquipe(atl, equipes)||"—"}</td>
+                                <td style={{ padding:"3px 6px", textAlign:"center", color: t.accent }}>{atl.marcaRef ? formatarTempo(atl.marcaRef, 2) : "\u2014"}</td>
                                 {temOrigem && (
                                   <td style={{ padding:"3px 6px", textAlign:"center", fontSize:9, fontWeight:700,
                                     color: atl.origemClassif === "posicao" ? "#7cfc7c" : "#1976D2"
@@ -1086,7 +1090,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                       <button style={{ ...s.btnPrimary, fontSize:12 }} onClick={salvarSeriacao}>
                         💾 Salvar Seriação
                       </button>
-                      <span style={{ fontSize:9, color:"#555" }}>RT 20.4.8 — Atleta não pode competir em série/raia diferente da designada</span>
+                      <span style={{ fontSize:9, color: t.textDimmed }}>RT 20.4.8 — Atleta não pode competir em série/raia diferente da designada</span>
                     </div>
                   </div>
                 )}
@@ -1095,20 +1099,20 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
 
             {/* ── PAINEL DE EDIÇÃO — REVEZAMENTO ── */}
             {itemAtivoRevez && !itemAtivo && (
-              <div style={{ background:"#0d0e16", border:"1px solid #1a2a6a", borderRadius:8, padding:"14px 16px" }}>
+              <div style={{ background:t.bgHeaderSolid, border:"1px solid #1a2a6a", borderRadius:8, padding:"14px 16px" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
                   <div>
-                    <strong style={{ color:"#fff", fontSize:14 }}>🏃‍♂️ {itemAtivoRevez.prova.nome}</strong>
-                    <span style={{ color:"#888", fontSize:12, marginLeft:8 }}>
+                    <strong style={{ color: t.textPrimary, fontSize:14 }}>🏃‍♂️ {itemAtivoRevez.prova.nome}</strong>
+                    <span style={{ color: t.textMuted, fontSize:12, marginLeft:8 }}>
                       {itemAtivoRevez.cat.nome} · {itemAtivoRevez.sexo === "M" ? "Masculino" : "Feminino"} · {itemAtivoRevez.nInscritos} equipes
                     </span>
-                    <span style={{ marginLeft:6, fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:600, background:"#0a1a2a", color:"#6ab4ff" }}>
+                    <span style={{ marginLeft:6, fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:600, background: t.accentBg, color: t.accent }}>
                       {itemAtivoRevez.nRaias} raias
                     </span>
                   </div>
                   <div style={{ display:"flex", gap:6 }}>
                     {itemAtivoRevez.jaSeriada && (
-                      <button style={{ ...s.btnGhost, fontSize:11, color:"#ff6b6b", borderColor:"#4a1a1a" }}
+                      <button style={{ ...s.btnGhost, fontSize:11, color: t.danger, borderColor:"#4a1a1a" }}
                         onClick={() => limparSeriacao(itemAtivoRevez.chave)}>🗑 Limpar</button>
                     )}
                     <button style={{ ...s.btnGhost, fontSize:11 }}
@@ -1116,7 +1120,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                   </div>
                 </div>
 
-                <div style={{ fontSize:11, color:"#888", marginBottom:10 }}>
+                <div style={{ fontSize:11, color: t.textMuted, marginBottom:10 }}>
                   Defina série e raia para cada equipe do revezamento.
                 </div>
 
@@ -1124,31 +1128,31 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                   <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
                     <thead>
                       <tr style={{ borderBottom:"2px solid #2a3050" }}>
-                        <th style={{ padding:"4px 8px", textAlign:"left", color:"#888", fontSize:10 }}>#</th>
-                        <th style={{ padding:"4px 8px", textAlign:"left", color:"#888", fontSize:10 }}>Equipe</th>
-                        <th style={{ padding:"4px 8px", textAlign:"center", color:"#1976D2", fontSize:10, width:60 }}>Série</th>
-                        <th style={{ padding:"4px 8px", textAlign:"center", color:"#1a6ef5", fontSize:10, width:60 }}>Raia</th>
+                        <th style={{ padding:"4px 8px", textAlign:"left", color: t.textMuted, fontSize:10 }}>#</th>
+                        <th style={{ padding:"4px 8px", textAlign:"left", color: t.textMuted, fontSize:10 }}>Equipe</th>
+                        <th style={{ padding:"4px 8px", textAlign:"center", color: t.accent, fontSize:10, width:60 }}>Série</th>
+                        <th style={{ padding:"4px 8px", textAlign:"center", color: t.accent, fontSize:10, width:60 }}>Raia</th>
                       </tr>
                     </thead>
                     <tbody>
                       {itemAtivoRevez.equipesRevez.map((eq, idx) => {
                         const ms = manualSeries[eq.equipeId] || { serie: 1, raia: "" };
                         return (
-                          <tr key={`mrev-${eq.equipeId || idx}-${idx}`} style={{ borderBottom:"1px solid #1a1d2a" }}>
-                            <td style={{ padding:"4px 8px", color:"#555" }}>{idx+1}</td>
-                            <td style={{ padding:"4px 8px", color:"#1976D2", fontWeight:600 }}>
+                          <tr key={`mrev-${eq.equipeId || idx}-${idx}`} style={{ borderBottom:`1px solid ${t.border}` }}>
+                            <td style={{ padding:"4px 8px", color: t.textDimmed }}>{idx+1}</td>
+                            <td style={{ padding:"4px 8px", color: t.accent, fontWeight:600 }}>
                               {eq.nomeEquipe}{eq.sigla ? ` (${eq.sigla})` : ""}
                             </td>
                             <td style={{ padding:"4px 4px", textAlign:"center" }}>
                               <input type="number" min="1" max="20"
-                                style={{ width:44, padding:"3px 4px", background:"#1a1c22", border:"1px solid #2a3050", borderRadius:4, color:"#1976D2", textAlign:"center", fontSize:12, fontWeight:700 }}
+                                style={{ width:44, padding:"3px 4px", background:t.bgHover, border:`1px solid ${t.border}`, borderRadius:4, color: t.accent, textAlign:"center", fontSize:12, fontWeight:700 }}
                                 value={ms.serie}
                                 onChange={(e) => setManualSeries(prev => ({ ...prev, [eq.equipeId]: { ...prev[eq.equipeId], serie: parseInt(e.target.value) || 1 } }))}
                               />
                             </td>
                             <td style={{ padding:"4px 4px", textAlign:"center" }}>
                               <input type="number" min="1" max="10"
-                                style={{ width:44, padding:"3px 4px", background:"#1a1c22", border:"1px solid #2a3050", borderRadius:4, color:"#1a6ef5", textAlign:"center", fontSize:12, fontWeight:700 }}
+                                style={{ width:44, padding:"3px 4px", background:t.bgHover, border:`1px solid ${t.border}`, borderRadius:4, color: t.accent, textAlign:"center", fontSize:12, fontWeight:700 }}
                                 value={ms.raia}
                                 onChange={(e) => setManualSeries(prev => ({ ...prev, [eq.equipeId]: { ...prev[eq.equipeId], raia: e.target.value } }))}
                               />
@@ -1186,31 +1190,31 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                 </div>
 
                 {seriacaoPreview && seriacaoPreview.isRevez && (
-                  <div style={{ background:"#0a0d14", border:"1px solid #2a4a2a", borderRadius:8, padding:"12px 14px" }}>
-                    <div style={{ color:"#7cfc7c", fontWeight:700, fontSize:13, marginBottom:8 }}>
+                  <div style={{ background:t.bgHeaderSolid, border:"1px solid #2a4a2a", borderRadius:8, padding:"12px 14px" }}>
+                    <div style={{ color: t.success, fontWeight:700, fontSize:13, marginBottom:8 }}>
                       ✅ Seriação gerada — {seriacaoPreview.series.length} série(s)
-                      <span style={{ color:"#888", fontWeight:400, fontSize:11, marginLeft:8 }}>
+                      <span style={{ color: t.textMuted, fontWeight:400, fontSize:11, marginLeft:8 }}>
                         Ordem: {seriacaoPreview.ordemSeries.join(" → ")}
                       </span>
                     </div>
                     {seriacaoPreview.series.map((serie, si) => (
                       <div key={si} style={{ marginBottom:8 }}>
-                        <div style={{ color:"#1976D2", fontWeight:700, fontSize:12, marginBottom:4 }}>
+                        <div style={{ color: t.accent, fontWeight:700, fontSize:12, marginBottom:4 }}>
                           Série {serie.numero} ({seriacaoPreview.ordemSeries.indexOf(serie.numero)+1}ª a correr)
-                          <span style={{ color:"#666", fontWeight:400, marginLeft:6 }}>({serie.atletas.length} equipes)</span>
+                          <span style={{ color: t.textDimmed, fontWeight:400, marginLeft:6 }}>({serie.atletas.length} equipes)</span>
                         </div>
                         <table style={{ width:"100%", borderCollapse:"collapse", fontSize:11, marginBottom:4 }}>
                           <thead>
                             <tr style={{ borderBottom:"1px solid #2a3050" }}>
-                              <th style={{ padding:"3px 6px", textAlign:"center", color:"#888", fontSize:9 }}>Raia</th>
-                              <th style={{ padding:"3px 6px", textAlign:"left", color:"#888", fontSize:9 }}>Equipe</th>
+                              <th style={{ padding:"3px 6px", textAlign:"center", color: t.textMuted, fontSize:9 }}>Raia</th>
+                              <th style={{ padding:"3px 6px", textAlign:"left", color: t.textMuted, fontSize:9 }}>Equipe</th>
                             </tr>
                           </thead>
                           <tbody>
                             {serie.atletas.map((eq, ai) => (
                               <tr key={`${si}-${eq.id || eq.equipeId || ai}`} style={{ borderBottom:"1px solid #111" }}>
-                                <td style={{ padding:"3px 6px", textAlign:"center", color:"#1976D2", fontWeight:700 }}>{eq.raia || "\u2014"}</td>
-                                <td style={{ padding:"3px 6px", color:"#fff", fontWeight:600 }}>
+                                <td style={{ padding:"3px 6px", textAlign:"center", color: t.accent, fontWeight:700 }}>{eq.raia || "\u2014"}</td>
+                                <td style={{ padding:"3px 6px", color: t.textPrimary, fontWeight:600 }}>
                                   {eq.nomeEquipe || eq.nome}{eq.sigla ? ` (${eq.sigla})` : ""}
                                 </td>
                               </tr>
@@ -1231,7 +1235,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
       })()}
 
       {/* Filtros */}
-      <div style={{ ...s.filtros, background: "#0E1016", border: "1px solid #1E2130", borderRadius: 10, padding: "14px 18px", marginBottom: 20 }}>
+      <div style={{ ...s.filtros, background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 10, padding: "14px 18px", marginBottom: 20 }}>
         <div>
           <label style={s.label}>Categoria</label>
           <select style={s.select} value={filtroCat} onChange={(e) => { setFiltroCat(e.target.value); setFiltroProva("todas"); }}>
@@ -1266,16 +1270,16 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
             📐 Orientação das folhas {showOrientConfig ? "▲" : "▼"}
           </button>
           {showOrientConfig && (
-            <div style={{ background: "#0E1016", border: "1px solid #1E2130", borderRadius: 10, padding: "14px 18px", marginTop: 8 }}>
+            <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 10, padding: "14px 18px", marginTop: 8 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
-                <span style={{ color: "#888", fontSize: 12 }}>Ações em lote:</span>
+                <span style={{ color: t.textMuted, fontSize: 12 }}>Ações em lote:</span>
                 <button style={{ ...s.btnGhost, fontSize: 11, padding: "3px 10px" }} onClick={() => setTodas("portrait")}>
                   📄 Todas Retrato
                 </button>
                 <button style={{ ...s.btnGhost, fontSize: 11, padding: "3px 10px" }} onClick={() => setTodas("landscape")}>
                   📄 Todas Paisagem
                 </button>
-                <button style={{ ...s.linkBtn, fontSize: 11, color: "#888" }} onClick={resetOrient}>
+                <button style={{ ...s.linkBtn, fontSize: 11, color: t.textMuted }} onClick={resetOrient}>
                   ↺ Restaurar padrão
                 </button>
               </div>
@@ -1286,11 +1290,11 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                   return (
                     <div key={sumuKey(sum)} style={{
                       display: "flex", alignItems: "center", gap: 10, padding: "6px 10px",
-                      background: "#0a0b0f", borderRadius: 6, border: "1px solid #1a1d2a"
+                      background: t.bgHeaderSolid, borderRadius: 6, border: `1px solid ${t.border}`
                     }}>
-                      <span style={{ flex: 1, fontSize: 12, color: "#ccc" }}>
-                        <NomeProvaComImplemento nome={sum.prova.nome} style={{ color: "#ccc" }} />
-                        <span style={{ color: "#666", marginLeft: 6, fontSize: 11 }}>
+                      <span style={{ flex: 1, fontSize: 12, color: t.textSecondary }}>
+                        <NomeProvaComImplemento nome={sum.prova.nome} style={{ color: t.textSecondary }} />
+                        <span style={{ color: t.textDimmed, marginLeft: 6, fontSize: 11 }}>
                           {sum.categoria.nome} · {sum.sexo === "M" ? "Masc" : "Fem"}
                         </span>
                       </span>
@@ -1324,19 +1328,19 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
       ) : (
         <>
           {/* Contador de súmulas visíveis */}
-          <div style={{ fontSize: 13, color: "#555", marginBottom: 16 }}>
-            Exibindo <strong style={{ color: "#1976D2" }}>{sumuFiltradas.length}</strong> súmula(s)
+          <div style={{ fontSize: 13, color: t.textDimmed, marginBottom: 16 }}>
+            Exibindo <strong style={{ color: t.accent }}>{sumuFiltradas.length}</strong> súmula(s)
             {isAmplo && <span style={{ marginLeft: 8 }}>— use os filtros para imprimir provas específicas</span>}
           </div>
 
           {sumuFiltradas.map((sum, i) => (
-            <div key={sumuKey(sum)} style={{ background:"#0E1016", border:"1px solid #1E2130", borderRadius:12, marginBottom:20, overflow:"hidden" }}>
-              <div style={{ padding:"14px 20px", background:"#0D0E12", borderBottom:"1px solid #1E2130", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12 }}>
+            <div key={sumuKey(sum)} style={{ background:t.bgCard, border:`1px solid ${t.border}`, borderRadius:12, marginBottom:20, overflow:"hidden" }}>
+              <div style={{ padding:"14px 20px", background:t.bgHeaderSolid, borderBottom:`1px solid ${t.border}`, display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12 }}>
                 <div>
-                  <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:22, fontWeight:800, color:"#fff", marginBottom:4 }}>
+                  <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:22, fontWeight:800, color: t.textPrimary, marginBottom:4 }}>
                     <NomeProvaComImplemento nome={sum.prova.nome} />
                     {sum.prova.origemCombinada && (
-                      <span style={{ fontSize: 11, background: "#0a1a2a", color: "#1976D2", padding: "2px 8px", borderRadius: 4, marginLeft: 8, fontWeight: 600 }}>
+                      <span style={{ fontSize: 11, background: t.accentBg, color: t.accent, padding: "2px 8px", borderRadius: 4, marginLeft: 8, fontWeight: 600 }}>
                         🏅 {sum.prova.nomeCombinada} ({sum.prova.ordem}/{sum.prova.totalProvas})
                       </span>
                     )}
@@ -1346,7 +1350,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                     <span style={s.badge(sum.sexo === "M" ? "#1a6ef5" : "#e54f9b")}>
                       {sum.sexo === "M" ? "Masculino" : "Feminino"}
                     </span>
-                    <span style={{ color: "#aaa", fontSize: 13 }}>
+                    <span style={{ color: t.textTertiary, fontSize: 13 }}>
                       {sum.isRevezamento
                         ? `${(sum.equipesRevez||[]).length} equipe(s)`
                         : `${sum.atletas.length} atleta(s)`}
@@ -1367,13 +1371,13 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                       );
                     })()}
                     {sum.isRevezamento && (
-                      <span style={{ fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:600, background:"#1a1a2a", color:"#88aaff", border:"1px solid #2a2a6a" }}>
+                      <span style={{ fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:600, background:"#1a1a2a", color: t.accent, border:"1px solid #2a2a6a" }}>
                         🏃‍♂️ Revezamento ({nPernasRevezamento(sum.prova)} pernas)
                       </span>
                     )}
                     {sum.faseNome && (
                       <span style={{ fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:700,
-                        background: sum.faseSufixo === "ELI" ? "#2a1a0a" : sum.faseSufixo === "SEM" ? "#0a1a2a" : "#0a2a0a",
+                        background: sum.faseSufixo === "ELI" ? `${t.warning}15` : sum.faseSufixo === "SEM" ? t.accentBg : `${t.success}15`,
                         color: sum.faseSufixo === "ELI" ? "#ff8844" : sum.faseSufixo === "SEM" ? "#88aaff" : "#7cfc7c",
                         border: `1px solid ${sum.faseSufixo === "ELI" ? "#5a3a1a" : sum.faseSufixo === "SEM" ? "#2a4a6a" : "#2a4a2a"}` }}>
                         {sum.faseNome}
@@ -1389,7 +1393,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                       const cfgBadge = eventoAtual.configSeriacao?.[sum.prova.id];
                       const modo = (typeof cfgBadge === "string") ? cfgBadge : (cfgBadge?.modo || "semifinal_final");
                       if (serSalva) return (
-                        <span style={{ fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:600, background:"#0a2a0a", color:"#7cfc7c", border:"1px solid #2a6a2a" }}>
+                        <span style={{ fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:600, background:`${t.success}15`, color: t.success, border:`1px solid ${t.success}44` }}>
                           ✓ Seriada ({serSalva.series?.length || 0} sér.) · {modo === "final_tempo" ? "Final/Tempo" : "Semi+Final"}
                         </span>
                       );
@@ -1400,7 +1404,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                           const cfgS = eventoAtual.configSeriacao?.[sum.prova.id];
                           const nRaiasS = (typeof cfgS === "object" && cfgS?.nRaias) ? cfgS.nRaias : 8;
                           if (sum.atletas.length > nRaiasS) return (
-                            <span style={{ fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:500, background:"#2a1a0a", color:"#1976D2", border:"1px solid #4a3a0a" }}>
+                            <span style={{ fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:500, background:`${t.warning}15`, color: t.accent, border:"1px solid #4a3a0a" }}>
                               ⚠ Sem seriação
                             </span>
                           );
@@ -1453,11 +1457,11 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                     {(sum.equipesRevez || []).map((eq, j) => (
                       <tr key={`rev-${eq.equipeId || j}-${j}`} style={s.tr}>
                         <Td>{j + 1}</Td>
-                        <Td><strong style={{ color: "#1976D2" }}>{eq.nomeEquipe}{eq.sigla ? ` (${eq.sigla})` : ""}</strong></Td>
+                        <Td><strong style={{ color: t.accent }}>{eq.nomeEquipe}{eq.sigla ? ` (${eq.sigla})` : ""}</strong></Td>
                         <Td>
                           {eq.atletas.length > 0
-                            ? <span style={{ fontSize: 11, color: "#aaa" }}>{eq.atletas.map(a => a.nome).join(" · ")}</span>
-                            : <span style={{ fontSize: 11, color: "#ff6b6b" }}>⚠ Atletas não definidos — <button style={{ ...s.linkBtn, fontSize: 11, color: "#1976D2" }} onClick={() => setTela("inscricao-revezamento")}>editar inscrição</button></span>
+                            ? <span style={{ fontSize: 11, color: t.textTertiary }}>{eq.atletas.map(a => a.nome).join(" · ")}</span>
+                            : <span style={{ fontSize: 11, color: t.danger }}>⚠ Atletas não definidos — <button style={{ ...s.linkBtn, fontSize: 11, color: t.accent }} onClick={() => setTela("inscricao-revezamento")}>editar inscrição</button></span>
                           }
                         </Td>
                       </tr>
@@ -1494,8 +1498,8 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                       let idx = 0;
                       return seriesOrdenadas.flatMap((serie, si) => {
                         const headerRow = seriesOrdenadas.length > 1 ? (
-                          <tr key={`sh-${si}`} style={{ background:"#1a1a0a" }}>
-                            <td colSpan={9} style={{ padding:"6px 12px", fontWeight:700, color:"#1976D2", fontSize:12, borderBottom:"2px solid #2a2a0a" }}>
+                          <tr key={`sh-${si}`} style={{ background: t.accentBg }}>
+                            <td colSpan={9} style={{ padding:"6px 12px", fontWeight:700, color: t.accent, fontSize:12, borderBottom:"2px solid #2a2a0a" }}>
                               Série {serie.numero} {serSalva.ordemSeries ? `(${serSalva.ordemSeries.indexOf(serie.numero)+1}ª a correr)` : ""}
                             </td>
                           </tr>
@@ -1509,21 +1513,21 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                           return (
                             <tr key={`${si}-${a.id}-${sai}`} style={s.tr}>
                               <Td>{idx}</Td>
-                              <Td><strong style={{ color:"#aaa", fontSize:12 }}>{(numeracaoPeito?.[eventoAtual?.id]||{})[a.id]||""}</strong></Td>
-                              <Td><strong style={{ color: "#fff" }}>{a.nome}</strong></Td>
+                              <Td><strong style={{ color: t.textTertiary, fontSize:12 }}>{(numeracaoPeito?.[eventoAtual?.id]||{})[a.id]||""}</strong></Td>
+                              <Td><strong style={{ color: t.textPrimary }}>{a.nome}</strong></Td>
                               <Td>{_getNascDisplay(a) || "—"}</Td>
                               <Td>{getExibicaoEquipe(a, equipes) || "—"}</Td>
-                              <Td><strong style={{ color:"#1976D2" }}>{serie.numero}</strong></Td>
-                              <Td><strong style={{ color:"#1a6ef5" }}>{sa.raia || "—"}</strong></Td>
+                              <Td><strong style={{ color: t.accent }}>{serie.numero}</strong></Td>
+                              <Td><strong style={{ color: t.accent }}>{sa.raia || "—"}</strong></Td>
                               <Td>
                                 {insc?.permissividade
                                   ? <span style={s.badgeOficial}>{insc.categoriaOficial}</span>
-                                  : <span style={{ color: "#666", fontSize: 12 }}>—</span>}
+                                  : <span style={{ color: t.textDimmed, fontSize: 12 }}>—</span>}
                               </Td>
                               <Td>
                                 {insc?.permissividade
                                   ? <span style={s.badgeNorma} title={insc.permissividade}>⚖️ Exceção CBAt</span>
-                                  : <span style={{ color: "#555", fontSize: 12 }}>—</span>}
+                                  : <span style={{ color: t.textDimmed, fontSize: 12 }}>—</span>}
                               </Td>
                             </tr>
                           );
@@ -1540,19 +1544,19 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                       return (
                         <tr key={`std-${a.id}-${j}`} style={s.tr}>
                           <Td>{j + 1}</Td>
-                          <Td><strong style={{ color:"#aaa", fontSize:12 }}>{(numeracaoPeito?.[eventoAtual?.id]||{})[a.id]||""}</strong></Td>
-                          <Td><strong style={{ color: "#fff" }}>{a.nome}</strong></Td>
+                          <Td><strong style={{ color: t.textTertiary, fontSize:12 }}>{(numeracaoPeito?.[eventoAtual?.id]||{})[a.id]||""}</strong></Td>
+                          <Td><strong style={{ color: t.textPrimary }}>{a.nome}</strong></Td>
                           <Td>{_getNascDisplay(a) || "—"}</Td>
                           <Td>{getExibicaoEquipe(a, equipes) || "—"}</Td>
                           <Td>
                             {insc?.permissividade
                               ? <span style={s.badgeOficial}>{insc.categoriaOficial}</span>
-                              : <span style={{ color: "#666", fontSize: 12 }}>—</span>}
+                              : <span style={{ color: t.textDimmed, fontSize: 12 }}>—</span>}
                           </Td>
                           <Td>
                             {insc?.permissividade
                               ? <span style={s.badgeNorma} title={insc.permissividade}>⚖️ Exceção CBAt</span>
-                              : <span style={{ color: "#555", fontSize: 12 }}>—</span>}
+                              : <span style={{ color: t.textDimmed, fontSize: 12 }}>—</span>}
                           </Td>
                         </tr>
                       );

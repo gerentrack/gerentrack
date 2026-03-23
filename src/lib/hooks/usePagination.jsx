@@ -9,6 +9,7 @@
 
 import { useState, useMemo } from "react";
 import React from "react";
+import { useTema } from "../../shared/TemaContext";
 
 export function usePagination(lista = [], itensPorPagina = 10) {
   const [pagina, setPaginaRaw] = useState(1);
@@ -40,35 +41,33 @@ export function usePagination(lista = [], itensPorPagina = 10) {
 
 // ── Componente separado (não dentro do hook) ──────────────────────────────────
 export function PaginaControles({ pagina, totalPaginas, total, itensPorPagina, setPagina, style }) {
+  const t = useTema();
   if (!total || total <= itensPorPagina) return null;
   const ini = (pagina - 1) * itensPorPagina + 1;
   const fim = Math.min(pagina * itensPorPagina, total);
+  const btnStyle = (dis) => ({
+    background: dis ? t.bgHeaderSolid : t.bgInput,
+    border:`1px solid ${t.borderInput}`, color: dis ? t.textDisabled : t.textTertiary,
+    borderRadius:6, padding:"6px 12px", cursor: dis ? "default" : "pointer",
+    fontSize:13, fontFamily:"'Barlow', sans-serif",
+  });
   return (
     <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
-      padding:"12px 16px", borderTop:"1px solid #1E2130", background:"#0D0E12",
+      padding:"12px 16px", borderTop:`1px solid ${t.border}`, background:t.bgHeaderSolid,
       flexWrap:"wrap", gap:8, ...style }}>
-      <span style={{ fontSize:13, color:"#666" }}>
-        {ini}–{fim} de <strong style={{ color:"#aaa" }}>{total}</strong>
+      <span style={{ fontSize:13, color:t.textDimmed }}>
+        {ini}–{fim} de <strong style={{ color:t.textTertiary }}>{total}</strong>
       </span>
       <div style={{ display:"flex", gap:6 }}>
-        <button onClick={() => setPagina(1)} disabled={pagina===1} style={btn(pagina===1)}>«</button>
-        <button onClick={() => setPagina(pagina-1)} disabled={pagina===1} style={btn(pagina===1)}>‹ Anterior</button>
-        <span style={{ padding:"6px 12px", fontSize:13, color:"#1976D2", fontWeight:700,
-          background:"#1a1c22", borderRadius:6, border:"1px solid #1976D244" }}>
+        <button onClick={() => setPagina(1)} disabled={pagina===1} style={btnStyle(pagina===1)}>«</button>
+        <button onClick={() => setPagina(pagina-1)} disabled={pagina===1} style={btnStyle(pagina===1)}>‹ Anterior</button>
+        <span style={{ padding:"6px 12px", fontSize:13, color:t.accent, fontWeight:700,
+          background:t.bgHover, borderRadius:6, border:`1px solid ${t.accentBorder}` }}>
           {pagina} / {totalPaginas}
         </span>
-        <button onClick={() => setPagina(pagina+1)} disabled={pagina===totalPaginas} style={btn(pagina===totalPaginas)}>Próximo ›</button>
-        <button onClick={() => setPagina(totalPaginas)} disabled={pagina===totalPaginas} style={btn(pagina===totalPaginas)}>»</button>
+        <button onClick={() => setPagina(pagina+1)} disabled={pagina===totalPaginas} style={btnStyle(pagina===totalPaginas)}>Próximo ›</button>
+        <button onClick={() => setPagina(totalPaginas)} disabled={pagina===totalPaginas} style={btnStyle(pagina===totalPaginas)}>»</button>
       </div>
     </div>
   );
-}
-
-function btn(disabled) {
-  return {
-    background: disabled ? "#0D0E12" : "#141720",
-    border:"1px solid #252837", color: disabled ? "#333" : "#aaa",
-    borderRadius:6, padding:"6px 12px", cursor: disabled ? "default" : "pointer",
-    fontSize:13, fontFamily:"'Barlow', sans-serif",
-  };
 }

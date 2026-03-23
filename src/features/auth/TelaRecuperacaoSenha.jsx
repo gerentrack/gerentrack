@@ -1,11 +1,12 @@
-import authStyles from "./authStyles";
-const styles = authStyles;
+import { criarAuthStyles } from "./authStyles";
 import React, { useState } from "react";
 import { auth, sendPasswordResetEmail } from "../../firebase";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
+import { useTema } from "../../shared/TemaContext";
 
 function TelaRecuperacaoSenha({ setTela, equipes, organizadores, atletasUsuarios, funcionarios, treinadores, gerarSenhaTemp, aplicarSenhaTemp, adicionarSolicitacaoRecuperacao }) {
-  const s = useStylesResponsivos(styles);
+  const t = useTema();
+  const s = useStylesResponsivos(criarAuthStyles(t));
   const [perfil, setPerfil]   = useState("");
   const [email, setEmail]     = useState("");
   const [docVal, setDocVal]   = useState("");
@@ -47,7 +48,7 @@ function TelaRecuperacaoSenha({ setTela, equipes, organizadores, atletasUsuarios
     setMetodo("admin"); setPasso(3);
   };
 
-  const inputStyle = { background:"#1a1c22", border:"1px solid #2a2d3a", color:"#fff", borderRadius:6, padding:"10px 14px", width:"100%", fontSize:14, boxSizing:"border-box" };
+  const inputStyle = { background:t.bgInput, border:`1px solid ${t.borderLight}`, color:t.textPrimary, borderRadius:6, padding:"10px 14px", width:"100%", fontSize:14, boxSizing:"border-box" };
 
   return (
     <div style={s.formPage}>
@@ -60,9 +61,9 @@ function TelaRecuperacaoSenha({ setTela, equipes, organizadores, atletasUsuarios
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8, marginBottom:18 }}>
             {PERFIS_REC.map(p => (
               <button key={p.id} onClick={() => { setPerfil(p.id); setErro(""); setDocVal(""); }}
-                style={{ background:perfil===p.id?"#1a2a1a":"#0D0E12", border:`2px solid ${perfil===p.id?"#1976D2":"#1E2130"}`, borderRadius:8, padding:"10px 6px", cursor:"pointer", textAlign:"center" }}>
+                style={{ background:perfil===p.id?`${t.success}15`:t.bgHeaderSolid, border:`2px solid ${perfil===p.id?t.accent:t.border}`, borderRadius:8, padding:"10px 6px", cursor:"pointer", textAlign:"center" }}>
                 <div style={{ fontSize:20, marginBottom:3 }}>{p.icon}</div>
-                <div style={{ color:perfil===p.id?"#1976D2":"#aaa", fontWeight:700, fontSize:12 }}>{p.label}</div>
+                <div style={{ color:perfil===p.id?t.accent:t.textTertiary, fontWeight:700, fontSize:12 }}>{p.label}</div>
               </button>
             ))}
           </div>
@@ -84,10 +85,10 @@ function TelaRecuperacaoSenha({ setTela, equipes, organizadores, atletasUsuarios
         </>)}
 
         {passo === 2 && (<>
-          <p style={s.formSub}>Conta encontrada: <strong style={{ color:"#1976D2" }}>{usuario?.nome}</strong></p>
-          <div style={{ background:"#0a1a2a", border:"1px solid #1976D2", borderRadius:10, padding:"18px 20px", marginBottom:16 }}>
-            <div style={{ color:"#1976D2", fontWeight:700, fontSize:14, marginBottom:8 }}>📧 Recuperar por E-mail</div>
-            <div style={{ color:"#aaa", fontSize:12, marginBottom:12, lineHeight:1.5 }}>Enviaremos um link para <strong style={{ color:"#fff" }}>{usuario?.email}</strong> para redefinir sua senha.</div>
+          <p style={s.formSub}>Conta encontrada: <strong style={{ color:t.accent }}>{usuario?.nome}</strong></p>
+          <div style={{ background:t.accentBg, border:`1px solid ${t.accent}`, borderRadius:10, padding:"18px 20px", marginBottom:16 }}>
+            <div style={{ color:t.accent, fontWeight:700, fontSize:14, marginBottom:8 }}>📧 Recuperar por E-mail</div>
+            <div style={{ color:t.textTertiary, fontSize:12, marginBottom:12, lineHeight:1.5 }}>Enviaremos um link para <strong style={{ color:t.textPrimary }}>{usuario?.email}</strong> para redefinir sua senha.</div>
             {erro && <div style={{ ...s.erro, marginBottom:10 }}>{erro}</div>}
             <button style={s.btnPrimary} onClick={async () => {
               setErro("");
@@ -95,10 +96,10 @@ function TelaRecuperacaoSenha({ setTela, equipes, organizadores, atletasUsuarios
               catch (err) { setErro(err.code === "auth/user-not-found" ? "Conta ainda não migrada. Solicite ao administrador abaixo." : "Erro ao enviar e-mail. Tente novamente."); }
             }}>Enviar Link de Recuperação</button>
           </div>
-          <div style={{ textAlign:"center", color:"#555", fontSize:12, marginBottom:12 }}>— ou —</div>
-          <button onClick={handleSolicitarAdmin} style={{ background:"#0a0b0e", border:"1px solid #1E2130", borderRadius:8, padding:"14px 18px", cursor:"pointer", width:"100%", textAlign:"left" }}>
-            <div style={{ color:"#888", fontWeight:600, fontSize:13 }}>🛡️ Solicitar ao Administrador</div>
-            <div style={{ color:"#555", fontSize:11, marginTop:3 }}>O administrador poderá redefinir sua senha manualmente.</div>
+          <div style={{ textAlign:"center", color:t.textDimmed, fontSize:12, marginBottom:12 }}>— ou —</div>
+          <button onClick={handleSolicitarAdmin} style={{ background:t.bgCardAlt, border:`1px solid ${t.border}`, borderRadius:8, padding:"14px 18px", cursor:"pointer", width:"100%", textAlign:"left" }}>
+            <div style={{ color:t.textMuted, fontWeight:600, fontSize:13 }}>🛡️ Solicitar ao Administrador</div>
+            <div style={{ color:t.textDimmed, fontSize:11, marginTop:3 }}>O administrador poderá redefinir sua senha manualmente.</div>
           </button>
           <div style={{ textAlign:"center", marginTop:16 }}>
             <button style={s.linkBtn} onClick={() => { setPasso(1); setErro(""); }}>← Voltar</button>
@@ -108,9 +109,9 @@ function TelaRecuperacaoSenha({ setTela, equipes, organizadores, atletasUsuarios
         {passo === 3 && metodo === "email" && (<>
           <div style={{ textAlign:"center", marginBottom:16 }}>
             <div style={{ fontSize:48 }}>📧</div>
-            <h3 style={{ color:"#1976D2", marginBottom:8 }}>E-mail Enviado!</h3>
-            <p style={{ color:"#aaa", fontSize:13, lineHeight:1.6 }}>Enviamos um link de recuperação para<br/><strong style={{ color:"#fff" }}>{usuario?.email}</strong></p>
-            <p style={{ color:"#888", fontSize:12, lineHeight:1.6, marginTop:12 }}>Verifique sua caixa de entrada e a pasta de spam.<br/>O link expira em 1 hora.</p>
+            <h3 style={{ color:t.accent, marginBottom:8 }}>E-mail Enviado!</h3>
+            <p style={{ color:t.textTertiary, fontSize:13, lineHeight:1.6 }}>Enviamos um link de recuperação para<br/><strong style={{ color:t.textPrimary }}>{usuario?.email}</strong></p>
+            <p style={{ color:t.textMuted, fontSize:12, lineHeight:1.6, marginTop:12 }}>Verifique sua caixa de entrada e a pasta de spam.<br/>O link expira em 1 hora.</p>
           </div>
           <button style={s.btnPrimary} onClick={() => setTela("login")}>← Voltar ao Login</button>
         </>)}
@@ -118,8 +119,8 @@ function TelaRecuperacaoSenha({ setTela, equipes, organizadores, atletasUsuarios
         {passo === 3 && metodo === "admin" && (<>
           <div style={{ textAlign:"center" }}>
             <div style={{ fontSize:56, marginBottom:12 }}>🛡️</div>
-            <h3 style={{ color:"#88aaff", marginBottom:8 }}>Solicitação enviada!</h3>
-            <p style={{ color:"#aaa", fontSize:13, lineHeight:1.7 }}>O administrador foi notificado e enviará uma senha temporária para<br/><strong style={{ color:"#1976D2" }}>{usuario?.email}</strong></p>
+            <h3 style={{ color:t.accent, marginBottom:8 }}>Solicitação enviada!</h3>
+            <p style={{ color:t.textTertiary, fontSize:13, lineHeight:1.7 }}>O administrador foi notificado e enviará uma senha temporária para<br/><strong style={{ color:t.accent }}>{usuario?.email}</strong></p>
           </div>
           <button style={{ ...s.btnGhost, marginTop:20, width:"100%" }} onClick={() => setTela("login")}>← Voltar ao Login</button>
         </>)}

@@ -4,6 +4,7 @@
  * Usado nos painéis de equipe, organizador e atleta.
  */
 import React, { useState, useRef, useEffect } from "react";
+import { useTema } from "../../shared/TemaContext";
 
 const ICONES = {
   aprovacao_equipe:   "✅",
@@ -17,19 +18,23 @@ const ICONES = {
   info:               "ℹ️",
 };
 
-const CORES = {
-  aprovacao_equipe:   { bg: "#0a1a0a", border: "#2a6a2a", txt: "#7acc44" },
-  portabilidade:      { bg: "#0a0f1a", border: "#1a3a6a", txt: "#88aaff" },
-  vinculo_solicitado: { bg: "#0a1020", border: "#1a4a7a", txt: "#1976D2" },
-  sumulas_liberadas:  { bg: "#0a1a10", border: "#2a5a3a", txt: "#4acc84" },
-  desvinculacao:      { bg: "#1a0a0a", border: "#5a1a1a", txt: "#ff6b6b" },
-  medals_ready:       { bg: "#1a1500", border: "#5a4a00", txt: "#FFD700" },
-  relatorio_solicitado: { bg: "#0a1a1a", border: "#2a5a5a", txt: "#88cccc" },
-  relatorio_gerado:    { bg: "#0a1a0a", border: "#2a6a2a", txt: "#7acc44" },
-  info:               { bg: "#0a0f1a", border: "#2a3a5a", txt: "#aaa" },
-};
+function getCores(t) {
+  return {
+    aprovacao_equipe:     { txt: t.success },
+    portabilidade:        { txt: t.accent },
+    vinculo_solicitado:   { txt: t.accent },
+    sumulas_liberadas:    { txt: t.success },
+    desvinculacao:        { txt: t.danger },
+    medals_ready:         { txt: t.gold },
+    relatorio_solicitado: { txt: t.accent },
+    relatorio_gerado:     { txt: t.success },
+    info:                 { txt: t.textMuted },
+  };
+}
 
 export function SinoNotificacoes({ notificacoes = [], usuarioId, marcarNotifLida }) {
+  const t = useTema();
+  const CORES = getCores(t);
   const [aberto, setAberto] = useState(false);
   const ref = useRef(null);
 
@@ -53,8 +58,8 @@ export function SinoNotificacoes({ notificacoes = [], usuarioId, marcarNotifLida
       <button
         onClick={() => setAberto(a => !a)}
         style={{
-          position: "relative", background: aberto ? "#141720" : "transparent",
-          border: `1px solid ${aberto ? "#1976D2" : "#252837"}`,
+          position: "relative", background: aberto ? t.bgInput : "transparent",
+          border: `1px solid ${aberto ? t.accent : t.borderInput}`,
           borderRadius: 8, padding: "7px 10px", cursor: "pointer",
           display: "flex", alignItems: "center", gap: 6,
           transition: "all 0.15s",
@@ -65,7 +70,7 @@ export function SinoNotificacoes({ notificacoes = [], usuarioId, marcarNotifLida
         {naoLidas.length > 0 && (
           <span style={{
             position: "absolute", top: 3, right: 3,
-            background: "#ff4444", color: "#fff",
+            background: t.danger, color: "#fff",
             fontSize: 10, fontWeight: 800, fontFamily: "'Barlow Condensed', sans-serif",
             borderRadius: 10, minWidth: 16, height: 16,
             display: "flex", alignItems: "center", justifyContent: "center",
@@ -81,20 +86,20 @@ export function SinoNotificacoes({ notificacoes = [], usuarioId, marcarNotifLida
         <div style={{
           position: "absolute", top: "calc(100% + 8px)", right: 0,
           width: 340, maxHeight: 420, overflowY: "auto",
-          background: "#0E1016", border: "1px solid #1E2130",
+          background: t.bgCard, border: `1px solid ${t.border}`,
           borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
           zIndex: 1000,
         }}>
           {/* Header do dropdown */}
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
-            padding: "12px 16px", borderBottom: "1px solid #1E2130",
+            padding: "12px 16px", borderBottom: `1px solid ${t.border}`,
           }}>
             <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800,
-              fontSize: 14, color: "#fff", letterSpacing: 1 }}>
+              fontSize: 14, color: t.textPrimary, letterSpacing: 1 }}>
               🔔 NOTIFICAÇÕES
               {naoLidas.length > 0 && (
-                <span style={{ marginLeft: 8, background: "#ff4444", color: "#fff",
+                <span style={{ marginLeft: 8, background: t.danger, color: "#fff",
                   fontSize: 10, fontWeight: 800, borderRadius: 10, padding: "1px 6px" }}>
                   {naoLidas.length} nova{naoLidas.length !== 1 ? "s" : ""}
                 </span>
@@ -102,7 +107,7 @@ export function SinoNotificacoes({ notificacoes = [], usuarioId, marcarNotifLida
             </span>
             {naoLidas.length > 0 && (
               <button onClick={marcarTodas}
-                style={{ background: "none", border: "none", color: "#1976D2",
+                style={{ background: "none", border: "none", color: t.accent,
                   cursor: "pointer", fontSize: 11, fontFamily: "'Barlow', sans-serif" }}>
                 Marcar todas como lidas
               </button>
@@ -111,7 +116,7 @@ export function SinoNotificacoes({ notificacoes = [], usuarioId, marcarNotifLida
 
           {/* Lista de notificações */}
           {minhas.length === 0 ? (
-            <div style={{ padding: "24px 16px", textAlign: "center", color: "#444", fontSize: 13 }}>
+            <div style={{ padding: "24px 16px", textAlign: "center", color: t.textDisabled, fontSize: 13 }}>
               Nenhuma notificação ainda.
             </div>
           ) : (
@@ -122,18 +127,18 @@ export function SinoNotificacoes({ notificacoes = [], usuarioId, marcarNotifLida
                 return (
                   <div key={n.id} style={{
                     display: "flex", gap: 10, padding: "12px 16px",
-                    borderBottom: "1px solid #111318",
-                    background: n.lida ? "transparent" : cor.bg,
+                    borderBottom: `1px solid ${t.border}`,
+                    background: n.lida ? "transparent" : t.bgCardAlt,
                     opacity: n.lida ? 0.5 : 1,
                     transition: "opacity 0.2s",
                   }}>
                     <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>{ico}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, color: n.lida ? "#666" : "#ddd",
+                      <div style={{ fontSize: 13, color: n.lida ? t.textDisabled : t.textSecondary,
                         lineHeight: 1.5, marginBottom: 4 }}>
                         {n.msg}
                       </div>
-                      <div style={{ fontSize: 11, color: "#444" }}>
+                      <div style={{ fontSize: 11, color: t.textDisabled }}>
                         {new Date(n.data).toLocaleString("pt-BR", {
                           day: "2-digit", month: "2-digit", year: "2-digit",
                           hour: "2-digit", minute: "2-digit"
@@ -142,7 +147,7 @@ export function SinoNotificacoes({ notificacoes = [], usuarioId, marcarNotifLida
                     </div>
                     {!n.lida && (
                       <button onClick={() => marcarNotifLida(n.id)}
-                        style={{ background: "none", border: "none", color: "#444",
+                        style={{ background: "none", border: "none", color: t.textDisabled,
                           cursor: "pointer", fontSize: 14, padding: "0 2px",
                           flexShrink: 0, alignSelf: "flex-start" }}
                         title="Marcar como lida">

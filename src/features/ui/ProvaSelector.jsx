@@ -1,15 +1,17 @@
 import React from "react";
-
-const s = {
-  provaSection: { marginBottom: 28 },
-  provaSecTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 700, color: "#aaa", marginBottom: 12, letterSpacing: 1 },
-  provaGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 },
-  provaBtn: { background: "#0E1016", border: "1px solid #1E2130", color: "#888", padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", lineHeight: 1.4 },
-  provaBtnSel: { background: "#1a1c22", borderColor: "#1976D2", color: "#1976D2" },
-  provaBtnInscrito: { opacity: 0.5, cursor: "not-allowed", borderColor: "#2a4a2a", color: "#4a8a4a" },
-};
+import { useTema } from "../../shared/TemaContext";
 
 export function ProvaSelector({ provas, titulo, selecionadas, onToggle, jaInscrito }) {
+  const t = useTema();
+  const s = {
+    provaSection: { marginBottom: 28 },
+    provaSecTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 700, color: t.textTertiary, marginBottom: 12, letterSpacing: 1 },
+    provaGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 },
+    provaBtn: { background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", lineHeight: 1.4 },
+    provaBtnSel: { background: t.bgHover, borderColor: t.accent, color: t.accent },
+    provaBtnInscrito: { opacity: 0.5, cursor: "not-allowed", borderColor: `${t.success}44`, color: `${t.success}88` },
+  };
+
   return (
     <div style={s.provaSection}>
       <h3 style={s.provaSecTitle}>{titulo}</h3>

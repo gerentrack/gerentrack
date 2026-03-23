@@ -5,20 +5,25 @@ import { resKey, getFasesProva, FASE_ORDEM } from "../../shared/constants/fases"
 import { abreviarProva } from "../../shared/formatters/utils";
 import { useMedalhasChamada } from "../../hooks/useMedalhasChamada";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
+import { useTema } from "../../shared/TemaContext";
 
 // ── Constantes ────────────────────────────────────────────────────────────────
-const STATUS_CHAMADA = {
-  ausente:    { label: "Ausente",    cor: "#444",    bg: "#141720", next: "presente"   },
-  presente:   { label: "Presente",   cor: "#1976D2", bg: "#0a1220", next: "confirmado" },
-  confirmado: { label: "Confirmado", cor: "#7acc44", bg: "#061206", next: "ausente"    },
-};
+function getStatusChamada(t) {
+  return {
+    ausente:    { label: "Ausente",    cor: t.textDisabled, bg: t.bgCardAlt, next: "presente"   },
+    presente:   { label: "Presente",   cor: t.accent,       bg: t.accentBg,  next: "confirmado" },
+    confirmado: { label: "Confirmado", cor: t.success,      bg: t.bgCardAlt, next: "ausente"    },
+  };
+}
 
-const MEDALHA_CONFIG = {
-  ouro:        { label: "Ouro",         emoji: "🥇", cor: "#FFD700", bg: "#1a170a" },
-  prata:       { label: "Prata",        emoji: "🥈", cor: "#C0C0C0", bg: "#121518" },
-  bronze:      { label: "Bronze",       emoji: "🥉", cor: "#CD7F32", bg: "#14100a" },
-  participacao:{ label: "Participação", emoji: "🎖️", cor: "#888",    bg: "#111318" },
-};
+function getMedalhaConfig(t) {
+  return {
+    ouro:        { label: "Ouro",         emoji: "🥇", cor: t.gold,         bg: t.trOuro },
+    prata:       { label: "Prata",        emoji: "🥈", cor: "#C0C0C0",      bg: t.trPrata },
+    bronze:      { label: "Bronze",       emoji: "🥉", cor: "#CD7F32",      bg: t.trBronze },
+    participacao:{ label: "Participação", emoji: "🎖️", cor: t.textMuted,    bg: t.bgCardAlt },
+  };
+}
 
 const STATUS_DNS = ["DNS", "DNF", "DQ", "NM"];
 
@@ -28,37 +33,42 @@ const fmtDataHora = (iso) => {
   return d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 };
 
-const styles = {
+function getStyles(t) {
+  return {
   page:       { maxWidth: 1100, margin: "0 auto", padding: "40px 24px 80px" },
   header:     { display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 28 },
-  title:      { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: "#fff", letterSpacing: 1 },
-  sub:        { color: "#555", fontSize: 14, marginTop: 4 },
-  tabs:       { display: "flex", gap: 0, background: "#0D0E12", border: "1px solid #1E2130", borderRadius: 10, overflow: "hidden", marginBottom: 28, width: "fit-content" },
-  tab:        { padding: "10px 24px", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, cursor: "pointer", border: "none", background: "transparent", color: "#555" },
-  tabActive:  { background: "#1976D2", color: "#fff" },
-  card:       { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, marginBottom: 16, overflow: "hidden" },
-  cardHead:   { padding: "14px 20px", background: "#0D0E12", borderBottom: "1px solid #1E2130", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 },
-  cardTitle:  { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 800, color: "#fff", letterSpacing: 1 },
+  title:      { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: t.textPrimary, letterSpacing: 1 },
+  sub:        { color: t.textDimmed, fontSize: 14, marginTop: 4 },
+  tabs:       { display: "flex", gap: 0, background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, overflow: "hidden", marginBottom: 28, width: "fit-content" },
+  tab:        { padding: "10px 24px", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, cursor: "pointer", border: "none", background: "transparent", color: t.textDimmed },
+  tabActive:  { background: t.accent, color: t.textPrimary },
+  card:       { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, marginBottom: 16, overflow: "hidden" },
+  cardHead:   { padding: "14px 20px", background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 },
+  cardTitle:  { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 800, color: t.textPrimary, letterSpacing: 1 },
   cardMeta:   { display: "flex", gap: 8, alignItems: "center" },
   badge:      (cor) => ({ background: cor + "22", color: cor, border: `1px solid ${cor}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }),
   table:      { width: "100%", borderCollapse: "collapse" },
-  th:         { background: "#0D0E12", padding: "10px 14px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "#555", letterSpacing: 1, textTransform: "uppercase", borderBottom: "1px solid #1E2130" },
-  td:         { padding: "10px 14px", fontSize: 13, color: "#bbb", borderBottom: "1px solid #12141a" },
+  th:         { background: t.bgHeaderSolid, padding: "10px 14px", textAlign: "left", fontSize: 11, fontWeight: 700, color: t.textDimmed, letterSpacing: 1, textTransform: "uppercase", borderBottom: `1px solid ${t.border}` },
+  td:         { padding: "10px 14px", fontSize: 13, color: t.textSecondary, borderBottom: `1px solid ${t.border}` },
   btn:        (cor, bg) => ({ background: bg, border: `1px solid ${cor}44`, color: cor, borderRadius: 6, padding: "5px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5, whiteSpace: "nowrap" }),
-  btnDisabled:{ background: "#111318", border: "1px solid #1a1a2a", color: "#333", borderRadius: 6, padding: "5px 14px", fontSize: 12, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5, whiteSpace: "nowrap", cursor: "not-allowed" },
-  btnGhost:   { background: "transparent", color: "#888", border: "1px solid #2a2d3a", padding: "10px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13 },
-  selectEvento: { background: "#141720", border: "1px solid #252837", borderRadius: 8, padding: "10px 14px", color: "#E0E0E0", fontSize: 14, outline: "none", marginBottom: 0 },
-  empty:      { textAlign: "center", padding: "48px 20px", color: "#444", fontSize: 14 },
+  btnDisabled:{ background: t.bgCardAlt, border: `1px solid ${t.border}`, color: t.textDisabled, borderRadius: 6, padding: "5px 14px", fontSize: 12, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5, whiteSpace: "nowrap", cursor: "not-allowed" },
+  btnGhost:   { background: "transparent", color: t.textMuted, border: `1px solid ${t.borderLight}`, padding: "10px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13 },
+  selectEvento: { background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, outline: "none", marginBottom: 0 },
+  empty:      { textAlign: "center", padding: "48px 20px", color: t.textDisabled, fontSize: 14 },
   pill:       (cor, bg) => ({ display: "inline-block", background: bg, color: cor, border: `1px solid ${cor}33`, borderRadius: 12, padding: "2px 10px", fontSize: 11, fontWeight: 700 }),
-  horario:    { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 800, color: "#1976D2" },
-  nomeAtleta: { fontWeight: 600, color: "#fff", fontSize: 13 },
-  entregue:   { color: "#7acc44", fontSize: 11, fontStyle: "italic" },
-  entregueInfo:{ color: "#555", fontSize: 10, fontStyle: "italic", lineHeight: 1.5 },
+  horario:    { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 800, color: t.accent },
+  nomeAtleta: { fontWeight: 600, color: t.textPrimary, fontSize: 13 },
+  entregue:   { color: t.success, fontSize: 11, fontStyle: "italic" },
+  entregueInfo:{ color: t.textDimmed, fontSize: 10, fontStyle: "italic", lineHeight: 1.5 },
 };
+}
 
 // ── Componente principal ──────────────────────────────────────────────────────
 function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados, usuarioLogado }) {
-  const s = useStylesResponsivos(styles);
+  const t = useTema();
+  const s = useStylesResponsivos(getStyles(t));
+  const STATUS_CHAMADA = getStatusChamada(t);
+  const MEDALHA_CONFIG = getMedalhaConfig(t);
   const [aba, setAba] = useState("chamada");
   const [filtroProva, setFiltroProva] = useState("");
   const [limiteParticipacao, setLimiteParticipacao] = useState(1);
@@ -305,14 +315,14 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
           {/* Stats */}
           <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
             {[
-              { label: "Total", valor: statsPresenca.total, cor: "#888" },
-              { label: "Ausente", valor: statsPresenca.ausente, cor: "#ff6b6b" },
-              { label: "Presente", valor: statsPresenca.presente, cor: "#1976D2" },
-              { label: "Confirmado", valor: statsPresenca.confirmado, cor: "#7acc44" },
+              { label: "Total", valor: statsPresenca.total, cor: t.textMuted },
+              { label: "Ausente", valor: statsPresenca.ausente, cor: t.danger },
+              { label: "Presente", valor: statsPresenca.presente, cor: t.accent },
+              { label: "Confirmado", valor: statsPresenca.confirmado, cor: t.success },
             ].map(stat => (
-              <div key={stat.label} style={{ background: "#0E1016", border: `1px solid ${stat.cor}33`, borderRadius: 10, padding: "12px 20px", textAlign: "center", minWidth: 90 }}>
+              <div key={stat.label} style={{ background: t.bgCard, border: `1px solid ${stat.cor}33`, borderRadius: 10, padding: "12px 20px", textAlign: "center", minWidth: 90 }}>
                 <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 28, fontWeight: 900, color: stat.cor }}>{stat.valor}</div>
-                <div style={{ fontSize: 11, color: "#555", letterSpacing: 1, textTransform: "uppercase" }}>{stat.label}</div>
+                <div style={{ fontSize: 11, color: t.textDimmed, letterSpacing: 1, textTransform: "uppercase" }}>{stat.label}</div>
               </div>
             ))}
           </div>
@@ -332,13 +342,13 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     {horario && <span style={s.horario}>{horario}</span>}
                     <span style={s.cardTitle}>{prova.nome}</span>
-                    <span style={s.badge("#1976D2")}>{cat.nome}</span>
-                    <span style={s.badge(sexo === "M" ? "#1976D2" : "#e54f9b")}>{sexo === "M" ? "Masc" : "Fem"}</span>
+                    <span style={s.badge(t.accent)}>{cat.nome}</span>
+                    <span style={s.badge(sexo === "M" ? "#1a6ef5" : "#e54f9b")}>{sexo === "M" ? "Masc" : "Fem"}</span>
                   </div>
                   <div style={s.cardMeta}>
-                    <span style={s.pill("#7acc44", "#061206")}>{nConfirmados} confirmado(s)</span>
-                    <span style={s.pill("#1976D2", "#0a1220")}>{nPresentes} presente(s)</span>
-                    <span style={{ color: "#555", fontSize: 12 }}>{atls.length} atleta(s)</span>
+                    <span style={s.pill(t.success, t.bgCardAlt)}>{nConfirmados} confirmado(s)</span>
+                    <span style={s.pill(t.accent, t.accentBg)}>{nPresentes} presente(s)</span>
+                    <span style={{ color: t.textDimmed, fontSize: 12 }}>{atls.length} atleta(s)</span>
                   </div>
                 </div>
                 <table style={s.table}>
@@ -358,7 +368,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                           <td style={s.td}>
                             <span style={s.nomeAtleta}>{atl.nome}</span>
                           </td>
-                          <td style={{ ...s.td, color: "#555", fontSize: 12 }}>{atl.clube || "—"}</td>
+                          <td style={{ ...s.td, color: t.textDimmed, fontSize: 12 }}>{atl.clube || "—"}</td>
                           <td style={{ ...s.td, textAlign: "center" }}>
                             <button
                               style={s.btn(conf.cor, conf.bg)}
@@ -382,22 +392,22 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
       {aba === "medalhas" && (
         <>
           {/* Configuração de limite de participação */}
-          <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20, background: "#0E1016", border: "1px solid #1E2130", borderRadius: 10, padding: "14px 20px", flexWrap: "wrap" }}>
-            <div style={{ fontSize: 13, color: "#aaa" }}>
-              🎖️ <strong style={{ color: "#fff" }}>Limite de medalhas de participação por atleta:</strong>
+          <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20, background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 10, padding: "14px 20px", flexWrap: "wrap" }}>
+            <div style={{ fontSize: 13, color: t.textTertiary }}>
+              🎖️ <strong style={{ color: t.textPrimary }}>Limite de medalhas de participação por atleta:</strong>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <button onClick={() => setLimiteParticipacao(l => Math.max(1, l - 1))}
-                style={{ background: "#141720", border: "1px solid #252837", color: "#888", borderRadius: 6, width: 28, height: 28, cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>−</button>
-              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 22, color: "#fff", minWidth: 28, textAlign: "center" }}>{limiteParticipacao}</span>
+                style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.textMuted, borderRadius: 6, width: 28, height: 28, cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>−</button>
+              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 22, color: t.textPrimary, minWidth: 28, textAlign: "center" }}>{limiteParticipacao}</span>
               <button onClick={() => setLimiteParticipacao(l => l + 1)}
-                style={{ background: "#141720", border: "1px solid #252837", color: "#888", borderRadius: 6, width: 28, height: 28, cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
+                style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.textMuted, borderRadius: 6, width: 28, height: 28, cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
             </div>
-            <div style={{ fontSize: 11, color: "#444" }}>Atleta bloqueado ao atingir o limite em outras provas</div>
+            <div style={{ fontSize: 11, color: t.textDisabled }}>Atleta bloqueado ao atingir o limite em outras provas</div>
           </div>
 
           {/* Toggle: classificação bloqueia participação */}
-          <label style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20, background: "#0E1016", border: `1px solid ${classificacaoBloqueiaParticipacao ? "#2a6a2a" : "#1E2130"}`, borderRadius: 10, padding: "14px 20px", cursor: "pointer", flexWrap: "wrap" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20, background: t.bgCard, border: `1px solid ${classificacaoBloqueiaParticipacao ? `${t.success}44` : t.border}`, borderRadius: 10, padding: "14px 20px", cursor: "pointer", flexWrap: "wrap" }}>
             <input
               type="checkbox"
               checked={classificacaoBloqueiaParticipacao}
@@ -405,10 +415,10 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
               style={{ width: 16, height: 16, cursor: "pointer" }}
             />
             <div>
-              <div style={{ fontSize: 13, color: classificacaoBloqueiaParticipacao ? "#7acc44" : "#aaa", fontWeight: 600 }}>
+              <div style={{ fontSize: 13, color: classificacaoBloqueiaParticipacao ? t.success : t.textTertiary, fontWeight: 600 }}>
                 🏅 Classificação bloqueia participação
               </div>
-              <div style={{ fontSize: 11, color: "#444", marginTop: 2 }}>
+              <div style={{ fontSize: 11, color: t.textDisabled, marginTop: 2 }}>
                 {classificacaoBloqueiaParticipacao
                   ? "Atleta com ouro/prata/bronze entregue não recebe participação"
                   : "Atleta pode receber participação mesmo tendo classificação"}
@@ -417,16 +427,16 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
           </label>
 
           {eventoAtual?.medalhasApenasParticipacao && (
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20, background: "#1a1400", border: "1px solid #e67e2244", borderRadius: 10, padding: "12px 18px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20, background: `${t.warning}12`, border: `1px solid ${t.warning}44`, borderRadius: 10, padding: "12px 18px" }}>
               <span style={{ fontSize: 22 }}>🎖️</span>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#f0a040" }}>Modo: Somente Medalhas de Participação</div>
-                <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>Todos os atletas recebem medalha de participação. Para habilitar ouro/prata/bronze, desative esta opção nos controles da competição.</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: t.warning }}>Modo: Somente Medalhas de Participação</div>
+                <div style={{ fontSize: 11, color: t.textMuted, marginTop: 2 }}>Todos os atletas recebem medalha de participação. Para habilitar ouro/prata/bronze, desative esta opção nos controles da competição.</div>
               </div>
             </div>
           )}
 
-          <div style={{ color: "#555", fontSize: 13, marginBottom: 20 }}>
+          <div style={{ color: t.textDimmed, fontSize: 13, marginBottom: 20 }}>
             {eventoAtual?.medalhasApenasParticipacao
               ? "Clique em \"Entregar\" para confirmar a entrega física da medalha de participação."
               : "Posições calculadas automaticamente a partir dos resultados. Clique em \"Entregar\" para confirmar a entrega física."}
@@ -464,14 +474,14 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     {horario && <span style={s.horario}>{horario}</span>}
                     <span style={s.cardTitle}>{prova.nome}</span>
-                    <span style={s.badge("#1976D2")}>{cat.nome}</span>
-                    <span style={s.badge(sexo === "M" ? "#1976D2" : "#e54f9b")}>{sexo === "M" ? "Masc" : "Fem"}</span>
+                    <span style={s.badge(t.accent)}>{cat.nome}</span>
+                    <span style={s.badge(sexo === "M" ? "#1a6ef5" : "#e54f9b")}>{sexo === "M" ? "Masc" : "Fem"}</span>
                   </div>
                   <div style={s.cardMeta}>
                     {!temResultados && (
-                      <span style={s.pill("#888", "#1a1a1a")}>⏳ Aguardando resultados</span>
+                      <span style={s.pill(t.textMuted, t.bgCard)}>⏳ Aguardando resultados</span>
                     )}
-                    <span style={s.pill("#7acc44", "#061206")}>{entregues}/{atls.length} entregues</span>
+                    <span style={s.pill(t.success, t.bgCardAlt)}>{entregues}/{atls.length} entregues</span>
                   </div>
                 </div>
                 <table style={s.table}>
@@ -514,14 +524,14 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                           <td style={s.td}>
                             <span style={s.nomeAtleta}>{atl.nome}</span>
                           </td>
-                          <td style={{ ...s.td, color: "#555", fontSize: 12 }}>{atl.clube || "—"}</td>
+                          <td style={{ ...s.td, color: t.textDimmed, fontSize: 12 }}>{atl.clube || "—"}</td>
                           <td style={{ ...s.td, textAlign: "center" }}>
                             {conf ? (
                               <span style={s.pill(conf.cor, conf.bg)}>
                                 {conf.emoji} {conf.label}
                               </span>
                             ) : (
-                              <span style={{ color: "#333", fontSize: 12 }}>—</span>
+                              <span style={{ color: t.textDisabled, fontSize: 12 }}>—</span>
                             )}
                           </td>
                           <td style={{ ...s.td, textAlign: "center" }}>
@@ -553,8 +563,8 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                                   <button
                                     style={{
                                       ...s.btn(
-                                        medalha.entregue ? "#7acc44" : "#888",
-                                        medalha.entregue ? "#061206" : "#141720"
+                                        medalha.entregue ? t.success : t.textMuted,
+                                        medalha.entregue ? t.bgCardAlt : t.bgInput
                                       ),
                                       minWidth: 120,
                                     }}
@@ -578,7 +588,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                                 )}
                               </div>
                             ) : (
-                              <span style={{ color: "#333", fontSize: 12 }}>—</span>
+                              <span style={{ color: t.textDisabled, fontSize: 12 }}>—</span>
                             )}
                           </td>
                         </tr>
@@ -638,21 +648,21 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                 { tipo: "bronze",       label: "Bronze",       emoji: "🥉", cor: "#CD7F32" },
                 { tipo: "participacao", label: "Participação", emoji: "🎖️", cor: "#888"    },
               ].map(({ tipo, label, emoji, cor }) => (
-                <div key={tipo} style={{ background: "#0E1016", border: `1px solid ${cor}33`, borderRadius: 12, padding: "16px 24px", textAlign: "center", minWidth: 110 }}>
+                <div key={tipo} style={{ background: t.bgCard, border: `1px solid ${cor}33`, borderRadius: 12, padding: "16px 24px", textAlign: "center", minWidth: 110 }}>
                   <div style={{ fontSize: 28, marginBottom: 4 }}>{emoji}</div>
                   <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 900, color: cor, lineHeight: 1 }}>{totais[tipo]}</div>
-                  <div style={{ fontSize: 11, color: "#555", marginTop: 4, textTransform: "uppercase", letterSpacing: 1 }}>{label}</div>
+                  <div style={{ fontSize: 11, color: t.textDimmed, marginTop: 4, textTransform: "uppercase", letterSpacing: 1 }}>{label}</div>
                 </div>
               ))}
-              <div style={{ background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: "16px 24px", textAlign: "center", minWidth: 110 }}>
+              <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "16px 24px", textAlign: "center", minWidth: 110 }}>
                 <div style={{ fontSize: 28, marginBottom: 4 }}>⏳</div>
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 900, color: "#ff6b6b", lineHeight: 1 }}>{totais.pendentes}</div>
-                <div style={{ fontSize: 11, color: "#555", marginTop: 4, textTransform: "uppercase", letterSpacing: 1 }}>Pendentes</div>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 900, color: t.danger, lineHeight: 1 }}>{totais.pendentes}</div>
+                <div style={{ fontSize: 11, color: t.textDimmed, marginTop: 4, textTransform: "uppercase", letterSpacing: 1 }}>Pendentes</div>
               </div>
-              <div style={{ background: "#0E1016", border: "1px solid #2a6a2a", borderRadius: 12, padding: "16px 24px", textAlign: "center", minWidth: 110, alignSelf: "center" }}>
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 700, color: "#7acc44", letterSpacing: 1, marginBottom: 6 }}>TOTAL ENTREGUES</div>
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 900, color: "#7acc44", lineHeight: 1 }}>{totalEntregues}<span style={{ fontSize: 16, color: "#444" }}>/{totalGeral}</span></div>
-                <div style={{ fontSize: 11, color: "#555", marginTop: 4 }}>{totalGeral > 0 ? Math.round(totalEntregues / totalGeral * 100) : 0}% concluído</div>
+              <div style={{ background: t.bgCard, border: "1px solid #2a6a2a", borderRadius: 12, padding: "16px 24px", textAlign: "center", minWidth: 110, alignSelf: "center" }}>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 700, color: t.success, letterSpacing: 1, marginBottom: 6 }}>TOTAL ENTREGUES</div>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 900, color: t.success, lineHeight: 1 }}>{totalEntregues}<span style={{ fontSize: 16, color: t.textDisabled }}>/{totalGeral}</span></div>
+                <div style={{ fontSize: 11, color: t.textDimmed, marginTop: 4 }}>{totalGeral > 0 ? Math.round(totalEntregues / totalGeral * 100) : 0}% concluído</div>
               </div>
             </div>
 
@@ -679,13 +689,13 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                       .map(([equipe, dados]) => {
                         const total = dados.ouro + dados.prata + dados.bronze + dados.participacao;
                         return (
-                          <tr key={equipe} style={{ background: dados.ouro > 0 ? "#1a170a" : undefined }}>
-                            <td style={{ ...s.td, fontWeight: 600, color: "#fff" }}>{equipe}</td>
+                          <tr key={equipe} style={{ background: dados.ouro > 0 ? t.trOuro : undefined }}>
+                            <td style={{ ...s.td, fontWeight: 600, color: t.textPrimary }}>{equipe}</td>
                             <td style={{ ...s.td, textAlign: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: "#FFD700" }}>{dados.ouro || "—"}</td>
                             <td style={{ ...s.td, textAlign: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: "#C0C0C0" }}>{dados.prata || "—"}</td>
                             <td style={{ ...s.td, textAlign: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: "#CD7F32" }}>{dados.bronze || "—"}</td>
-                            <td style={{ ...s.td, textAlign: "center", color: "#888" }}>{dados.participacao || "—"}</td>
-                            <td style={{ ...s.td, textAlign: "center", fontWeight: 700, color: "#aaa" }}>{total}</td>
+                            <td style={{ ...s.td, textAlign: "center", color: t.textMuted }}>{dados.participacao || "—"}</td>
+                            <td style={{ ...s.td, textAlign: "center", fontWeight: 700, color: t.textTertiary }}>{total}</td>
                           </tr>
                         );
                       })}

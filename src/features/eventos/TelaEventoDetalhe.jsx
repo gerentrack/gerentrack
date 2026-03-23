@@ -6,140 +6,142 @@ import { _getLocalEventoDisplay } from "../../shared/formatters/utils";
 import { todasAsProvas, getComposicaoCombinada } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/constants/categorias";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
+import { useTema } from "../../shared/TemaContext";
 
-const styles = {
+function getStyles(t) {
+  return {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
-  pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 24, letterSpacing: 1 },
-  sectionTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, fontWeight: 800, color: "#fff", marginBottom: 20, letterSpacing: 1 },
+  pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: t.textPrimary, marginBottom: 24, letterSpacing: 1 },
+  sectionTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, fontWeight: 800, color: t.textPrimary, marginBottom: 20, letterSpacing: 1 },
   statsRow: { display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 32 },
-  statCard: { background: "#111318", border: "1px solid #1E2130", borderRadius: 12, padding: "18px 24px", textAlign: "center", minWidth: 100 },
-  statValue: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 900, color: "#1976D2", lineHeight: 1, marginBottom: 6 },
-  statLabel: { fontSize: 13, color: "#888", letterSpacing: 1 },
-  btnPrimary: { background: "linear-gradient(135deg, #1976D2, #1565C0)", color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, transition: "all 0.2s" },
-  btnSecondary: { background: "transparent", color: "#1976D2", border: "2px solid #1976D2", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
-  btnGhost: { background: "transparent", color: "#888", border: "1px solid #2a2d3a", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
-  btnIconSm: { background: "#141720", border: "1px solid #252837", color: "#888", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
-  btnIconSmDanger: { background: "#1a0a0a", border: "1px solid #3a1a1a", color: "#ff6b6b", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
-  tableWrap: { overflowX: "auto", borderRadius: 12, border: "1px solid #1E2130" },
+  statCard: { background: t.bgCardAlt, border: `1px solid ${t.border}`, borderRadius: 12, padding: "18px 24px", textAlign: "center", minWidth: 100 },
+  statValue: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 900, color: t.accent, lineHeight: 1, marginBottom: 6 },
+  statLabel: { fontSize: 13, color: t.textMuted, letterSpacing: 1 },
+  btnPrimary: { background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, transition: "all 0.2s" },
+  btnSecondary: { background: "transparent", color: t.accent, border: `2px solid ${t.accent}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
+  btnGhost: { background: "transparent", color: t.textMuted, border: `1px solid ${t.borderLight}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
+  btnIconSm: { background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.textMuted, borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
+  btnIconSmDanger: { background: t.accentBg, border: `1px solid ${t.danger}44`, color: t.danger, borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
+  tableWrap: { overflowX: "auto", borderRadius: 12, border: `1px solid ${t.border}` },
   table: { width: "100%", borderCollapse: "collapse" },
-  th: { background: "#0D0E12", padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "#666", letterSpacing: 1, textTransform: "uppercase", borderBottom: "1px solid #1E2130" },
-  td: { padding: "12px 16px", fontSize: 14, color: "#bbb", borderBottom: "1px solid #12141a" },
+  th: { background: t.bgHeaderSolid, padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: t.textDimmed, letterSpacing: 1, textTransform: "uppercase", borderBottom: `1px solid ${t.border}` },
+  td: { padding: "12px 16px", fontSize: 14, color: t.textSecondary, borderBottom: `1px solid ${t.border}` },
   tr: { transition: "background 0.15s" },
-  trOuro: { background: "#1a170a" },
-  trPrata: { background: "#12141a" },
-  trBronze: { background: "#14100a" },
-  marca: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: "#1976D2" },
-  emptyState: { textAlign: "center", padding: "60px 20px", color: "#444", display: "flex", flexDirection: "column", alignItems: "center", gap: 12, fontSize: 15 },
+  trOuro: { background: t.trOuro },
+  trPrata: { background: t.trPrata },
+  trBronze: { background: t.trBronze },
+  marca: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: t.accent },
+  emptyState: { textAlign: "center", padding: "60px 20px", color: t.textDisabled, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, fontSize: 15 },
   painelHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 32 },
   painelBtns: { display: "flex", gap: 10, flexWrap: "wrap" },
-  input: { width: "100%", background: "#141720", borderWidth: 1, borderStyle: "solid", borderColor: "#252837", borderRadius: 8, padding: "10px 14px", color: "#E0E0E0", fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
-  select: { width: "100%", background: "#141720", borderWidth: 1, borderStyle: "solid", borderColor: "#252837", borderRadius: 8, padding: "10px 14px", color: "#E0E0E0", fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
-  label: { display: "block", fontSize: 12, fontWeight: 600, color: "#888", letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" },
-  erro: { background: "#2a1010", border: "1px solid #ff4444", color: "#ff6b6b", padding: "10px 14px", borderRadius: 8, marginBottom: 16, fontSize: 14 },
-  linkBtn: { background: "none", border: "none", color: "#1976D2", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", padding: 0 },
+  input: { width: "100%", background: t.bgInput, borderWidth: 1, borderStyle: "solid", borderColor: t.borderInput, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
+  select: { width: "100%", background: t.bgInput, borderWidth: 1, borderStyle: "solid", borderColor: t.borderInput, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
+  label: { display: "block", fontSize: 12, fontWeight: 600, color: t.textMuted, letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" },
+  erro: { background: t.accentBg, border: `1px solid ${t.danger}`, color: t.danger, padding: "10px 14px", borderRadius: 8, marginBottom: 16, fontSize: 14 },
+  linkBtn: { background: "none", border: "none", color: t.accent, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", padding: 0 },
   badge: (color) => ({ background: color + "22", color: color, border: `1px solid ${color}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }),
-  badgeGold: { background: "#1976D222", color: "#1976D2", border: "1px solid #1976D244", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 },
-  catBanner: { background: "#141720", border: "1px solid #252837", borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 14, color: "#aaa" },
-  catPreview: { background: "#141720", border: "1px solid #1976D2", borderRadius: 8, padding: "8px 14px", marginBottom: 16, fontSize: 13, color: "#aaa" },
-  atletaInfo: { display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginTop: 12, padding: "10px 14px", background: "#141720", borderRadius: 8, fontSize: 13 },
+  badgeGold: { background: t.accent + "22", color: t.accent, border: `1px solid ${t.accent}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 },
+  catBanner: { background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 14, color: t.textTertiary },
+  catPreview: { background: t.bgInput, border: `1px solid ${t.accent}`, borderRadius: 8, padding: "8px 14px", marginBottom: 16, fontSize: 13, color: t.textTertiary },
+  atletaInfo: { display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginTop: 12, padding: "10px 14px", background: t.bgInput, borderRadius: 8, fontSize: 13 },
   filtros: { display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 },
   adminGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 32 },
-  adminCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: 24 },
-  adminCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: "#1976D2", marginBottom: 16 },
+  adminCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: 24 },
+  adminCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.accent, marginBottom: 16 },
   formPage: { maxWidth: 640, margin: "60px auto", padding: "0 24px 80px" },
-  formCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 16, padding: 32, marginBottom: 20 },
-  formTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 800, color: "#fff", textAlign: "center", marginBottom: 8 },
-  formSub: { color: "#666", textAlign: "center", fontSize: 14, marginBottom: 24 },
+  formCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 16, padding: 32, marginBottom: 20 },
+  formTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 800, color: t.textPrimary, textAlign: "center", marginBottom: 8 },
+  formSub: { color: t.textDimmed, textAlign: "center", fontSize: 14, marginBottom: 24 },
   grid2: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 40 },
   grid2form: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 },
-  fieldError: { color: "#ff6b6b", fontSize: 12, marginTop: 2 },
+  fieldError: { color: t.danger, fontSize: 12, marginTop: 2 },
   radioGroup: { display: "flex", gap: 8, marginBottom: 16 },
-  radioLabel: { flex: 1, background: "#141720", border: "1px solid #252837", borderRadius: 8, padding: "10px", textAlign: "center", cursor: "pointer", fontSize: 14, color: "#888", transition: "all 0.2s" },
-  radioLabelActive: { background: "#1c1f2e", border: "1px solid #1976D2", color: "#1976D2" },
-  resumoInscricao: { background: "#0E1016", border: "1px solid #1976D233", borderRadius: 10, padding: "16px 20px", marginTop: 16 },
-  tagProva: { background: "#1976D222", color: "#1976D2", border: "1px solid #1976D244", borderRadius: 6, padding: "4px 12px", fontSize: 12, cursor: "pointer" },
-  sumuCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, marginBottom: 20, overflow: "hidden" },
-  sumuHeader: { padding: "16px 20px", background: "#0D0E12", borderBottom: "1px solid #1E2130", display: "flex", justifyContent: "space-between", alignItems: "center" },
-  sumuProva: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: "#fff", marginBottom: 6 },
+  radioLabel: { flex: 1, background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px", textAlign: "center", cursor: "pointer", fontSize: 14, color: t.textMuted, transition: "all 0.2s" },
+  radioLabelActive: { background: t.bgHover, border: `1px solid ${t.accent}`, color: t.accent },
+  resumoInscricao: { background: t.bgCard, border: `1px solid ${t.accent}33`, borderRadius: 10, padding: "16px 20px", marginTop: 16 },
+  tagProva: { background: t.accent + "22", color: t.accent, border: `1px solid ${t.accent}44`, borderRadius: 6, padding: "4px 12px", fontSize: 12, cursor: "pointer" },
+  sumuCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, marginBottom: 20, overflow: "hidden" },
+  sumuHeader: { padding: "16px 20px", background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" },
+  sumuProva: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.textPrimary, marginBottom: 6 },
   sumuMeta: { display: "flex", gap: 8, alignItems: "center" },
-  savedBadge: { background: "#0a2a0a", border: "1px solid #2a6a2a", color: "#4aaa4a", padding: "8px 16px", borderRadius: 8, fontSize: 13 },
-  digitarSection: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, overflow: "hidden" },
-  digitarHeader: { padding: "16px 20px", background: "#0D0E12", borderBottom: "1px solid #1E2130", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 },
-  digitarDica: { color: "#666", fontSize: 12 },
-  inputMarca: { background: "#141720", border: "1px solid #252837", borderRadius: 6, padding: "8px 12px", color: "#1976D2", fontSize: 16, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, width: 120, outline: "none" },
-  infoCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: 24 },
-  infoCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 700, color: "#1976D2", marginBottom: 16, letterSpacing: 1 },
+  savedBadge: { background: t.accentBg, border: `1px solid ${t.success}44`, color: t.success, padding: "8px 16px", borderRadius: 8, fontSize: 13 },
+  digitarSection: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, overflow: "hidden" },
+  digitarHeader: { padding: "16px 20px", background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 },
+  digitarDica: { color: t.textDimmed, fontSize: 12 },
+  inputMarca: { background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 6, padding: "8px 12px", color: t.accent, fontSize: 16, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, width: 120, outline: "none" },
+  infoCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: 24 },
+  infoCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 700, color: t.accent, marginBottom: 16, letterSpacing: 1 },
   infoList: { listStyle: "none" },
-  infoItem: { padding: "6px 0", borderBottom: "1px solid #151820", fontSize: 14, color: "#bbb", display: "flex", alignItems: "center", gap: 8 },
-  infoItemDot: { color: "#1976D2", fontWeight: 700 },
-  heroSection: { textAlign: "center", padding: "60px 20px 40px", background: "linear-gradient(180deg, #0D1018 0%, transparent 100%)", borderRadius: 16, marginBottom: 48, position: "relative", overflow: "hidden" },
-  heroBadge: { display: "inline-block", background: "#1976D2", color: "#fff", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: 3, padding: "6px 16px", borderRadius: 20, marginBottom: 20 },
-  heroTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 56, fontWeight: 900, color: "#fff", lineHeight: 1.1, marginBottom: 16, letterSpacing: 1 },
+  infoItem: { padding: "6px 0", borderBottom: `1px solid ${t.border}`, fontSize: 14, color: t.textSecondary, display: "flex", alignItems: "center", gap: 8 },
+  infoItemDot: { color: t.accent, fontWeight: 700 },
+  heroSection: { textAlign: "center", padding: "60px 20px 40px", background: t.bgHeader, borderRadius: 16, marginBottom: 48, position: "relative", overflow: "hidden" },
+  heroBadge: { display: "inline-block", background: t.accent, color: "#fff", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: 3, padding: "6px 16px", borderRadius: 20, marginBottom: 20 },
+  heroTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 56, fontWeight: 900, color: t.textPrimary, lineHeight: 1.1, marginBottom: 16, letterSpacing: 1 },
   heroBtns: { display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" },
   eventosGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 20, marginBottom: 48 },
-  eventoCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 14, padding: 24, display: "flex", flexDirection: "column", gap: 10 },
-  eventoCardNome: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: "#fff", lineHeight: 1.2 },
-  eventoCardMeta: { fontSize: 13, color: "#666" },
-  eventoCardStats: { display: "flex", gap: 16, fontSize: 13, color: "#888", flexWrap: "wrap", borderTop: "1px solid #141820", paddingTop: 10, marginTop: 4 },
+  eventoCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 14, padding: 24, display: "flex", flexDirection: "column", gap: 10 },
+  eventoCardNome: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.textPrimary, lineHeight: 1.2 },
+  eventoCardMeta: { fontSize: 13, color: t.textDimmed },
+  eventoCardStats: { display: "flex", gap: 16, fontSize: 13, color: t.textMuted, flexWrap: "wrap", borderTop: `1px solid ${t.border}`, paddingTop: 10, marginTop: 4 },
   eventoStatusBadge: (status) => ({
     display: "inline-block", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700, letterSpacing: 0.5,
-    background: status === "ao_vivo" ? "#3a0a0a" : status === "hoje_pre" ? "#2a2a0a" : status === "futuro" ? "#0a2a0a" : "#1a1a1a",
-    color: status === "ao_vivo" ? "#ff6b6b" : status === "hoje_pre" ? "#1976D2" : status === "futuro" ? "#7acc44" : "#555",
-    border: `1px solid ${status === "ao_vivo" ? "#6a2a2a" : status === "hoje_pre" ? "#4a4a0a" : status === "futuro" ? "#2a5a2a" : "#333"}`,
+    background: status === "ao_vivo" ? t.accentBg : status === "hoje_pre" ? t.accentBg : status === "futuro" ? t.accentBg : t.bgCardAlt,
+    color: status === "ao_vivo" ? t.danger : status === "hoje_pre" ? t.accent : status === "futuro" ? t.success : t.textMuted,
+    border: `1px solid ${status === "ao_vivo" ? t.danger+"44" : status === "hoje_pre" ? t.accentBorder : status === "futuro" ? t.success+"44" : t.border}`,
   }),
   eventoAcoesGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16, marginBottom: 8 },
-  eventoAcaoBtn: { background: "#0E1016", borderWidth: 1, borderStyle: "solid", borderColor: "#1E2130", borderRadius: 12, padding: "20px 16px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, textAlign: "center", color: "#fff", fontFamily: "'Barlow', sans-serif", fontSize: 15, fontWeight: 700, transition: "border-color 0.2s" },
-  statusBar: { display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap", background: "#0D0E12", border: "1px solid #1E2130", borderRadius: 10, padding: "12px 18px", marginBottom: 24 },
+  eventoAcaoBtn: { background: t.bgCard, borderWidth: 1, borderStyle: "solid", borderColor: t.border, borderRadius: 12, padding: "20px 16px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, textAlign: "center", color: t.textPrimary, fontFamily: "'Barlow', sans-serif", fontSize: 15, fontWeight: 700, transition: "border-color 0.2s" },
+  statusBar: { display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap", background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, padding: "12px 18px", marginBottom: 24 },
   statusBarItem: { display: "flex", alignItems: "center", gap: 8, fontSize: 13 },
   statusDot: (cor) => ({ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: cor, flexShrink: 0 }),
   statusDotInline: (cor) => ({ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: cor, background: cor + "22", border: `1px solid ${cor}44`, borderRadius: 10, padding: "2px 8px", whiteSpace: "nowrap" }),
-  statusControlsCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: "20px 24px", marginBottom: 28 },
-  statusControlsTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 700, color: "#1976D2", letterSpacing: 1, marginBottom: 14 },
+  statusControlsCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "20px 24px", marginBottom: 28 },
+  statusControlsTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 700, color: t.accent, letterSpacing: 1, marginBottom: 14 },
   statusControlsGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 },
   statusControlBox: (ativo, corAtiva, bgAtiva, disabled) => ({
-    background: ativo ? bgAtiva : "#141720",
-    border: `1px solid ${ativo ? corAtiva + "66" : "#252837"}`,
+    background: ativo ? bgAtiva : t.bgInput,
+    border: `1px solid ${ativo ? corAtiva + "66" : t.borderInput}`,
     borderRadius: 10, padding: "14px 16px",
     opacity: disabled ? 0.5 : 1,
     transition: "all 0.2s",
   }),
   statusControlLabel: { display: "flex", alignItems: "flex-start", cursor: "pointer", gap: 0 },
-  permissividadeBox: { background: "#0d1117", border: "1px solid #1976D233", borderRadius: 10, padding: 16, marginTop: 16, marginBottom: 4 },
+  permissividadeBox: { background: t.bgHeaderSolid, border: `1px solid ${t.accentBorder}`, borderRadius: 10, padding: 16, marginTop: 16, marginBottom: 4 },
   permissividadeHeader: { marginBottom: 10 },
-  permissividadeLabel: { display: "flex", alignItems: "center", cursor: "pointer", fontSize: 14, color: "#ddd", fontWeight: 600 },
-  permissividadeInfo: { background: "#111620", borderRadius: 8, padding: "12px 16px", borderLeft: "3px solid #1976D2" },
-  permissividadeTag: (ativo) => ({ display: "inline-block", background: ativo ? "#1a2a0a" : "#1a1a1a", border: `1px solid ${ativo ? "#4a8a2a" : "#333"}`, color: ativo ? "#7acc44" : "#555", borderRadius: 6, padding: "6px 12px", fontSize: 12, fontWeight: 600 }),
-  permissividadeAlert: { display: "flex", gap: 14, alignItems: "flex-start", background: "#12180a", border: "1px solid #4a8a2a", borderRadius: 10, padding: "14px 18px", marginBottom: 20 },
+  permissividadeLabel: { display: "flex", alignItems: "center", cursor: "pointer", fontSize: 14, color: t.textSecondary, fontWeight: 600 },
+  permissividadeInfo: { background: t.bgHover, borderRadius: 8, padding: "12px 16px", borderLeft: `3px solid ${t.accent}` },
+  permissividadeTag: (ativo) => ({ display: "inline-block", background: ativo ? t.accentBg : t.bgCard, border: `1px solid ${ativo ? t.success+"66" : t.border}`, color: ativo ? t.success : t.textDimmed, borderRadius: 6, padding: "6px 12px", fontSize: 12, fontWeight: 600 }),
+  permissividadeAlert: { display: "flex", gap: 14, alignItems: "flex-start", background: t.accentBg, border: `1px solid ${t.success}66`, borderRadius: 10, padding: "14px 18px", marginBottom: 20 },
   permissividadeAlertIcon: { fontSize: 28, flexShrink: 0, marginTop: 2 },
-  permissividadeAlertTitle: { fontWeight: 700, color: "#7acc44", fontSize: 15, marginBottom: 4 },
-  permissividadeAlertBody: { color: "#aaa", fontSize: 13, lineHeight: 1.6, marginBottom: 6 },
-  permissividadeAlertRodape: { fontSize: 12, color: "#666", fontStyle: "italic" },
-  filtroProvasBar: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: "16px 20px", marginBottom: 16, display: "flex", flexWrap: "wrap", gap: 20 },
+  permissividadeAlertTitle: { fontWeight: 700, color: t.success, fontSize: 15, marginBottom: 4 },
+  permissividadeAlertBody: { color: t.textTertiary, fontSize: 13, lineHeight: 1.6, marginBottom: 6 },
+  permissividadeAlertRodape: { fontSize: 12, color: t.textDimmed, fontStyle: "italic" },
+  filtroProvasBar: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "16px 20px", marginBottom: 16, display: "flex", flexWrap: "wrap", gap: 20 },
   filtroProvasBloco: { display: "flex", flexDirection: "column", gap: 8 },
-  filtroProvasLabel: { fontSize: 11, fontWeight: 700, color: "#666", letterSpacing: 1, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 8 },
+  filtroProvasLabel: { fontSize: 11, fontWeight: 700, color: t.textDimmed, letterSpacing: 1, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 8 },
   filtroProvasPills: { display: "flex", flexWrap: "wrap", gap: 6 },
-  filtroPill: { background: "#141720", border: "1px solid #252837", color: "#666", borderRadius: 20, padding: "5px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5, transition: "all 0.15s" },
-  filtroPillAtivo: { background: "#1a1c22", border: "1px solid #1976D2", color: "#1976D2" },
-  filtroClearBtn: { background: "none", border: "none", color: "#1976D288", cursor: "pointer", fontSize: 11, fontFamily: "'Barlow', sans-serif", padding: "0 4px", textDecoration: "underline" },
+  filtroPill: { background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.textDimmed, borderRadius: 20, padding: "5px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5, transition: "all 0.15s" },
+  filtroPillAtivo: { background: t.bgHover, border: "1px solid #1976D2", color: t.accent },
+  filtroClearBtn: { background: "none", border: "none", color: t.accent + "88", cursor: "pointer", fontSize: 11, fontFamily: "'Barlow', sans-serif", padding: "0 4px", textDecoration: "underline" },
   stepBar: { display: "flex", alignItems: "center", gap: 0, marginBottom: 32, maxWidth: 400 },
-  stepItem: (ativo) => ({ padding: "10px 24px", borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, background: ativo ? "#1a1c22" : "transparent", color: ativo ? "#1976D2" : "#444", border: `1px solid ${ativo ? "#1976D244" : "#1E2130"}` }),
-  stepDivider: { flex: 1, height: 1, background: "#1E2130", margin: "0 8px" },
-  modoSwitch: { display: "flex", gap: 0, background: "#0D0E12", border: "1px solid #1E2130", borderRadius: 10, overflow: "hidden", marginBottom: 20, width: "fit-content" },
-  modoBtn: { background: "transparent", border: "none", color: "#666", padding: "12px 24px", cursor: "pointer", fontSize: 14, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s" },
-  modoBtnActive: { background: "#141720", color: "#1976D2" },
+  stepItem: (ativo) => ({ padding: "10px 24px", borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, background: ativo ? t.bgHover : "transparent", color: ativo ? t.accent : t.textDisabled, border: `1px solid ${ativo ? t.accentBorder : t.border}` }),
+  stepDivider: { flex: 1, height: 1, background: t.border, margin: "0 8px" },
+  modoSwitch: { display: "flex", gap: 0, background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, overflow: "hidden", marginBottom: 20, width: "fit-content" },
+  modoBtn: { background: "transparent", border: "none", color: t.textDimmed, padding: "12px 24px", cursor: "pointer", fontSize: 14, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s" },
+  modoBtnActive: { background: t.bgInput, color: t.accent },
   provaGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 },
-  provaBtn: { background: "#0E1016", border: "1px solid #1E2130", color: "#888", padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", lineHeight: 1.4 },
-  provaBtnSel: { background: "#1a1c22", borderColor: "#1976D2", color: "#1976D2" },
-  grupoProvasBox: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 10, marginBottom: 16, overflow: "hidden" },
-  grupoProvasHeader: { background: "#0D0E12", borderBottom: "1px solid #1E2130", padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" },
-  provaCheckBtn: { background: "#0E1016", border: "1px solid #1E2130", color: "#888", padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", lineHeight: 1.4, userSelect: "none" },
-  provaCheckBtnSel: { background: "#1a1c22", borderColor: "#1976D2", color: "#1976D2" },
+  provaBtn: { background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", lineHeight: 1.4 },
+  provaBtnSel: { background: t.bgHover, borderColor: t.accent, color: t.accent },
+  grupoProvasBox: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 10, marginBottom: 16, overflow: "hidden" },
+  grupoProvasHeader: { background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`, padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" },
+  provaCheckBtn: { background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", lineHeight: 1.4, userSelect: "none" },
+  provaCheckBtnSel: { background: t.bgHover, borderColor: t.accent, color: t.accent },
   // ── Tabs
   tabsWrapper: { marginBottom: 32 },
   tabsBar: {
     display: "flex", gap: 6,
-    background: "#0a0c12",
-    border: "1px solid #1E2130",
+    background: t.bgCardAlt,
+    border: `1px solid ${t.border}`,
     borderRadius: 12,
     padding: 6,
     marginBottom: 24,
@@ -147,10 +149,10 @@ const styles = {
     boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
   },
   tabBtn: (ativo) => ({
-    background: ativo ? "linear-gradient(135deg, #1976D2, #1255a0)" : "transparent",
+    background: ativo ? `linear-gradient(135deg, ${t.accent}, ${t.accentDark})` : "transparent",
     border: "none",
     borderRadius: 8,
-    color: ativo ? "#fff" : "#666",
+    color: ativo ? "#fff" : t.textDimmed,
     padding: "11px 28px",
     cursor: "pointer",
     fontSize: 14,
@@ -163,28 +165,31 @@ const styles = {
     textTransform: "uppercase",
   }),
 };
+}
 
 function StatCard({ value, label }) {
+  const t = useTema();
   return (
-    <div style={{ background:"#0E1016", border:"1px solid #1E2130", borderRadius:12, padding:"20px 24px", flex:1, minWidth:160, textAlign:"center" }}>
-      <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:36, fontWeight:900, color:"#1976D2", lineHeight:1 }}>{value}</div>
-      <div style={{ color:"#666", fontSize:12, letterSpacing:1, textTransform:"uppercase", marginTop:6 }}>{label}</div>
+    <div style={{ background:t.bgCard, border:`1px solid ${t.border}`, borderRadius:12, padding:"20px 24px", flex:1, minWidth:160, textAlign:"center", boxShadow:t.shadow }}>
+      <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:36, fontWeight:900, color: t.accent, lineHeight:1 }}>{value}</div>
+      <div style={{ color: t.textDimmed, fontSize:12, letterSpacing:1, textTransform:"uppercase", marginTop:6 }}>{label}</div>
     </div>
   );
 }
 
 function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultados, usuarioLogado, alterarStatusEvento, selecionarEvento, recordes, setRecordes, equipes, getClubeAtleta, editarEvento, pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes, RecordDetectionEngine, organizadores = [],
   setCadEventoGoStep, funcionarios }) {
-  const s = useStylesResponsivos(styles);
+  const t = useTema();
+  const s = useStylesResponsivos(getStyles(t));
   const confirmar = useConfirm();
 
   // ── Aba ativa: inicializa conforme perfil ────────────────────────────────
   const [abaAtiva, setAbaAtiva] = useState(() => {
     if (!usuarioLogado) return null;
-    const t = usuarioLogado.tipo;
-    if (t === "equipe" || t === "treinador") return "inscricoes";
-    if (t === "atleta") return "participacao";
-    if (t === "admin" || t === "organizador") return "operacional";
+    const tp = usuarioLogado.tipo;
+    if (tp === "equipe" || tp === "treinador") return "inscricoes";
+    if (tp === "atleta") return "participacao";
+    if (tp === "admin" || tp === "organizador") return "operacional";
     return "acompanhamento"; // funcionario
   });
 
@@ -294,19 +299,19 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
           <button style={s.eventoAcaoBtn} onClick={() => setTela("login")}>
             <span style={{ fontSize: 36 }}>✍️</span>
             <strong>Inscreva-se</strong>
-            <span style={{ color: "#888", fontSize: 13 }}>Faça login ou cadastre-se para inscrever atletas</span>
+            <span style={{ color: t.textMuted, fontSize: 13 }}>Faça login ou cadastre-se para inscrever atletas</span>
           </button>
           {podeVerResultados ? (
             <button style={s.eventoAcaoBtn} onClick={() => setTela("resultados")}>
               <span style={{ fontSize: 36 }}>🏆</span>
               <strong>Resultados</strong>
-              <span style={{ color: "#666", fontSize: 13 }}>Classificação e marcas publicadas</span>
+              <span style={{ color: t.textDimmed, fontSize: 13 }}>Classificação e marcas publicadas</span>
             </button>
           ) : (
             <div style={{ ...s.eventoAcaoBtn, opacity: 0.35, cursor: "not-allowed" }}>
               <span style={{ fontSize: 36 }}>🏆</span>
               <strong>Resultados</strong>
-              <span style={{ color: "#666", fontSize: 13 }}>Disponível a partir do dia da competição</span>
+              <span style={{ color: t.textDimmed, fontSize: 13 }}>Disponível a partir do dia da competição</span>
             </div>
           )}
         </div>
@@ -323,13 +328,13 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
               <button style={s.eventoAcaoBtn} onClick={() => setTela("inscricao-avulsa")}>
                 <span style={{ fontSize: 36 }}>✍️</span>
                 <strong>Inscrever-se</strong>
-                <span style={{ color: "#666", fontSize: 13 }}>Inscrição individual em provas</span>
+                <span style={{ color: t.textDimmed, fontSize: 13 }}>Inscrição individual em provas</span>
               </button>
             ) : (
               <div style={{ ...s.eventoAcaoBtn, opacity: 0.4, cursor: "not-allowed" }}>
                 <span style={{ fontSize: 36 }}>🔒</span>
                 <strong>Inscrições Encerradas</strong>
-                <span style={{ color: "#666", fontSize: 13 }}>Novas inscrições não são permitidas</span>
+                <span style={{ color: t.textDimmed, fontSize: 13 }}>Novas inscrições não são permitidas</span>
               </div>
             )}
           </div>
@@ -343,20 +348,20 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
               <button style={s.eventoAcaoBtn} onClick={() => setTela("gestao-inscricoes")}>
                 <span style={{ fontSize: 36 }}>✍️</span>
                 <strong>Inscrever Atletas</strong>
-                <span style={{ color: "#666", fontSize: 13 }}>Montar lote e confirmar inscrições</span>
+                <span style={{ color: t.textDimmed, fontSize: 13 }}>Montar lote e confirmar inscrições</span>
               </button>
             ) : (
               <div style={{ ...s.eventoAcaoBtn, opacity: 0.4, cursor: "not-allowed" }}>
                 <span style={{ fontSize: 36 }}>🔒</span>
                 <strong>Inscrições Encerradas</strong>
-                <span style={{ color: "#666", fontSize: 13 }}>Novas inscrições não são permitidas</span>
+                <span style={{ color: t.textDimmed, fontSize: 13 }}>Novas inscrições não são permitidas</span>
               </div>
             )}
             {provasRevez.length > 0 && (
-              <button style={{ ...s.eventoAcaoBtn, borderColor: "#5dade266" }} onClick={() => setTela("inscricao-revezamento")}>
+              <button style={{ ...s.eventoAcaoBtn, borderColor: t.accent + "66" }} onClick={() => setTela("inscricao-revezamento")}>
                 <span style={{ fontSize: 36 }}>🏃‍♂️</span>
                 <strong>Inscrição de Revezamento</strong>
-                <span style={{ color: "#666", fontSize: 13 }}>
+                <span style={{ color: t.textDimmed, fontSize: 13 }}>
                   {nInscsRevez > 0 ? `${nInscsRevez} equipe(s) inscrita(s)` : "Montar equipes de revezamento"}
                 </span>
               </button>
@@ -372,7 +377,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
               <button style={s.eventoAcaoBtn} onClick={() => setTela("sumulas")}>
                 <span style={{ fontSize: 36 }}>📋</span>
                 <strong>Súmulas</strong>
-                <span style={{ color: "#666", fontSize: 13 }}>
+                <span style={{ color: t.textDimmed, fontSize: 13 }}>
                   {tpU === "admin" && !eventoAtual.sumulaLiberada
                     ? "Visível apenas para admins"
                     : "Listas por prova, categoria e sexo"}
@@ -382,20 +387,20 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
               <div style={{ ...s.eventoAcaoBtn, opacity: 0.35, cursor: "not-allowed" }}>
                 <span style={{ fontSize: 36 }}>🔐</span>
                 <strong>Súmulas</strong>
-                <span style={{ color: "#666", fontSize: 13 }}>Disponível após encerramento das inscrições</span>
+                <span style={{ color: t.textDimmed, fontSize: 13 }}>Disponível após encerramento das inscrições</span>
               </div>
             )}
             {podeVerResultados ? (
               <button style={s.eventoAcaoBtn} onClick={() => setTela("resultados")}>
                 <span style={{ fontSize: 36 }}>🏆</span>
                 <strong>Resultados</strong>
-                <span style={{ color: "#666", fontSize: 13 }}>Classificação e marcas publicadas</span>
+                <span style={{ color: t.textDimmed, fontSize: 13 }}>Classificação e marcas publicadas</span>
               </button>
             ) : (
               <div style={{ ...s.eventoAcaoBtn, opacity: 0.35, cursor: "not-allowed" }}>
                 <span style={{ fontSize: 36 }}>🏆</span>
                 <strong>Resultados</strong>
-                <span style={{ color: "#666", fontSize: 13 }}>Disponível a partir do dia da competição</span>
+                <span style={{ color: t.textDimmed, fontSize: 13 }}>Disponível a partir do dia da competição</span>
               </div>
             )}
           </div>
@@ -408,49 +413,49 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
         return (
           <div style={s.eventoAcoesGrid}>
             {_temPerm("resultados") && (
-              <button style={{ ...s.eventoAcaoBtn, borderColor: "#1976D266" }} onClick={() => setTela("digitar-resultados")}>
+              <button style={{ ...s.eventoAcaoBtn, borderColor: t.accent + "66" }} onClick={() => setTela("digitar-resultados")}>
                 <span style={{ fontSize: 36 }}>✏️</span>
-                <strong style={{ color: "#1976D2" }}>Digitar Resultados</strong>
-                <span style={{ color: "#666", fontSize: 13 }}>Inserir marcas e publicar</span>
+                <strong style={{ color: t.accent }}>Digitar Resultados</strong>
+                <span style={{ color: t.textDimmed, fontSize: 13 }}>Inserir marcas e publicar</span>
               </button>
             )}
             {_temPerm("inscricoes") && (
-              <button style={{ ...s.eventoAcaoBtn, borderColor: "#ffaa4466" }} onClick={() => setTela("gestao-inscricoes")}>
+              <button style={{ ...s.eventoAcaoBtn, borderColor: t.warning + "66" }} onClick={() => setTela("gestao-inscricoes")}>
                 <span style={{ fontSize: 36 }}>🔄</span>
                 <strong>Gestão de Inscrições</strong>
-                <span style={{ color: "#666", fontSize: 13 }}>Excluir, trocar prova ou inserir atleta</span>
+                <span style={{ color: t.textDimmed, fontSize: 13 }}>Excluir, trocar prova ou inserir atleta</span>
               </button>
             )}
             {_temPerm("inscricoes") && (
-              <button style={{ ...s.eventoAcaoBtn, borderColor: "#88ff8866" }} onClick={() => setTela("numeracao-peito")}>
+              <button style={{ ...s.eventoAcaoBtn, borderColor: t.success + "66" }} onClick={() => setTela("numeracao-peito")}>
                 <span style={{ fontSize: 36 }}>🔢</span>
                 <strong>Numeração de Peito</strong>
-                <span style={{ color: "#666", fontSize: 13 }}>Numerar atletas automaticamente ou manualmente</span>
+                <span style={{ color: t.textDimmed, fontSize: 13 }}>Numerar atletas automaticamente ou manualmente</span>
               </button>
             )}
             {provasRevez.length > 0 && _temPerm("inscricoes") && (
-              <button style={{ ...s.eventoAcaoBtn, borderColor: "#5dade266" }} onClick={() => setTela("inscricao-revezamento")}>
+              <button style={{ ...s.eventoAcaoBtn, borderColor: t.accent + "66" }} onClick={() => setTela("inscricao-revezamento")}>
                 <span style={{ fontSize: 36 }}>🏃‍♂️</span>
                 <strong>Inscrição de Revezamento</strong>
-                <span style={{ color: "#666", fontSize: 13 }}>
+                <span style={{ color: t.textDimmed, fontSize: 13 }}>
                   {nInscsRevez > 0 ? `${nInscsRevez} equipe(s) inscrita(s)` : "Montar equipes de revezamento"}
                 </span>
               </button>
             )}
             {(tpU === "admin" || tpU === "organizador") && (
-              <button style={{ ...s.eventoAcaoBtn, borderColor: "#1976D266" }} onClick={() => setTela("config-pontuacao-equipes")}>
+              <button style={{ ...s.eventoAcaoBtn, borderColor: t.accent + "66" }} onClick={() => setTela("config-pontuacao-equipes")}>
                 <span style={{ fontSize: 36 }}>🏅</span>
                 <strong>Pontuação por Equipes</strong>
-                <span style={{ color: "#666", fontSize: 13 }}>
+                <span style={{ color: t.textDimmed, fontSize: 13 }}>
                   {eventoAtual.pontuacaoEquipes?.ativo ? "✅ Ativa — configurar tabela" : "Configurar disputa por equipes"}
                 </span>
               </button>
             )}
             {_temPerm("camara_chamada") && (
-              <button style={{ ...s.eventoAcaoBtn, borderColor: "#2a6a6a66" }} onClick={() => setTela("secretaria")}>
+              <button style={{ ...s.eventoAcaoBtn, borderColor: t.accent + "66" }} onClick={() => setTela("secretaria")}>
                 <span style={{ fontSize: 36 }}>📋</span>
                 <strong>Secretaria</strong>
-                <span style={{ color: "#666", fontSize: 13 }}>Câmara de chamada · Entrega de medalhas</span>
+                <span style={{ color: t.textDimmed, fontSize: 13 }}>Câmara de chamada · Entrega de medalhas</span>
               </button>
             )}
           </div>
@@ -461,23 +466,23 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
       case "configuracao":
         return (
           <div style={s.eventoAcoesGrid}>
-            <button style={{ ...s.eventoAcaoBtn, borderColor: "#88aaff66" }}
+            <button style={{ ...s.eventoAcaoBtn, borderColor: t.accent + "66" }}
                     onClick={async () => { selecionarEvento(eventoAtual.id); setTela("novo-evento"); }}>
               <span style={{ fontSize: 36 }}>⚙️</span>
               <strong>Editar Competição</strong>
-              <span style={{ color: "#666", fontSize: 13 }}>Alterar dados, provas e configurações</span>
+              <span style={{ color: t.textDimmed, fontSize: 13 }}>Alterar dados, provas e configurações</span>
             </button>
-            <button style={{ ...s.eventoAcaoBtn, borderColor: "#ffcc0066" }}
+            <button style={{ ...s.eventoAcaoBtn, borderColor: t.gold + "66" }}
                     onClick={async () => { selecionarEvento(eventoAtual.id); setCadEventoGoStep("step3"); setTela("novo-evento"); }}>
               <span style={{ fontSize: 36 }}>🕐</span>
               <strong>Programa Horário</strong>
-              <span style={{ color: "#666", fontSize: 13 }}>Definir horários e fases das provas</span>
+              <span style={{ color: t.textDimmed, fontSize: 13 }}>Definir horários e fases das provas</span>
             </button>
-            <button style={{ ...s.eventoAcaoBtn, borderColor: "#88cccc66" }}
+            <button style={{ ...s.eventoAcaoBtn, borderColor: t.accent + "66" }}
                     onClick={() => setAbaAtiva("func_acesso")}>
               <span style={{ fontSize: 36 }}>👥</span>
               <strong>Acesso de Funcionários</strong>
-              <span style={{ color: "#666", fontSize: 13 }}>Definir quem pode ver esta competição</span>
+              <span style={{ color: t.textDimmed, fontSize: 13 }}>Definir quem pode ver esta competição</span>
             </button>
           </div>
         );
@@ -504,34 +509,34 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
         return (
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-              <button style={{ background: "none", border: "none", color: "#888", cursor: "pointer", fontSize: 14 }}
+              <button style={{ background: "none", border: "none", color: t.textMuted, cursor: "pointer", fontSize: 14 }}
                 onClick={() => setAbaAtiva("configuracao")}>← Voltar</button>
-              <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: "#fff", margin: 0 }}>
+              <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.textPrimary, margin: 0 }}>
                 👥 Acesso de Funcionários
               </h3>
             </div>
 
-            <div style={{ background: "#0d0e12", border: "1px solid #252837", borderRadius: 8, padding: "10px 16px", marginBottom: 16, fontSize: 12, color: "#888", lineHeight: 1.6 }}>
-              ℹ️ Funcionários com permissão <strong style={{ color: "#aaa" }}>"Criar / editar competições"</strong> sempre têm acesso a todas as competições.
+            <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 16px", marginBottom: 16, fontSize: 12, color: t.textMuted, lineHeight: 1.6 }}>
+              ℹ️ Funcionários com permissão <strong style={{ color: t.textTertiary }}>"Criar / editar competições"</strong> sempre têm acesso a todas as competições.
               Marque abaixo os demais funcionários que devem ter acesso a esta competição.
             </div>
 
             <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
               <button onClick={marcarTodos}
-                style={{ background: "#0a1a1a", border: "1px solid #2a5a5a", color: "#88cccc", borderRadius: 6, padding: "6px 14px", cursor: "pointer", fontSize: 12, fontFamily: "'Barlow', sans-serif" }}>
+                style={{ background: t.accentBg, border: `1px solid ${t.accent}44`, color: t.accent, borderRadius: 6, padding: "6px 14px", cursor: "pointer", fontSize: 12, fontFamily: "'Barlow', sans-serif" }}>
                 ☑ Marcar todos
               </button>
               <button onClick={desmarcarTodos}
-                style={{ background: "#0d0e12", border: "1px solid #252837", color: "#888", borderRadius: 6, padding: "6px 14px", cursor: "pointer", fontSize: 12, fontFamily: "'Barlow', sans-serif" }}>
+                style={{ background: t.bgHeaderSolid, border: `1px solid ${t.borderInput}`, color: t.textMuted, borderRadius: 6, padding: "6px 14px", cursor: "pointer", fontSize: 12, fontFamily: "'Barlow', sans-serif" }}>
                 ☐ Desmarcar todos
               </button>
-              <span style={{ fontSize: 12, color: "#555", marginLeft: "auto", alignSelf: "center" }}>
+              <span style={{ fontSize: 12, color: t.textDimmed, marginLeft: "auto", alignSelf: "center" }}>
                 {acessoAtual.length} funcionário(s) com acesso
               </span>
             </div>
 
             {meusFuncs.length === 0 ? (
-              <div style={{ color: "#555", fontSize: 13, padding: "20px 0", textAlign: "center" }}>
+              <div style={{ color: t.textDimmed, fontSize: 13, padding: "20px 0", textAlign: "center" }}>
                 Nenhum funcionário cadastrado.
               </div>
             ) : (
@@ -542,8 +547,8 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                   return (
                     <label key={f.id} style={{
                       display: "flex", alignItems: "center", gap: 12, padding: "10px 14px",
-                      background: temEditar ? "#0a0f1a" : selecionado ? "#0a1a1a" : "#0d0e12",
-                      border: `1px solid ${temEditar ? "#1a3a6a" : selecionado ? "#2a5a5a" : "#1E2130"}`,
+                      background: temEditar ? t.accentBg : selecionado ? t.accentBg : t.bgHeaderSolid,
+                      border: `1px solid ${temEditar ? t.accent+"44" : selecionado ? t.accent+"44" : t.border}`,
                       borderRadius: 8, cursor: temEditar ? "default" : "pointer",
                       opacity: temEditar ? 0.7 : 1,
                     }}>
@@ -551,19 +556,19 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                         checked={temEditar || selecionado}
                         disabled={temEditar}
                         onChange={() => !temEditar && toggleFunc(f.id)}
-                        style={{ width: 16, height: 16, accentColor: "#88cccc", cursor: temEditar ? "default" : "pointer" }} />
+                        style={{ width: 16, height: 16, accentColor: t.accent, cursor: temEditar ? "default" : "pointer" }} />
                       <div style={{ flex: 1 }}>
-                        <div style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}>
+                        <div style={{ color: t.textPrimary, fontSize: 13, fontWeight: 600 }}>
                           {f.nome}
-                          {f.cargo && <span style={{ color: "#666", fontWeight: 400 }}> — {f.cargo}</span>}
+                          {f.cargo && <span style={{ color: t.textDimmed, fontWeight: 400 }}> — {f.cargo}</span>}
                         </div>
                         <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>
                           {(f.permissoes || []).map(pid => (
-                            <span key={pid} style={{ fontSize: 9, background: "#1a1a2a", color: "#888", padding: "1px 6px", borderRadius: 3 }}>{pid}</span>
+                            <span key={pid} style={{ fontSize: 9, background: t.bgCardAlt, color: t.textMuted, padding: "1px 6px", borderRadius: 3 }}>{pid}</span>
                           ))}
                         </div>
                       </div>
-                      {temEditar && <span style={{ fontSize: 10, color: "#88aaff" }}>acesso total</span>}
+                      {temEditar && <span style={{ fontSize: 10, color: t.accent }}>acesso total</span>}
                     </label>
                   );
                 })}
@@ -586,11 +591,11 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
       <div style={s.painelHeader}>
         <div style={{ flex: 1 }}>
           {eventoAtual.logoCompeticao && (
-            <div style={{ marginBottom: 14, padding: 16, background: "#fff", borderRadius: 12, border: "1px solid #2a3050", display: "inline-block" }}>
+            <div style={{ marginBottom: 14, padding: 16, background: "#fff", borderRadius: 12, border: `1px solid ${t.border}`, display: "inline-block" }}>
               <img src={eventoAtual.logoCompeticao} alt="" style={{ maxWidth: 220, maxHeight: 140, objectFit: "contain", display: "block" }} />
             </div>
           )}
-          <div style={{ color: "#666", fontSize: 13, marginBottom: 6 }}>
+          <div style={{ color: t.textDimmed, fontSize: 13, marginBottom: 6 }}>
             📅 {new Date(eventoAtual.data + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
             {eventoAtual.horaInicio && <> · ⏰ {eventoAtual.horaInicio}h</>}
             &nbsp;·&nbsp; 📍 {_getLocalEventoDisplay(eventoAtual)}
@@ -611,10 +616,10 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
               .map(o => o.entidade || o.nome);
             return (
               <div style={{ marginTop:6, display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
-                <span style={{ display:"inline-block", padding:"3px 12px", borderRadius:20, fontSize:11, fontWeight:700, background:"#0a1a2a", color:"#5599ff", border:"1px solid #1a3a5a" }}>
+                <span style={{ display:"inline-block", padding:"3px 12px", borderRadius:20, fontSize:11, fontWeight:700, background: t.accentBg, color: t.accent, border:`1px solid ${t.accentBorder}` }}>
                   🤝 Participação cruzada ativa
                 </span>
-                <span style={{ fontSize:12, color:"#556688" }}>
+                <span style={{ fontSize:12, color: t.textDimmed }}>
                   Atletas autorizados: {orgsNomes.join(", ") || `${(eventoAtual.orgsAutorizadas||[]).length} organizador(es)`}
                 </span>
               </div>
@@ -623,35 +628,35 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
           {(eventoAtual.limiteProvasIndividual > 0 || eventoAtual.limiteProvasRevezamento > 0) && (
             <div style={{ marginTop:6, display:"flex", gap:8, flexWrap:"wrap" }}>
               {eventoAtual.limiteProvasIndividual > 0 && (
-                <span style={{ display:"inline-block", padding:"3px 10px", borderRadius:20, fontSize:11, fontWeight:700, background:"#0a1a2a", color:"#88aaff", border:"1px solid #1a3a5a" }}>
+                <span style={{ display:"inline-block", padding:"3px 10px", borderRadius:20, fontSize:11, fontWeight:700, background: t.accentBg, color: t.accent, border:`1px solid ${t.accentBorder}` }}>
                   🎯 Máx. {eventoAtual.limiteProvasIndividual} prova(s) individual(is) por atleta
                 </span>
               )}
               {eventoAtual.limiteProvasRevezamento > 0 && (
-                <span style={{ display:"inline-block", padding:"3px 10px", borderRadius:20, fontSize:11, fontWeight:700, background:"#0a1a2a", color:"#88aaff", border:"1px solid #1a3a5a" }}>
+                <span style={{ display:"inline-block", padding:"3px 10px", borderRadius:20, fontSize:11, fontWeight:700, background: t.accentBg, color: t.accent, border:`1px solid ${t.accentBorder}` }}>
                   🏃‍♂️ Máx. {eventoAtual.limiteProvasRevezamento} revezamento(s) por atleta
                 </span>
               )}
             </div>
           )}
           {(eventoAtual.dataAberturaInscricoes || eventoAtual.dataEncerramentoInscricoes) ? (
-            <div style={{ marginTop:8, fontSize:13, color:"#888" }}>
+            <div style={{ marginTop:8, fontSize:13, color: t.textMuted }}>
               📋 Inscrições:&nbsp;
               {eventoAtual.dataAberturaInscricoes && (
-                <span>de <strong style={{ color:"#7acc44" }}>
+                <span>de <strong style={{ color: t.success }}>
                   {new Date(eventoAtual.dataAberturaInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}
                   {eventoAtual.horaAberturaInscricoes && <> às {eventoAtual.horaAberturaInscricoes}h</>}
                 </strong></span>
               )}
               {eventoAtual.dataEncerramentoInscricoes && (
-                <span>{eventoAtual.dataAberturaInscricoes ? " até " : "até "}<strong style={{ color:"#ff6b6b" }}>
+                <span>{eventoAtual.dataAberturaInscricoes ? " até " : "até "}<strong style={{ color: t.danger }}>
                   {new Date(eventoAtual.dataEncerramentoInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}
                   {eventoAtual.horaEncerramentoInscricoes && <> às {eventoAtual.horaEncerramentoInscricoes}h</>}
                 </strong></span>
               )}
             </div>
           ) : (
-            <div style={{ marginTop:8, fontSize:12, color:"#555" }}>
+            <div style={{ marginTop:8, fontSize:12, color: t.textDimmed }}>
               📋 Período de inscrições não configurado — controle manual
             </div>
           )}
@@ -669,18 +674,18 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
 
       {/* ══ BANNER COMPETIÇÃO FINALIZADA ════════════════════════════════════ */}
       {eventoAtual.competicaoFinalizada && (
-        <div style={{ background:"#1a0a0a", border:"2px solid #6a2a2a", borderRadius:12, padding:"16px 20px", marginBottom:20, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+        <div style={{ background: t.accentBg, border:`2px solid ${t.danger}44`, borderRadius:12, padding:"16px 20px", marginBottom:20, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
           <div>
-            <div style={{ fontWeight:800, fontSize:15, color:"#ff6b6b", marginBottom:4 }}>🔒 Competição Finalizada</div>
-            <div style={{ fontSize:12, color:"#888", lineHeight:1.5 }}>
+            <div style={{ fontWeight:800, fontSize:15, color: t.danger, marginBottom:4 }}>🔒 Competição Finalizada</div>
+            <div style={{ fontSize:12, color: t.textMuted, lineHeight:1.5 }}>
               Finalizada em {eventoAtual.competicaoFinalizadaEm ? new Date(eventoAtual.competicaoFinalizadaEm).toLocaleString("pt-BR") : "—"}
-              {eventoAtual.competicaoFinalizadaPor && <> por <strong style={{ color:"#aaa" }}>{eventoAtual.competicaoFinalizadaPor}</strong></>}.
+              {eventoAtual.competicaoFinalizadaPor && <> por <strong style={{ color: t.textTertiary }}>{eventoAtual.competicaoFinalizadaPor}</strong></>}.
               Os dados desta competição estão bloqueados para edição.
             </div>
           </div>
           {usuarioLogado?.tipo === "admin" && (
             <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-              <button style={{ padding:"8px 18px", borderRadius:8, border:"1px solid #2a4a2a", background:"#0a1a0a", color:"#7cfc7c", fontWeight:700, fontSize:12, cursor:"pointer" }}
+              <button style={{ padding:"8px 18px", borderRadius:8, border:`1px solid ${t.success}44`, background: t.accentBg, color: t.success, fontWeight:700, fontSize:12, cursor:"pointer" }}
                 onClick={async () => {
                   try {
                     const novasPendencias = RecordDetectionEngine.detectarQuebras(eventoAtual, resultados, recordes, atletas, equipes, inscricoes);
@@ -696,7 +701,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                 }}>
                 🏆 Reprocessar Recordes
               </button>
-              <button style={{ padding:"8px 18px", borderRadius:8, border:"1px solid #4a2a2a", background:"#2a0a0a", color:"#ff6b6b", fontWeight:700, fontSize:12, cursor:"pointer" }}
+              <button style={{ padding:"8px 18px", borderRadius:8, border:`1px solid ${t.danger}44`, background: t.accentBg, color: t.danger, fontWeight:700, fontSize:12, cursor:"pointer" }}
                 onClick={async () => { 
                   if (await confirmar("Desbloquear esta competição para edição? Isso removerá a finalização."))
                     alterarStatusEvento(eventoAtual.id, { competicaoFinalizada: false, competicaoFinalizadaEm: null, competicaoFinalizadaPor: null  });
@@ -731,7 +736,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
             {renderTabContent()}
           </div>
 
-          <div style={{ height: 1, background: "#1E2130", marginBottom: 28 }} />
+          <div style={{ height: 1, background: t.border, marginBottom: 28 }} />
 
           <div style={s.statusControlsCard}>
             <div style={s.statusControlsTitle}>🔧 Controles de Status da Competição</div>
@@ -749,11 +754,11 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                 const bloqEncerrar = dtEnc && agora < dtEnc ? `Encerramento programado: ${dtEnc.toLocaleString("pt-BR")}` : null;
                 return (
                   <div style={s.statusControlBox(encerradas, "#c0392b", "#3a0a0a")}>
-                    <div style={{ fontWeight:700, fontSize:14, color: encerradas ? "#ff6b6b" : "#7acc44", marginBottom:8 }}>
+                    <div style={{ fontWeight:700, fontSize:14, color: encerradas ? t.danger : t.success, marginBottom:8 }}>
                       {encerradas ? "🔒 Inscrições Encerradas" : "🟢 Inscrições Abertas"}
                     </div>
                     {(eventoAtual.dataAberturaInscricoes || eventoAtual.dataEncerramentoInscricoes) && (
-                      <div style={{ fontSize:11, color:"#666", marginBottom:10 }}>
+                      <div style={{ fontSize:11, color: t.textDimmed, marginBottom:10 }}>
                         📅&nbsp;
                         {eventoAtual.dataAberturaInscricoes && `abertura ${new Date(eventoAtual.dataAberturaInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}`}
                         {eventoAtual.dataAberturaInscricoes && eventoAtual.dataEncerramentoInscricoes && " · "}
@@ -761,25 +766,25 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                       </div>
                     )}
                     {!encerradas && (bloqEncerrar
-                      ? <div style={{ fontSize:12, color:"#e67e22" }}>🔒 {bloqEncerrar}</div>
-                      : <button onClick={toggleInscricoes} style={{ background:"#3a0a0a", border:"1px solid #c0392b44", color:"#ff6b6b", borderRadius:7, padding:"7px 16px", cursor:"pointer", fontSize:13, fontWeight:700, fontFamily:"'Barlow', sans-serif" }}>🔒 Encerrar Inscrições</button>
+                      ? <div style={{ fontSize:12, color: t.warning }}>🔒 {bloqEncerrar}</div>
+                      : <button onClick={toggleInscricoes} style={{ background: t.accentBg, border:`1px solid ${t.danger}44`, color: t.danger, borderRadius:7, padding:"7px 16px", cursor:"pointer", fontSize:13, fontWeight:700, fontFamily:"'Barlow', sans-serif" }}>🔒 Encerrar Inscrições</button>
                     )}
                     {encerradas && (bloqReabrir
-                      ? <div style={{ fontSize:12, color:"#e67e22" }}>🔒 {bloqReabrir}</div>
-                      : <button onClick={toggleInscricoes} style={{ background:"#0a2a0a", border:"1px solid #7acc4444", color:"#7acc44", borderRadius:7, padding:"7px 16px", cursor:"pointer", fontSize:13, fontWeight:700, fontFamily:"'Barlow', sans-serif" }}>🔓 Reabrir Inscrições</button>
+                      ? <div style={{ fontSize:12, color: t.warning }}>🔒 {bloqReabrir}</div>
+                      : <button onClick={toggleInscricoes} style={{ background: t.accentBg, border:`1px solid ${t.success}44`, color: t.success, borderRadius:7, padding:"7px 16px", cursor:"pointer", fontSize:13, fontWeight:700, fontFamily:"'Barlow', sans-serif" }}>🔓 Reabrir Inscrições</button>
                     )}
                   </div>
                 );
               })()}
-              <div style={s.statusControlBox(eventoAtual.sumulaLiberada, "#27ae60", "#0a2a0a", !eventoAtual.inscricoesEncerradas)}>
+              <div style={s.statusControlBox(eventoAtual.sumulaLiberada, "#27ae60", t.bgCardAlt, !eventoAtual.inscricoesEncerradas)}>
                 <label style={{ ...s.statusControlLabel, opacity: eventoAtual.inscricoesEncerradas ? 1 : 0.45, cursor: eventoAtual.inscricoesEncerradas ? "pointer" : "not-allowed" }}>
                   <input type="checkbox" checked={!!eventoAtual.sumulaLiberada} disabled={!eventoAtual.inscricoesEncerradas} onChange={toggleSumula}
-                    style={{ width:18, height:18, accentColor:"#1976D2", cursor: eventoAtual.inscricoesEncerradas ? "pointer" : "not-allowed", marginRight:10, flexShrink:0 }} />
+                    style={{ width:18, height:18, accentColor: t.accent, cursor: eventoAtual.inscricoesEncerradas ? "pointer" : "not-allowed", marginRight:10, flexShrink:0 }} />
                   <div>
-                    <div style={{ fontWeight:700, color: eventoAtual.sumulaLiberada ? "#7acc44" : "#aaa" }}>
+                    <div style={{ fontWeight:700, color: eventoAtual.sumulaLiberada ? t.success : t.textTertiary }}>
                       {eventoAtual.sumulaLiberada ? "📋 Súmulas Liberadas para Consulta" : "🔐 Súmulas Restritas (só Admin)"}
                     </div>
-                    <div style={{ fontSize:12, color:"#666", marginTop:3 }}>
+                    <div style={{ fontSize:12, color: t.textDimmed, marginTop:3 }}>
                       {eventoAtual.inscricoesEncerradas
                         ? eventoAtual.sumulaLiberada ? "Equipes e atletas podem visualizar as súmulas." : "Marque para liberar as súmulas a equipes e atletas."
                         : "⚠️ Encerre as inscrições primeiro para liberar as súmulas."}
@@ -793,10 +798,10 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                     onChange={() => alterarStatusEvento(eventoAtual.id, { competicaoEncerrada: !eventoAtual.competicaoEncerrada })}
                     style={{ width:18, height:18, accentColor:"#8e44ad", cursor:"pointer", marginRight:10, flexShrink:0 }} />
                   <div>
-                    <div style={{ fontWeight:700, color: eventoAtual.competicaoEncerrada ? "#c39bdf" : "#aaa" }}>
+                    <div style={{ fontWeight:700, color: eventoAtual.competicaoEncerrada ? "#c39bdf" : t.textTertiary }}>
                       {eventoAtual.competicaoEncerrada ? "🏁 Competição Encerrada" : "▶️ Competição em Andamento"}
                     </div>
-                    <div style={{ fontSize:12, color:"#666", marginTop:3 }}>
+                    <div style={{ fontSize:12, color: t.textDimmed, marginTop:3 }}>
                       {eventoAtual.competicaoEncerrada ? "O status mostra 'Encerrado'. Desmarque para reativar." : "Marque quando a competição terminar para mudar o status para Encerrado."}
                     </div>
                   </div>
@@ -808,10 +813,10 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                     onChange={() => alterarStatusEvento(eventoAtual.id, { medalhasApenasParticipacao: !eventoAtual.medalhasApenasParticipacao })}
                     style={{ width:18, height:18, accentColor:"#e67e22", cursor:"pointer", marginRight:10, flexShrink:0 }} />
                   <div>
-                    <div style={{ fontWeight:700, color: eventoAtual.medalhasApenasParticipacao ? "#f0a040" : "#aaa" }}>
+                    <div style={{ fontWeight:700, color: eventoAtual.medalhasApenasParticipacao ? t.warning : t.textTertiary }}>
                       {eventoAtual.medalhasApenasParticipacao ? "🎖️ Somente Medalhas de Participação" : "🏅 Medalhas de Classificação + Participação"}
                     </div>
-                    <div style={{ fontSize:12, color:"#666", marginTop:3 }}>
+                    <div style={{ fontSize:12, color: t.textDimmed, marginTop:3 }}>
                       {eventoAtual.medalhasApenasParticipacao
                         ? "Todos os atletas recebem medalha de participação, sem ouro/prata/bronze."
                         : "1º, 2º e 3º recebem ouro/prata/bronze. Demais recebem participação."}
@@ -822,7 +827,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
             </div>
           </div>
 
-          <div style={{ height: 1, background: "#1E2130", marginBottom: 28 }} />
+          <div style={{ height: 1, background: t.border, marginBottom: 28 }} />
         </>
       )}
 
@@ -860,10 +865,10 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
         });
 
         const faseColor = (fase) => {
-          if (fase === "Eliminatória") return "#ff8844";
-          if (fase?.includes("Semifinal")) return "#88aaff";
-          if (fase?.includes("Final")) return "#7acc44";
-          return "#555";
+          if (fase === "Eliminatória") return t.warning;
+          if (fase?.includes("Semifinal")) return t.accent;
+          if (fase?.includes("Final")) return t.success;
+          return t.textDimmed;
         };
 
         const linhas = [];
@@ -907,7 +912,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
         const semHorarioList = linhasOrdenadas.filter(l => !l._horario);
         const usarDivisao  = temPausa && (manha.length > 0 || tarde.length > 0);
 
-        const thStyle = { textAlign:"left", padding:"8px 10px", color:"#888", fontWeight:600 };
+        const thStyle = { textAlign:"left", padding:"8px 10px", color: t.textMuted, fontWeight:600 };
 
         const agruparLinhas = (lista) => {
           const grupos = [];
@@ -941,20 +946,20 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
           const isComp    = p._isComp;
           const catsDisplay = (p.cats || []).join(", ");
           const sexoLabel = p._sexoAbrev === "M" ? "Masculino" : "Feminino";
-          const sexoColor = p._sexoAbrev === "M" ? "#88aaff" : "#ff88aa";
+          const sexoColor = p._sexoAbrev === "M" ? t.accent : "#ff88aa";
           return (
-            <tr key={`${p._chave}_${idx}`} style={{ borderBottom:"1px solid #1a1d2a", background: idx % 2 === 0 ? "transparent" : "#0d0e14" }}>
-              <td style={{ padding:"8px 10px", fontFamily:"monospace", fontWeight:700, color: p._horario ? "#7acc44" : "#555", fontSize:14 }}>
+            <tr key={`${p._chave}_${idx}`} style={{ borderBottom:`1px solid ${t.border}`, background: idx % 2 === 0 ? "transparent" : t.bgCardAlt }}>
+              <td style={{ padding:"8px 10px", fontFamily:"monospace", fontWeight:700, color: p._horario ? t.success : t.textDisabled, fontSize:14 }}>
                 {p._horario || "—"}
               </td>
-              <td style={{ padding:"8px 10px", color:"#ddd", fontWeight:600 }}>
-                {isComp && <span style={{ color:"#1976D2", fontSize:10, marginRight:6 }}>{p._parentNome} {p.ordem}ª</span>}
+              <td style={{ padding:"8px 10px", color: t.textSecondary, fontWeight:600 }}>
+                {isComp && <span style={{ color: t.accent, fontSize:10, marginRight:6 }}>{p._parentNome} {p.ordem}ª</span>}
                 {p.nome}
-                {isComp && p.dia && <span style={{ color:"#88aaff", fontSize:10, marginLeft:6 }}>(Dia {p.dia})</span>}
+                {isComp && p.dia && <span style={{ color: t.accent, fontSize:10, marginLeft:6 }}>(Dia {p.dia})</span>}
               </td>
               <td style={{ padding:"8px 10px", color: sexoColor, fontSize:12 }}>{sexoLabel}</td>
-              <td style={{ padding:"8px 10px", color:"#aaa", fontSize:12 }}>{catsDisplay}</td>
-              <td style={{ padding:"8px 10px", color: p._fase ? faseColor(p._fase) : "#555", fontSize:12, fontWeight: p._fase ? 700 : 400 }}>
+              <td style={{ padding:"8px 10px", color: t.textTertiary, fontSize:12 }}>{catsDisplay}</td>
+              <td style={{ padding:"8px 10px", color: p._fase ? faseColor(p._fase) : t.textDimmed, fontSize:12, fontWeight: p._fase ? 700 : 400 }}>
                 {p._fase || "—"}
               </td>
             </tr>
@@ -962,10 +967,10 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
         };
 
         const pausaRow = () => (
-          <tr key="_pausa" style={{ background:"#0d1020" }}>
+          <tr key="_pausa" style={{ background: t.bgCardAlt }}>
             <td colSpan={5} style={{ padding:"10px 14px", textAlign:"center" }}>
-              <span style={{ color:"#1976D2", fontWeight:700, fontSize:13 }}>⏸️ {pausaDesc || "Intervalo"}</span>
-              <span style={{ color:"#888", fontSize:12, marginLeft:10 }}>
+              <span style={{ color: t.accent, fontWeight:700, fontSize:13 }}>⏸️ {pausaDesc || "Intervalo"}</span>
+              <span style={{ color: t.textMuted, fontSize:12, marginLeft:10 }}>
                 {pausaHorario}{pausaRetorno ? ` — ${pausaRetorno}` : ""}
               </span>
             </td>
@@ -973,7 +978,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
         );
 
         const tHead = (
-          <tr style={{ borderBottom:"2px solid #2a3050" }}>
+          <tr style={{ borderBottom:`2px solid ${t.border}` }}>
             <th style={{ ...thStyle, width:70 }}>Horário</th>
             <th style={thStyle}>Prova</th>
             <th style={{ ...thStyle, width:80 }}>Sexo</th>
@@ -984,7 +989,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
 
         const sectionLabel = (label) => (
           <tr key={`_label_${label}`}>
-            <td colSpan={5} style={{ padding:"10px 10px 6px", fontWeight:800, fontSize:13, color:"#1976D2", borderBottom:"1px solid #2a3050", letterSpacing:1 }}>
+            <td colSpan={5} style={{ padding:"10px 10px 6px", fontWeight:800, fontSize:13, color: t.accent, borderBottom:`1px solid ${t.border}`, letterSpacing:1 }}>
               {label}
             </td>
           </tr>
@@ -1009,11 +1014,11 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
         };
 
         return (
-          <div style={{ background:"#0a0a1a", border:"1px solid #1a2a3a", borderRadius:10, padding:"20px 24px", marginBottom:24 }}>
+          <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:10, padding:"20px 24px", marginBottom:24 }}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
-              <div style={{ color:"#1976D2", fontWeight:700, fontSize:14 }}>🕐 Programa Horário</div>
+              <div style={{ color: t.accent, fontWeight:700, fontSize:14 }}>🕐 Programa Horário</div>
               <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-                <span style={{ fontSize:12, color:"#666" }}>{linhasOrdenadas.length} entrada(s)</span>
+                <span style={{ fontSize:12, color: t.textDimmed }}>{linhasOrdenadas.length} entrada(s)</span>
                 {(tpU === "admin" || tpU === "organizador" || tpU === "funcionario") && (
                   <button onClick={async () => {
                     const dataEvt = new Date(eventoAtual.data + "T12:00:00").toLocaleDateString("pt-BR", { weekday:"long", day:"2-digit", month:"long", year:"numeric" });
@@ -1070,7 +1075,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                     if (!win) { alert("Permita pop-ups para imprimir."); return; }
                     win.document.open(); win.document.write(html); win.document.close();
                   }}
-                  style={{ background:"transparent", border:"1px solid #2a3050", borderRadius:6, color:"#88aaff", fontSize:12, padding:"5px 14px", cursor:"pointer", fontWeight:600 }}>
+                  style={{ background:"transparent", border:`1px solid ${t.border}`, borderRadius:6, color: t.accent, fontSize:12, padding:"5px 14px", cursor:"pointer", fontWeight:600 }}>
                     🖨️ Imprimir
                   </button>
                 )}
@@ -1102,10 +1107,10 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
 
       {/* ══ DESCRIÇÃO ═══════════════════════════════════════════════════════ */}
       {eventoAtual.descricao && (
-        <div style={{ background:"#0a0a1a", border:"1px solid #1a2a3a", borderRadius:10, padding:"20px 24px", marginBottom:24 }}>
-          <div style={{ color:"#1976D2", fontWeight:700, fontSize:14, marginBottom:12 }}>📝 Informações</div>
+        <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:10, padding:"20px 24px", marginBottom:24 }}>
+          <div style={{ color: t.accent, fontWeight:700, fontSize:14, marginBottom:12 }}>📝 Informações</div>
           <div
-            style={{ color:"#ddd", fontFamily:"'Inter', sans-serif", fontSize:14, lineHeight:1.7, wordBreak:"break-word", whiteSpace:"pre-wrap", maxHeight: isAdmin ? 320 : undefined, overflowY: isAdmin ? "auto" : undefined }}
+            style={{ color: t.textSecondary, fontFamily:"'Inter', sans-serif", fontSize:14, lineHeight:1.7, wordBreak:"break-word", whiteSpace:"pre-wrap", maxHeight: isAdmin ? 320 : undefined, overflowY: isAdmin ? "auto" : undefined }}
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(eventoAtual.descricao) }}
           />
         </div>
@@ -1139,23 +1144,23 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
         <div style={s.statusBar}>
           <div style={s.statusBarItem}>
             <span style={s.statusDot(
-              getStatusInscricoes(eventoAtual) === "abertas" ? "#7acc44" :
-              getStatusInscricoes(eventoAtual) === "em_breve" ? "#1976D2" : "#ff6b6b"
+              getStatusInscricoes(eventoAtual) === "abertas" ? t.success :
+              getStatusInscricoes(eventoAtual) === "em_breve" ? t.accent : t.danger
             )} />
-            <span style={{ color:"#aaa", fontSize:13 }}>
+            <span style={{ color: t.textTertiary, fontSize:13 }}>
               {getStatusInscricoes(eventoAtual) === "em_breve"
-                ? <>Inscrições em breve — <span style={{ color:"#1976D2" }}>abre em {new Date(eventoAtual.dataAberturaInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}</span></>
+                ? <>Inscrições em breve — <span style={{ color: t.accent }}>abre em {new Date(eventoAtual.dataAberturaInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}</span></>
                 : getStatusInscricoes(eventoAtual) === "abertas"
                   ? <>Inscrições abertas{eventoAtual.dataEncerramentoInscricoes && (
-                      <span style={{ color:"#666" }}> — até {new Date(eventoAtual.dataEncerramentoInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}</span>
+                      <span style={{ color: t.textDimmed }}> — até {new Date(eventoAtual.dataEncerramentoInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}</span>
                     )}</>
                   : "Inscrições encerradas"
               }
             </span>
           </div>
           <div style={s.statusBarItem}>
-            <span style={s.statusDot(eventoAtual.sumulaLiberada ? "#7acc44" : "#555")} />
-            <span style={{ color:"#aaa", fontSize:13 }}>
+            <span style={s.statusDot(eventoAtual.sumulaLiberada ? t.success : t.textDimmed)} />
+            <span style={{ color: t.textTertiary, fontSize:13 }}>
               {eventoAtual.sumulaLiberada ? "Súmulas disponíveis" : "Súmulas não disponíveis"}
             </span>
           </div>
@@ -1164,17 +1169,17 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
 
       {/* ══ FINALIZAR COMPETIÇÃO — admin/org, sempre no fim da página ═══════ */}
       {isAdmin && !eventoAtual.competicaoFinalizada && (
-        <div style={{ background:"#0a0a14", border:"1px solid #2a1a3a", borderRadius:12, padding:"16px 20px", marginTop: 8 }}>
+        <div style={{ background: t.bgCardAlt, border:`1px solid #8e44ad44`, borderRadius:12, padding:"16px 20px", marginTop: 8 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
             <div>
               <div style={{ fontWeight:700, fontSize:14, color:"#c39bdf", marginBottom:4 }}>🏁 Finalizar Competição</div>
-              <div style={{ fontSize:12, color:"#888", lineHeight:1.5 }}>
-                Ao finalizar, <strong style={{ color:"#ff6b6b" }}>todos os dados serão bloqueados para edição</strong> (inscrições, resultados, súmulas, programa de provas).
-                Somente um <strong style={{ color:"#1976D2" }}>administrador</strong> poderá desbloquear mediante solicitação.
+              <div style={{ fontSize:12, color: t.textMuted, lineHeight:1.5 }}>
+                Ao finalizar, <strong style={{ color: t.danger }}>todos os dados serão bloqueados para edição</strong> (inscrições, resultados, súmulas, programa de provas).
+                Somente um <strong style={{ color: t.accent }}>administrador</strong> poderá desbloquear mediante solicitação.
               </div>
             </div>
             <button
-              style={{ padding:"10px 24px", borderRadius:8, border:"2px solid #8e44ad", background:"#2a0a3a", color:"#c39bdf", fontWeight:800, fontSize:13, cursor:"pointer", whiteSpace:"nowrap", letterSpacing:0.5 }}
+              style={{ padding:"10px 24px", borderRadius:8, border:"2px solid #8e44ad", background: t.accentBg, color:"#c39bdf", fontWeight:800, fontSize:13, cursor:"pointer", whiteSpace:"nowrap", letterSpacing:0.5 }}
               onClick={async () => { 
                 if (await confirmar(
                   "⚠️ FINALIZAR COMPETIÇÃO\n\n" +

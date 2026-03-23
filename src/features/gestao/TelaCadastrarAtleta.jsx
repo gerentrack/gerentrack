@@ -6,6 +6,7 @@ import { _getClubeAtleta, validarCPF } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
+import { useTema } from "../../shared/TemaContext";
 const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -21,6 +22,7 @@ const calcularIdade = (dataNasc) => {
 
 // ── Bloco de Consentimento LGPD ──────────────────────────────────────────────
 function BlocoLGPD({ aceite, onChange, erro }) {
+  const t = useTema();
   const [modalAberto, setModalAberto] = React.useState(false);
   return (
     <>
@@ -28,56 +30,56 @@ function BlocoLGPD({ aceite, onChange, erro }) {
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.8)", zIndex:2000,
           display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}
           onClick={() => setModalAberto(false)}>
-          <div style={{ background:"#0E1016", border:"1px solid #1976D2", borderRadius:14,
+          <div style={{ background:t.bgCard, border:"1px solid #1976D2", borderRadius:14,
             padding:28, maxWidth:560, width:"100%", maxHeight:"80vh", overflowY:"auto" }}
             onClick={e => e.stopPropagation()}>
             <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:22, fontWeight:800,
-              color:"#fff", marginBottom:16 }}>📄 Política de Privacidade — GerenTrack</h3>
-            <div style={{ fontSize:13, color:"#aaa", lineHeight:1.8 }}>
-              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>1. Controlador dos dados</strong><br/>
+              color: t.textPrimary, marginBottom:16 }}>📄 Política de Privacidade — GerenTrack</h3>
+            <div style={{ fontSize:13, color: t.textTertiary, lineHeight:1.8 }}>
+              <p style={{ marginBottom:10 }}><strong style={{ color: t.textPrimary }}>1. Controlador dos dados</strong><br/>
               O GerenTrack é o responsável pelo tratamento dos seus dados pessoais, nos termos da Lei nº 13.709/2018 (LGPD).</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>2. Dados coletados</strong><br/>
+              <p style={{ marginBottom:10 }}><strong style={{ color: t.textPrimary }}>2. Dados coletados</strong><br/>
               Coletamos: nome completo, e-mail, telefone, CNPJ, cidade, estado e dados de acesso (login). Para atletas: também CPF, data de nascimento e sexo.</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>3. Finalidade do tratamento</strong><br/>
+              <p style={{ marginBottom:10 }}><strong style={{ color: t.textPrimary }}>3. Finalidade do tratamento</strong><br/>
               Os dados são usados exclusivamente para: gestão de competições de atletismo, inscrições em provas, emissão de súmulas e resultados, e comunicação relacionada às competições.</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>4. Base legal</strong><br/>
+              <p style={{ marginBottom:10 }}><strong style={{ color: t.textPrimary }}>4. Base legal</strong><br/>
               O tratamento é realizado com base no consentimento do titular (Art. 7º, I), na execução de contrato (Art. 7º, V) e no legítimo interesse (Art. 7º, IX) da organização esportiva.</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>5. Compartilhamento</strong><br/>
+              <p style={{ marginBottom:10 }}><strong style={{ color: t.textPrimary }}>5. Compartilhamento</strong><br/>
               Seus dados podem ser compartilhados com organizadores de competições nas quais você participa. Não vendemos dados a terceiros.</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>6. Retenção</strong><br/>
+              <p style={{ marginBottom:10 }}><strong style={{ color: t.textPrimary }}>6. Retenção</strong><br/>
               Resultados esportivos são mantidos permanentemente por integridade do histórico. Dados pessoais de contas excluídas são anonimizados.</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>7. Seus direitos (Art. 18º LGPD)</strong><br/>
+              <p style={{ marginBottom:10 }}><strong style={{ color: t.textPrimary }}>7. Seus direitos (Art. 18º LGPD)</strong><br/>
               Você tem direito a: confirmar a existência do tratamento, acessar, corrigir, anonimizar, bloquear, eliminar seus dados e revogar o consentimento a qualquer momento nas Configurações da conta.</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>8. Segurança</strong><br/>
+              <p style={{ marginBottom:10 }}><strong style={{ color: t.textPrimary }}>8. Segurança</strong><br/>
               Utilizamos autenticação via Firebase Auth e armazenamento seguro no Firestore. Dados sensíveis (senhas) nunca são armazenados localmente.</p>
-              <p style={{ marginBottom:0 }}><strong style={{ color:"#fff" }}>9. Contato</strong><br/>
-              Para exercer seus direitos ou tirar dúvidas: <span style={{ color:"#1976D2" }}>gerentrack@gmail.com</span></p>
+              <p style={{ marginBottom:0 }}><strong style={{ color: t.textPrimary }}>9. Contato</strong><br/>
+              Para exercer seus direitos ou tirar dúvidas: <span style={{ color: t.accent }}>gerentrack@gmail.com</span></p>
             </div>
-            <button style={{ marginTop:20, background:"#1976D2", color:"#fff", border:"none",
+            <button style={{ marginTop:20, background:"#1976D2", color: t.textPrimary, border:"none",
               borderRadius:8, padding:"10px 24px", cursor:"pointer", fontSize:13, fontWeight:700,
               fontFamily:"'Barlow Condensed',sans-serif" }}
               onClick={() => setModalAberto(false)}>✓ Fechar</button>
           </div>
         </div>
       )}
-      <div style={{ background:"#0a0a14", border:`1px solid ${erro ? "#ff4444" : "#1976D233"}`,
+      <div style={{ background:t.bgCardAlt, border:`1px solid ${erro ? t.danger : t.accentBorder}`,
         borderRadius:10, padding:"16px 18px", marginTop:16 }}>
-        <div style={{ fontSize:12, fontWeight:700, color:"#1976D2", letterSpacing:1,
+        <div style={{ fontSize:12, fontWeight:700, color: t.accent, letterSpacing:1,
           textTransform:"uppercase", marginBottom:10 }}>🔒 Consentimento LGPD (Lei 13.709/2018)</div>
         <label style={{ display:"flex", alignItems:"flex-start", gap:12, cursor:"pointer" }}>
           <input type="checkbox" checked={aceite} onChange={e => onChange(e.target.checked)}
             style={{ marginTop:2, width:16, height:16, cursor:"pointer", flexShrink:0 }} />
-          <span style={{ fontSize:13, color:"#bbb", lineHeight:1.7 }}>
+          <span style={{ fontSize:13, color: t.textSecondary, lineHeight:1.7 }}>
             Li e concordo com a{" "}
             <button type="button" onClick={() => setModalAberto(true)}
-              style={{ background:"none", border:"none", color:"#1976D2", cursor:"pointer",
+              style={{ background:"none", border:"none", color: t.accent, cursor:"pointer",
                 fontSize:13, padding:0, textDecoration:"underline" }}>
               Política de Privacidade
             </button>
             {" "}e autorizo o tratamento dos meus dados pessoais pelo GerenTrack para fins de gestão de competições de atletismo, conforme descrito na política.
           </span>
         </label>
-        {erro && <div style={{ color:"#ff6b6b", fontSize:12, marginTop:8 }}>⚠️ {erro}</div>}
+        {erro && <div style={{ color: t.danger, fontSize:12, marginTop:8 }}>⚠️ {erro}</div>}
       </div>
     </>
   );
@@ -85,13 +87,14 @@ function BlocoLGPD({ aceite, onChange, erro }) {
 
 // ── Bloco de Consentimento Parental (Art. 14 LGPD) ───────────────────────────
 function BlocoConsentimentoParental({ responsavel, onResponsavel, aceite, onChange, erroResponsavel, erroAceite, modoSimplificado }) {
+  const t = useTema();
   return (
-    <div style={{ background:"#0a120a", border:"1px solid #2a6a2a", borderRadius:10,
+    <div style={{ background:`${t.success}08`, border:`1px solid ${t.success}44`, borderRadius:10,
       padding:"16px 18px", marginTop:16 }}>
-      <div style={{ fontSize:12, fontWeight:700, color:"#7acc44", letterSpacing:1,
+      <div style={{ fontSize:12, fontWeight:700, color: t.success, letterSpacing:1,
         textTransform:"uppercase", marginBottom:4 }}>👨‍👩‍👧 Consentimento Parental (Art. 14 LGPD)</div>
-      <p style={{ fontSize:12, color:"#888", marginBottom:12, lineHeight:1.6 }}>
-        O atleta é <strong style={{ color:"#fff" }}>menor de 18 anos</strong>. Conforme o Art. 14 da LGPD,
+      <p style={{ fontSize:12, color: t.textMuted, marginBottom:12, lineHeight:1.6 }}>
+        O atleta é <strong style={{ color: t.textPrimary }}>menor de 18 anos</strong>. Conforme o Art. 14 da LGPD,
         é obrigatório o consentimento de um responsável legal para o tratamento dos dados pessoais de menores.
       </p>
 
@@ -100,177 +103,180 @@ function BlocoConsentimentoParental({ responsavel, onResponsavel, aceite, onChan
         <label style={{ display:"flex", alignItems:"flex-start", gap:12, cursor:"pointer" }}>
           <input type="checkbox" checked={aceite} onChange={e => onChange(e.target.checked)}
             style={{ marginTop:2, width:16, height:16, cursor:"pointer", flexShrink:0 }} />
-          <span style={{ fontSize:13, color:"#bbb", lineHeight:1.7 }}>
-            Declaro que sou o responsável legal por este atleta <strong style={{ color:"#fff" }}>ou</strong> que
+          <span style={{ fontSize:13, color: t.textSecondary, lineHeight:1.7 }}>
+            Declaro que sou o responsável legal por este atleta <strong style={{ color: t.textPrimary }}>ou</strong> que
             possuo autorização expressa do responsável legal para representá-lo nos assuntos relacionados
             a competições de atletismo gerenciados pelo GerenTrack, assumindo total responsabilidade
-            por esta declaração, conforme a <strong style={{ color:"#7acc44" }}>Lei nº 13.709/2018 (LGPD), Art. 14</strong>.
+            por esta declaração, conforme a <strong style={{ color: t.success }}>Lei nº 13.709/2018 (LGPD), Art. 14</strong>.
           </span>
         </label>
       ) : (
         // Modo admin/org: campo de nome do responsável
         <>
           <div style={{ marginBottom:12 }}>
-            <label style={{ display:"block", fontSize:11, fontWeight:700, color:"#666", letterSpacing:1,
+            <label style={{ display:"block", fontSize:11, fontWeight:700, color: t.textDimmed, letterSpacing:1,
               marginBottom:5, textTransform:"uppercase" }}>Nome do Responsável Legal *</label>
             <input
-              style={{ width:"100%", background:"#141720", border:`1px solid ${erroResponsavel ? "#ff4444" : "#252837"}`,
-                borderRadius:8, padding:"10px 14px", color:"#E0E0E0", fontSize:14,
+              style={{ width:"100%", background:t.bgInput, border:`1px solid ${erroResponsavel ? t.danger : t.borderInput}`,
+                borderRadius:8, padding:"10px 14px", color: t.textSecondary, fontSize:14,
                 fontFamily:"'Barlow',sans-serif", outline:"none", marginBottom:4 }}
               value={responsavel}
               onChange={e => onResponsavel(e.target.value)}
               placeholder="Nome completo do pai, mãe ou responsável legal"
             />
-            {erroResponsavel && <div style={{ color:"#ff6b6b", fontSize:12, marginTop:2 }}>⚠️ {erroResponsavel}</div>}
+            {erroResponsavel && <div style={{ color: t.danger, fontSize:12, marginTop:2 }}>⚠️ {erroResponsavel}</div>}
           </div>
           <label style={{ display:"flex", alignItems:"flex-start", gap:12, cursor:"pointer" }}>
             <input type="checkbox" checked={aceite} onChange={e => onChange(e.target.checked)}
               style={{ marginTop:2, width:16, height:16, cursor:"pointer", flexShrink:0 }} />
-            <span style={{ fontSize:13, color:"#bbb", lineHeight:1.7 }}>
+            <span style={{ fontSize:13, color: t.textSecondary, lineHeight:1.7 }}>
               Declaro ser responsável legal pelo atleta acima e autorizo, de forma específica e destacada,
               o tratamento dos dados pessoais deste menor pelo GerenTrack para fins de gestão de competições
-              de atletismo, conforme a <strong style={{ color:"#7acc44" }}>Lei nº 13.709/2018 (LGPD), Art. 14</strong>.
+              de atletismo, conforme a <strong style={{ color: t.success }}>Lei nº 13.709/2018 (LGPD), Art. 14</strong>.
             </span>
           </label>
         </>
       )}
 
-      {erroAceite && <div style={{ color:"#ff6b6b", fontSize:12, marginTop:8 }}>⚠️ {erroAceite}</div>}
+      {erroAceite && <div style={{ color: t.danger, fontSize:12, marginTop:8 }}>⚠️ {erroAceite}</div>}
     </div>
   );
 }
 
-const styles = {
+function getStyles(t) {
+  return {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
-  pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 24, letterSpacing: 1 },
-  sectionTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, fontWeight: 800, color: "#fff", marginBottom: 20, letterSpacing: 1 },
+  pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: t.textPrimary, marginBottom: 24, letterSpacing: 1 },
+  sectionTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, fontWeight: 800, color: t.textPrimary, marginBottom: 20, letterSpacing: 1 },
   statsRow: { display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 32 },
-  statCard: { background: "#111318", border: "1px solid #1E2130", borderRadius: 12, padding: "18px 24px", textAlign: "center", minWidth: 100 },
-  statValue: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 900, color: "#1976D2", lineHeight: 1, marginBottom: 6 },
-  statLabel: { fontSize: 13, color: "#888", letterSpacing: 1 },
-  btnPrimary: { background: "linear-gradient(135deg, #1976D2, #1565C0)", color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, transition: "all 0.2s" },
-  btnSecondary: { background: "transparent", color: "#1976D2", border: "2px solid #1976D2", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
-  btnGhost: { background: "transparent", color: "#888", border: "1px solid #2a2d3a", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
-  btnIconSm: { background: "#141720", border: "1px solid #252837", color: "#888", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
-  btnIconSmDanger: { background: "#1a0a0a", border: "1px solid #3a1a1a", color: "#ff6b6b", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
-  tableWrap: { overflowX: "auto", borderRadius: 12, border: "1px solid #1E2130" },
+  statCard: { background: t.bgCardAlt, border: `1px solid ${t.border}`, borderRadius: 12, padding: "18px 24px", textAlign: "center", minWidth: 100 },
+  statValue: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 900, color: t.accent, lineHeight: 1, marginBottom: 6 },
+  statLabel: { fontSize: 13, color: t.textMuted, letterSpacing: 1 },
+  btnPrimary: { background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, transition: "all 0.2s" },
+  btnSecondary: { background: "transparent", color: t.accent, border: `2px solid ${t.accentBorder}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
+  btnGhost: { background: "transparent", color: t.textMuted, border: `1px solid ${t.borderLight}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
+  btnIconSm: { background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.textMuted, borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
+  btnIconSmDanger: { background: `${t.danger}12`, border: `1px solid ${t.danger}44`, color: t.danger, borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
+  tableWrap: { overflowX: "auto", borderRadius: 12, border: `1px solid ${t.border}` },
   table: { width: "100%", borderCollapse: "collapse" },
-  th: { background: "#0D0E12", padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "#666", letterSpacing: 1, textTransform: "uppercase", borderBottom: "1px solid #1E2130" },
-  td: { padding: "12px 16px", fontSize: 14, color: "#bbb", borderBottom: "1px solid #12141a" },
+  th: { background: t.bgHeaderSolid, padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: t.textDimmed, letterSpacing: 1, textTransform: "uppercase", borderBottom: `1px solid ${t.border}` },
+  td: { padding: "12px 16px", fontSize: 14, color: t.textSecondary, borderBottom: `1px solid ${t.border}` },
   tr: { transition: "background 0.15s" },
-  trOuro: { background: "#1a170a" },
-  trPrata: { background: "#12141a" },
-  trBronze: { background: "#14100a" },
-  marca: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: "#1976D2" },
-  emptyState: { textAlign: "center", padding: "60px 20px", color: "#444", display: "flex", flexDirection: "column", alignItems: "center", gap: 12, fontSize: 15 },
+  trOuro: { background: t.trOuro },
+  trPrata: { background: t.trPrata },
+  trBronze: { background: t.trBronze },
+  marca: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: t.accent },
+  emptyState: { textAlign: "center", padding: "60px 20px", color: t.textDisabled, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, fontSize: 15 },
   painelHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 32 },
   painelBtns: { display: "flex", gap: 10, flexWrap: "wrap" },
-  input: { width: "100%", background: "#141720", borderWidth: 1, borderStyle: "solid", borderColor: "#252837", borderRadius: 8, padding: "10px 14px", color: "#E0E0E0", fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
-  select: { width: "100%", background: "#141720", borderWidth: 1, borderStyle: "solid", borderColor: "#252837", borderRadius: 8, padding: "10px 14px", color: "#E0E0E0", fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
-  label: { display: "block", fontSize: 12, fontWeight: 600, color: "#888", letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" },
-  erro: { background: "#2a1010", border: "1px solid #ff4444", color: "#ff6b6b", padding: "10px 14px", borderRadius: 8, marginBottom: 16, fontSize: 14 },
-  linkBtn: { background: "none", border: "none", color: "#1976D2", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", padding: 0 },
+  input: { width: "100%", background: t.bgInput, borderWidth: 1, borderStyle: "solid", borderColor: t.borderInput, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
+  select: { width: "100%", background: t.bgInput, borderWidth: 1, borderStyle: "solid", borderColor: t.borderInput, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
+  label: { display: "block", fontSize: 12, fontWeight: 600, color: t.textMuted, letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" },
+  erro: { background: t.bgCardAlt, border: `1px solid ${t.danger}`, color: t.danger, padding: "10px 14px", borderRadius: 8, marginBottom: 16, fontSize: 14 },
+  linkBtn: { background: "none", border: "none", color: t.accent, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", padding: 0 },
   badge: (color) => ({ background: color + "22", color: color, border: `1px solid ${color}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }),
-  badgeGold: { background: "#1976D222", color: "#1976D2", border: "1px solid #1976D244", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 },
-  catBanner: { background: "#141720", border: "1px solid #252837", borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 14, color: "#aaa" },
-  catPreview: { background: "#141720", border: "1px solid #1976D2", borderRadius: 8, padding: "8px 14px", marginBottom: 16, fontSize: 13, color: "#aaa" },
-  atletaInfo: { display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginTop: 12, padding: "10px 14px", background: "#141720", borderRadius: 8, fontSize: 13 },
+  badgeGold: { background: t.accentBg, color: t.accent, border: `1px solid ${t.accentBorder}`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 },
+  catBanner: { background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 14, color: t.textTertiary },
+  catPreview: { background: t.bgInput, border: `1px solid ${t.accent}`, borderRadius: 8, padding: "8px 14px", marginBottom: 16, fontSize: 13, color: t.textTertiary },
+  atletaInfo: { display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginTop: 12, padding: "10px 14px", background: t.bgInput, borderRadius: 8, fontSize: 13 },
   filtros: { display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 },
   adminGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 32 },
-  adminCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: 24 },
-  adminCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: "#1976D2", marginBottom: 16 },
+  adminCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: 24 },
+  adminCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.accent, marginBottom: 16 },
   formPage: { maxWidth: 640, margin: "60px auto", padding: "0 24px 80px" },
-  formCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 16, padding: 32, marginBottom: 20 },
-  formTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 800, color: "#fff", textAlign: "center", marginBottom: 8 },
-  formSub: { color: "#666", textAlign: "center", fontSize: 14, marginBottom: 24 },
+  formCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 16, padding: 32, marginBottom: 20 },
+  formTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 800, color: t.textPrimary, textAlign: "center", marginBottom: 8 },
+  formSub: { color: t.textDimmed, textAlign: "center", fontSize: 14, marginBottom: 24 },
   grid2: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 40 },
   grid2form: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 },
-  fieldError: { color: "#ff6b6b", fontSize: 12, marginTop: 2 },
+  fieldError: { color: t.danger, fontSize: 12, marginTop: 2 },
   radioGroup: { display: "flex", gap: 8, marginBottom: 16 },
-  radioLabel: { flex: 1, background: "#141720", border: "1px solid #252837", borderRadius: 8, padding: "10px", textAlign: "center", cursor: "pointer", fontSize: 14, color: "#888", transition: "all 0.2s" },
-  radioLabelActive: { background: "#1c1f2e", border: "1px solid #1976D2", color: "#1976D2" },
-  resumoInscricao: { background: "#0E1016", border: "1px solid #1976D233", borderRadius: 10, padding: "16px 20px", marginTop: 16 },
-  tagProva: { background: "#1976D222", color: "#1976D2", border: "1px solid #1976D244", borderRadius: 6, padding: "4px 12px", fontSize: 12, cursor: "pointer" },
-  sumuCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, marginBottom: 20, overflow: "hidden" },
-  sumuHeader: { padding: "16px 20px", background: "#0D0E12", borderBottom: "1px solid #1E2130", display: "flex", justifyContent: "space-between", alignItems: "center" },
-  sumuProva: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: "#fff", marginBottom: 6 },
+  radioLabel: { flex: 1, background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px", textAlign: "center", cursor: "pointer", fontSize: 14, color: t.textMuted, transition: "all 0.2s" },
+  radioLabelActive: { background: t.bgHover, border: `1px solid ${t.accent}`, color: t.accent },
+  resumoInscricao: { background: t.bgCard, border: `1px solid ${t.accentBorder}`, borderRadius: 10, padding: "16px 20px", marginTop: 16 },
+  tagProva: { background: t.accentBg, color: t.accent, border: `1px solid ${t.accentBorder}`, borderRadius: 6, padding: "4px 12px", fontSize: 12, cursor: "pointer" },
+  sumuCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, marginBottom: 20, overflow: "hidden" },
+  sumuHeader: { padding: "16px 20px", background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" },
+  sumuProva: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.textPrimary, marginBottom: 6 },
   sumuMeta: { display: "flex", gap: 8, alignItems: "center" },
-  savedBadge: { background: "#0a2a0a", border: "1px solid #2a6a2a", color: "#4aaa4a", padding: "8px 16px", borderRadius: 8, fontSize: 13 },
-  digitarSection: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, overflow: "hidden" },
-  digitarHeader: { padding: "16px 20px", background: "#0D0E12", borderBottom: "1px solid #1E2130", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 },
-  digitarDica: { color: "#666", fontSize: 12 },
-  inputMarca: { background: "#141720", border: "1px solid #252837", borderRadius: 6, padding: "8px 12px", color: "#1976D2", fontSize: 16, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, width: 120, outline: "none" },
-  infoCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: 24 },
-  infoCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 700, color: "#1976D2", marginBottom: 16, letterSpacing: 1 },
+  savedBadge: { background: t.bgCardAlt, border: `1px solid ${t.success}44`, color: t.success, padding: "8px 16px", borderRadius: 8, fontSize: 13 },
+  digitarSection: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, overflow: "hidden" },
+  digitarHeader: { padding: "16px 20px", background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 },
+  digitarDica: { color: t.textDimmed, fontSize: 12 },
+  inputMarca: { background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 6, padding: "8px 12px", color: t.accent, fontSize: 16, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, width: 120, outline: "none" },
+  infoCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: 24 },
+  infoCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 700, color: t.accent, marginBottom: 16, letterSpacing: 1 },
   infoList: { listStyle: "none" },
-  infoItem: { padding: "6px 0", borderBottom: "1px solid #151820", fontSize: 14, color: "#bbb", display: "flex", alignItems: "center", gap: 8 },
-  infoItemDot: { color: "#1976D2", fontWeight: 700 },
-  heroSection: { textAlign: "center", padding: "60px 20px 40px", background: "linear-gradient(180deg, #0D1018 0%, transparent 100%)", borderRadius: 16, marginBottom: 48, position: "relative", overflow: "hidden" },
-  heroBadge: { display: "inline-block", background: "#1976D2", color: "#fff", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: 3, padding: "6px 16px", borderRadius: 20, marginBottom: 20 },
-  heroTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 56, fontWeight: 900, color: "#fff", lineHeight: 1.1, marginBottom: 16, letterSpacing: 1 },
+  infoItem: { padding: "6px 0", borderBottom: `1px solid ${t.border}`, fontSize: 14, color: t.textSecondary, display: "flex", alignItems: "center", gap: 8 },
+  infoItemDot: { color: t.accent, fontWeight: 700 },
+  heroSection: { textAlign: "center", padding: "60px 20px 40px", background: `linear-gradient(180deg, ${t.bgCardAlt} 0%, transparent 100%)`, borderRadius: 16, marginBottom: 48, position: "relative", overflow: "hidden" },
+  heroBadge: { display: "inline-block", background: t.accent, color: t.textPrimary, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: 3, padding: "6px 16px", borderRadius: 20, marginBottom: 20 },
+  heroTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 56, fontWeight: 900, color: t.textPrimary, lineHeight: 1.1, marginBottom: 16, letterSpacing: 1 },
   heroBtns: { display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" },
   eventosGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 20, marginBottom: 48 },
-  eventoCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 14, padding: 24, display: "flex", flexDirection: "column", gap: 10 },
-  eventoCardNome: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: "#fff", lineHeight: 1.2 },
-  eventoCardMeta: { fontSize: 13, color: "#666" },
-  eventoCardStats: { display: "flex", gap: 16, fontSize: 13, color: "#888", flexWrap: "wrap", borderTop: "1px solid #141820", paddingTop: 10, marginTop: 4 },
+  eventoCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 14, padding: 24, display: "flex", flexDirection: "column", gap: 10 },
+  eventoCardNome: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.textPrimary, lineHeight: 1.2 },
+  eventoCardMeta: { fontSize: 13, color: t.textDimmed },
+  eventoCardStats: { display: "flex", gap: 16, fontSize: 13, color: t.textMuted, flexWrap: "wrap", borderTop: `1px solid ${t.border}`, paddingTop: 10, marginTop: 4 },
   eventoStatusBadge: (status) => ({
     display: "inline-block", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700, letterSpacing: 0.5,
-    background: status === "ao_vivo" ? "#3a0a0a" : status === "hoje_pre" ? "#2a2a0a" : status === "futuro" ? "#0a2a0a" : "#1a1a1a",
-    color: status === "ao_vivo" ? "#ff6b6b" : status === "hoje_pre" ? "#1976D2" : status === "futuro" ? "#7acc44" : "#555",
-    border: `1px solid ${status === "ao_vivo" ? "#6a2a2a" : status === "hoje_pre" ? "#4a4a0a" : status === "futuro" ? "#2a5a2a" : "#333"}`,
+    background: status === "ao_vivo" ? `${t.danger}18` : status === "hoje_pre" ? `${t.accent}18` : status === "futuro" ? `${t.success}18` : t.bgCardAlt,
+    color: status === "ao_vivo" ? t.danger : status === "hoje_pre" ? t.accent : status === "futuro" ? t.success : t.textDisabled,
+    border: `1px solid ${status === "ao_vivo" ? `${t.danger}44` : status === "hoje_pre" ? `${t.accent}44` : status === "futuro" ? `${t.success}44` : t.border}`,
   }),
   eventoAcoesGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16, marginBottom: 40 },
-  eventoAcaoBtn: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: "20px 16px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, textAlign: "center", color: "#fff", fontFamily: "'Barlow', sans-serif", fontSize: 15, fontWeight: 700, transition: "border-color 0.2s" },
-  statusBar: { display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap", background: "#0D0E12", border: "1px solid #1E2130", borderRadius: 10, padding: "12px 18px", marginBottom: 24 },
+  eventoAcaoBtn: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "20px 16px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, textAlign: "center", color: t.textPrimary, fontFamily: "'Barlow', sans-serif", fontSize: 15, fontWeight: 700, transition: "border-color 0.2s" },
+  statusBar: { display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap", background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, padding: "12px 18px", marginBottom: 24 },
   statusBarItem: { display: "flex", alignItems: "center", gap: 8, fontSize: 13 },
   statusDot: (cor) => ({ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: cor, flexShrink: 0 }),
   statusDotInline: (cor) => ({ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: cor, background: cor + "22", border: `1px solid ${cor}44`, borderRadius: 10, padding: "2px 8px", whiteSpace: "nowrap" }),
-  statusControlsCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: "20px 24px", marginBottom: 28 },
-  statusControlsTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 700, color: "#1976D2", letterSpacing: 1, marginBottom: 14 },
+  statusControlsCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "20px 24px", marginBottom: 28 },
+  statusControlsTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 700, color: t.accent, letterSpacing: 1, marginBottom: 14 },
   statusControlsGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 },
   statusControlBox: (ativo, corAtiva, bgAtiva, disabled) => ({
-    background: ativo ? bgAtiva : "#141720",
-    border: `1px solid ${ativo ? corAtiva + "66" : "#252837"}`,
+    background: ativo ? bgAtiva : t.bgInput,
+    border: `1px solid ${ativo ? corAtiva + "66" : t.borderInput}`,
     borderRadius: 10, padding: "14px 16px",
     opacity: disabled ? 0.5 : 1,
     transition: "all 0.2s",
   }),
   statusControlLabel: { display: "flex", alignItems: "flex-start", cursor: "pointer", gap: 0 },
-  permissividadeBox: { background: "#0d1117", border: "1px solid #1976D233", borderRadius: 10, padding: 16, marginTop: 16, marginBottom: 4 },
+  permissividadeBox: { background: t.bgHeaderSolid, border: `1px solid ${t.accentBorder}`, borderRadius: 10, padding: 16, marginTop: 16, marginBottom: 4 },
   permissividadeHeader: { marginBottom: 10 },
-  permissividadeLabel: { display: "flex", alignItems: "center", cursor: "pointer", fontSize: 14, color: "#ddd", fontWeight: 600 },
-  permissividadeInfo: { background: "#111620", borderRadius: 8, padding: "12px 16px", borderLeft: "3px solid #1976D2" },
-  permissividadeTag: (ativo) => ({ display: "inline-block", background: ativo ? "#1a2a0a" : "#1a1a1a", border: `1px solid ${ativo ? "#4a8a2a" : "#333"}`, color: ativo ? "#7acc44" : "#555", borderRadius: 6, padding: "6px 12px", fontSize: 12, fontWeight: 600 }),
-  permissividadeAlert: { display: "flex", gap: 14, alignItems: "flex-start", background: "#12180a", border: "1px solid #4a8a2a", borderRadius: 10, padding: "14px 18px", marginBottom: 20 },
+  permissividadeLabel: { display: "flex", alignItems: "center", cursor: "pointer", fontSize: 14, color: t.textSecondary, fontWeight: 600 },
+  permissividadeInfo: { background: t.bgHover, borderRadius: 8, padding: "12px 16px", borderLeft: `3px solid ${t.accent}` },
+  permissividadeTag: (ativo) => ({ display: "inline-block", background: ativo ? `${t.success}18` : t.bgCard, border: `1px solid ${ativo ? `${t.success}66` : t.border}`, color: ativo ? t.success : t.textDisabled, borderRadius: 6, padding: "6px 12px", fontSize: 12, fontWeight: 600 }),
+  permissividadeAlert: { display: "flex", gap: 14, alignItems: "flex-start", background: `${t.success}10`, border: `1px solid ${t.success}66`, borderRadius: 10, padding: "14px 18px", marginBottom: 20 },
   permissividadeAlertIcon: { fontSize: 28, flexShrink: 0, marginTop: 2 },
-  permissividadeAlertTitle: { fontWeight: 700, color: "#7acc44", fontSize: 15, marginBottom: 4 },
-  permissividadeAlertBody: { color: "#aaa", fontSize: 13, lineHeight: 1.6, marginBottom: 6 },
-  permissividadeAlertRodape: { fontSize: 12, color: "#666", fontStyle: "italic" },
-  filtroProvasBar: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: "16px 20px", marginBottom: 16, display: "flex", flexWrap: "wrap", gap: 20 },
+  permissividadeAlertTitle: { fontWeight: 700, color: t.success, fontSize: 15, marginBottom: 4 },
+  permissividadeAlertBody: { color: t.textTertiary, fontSize: 13, lineHeight: 1.6, marginBottom: 6 },
+  permissividadeAlertRodape: { fontSize: 12, color: t.textDimmed, fontStyle: "italic" },
+  filtroProvasBar: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "16px 20px", marginBottom: 16, display: "flex", flexWrap: "wrap", gap: 20 },
   filtroProvasBloco: { display: "flex", flexDirection: "column", gap: 8 },
-  filtroProvasLabel: { fontSize: 11, fontWeight: 700, color: "#666", letterSpacing: 1, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 8 },
+  filtroProvasLabel: { fontSize: 11, fontWeight: 700, color: t.textDimmed, letterSpacing: 1, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 8 },
   filtroProvasPills: { display: "flex", flexWrap: "wrap", gap: 6 },
-  filtroPill: { background: "#141720", border: "1px solid #252837", color: "#666", borderRadius: 20, padding: "5px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5, transition: "all 0.15s" },
-  filtroPillAtivo: { background: "#1a1c22", border: "1px solid #1976D2", color: "#1976D2" },
-  filtroClearBtn: { background: "none", border: "none", color: "#1976D288", cursor: "pointer", fontSize: 11, fontFamily: "'Barlow', sans-serif", padding: "0 4px", textDecoration: "underline" },
+  filtroPill: { background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.textDimmed, borderRadius: 20, padding: "5px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5, transition: "all 0.15s" },
+  filtroPillAtivo: { background: t.bgHover, border: `1px solid ${t.accent}`, color: t.accent },
+  filtroClearBtn: { background: "none", border: "none", color: `${t.accent}88`, cursor: "pointer", fontSize: 11, fontFamily: "'Barlow', sans-serif", padding: "0 4px", textDecoration: "underline" },
   stepBar: { display: "flex", alignItems: "center", gap: 0, marginBottom: 32, maxWidth: 400 },
-  stepItem: (ativo) => ({ padding: "10px 24px", borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, background: ativo ? "#1a1c22" : "transparent", color: ativo ? "#1976D2" : "#444", border: `1px solid ${ativo ? "#1976D244" : "#1E2130"}` }),
-  stepDivider: { flex: 1, height: 1, background: "#1E2130", margin: "0 8px" },
-  modoSwitch: { display: "flex", gap: 0, background: "#0D0E12", border: "1px solid #1E2130", borderRadius: 10, overflow: "hidden", marginBottom: 24, width: "fit-content" },
-  modoBtn: { background: "transparent", border: "none", color: "#666", padding: "12px 24px", cursor: "pointer", fontSize: 14, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s" },
-  modoBtnActive: { background: "#141720", color: "#1976D2" },
+  stepItem: (ativo) => ({ padding: "10px 24px", borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, background: ativo ? t.bgHover : "transparent", color: ativo ? t.accent : t.textDisabled, border: `1px solid ${ativo ? t.accentBorder : t.border}` }),
+  stepDivider: { flex: 1, height: 1, background: t.border, margin: "0 8px" },
+  modoSwitch: { display: "flex", gap: 0, background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, overflow: "hidden", marginBottom: 24, width: "fit-content" },
+  modoBtn: { background: "transparent", border: "none", color: t.textDimmed, padding: "12px 24px", cursor: "pointer", fontSize: 14, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s" },
+  modoBtnActive: { background: t.bgInput, color: t.accent },
   provaGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 },
-  provaBtn: { background: "#0E1016", border: "1px solid #1E2130", color: "#888", padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", lineHeight: 1.4 },
-  provaBtnSel: { background: "#1a1c22", borderColor: "#1976D2", color: "#1976D2" },
-  grupoProvasBox: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 10, marginBottom: 16, overflow: "hidden" },
-  grupoProvasHeader: { background: "#0D0E12", borderBottom: "1px solid #1E2130", padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" },
-  provaCheckBtn: { background: "#0E1016", border: "1px solid #1E2130", color: "#888", padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", lineHeight: 1.4, userSelect: "none" },
-  provaCheckBtnSel: { background: "#1a1c22", borderColor: "#1976D2", color: "#1976D2" },
+  provaBtn: { background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", lineHeight: 1.4 },
+  provaBtnSel: { background: t.bgHover, borderColor: t.accent, color: t.accent },
+  grupoProvasBox: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 10, marginBottom: 16, overflow: "hidden" },
+  grupoProvasHeader: { background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`, padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" },
+  provaCheckBtn: { background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", lineHeight: 1.4, userSelect: "none" },
+  provaCheckBtnSel: { background: t.bgHover, borderColor: t.accent, color: t.accent },
 };
+}
 
 function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, excluirAtleta, excluirAtletasEmMassa, usuarioLogado, equipes, eventoAtual, atletas, atletasUsuarios, solicitarVinculo, solicitacoesVinculo, organizadores, desvincularAtleta, setAtletaEditandoId }) {
-  const s = useStylesResponsivos(styles);
+  const t = useTema();
+  const s = useStylesResponsivos(getStyles(t));
   const confirmar = useConfirm();
   const _equipeDoUsuario = usuarioLogado?.tipo === "equipe" ? equipes?.find(e => e.id === usuarioLogado.id) : null;
   // equipeId e clube são auto-preenchidos para tipo "equipe" — não requerem input do usuário
@@ -518,23 +524,23 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
         <div style={s.painelHeader}>
           <div>
             <h1 style={s.pageTitle}>🏃 Atletas</h1>
-            <p style={{ color: "#666", fontSize: 14 }}>Gerenciar atletas cadastrados</p>
+            <p style={{ color: t.textDimmed, fontSize: 14 }}>Gerenciar atletas cadastrados</p>
           </div>
           <button style={s.btnGhost} onClick={() => setTela(voltarTela)}>← Voltar</button>
         </div>
 
         {/* Stats */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 16, marginBottom: 24 }}>
-          <div style={{ background: "#0a0a1a", border: "1px solid #1E2130", borderRadius: 8, padding: 20 }}>
-            <div style={{ color: "#666", fontSize: 12, marginBottom: 4 }}>Total de Atletas</div>
-            <div style={{ color: "#1976D2", fontSize: 32, fontWeight: 700 }}>{meusAtletas.length}</div>
+          <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 8, padding: 20 }}>
+            <div style={{ color: t.textDimmed, fontSize: 12, marginBottom: 4 }}>Total de Atletas</div>
+            <div style={{ color: t.accent, fontSize: 32, fontWeight: 700 }}>{meusAtletas.length}</div>
           </div>
-          <div style={{ background: "#0a0a1a", border: "1px solid #1E2130", borderRadius: 8, padding: 20 }}>
-            <div style={{ color: "#666", fontSize: 12, marginBottom: 4 }}>Masculino</div>
-            <div style={{ color: "#88aaff", fontSize: 32, fontWeight: 700 }}>{totalM}</div>
+          <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 8, padding: 20 }}>
+            <div style={{ color: t.textDimmed, fontSize: 12, marginBottom: 4 }}>Masculino</div>
+            <div style={{ color: t.accent, fontSize: 32, fontWeight: 700 }}>{totalM}</div>
           </div>
-          <div style={{ background: "#0a0a1a", border: "1px solid #1E2130", borderRadius: 8, padding: 20 }}>
-            <div style={{ color: "#666", fontSize: 12, marginBottom: 4 }}>Feminino</div>
+          <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 8, padding: 20 }}>
+            <div style={{ color: t.textDimmed, fontSize: 12, marginBottom: 4 }}>Feminino</div>
             <div style={{ color: "#ff88cc", fontSize: 32, fontWeight: 700 }}>{totalF}</div>
           </div>
         </div>
@@ -579,7 +585,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
               ✕ Limpar filtros
             </button>
           )}
-          <span style={{ color: "#666", fontSize: 12, marginLeft: "auto" }}>
+          <span style={{ color: t.textDimmed, fontSize: 12, marginLeft: "auto" }}>
             {atletasFiltrados.length} de {meusAtletas.length} atleta{meusAtletas.length !== 1 ? "s" : ""}
           </span>
         </div>
@@ -587,9 +593,9 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
         {/* Barra de seleção em massa */}
         {(isAdmin || isOrg) && atletasFiltrados.length > 0 && (
           <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 12, padding: "8px 12px",
-            background: selecionados.size > 0 ? "#1a0a0a" : "#0a0a1a", border: `1px solid ${selecionados.size > 0 ? "#3a1a1a" : "#1E2130"}`,
+            background: selecionados.size > 0 ? t.bgCardAlt : t.bgHeaderSolid, border: `1px solid ${selecionados.size > 0 ? t.danger+"44" : t.border}`,
             borderRadius: 8, flexWrap: "wrap" }}>
-            <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", color: "#aaa", fontSize: 13 }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", color: t.textTertiary, fontSize: 13 }}>
               <input type="checkbox"
                 checked={selecionados.size > 0 && selecionados.size === atletasFiltrados.length}
                 onChange={(e) => {
@@ -605,7 +611,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
             </label>
             {selecionados.size > 0 && (
               <button
-                style={{ ...s.btnGhost, fontSize: 12, padding: "5px 14px", color: "#ff6b6b", borderColor: "#3a1a1a" }}
+                style={{ ...s.btnGhost, fontSize: 12, padding: "5px 14px", color: t.danger, borderColor: `${t.danger}44` }}
                 onClick={async () => { 
                   if (!await confirmar(`⚠️ ATENÇÃO: Excluir ${selecionados.size } atleta(s)?\n\nEsta ação é IRREVERSÍVEL!`)) return;
                   excluirAtletasEmMassa(selecionados);
@@ -629,7 +635,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
         {/* Lista */}
         <PaginaControles {...atletasInfo} />
         {atletasFiltrados.length === 0 ? (
-          <div style={{ textAlign: "center", padding: 60, color: "#666" }}>
+          <div style={{ textAlign: "center", padding: 60, color: t.textDimmed }}>
             <div style={{ fontSize: 64, marginBottom: 16 }}>🏃</div>
             {filtro || filtroSexoAtl !== "todos" || filtroCatAtl !== "todas" ? (
               <>
@@ -648,15 +654,15 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
             )}
           </div>
         ) : (
-          <div style={{ maxHeight: 680, overflowY: "auto", border: "1px solid #1E2130", borderRadius: 8, padding: 4 }}>
+          <div style={{ maxHeight: 680, overflowY: "auto", border: `1px solid ${t.border}`, borderRadius: 8, padding: 4 }}>
             <div style={{ display: "grid", gap: 8 }}>
             {atletasPag.map(a => {
               const eq = _getClubeAtleta(a, equipes);
               const catAtl = getCategoria(a.anoNasc, anoBase);
               return (
                 <div key={a.id} style={{
-                  background: selecionados.has(a.id) ? "#0a1a2a" : "#0D0E12",
-                  border: `1px solid ${selecionados.has(a.id) ? "#1976D2" : "#1E2130"}`,
+                  background: selecionados.has(a.id) ? `${t.accent}18` : t.bgHeaderSolid,
+                  border: `1px solid ${selecionados.has(a.id) ? "#1976D2" : t.border}`,
                   borderRadius: 8,
                   padding: "12px 16px", display: "flex", alignItems: "center", gap: 14
                 }}
@@ -677,8 +683,8 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                     />
                   )}
                   <div style={{
-                    width: 40, height: 40, background: a.sexo === "M" ? "#88aaff22" : "#ff88cc22",
-                    border: `2px solid ${a.sexo === "M" ? "#88aaff" : "#ff88cc"}`,
+                    width: 40, height: 40, background: a.sexo === "M" ? `${t.accent}22` : "#ff88cc22",
+                    border: `2px solid ${a.sexo === "M" ? t.accent : "#ff88cc"}`,
                     borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 18, flexShrink: 0
                   }}>
@@ -686,11 +692,11 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
-                      <h3 style={{ color: "#fff", fontSize: 14, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.nome}</h3>
-                      <span style={{ fontSize: 10, padding: "1px 7px", borderRadius: 4, background: "#1a1a0a", color: "#daa520", border: "1px solid #3a3a1a", flexShrink: 0 }}>{catAtl.nome}</span>
-                      {a.cbat && <span style={{ fontSize: 10, color: "#888", background: "#1a1a2a", padding: "1px 6px", borderRadius: 3, flexShrink: 0 }}>CBAt {a.cbat}</span>}
+                      <h3 style={{ color: t.textPrimary, fontSize: 14, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.nome}</h3>
+                      <span style={{ fontSize: 10, padding: "1px 7px", borderRadius: 4, background: `${t.gold}12`, color: t.gold, border: `1px solid ${t.gold}33`, flexShrink: 0 }}>{catAtl.nome}</span>
+                      {a.cbat && <span style={{ fontSize: 10, color: t.textMuted, background: t.bgCardAlt, padding: "1px 6px", borderRadius: 3, flexShrink: 0 }}>CBAt {a.cbat}</span>}
                     </div>
-                    <div style={{ color: "#888", fontSize: 11 }}>
+                    <div style={{ color: t.textMuted, fontSize: 11 }}>
                       {a.dataNasc ? (() => { const [y,m,d] = a.dataNasc.split("-"); return `📅 ${d}/${m}/${y}`; })() : a.anoNasc ? `📅 ${a.anoNasc}` : ""}
                       {eq ? ` · 🏟️ ${eq}` : ""}
                       {a.cpf ? ` · CPF: ${a.cpf}` : ""}
@@ -699,7 +705,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                   <div style={{ display: "flex", gap: 6, flexShrink: 0 }} onClick={e => e.stopPropagation()}>
                     <button
                       onClick={() => { if (setAtletaEditandoId) setAtletaEditandoId(a.id); else window.__atletaEditId = a.id; setTela("editar-atleta"); }}
-                      style={{ background: "#0a1a2a", color: "#88aaff", border: "1px solid #1a3a5a", borderRadius: 6, cursor: "pointer", fontSize: 11, padding: "4px 10px", fontFamily: "'Barlow', sans-serif" }}
+                      style={{ background: `${t.accent}18`, color: t.accent, border: `1px solid ${t.accent}44`, borderRadius: 6, cursor: "pointer", fontSize: 11, padding: "4px 10px", fontFamily: "'Barlow', sans-serif" }}
                       title="Ver e editar dados do atleta"
                     >
                       👁 Ver/Editar
@@ -707,7 +713,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                     {(isOrg || isAdmin) && a.equipeId && (
                       <button
                         onClick={() => { setTransfAtleta(a); setTransfEquipeId(""); }}
-                        style={{ background: "#1a1500", color: "#e6c430", border: "1px solid #5a4a00", borderRadius: 6, cursor: "pointer", fontSize: 11, padding: "4px 10px", fontFamily: "'Barlow', sans-serif" }}
+                        style={{ background: `${t.gold}12`, color: t.gold, border: `1px solid ${t.gold}44`, borderRadius: 6, cursor: "pointer", fontSize: 11, padding: "4px 10px", fontFamily: "'Barlow', sans-serif" }}
                         title="Transferir para outra equipe"
                       >
                         🔀 Transferir
@@ -716,7 +722,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                     {isEquipe && desvincularAtleta && (
                       <button
                         onClick={async () => { if (await confirmar(`Desvincular ${a.nome} da sua equipe?`)) desvincularAtleta(a.id); }}
-                        style={{ ...s.btnGhost, fontSize: 11, padding: "4px 10px", color: "#ff6b6b", borderColor: "#3a1a1a" }}
+                        style={{ ...s.btnGhost, fontSize: 11, padding: "4px 10px", color: t.danger, borderColor: `${t.danger}44` }}
                       >
                         ✂️ Desvincular
                       </button>
@@ -726,7 +732,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
               );
             })}
             {atletasFiltrados.length > 200 && (
-              <div style={{ textAlign: "center", color: "#666", fontSize: 12, marginTop: 8 }}>
+              <div style={{ textAlign: "center", color: t.textDimmed, fontSize: 12, marginTop: 8 }}>
                 Mostrando 200 de {atletasFiltrados.length} atletas. Use os filtros para refinar.
               </div>
             )}
@@ -738,22 +744,22 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
         {transfAtleta && (
           <div style={{ position:"fixed", inset:0, background:"#000a", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center" }}
             onClick={() => setTransfAtleta(null)}>
-            <div style={{ background:"#0E1016", border:"1px solid #1E2130", borderRadius:14, padding:28, width:420, maxWidth:"95vw" }}
+            <div style={{ background:t.bgCard, border:`1px solid ${t.border}`, borderRadius:14, padding:28, width:420, maxWidth:"95vw" }}
               onClick={e => e.stopPropagation()}>
-              <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:22, fontWeight:800, color:"#fff", marginBottom:4 }}>
+              <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:22, fontWeight:800, color: t.textPrimary, marginBottom:4 }}>
                 🔀 Transferir Atleta
               </h3>
-              <p style={{ color:"#888", fontSize:13, marginBottom:20 }}>{transfAtleta.nome}</p>
+              <p style={{ color: t.textMuted, fontSize:13, marginBottom:20 }}>{transfAtleta.nome}</p>
               <div style={{ marginBottom:12 }}>
-                <label style={{ color:"#aaa", fontSize:12, display:"block", marginBottom:4 }}>Equipe atual</label>
-                <div style={{ color:"#fff", fontSize:14, padding:"8px 12px", background:"#141720", borderRadius:6, border:"1px solid #252837" }}>
-                  {equipes.find(e => e.id === transfAtleta.equipeId)?.nome || <span style={{ color:"#555" }}>Sem equipe</span>}
+                <label style={{ color: t.textTertiary, fontSize:12, display:"block", marginBottom:4 }}>Equipe atual</label>
+                <div style={{ color: t.textPrimary, fontSize:14, padding:"8px 12px", background:t.bgInput, borderRadius:6, border:`1px solid ${t.borderInput}` }}>
+                  {equipes.find(e => e.id === transfAtleta.equipeId)?.nome || <span style={{ color: t.textDimmed }}>Sem equipe</span>}
                 </div>
               </div>
               <div style={{ marginBottom:20 }}>
-                <label style={{ color:"#aaa", fontSize:12, display:"block", marginBottom:4 }}>Nova equipe *</label>
+                <label style={{ color: t.textTertiary, fontSize:12, display:"block", marginBottom:4 }}>Nova equipe *</label>
                 <select value={transfEquipeId} onChange={e => setTransfEquipeId(e.target.value)}
-                  style={{ width:"100%", background:"#141720", border:"1px solid #252837", borderRadius:6, color:"#fff", padding:"8px 12px", fontSize:13 }}>
+                  style={{ width:"100%", background:t.bgInput, border:`1px solid ${t.borderInput}`, borderRadius:6, color: t.textPrimary, padding:"8px 12px", fontSize:13 }}>
                   <option value="">Selecione a equipe de destino...</option>
                   {(equipes||[])
                     .filter(e => e.id !== transfAtleta.equipeId && e.organizadorId === _autoOrgId && (e.status === "ativa" || e.status === "aprovado" || !e.status))
@@ -787,12 +793,12 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
       <div style={s.painelHeader}>
         <div>
           <h1 style={s.pageTitle}>➕ Novo Atleta</h1>
-          <p style={{ color: "#666", fontSize: 14 }}>Cadastrar atleta manualmente</p>
+          <p style={{ color: t.textDimmed, fontSize: 14 }}>Cadastrar atleta manualmente</p>
         </div>
         <button style={s.btnGhost} onClick={handleCancelar}>← Cancelar</button>
       </div>
 
-      <div style={{ maxWidth: 700, margin: "0 auto", background: "#0D0E12", border: "1px solid #1E2130", borderRadius: 12, padding: "28px 32px" }}>
+      <div style={{ maxWidth: 700, margin: "0 auto", background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 12, padding: "28px 32px" }}>
         <div style={s.grid2form}>
           <FormField label="Nome Completo *"      value={form.nome}    onChange={(v) => setForm({ ...form, nome: v })}    error={erros.nome} />
           <FormField label="Data de Nascimento *"  value={form.dataNasc} onChange={handleDataNasc} type="date"           error={erros.dataNasc} />
@@ -802,16 +808,16 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
 
             {/* ── Etapa 4: Duplicata de perfil no mesmo organizador — BLOQUEIO ── */}
             {atletaDuplicadoOrg && (
-              <div style={{ background:"#1a0a00", border:"2px solid #cc4400",
+              <div style={{ background:`${t.danger}10`, border:`2px solid ${t.danger}`,
                 borderRadius:8, padding:"14px 16px", marginTop:8 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
                   <span style={{ fontSize:20 }}>🚫</span>
-                  <strong style={{ color:"#ff7744", fontSize:14 }}>Perfil de atleta já existente neste organizador</strong>
+                  <strong style={{ color:t.danger, fontSize:14 }}>Perfil de atleta já existente neste organizador</strong>
                 </div>
-                <div style={{ fontSize:13, color:"#ccc", marginBottom:10, lineHeight:1.6 }}>
+                <div style={{ fontSize:13, color: t.textSecondary, marginBottom:10, lineHeight:1.6 }}>
                   O CPF informado já possui uma conta de atleta ativa vinculada a este organizador:<br/>
-                  <strong style={{ color:"#fff" }}>👤 {atletaDuplicadoOrg.nome}</strong>
-                  {atletaDuplicadoOrg.email && <span style={{ color:"#888", marginLeft:8 }}>— {atletaDuplicadoOrg.email}</span>}
+                  <strong style={{ color: t.textPrimary }}>👤 {atletaDuplicadoOrg.nome}</strong>
+                  {atletaDuplicadoOrg.email && <span style={{ color: t.textMuted, marginLeft:8 }}>— {atletaDuplicadoOrg.email}</span>}
                 </div>
                 {/* Se for equipe, oferecer solicitar vínculo */}
                 {isEquipe && (() => {
@@ -821,23 +827,23 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                   const solPendente = (solicitacoesVinculo||[]).find(sol => sol.atletaId === atletaBase.id && sol.status === "pendente");
                   const temEquipe = !!atletaBase.equipeId && !jaEhMeu;
                   if (jaEhMeu) return (
-                    <div style={{ background:"#0a2a0a", borderRadius:6, padding:"8px 12px", color:"#7cfc7c", fontSize:13, marginBottom:10 }}>
+                    <div style={{ background:`${t.success}10`, borderRadius:6, padding:"8px 12px", color:t.success, fontSize:13, marginBottom:10 }}>
                       ✓ Este atleta já está vinculado à sua equipe.
                     </div>
                   );
                   if (solPendente) return (
-                    <div style={{ background:"#1a1500", borderRadius:6, padding:"8px 12px", color:"#1976D2", fontSize:13, marginBottom:10 }}>
+                    <div style={{ background:`${t.accent}12`, borderRadius:6, padding:"8px 12px", color: t.accent, fontSize:13, marginBottom:10 }}>
                       ⏳ Solicitação de vínculo já enviada — aguardando aprovação.
                     </div>
                   );
                   if (vinculoEnviado) return (
-                    <div style={{ background:"#0a2a0a", borderRadius:6, padding:"8px 12px", color:"#7cfc7c", fontSize:13, marginBottom:10 }}>
+                    <div style={{ background:`${t.success}10`, borderRadius:6, padding:"8px 12px", color:t.success, fontSize:13, marginBottom:10 }}>
                       {temEquipe ? "✓ Solicitação enviada! A equipe atual receberá a notificação." : "✓ Solicitação enviada! O atleta receberá a notificação para aceitar o vínculo."}
                     </div>
                   );
                   return (
                     <div style={{ marginBottom:10 }}>
-                      <p style={{ color:"#aaa", fontSize:12, margin:"0 0 8px", lineHeight:1.6 }}>
+                      <p style={{ color: t.textTertiary, fontSize:12, margin:"0 0 8px", lineHeight:1.6 }}>
                         {temEquipe
                           ? `Este atleta está vinculado à equipe "${equipes?.find(e => e.id === atletaBase.equipeId)?.nome || atletaBase.clube || "outra equipe"}". A solicitação será enviada a essa equipe.`
                           : "Este atleta não possui equipe vinculada. A solicitação será enviada ao atleta para aceitar ou recusar."}
@@ -856,8 +862,8 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                         });
                         setVinculoEnviado(true);
                       }}
-                        style={{ background:"#1a2a3a", border:"1px solid #3a6abf",
-                          color:"#88aaff", borderRadius:6, padding:"8px 18px",
+                        style={{ background:`${t.accent}18`, border:`1px solid ${t.accent}66`,
+                          color:t.accent, borderRadius:6, padding:"8px 18px",
                           cursor:"pointer", fontSize:13, fontWeight:700,
                           fontFamily:"Inter,sans-serif" }}>
                         🔗 Solicitar Vínculo com este Atleta
@@ -865,9 +871,9 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                     </div>
                   );
                 })()}
-                <div style={{ background:"#1a0f00", border:"1px solid #cc440044", borderRadius:6,
-                  padding:"10px 14px", fontSize:12, color:"#aaa", lineHeight:1.7 }}>
-                  ⚠️ <strong style={{ color:"#ff9955" }}>Por que isso acontece?</strong><br/>
+                <div style={{ background:`${t.danger}08`, border:`1px solid ${t.danger}44`, borderRadius:6,
+                  padding:"10px 14px", fontSize:12, color: t.textTertiary, lineHeight:1.7 }}>
+                  ⚠️ <strong style={{ color:t.warning }}>Por que isso acontece?</strong><br/>
                   Uma pessoa não pode ter dois perfis de atleta no mesmo organizador.<br/>
                   Para gerenciar este atleta, utilize o perfil já existente ou solicite vínculo com a equipe através da tela de cadastro do atleta.
                 </div>
@@ -882,15 +888,15 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                 s => s.atletaId === atletaExistente.id && s.status === "pendente");
 
               return (
-                <div style={{ background:"#1a1000", border:"2px solid #1976D2",
+                <div style={{ background:`${t.accent}12`, border:"2px solid #1976D2",
                   borderRadius:8, padding:"14px 16px", marginTop:8 }}>
                   <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
                     <span style={{ fontSize:20 }}>⚠️</span>
-                    <strong style={{ color:"#1976D2", fontSize:14 }}>Atleta já cadastrado no sistema</strong>
+                    <strong style={{ color: t.accent, fontSize:14 }}>Atleta já cadastrado no sistema</strong>
                   </div>
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"4px 16px",
-                    fontSize:13, color:"#aaa", marginBottom:12 }}>
-                    <span>👤 <strong style={{ color:"#fff" }}>{atletaExistente.nome}</strong></span>
+                    fontSize:13, color: t.textTertiary, marginBottom:12 }}>
+                    <span>👤 <strong style={{ color: t.textPrimary }}>{atletaExistente.nome}</strong></span>
                     <span>📅 {atletaExistente.dataNasc
                       ? (() => { const [y,m,d]=atletaExistente.dataNasc.split("-"); return `${d}/${m}/${y}`; })()
                       : atletaExistente.anoNasc || "—"}</span>
@@ -898,50 +904,50 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                     <span>{atletaExistente.sexo === "M" ? "Masc." : "Fem."}</span>
                     {atletaExistente.equipeId && (() => {
                     const eq = equipes?.find(e => e.id === atletaExistente.equipeId);
-                    return eq ? <span style={{ color:"#cc88ff" }}>🏛️ Equipe atual: <strong>{eq.nome}</strong></span> : atletaExistente.clube ? <span>🏟️ {atletaExistente.clube}</span> : null;
+                    return eq ? <span style={{ color:t.warning }}>🏛️ Equipe atual: <strong>{eq.nome}</strong></span> : atletaExistente.clube ? <span>🏟️ {atletaExistente.clube}</span> : null;
                   })()}
                   {!atletaExistente.equipeId && atletaExistente.clube && <span>🏟️ {atletaExistente.clube}</span>}
                     {atletaExistente.cbat  && <span>📋 CBAt: {atletaExistente.cbat}</span>}
                   </div>
 
                   {atletaExistente.desvinculadoEm && !jaEhMeu && (
-                    <div style={{ background:"#1a1000", border:"1px solid #1976D244",
-                      borderRadius:6, padding:"8px 12px", marginBottom:8, fontSize:12, color:"#aaa" }}>
+                    <div style={{ background:`${t.accent}12`, border:"1px solid #1976D244",
+                      borderRadius:6, padding:"8px 12px", marginBottom:8, fontSize:12, color: t.textTertiary }}>
                       ℹ️ Atleta foi desvinculado da equipe
-                      <strong style={{ color:"#1976D2" }}>{atletaExistente.equipeAnterior ? ` ${atletaExistente.equipeAnterior}` : ""}</strong> em{" "}
+                      <strong style={{ color: t.accent }}>{atletaExistente.equipeAnterior ? ` ${atletaExistente.equipeAnterior}` : ""}</strong> em{" "}
                       {new Date(atletaExistente.desvinculadoEm).toLocaleDateString("pt-BR")}.
                       Atualmente sem equipe vinculada.
                     </div>
                   )}
 
                   {jaEhMeu ? (
-                    <div style={{ background:"#0a2a0a", borderRadius:6, padding:"8px 12px",
-                      color:"#7cfc7c", fontSize:13 }}>
+                    <div style={{ background:`${t.success}10`, borderRadius:6, padding:"8px 12px",
+                      color:t.success, fontSize:13 }}>
                       ✓ Este atleta já está vinculado a você.
                     </div>
                   ) : solPendente ? (
-                    <div style={{ background:"#1a1500", borderRadius:6, padding:"8px 12px",
-                      color:"#1976D2", fontSize:13 }}>
+                    <div style={{ background:`${t.accent}12`, borderRadius:6, padding:"8px 12px",
+                      color: t.accent, fontSize:13 }}>
                       ⏳ Solicitação de vínculo já enviada — aguardando aprovação.
                     </div>
                   ) : vinculoEnviado ? (
-                    <div style={{ background:"#0a2a0a", borderRadius:6, padding:"8px 12px",
-                      color:"#7cfc7c", fontSize:13 }}>
+                    <div style={{ background:`${t.success}10`, borderRadius:6, padding:"8px 12px",
+                      color:t.success, fontSize:13 }}>
                       {temEquipe
                         ? "✓ Solicitação enviada! A equipe atual receberá a notificação para aprovar a transferência."
                         : "✓ Atleta vinculado com sucesso à sua equipe!"}
                     </div>
                   ) : temEquipe ? (
                     <div>
-                      <p style={{ color:"#aaa", fontSize:12, margin:"0 0 10px", lineHeight:1.6 }}>
+                      <p style={{ color: t.textTertiary, fontSize:12, margin:"0 0 10px", lineHeight:1.6 }}>
                         {(() => {
                           const eqAtual = equipes?.find(e => e.id === atletaExistente.equipeId);
                           return `Este atleta está vinculado à equipe "${eqAtual?.nome || atletaExistente.clube || "outra equipe"}". A solicitação será enviada a essa equipe para aprovar ou recusar a transferência.`;
                         })()}
                       </p>
                       <button onClick={handleVincular}
-                        style={{ background:"#1a2a3a", border:"1px solid #3a6abf",
-                          color:"#88aaff", borderRadius:6, padding:"8px 18px",
+                        style={{ background:`${t.accent}18`, border:`1px solid ${t.accent}66`,
+                          color:t.accent, borderRadius:6, padding:"8px 18px",
                           cursor:"pointer", fontSize:13, fontWeight:700,
                           fontFamily:"Inter,sans-serif" }}>
                         🔗 Solicitar Transferência para Minha Equipe
@@ -949,12 +955,12 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                     </div>
                   ) : (
                     <div>
-                      <p style={{ color:"#aaa", fontSize:12, margin:"0 0 10px", lineHeight:1.6 }}>
+                      <p style={{ color: t.textTertiary, fontSize:12, margin:"0 0 10px", lineHeight:1.6 }}>
                         Este atleta não está vinculado a nenhuma equipe. A solicitação será enviada ao atleta para aceitar ou recusar o vínculo.
                       </p>
                       <button onClick={handleVincular}
-                        style={{ background:"#1a2a3a", border:"1px solid #3a6abf",
-                          color:"#88aaff", borderRadius:6, padding:"8px 18px",
+                        style={{ background:`${t.accent}18`, border:`1px solid ${t.accent}66`,
+                          color:t.accent, borderRadius:6, padding:"8px 18px",
                           cursor:"pointer", fontSize:13, fontWeight:700,
                           fontFamily:"Inter,sans-serif" }}>
                         🔗 Solicitar Vínculo com este Atleta
@@ -981,12 +987,12 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
           <FormField label="Telefone (opcional)"   value={form.fone}    onChange={(v) => setForm({ ...form, fone: v })}   placeholder="(00) 00000-0000" />
           
           {/* Vinculação ao Organizador e Equipe */}
-          <div style={{ gridColumn: "1/-1", background: "#0a0a1a", padding: 20, borderRadius: 8, border: "1px solid #1E2130", marginTop: 16 }}>
-            <h4 style={{ color: "#1976D2", marginBottom: 16 }}>📍 Vinculação</h4>
+          <div style={{ gridColumn: "1/-1", background: t.bgHeaderSolid, padding: 20, borderRadius: 8, border: `1px solid ${t.border}`, marginTop: 16 }}>
+            <h4 style={{ color: t.accent, marginBottom: 16 }}>📍 Vinculação</h4>
 
             {/* Banner automático para equipe logada */}
             {isEquipe && !atletaExistente && !atletaDuplicadoOrg ? (
-              <div style={{ background: "#0a1a0a", border: "1px solid #2a5a2a", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "#7acc44" }}>
+              <div style={{ background: t.bgCardAlt, border: `1px solid ${t.success}44`, borderRadius: 8, padding: "10px 14px", fontSize: 13, color: t.success }}>
                 ✓ O atleta será automaticamente vinculado à sua equipe: <strong>{_autoClube || usuarioLogado?.nome}</strong>
               </div>
             ) : isEquipe && (atletaExistente || atletaDuplicadoOrg) ? null : (
@@ -994,7 +1000,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                 {/* Organizador (apenas para Admin) */}
                 {usuarioLogado?.tipo === "admin" && (
                   <div style={{ marginBottom: 16 }}>
-                    <label style={{ display: "block", color: "#aaa", fontSize: 13, marginBottom: 6 }}>
+                    <label style={{ display: "block", color: t.textTertiary, fontSize: 13, marginBottom: 6 }}>
                       Organizador Responsável *
                     </label>
                     <select
@@ -1007,7 +1013,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                         <option key={org.id} value={org.id}>{org.nome} - {org.entidade}</option>
                       ))}
                     </select>
-                    <div style={{ color: "#666", fontSize: 11, marginTop: 4 }}>
+                    <div style={{ color: t.textDimmed, fontSize: 11, marginTop: 4 }}>
                       Este organizador será responsável pelo atleta
                     </div>
                   </div>
@@ -1015,7 +1021,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
 
                 {/* Clube/Equipe */}
                 <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: "block", color: "#aaa", fontSize: 13, marginBottom: 6 }}>
+                  <label style={{ display: "block", color: t.textTertiary, fontSize: 13, marginBottom: 6 }}>
                     Clube/Equipe
                   </label>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
@@ -1026,7 +1032,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                       onChange={(e) => setForm({ ...form, equipeAvulsa: e.target.checked, clube: "" })}
                       style={{ cursor: "pointer" }}
                     />
-                    <label htmlFor="equipe-avulsa-atleta" style={{ color: "#aaa", fontSize: 13, cursor: "pointer" }}>
+                    <label htmlFor="equipe-avulsa-atleta" style={{ color: t.textTertiary, fontSize: 13, cursor: "pointer" }}>
                       ✓ Digitar manualmente
                     </label>
                   </div>
@@ -1060,7 +1066,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                       ))}
                     </select>
                   )}
-                  <div style={{ color: "#666", fontSize: 11, marginTop: 4 }}>
+                  <div style={{ color: t.textDimmed, fontSize: 11, marginTop: 4 }}>
                     {form.equipeAvulsa ? "Digite o nome da equipe manualmente" : "Selecione uma equipe ou marque a caixa acima para digitar"}
                   </div>
                 </div>

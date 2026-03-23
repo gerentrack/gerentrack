@@ -1,140 +1,144 @@
 import React, { useState } from "react";
 import { validarCNPJ } from "../../shared/formatters/utils";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
+import { useTema } from "../../shared/TemaContext";
 
 const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
 
-const styles = {
+function getStyles(t) {
+  return {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
-  pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 24, letterSpacing: 1 },
-  sectionTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, fontWeight: 800, color: "#fff", marginBottom: 20, letterSpacing: 1 },
+  pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: t.textPrimary, marginBottom: 24, letterSpacing: 1 },
+  sectionTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, fontWeight: 800, color: t.textPrimary, marginBottom: 20, letterSpacing: 1 },
   statsRow: { display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 32 },
-  statCard: { background: "#111318", border: "1px solid #1E2130", borderRadius: 12, padding: "18px 24px", textAlign: "center", minWidth: 100 },
-  statValue: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 900, color: "#1976D2", lineHeight: 1, marginBottom: 6 },
-  statLabel: { fontSize: 13, color: "#888", letterSpacing: 1 },
-  btnPrimary: { background: "linear-gradient(135deg, #1976D2, #1565C0)", color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, transition: "all 0.2s" },
-  btnSecondary: { background: "transparent", color: "#1976D2", border: "2px solid #1976D2", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
-  btnGhost: { background: "transparent", color: "#888", border: "1px solid #2a2d3a", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
-  btnIconSm: { background: "#141720", border: "1px solid #252837", color: "#888", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
-  btnIconSmDanger: { background: "#1a0a0a", border: "1px solid #3a1a1a", color: "#ff6b6b", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
-  tableWrap: { overflowX: "auto", borderRadius: 12, border: "1px solid #1E2130" },
+  statCard: { background: t.bgCardAlt, border: `1px solid ${t.border}`, borderRadius: 12, padding: "18px 24px", textAlign: "center", minWidth: 100 },
+  statValue: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 900, color: t.accent, lineHeight: 1, marginBottom: 6 },
+  statLabel: { fontSize: 13, color: t.textMuted, letterSpacing: 1 },
+  btnPrimary: { background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, transition: "all 0.2s" },
+  btnSecondary: { background: "transparent", color: t.accent, border: "2px solid #1976D2", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
+  btnGhost: { background: "transparent", color: t.textMuted, border: `1px solid ${t.borderLight}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
+  btnIconSm: { background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.textMuted, borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
+  btnIconSmDanger: { background: `${t.danger}11`, border: `1px solid ${t.danger}33`, color: t.danger, borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
+  tableWrap: { overflowX: "auto", borderRadius: 12, border: `1px solid ${t.border}` },
   table: { width: "100%", borderCollapse: "collapse" },
-  th: { background: "#0D0E12", padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "#666", letterSpacing: 1, textTransform: "uppercase", borderBottom: "1px solid #1E2130" },
-  td: { padding: "12px 16px", fontSize: 14, color: "#bbb", borderBottom: "1px solid #12141a" },
+  th: { background: t.bgHeaderSolid, padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: t.textDimmed, letterSpacing: 1, textTransform: "uppercase", borderBottom: `1px solid ${t.border}` },
+  td: { padding: "12px 16px", fontSize: 14, color: t.textSecondary, borderBottom: `1px solid ${t.border}` },
   tr: { transition: "background 0.15s" },
-  trOuro: { background: "#1a170a" },
-  trPrata: { background: "#12141a" },
-  trBronze: { background: "#14100a" },
-  marca: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: "#1976D2" },
-  emptyState: { textAlign: "center", padding: "60px 20px", color: "#444", display: "flex", flexDirection: "column", alignItems: "center", gap: 12, fontSize: 15 },
+  trOuro: { background: t.trOuro },
+  trPrata: { background: t.trPrata },
+  trBronze: { background: t.trBronze },
+  marca: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: t.accent },
+  emptyState: { textAlign: "center", padding: "60px 20px", color: t.textDisabled, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, fontSize: 15 },
   painelHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 32 },
   painelBtns: { display: "flex", gap: 10, flexWrap: "wrap" },
-  input: { width: "100%", background: "#141720", borderWidth: 1, borderStyle: "solid", borderColor: "#252837", borderRadius: 8, padding: "10px 14px", color: "#E0E0E0", fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
-  select: { width: "100%", background: "#141720", borderWidth: 1, borderStyle: "solid", borderColor: "#252837", borderRadius: 8, padding: "10px 14px", color: "#E0E0E0", fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
-  label: { display: "block", fontSize: 12, fontWeight: 600, color: "#888", letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" },
-  erro: { background: "#2a1010", border: "1px solid #ff4444", color: "#ff6b6b", padding: "10px 14px", borderRadius: 8, marginBottom: 16, fontSize: 14 },
-  linkBtn: { background: "none", border: "none", color: "#1976D2", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", padding: 0 },
+  input: { width: "100%", background: t.bgInput, borderWidth: 1, borderStyle: "solid", borderColor: t.borderInput, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
+  select: { width: "100%", background: t.bgInput, borderWidth: 1, borderStyle: "solid", borderColor: t.borderInput, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
+  label: { display: "block", fontSize: 12, fontWeight: 600, color: t.textMuted, letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" },
+  erro: { background: `${t.danger}15`, border: `1px solid ${t.danger}`, color: t.danger, padding: "10px 14px", borderRadius: 8, marginBottom: 16, fontSize: 14 },
+  linkBtn: { background: "none", border: "none", color: t.accent, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", padding: 0 },
   badge: (color) => ({ background: color + "22", color: color, border: `1px solid ${color}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }),
-  badgeGold: { background: "#1976D222", color: "#1976D2", border: "1px solid #1976D244", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 },
-  catBanner: { background: "#141720", border: "1px solid #252837", borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 14, color: "#aaa" },
-  catPreview: { background: "#141720", border: "1px solid #1976D2", borderRadius: 8, padding: "8px 14px", marginBottom: 16, fontSize: 13, color: "#aaa" },
-  atletaInfo: { display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginTop: 12, padding: "10px 14px", background: "#141720", borderRadius: 8, fontSize: 13 },
+  badgeGold: { background: "#1976D222", color: t.accent, border: "1px solid #1976D244", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 },
+  catBanner: { background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 14, color: t.textTertiary },
+  catPreview: { background: t.bgInput, border: "1px solid #1976D2", borderRadius: 8, padding: "8px 14px", marginBottom: 16, fontSize: 13, color: t.textTertiary },
+  atletaInfo: { display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginTop: 12, padding: "10px 14px", background: t.bgInput, borderRadius: 8, fontSize: 13 },
   filtros: { display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 },
   adminGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 32 },
-  adminCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: 24 },
-  adminCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: "#1976D2", marginBottom: 16 },
+  adminCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: 24 },
+  adminCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.accent, marginBottom: 16 },
   formPage: { maxWidth: 640, margin: "60px auto", padding: "0 24px 80px" },
-  formCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 16, padding: 32, marginBottom: 20 },
-  formTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 800, color: "#fff", textAlign: "center", marginBottom: 8 },
-  formSub: { color: "#666", textAlign: "center", fontSize: 14, marginBottom: 24 },
+  formCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 16, padding: 32, marginBottom: 20 },
+  formTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 800, color: t.textPrimary, textAlign: "center", marginBottom: 8 },
+  formSub: { color: t.textDimmed, textAlign: "center", fontSize: 14, marginBottom: 24 },
   grid2: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 40 },
   grid2form: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 },
-  fieldError: { color: "#ff6b6b", fontSize: 12, marginTop: 2 },
+  fieldError: { color: t.danger, fontSize: 12, marginTop: 2 },
   radioGroup: { display: "flex", gap: 8, marginBottom: 16 },
-  radioLabel: { flex: 1, background: "#141720", border: "1px solid #252837", borderRadius: 8, padding: "10px", textAlign: "center", cursor: "pointer", fontSize: 14, color: "#888", transition: "all 0.2s" },
-  radioLabelActive: { background: "#1c1f2e", border: "1px solid #1976D2", color: "#1976D2" },
-  resumoInscricao: { background: "#0E1016", border: "1px solid #1976D233", borderRadius: 10, padding: "16px 20px", marginTop: 16 },
-  tagProva: { background: "#1976D222", color: "#1976D2", border: "1px solid #1976D244", borderRadius: 6, padding: "4px 12px", fontSize: 12, cursor: "pointer" },
-  sumuCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, marginBottom: 20, overflow: "hidden" },
-  sumuHeader: { padding: "16px 20px", background: "#0D0E12", borderBottom: "1px solid #1E2130", display: "flex", justifyContent: "space-between", alignItems: "center" },
-  sumuProva: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: "#fff", marginBottom: 6 },
+  radioLabel: { flex: 1, background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px", textAlign: "center", cursor: "pointer", fontSize: 14, color: t.textMuted, transition: "all 0.2s" },
+  radioLabelActive: { background: t.bgHover, border: `1px solid ${t.accent}`, color: t.accent },
+  resumoInscricao: { background: t.bgCard, border: "1px solid #1976D233", borderRadius: 10, padding: "16px 20px", marginTop: 16 },
+  tagProva: { background: "#1976D222", color: t.accent, border: "1px solid #1976D244", borderRadius: 6, padding: "4px 12px", fontSize: 12, cursor: "pointer" },
+  sumuCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, marginBottom: 20, overflow: "hidden" },
+  sumuHeader: { padding: "16px 20px", background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" },
+  sumuProva: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.textPrimary, marginBottom: 6 },
   sumuMeta: { display: "flex", gap: 8, alignItems: "center" },
-  savedBadge: { background: "#0a2a0a", border: "1px solid #2a6a2a", color: "#4aaa4a", padding: "8px 16px", borderRadius: 8, fontSize: 13 },
-  digitarSection: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, overflow: "hidden" },
-  digitarHeader: { padding: "16px 20px", background: "#0D0E12", borderBottom: "1px solid #1E2130", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 },
-  digitarDica: { color: "#666", fontSize: 12 },
-  inputMarca: { background: "#141720", border: "1px solid #252837", borderRadius: 6, padding: "8px 12px", color: "#1976D2", fontSize: 16, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, width: 120, outline: "none" },
-  infoCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: 24 },
-  infoCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 700, color: "#1976D2", marginBottom: 16, letterSpacing: 1 },
+  savedBadge: { background: `${t.success}15`, border: `1px solid ${t.success}66`, color: t.success, padding: "8px 16px", borderRadius: 8, fontSize: 13 },
+  digitarSection: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, overflow: "hidden" },
+  digitarHeader: { padding: "16px 20px", background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 },
+  digitarDica: { color: t.textDimmed, fontSize: 12 },
+  inputMarca: { background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 6, padding: "8px 12px", color: t.accent, fontSize: 16, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, width: 120, outline: "none" },
+  infoCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: 24 },
+  infoCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 700, color: t.accent, marginBottom: 16, letterSpacing: 1 },
   infoList: { listStyle: "none" },
-  infoItem: { padding: "6px 0", borderBottom: "1px solid #151820", fontSize: 14, color: "#bbb", display: "flex", alignItems: "center", gap: 8 },
-  infoItemDot: { color: "#1976D2", fontWeight: 700 },
+  infoItem: { padding: "6px 0", borderBottom: `1px solid ${t.border}`, fontSize: 14, color: t.textSecondary, display: "flex", alignItems: "center", gap: 8 },
+  infoItemDot: { color: t.accent, fontWeight: 700 },
   heroSection: { textAlign: "center", padding: "60px 20px 40px", background: "linear-gradient(180deg, #0D1018 0%, transparent 100%)", borderRadius: 16, marginBottom: 48, position: "relative", overflow: "hidden" },
-  heroBadge: { display: "inline-block", background: "#1976D2", color: "#fff", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: 3, padding: "6px 16px", borderRadius: 20, marginBottom: 20 },
-  heroTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 56, fontWeight: 900, color: "#fff", lineHeight: 1.1, marginBottom: 16, letterSpacing: 1 },
+  heroBadge: { display: "inline-block", background: "#1976D2", color: t.textPrimary, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: 3, padding: "6px 16px", borderRadius: 20, marginBottom: 20 },
+  heroTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 56, fontWeight: 900, color: t.textPrimary, lineHeight: 1.1, marginBottom: 16, letterSpacing: 1 },
   heroBtns: { display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" },
   eventosGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 20, marginBottom: 48 },
-  eventoCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 14, padding: 24, display: "flex", flexDirection: "column", gap: 10 },
-  eventoCardNome: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: "#fff", lineHeight: 1.2 },
-  eventoCardMeta: { fontSize: 13, color: "#666" },
-  eventoCardStats: { display: "flex", gap: 16, fontSize: 13, color: "#888", flexWrap: "wrap", borderTop: "1px solid #141820", paddingTop: 10, marginTop: 4 },
+  eventoCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 14, padding: 24, display: "flex", flexDirection: "column", gap: 10 },
+  eventoCardNome: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.textPrimary, lineHeight: 1.2 },
+  eventoCardMeta: { fontSize: 13, color: t.textDimmed },
+  eventoCardStats: { display: "flex", gap: 16, fontSize: 13, color: t.textMuted, flexWrap: "wrap", borderTop: `1px solid ${t.border}`, paddingTop: 10, marginTop: 4 },
   eventoStatusBadge: (status) => ({
     display: "inline-block", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700, letterSpacing: 0.5,
-    background: status === "ao_vivo" ? "#3a0a0a" : status === "hoje_pre" ? "#2a2a0a" : status === "futuro" ? "#0a2a0a" : "#1a1a1a",
-    color: status === "ao_vivo" ? "#ff6b6b" : status === "hoje_pre" ? "#1976D2" : status === "futuro" ? "#7acc44" : "#555",
-    border: `1px solid ${status === "ao_vivo" ? "#6a2a2a" : status === "hoje_pre" ? "#4a4a0a" : status === "futuro" ? "#2a5a2a" : "#333"}`,
+    background: status === "ao_vivo" ? `${t.danger}22` : status === "hoje_pre" ? `${t.accent}15` : status === "futuro" ? `${t.success}15` : t.bgCardAlt,
+    color: status === "ao_vivo" ? t.danger : status === "hoje_pre" ? t.accent : status === "futuro" ? t.success : t.textDisabled,
+    border: `1px solid ${status === "ao_vivo" ? `${t.danger}44` : status === "hoje_pre" ? `${t.accent}33` : status === "futuro" ? `${t.success}44` : t.border}`,
   }),
   eventoAcoesGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16, marginBottom: 40 },
-  eventoAcaoBtn: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: "20px 16px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, textAlign: "center", color: "#fff", fontFamily: "'Barlow', sans-serif", fontSize: 15, fontWeight: 700, transition: "border-color 0.2s" },
-  statusBar: { display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap", background: "#0D0E12", border: "1px solid #1E2130", borderRadius: 10, padding: "12px 18px", marginBottom: 24 },
+  eventoAcaoBtn: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "20px 16px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, textAlign: "center", color: t.textPrimary, fontFamily: "'Barlow', sans-serif", fontSize: 15, fontWeight: 700, transition: "border-color 0.2s" },
+  statusBar: { display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap", background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, padding: "12px 18px", marginBottom: 24 },
   statusBarItem: { display: "flex", alignItems: "center", gap: 8, fontSize: 13 },
   statusDot: (cor) => ({ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: cor, flexShrink: 0 }),
   statusDotInline: (cor) => ({ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: cor, background: cor + "22", border: `1px solid ${cor}44`, borderRadius: 10, padding: "2px 8px", whiteSpace: "nowrap" }),
-  statusControlsCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: "20px 24px", marginBottom: 28 },
-  statusControlsTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 700, color: "#1976D2", letterSpacing: 1, marginBottom: 14 },
+  statusControlsCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "20px 24px", marginBottom: 28 },
+  statusControlsTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 700, color: t.accent, letterSpacing: 1, marginBottom: 14 },
   statusControlsGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 },
   statusControlBox: (ativo, corAtiva, bgAtiva, disabled) => ({
-    background: ativo ? bgAtiva : "#141720",
-    border: `1px solid ${ativo ? corAtiva + "66" : "#252837"}`,
+    background: ativo ? bgAtiva : t.bgInput,
+    border: `1px solid ${ativo ? corAtiva + "66" : t.borderInput}`,
     borderRadius: 10, padding: "14px 16px",
     opacity: disabled ? 0.5 : 1,
     transition: "all 0.2s",
   }),
   statusControlLabel: { display: "flex", alignItems: "flex-start", cursor: "pointer", gap: 0 },
-  permissividadeBox: { background: "#0d1117", border: "1px solid #1976D233", borderRadius: 10, padding: 16, marginTop: 16, marginBottom: 4 },
+  permissividadeBox: { background: t.bgHeaderSolid, border: "1px solid #1976D233", borderRadius: 10, padding: 16, marginTop: 16, marginBottom: 4 },
   permissividadeHeader: { marginBottom: 10 },
-  permissividadeLabel: { display: "flex", alignItems: "center", cursor: "pointer", fontSize: 14, color: "#ddd", fontWeight: 600 },
-  permissividadeInfo: { background: "#111620", borderRadius: 8, padding: "12px 16px", borderLeft: "3px solid #1976D2" },
-  permissividadeTag: (ativo) => ({ display: "inline-block", background: ativo ? "#1a2a0a" : "#1a1a1a", border: `1px solid ${ativo ? "#4a8a2a" : "#333"}`, color: ativo ? "#7acc44" : "#555", borderRadius: 6, padding: "6px 12px", fontSize: 12, fontWeight: 600 }),
-  permissividadeAlert: { display: "flex", gap: 14, alignItems: "flex-start", background: "#12180a", border: "1px solid #4a8a2a", borderRadius: 10, padding: "14px 18px", marginBottom: 20 },
+  permissividadeLabel: { display: "flex", alignItems: "center", cursor: "pointer", fontSize: 14, color: t.textSecondary, fontWeight: 600 },
+  permissividadeInfo: { background: t.bgHover, borderRadius: 8, padding: "12px 16px", borderLeft: "3px solid #1976D2" },
+  permissividadeTag: (ativo) => ({ display: "inline-block", background: ativo ? `${t.success}15` : t.bgCard, border: `1px solid ${ativo ? `${t.success}55` : t.border}`, color: ativo ? t.success : t.textDisabled, borderRadius: 6, padding: "6px 12px", fontSize: 12, fontWeight: 600 }),
+  permissividadeAlert: { display: "flex", gap: 14, alignItems: "flex-start", background: `${t.success}08`, border: `1px solid ${t.success}55`, borderRadius: 10, padding: "14px 18px", marginBottom: 20 },
   permissividadeAlertIcon: { fontSize: 28, flexShrink: 0, marginTop: 2 },
-  permissividadeAlertTitle: { fontWeight: 700, color: "#7acc44", fontSize: 15, marginBottom: 4 },
-  permissividadeAlertBody: { color: "#aaa", fontSize: 13, lineHeight: 1.6, marginBottom: 6 },
-  permissividadeAlertRodape: { fontSize: 12, color: "#666", fontStyle: "italic" },
-  filtroProvasBar: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: "16px 20px", marginBottom: 16, display: "flex", flexWrap: "wrap", gap: 20 },
+  permissividadeAlertTitle: { fontWeight: 700, color: t.success, fontSize: 15, marginBottom: 4 },
+  permissividadeAlertBody: { color: t.textTertiary, fontSize: 13, lineHeight: 1.6, marginBottom: 6 },
+  permissividadeAlertRodape: { fontSize: 12, color: t.textDimmed, fontStyle: "italic" },
+  filtroProvasBar: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "16px 20px", marginBottom: 16, display: "flex", flexWrap: "wrap", gap: 20 },
   filtroProvasBloco: { display: "flex", flexDirection: "column", gap: 8 },
-  filtroProvasLabel: { fontSize: 11, fontWeight: 700, color: "#666", letterSpacing: 1, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 8 },
+  filtroProvasLabel: { fontSize: 11, fontWeight: 700, color: t.textDimmed, letterSpacing: 1, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 8 },
   filtroProvasPills: { display: "flex", flexWrap: "wrap", gap: 6 },
-  filtroPill: { background: "#141720", border: "1px solid #252837", color: "#666", borderRadius: 20, padding: "5px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5, transition: "all 0.15s" },
-  filtroPillAtivo: { background: "#1a1c22", border: "1px solid #1976D2", color: "#1976D2" },
+  filtroPill: { background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.textDimmed, borderRadius: 20, padding: "5px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5, transition: "all 0.15s" },
+  filtroPillAtivo: { background: t.bgHover, border: "1px solid #1976D2", color: t.accent },
   filtroClearBtn: { background: "none", border: "none", color: "#1976D288", cursor: "pointer", fontSize: 11, fontFamily: "'Barlow', sans-serif", padding: "0 4px", textDecoration: "underline" },
   stepBar: { display: "flex", alignItems: "center", gap: 0, marginBottom: 32, maxWidth: 400 },
-  stepItem: (ativo) => ({ padding: "10px 24px", borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, background: ativo ? "#1a1c22" : "transparent", color: ativo ? "#1976D2" : "#444", border: `1px solid ${ativo ? "#1976D244" : "#1E2130"}` }),
-  stepDivider: { flex: 1, height: 1, background: "#1E2130", margin: "0 8px" },
-  modoSwitch: { display: "flex", gap: 0, background: "#0D0E12", border: "1px solid #1E2130", borderRadius: 10, overflow: "hidden", marginBottom: 24, width: "fit-content" },
-  modoBtn: { background: "transparent", border: "none", color: "#666", padding: "12px 24px", cursor: "pointer", fontSize: 14, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s" },
-  modoBtnActive: { background: "#141720", color: "#1976D2" },
+  stepItem: (ativo) => ({ padding: "10px 24px", borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, background: ativo ? t.bgHover : "transparent", color: ativo ? t.accent : t.textDisabled, border: `1px solid ${ativo ? `${t.accent}44` : t.border}` }),
+  stepDivider: { flex: 1, height: 1, background: t.border, margin: "0 8px" },
+  modoSwitch: { display: "flex", gap: 0, background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, overflow: "hidden", marginBottom: 24, width: "fit-content" },
+  modoBtn: { background: "transparent", border: "none", color: t.textDimmed, padding: "12px 24px", cursor: "pointer", fontSize: 14, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s" },
+  modoBtnActive: { background: t.bgInput, color: t.accent },
   provaGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 },
-  provaBtn: { background: "#0E1016", border: "1px solid #1E2130", color: "#888", padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", lineHeight: 1.4 },
-  provaBtnSel: { background: "#1a1c22", borderColor: "#1976D2", color: "#1976D2" },
-  grupoProvasBox: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 10, marginBottom: 16, overflow: "hidden" },
-  grupoProvasHeader: { background: "#0D0E12", borderBottom: "1px solid #1E2130", padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" },
-  provaCheckBtn: { background: "#0E1016", border: "1px solid #1E2130", color: "#888", padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", lineHeight: 1.4, userSelect: "none" },
-  provaCheckBtnSel: { background: "#1a1c22", borderColor: "#1976D2", color: "#1976D2" },
+  provaBtn: { background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", lineHeight: 1.4 },
+  provaBtnSel: { background: t.bgHover, borderColor: "#1976D2", color: t.accent },
+  grupoProvasBox: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 10, marginBottom: 16, overflow: "hidden" },
+  grupoProvasHeader: { background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`, padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" },
+  provaCheckBtn: { background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", lineHeight: 1.4, userSelect: "none" },
+  provaCheckBtnSel: { background: t.bgHover, borderColor: "#1976D2", color: t.accent },
 };
+}
 
 function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, editarEquipeFiliada, excluirEquipeFiliada, equipes, atletas, organizadores, gerarSenhaTemp }) {
-  const s = useStylesResponsivos(styles);
+  const t = useTema();
+  const s = useStylesResponsivos(getStyles(t));
   const [modo, setModo] = useState("lista"); // lista | novo | editar | importar
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -449,7 +453,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
         <div style={s.painelHeader}>
           <div>
             <h1 style={s.pageTitle}>📊 Importar Equipes</h1>
-            <p style={{ color: "#666", fontSize: 14 }}>
+            <p style={{ color: t.textDimmed, fontSize: 14 }}>
               Upload de planilha Excel com múltiplas equipes
             </p>
           </div>
@@ -461,7 +465,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
         <div style={{ maxWidth: 900, margin: "0 auto" }}>
           {/* Upload area */}
           <div style={{
-            background: "#0D0E12",
+            background: t.bgHeaderSolid,
             border: "2px dashed #1976D2",
             borderRadius: 12,
             padding: 40,
@@ -469,7 +473,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
             marginBottom: 24
           }}>
             <div style={{ fontSize: 64, marginBottom: 16 }}>📤</div>
-            <h3 style={{ color: "#1976D2", marginBottom: 12 }}>Faça upload da planilha Excel</h3>
+            <h3 style={{ color: t.accent, marginBottom: 12 }}>Faça upload da planilha Excel</h3>
             
             <input
               type="file"
@@ -485,13 +489,13 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
             </label>
 
             {file && (
-              <div style={{ marginTop: 16, color: "#7cfc7c", fontSize: 14 }}>
+              <div style={{ marginTop: 16, color: t.success, fontSize: 14 }}>
                 ✓ Arquivo selecionado: {file.name}
               </div>
             )}
 
             {loading && (
-              <div style={{ marginTop: 16, color: "#1976D2" }}>
+              <div style={{ marginTop: 16, color: t.accent }}>
                 ⏳ Processando planilha...
               </div>
             )}
@@ -499,8 +503,8 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
 
           {/* Download template */}
           <div style={{
-            background: "#0a0f0a",
-            border: "1px solid #1E2130",
+            background: t.bgCardAlt,
+            border: `1px solid ${t.border}`,
             borderRadius: 8,
             padding: 20,
             marginBottom: 24
@@ -508,8 +512,8 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
               <div style={{ fontSize: 32 }}>📋</div>
               <div style={{ flex: 1 }}>
-                <h4 style={{ color: "#fff", marginBottom: 4 }}>Modelo de Planilha</h4>
-                <p style={{ color: "#888", fontSize: 13, marginBottom: 0 }}>
+                <h4 style={{ color: t.textPrimary, marginBottom: 4 }}>Modelo de Planilha</h4>
+                <p style={{ color: t.textMuted, fontSize: 13, marginBottom: 0 }}>
                   Campos obrigatórios: Nome, Sigla, Cidade, Estado, CNPJ, E-mail. Senha é gerada automaticamente se deixada em branco.
                 </p>
               </div>
@@ -556,34 +560,34 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
           {/* Errors */}
           {erro && (
             <div style={{
-              background: preview && preview.length > 0 ? "#1a1a00" : "#1a0a0a",
-              border: `1px solid ${preview && preview.length > 0 ? "#cc8800" : "#ff6b6b"}`,
+              background: preview && preview.length > 0 ? `${t.warning}15` : `${t.danger}15`,
+              border: `1px solid ${preview && preview.length > 0 ? t.warning : t.danger}`,
               borderRadius: 8,
               padding: 20,
               marginBottom: 24,
               whiteSpace: "pre-line"
             }}>
-              <div style={{ color: preview && preview.length > 0 ? "#ffaa00" : "#ff6b6b", fontWeight: 600, marginBottom: 8 }}>
+              <div style={{ color: preview && preview.length > 0 ? t.warning : t.danger, fontWeight: 600, marginBottom: 8 }}>
                 {preview && preview.length > 0 ? "⚠️ Importação parcial:" : "❌ Erros encontrados:"}
               </div>
-              <div style={{ color: preview && preview.length > 0 ? "#ddaa44" : "#ffaaaa", fontSize: 13 }}>{erro}</div>
+              <div style={{ color: preview && preview.length > 0 ? t.warning : `${t.danger}cc`, fontSize: 13 }}>{erro}</div>
             </div>
           )}
 
           {/* Organizador selector for admin */}
           {isAdmin && preview && preview.length > 0 && (
             <div style={{
-              background: "#0a0a1a",
-              border: "2px solid #88aaff",
+              background: t.bgHeaderSolid,
+              border: `2px solid ${t.accent}`,
               borderRadius: 12,
               padding: 24,
               marginBottom: 24
             }}>
-              <h3 style={{ color: "#88aaff", marginBottom: 16 }}>
+              <h3 style={{ color: t.accent, marginBottom: 16 }}>
                 ⚙️ Vincular equipes a:
               </h3>
               <div>
-                <label style={{ display: "block", color: "#aaa", fontSize: 13, marginBottom: 6 }}>
+                <label style={{ display: "block", color: t.textTertiary, fontSize: 13, marginBottom: 6 }}>
                   Organizador Responsável *
                 </label>
                 <select
@@ -592,7 +596,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
                   style={{
                     ...s.input,
                     width: "100%",
-                    background: organizadorSelecionado ? "#1a2a1a" : "#1a1a2a"
+                    background: organizadorSelecionado ? `${t.success}11` : t.bgCardAlt
                   }}
                 >
                   <option value="">Selecione...</option>
@@ -600,7 +604,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
                     <option key={org.id} value={org.id}>{org.nome} - {org.entidade}</option>
                   ))}
                 </select>
-                <p style={{ color: "#666", fontSize: 12, marginTop: 12 }}>
+                <p style={{ color: t.textDimmed, fontSize: 12, marginTop: 12 }}>
                   ℹ️ Todas as {preview.length} equipe(s) serão vinculadas a este organizador
                 </p>
               </div>
@@ -610,16 +614,16 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
           {/* Preview */}
           {preview && preview.length > 0 && (
             <div style={{
-              background: "#0D0E12",
-              border: "1px solid #1E2130",
+              background: t.bgHeaderSolid,
+              border: `1px solid ${t.border}`,
               borderRadius: 8,
               padding: 24,
               marginBottom: 24
             }}>
-              <h3 style={{ color: "#7cfc7c", marginBottom: 16 }}>
+              <h3 style={{ color: t.success, marginBottom: 16 }}>
                 ✓ {preview.length} equipe(s) pronta(s) para importação
               </h3>
-              <p style={{ color: "#888", fontSize: 13, marginBottom: 20 }}>
+              <p style={{ color: t.textMuted, fontSize: 13, marginBottom: 20 }}>
                 Revise os dados{isAdmin ? " e selecione o organizador acima" : ""} antes de confirmar:
               </p>
 
@@ -674,7 +678,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
         <div style={s.painelHeader}>
           <div>
             <h1 style={s.pageTitle}>🏟️ Equipes</h1>
-            <p style={{ color: "#666", fontSize: 14 }}>
+            <p style={{ color: t.textDimmed, fontSize: 14 }}>
               Gerenciar clubes e equipes cadastradas no sistema
             </p>
           </div>
@@ -685,13 +689,13 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
 
         {/* Stats */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 24 }}>
-          <div style={{ background: "#0a0a1a", border: "1px solid #1E2130", borderRadius: 8, padding: 20 }}>
-            <div style={{ color: "#666", fontSize: 12, marginBottom: 4 }}>Total de Equipes</div>
-            <div style={{ color: "#1976D2", fontSize: 32, fontWeight: 700 }}>{minhasEquipes.length}</div>
+          <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 8, padding: 20 }}>
+            <div style={{ color: t.textDimmed, fontSize: 12, marginBottom: 4 }}>Total de Equipes</div>
+            <div style={{ color: t.accent, fontSize: 32, fontWeight: 700 }}>{minhasEquipes.length}</div>
           </div>
-          <div style={{ background: "#0a0a1a", border: "1px solid #1E2130", borderRadius: 8, padding: 20 }}>
-            <div style={{ color: "#666", fontSize: 12, marginBottom: 4 }}>Equipes Ativas</div>
-            <div style={{ color: "#7cfc7c", fontSize: 32, fontWeight: 700 }}>{equipesAtivas}</div>
+          <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 8, padding: 20 }}>
+            <div style={{ color: t.textDimmed, fontSize: 12, marginBottom: 4 }}>Equipes Ativas</div>
+            <div style={{ color: t.success, fontSize: 32, fontWeight: 700 }}>{equipesAtivas}</div>
           </div>
         </div>
 
@@ -714,7 +718,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
 
         {/* Lista de Equipes */}
         {equipesFiltradas.length === 0 ? (
-          <div style={{ textAlign: "center", padding: 60, color: "#666" }}>
+          <div style={{ textAlign: "center", padding: 60, color: t.textDimmed }}>
             <div style={{ fontSize: 64, marginBottom: 16 }}>🏟️</div>
             {filtro ? (
               <>
@@ -732,7 +736,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
             )}
           </div>
         ) : (
-          <div style={{ maxHeight: 500, overflowY: "auto", border: "1px solid #1E2130", borderRadius: 8, padding: 4 }}>
+          <div style={{ maxHeight: 500, overflowY: "auto", border: `1px solid ${t.border}`, borderRadius: 8, padding: 4 }}>
             <div style={{ display: "grid", gap: 12 }}>
             {equipesFiltradas.map((equipe) => {
               const nEquipes = equipes.filter(e => e.id === equipe.id).length;
@@ -740,8 +744,8 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
 
               return (
                 <div key={equipe.id} style={{
-                  background: "#0D0E12",
-                  border: "1px solid #1E2130",
+                  background: t.bgHeaderSolid,
+                  border: `1px solid ${t.border}`,
                   borderRadius: 10,
                   padding: "16px 20px",
                   display: "flex",
@@ -760,7 +764,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
                     justifyContent: "center",
                     fontSize: equipe.sigla && equipe.sigla.length > 4 ? 10 : 16,
                     fontWeight: 800,
-                    color: "#1976D2",
+                    color: t.accent,
                     overflow: "hidden",
                     textAlign: "center",
                     lineHeight: 1.1,
@@ -773,31 +777,31 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
 
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                      <h3 style={{ color: "#fff", fontSize: 15, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{equipe.nome}</h3>
+                      <h3 style={{ color: t.textPrimary, fontSize: 15, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{equipe.nome}</h3>
                       <span style={{
                         fontSize: 11,
                         padding: "2px 8px",
                         borderRadius: 4,
-                        background: equipe.status === "ativa" ? "#7cfc7c22" : "#66666622",
-                        color: equipe.status === "ativa" ? "#7cfc7c" : "#666",
+                        background: equipe.status === "ativa" ? `${t.success}22` : `${t.textDimmed}22`,
+                        color: equipe.status === "ativa" ? t.success : t.textDimmed,
                         fontWeight: 600
                       }}>
                         {equipe.status === "ativa" ? "ATIVA" : "INATIVA"}
                       </span>
                     </div>
-                    <div style={{ color: "#888", fontSize: 13 }}>
+                    <div style={{ color: t.textMuted, fontSize: 13 }}>
                       📍 {equipe.cidade}, {equipe.estado}
                       {equipe.cnpj && ` • CNPJ: ${equipe.cnpj}`}
                     </div>
                     {isAdmin && (() => {
                       const org = organizadores.find(o => o.id === equipe.organizadorId);
                       return (
-                        <div style={{ color: org ? "#88aaff" : "#ff8844", fontSize: 11, marginTop: 3 }}>
+                        <div style={{ color: org ? t.accent : t.warning, fontSize: 11, marginTop: 3 }}>
                           🏢 {org ? `${org.nome} — ${org.entidade}` : (equipe.organizadorId ? `Org. não encontrado (${equipe.organizadorId.substring(0,8)}...)` : "Sem organizador vinculado")}
                         </div>
                       );
                     })()}
-                    <div style={{ color: "#666", fontSize: 12, marginTop: 6 }}>
+                    <div style={{ color: t.textDimmed, fontSize: 12, marginTop: 6 }}>
                       {nEquipes} equipe(s) • {nAtletas} atleta(s)
                     </div>
                   </div>
@@ -834,7 +838,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
           <h1 style={s.pageTitle}>
             {modo === "novo" ? "➕ Nova Equipe" : "✏️ Editar Equipe"}
           </h1>
-          <p style={{ color: "#666", fontSize: 14 }}>
+          <p style={{ color: t.textDimmed, fontSize: 14 }}>
             {modo === "novo" ? "Cadastrar nova equipe" : `Editando: ${equipeSelecionada?.nome}`}
           </p>
         </div>
@@ -845,14 +849,14 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
 
       <div style={{ maxWidth: 600, margin: "0 auto" }}>
         <div style={{
-          background: "#0D0E12",
-          border: "1px solid #1E2130",
+          background: t.bgHeaderSolid,
+          border: `1px solid ${t.border}`,
           borderRadius: 12,
           padding: 32
         }}>
           <div style={s.grid2form}>
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: "block", color: "#aaa", fontSize: 13, marginBottom: 6 }}>
+              <label style={{ display: "block", color: t.textTertiary, fontSize: 13, marginBottom: 6 }}>
                 Nome da Equipe *
               </label>
               <input
@@ -860,12 +864,12 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
                 value={form.nome}
                 onChange={(e) => setForm({ ...form, nome: e.target.value })}
                 placeholder="Ex: Clube Atlético Paranaense"
-                style={{ ...s.input, borderColor: erros.nome ? "#ff6b6b" : undefined }}
+                style={{ ...s.input, borderColor: erros.nome ? t.danger : undefined }}
               />
-              {erros.nome && <div style={{ color: "#ff6b6b", fontSize: 12, marginTop: 4 }}>{erros.nome}</div>}
+              {erros.nome && <div style={{ color: t.danger, fontSize: 12, marginTop: 4 }}>{erros.nome}</div>}
             </div>
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: "block", color: "#aaa", fontSize: 13, marginBottom: 6 }}>
+              <label style={{ display: "block", color: t.textTertiary, fontSize: 13, marginBottom: 6 }}>
                 Sigla *
               </label>
               <input
@@ -873,15 +877,15 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
                 value={form.sigla}
                 onChange={(e) => setForm({ ...form, sigla: e.target.value.toUpperCase() })}
                 placeholder="Ex: CAP"
-                style={{ ...s.input, borderColor: erros.sigla ? "#ff6b6b" : undefined }}
+                style={{ ...s.input, borderColor: erros.sigla ? t.danger : undefined }}
               />
-              {erros.sigla && <div style={{ color: "#ff6b6b", fontSize: 12, marginTop: 4 }}>{erros.sigla}</div>}
+              {erros.sigla && <div style={{ color: t.danger, fontSize: 12, marginTop: 4 }}>{erros.sigla}</div>}
             </div>
           </div>
 
           <div style={s.grid2form}>
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: "block", color: "#aaa", fontSize: 13, marginBottom: 6 }}>
+              <label style={{ display: "block", color: t.textTertiary, fontSize: 13, marginBottom: 6 }}>
                 Cidade *
               </label>
               <input
@@ -889,12 +893,12 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
                 value={form.cidade}
                 onChange={(e) => setForm({ ...form, cidade: e.target.value })}
                 placeholder="Ex: Curitiba"
-                style={{ ...s.input, borderColor: erros.cidade ? "#ff6b6b" : undefined }}
+                style={{ ...s.input, borderColor: erros.cidade ? t.danger : undefined }}
               />
-              {erros.cidade && <div style={{ color: "#ff6b6b", fontSize: 12, marginTop: 4 }}>{erros.cidade}</div>}
+              {erros.cidade && <div style={{ color: t.danger, fontSize: 12, marginTop: 4 }}>{erros.cidade}</div>}
             </div>
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: "block", color: "#aaa", fontSize: 13, marginBottom: 6 }}>
+              <label style={{ display: "block", color: t.textTertiary, fontSize: 13, marginBottom: 6 }}>
                 Estado *
               </label>
               <input
@@ -903,21 +907,21 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
                 onChange={(e) => setForm({ ...form, estado: e.target.value.toUpperCase() })}
                 placeholder="Ex: PR"
                 maxLength={2}
-                style={{ ...s.input, borderColor: erros.estado ? "#ff6b6b" : undefined }}
+                style={{ ...s.input, borderColor: erros.estado ? t.danger : undefined }}
               />
-              {erros.estado && <div style={{ color: "#ff6b6b", fontSize: 12, marginTop: 4 }}>{erros.estado}</div>}
+              {erros.estado && <div style={{ color: t.danger, fontSize: 12, marginTop: 4 }}>{erros.estado}</div>}
             </div>
           </div>
 
           {isAdmin && (
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: "block", color: "#aaa", fontSize: 13, marginBottom: 6 }}>
+              <label style={{ display: "block", color: t.textTertiary, fontSize: 13, marginBottom: 6 }}>
                 Organizador Responsável *
               </label>
               <select
                 value={form.organizadorId}
                 onChange={(e) => setForm({ ...form, organizadorId: e.target.value })}
-                style={{ ...s.input, borderColor: erros.organizadorId ? "#ff6b6b" : undefined }}
+                style={{ ...s.input, borderColor: erros.organizadorId ? t.danger : undefined }}
               >
                 <option value="">Selecione o organizador...</option>
                 {organizadores.filter(o => o.status === "aprovado").map(org => (
@@ -926,15 +930,15 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
                   </option>
                 ))}
               </select>
-              {erros.organizadorId && <div style={{ color: "#ff6b6b", fontSize: 12, marginTop: 4 }}>{erros.organizadorId}</div>}
-              <div style={{ color: "#666", fontSize: 11, marginTop: 4 }}>
+              {erros.organizadorId && <div style={{ color: t.danger, fontSize: 12, marginTop: 4 }}>{erros.organizadorId}</div>}
+              <div style={{ color: t.textDimmed, fontSize: 11, marginTop: 4 }}>
                 Selecione o organizador que será responsável por esta equipe
               </div>
             </div>
           )}
 
           <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", color: "#aaa", fontSize: 13, marginBottom: 6 }}>
+            <label style={{ display: "block", color: t.textTertiary, fontSize: 13, marginBottom: 6 }}>
               CNPJ *
             </label>
             <input
@@ -942,13 +946,13 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
               value={form.cnpj}
               onChange={(e) => setForm({ ...form, cnpj: e.target.value })}
               placeholder="00.000.000/0000-00"
-              style={{ ...s.input, borderColor: erros.cnpj ? "#ff6b6b" : undefined }}
+              style={{ ...s.input, borderColor: erros.cnpj ? t.danger : undefined }}
             />
-            {erros.cnpj && <div style={{ color: "#ff6b6b", fontSize: 12, marginTop: 4 }}>{erros.cnpj}</div>}
+            {erros.cnpj && <div style={{ color: t.danger, fontSize: 12, marginTop: 4 }}>{erros.cnpj}</div>}
           </div>
 
           <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", color: "#aaa", fontSize: 13, marginBottom: 6 }}>
+            <label style={{ display: "block", color: t.textTertiary, fontSize: 13, marginBottom: 6 }}>
               Telefone (opcional)
             </label>
             <input
@@ -962,7 +966,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
 
           <div style={s.grid2form}>
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: "block", color: "#aaa", fontSize: 13, marginBottom: 6 }}>
+              <label style={{ display: "block", color: t.textTertiary, fontSize: 13, marginBottom: 6 }}>
                 E-mail *
               </label>
               <input
@@ -970,12 +974,12 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 placeholder="contato@equipe.com"
-                style={{ ...s.input, borderColor: erros.email ? "#ff6b6b" : undefined }}
+                style={{ ...s.input, borderColor: erros.email ? t.danger : undefined }}
               />
-              {erros.email && <div style={{ color: "#ff6b6b", fontSize: 12, marginTop: 4 }}>{erros.email}</div>}
+              {erros.email && <div style={{ color: t.danger, fontSize: 12, marginTop: 4 }}>{erros.email}</div>}
             </div>
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: "block", color: "#aaa", fontSize: 13, marginBottom: 6 }}>
+              <label style={{ display: "block", color: t.textTertiary, fontSize: 13, marginBottom: 6 }}>
                 Senha {modo === "novo" ? "*" : "(deixe vazio para manter)"}
               </label>
               <div style={{ display: "flex", gap: 8 }}>
@@ -984,7 +988,7 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
                   value={form.senha}
                   onChange={(e) => setForm({ ...form, senha: e.target.value })}
                   placeholder={modo === "editar" ? "••••••" : "Senha de acesso"}
-                  style={{ ...s.input, flex: 1, borderColor: erros.senha ? "#ff6b6b" : undefined }}
+                  style={{ ...s.input, flex: 1, borderColor: erros.senha ? t.danger : undefined }}
                 />
                 {modo === "novo" && (
                   <button type="button" style={{ ...s.btnGhost, fontSize: 11, padding: "8px 12px", whiteSpace: "nowrap" }}
@@ -998,13 +1002,13 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
                   </button>
                 )}
               </div>
-              {erros.senha && <div style={{ color: "#ff6b6b", fontSize: 12, marginTop: 4 }}>{erros.senha}</div>}
+              {erros.senha && <div style={{ color: t.danger, fontSize: 12, marginTop: 4 }}>{erros.senha}</div>}
             </div>
           </div>
 
           {modo === "editar" && isAdmin && (
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: "block", color: "#aaa", fontSize: 13, marginBottom: 6 }}>Status da Equipe</label>
+              <label style={{ display: "block", color: t.textTertiary, fontSize: 13, marginBottom: 6 }}>Status da Equipe</label>
               <select value={form.status || "ativa"} onChange={e => setForm({ ...form, status: e.target.value })}
                 style={s.input}>
                 <option value="ativa">✅ Ativa</option>

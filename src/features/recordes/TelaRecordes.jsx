@@ -5,12 +5,13 @@ import { CATEGORIAS, ESTADOS_BR } from "../../shared/constants/categorias";
 import { RecordHelper } from "../../shared/engines/recordHelper";
 import { RecordDetectionEngine } from "../../shared/engines/recordDetectionEngine";
 import { formatarMarca } from "../../shared/formatters/utils";
-import inscricaoStyles from "../inscricoes/inscricaoStyles";
+import { criarInscricaoStyles } from "../inscricoes/inscricaoStyles";
+import { useTema } from "../../shared/TemaContext";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
-const styles = inscricaoStyles;
 function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClubeAtleta, usuarioLogado, setTela, pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes, registrarAcao }) {
-  const s = useStylesResponsivos(styles);
+  const t = useTema();
+  const s = useStylesResponsivos(criarInscricaoStyles(t));
   const confirmar = useConfirm();
   const isAdmin = usuarioLogado?.tipo === "admin";
   const [tipoSel, setTipoSel] = useState(null); // id do tipo selecionado
@@ -31,7 +32,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
     // { id: "municipio", label: "🏙️ Município", desc: "Vinculado a um município" },  // ← Descomente para ativar
   ];
 
-  const tipoAtivo = recordes.find(t => t.id === tipoSel);
+  const tipoAtivo = recordes.find(tipo => tipo.id === tipoSel);
 
   // ── CRUD tipos de recorde ──
   const criarTipo = () => {
@@ -55,13 +56,13 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
   };
 
   const editarTipo = (id, campo, valor) => {
-    setRecordes(recordes.map(t => t.id === id ? { ...t, [campo]: valor } : t));
+    setRecordes(recordes.map(tipo => tipo.id === id ? { ...tipo, [campo]: valor } : tipo));
   };
 
   const excluirTipo = (id) => {
     if (!confirm("Excluir este tipo de recorde e todos os registros?")) return;
-    const tipo = recordes.find(t => t.id === id);
-    setRecordes(recordes.filter(t => t.id !== id));
+    const tipo = recordes.find(tp => tp.id === id);
+    setRecordes(recordes.filter(tp => tp.id !== id));
     if (tipoSel === id) setTipoSel(null);
     if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, "Excluiu tipo de recorde", `${tipo?.sigla || ""} — ${tipo?.nome || id}`, null, { modulo: "recordes" });
   };
@@ -76,20 +77,20 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
     const detentores = _coDetentores ? [detentorPrincipal, ..._coDetentores] : [detentorPrincipal];
     const regFinal = { ...base, detentores };
 
-    setRecordes(recordes.map(t => {
-      if (t.id !== tipoSel) return t;
-      const idx = t.registros.findIndex(r => r.id === regFinal.id);
-      const novos = [...t.registros];
+    setRecordes(recordes.map(tipo => {
+      if (tipo.id !== tipoSel) return tipo;
+      const idx = tipo.registros.findIndex(r => r.id === regFinal.id);
+      const novos = [...tipo.registros];
       if (idx >= 0) novos[idx] = regFinal;
       else novos.push({ ...regFinal, id: `r_${Date.now()}_${Math.random().toString(36).slice(2,6)}` });
-      return { ...t, registros: novos };
+      return { ...tipo, registros: novos };
     }));
     setEditReg(null);
     if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, reg.id ? "Editou registro de recorde" : "Adicionou registro de recorde", `${reg.provaId || "?"} — ${detentorPrincipal.atleta || "?"}`, null, { modulo: "recordes" });
   };
 
   const excluirRegistro = (regId) => {
-    setRecordes(recordes.map(t => t.id !== tipoSel ? t : { ...t, registros: t.registros.filter(r => r.id !== regId) }));
+    setRecordes(recordes.map(tipo => tipo.id !== tipoSel ? tipo : { ...tipo, registros: tipo.registros.filter(r => r.id !== regId) }));
     if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, "Excluiu registro de recorde", regId, null, { modulo: "recordes" });
   };
 
@@ -336,7 +337,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
         let tipoRecordeNome = "";
         if (rawTipoRec) {
           const trNorm = rawTipoRec.toLowerCase().trim();
-          const tipoMatch = recordes.find(t => t.sigla.toLowerCase().trim() === trNorm || t.nome.toLowerCase().trim() === trNorm);
+          const tipoMatch = recordes.find(tipo => tipo.sigla.toLowerCase().trim() === trNorm || tipo.nome.toLowerCase().trim() === trNorm);
           if (tipoMatch) { tipoRecordeId = tipoMatch.id; tipoRecordeNome = tipoMatch.sigla; }
         }
 
@@ -386,7 +387,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
       }
       // Determinar tipo alvo: da planilha ou do selecionado
       const tipoAlvoId = r.tipoRecordeId || tipoSel;
-      const tipoAlvo = recordes.find(t => t.id === tipoAlvoId);
+      const tipoAlvo = recordes.find(tipo => tipo.id === tipoAlvoId);
 
       // 1) Prova não reconhecida no sistema
       if (!r._matched) {
@@ -430,13 +431,13 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
       if (!porTipo[tid]) porTipo[tid] = [];
       porTipo[tid].push(r);
     });
-    setRecordes(recordes.map(t => {
-      const regsParaTipo = porTipo[t.id];
-      if (!regsParaTipo) return t;
-      const novosRegistros = [...t.registros];
+    setRecordes(recordes.map(tipo => {
+      const regsParaTipo = porTipo[tipo.id];
+      if (!regsParaTipo) return tipo;
+      const novosRegistros = [...tipo.registros];
       regsParaTipo.forEach((r, i) => {
         const novoReg = {
-          id: `r_imp_${Date.now()}_${t.id}_${i}`,
+          id: `r_imp_${Date.now()}_${tipo.id}_${i}`,
           categoriaId: r.categoriaId, sexo: r.sexo,
           provaId: r.provaId, provaNome: r.provaNome,
           marca: r.marca, unidade: r.unidade,
@@ -454,12 +455,12 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
           novosRegistros.push(novoReg);
         }
       });
-      return { ...t, registros: novosRegistros };
+      return { ...tipo, registros: novosRegistros };
     }));
     // Resumo por tipo
     const tiposAfetados = Object.keys(porTipo).map(tid => {
-      const t = recordes.find(r => r.id === tid);
-      return `${t?.sigla || tid}: ${porTipo[tid].length}`;
+      const tp = recordes.find(r => r.id === tid);
+      return `${tp?.sigla || tid}: ${porTipo[tid].length}`;
     });
     if (tiposAfetados.length > 1) {
       alert(`Importação distribuída por ${tiposAfetados.length} tipos:\n${tiposAfetados.join("\n")}`);
@@ -496,8 +497,8 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
 
   const S = {
     page: { ...s.page, maxWidth: 1100 },
-    card: { background:"#12141C", borderRadius:12, border:"1px solid #1E2130", padding:"16px 20px", marginBottom:14 },
-    inputSm: { background:"#1a1c22", border:"1px solid #2a3050", borderRadius:4, color:"#1976D2", fontSize:12, padding:"5px 8px", fontWeight:600 },
+    card: { background:t.bgCard, borderRadius:12, border:`1px solid ${t.border}`, padding:"16px 20px", marginBottom:14 },
+    inputSm: { background:t.bgInput, border:`1px solid ${t.borderInput}`, borderRadius:4, color:t.accent, fontSize:12, padding:"5px 8px", fontWeight:600 },
   };
 
   return (
@@ -505,7 +506,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
         <div>
           <h2 style={s.pageTitle}>🏆 Recordes</h2>
-          <p style={{ color:"#666", fontSize:13 }}>Acervo de recordes por tipo de competição</p>
+          <p style={{ color:t.textDimmed, fontSize:13 }}>Acervo de recordes por tipo de competição</p>
         </div>
         <div style={{ display:"flex", gap:8, alignItems:"center" }}>
           {isAdmin && (
@@ -516,7 +517,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
 
       {/* Abas principais */}
       {isAdmin && (
-        <div style={{ display:"flex", gap:6, marginBottom:16, borderBottom:"1px solid #2a2a3a", paddingBottom:8 }}>
+        <div style={{ display:"flex", gap:6, marginBottom:16, borderBottom:`1px solid ${t.borderLight}`, paddingBottom:8 }}>
           {[
             { id: "registros", label: "📋 Registros", count: null },
             { id: "pendencias", label: "⏳ Pendências", count: (pendenciasRecorde || []).filter(p => p.status === "pendente").length },
@@ -525,14 +526,14 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
             <button key={aba.id} onClick={() => setAbaRecordes(aba.id)}
               style={{
                 padding:"8px 16px", borderRadius:8, fontSize:13, cursor:"pointer", fontWeight:600,
-                border: abaRecordes === aba.id ? "2px solid #1976D2" : "1px solid transparent",
-                background: abaRecordes === aba.id ? "#0a1a2a" : "transparent",
-                color: abaRecordes === aba.id ? "#1976D2" : "#888",
+                border: abaRecordes === aba.id ? `2px solid ${t.accent}` : "1px solid transparent",
+                background: abaRecordes === aba.id ? t.accentBg : "transparent",
+                color: abaRecordes === aba.id ? t.accent : t.textMuted,
               }}>
               {aba.label}
               {aba.count > 0 && (
-                <span style={{ marginLeft:6, background: aba.id === "pendencias" ? "#ff4444" : "#333",
-                  color:"#fff", fontSize:10, fontWeight:800, borderRadius:10, padding:"1px 6px" }}>{aba.count}</span>
+                <span style={{ marginLeft:6, background: aba.id === "pendencias" ? t.danger : t.bgCardAlt,
+                  color:t.textPrimary, fontSize:10, fontWeight:800, borderRadius:10, padding:"1px 6px" }}>{aba.count}</span>
               )}
             </button>
           ))}
@@ -543,8 +544,8 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
       {(abaRecordes === "registros" || !isAdmin) && (<>
       {/* Modal novo tipo */}
       {showNovoTipo && isAdmin && (
-        <div style={{ ...S.card, border:"2px solid #1976D2" }}>
-          <div style={{ color:"#1976D2", fontWeight:700, fontSize:14, marginBottom:12 }}>Criar Tipo de Recorde</div>
+        <div style={{ ...S.card, border:`2px solid ${t.accent}` }}>
+          <div style={{ color:t.accent, fontWeight:700, fontSize:14, marginBottom:12 }}>Criar Tipo de Recorde</div>
 
           {/* Escopo geográfico */}
           <div style={{ marginBottom:12 }}>
@@ -554,9 +555,9 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                 <button key={esc.id} onClick={() => setNovoTipo({ ...novoTipo, escopo: esc.id })}
                   style={{
                     padding:"8px 14px", borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:600,
-                    border: novoTipo.escopo === esc.id ? "2px solid #1976D2" : "1px solid #2a2a3a",
-                    background: novoTipo.escopo === esc.id ? "#0a1a2a" : "#111",
-                    color: novoTipo.escopo === esc.id ? "#1976D2" : "#888",
+                    border: novoTipo.escopo === esc.id ? `2px solid ${t.accent}` : `1px solid ${t.borderLight}`,
+                    background: novoTipo.escopo === esc.id ? t.accentBg : t.bgCardAlt,
+                    color: novoTipo.escopo === esc.id ? t.accent : t.textMuted,
                   }}>
                   {esc.label}
                 </button>
@@ -648,10 +649,10 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
             const eb = escopoOrdem.indexOf(grupoMeta[b].escopo);
             return ea - eb || a.localeCompare(b);
           });
-          if (chaves.length === 0) return <p style={{ color:"#555", fontSize:13 }}>Nenhum tipo de recorde cadastrado.{isAdmin ? " Clique em '+ Novo Tipo' para começar." : ""}</p>;
+          if (chaves.length === 0) return <p style={{ color:t.textDimmed, fontSize:13 }}>Nenhum tipo de recorde cadastrado.{isAdmin ? " Clique em '+ Novo Tipo' para começar." : ""}</p>;
           return chaves.map(key => (
             <div key={key} style={{ marginBottom:10 }}>
-              <div style={{ color:"#555", fontSize:11, fontWeight:700, marginBottom:5, textTransform:"uppercase", letterSpacing:1 }}>
+              <div style={{ color:t.textDimmed, fontSize:11, fontWeight:700, marginBottom:5, textTransform:"uppercase", letterSpacing:1 }}>
                 {escopoIcons[grupoMeta[key].escopo] || "📋"} {grupoMeta[key].label}
               </div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
@@ -659,13 +660,13 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                   <button key={tipo.id}
                     style={{
                       padding:"8px 16px", borderRadius:8, fontSize:13, cursor:"pointer", fontWeight:600,
-                      border: tipoSel === tipo.id ? "2px solid #1976D2" : "1px solid #2a2a3a",
-                      background: tipoSel === tipo.id ? "#0a1a2a" : "#111",
-                      color: tipoSel === tipo.id ? "#1976D2" : "#888",
+                      border: tipoSel === tipo.id ? `2px solid ${t.accent}` : `1px solid ${t.borderLight}`,
+                      background: tipoSel === tipo.id ? t.accentBg : t.bgCardAlt,
+                      color: tipoSel === tipo.id ? t.accent : t.textMuted,
                     }}
                     onClick={async () => { setTipoSel(tipo.id); setEditReg(null); setImportPreview(null); }}
                   >
-                    {tipo.nome} <span style={{ fontSize:10, color:"#555", marginLeft:4 }}>({tipo.sigla} · {tipo.registros.length})</span>
+                    {tipo.nome} <span style={{ fontSize:10, color:t.textDimmed, marginLeft:4 }}>({tipo.sigla} · {tipo.registros.length})</span>
                   </button>
                 ))}
               </div>
@@ -707,23 +708,23 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                 </div>
               ) : (
                 <div>
-                  <span style={{ color:"#1976D2", fontWeight:800, fontSize:18 }}>{tipoAtivo.nome}</span>
-                  <span style={{ color:"#555", fontSize:12, marginLeft:8 }}>({tipoAtivo.sigla})</span>
+                  <span style={{ color:t.accent, fontWeight:800, fontSize:18 }}>{tipoAtivo.nome}</span>
+                  <span style={{ color:t.textDimmed, fontSize:12, marginLeft:8 }}>({tipoAtivo.sigla})</span>
                   <span style={{ fontSize:10, marginLeft:10, padding:"2px 8px", borderRadius:10,
-                    background: (tipoAtivo.escopo||"estado") === "mundial" ? "#1a1a2a" : (tipoAtivo.escopo||"estado") === "pais" ? "#1a2a1a" : "#2a1a0a",
-                    color: (tipoAtivo.escopo||"estado") === "mundial" ? "#6ab4ff" : (tipoAtivo.escopo||"estado") === "pais" ? "#7cfc7c" : "#ffaa44",
-                    border: "1px solid #333"
+                    background: t.accentBg,
+                    color: (tipoAtivo.escopo||"estado") === "mundial" ? t.accent : (tipoAtivo.escopo||"estado") === "pais" ? t.success : t.warning,
+                    border: `1px solid ${t.border}`
                   }}>
                     {(tipoAtivo.escopo||"estado") === "mundial" ? "🌍 Mundial"
                       : (tipoAtivo.escopo||"estado") === "pais" ? `🏳️ ${tipoAtivo.pais || "País"}`
                       : (tipoAtivo.escopo||"estado") === "municipio" ? `🏙️ ${tipoAtivo.municipio || ""}, ${tipoAtivo.estado || ""}`
                       : `📍 ${tipoAtivo.estado || "Estado"}`}
                   </span>
-                  {isAdmin && <button style={{ background:"none", border:"none", color:"#555", cursor:"pointer", marginLeft:8, fontSize:12 }}
+                  {isAdmin && <button style={{ background:"none", border:"none", color:t.textDimmed, cursor:"pointer", marginLeft:8, fontSize:12 }}
                     onClick={() => setEditTipoId(tipoAtivo.id)}>✏️</button>}
                 </div>
               )}
-              <div style={{ color:"#666", fontSize:12, marginTop:2 }}>{tipoAtivo.registros.length} registros</div>
+              <div style={{ color:t.textDimmed, fontSize:12, marginTop:2 }}>{tipoAtivo.registros.length} registros</div>
             </div>
             {isAdmin && (
               <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
@@ -735,7 +736,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                   📥 Importar Planilha
                   <input type="file" accept=".xlsx,.xls,.csv" style={{ display:"none" }} onChange={handleImport} />
                 </label>
-                <button style={{ ...s.btnGhost, fontSize:11, color:"#6ab4ff", borderColor:"#1a2a4a" }}
+                <button style={{ ...s.btnGhost, fontSize:11, color: t.accent, borderColor: t.accentBorder }}
                   onClick={async () => {
                     try {
                       const XLSX = await import("https://cdn.sheetjs.com/xlsx-0.20.0/package/xlsx.mjs");
@@ -750,10 +751,10 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                         return (ia===-1?99:ia) - (ib===-1?99:ib) || a.localeCompare(b);
                       });
                       // Coletar tipos de recorde cadastrados
-                      const tiposCadastrados = recordes.map(t => ({
-                        sigla: t.sigla, nome: t.nome,
-                        escopo: t.escopo || "estado",
-                        geo: t.escopo === "mundial" ? "Mundial" : t.escopo === "pais" ? (t.pais || "Brasil") : t.escopo === "municipio" ? `${t.municipio}, ${t.estado}` : (t.estado || "?"),
+                      const tiposCadastrados = recordes.map(tipo => ({
+                        sigla: tipo.sigla, nome: tipo.nome,
+                        escopo: tipo.escopo || "estado",
+                        geo: tipo.escopo === "mundial" ? "Mundial" : tipo.escopo === "pais" ? (tipo.pais || "Brasil") : tipo.escopo === "municipio" ? `${tipo.municipio}, ${tipo.estado}` : (tipo.estado || "?"),
                       }));
                       // Aba 1: Modelo para preenchimento
                       const header = ["Tipo Recorde (sigla)","Prova","Categoria","Sexo","Marca","Atleta","Equipe","Ano","Local","Atletas (revezamento)"];
@@ -781,7 +782,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                       ws2["!cols"] = [{wch:35},{wch:16},{wch:16}];
                       // Aba 3: Tipos de recorde cadastrados
                       const tiposData = [["Sigla (usar na coluna 'Tipo Recorde')","Nome Completo","Escopo","Abrangência"]];
-                      tiposCadastrados.forEach(t => { tiposData.push([t.sigla, t.nome, t.escopo, t.geo]); });
+                      tiposCadastrados.forEach(tipo => { tiposData.push([tipo.sigla, tipo.nome, tipo.escopo, tipo.geo]); });
                       if (tiposCadastrados.length === 0) tiposData.push(["(nenhum tipo cadastrado)","","",""]);
                       const ws3t = XLSX.utils.aoa_to_sheet(tiposData);
                       ws3t["!cols"] = [{wch:35},{wch:30},{wch:14},{wch:20}];
@@ -820,7 +821,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                   }}>
                   📋 Baixar Modelo
                 </button>
-                <button style={{ ...s.btnGhost, fontSize:11, color:"#ff6b6b", borderColor:"#4a1a1a" }}
+                <button style={{ ...s.btnGhost, fontSize:11, color:t.danger, borderColor:`${t.danger}44` }}
                   onClick={() => excluirTipo(tipoAtivo.id)}>🗑 Excluir Tipo</button>
               </div>
             )}
@@ -837,100 +838,100 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
             const tipoDesconhecido = classificados.filter(r => r._status === "tipo_desconhecido").length;
             const paraImportar = incluir + atualizar;
             return (
-            <div style={{ ...S.card, border:"2px solid #1976D2" }}>
-              <div style={{ color:"#1976D2", fontWeight:700, fontSize:14, marginBottom:4 }}>📥 Preview da importação — {importPreview.length} registros</div>
-              <div style={{ fontSize:10, color:"#888", marginBottom:8, lineHeight:1.6 }}>
-                Somente provas com nome <strong style={{color:"#aaa"}}>exato</strong> do site serão reconhecidas. Marcas normalizadas (vírgulas → pontos, min:seg → segundos).
+            <div style={{ ...S.card, border:`2px solid ${t.accent}` }}>
+              <div style={{ color:t.accent, fontWeight:700, fontSize:14, marginBottom:4 }}>📥 Preview da importação — {importPreview.length} registros</div>
+              <div style={{ fontSize:10, color:t.textMuted, marginBottom:8, lineHeight:1.6 }}>
+                Somente provas com nome <strong style={{color:t.textTertiary}}>exato</strong> do site serão reconhecidas. Marcas normalizadas (vírgulas → pontos, min:seg → segundos).
               </div>
               <div style={{ display:"flex", gap:10, marginBottom:10, flexWrap:"wrap" }}>
-                {incluir > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background:"#0a1a2a", color:"#6ab4ff", fontWeight:600 }}>🆕 {incluir} novos</span>}
-                {atualizar > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background:"#0a1a2a", color:"#ffd700", fontWeight:600 }}>⬆️ {atualizar} atualizados</span>}
-                {inferiores > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background:"#1a0a0a", color:"#ff6b6b", fontWeight:600 }}>⬇️ {inferiores} inferiores</span>}
-                {naoEncontradas > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background:"#1a0a1a", color:"#ff44ff", fontWeight:600 }}>❌ {naoEncontradas} não encontradas</span>}
-                {outroTipo > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background:"#0a1a1a", color:"#44dddd", fontWeight:600 }}>🔄 {outroTipo} em outro tipo</span>}
-                {tipoDesconhecido > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background:"#1a1a0a", color:"#ff8844", fontWeight:600 }}>⚠️ {tipoDesconhecido} tipo não encontrado</span>}
+                {incluir > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background: t.accentBg, color: t.accent, fontWeight:600 }}>🆕 {incluir} novos</span>}
+                {atualizar > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background: t.accentBg, color: t.gold, fontWeight:600 }}>⬆️ {atualizar} atualizados</span>}
+                {inferiores > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background: t.bgCardAlt, color: t.danger, fontWeight:600 }}>⬇️ {inferiores} inferiores</span>}
+                {naoEncontradas > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background: t.bgCardAlt, color:"#ff44ff", fontWeight:600 }}>❌ {naoEncontradas} não encontradas</span>}
+                {outroTipo > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background: t.bgCardAlt, color:"#44dddd", fontWeight:600 }}>🔄 {outroTipo} em outro tipo</span>}
+                {tipoDesconhecido > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background: t.bgCardAlt, color: t.warning, fontWeight:600 }}>⚠️ {tipoDesconhecido} tipo não encontrado</span>}
               </div>
               <div style={{ maxHeight:400, overflowY:"auto", marginBottom:10 }}>
                 <table style={{ width:"100%", borderCollapse:"collapse", fontSize:11 }}>
                   <thead>
                     <tr style={{ borderBottom:"2px solid #2a3050" }}>
-                      <th style={{ padding:"4px 4px", color:"#888", fontSize:9, width:24 }}></th>
-                      <th style={{ padding:"4px 6px", color:"#888", textAlign:"left", fontSize:10 }}>Tipo</th>
-                      <th style={{ padding:"4px 6px", color:"#888", textAlign:"left", fontSize:10 }}>Prova (planilha)</th>
-                      <th style={{ padding:"4px 6px", color:"#888", fontSize:10 }}>Cat.</th>
-                      <th style={{ padding:"4px 6px", color:"#888", fontSize:10 }}>Sexo</th>
-                      <th style={{ padding:"4px 6px", color:"#1976D2", fontSize:10 }}>Marca</th>
-                      <th style={{ padding:"4px 6px", color:"#888", fontSize:10 }}>Rec. Atual</th>
-                      <th style={{ padding:"4px 6px", color:"#888", textAlign:"left", fontSize:10 }}>Atleta</th>
-                      <th style={{ padding:"4px 6px", color:"#888", textAlign:"left", fontSize:10 }}>Equipe</th>
-                      <th style={{ padding:"4px 6px", color:"#888", fontSize:10 }}>Ano</th>
-                      <th style={{ padding:"4px 6px", color:"#888", textAlign:"left", fontSize:10 }}>Info</th>
+                      <th style={{ padding:"4px 4px", color:t.textMuted, fontSize:9, width:24 }}></th>
+                      <th style={{ padding:"4px 6px", color:t.textMuted, textAlign:"left", fontSize:10 }}>Tipo</th>
+                      <th style={{ padding:"4px 6px", color:t.textMuted, textAlign:"left", fontSize:10 }}>Prova (planilha)</th>
+                      <th style={{ padding:"4px 6px", color:t.textMuted, fontSize:10 }}>Cat.</th>
+                      <th style={{ padding:"4px 6px", color:t.textMuted, fontSize:10 }}>Sexo</th>
+                      <th style={{ padding:"4px 6px", color:t.accent, fontSize:10 }}>Marca</th>
+                      <th style={{ padding:"4px 6px", color:t.textMuted, fontSize:10 }}>Rec. Atual</th>
+                      <th style={{ padding:"4px 6px", color:t.textMuted, textAlign:"left", fontSize:10 }}>Atleta</th>
+                      <th style={{ padding:"4px 6px", color:t.textMuted, textAlign:"left", fontSize:10 }}>Equipe</th>
+                      <th style={{ padding:"4px 6px", color:t.textMuted, fontSize:10 }}>Ano</th>
+                      <th style={{ padding:"4px 6px", color:t.textMuted, textAlign:"left", fontSize:10 }}>Info</th>
                     </tr>
                   </thead>
                   <tbody>
                     {classificados.map((r, idx) => {
                       const catObj = CATEGORIAS.find(c => c.id === r.categoriaId);
                       const sc = {
-                        incluir:          { icon: "🆕", color: "#6ab4ff", bg: "#0a1020" },
-                        atualizar:        { icon: "⬆️", color: "#ffd700", bg: "#0a1a2a" },
-                        inferior:         { icon: "⬇️", color: "#ff6b6b", bg: "#1a0a0a" },
-                        nao_encontrada:   { icon: "❌", color: "#ff44ff", bg: "#1a0a1a" },
-                        outro_tipo:       { icon: "🔄", color: "#44dddd", bg: "#0a1a1a" },
-                        tipo_desconhecido:{ icon: "⚠️", color: "#ff8844", bg: "#1a1a0a" },
-                      }[r._status] || { icon: "?", color: "#888", bg: "transparent" };
+                        incluir:          { icon: "🆕", color: t.accent, bg: t.accentBg },
+                        atualizar:        { icon: "⬆️", color: t.gold, bg: t.accentBg },
+                        inferior:         { icon: "⬇️", color: t.danger, bg: t.bgCardAlt },
+                        nao_encontrada:   { icon: "❌", color: "#ff44ff", bg: t.bgCardAlt },
+                        outro_tipo:       { icon: "🔄", color: "#44dddd", bg: t.bgCardAlt },
+                        tipo_desconhecido:{ icon: "⚠️", color: t.warning, bg: t.bgCardAlt },
+                      }[r._status] || { icon: "?", color: t.textMuted, bg: "transparent" };
                       const isExcluido = r._status === "inferior" || r._status === "nao_encontrada" || r._status === "outro_tipo" || r._status === "tipo_desconhecido";
-                      const tipoAlvo = r.tipoRecordeId ? recordes.find(t => t.id === r.tipoRecordeId) : null;
+                      const tipoAlvo = r.tipoRecordeId ? recordes.find(tipo => tipo.id === r.tipoRecordeId) : null;
                       return (
-                        <tr key={idx} style={{ borderBottom:"1px solid #1a1d2a", background: sc.bg, opacity: isExcluido ? 0.5 : 1 }}>
+                        <tr key={idx} style={{ borderBottom:`1px solid ${t.border}`, background: sc.bg, opacity: isExcluido ? 0.5 : 1 }}>
                           <td style={{ padding:"3px 4px", textAlign:"center" }}>
                             <span style={{ fontSize:11 }}>{sc.icon}</span>
                           </td>
                           <td style={{ padding:"3px 6px", fontSize:10 }}>
                             {tipoAlvo ? (
-                              <span style={{ color:"#6ab4ff", fontWeight:600 }}>{tipoAlvo.sigla}</span>
+                              <span style={{ color: t.accent, fontWeight:600 }}>{tipoAlvo.sigla}</span>
                             ) : r._raw?.tipoRecorde ? (
-                              <span style={{ color:"#ff8844" }}>⚠ {r._raw.tipoRecorde}</span>
+                              <span style={{ color: t.warning }}>⚠ {r._raw.tipoRecorde}</span>
                             ) : (
-                              <span style={{ color:"#555" }}>{tipoAtivo?.sigla || "—"}</span>
+                              <span style={{ color:t.textDimmed }}>{tipoAtivo?.sigla || "—"}</span>
                             )}
                           </td>
                           <td style={{ padding:"3px 6px" }}>
-                            <span style={{ color: r._matched ? "#fff" : sc.color, fontWeight: r._matched ? 500 : 400 }}>
+                            <span style={{ color: r._matched ? t.textPrimary : sc.color, fontWeight: r._matched ? 500 : 400 }}>
                               {r._raw?.prova || r.provaNome}
                             </span>
                             {r._matched && r.provaNome !== r._raw?.prova && (
-                              <span style={{ color:"#7cfc7c", fontSize:9, marginLeft:4 }}>→ {r.provaNome}</span>
+                              <span style={{ color: t.success, fontSize:9, marginLeft:4 }}>→ {r.provaNome}</span>
                             )}
                           </td>
-                          <td style={{ padding:"3px 6px", textAlign:"center", color:"#aaa", fontSize:10 }}>{catObj ? catObj.nome : r.categoriaId}</td>
+                          <td style={{ padding:"3px 6px", textAlign:"center", color:t.textTertiary, fontSize:10 }}>{catObj ? catObj.nome : r.categoriaId}</td>
                           <td style={{ padding:"3px 6px", textAlign:"center", color: r.sexo === "M" ? "#1a6ef5" : "#e54f9b", fontWeight:600 }}>{r.sexo}</td>
-                          <td style={{ padding:"3px 6px", fontWeight:700, textAlign:"center", color: r._status === "inferior" ? "#ff6b6b" : "#1976D2" }}>
+                          <td style={{ padding:"3px 6px", fontWeight:700, textAlign:"center", color: r._status === "inferior" ? t.danger : t.accent }}>
                             {formatarMarca(r.marca, r.unidade, 3)}
-                            {r._raw?.marca && <div style={{ color:"#555", fontSize:8, fontWeight:400 }}>← {r._raw.marca}</div>}
+                            {r._raw?.marca && <div style={{ color:t.textDimmed, fontSize:8, fontWeight:400 }}>← {r._raw.marca}</div>}
                           </td>
                           <td style={{ padding:"3px 6px", textAlign:"center", fontSize:10 }}>
                             {r._existente ? (
                               <span>
                                 <span style={{ fontWeight:700, color: r._status === "inferior" ? "#7cfc7c" : "#ff8844" }}>{formatarMarca(r._existente.marca, r._existente.unidade || r.unidade, 3)}</span>
-                                <div style={{ fontSize:8, color:"#555" }}>{RecordHelper.getAtletaTexto(r._existente)} ({RecordHelper.getAnoTexto(r._existente)})</div>
+                                <div style={{ fontSize:8, color:t.textDimmed }}>{RecordHelper.getAtletaTexto(r._existente)} ({RecordHelper.getAnoTexto(r._existente)})</div>
                               </span>
-                            ) : <span style={{ color:"#333" }}>—</span>}
+                            ) : <span style={{ color: t.textDisabled }}>—</span>}
                           </td>
-                          <td style={{ padding:"3px 6px", color:"#fff", fontSize:10 }}>{r.atleta}</td>
-                          <td style={{ padding:"3px 6px", color:"#888", fontSize:10 }}>{r.equipe}</td>
-                          <td style={{ padding:"3px 6px", color:"#888", textAlign:"center", fontSize:10 }}>{r.ano}</td>
+                          <td style={{ padding:"3px 6px", color:t.textPrimary, fontSize:10 }}>{r.atleta}</td>
+                          <td style={{ padding:"3px 6px", color:t.textMuted, fontSize:10 }}>{r.equipe}</td>
+                          <td style={{ padding:"3px 6px", color:t.textMuted, textAlign:"center", fontSize:10 }}>{r.ano}</td>
                           <td style={{ padding:"3px 6px", fontSize:9, minWidth:140 }}>
-                            {r._status === "incluir" && <span style={{ color:"#6ab4ff" }}>{r._fixedManually ? "✅ Corrigido" : "Será incluído"}</span>}
-                            {r._status === "atualizar" && <span style={{ color:"#ffd700" }}>Supera recorde atual</span>}
-                            {r._status === "inferior" && <span style={{ color:"#ff6b6b" }}>Recorde atual é melhor</span>}
-                            {r._status === "tipo_desconhecido" && <span style={{ color:"#ff8844" }}>Tipo "{r._raw?.tipoRecorde}" não cadastrado</span>}
+                            {r._status === "incluir" && <span style={{ color: t.accent }}>{r._fixedManually ? "✅ Corrigido" : "Será incluído"}</span>}
+                            {r._status === "atualizar" && <span style={{ color: t.gold }}>Supera recorde atual</span>}
+                            {r._status === "inferior" && <span style={{ color: t.danger }}>Recorde atual é melhor</span>}
+                            {r._status === "tipo_desconhecido" && <span style={{ color: t.warning }}>Tipo "{r._raw?.tipoRecorde}" não cadastrado</span>}
                             {(r._status === "nao_encontrada" || r._status === "outro_tipo") && (
                               <div>
                                 <div style={{ color: r._status === "nao_encontrada" ? "#ff44ff" : "#44dddd", marginBottom:3 }}>
                                   {r._status === "nao_encontrada" ? "Prova não encontrada" : `Existe em "${r._outroSigla}"`}
                                 </div>
                                 <select
-                                  style={{ fontSize:9, padding:"2px 4px", background:"#1a1c22", color:"#1976D2", border:"1px solid #3a3a5a", borderRadius:3, width:"100%", cursor:"pointer" }}
+                                  style={{ fontSize:9, padding:"2px 4px", background:t.bgInput, color:t.accent, border:`1px solid ${t.borderInput}`, borderRadius:3, width:"100%", cursor:"pointer" }}
                                   value=""
                                   onChange={(e) => { if (e.target.value) fixPreviewProva(idx, e.target.value); }}
                                 >
@@ -953,12 +954,12 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                 </table>
               </div>
               {naoEncontradas > 0 && (
-                <div style={{ fontSize:10, color:"#ff44ff", marginBottom:8, padding:"6px 10px", background:"#1a0a1a", borderRadius:4, lineHeight:1.5 }}>
+                <div style={{ fontSize:10, color:"#ff44ff", marginBottom:8, padding:"6px 10px", background: t.bgCardAlt, borderRadius:4, lineHeight:1.5 }}>
                   ❌ <strong>{naoEncontradas} registro(s)</strong> com nome de prova não reconhecido. Use o nome exato do site (ex: "100m Rasos", "3.000m Obstáculos", "Salto em Distância").
                 </div>
               )}
               {outroTipo > 0 && (
-                <div style={{ fontSize:10, color:"#44dddd", marginBottom:8, padding:"6px 10px", background:"#0a1a1a", borderRadius:4, lineHeight:1.5 }}>
+                <div style={{ fontSize:10, color:"#44dddd", marginBottom:8, padding:"6px 10px", background: t.bgCardAlt, borderRadius:4, lineHeight:1.5 }}>
                   🔄 <strong>{outroTipo} registro(s)</strong> não reconhecidos aqui, mas existem em outro tipo de recorde. Considere importar nesse outro tipo.
                 </div>
               )}
@@ -968,7 +969,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                 </button>
                 <button style={s.btnGhost} onClick={() => setImportPreview(null)}>Cancelar</button>
                 {(inferiores + naoEncontradas + outroTipo) > 0 && (
-                  <span style={{ fontSize:10, color:"#888" }}>
+                  <span style={{ fontSize:10, color:t.textMuted }}>
                     ({inferiores + naoEncontradas + outroTipo} não serão importados)
                   </span>
                 )}
@@ -980,7 +981,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
           {/* Formulário de edição de registro */}
           {editReg && isAdmin && (
             <div style={{ ...S.card, border:"2px solid #4a8aff" }}>
-              <div style={{ color:"#6ab4ff", fontWeight:700, fontSize:13, marginBottom:10 }}>{editReg.id ? "Editar Registro" : "Novo Registro"}</div>
+              <div style={{ color:t.accent, fontWeight:700, fontSize:13, marginBottom:10 }}>{editReg.id ? "Editar Registro" : "Novo Registro"}</div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
                 {[
                   ["categoriaId", "Categoria", 120], ["sexo", "Sexo", 50], ["provaNome", "Prova", 150],
@@ -988,13 +989,13 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                   ["ano", "Ano", 60], ["local", "Local", 160],
                 ].map(([campo, label, w]) => (
                   <div key={campo}>
-                    <label style={{ fontSize:10, color:"#888", display:"block" }}>{label}</label>
+                    <label style={{ fontSize:10, color:t.textMuted, display:"block" }}>{label}</label>
                     {campo === "sexo" ? (
                       <select style={{ ...S.inputSm, width: w }} value={editReg.sexo} onChange={e => setEditReg({ ...editReg, sexo: e.target.value })}>
                         <option value="M">M</option><option value="F">F</option>
                       </select>
                     ) : (
-                      <input style={{ ...S.inputSm, width: w, color: campo === "marca" ? "#1976D2" : "#ccc" }}
+                      <input style={{ ...S.inputSm, width: w, color: campo === "marca" ? t.accent : t.textSecondary }}
                         value={editReg[campo] || ""} placeholder={label}
                         onChange={e => setEditReg({ ...editReg, [campo]: e.target.value })} />
                     )}
@@ -1008,11 +1009,11 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                 if (!isRevez) return null;
                 const atlRevez = editReg.atletasRevezamento || ["", "", "", ""];
                 return (
-                  <div style={{ marginTop:8, padding:"8px 10px", background:"#0d0e14", borderRadius:6, border:"1px solid #1a2a3a" }}>
-                    <label style={{ fontSize:10, color:"#1976D2", display:"block", marginBottom:4, fontWeight:700 }}>🏃 Atletas do Revezamento</label>
+                  <div style={{ marginTop:8, padding:"8px 10px", background:t.bgHeaderSolid, borderRadius:6, border:`1px solid ${t.border}` }}>
+                    <label style={{ fontSize:10, color:t.accent, display:"block", marginBottom:4, fontWeight:700 }}>🏃 Atletas do Revezamento</label>
                     <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
                       {[0,1,2,3].map(i => (
-                        <input key={i} style={{ ...S.inputSm, width:160, color:"#ccc" }}
+                        <input key={i} style={{ ...S.inputSm, width:160, color:t.textSecondary }}
                           placeholder={`${i+1}º Atleta`}
                           value={atlRevez[i] || ""}
                           onChange={e => {
@@ -1036,38 +1037,38 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
           {/* Filtros */}
           <div style={{ display:"flex", gap:10, marginBottom:12, alignItems:"center" }}>
             <div>
-              <label style={{ fontSize:10, color:"#888" }}>Categoria:</label>
+              <label style={{ fontSize:10, color:t.textMuted }}>Categoria:</label>
               <select style={{ ...S.inputSm, marginLeft:4, width:120 }} value={filtroCategoria} onChange={e => setFiltroCategoria(e.target.value)}>
                 <option value="todas">Todas</option>
                 {categoriasUnicas.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div>
-              <label style={{ fontSize:10, color:"#888" }}>Sexo:</label>
+              <label style={{ fontSize:10, color:t.textMuted }}>Sexo:</label>
               <select style={{ ...S.inputSm, marginLeft:4, width:80 }} value={filtroSexo} onChange={e => setFiltroSexo(e.target.value)}>
                 <option value="todos">Todos</option>
                 <option value="M">M</option>
                 <option value="F">F</option>
               </select>
             </div>
-            <span style={{ color:"#555", fontSize:11 }}>{registrosFiltrados.length} registros</span>
+            <span style={{ color:t.textDimmed, fontSize:11 }}>{registrosFiltrados.length} registros</span>
           </div>
 
           {/* Tabela de registros */}
           <div style={{ overflowX:"auto" }}>
             <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
               <thead>
-                <tr style={{ borderBottom:"2px solid #2a3050", background:"#0a0b10" }}>
-                  <th style={{ padding:"8px 10px", textAlign:"left", color:"#888", fontSize:10 }}>Prova</th>
-                  <th style={{ padding:"8px 6px", color:"#888", fontSize:10 }}>Cat.</th>
-                  <th style={{ padding:"8px 6px", color:"#888", fontSize:10 }}>Sexo</th>
-                  <th style={{ padding:"8px 10px", color:"#1976D2", fontSize:10 }}>Marca</th>
-                  <th style={{ padding:"8px 10px", textAlign:"left", color:"#888", fontSize:10 }}>Atleta</th>
-                  <th style={{ padding:"8px 10px", textAlign:"left", color:"#888", fontSize:10 }}>Equipe</th>
-                  <th style={{ padding:"8px 6px", color:"#888", fontSize:10 }}>Ano</th>
-                  <th style={{ padding:"8px 10px", textAlign:"left", color:"#888", fontSize:10 }}>Local</th>
-                  {isAdmin && <th style={{ padding:"8px 6px", color:"#888", fontSize:10 }}>Fonte</th>}
-                  {isAdmin && <th style={{ padding:"8px 6px", color:"#888", fontSize:10 }}>Ações</th>}
+                <tr style={{ borderBottom:`2px solid ${t.border}`, background:t.bgHeaderSolid }}>
+                  <th style={{ padding:"8px 10px", textAlign:"left", color:t.textMuted, fontSize:10 }}>Prova</th>
+                  <th style={{ padding:"8px 6px", color:t.textMuted, fontSize:10 }}>Cat.</th>
+                  <th style={{ padding:"8px 6px", color:t.textMuted, fontSize:10 }}>Sexo</th>
+                  <th style={{ padding:"8px 10px", color:t.accent, fontSize:10 }}>Marca</th>
+                  <th style={{ padding:"8px 10px", textAlign:"left", color:t.textMuted, fontSize:10 }}>Atleta</th>
+                  <th style={{ padding:"8px 10px", textAlign:"left", color:t.textMuted, fontSize:10 }}>Equipe</th>
+                  <th style={{ padding:"8px 6px", color:t.textMuted, fontSize:10 }}>Ano</th>
+                  <th style={{ padding:"8px 10px", textAlign:"left", color:t.textMuted, fontSize:10 }}>Local</th>
+                  {isAdmin && <th style={{ padding:"8px 6px", color:t.textMuted, fontSize:10 }}>Fonte</th>}
+                  {isAdmin && <th style={{ padding:"8px 6px", color:t.textMuted, fontSize:10 }}>Ações</th>}
                 </tr>
               </thead>
               <tbody>
@@ -1075,68 +1076,68 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                   const catObj = CATEGORIAS.find(c => c.id === r.categoriaId);
                   return (
                   <React.Fragment key={r.id || idx}>
-                  <tr style={{ borderBottom: r.marcasComponentes ? "none" : "1px solid #1a1d2a", background: idx % 2 === 0 ? "transparent" : "#0a0b1099" }}>
-                    <td style={{ padding:"6px 10px", color:"#fff", fontWeight:500 }}>
+                  <tr style={{ borderBottom: r.marcasComponentes ? "none" : `1px solid ${t.border}`, background: idx % 2 === 0 ? "transparent" : t.bgCardAlt }}>
+                    <td style={{ padding:"6px 10px", color:t.textPrimary, fontWeight:500 }}>
                       {r.provaNome}
-                      {r.unidade === "pts" && <span style={{ fontSize:9, color:"#1976D2", marginLeft:4 }}>(pts)</span>}
+                      {r.unidade === "pts" && <span style={{ fontSize:9, color:t.accent, marginLeft:4 }}>(pts)</span>}
                     </td>
-                    <td style={{ padding:"6px 6px", color:"#aaa", textAlign:"center" }}>{catObj ? catObj.nome : r.categoriaId}</td>
+                    <td style={{ padding:"6px 6px", color:t.textTertiary, textAlign:"center" }}>{catObj ? catObj.nome : r.categoriaId}</td>
                     <td style={{ padding:"6px 6px", textAlign:"center" }}>
                       <span style={{ color: r.sexo === "M" ? "#1a6ef5" : "#e54f9b", fontWeight:600 }}>{r.sexo}</span>
                     </td>
-                    <td style={{ padding:"6px 10px", color:"#1976D2", fontWeight:700, textAlign:"center", fontSize:14 }}>{r.unidade === "pts" ? r.marca + " pts" : formatarMarca(r.marca, r.unidade, 3)}</td>
-                    <td style={{ padding:"6px 10px", color:"#fff" }}>
+                    <td style={{ padding:"6px 10px", color:t.accent, fontWeight:700, textAlign:"center", fontSize:14 }}>{r.unidade === "pts" ? r.marca + " pts" : formatarMarca(r.marca, r.unidade, 3)}</td>
+                    <td style={{ padding:"6px 10px", color:t.textPrimary }}>
                       {(() => {
                         const dets = RecordHelper.getDetentores(r);
                         if (dets.length === 0) return "—";
                         return dets.map((d, di) => (
-                          <div key={di} style={di > 0 ? { borderTop:"1px dashed #2a2a3a", paddingTop:3, marginTop:3 } : {}}>
+                          <div key={di} style={di > 0 ? { borderTop:`1px dashed ${t.borderLight}`, paddingTop:3, marginTop:3 } : {}}>
                             {d.atletasRevezamento && d.atletasRevezamento.filter(Boolean).length > 0 ? (
-                              <span style={{ fontSize:11, color:"#aaa" }}>{d.atletasRevezamento.filter(Boolean).join(" · ")}</span>
+                              <span style={{ fontSize:11, color:t.textTertiary }}>{d.atletasRevezamento.filter(Boolean).join(" · ")}</span>
                             ) : (d.atleta || "—")}
                           </div>
                         ));
                       })()}
                       {RecordHelper.getDetentores(r).length > 1 && (
-                        <span style={{ fontSize:9, color:"#ffaa44", marginLeft:4 }}>({RecordHelper.getDetentores(r).length} co-detentores)</span>
+                        <span style={{ fontSize:9, color: t.warning, marginLeft:4 }}>({RecordHelper.getDetentores(r).length} co-detentores)</span>
                       )}
                     </td>
-                    <td style={{ padding:"6px 10px", color:"#888" }}>{RecordHelper.getEquipeTexto(r)}</td>
-                    <td style={{ padding:"6px 6px", color:"#888", textAlign:"center" }}>{RecordHelper.getAnoTexto(r)}</td>
-                    <td style={{ padding:"6px 10px", color:"#888" }}>{RecordHelper.getLocalTexto(r)}</td>
+                    <td style={{ padding:"6px 10px", color:t.textMuted }}>{RecordHelper.getEquipeTexto(r)}</td>
+                    <td style={{ padding:"6px 6px", color:t.textMuted, textAlign:"center" }}>{RecordHelper.getAnoTexto(r)}</td>
+                    <td style={{ padding:"6px 10px", color:t.textMuted }}>{RecordHelper.getLocalTexto(r)}</td>
                     {isAdmin && (
                       <td style={{ padding:"6px 6px", textAlign:"center" }}>
                         <span style={{ fontSize:9, padding:"2px 6px", borderRadius:3, fontWeight:600,
-                          background: r.fonte === "auto" ? "#0a1a0a" : "#1a1a0a",
-                          color: r.fonte === "auto" ? "#7cfc7c" : "#888",
+                          background: r.fonte === "auto" ? `${t.success}15` : t.bgCardAlt,
+                          color: r.fonte === "auto" ? "#7cfc7c" : t.textMuted,
                         }}>{r.fonte === "auto" ? "Auto" : "Manual"}</span>
                       </td>
                     )}
                     {isAdmin && (
                       <td style={{ padding:"6px 6px", textAlign:"center" }}>
-                        <button style={{ background:"none", border:"none", color:"#6ab4ff", cursor:"pointer", fontSize:11, marginRight:4 }}
+                        <button style={{ background:"none", border:"none", color:t.accent, cursor:"pointer", fontSize:11, marginRight:4 }}
                           onClick={async () => {
                             const d = RecordHelper.getPrimeiro(r);
                             setEditReg({ ...r, atleta: d.atleta, equipe: d.equipe, atletaId: d.atletaId, ano: d.ano, local: d.local,
                               competicaoId: d.competicaoId, competicaoNome: d.competicaoNome, atletasRevezamento: d.atletasRevezamento,
                               _coDetentores: (RecordHelper.getDetentores(r).length > 1) ? RecordHelper.getDetentores(r).slice(1) : null });
                           }}>✏️</button>
-                        <button style={{ background:"none", border:"none", color:"#ff6b6b", cursor:"pointer", fontSize:11 }}
+                        <button style={{ background:"none", border:"none", color:t.danger, cursor:"pointer", fontSize:11 }}
                           onClick={() => excluirRegistro(r.id)}>🗑</button>
                       </td>
                     )}
                   </tr>
                   {r.marcasComponentes && Object.keys(r.marcasComponentes).length > 0 && (
-                    <tr style={{ borderBottom:"1px solid #1a1d2a", background: idx % 2 === 0 ? "#0a0d14" : "#0a0b1099" }}>
+                    <tr style={{ borderBottom:`1px solid ${t.border}`, background: idx % 2 === 0 ? t.bgHeaderSolid : `${t.bgCardAlt}99` }}>
                       <td colSpan={isAdmin ? 10 : 9} style={{ padding:"2px 10px 6px 30px" }}>
-                        <span style={{ fontSize:9, color:"#888" }}>
+                        <span style={{ fontSize:9, color:t.textMuted }}>
                           {Object.entries(r.marcasComponentes).map(([nome, m], ci) => {
                             const compProva = _allProvas.find(p => p.nome === nome);
                             const compUnid = compProva?.unidade || (parseFloat(m) > 30 ? "s" : "m");
                             return (
                             <span key={ci}>
                               {ci > 0 && " · "}
-                              <span style={{ color:"#aaa" }}>{nome}:</span> <span style={{ color:"#1976D2", fontWeight:600 }}>{formatarMarca(m, compUnid, 3)}</span>
+                              <span style={{ color:t.textTertiary }}>{nome}:</span> <span style={{ color:t.accent, fontWeight:600 }}>{formatarMarca(m, compUnid, 3)}</span>
                             </span>
                             );
                           })}
@@ -1148,7 +1149,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                   );
                 })}
                 {registrosFiltrados.length === 0 && (
-                  <tr><td colSpan={isAdmin ? 10 : 9} style={{ padding:20, textAlign:"center", color:"#555" }}>
+                  <tr><td colSpan={isAdmin ? 10 : 9} style={{ padding:20, textAlign:"center", color:t.textDimmed }}>
                     Nenhum registro encontrado.{isAdmin ? " Adicione manualmente ou importe uma planilha." : ""}
                   </td></tr>
                 )}
@@ -1171,13 +1172,13 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
 
         const relBadge = (rel, uf) => {
           const cfg = {
-            local:        { bg: "#0a2a0a", color: "#7cfc7c", border: "#2a5a2a", label: `📍 Local (${uf || "?"})` },
-            atleta:       { bg: "#0a1a2a", color: "#44bbff", border: "#2a4a6a", label: `🏃 Atleta (${uf || "?"})` },
-            nacional:     { bg: "#0a0a2a", color: "#6ab4ff", border: "#2a2a5a", label: "🏳️ Nacional" },
-            mundial:      { bg: "#1a0a2a", color: "#c39bdf", border: "#4a2a5a", label: "🌍 Mundial" },
-            especial:     { bg: "#1a1a0a", color: "#ffaa44", border: "#4a4a2a", label: "⭐ Especial" },
-            outro_estado: { bg: "#1a1a1a", color: "#888",    border: "#3a3a3a", label: `🔄 Outro UF (${uf || "?"})` },
-          }[rel] || { bg: "#1a1a1a", color: "#888", border: "#3a3a3a", label: rel };
+            local:        { bg: `${t.success}15`, color: t.success, border: `${t.success}44`, label: `📍 Local (${uf || "?"})` },
+            atleta:       { bg: t.accentBg, color: t.accent, border: t.accentBorder, label: `🏃 Atleta (${uf || "?"})` },
+            nacional:     { bg: t.accentBg, color: t.accent, border: t.accentBorder, label: "🏳️ Nacional" },
+            mundial:      { bg: t.bgCardAlt, color: "#c39bdf", border: t.border, label: "🌍 Mundial" },
+            especial:     { bg: t.bgCardAlt, color: t.warning, border: `${t.warning}44`, label: "⭐ Especial" },
+            outro_estado: { bg: t.bgCard, color: t.textMuted,    border: t.border, label: `🔄 Outro UF (${uf || "?"})` },
+          }[rel] || { bg: t.bgCard, color: t.textMuted, border: t.border, label: rel };
           return <span style={{ fontSize:8, padding:"1px 5px", borderRadius:3, fontWeight:600,
             background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.border}` }}>{cfg.label}</span>;
         };
@@ -1219,19 +1220,19 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
         return (
           <div>
             {pendentes.length === 0 ? (
-              <div style={{ ...S.card, textAlign:"center", color:"#555" }}>
+              <div style={{ ...S.card, textAlign:"center", color:t.textDimmed }}>
                 <span style={{ fontSize:48 }}>✅</span>
                 <p style={{ marginTop:8 }}>Nenhuma pendência de recorde para analisar.</p>
               </div>
             ) : (
               <>
-                <div style={{ color:"#ffaa44", fontWeight:700, fontSize:14, marginBottom:12 }}>
+                <div style={{ color: t.warning, fontWeight:700, fontSize:14, marginBottom:12 }}>
                   ⏳ {pendentes.length} pendência(s) aguardando homologação
                 </div>
 
                 {/* Legenda de relevância */}
-                <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:14, padding:"8px 12px", background:"#0a0b10", borderRadius:6, border:"1px solid #1a1d2a" }}>
-                  <span style={{ fontSize:10, color:"#666", lineHeight:"22px" }}>Relevância:</span>
+                <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:14, padding:"8px 12px", background:t.bgHeaderSolid, borderRadius:6, border:`1px solid ${t.border}` }}>
+                  <span style={{ fontSize:10, color:t.textDimmed, lineHeight:"22px" }}>Relevância:</span>
                   {relBadge("local", "UF")}
                   {relBadge("atleta", "UF")}
                   {relBadge("nacional", "")}
@@ -1250,9 +1251,9 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                   return (
                     <div key={evtId} style={{ ...S.card, marginBottom:12 }}>
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:8, marginBottom:10 }}>
-                        <div style={{ color:"#6ab4ff", fontWeight:700, fontSize:13 }}>
+                        <div style={{ color: t.accent, fontWeight:700, fontSize:13 }}>
                           🏟️ {pendsEvt[0]?.eventoNome || evtId}
-                          {evtUf && <span style={{ fontSize:10, color:"#888", marginLeft:8 }}>📍 {pendsEvt[0]?.eventoLocal || evtUf}</span>}
+                          {evtUf && <span style={{ fontSize:10, color:t.textMuted, marginLeft:8 }}>📍 {pendsEvt[0]?.eventoLocal || evtUf}</span>}
                         </div>
                         <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
                           {locais.length > 0 && (
@@ -1260,8 +1261,8 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                               if (!await confirmar(`Homologar ${locais.length } pendência(s) do estado local (${evtUf}) de uma vez?`)) return;
                               const obs = prompt("Observação para todas (opcional):", "") || "";
                               homologarLote(locais, obs);
-                            }} style={{ padding:"4px 10px", borderRadius:4, border:"1px solid #2a5a2a", background:"#0a1a0a",
-                              color:"#7cfc7c", fontSize:10, fontWeight:700, cursor:"pointer" }}>
+                            }} style={{ padding:"4px 10px", borderRadius:4, border:`1px solid ${t.success}44`, background:`${t.success}15`,
+                              color: t.success, fontSize:10, fontWeight:700, cursor:"pointer" }}>
                               ✅ Homologar {locais.length} local ({evtUf})
                             </button>
                           )}
@@ -1272,8 +1273,8 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                                 if (!await confirmar(`Homologar ${atletaRelevantes.length } pendência(s) de RE do estado do atleta (${ufsAtl.join(", ")}) de uma vez?`)) return;
                                 const obs = prompt("Observação para todas (opcional):", "") || "";
                                 homologarLote(atletaRelevantes, obs);
-                              }} style={{ padding:"4px 10px", borderRadius:4, border:"1px solid #2a4a6a", background:"#0a1020",
-                                color:"#44bbff", fontSize:10, fontWeight:700, cursor:"pointer" }}>
+                              }} style={{ padding:"4px 10px", borderRadius:4, border:`1px solid ${t.accentBorder}`, background: t.accentBg,
+                                color: t.accent, fontSize:10, fontWeight:700, cursor:"pointer" }}>
                                 ✅ Homologar {atletaRelevantes.length} atleta ({ufsAtl.join(", ")})
                               </button>
                             );
@@ -1283,8 +1284,8 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                               if (!await confirmar(`Homologar ${nacionais.length } pendência(s) nacionais de uma vez?`)) return;
                               const obs = prompt("Observação para todas (opcional):", "") || "";
                               homologarLote(nacionais, obs);
-                            }} style={{ padding:"4px 10px", borderRadius:4, border:"1px solid #2a2a5a", background:"#0a0a1a",
-                              color:"#6ab4ff", fontSize:10, fontWeight:700, cursor:"pointer" }}>
+                            }} style={{ padding:"4px 10px", borderRadius:4, border:`1px solid ${t.accentBorder}`, background:t.bgHeaderSolid,
+                              color: t.accent, fontSize:10, fontWeight:700, cursor:"pointer" }}>
                               ✅ Homologar {nacionais.length} nacionais
                             </button>
                           )}
@@ -1296,8 +1297,8 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                                 outroEstado.some(o => o.id === p.id) ? { ...p, status: "nao_homologado", resolvidoPor: usuarioLogado?.nome || "admin", resolvidoEm: Date.now(), observacao: obs } : p
                               ));
                               if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, "Rejeitou recordes (lote)", `${outroEstado.length} pendência(s) outros UFs`, null, { modulo: "recordes" });
-                            }} style={{ padding:"4px 10px", borderRadius:4, border:"1px solid #5a3a2a", background:"#1a0a0a",
-                              color:"#ff8844", fontSize:10, fontWeight:700, cursor:"pointer" }}>
+                            }} style={{ padding:"4px 10px", borderRadius:4, border:`1px solid ${t.warning}44`, background: t.bgCardAlt,
+                              color: t.warning, fontSize:10, fontWeight:700, cursor:"pointer" }}>
                               ❌ Rejeitar {outroEstado.length} outros UFs
                             </button>
                           )}
@@ -1307,49 +1308,49 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                       <table style={{ width:"100%", borderCollapse:"collapse", fontSize:11 }}>
                         <thead>
                           <tr style={{ borderBottom:"2px solid #2a3050" }}>
-                            <th style={{ padding:"6px 6px", color:"#888", fontSize:10 }}>Relev.</th>
-                            <th style={{ padding:"6px 8px", textAlign:"left", color:"#888", fontSize:10 }}>Prova</th>
-                            <th style={{ padding:"6px 4px", color:"#888", fontSize:10 }}>Cat.</th>
-                            <th style={{ padding:"6px 4px", color:"#888", fontSize:10 }}>Sexo</th>
-                            <th style={{ padding:"6px 8px", color:"#1976D2", fontSize:10 }}>Marca</th>
-                            <th style={{ padding:"6px 8px", textAlign:"left", color:"#888", fontSize:10 }}>Atleta</th>
-                            <th style={{ padding:"6px 8px", textAlign:"left", color:"#888", fontSize:10 }}>Recorde</th>
-                            <th style={{ padding:"6px 8px", color:"#888", fontSize:10 }}>Atual</th>
-                            <th style={{ padding:"6px 8px", color:"#888", fontSize:10 }}>Tipo</th>
-                            <th style={{ padding:"6px 8px", color:"#888", fontSize:10 }}>Ações</th>
+                            <th style={{ padding:"6px 6px", color:t.textMuted, fontSize:10 }}>Relev.</th>
+                            <th style={{ padding:"6px 8px", textAlign:"left", color:t.textMuted, fontSize:10 }}>Prova</th>
+                            <th style={{ padding:"6px 4px", color:t.textMuted, fontSize:10 }}>Cat.</th>
+                            <th style={{ padding:"6px 4px", color:t.textMuted, fontSize:10 }}>Sexo</th>
+                            <th style={{ padding:"6px 8px", color:t.accent, fontSize:10 }}>Marca</th>
+                            <th style={{ padding:"6px 8px", textAlign:"left", color:t.textMuted, fontSize:10 }}>Atleta</th>
+                            <th style={{ padding:"6px 8px", textAlign:"left", color:t.textMuted, fontSize:10 }}>Recorde</th>
+                            <th style={{ padding:"6px 8px", color:t.textMuted, fontSize:10 }}>Atual</th>
+                            <th style={{ padding:"6px 8px", color:t.textMuted, fontSize:10 }}>Tipo</th>
+                            <th style={{ padding:"6px 8px", color:t.textMuted, fontSize:10 }}>Ações</th>
                           </tr>
                         </thead>
                         <tbody>
                           {pendsEvt.map(pend => {
                             const catObj = CATEGORIAS.find(c => c.id === pend.categoriaId);
                             return (
-                              <tr key={pend.id} style={{ borderBottom:"1px solid #1a1d2a",
-                                background: pend.relevancia === "local" ? "#0a120a" : pend.relevancia === "atleta" ? "#0a0f1a" : pend.relevancia === "outro_estado" ? "#0a0a0a" : "transparent" }}>
+                              <tr key={pend.id} style={{ borderBottom:`1px solid ${t.border}`,
+                                background: pend.relevancia === "local" ? `${t.success}08` : pend.relevancia === "atleta" ? `${t.accent}08` : pend.relevancia === "outro_estado" ? t.bgCardAlt : "transparent" }}>
                                 <td style={{ padding:"6px 6px", textAlign:"center" }}>
                                   {relBadge(pend.relevancia, pend.recordeEstado || pend.eventoUf)}
                                 </td>
-                                <td style={{ padding:"6px 8px", color:"#fff", fontWeight:500 }}>{pend.provaNome}</td>
-                                <td style={{ padding:"6px 4px", color:"#aaa", textAlign:"center" }}>{catObj?.nome || pend.categoriaId}</td>
+                                <td style={{ padding:"6px 8px", color:t.textPrimary, fontWeight:500 }}>{pend.provaNome}</td>
+                                <td style={{ padding:"6px 4px", color:t.textTertiary, textAlign:"center" }}>{catObj?.nome || pend.categoriaId}</td>
                                 <td style={{ padding:"6px 4px", textAlign:"center" }}>
                                   <span style={{ color: pend.sexo === "M" ? "#1a6ef5" : "#e54f9b", fontWeight:600 }}>{pend.sexo}</span>
                                 </td>
-                                <td style={{ padding:"6px 8px", color:"#1976D2", fontWeight:700, textAlign:"center" }}>
+                                <td style={{ padding:"6px 8px", color:t.accent, fontWeight:700, textAlign:"center" }}>
                                   {formatarMarca(pend.marca, pend.unidade, 3)}
                                 </td>
-                                <td style={{ padding:"6px 8px", color:"#fff" }}>
+                                <td style={{ padding:"6px 8px", color:t.textPrimary }}>
                                   {pend.atletaNome}
-                                  <div style={{ fontSize:9, color:"#888" }}>{pend.equipeNome}</div>
+                                  <div style={{ fontSize:9, color:t.textMuted }}>{pend.equipeNome}</div>
                                 </td>
-                                <td style={{ padding:"6px 8px", color:"#6ab4ff", fontWeight:600 }}>
+                                <td style={{ padding:"6px 8px", color: t.accent, fontWeight:600 }}>
                                   {pend.recordeTipoSigla}
-                                  <div style={{ fontSize:9, color:"#555" }}>{pend.recordeTipoNome}</div>
+                                  <div style={{ fontSize:9, color:t.textDimmed }}>{pend.recordeTipoNome}</div>
                                 </td>
-                                <td style={{ padding:"6px 8px", textAlign:"center", color:"#888" }}>
+                                <td style={{ padding:"6px 8px", textAlign:"center", color:t.textMuted }}>
                                   {pend.recordeAtual ? formatarMarca(pend.recordeAtual.marca, pend.unidade, 3) : "—"}
                                 </td>
                                 <td style={{ padding:"6px 8px", textAlign:"center" }}>
                                   <span style={{ fontSize:9, padding:"2px 6px", borderRadius:3, fontWeight:700,
-                                    background: pend.tipoQuebra === "superou" ? "#1a2a0a" : pend.tipoQuebra === "igualou" ? "#1a1a2a" : "#0a1a0a",
+                                    background: pend.tipoQuebra === "superou" ? `${t.success}15` : pend.tipoQuebra === "igualou" ? t.accentBg : `${t.warning}15`,
                                     color: pend.tipoQuebra === "superou" ? "#7cfc7c" : pend.tipoQuebra === "igualou" ? "#6ab4ff" : "#ffaa44"
                                   }}>
                                     {pend.tipoQuebra === "superou" ? "⬆️ Superou" : pend.tipoQuebra === "igualou" ? "🤝 Igualou" : "🆕 Novo"}
@@ -1361,8 +1362,8 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                                       const obs = prompt("Observação (opcional):", "");
                                       if (obs === null) return;
                                       resolver(pend, "homologado", obs);
-                                    }} style={{ padding:"3px 8px", borderRadius:4, border:"1px solid #2a5a2a", background:"#0a1a0a",
-                                      color:"#7cfc7c", fontSize:10, fontWeight:700, cursor:"pointer" }}>
+                                    }} style={{ padding:"3px 8px", borderRadius:4, border:`1px solid ${t.success}44`, background:`${t.success}15`,
+                                      color: t.success, fontSize:10, fontWeight:700, cursor:"pointer" }}>
                                       ✅
                                     </button>
                                     <button onClick={async () => {
@@ -1372,8 +1373,8 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                                         ...p, status: "homologado_nao_aplicado", resolvidoPor: usuarioLogado?.nome || "admin",
                                         resolvidoEm: Date.now(), observacao: obs }));
                                       if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, "Resolveu recorde (sem atualizar)", `${pend.atletaNome} — ${pend.provaNome} (${pend.recordeTipoSigla})`, null, { modulo: "recordes" });
-                                    }} style={{ padding:"3px 8px", borderRadius:4, border:"1px solid #2a2a5a", background:"#0a0a1a",
-                                      color:"#6ab4ff", fontSize:10, fontWeight:700, cursor:"pointer" }}>
+                                    }} style={{ padding:"3px 8px", borderRadius:4, border:`1px solid ${t.accentBorder}`, background:t.bgHeaderSolid,
+                                      color: t.accent, fontSize:10, fontWeight:700, cursor:"pointer" }}>
                                       ☑️
                                     </button>
                                     <button onClick={async () => {
@@ -1383,8 +1384,8 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                                         ...p, status: "nao_homologado", resolvidoPor: usuarioLogado?.nome || "admin",
                                         resolvidoEm: Date.now(), observacao: obs }));
                                       if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, "Rejeitou recorde", `${pend.atletaNome} — ${pend.provaNome} (${pend.recordeTipoSigla})`, null, { modulo: "recordes" });
-                                    }} style={{ padding:"3px 8px", borderRadius:4, border:"1px solid #5a2a2a", background:"#1a0a0a",
-                                      color:"#ff6b6b", fontSize:10, fontWeight:700, cursor:"pointer" }}>
+                                    }} style={{ padding:"3px 8px", borderRadius:4, border:`1px solid ${t.danger}44`, background: t.bgCardAlt,
+                                      color: t.danger, fontSize:10, fontWeight:700, cursor:"pointer" }}>
                                       ❌
                                     </button>
                                   </div>
@@ -1404,43 +1405,43 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
             {/* Resolvidas */}
             {resolvidas.length > 0 && (
               <div style={{ marginTop:20 }}>
-                <div style={{ color:"#555", fontWeight:700, fontSize:12, marginBottom:8 }}>
+                <div style={{ color:t.textDimmed, fontWeight:700, fontSize:12, marginBottom:8 }}>
                   Resolvidas ({resolvidas.length})
                 </div>
                 <div style={{ overflowX:"auto" }}>
                 <table style={{ width:"100%", borderCollapse:"collapse", fontSize:10 }}>
                   <thead>
                     <tr style={{ borderBottom:"1px solid #2a3050" }}>
-                      <th style={{ padding:"4px 6px", textAlign:"left", color:"#555" }}>Evento</th>
-                      <th style={{ padding:"4px 6px", textAlign:"left", color:"#555" }}>Prova</th>
-                      <th style={{ padding:"4px 6px", color:"#555" }}>Marca</th>
-                      <th style={{ padding:"4px 6px", textAlign:"left", color:"#555" }}>Atleta</th>
-                      <th style={{ padding:"4px 6px", color:"#555" }}>Recorde</th>
-                      <th style={{ padding:"4px 6px", color:"#555" }}>Relev.</th>
-                      <th style={{ padding:"4px 6px", color:"#555" }}>Status</th>
-                      <th style={{ padding:"4px 6px", color:"#555" }}>Admin</th>
-                      <th style={{ padding:"4px 6px", color:"#555" }}>Obs</th>
+                      <th style={{ padding:"4px 6px", textAlign:"left", color:t.textDimmed }}>Evento</th>
+                      <th style={{ padding:"4px 6px", textAlign:"left", color:t.textDimmed }}>Prova</th>
+                      <th style={{ padding:"4px 6px", color:t.textDimmed }}>Marca</th>
+                      <th style={{ padding:"4px 6px", textAlign:"left", color:t.textDimmed }}>Atleta</th>
+                      <th style={{ padding:"4px 6px", color:t.textDimmed }}>Recorde</th>
+                      <th style={{ padding:"4px 6px", color:t.textDimmed }}>Relev.</th>
+                      <th style={{ padding:"4px 6px", color:t.textDimmed }}>Status</th>
+                      <th style={{ padding:"4px 6px", color:t.textDimmed }}>Admin</th>
+                      <th style={{ padding:"4px 6px", color:t.textDimmed }}>Obs</th>
                     </tr>
                   </thead>
                   <tbody>
                     {resolvidas.slice().reverse().map(p => (
-                      <tr key={p.id} style={{ borderBottom:"1px solid #1a1d2a", opacity:0.7 }}>
-                        <td style={{ padding:"4px 6px", color:"#888" }}>{p.eventoNome}</td>
-                        <td style={{ padding:"4px 6px", color:"#aaa" }}>{p.provaNome}</td>
-                        <td style={{ padding:"4px 6px", color:"#1976D2", textAlign:"center", fontWeight:600 }}>{formatarMarca(p.marca, p.unidade, 3)}</td>
-                        <td style={{ padding:"4px 6px", color:"#aaa" }}>{p.atletaNome}</td>
-                        <td style={{ padding:"4px 6px", color:"#6ab4ff", textAlign:"center" }}>{p.recordeTipoSigla}</td>
+                      <tr key={p.id} style={{ borderBottom:`1px solid ${t.border}`, opacity:0.7 }}>
+                        <td style={{ padding:"4px 6px", color:t.textMuted }}>{p.eventoNome}</td>
+                        <td style={{ padding:"4px 6px", color:t.textTertiary }}>{p.provaNome}</td>
+                        <td style={{ padding:"4px 6px", color:t.accent, textAlign:"center", fontWeight:600 }}>{formatarMarca(p.marca, p.unidade, 3)}</td>
+                        <td style={{ padding:"4px 6px", color:t.textTertiary }}>{p.atletaNome}</td>
+                        <td style={{ padding:"4px 6px", color: t.accent, textAlign:"center" }}>{p.recordeTipoSigla}</td>
                         <td style={{ padding:"4px 6px", textAlign:"center" }}>{relBadge(p.relevancia, p.recordeEstado || p.eventoUf)}</td>
                         <td style={{ padding:"4px 6px", textAlign:"center" }}>
                           <span style={{ fontSize:9, padding:"1px 5px", borderRadius:3, fontWeight:600,
-                            background: p.status === "homologado" ? "#0a1a0a" : p.status === "homologado_nao_aplicado" ? "#0a0a1a" : "#1a0a0a",
+                            background: p.status === "homologado" ? `${t.success}15` : p.status === "homologado_nao_aplicado" ? t.accentBg : `${t.danger}15`,
                             color: p.status === "homologado" ? "#7cfc7c" : p.status === "homologado_nao_aplicado" ? "#6ab4ff" : "#ff6b6b"
                           }}>
                             {p.status === "homologado" ? "✅" : p.status === "homologado_nao_aplicado" ? "☑️" : "❌"}
                           </span>
                         </td>
-                        <td style={{ padding:"4px 6px", color:"#888" }}>{p.resolvidoPor}</td>
-                        <td style={{ padding:"4px 6px", color:"#666", maxWidth:200, overflow:"hidden", textOverflow:"ellipsis" }}>{p.observacao || "—"}</td>
+                        <td style={{ padding:"4px 6px", color:t.textMuted }}>{p.resolvidoPor}</td>
+                        <td style={{ padding:"4px 6px", color:t.textDimmed, maxWidth:200, overflow:"hidden", textOverflow:"ellipsis" }}>{p.observacao || "—"}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1459,7 +1460,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
         return (
           <div>
             {hist.length === 0 ? (
-              <div style={{ ...S.card, textAlign:"center", color:"#555" }}>
+              <div style={{ ...S.card, textAlign:"center", color:t.textDimmed }}>
                 <span style={{ fontSize:48 }}>📜</span>
                 <p style={{ marginTop:8 }}>Nenhuma alteração de recorde registrada.</p>
               </div>
@@ -1468,56 +1469,56 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
               <table style={{ width:"100%", borderCollapse:"collapse", fontSize:11 }}>
                 <thead>
                   <tr style={{ borderBottom:"2px solid #2a3050" }}>
-                    <th style={{ padding:"6px 8px", textAlign:"left", color:"#888", fontSize:10 }}>Data</th>
-                    <th style={{ padding:"6px 8px", textAlign:"left", color:"#888", fontSize:10 }}>Recorde</th>
-                    <th style={{ padding:"6px 8px", textAlign:"left", color:"#888", fontSize:10 }}>Prova</th>
-                    <th style={{ padding:"6px 4px", color:"#888", fontSize:10 }}>Ação</th>
-                    <th style={{ padding:"6px 8px", color:"#888", fontSize:10 }}>Marca Ant.</th>
-                    <th style={{ padding:"6px 8px", color:"#888", fontSize:10 }}>→</th>
-                    <th style={{ padding:"6px 8px", color:"#888", fontSize:10 }}>Marca Nova</th>
-                    <th style={{ padding:"6px 8px", textAlign:"left", color:"#888", fontSize:10 }}>Anteriores</th>
-                    <th style={{ padding:"6px 8px", textAlign:"left", color:"#888", fontSize:10 }}>Novos</th>
-                    <th style={{ padding:"6px 8px", textAlign:"left", color:"#888", fontSize:10 }}>Evento</th>
-                    <th style={{ padding:"6px 8px", color:"#888", fontSize:10 }}>Admin</th>
+                    <th style={{ padding:"6px 8px", textAlign:"left", color:t.textMuted, fontSize:10 }}>Data</th>
+                    <th style={{ padding:"6px 8px", textAlign:"left", color:t.textMuted, fontSize:10 }}>Recorde</th>
+                    <th style={{ padding:"6px 8px", textAlign:"left", color:t.textMuted, fontSize:10 }}>Prova</th>
+                    <th style={{ padding:"6px 4px", color:t.textMuted, fontSize:10 }}>Ação</th>
+                    <th style={{ padding:"6px 8px", color:t.textMuted, fontSize:10 }}>Marca Ant.</th>
+                    <th style={{ padding:"6px 8px", color:t.textMuted, fontSize:10 }}>→</th>
+                    <th style={{ padding:"6px 8px", color:t.textMuted, fontSize:10 }}>Marca Nova</th>
+                    <th style={{ padding:"6px 8px", textAlign:"left", color:t.textMuted, fontSize:10 }}>Anteriores</th>
+                    <th style={{ padding:"6px 8px", textAlign:"left", color:t.textMuted, fontSize:10 }}>Novos</th>
+                    <th style={{ padding:"6px 8px", textAlign:"left", color:t.textMuted, fontSize:10 }}>Evento</th>
+                    <th style={{ padding:"6px 8px", color:t.textMuted, fontSize:10 }}>Admin</th>
                   </tr>
                 </thead>
                 <tbody>
                   {hist.map((h, idx) => {
-                    const tipoRec = recordes.find(t => t.id === h.recordeTipoId);
+                    const tipoRec = recordes.find(tipo => tipo.id === h.recordeTipoId);
                     const prova = _allProvasH.find(p => p.id === h.provaId);
                     const catObj = CATEGORIAS.find(c => c.id === h.categoriaId);
                     return (
-                      <tr key={h.id || idx} style={{ borderBottom:"1px solid #1a1d2a", background: idx % 2 === 0 ? "transparent" : "#0a0b1099" }}>
-                        <td style={{ padding:"6px 8px", color:"#888", fontSize:10 }}>
+                      <tr key={h.id || idx} style={{ borderBottom:`1px solid ${t.border}`, background: idx % 2 === 0 ? "transparent" : `${t.bgCardAlt}99` }}>
+                        <td style={{ padding:"6px 8px", color:t.textMuted, fontSize:10 }}>
                           {h.dataEfetivacao ? new Date(h.dataEfetivacao).toLocaleDateString("pt-BR") : "—"}
                         </td>
-                        <td style={{ padding:"6px 8px", color:"#6ab4ff", fontWeight:600 }}>{tipoRec?.sigla || "—"}</td>
-                        <td style={{ padding:"6px 8px", color:"#fff" }}>
-                          {prova?.nome || h.provaId} <span style={{ color:"#555", fontSize:9 }}>{catObj?.nome} {h.sexo}</span>
+                        <td style={{ padding:"6px 8px", color: t.accent, fontWeight:600 }}>{tipoRec?.sigla || "—"}</td>
+                        <td style={{ padding:"6px 8px", color:t.textPrimary }}>
+                          {prova?.nome || h.provaId} <span style={{ color:t.textDimmed, fontSize:9 }}>{catObj?.nome} {h.sexo}</span>
                         </td>
                         <td style={{ padding:"6px 4px", textAlign:"center" }}>
                           <span style={{ fontSize:9, padding:"2px 5px", borderRadius:3, fontWeight:700,
-                            background: h.tipoAcao === "superou" ? "#1a2a0a" : h.tipoAcao === "igualou" ? "#1a1a2a" : "#0a1a0a",
+                            background: h.tipoAcao === "superou" ? `${t.success}15` : h.tipoAcao === "igualou" ? t.accentBg : `${t.warning}15`,
                             color: h.tipoAcao === "superou" ? "#7cfc7c" : h.tipoAcao === "igualou" ? "#6ab4ff" : "#ffaa44"
                           }}>
                             {h.tipoAcao === "superou" ? "⬆️" : h.tipoAcao === "igualou" ? "🤝" : "🆕"}
                           </span>
                         </td>
-                        <td style={{ padding:"6px 8px", color:"#ff8844", textAlign:"center", fontWeight:600 }}>
+                        <td style={{ padding:"6px 8px", color: t.warning, textAlign:"center", fontWeight:600 }}>
                           {h.marcaAnterior ? formatarMarca(h.marcaAnterior, prova?.unidade || "s", 3) : "—"}
                         </td>
-                        <td style={{ padding:"6px 8px", textAlign:"center", color:"#555" }}>→</td>
-                        <td style={{ padding:"6px 8px", color:"#7cfc7c", textAlign:"center", fontWeight:700 }}>
+                        <td style={{ padding:"6px 8px", textAlign:"center", color:t.textDimmed }}>→</td>
+                        <td style={{ padding:"6px 8px", color: t.success, textAlign:"center", fontWeight:700 }}>
                           {formatarMarca(h.marcaNova, prova?.unidade || "s", 3)}
                         </td>
-                        <td style={{ padding:"6px 8px", color:"#888", fontSize:10 }}>
+                        <td style={{ padding:"6px 8px", color:t.textMuted, fontSize:10 }}>
                           {(h.detentoresAnteriores || []).map(d => d.atleta).join(", ") || "—"}
                         </td>
-                        <td style={{ padding:"6px 8px", color:"#fff", fontSize:10 }}>
+                        <td style={{ padding:"6px 8px", color:t.textPrimary, fontSize:10 }}>
                           {(h.detentoresNovos || []).map(d => d.atleta).join(", ") || "—"}
                         </td>
-                        <td style={{ padding:"6px 8px", color:"#888", fontSize:10 }}>{h.eventoNome || "—"}</td>
-                        <td style={{ padding:"6px 8px", color:"#888", fontSize:10 }}>{h.adminId || "—"}</td>
+                        <td style={{ padding:"6px 8px", color:t.textMuted, fontSize:10 }}>{h.eventoNome || "—"}</td>
+                        <td style={{ padding:"6px 8px", color:t.textMuted, fontSize:10 }}>{h.adminId || "—"}</td>
                       </tr>
                     );
                   })}

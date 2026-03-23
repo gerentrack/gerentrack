@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { validarCNPJ, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
-import inscricaoStyles from "../inscricoes/inscricaoStyles";
+import { criarInscricaoStyles } from "../inscricoes/inscricaoStyles";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
-
-const styles = inscricaoStyles;
+import { useTema } from "../../shared/TemaContext";
 
 // ── Bloco de Consentimento LGPD ──────────────────────────────────────────────
 function BlocoLGPD({ aceite, onChange, erro }) {
+  const t = useTema();
   const [modalAberto, setModalAberto] = useState(false);
   return (
     <>
@@ -15,63 +15,64 @@ function BlocoLGPD({ aceite, onChange, erro }) {
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.8)", zIndex:2000,
           display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}
           onClick={() => setModalAberto(false)}>
-          <div style={{ background:"#0E1016", border:"1px solid #1976D2", borderRadius:14,
+          <div style={{ background:t.bgCard, border:`1px solid ${t.accent}`, borderRadius:14,
             padding:28, maxWidth:560, width:"100%", maxHeight:"80vh", overflowY:"auto" }}
             onClick={e => e.stopPropagation()}>
             <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:22, fontWeight:800,
-              color:"#fff", marginBottom:16 }}>📄 Política de Privacidade — GerenTrack</h3>
-            <div style={{ fontSize:13, color:"#aaa", lineHeight:1.8 }}>
-              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>1. Controlador dos dados</strong><br/>
+              color: t.textPrimary, marginBottom:16 }}>📄 Política de Privacidade — GerenTrack</h3>
+            <div style={{ fontSize:13, color: t.textTertiary, lineHeight:1.8 }}>
+              <p style={{ marginBottom:10 }}><strong style={{ color: t.textPrimary }}>1. Controlador dos dados</strong><br/>
               O GerenTrack é o responsável pelo tratamento dos seus dados pessoais, nos termos da Lei nº 13.709/2018 (LGPD).</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>2. Dados coletados</strong><br/>
+              <p style={{ marginBottom:10 }}><strong style={{ color: t.textPrimary }}>2. Dados coletados</strong><br/>
               Coletamos: nome completo, e-mail, telefone, CNPJ, cidade, estado e dados de acesso (login). Para atletas: também CPF, data de nascimento e sexo.</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>3. Finalidade do tratamento</strong><br/>
+              <p style={{ marginBottom:10 }}><strong style={{ color: t.textPrimary }}>3. Finalidade do tratamento</strong><br/>
               Os dados são usados exclusivamente para: gestão de competições de atletismo, inscrições em provas, emissão de súmulas e resultados, e comunicação relacionada às competições.</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>4. Base legal</strong><br/>
+              <p style={{ marginBottom:10 }}><strong style={{ color: t.textPrimary }}>4. Base legal</strong><br/>
               O tratamento é realizado com base no consentimento do titular (Art. 7º, I), na execução de contrato (Art. 7º, V) e no legítimo interesse (Art. 7º, IX) da organização esportiva.</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>5. Compartilhamento</strong><br/>
+              <p style={{ marginBottom:10 }}><strong style={{ color: t.textPrimary }}>5. Compartilhamento</strong><br/>
               Seus dados podem ser compartilhados com organizadores de competições nas quais você participa. Não vendemos dados a terceiros.</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>6. Retenção</strong><br/>
+              <p style={{ marginBottom:10 }}><strong style={{ color: t.textPrimary }}>6. Retenção</strong><br/>
               Resultados esportivos são mantidos permanentemente por integridade do histórico. Dados pessoais de contas excluídas são anonimizados.</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>7. Seus direitos (Art. 18º LGPD)</strong><br/>
+              <p style={{ marginBottom:10 }}><strong style={{ color: t.textPrimary }}>7. Seus direitos (Art. 18º LGPD)</strong><br/>
               Você tem direito a: confirmar a existência do tratamento, acessar, corrigir, anonimizar, bloquear, eliminar seus dados e revogar o consentimento a qualquer momento nas Configurações da conta.</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>8. Segurança</strong><br/>
+              <p style={{ marginBottom:10 }}><strong style={{ color: t.textPrimary }}>8. Segurança</strong><br/>
               Utilizamos autenticação via Firebase Auth e armazenamento seguro no Firestore. Dados sensíveis (senhas) nunca são armazenados localmente.</p>
-              <p style={{ marginBottom:0 }}><strong style={{ color:"#fff" }}>9. Contato</strong><br/>
-              Para exercer seus direitos ou tirar dúvidas: <span style={{ color:"#1976D2" }}>gerentrack@gmail.com</span></p>
+              <p style={{ marginBottom:0 }}><strong style={{ color: t.textPrimary }}>9. Contato</strong><br/>
+              Para exercer seus direitos ou tirar dúvidas: <span style={{ color: t.accent }}>gerentrack@gmail.com</span></p>
             </div>
-            <button style={{ marginTop:20, background:"#1976D2", color:"#fff", border:"none",
+            <button style={{ marginTop:20, background:t.accent, color:"#fff", border:"none",
               borderRadius:8, padding:"10px 24px", cursor:"pointer", fontSize:13, fontWeight:700,
               fontFamily:"'Barlow Condensed',sans-serif" }}
               onClick={() => setModalAberto(false)}>✓ Fechar</button>
           </div>
         </div>
       )}
-      <div style={{ background:"#0a0a14", border:`1px solid ${erro ? "#ff4444" : "#1976D233"}`,
+      <div style={{ background:t.bgCardAlt, border:`1px solid ${erro ? t.danger : t.accentBorder}`,
         borderRadius:10, padding:"16px 18px", marginTop:16 }}>
-        <div style={{ fontSize:12, fontWeight:700, color:"#1976D2", letterSpacing:1,
+        <div style={{ fontSize:12, fontWeight:700, color: t.accent, letterSpacing:1,
           textTransform:"uppercase", marginBottom:10 }}>🔒 Consentimento LGPD (Lei 13.709/2018)</div>
         <label style={{ display:"flex", alignItems:"flex-start", gap:12, cursor:"pointer" }}>
           <input type="checkbox" checked={aceite} onChange={e => onChange(e.target.checked)}
             style={{ marginTop:2, width:16, height:16, cursor:"pointer", flexShrink:0 }} />
-          <span style={{ fontSize:13, color:"#bbb", lineHeight:1.7 }}>
+          <span style={{ fontSize:13, color: t.textSecondary, lineHeight:1.7 }}>
             Li e concordo com a{" "}
             <button type="button" onClick={() => setModalAberto(true)}
-              style={{ background:"none", border:"none", color:"#1976D2", cursor:"pointer",
+              style={{ background:"none", border:"none", color: t.accent, cursor:"pointer",
                 fontSize:13, padding:0, textDecoration:"underline" }}>
               Política de Privacidade
             </button>
             {" "}e autorizo o tratamento dos meus dados pessoais pelo GerenTrack para fins de gestão de competições de atletismo, conforme descrito na política.
           </span>
         </label>
-        {erro && <div style={{ color:"#ff6b6b", fontSize:12, marginTop:8 }}>⚠️ {erro}</div>}
+        {erro && <div style={{ color: t.danger, fontSize:12, marginTop:8 }}>⚠️ {erro}</div>}
       </div>
     </>
   );
 }
 
 function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, usuarioLogado, equipes, atletasUsuarios, funcionarios, treinadores, adicionarSolicitacaoEquipe }) {
-  const s = useStylesResponsivos(styles);
+  const t = useTema();
+  const s = useStylesResponsivos(criarInscricaoStyles(t));
   const [form, setForm] = useState({ nome: "", sigla: "", cidade: "", uf: "", email: "", senha: "", cnpj: "", fone: "", organizadorId: "" });
   const [ok, setOk] = useState(false);
   const [erros, setErros] = useState({});
@@ -188,7 +189,7 @@ function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, us
     }
 
     const { senha: _senha, ...formSemSenha } = form;
-    const t = { 
+    const equipeObj = {
       ...formSemSenha,
       sigla: form.sigla.trim().toUpperCase(),
       cidade: form.cidade.trim(),
@@ -199,21 +200,21 @@ function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, us
       lgpdConsentimento: true,
       lgpdConsentimentoData: new Date().toISOString(),
       lgpdVersao: "1.0",
-      id: Date.now().toString() 
+      id: Date.now().toString()
     };
-    adicionarEquipe(t);
+    adicionarEquipe(equipeObj);
 
     // Cria solicitação de aprovação
     const org = organizadores?.find(o => o.id === orgIdFinal);
     adicionarSolicitacaoEquipe?.({
       id: Date.now().toString() + "_sol",
-      equipeId: t.id,
-      equipeNome: t.nome,
-      equipeSigla: t.sigla,
-      equipeEmail: t.email,
-      equipeCnpj: t.cnpj,
-      equipeCidade: t.cidade,
-      equipeUf: t.uf,
+      equipeId: equipeObj.id,
+      equipeNome: equipeObj.nome,
+      equipeSigla: equipeObj.sigla,
+      equipeEmail: equipeObj.email,
+      equipeCnpj: equipeObj.cnpj,
+      equipeCidade: equipeObj.cidade,
+      equipeUf: equipeObj.uf,
       organizadorId: orgIdFinal || null,
       organizadorNome: org?.nome || null,
       status: "pendente",
@@ -228,10 +229,10 @@ function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, us
       <div style={s.formCard}>
         <div style={{ fontSize: 64, textAlign: "center" }}>⏳</div>
         <h2 style={{ ...s.formTitle, textAlign: "center" }}>Cadastro enviado!</h2>
-        <p style={{ textAlign: "center", color: "#aaa", marginBottom: 8 }}>
+        <p style={{ textAlign: "center", color: t.textTertiary, marginBottom: 8 }}>
           Seu cadastro foi recebido e está aguardando aprovação.
         </p>
-        <p style={{ textAlign: "center", color: "#666", fontSize: 13, marginBottom: 24 }}>
+        <p style={{ textAlign: "center", color: t.textDimmed, fontSize: 13, marginBottom: 24 }}>
           {form.organizadorId
             ? "O organizador responsável e o administrador serão notificados para aprovar sua equipe."
             : "Como não foi selecionado um organizador, o administrador irá revisar e vincular sua equipe."}
@@ -250,7 +251,7 @@ function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, us
 
         {/* Banner de duplicidade */}
         {erros._duplicados && (
-          <div style={{ background: "#1a0a0a", border: "1px solid #ff4444", borderRadius: 8, padding: "12px 16px", marginBottom: 16, color: "#ff8888", fontSize: 13, lineHeight: 1.5 }}>
+          <div style={{ background: `${t.danger}11`, border: `1px solid ${t.danger}`, borderRadius: 8, padding: "12px 16px", marginBottom: 16, color: t.danger, fontSize: 13, lineHeight: 1.5 }}>
             ⚠️ {erros._duplicados}
           </div>
         )}
@@ -262,12 +263,12 @@ function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, us
 
         {/* CNPJ existente → modo login */}
         {docModo === "login" && docExistente && (
-          <div style={{ background: "#0a0f1a", border: "2px solid #3a6abf", borderRadius: 10, padding: 20, marginBottom: 20 }}>
-            <div style={{ color: "#88aaff", fontSize: 14, fontWeight: 700, marginBottom: 8 }}>🔄 CNPJ já cadastrado no sistema</div>
-            <div style={{ color: "#aaa", fontSize: 12, marginBottom: 4 }}>
-              Equipe: <strong style={{ color: "#fff" }}>{docExistente.nome}</strong>
+          <div style={{ background: t.accentBg, border: `2px solid ${t.accentBorder}`, borderRadius: 10, padding: 20, marginBottom: 20 }}>
+            <div style={{ color: t.accent, fontSize: 14, fontWeight: 700, marginBottom: 8 }}>🔄 CNPJ já cadastrado no sistema</div>
+            <div style={{ color: t.textTertiary, fontSize: 12, marginBottom: 4 }}>
+              Equipe: <strong style={{ color: t.textPrimary }}>{docExistente.nome}</strong>
             </div>
-            <div style={{ color: "#888", fontSize: 12, marginBottom: 12 }}>
+            <div style={{ color: t.textMuted, fontSize: 12, marginBottom: 12 }}>
               Para vincular esta equipe a outro organizador, confirme suas credenciais:
             </div>
             {loginErro && <div style={{ ...s.erro, marginBottom: 12 }}>{loginErro}</div>}
@@ -282,9 +283,9 @@ function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, us
 
         {/* Modo vincular — autenticou, agora escolhe org */}
         {docModo === "vincular" && (
-          <div style={{ background: "#0a1a0a", border: "2px solid #2a8a2a", borderRadius: 10, padding: 16, marginBottom: 16 }}>
-            <div style={{ color: "#7cfc7c", fontSize: 13, fontWeight: 700 }}>✅ Identidade confirmada!</div>
-            <div style={{ color: "#aaa", fontSize: 12, marginTop: 4 }}>Dados carregados. Selecione o organizador para criar o novo vínculo.</div>
+          <div style={{ background: `${t.success}11`, border: `2px solid ${t.success}66`, borderRadius: 10, padding: 16, marginBottom: 16 }}>
+            <div style={{ color: t.success, fontSize: 13, fontWeight: 700 }}>✅ Identidade confirmada!</div>
+            <div style={{ color: t.textTertiary, fontSize: 12, marginTop: 4 }}>Dados carregados. Selecione o organizador para criar o novo vínculo.</div>
           </div>
         )}
 
@@ -304,12 +305,12 @@ function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, us
             </div>
 
             {/* Vinculação ao Organizador e Equipe */}
-            <div style={{ background: "#0a0a1a", padding: 20, borderRadius: 8, border: "1px solid #1E2130", marginTop: 16 }}>
-              <h4 style={{ color: "#1976D2", marginBottom: 16 }}>📍 Vinculação ao Organizador</h4>
+            <div style={{ background: t.bgHeaderSolid, padding: 20, borderRadius: 8, border: `1px solid ${t.border}`, marginTop: 16 }}>
+              <h4 style={{ color: t.accent, marginBottom: 16 }}>📍 Vinculação ao Organizador</h4>
               
               {/* Organizador — sempre visível para seleção */}
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: "block", color: "#aaa", fontSize: 13, marginBottom: 6 }}>
+                <label style={{ display: "block", color: t.textTertiary, fontSize: 13, marginBottom: 6 }}>
                   Organizador Responsável *
                 </label>
                 <select
@@ -322,8 +323,8 @@ function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, us
                     <option key={org.id} value={org.id}>{org.nome} - {org.entidade}</option>
                   ))}
                 </select>
-                {erros.organizadorId && <div style={{ color: "#ff6b6b", fontSize: 12, marginTop: 4 }}>{erros.organizadorId}</div>}
-                <div style={{ color: "#666", fontSize: 11, marginTop: 4 }}>
+                {erros.organizadorId && <div style={{ color: t.danger, fontSize: 12, marginTop: 4 }}>{erros.organizadorId}</div>}
+                <div style={{ color: t.textDimmed, fontSize: 11, marginTop: 4 }}>
                   {docModo === "vincular" ? "Selecione o novo organizador para vincular" : "Selecione o organizador responsável pela equipe"}
                 </div>
               </div>

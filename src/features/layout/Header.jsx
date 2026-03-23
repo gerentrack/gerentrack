@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { _getLocalEventoDisplay } from "../../shared/formatters/utils";
 import { useResponsivo } from "../../hooks/useResponsivo";
+import { useTema } from "../../shared/TemaContext";
 
 function _dtInscricoes(data, hora) {
   if (!data) return null;
@@ -18,39 +19,38 @@ function getStatusInscricoes(ev) {
   return "abertas";
 }
 
-const styles = {
-  header: { background: "linear-gradient(90deg, #0D0E12 0%, #141720 100%)", borderBottom: "1px solid #1E2130", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 20px rgba(0,0,0,0.5)" },
+function getStyles(t) { return {
+  header: { background: t.bgHeader, borderBottom: `1px solid ${t.border}`, position: "sticky", top: 0, zIndex: 100, boxShadow: t.shadowLg },
   headerInner: { maxWidth: 1200, margin: "0 auto", padding: "14px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 },
   headerInnerMobile: { maxWidth: 1200, margin: "0 auto", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 },
   logo: { background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 14 },
   logoMobile: { background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 },
-  logoTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 24, fontWeight: 900, color: "#1976D2", letterSpacing: 3, lineHeight: 1 },
-  logoTitleMobile: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 900, color: "#1976D2", letterSpacing: 2, lineHeight: 1 },
-  logoSub: { fontSize: 11, color: "#666", letterSpacing: 1.5, marginTop: 3 },
+  logoTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 24, fontWeight: 900, color: t.accent, letterSpacing: 3, lineHeight: 1 },
+  logoTitleMobile: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 900, color: t.accent, letterSpacing: 2, lineHeight: 1 },
+  logoSub: { fontSize: 11, color: t.textDimmed, letterSpacing: 1.5, marginTop: 3 },
   nav: { display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" },
-  btnNav: { background: "transparent", border: "1px solid #2a2d3a", color: "#ccc", padding: "10px 20px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", whiteSpace: "nowrap" },
-  btnNavMobile: { background: "transparent", border: "1px solid #2a2d3a", color: "#ccc", padding: "10px 16px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", whiteSpace: "nowrap", width: "100%" },
-  btnNavActive: { background: "#1a1c22", borderColor: "#1976D2", color: "#1976D2" },
-  btnSair: { background: "transparent", border: "1px solid #3a1a1a", color: "#ff6b6b", padding: "10px 20px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow', sans-serif" },
-  btnSairMobile: { background: "transparent", border: "1px solid #3a1a1a", color: "#ff6b6b", padding: "10px 16px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow', sans-serif", width: "100%" },
-  eventoBar: { background: "#0D0E12", borderTop: "1px solid #1a1c22", padding: "6px 24px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" },
-  eventoBarMobile: { background: "#0D0E12", borderTop: "1px solid #1a1c22", padding: "6px 12px", display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 4 },
-  eventoBarLabel: { fontSize: 11, color: "#555", letterSpacing: 1, textTransform: "uppercase" },
-  eventoBarNome: { fontSize: 13, fontWeight: 700, color: "#1976D2", fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
-  eventoBarMeta: { fontSize: 12, color: "#555", marginLeft: "auto" },
-  eventoBarMetaMobile: { fontSize: 11, color: "#555" },
+  btnNav: { background: "transparent", border: `1px solid ${t.borderLight}`, color: t.textSecondary, padding: "10px 20px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", whiteSpace: "nowrap" },
+  btnNavMobile: { background: "transparent", border: `1px solid ${t.borderLight}`, color: t.textSecondary, padding: "10px 16px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", whiteSpace: "nowrap", width: "100%" },
+  btnNavActive: { background: t.bgHover, borderColor: t.accent, color: t.accent },
+  btnSair: { background: "transparent", border: `1px solid ${t.danger}33`, color: t.danger, padding: "10px 20px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow', sans-serif" },
+  btnSairMobile: { background: "transparent", border: `1px solid ${t.danger}33`, color: t.danger, padding: "10px 16px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow', sans-serif", width: "100%" },
+  eventoBar: { background: t.bgHeaderSolid, borderTop: `1px solid ${t.border}`, padding: "6px 24px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" },
+  eventoBarMobile: { background: t.bgHeaderSolid, borderTop: `1px solid ${t.border}`, padding: "6px 12px", display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 4 },
+  eventoBarLabel: { fontSize: 11, color: t.textDimmed, letterSpacing: 1, textTransform: "uppercase" },
+  eventoBarNome: { fontSize: 13, fontWeight: 700, color: t.accent, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
+  eventoBarMeta: { fontSize: 12, color: t.textDimmed, marginLeft: "auto" },
+  eventoBarMetaMobile: { fontSize: 11, color: t.textDimmed },
   statusDotInline: (cor) => ({ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: cor, background: cor + "22", border: `1px solid ${cor}44`, borderRadius: 10, padding: "2px 8px", whiteSpace: "nowrap" }),
-  offlineBanner: { background: "#2a1500", borderBottom: "1px solid #ff880044", padding: "8px 24px", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontSize: 13, color: "#ff8800", fontWeight: 600, letterSpacing: 0.5 },
-  // Mobile menu
-  hamburger: { background: "none", border: "1px solid #2a2d3a", borderRadius: 6, cursor: "pointer", padding: "8px 10px", display: "flex", flexDirection: "column", gap: 4, alignItems: "center", justifyContent: "center" },
-  hamburgerLine: { width: 20, height: 2, background: "#ccc", borderRadius: 1 },
-  mobileMenu: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.7)", zIndex: 200, display: "flex", justifyContent: "flex-end" },
-  mobileMenuPanel: { background: "#0D0E12", width: 280, maxWidth: "80vw", height: "100%", overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", gap: 8, borderLeft: "1px solid #1E2130", boxShadow: "-4px 0 30px rgba(0,0,0,0.5)" },
-  mobileMenuHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, paddingBottom: 8, borderBottom: "1px solid #1E2130" },
-  mobileMenuClose: { background: "none", border: "none", color: "#888", fontSize: 24, cursor: "pointer", padding: "4px 8px" },
-};
+  offlineBanner: { background: t.bgCardAlt, borderBottom: `1px solid ${t.warning}44`, padding: "8px 24px", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontSize: 13, color: t.warning, fontWeight: 600, letterSpacing: 0.5 },
+  hamburger: { background: "none", border: `1px solid ${t.borderLight}`, borderRadius: 6, cursor: "pointer", padding: "8px 10px", display: "flex", flexDirection: "column", gap: 4, alignItems: "center", justifyContent: "center" },
+  hamburgerLine: { width: 20, height: 2, background: t.textSecondary, borderRadius: 1 },
+  mobileMenu: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: t.bgOverlay, zIndex: 200, display: "flex", justifyContent: "flex-end" },
+  mobileMenuPanel: { background: t.bgHeaderSolid, width: 280, maxWidth: "80vw", height: "100%", overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", gap: 8, borderLeft: `1px solid ${t.border}`, boxShadow: "-4px 0 30px rgba(0,0,0,0.5)" },
+  mobileMenuHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, paddingBottom: 8, borderBottom: `1px solid ${t.border}` },
+  mobileMenuClose: { background: "none", border: "none", color: t.textMuted, fontSize: 24, cursor: "pointer", padding: "4px 8px" },
+}; }
 
-function NavBtn({ onClick, label, active, mobile }) {
+function NavBtn({ onClick, label, active, mobile, styles }) {
   const base = mobile ? styles.btnNavMobile : styles.btnNav;
   return (
     <button onClick={onClick} style={{ ...base, fontWeight: 700, ...(active ? styles.btnNavActive : {}) }}>
@@ -60,6 +60,8 @@ function NavBtn({ onClick, label, active, mobile }) {
 }
 
 function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDisponiveis, gtIcon, gtNome, gtSlogan, pendenciasRecorde, temaClaro, setTemaClaro }) {
+  const t = useTema();
+  const styles = getStyles(t);
   const [online, setOnline] = useState(navigator.onLine);
   const [menuAberto, setMenuAberto] = useState(false);
   const { mobile } = useResponsivo();
@@ -76,35 +78,35 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
   }, []);
 
   // Fecha menu ao navegar
-  const navegar = (t) => { setTela(t); setMenuAberto(false); };
+  const navegar = (destino) => { setTela(destino); setMenuAberto(false); };
 
   const pendCount = usuarioLogado?.tipo === "admin" ? (pendenciasRecorde || []).filter(p => p.status === "pendente").length : 0;
 
   const navItems = (
     <>
-      <NavBtn onClick={() => navegar("home")} label="Competições" mobile={mobile} />
+      <NavBtn styles={styles} onClick={() => navegar("home")} label="Competições" mobile={mobile} />
       <div style={{ position: "relative", display: mobile ? "block" : "inline-block", width: mobile ? "100%" : "auto" }}>
-        <NavBtn onClick={() => navegar("recordes")} label="Recordes" mobile={mobile} />
+        <NavBtn styles={styles} onClick={() => navegar("recordes")} label="Recordes" mobile={mobile} />
         {pendCount > 0 && (
-          <span style={{ position: "absolute", top: mobile ? 6 : -4, right: mobile ? 8 : -4, background: "#ff4444", color: "#fff", fontSize: 9,
+          <span style={{ position: "absolute", top: mobile ? 6 : -4, right: mobile ? 8 : -4, background: t.danger, color: "#fff", fontSize: 9,
             fontWeight: 800, borderRadius: 10, padding: "1px 5px", minWidth: 16, textAlign: "center" }}>{pendCount}</span>
         )}
       </div>
       {usuarioLogado ? (
         <>
-          {usuarioLogado.tipo === "equipe"       && <NavBtn onClick={() => navegar("painel-equipe")}       label="Painel" active mobile={mobile} />}
-          {usuarioLogado.tipo === "treinador"    && <NavBtn onClick={() => navegar("painel-equipe")}       label="Painel" active mobile={mobile} />}
-          {usuarioLogado.tipo === "organizador" && <NavBtn onClick={() => navegar("painel-organizador")}  label="Painel" active mobile={mobile} />}
-          {usuarioLogado.tipo === "funcionario"  && <NavBtn onClick={() => navegar("painel-organizador")}  label="Painel" active mobile={mobile} />}
-          {usuarioLogado.tipo === "atleta"      && <NavBtn onClick={() => navegar("painel-atleta")}       label="Meu Painel" active mobile={mobile} />}
-          {usuarioLogado.tipo === "admin"       && <NavBtn onClick={() => navegar("admin")}               label="Admin" mobile={mobile} />}
+          {usuarioLogado.tipo === "equipe"       && <NavBtn styles={styles} onClick={() => navegar("painel-equipe")}       label="Painel" active mobile={mobile} />}
+          {usuarioLogado.tipo === "treinador"    && <NavBtn styles={styles} onClick={() => navegar("painel-equipe")}       label="Painel" active mobile={mobile} />}
+          {usuarioLogado.tipo === "organizador" && <NavBtn styles={styles} onClick={() => navegar("painel-organizador")}  label="Painel" active mobile={mobile} />}
+          {usuarioLogado.tipo === "funcionario"  && <NavBtn styles={styles} onClick={() => navegar("painel-organizador")}  label="Painel" active mobile={mobile} />}
+          {usuarioLogado.tipo === "atleta"      && <NavBtn styles={styles} onClick={() => navegar("painel-atleta")}       label="Meu Painel" active mobile={mobile} />}
+          {usuarioLogado.tipo === "admin"       && <NavBtn styles={styles} onClick={() => navegar("admin")}               label="Admin" mobile={mobile} />}
 
           {usuarioLogado._temOutrosPerfis && perfisDisponiveis?.length > 1 && (
             <button
               onClick={() => navegar("selecionar-perfil")}
               title="Trocar perfil / organizador"
-              style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 10px", background: "#1a1800",
-                border: "1px solid #1976D244", borderRadius: 6, cursor: "pointer", fontSize: 11, color: "#1976D2",
+              style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 10px", background: t.accentBg,
+                border: `1px solid ${t.accentBorder}`, borderRadius: 6, cursor: "pointer", fontSize: 11, color: t.accent,
                 fontFamily: "'Barlow', sans-serif", fontWeight: 600, ...(mobile ? { width: "100%", padding: "10px 16px", fontSize: 13, justifyContent: "center" } : {}) }}
             >
               Trocar Perfil
@@ -113,22 +115,22 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
 
           <button
             onClick={() => navegar("configuracoes")}
-            style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", background: "#141720", border: "1px solid #252837", borderRadius: 6, cursor: "pointer", ...(mobile ? { width: "100%", padding: "10px 16px" } : {}) }}
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 6, cursor: "pointer", ...(mobile ? { width: "100%", padding: "10px 16px" } : {}) }}
             title="Configurações da conta"
           >
-            <span style={{ fontSize: 11, color: "#666" }}>👤</span>
+            <span style={{ fontSize: 11, color: t.textDimmed }}>👤</span>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-              <span style={{ fontSize: 12, color: "#aaa", maxWidth: mobile ? "none" : 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{usuarioLogado.nome}</span>
+              <span style={{ fontSize: 12, color: t.textTertiary, maxWidth: mobile ? "none" : 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{usuarioLogado.nome}</span>
               {usuarioLogado._organizadorNome && (
-                <span style={{ fontSize: 9, color: "#1976D2", maxWidth: mobile ? "none" : 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{usuarioLogado._organizadorNome}</span>
+                <span style={{ fontSize: 9, color: t.accent, maxWidth: mobile ? "none" : 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{usuarioLogado._organizadorNome}</span>
               )}
             </div>
-            <span style={{ fontSize: 9, color: "#555" }}>⚙</span>
+            <span style={{ fontSize: 9, color: t.textDimmed }}>⚙</span>
           </button>
           <button style={mobile ? styles.btnSairMobile : styles.btnSair} onClick={() => { logout(); setMenuAberto(false); }}>Sair</button>
         </>
       ) : (
-        <button style={{ ...(mobile ? styles.btnNavMobile : styles.btnNav), background: "#1976D2", color: "#fff", fontWeight: 700 }} onClick={() => navegar("login")}>
+        <button style={{ ...(mobile ? styles.btnNavMobile : styles.btnNav), background: t.accent, color: "#fff", fontWeight: 700 }} onClick={() => navegar("login")}>
           Entrar
         </button>
       )}
@@ -138,8 +140,8 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
   const temaToggle = (
     <div style={{
       display: "flex", alignItems: "center",
-      background: "#0D0E12",
-      border: "1px solid #1E2130",
+      background: t.bgHeaderSolid,
+      border: `1px solid ${t.border}`,
       borderRadius: 20,
       padding: 3,
       gap: 0,
@@ -150,10 +152,10 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
         onClick={() => setTemaClaro(false)}
         title="Modo escuro"
         style={{
-          background: !temaClaro ? "#252837" : "transparent",
+          background: !temaClaro ? t.borderInput : "transparent",
           border: "none", borderRadius: 16, cursor: "pointer",
           padding: "4px 10px", fontSize: 11,
-          color: !temaClaro ? "#ccc" : "#444",
+          color: !temaClaro ? t.textSecondary : t.textDisabled,
           fontFamily: "'Barlow', sans-serif", letterSpacing: 0.5, transition: "all 0.2s",
         }}
       >
@@ -163,10 +165,10 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
         onClick={() => setTemaClaro(true)}
         title="Modo claro"
         style={{
-          background: temaClaro ? "#252837" : "transparent",
+          background: temaClaro ? t.borderInput : "transparent",
           border: "none", borderRadius: 16, cursor: "pointer",
           padding: "4px 10px", fontSize: 11,
-          color: temaClaro ? "#ccc" : "#444",
+          color: temaClaro ? t.textSecondary : t.textDisabled,
           fontFamily: "'Barlow', sans-serif", letterSpacing: 0.5, transition: "all 0.2s",
         }}
       >
@@ -218,7 +220,7 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
           <div style={styles.mobileMenu} onClick={(e) => { if (e.target === e.currentTarget) setMenuAberto(false); }}>
             <div style={styles.mobileMenuPanel}>
               <div style={styles.mobileMenuHeader}>
-                <span style={{ color: "#888", fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, textTransform: "uppercase" }}>Menu</span>
+                <span style={{ color: t.textMuted, fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, textTransform: "uppercase" }}>Menu</span>
                 <button style={styles.mobileMenuClose} onClick={() => setMenuAberto(false)} aria-label="Fechar menu">✕</button>
               </div>
               {navItems}
@@ -237,7 +239,7 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
               &nbsp;·&nbsp;📍 {_getLocalEventoDisplay(eventoAtual)}
             </span>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              <span style={styles.statusDotInline(getStatusInscricoes(eventoAtual) === "abertas" ? "#7acc44" : getStatusInscricoes(eventoAtual) === "em_breve" ? "#1976D2" : "#ff6b6b")}>
+              <span style={styles.statusDotInline(getStatusInscricoes(eventoAtual) === "abertas" ? t.success : getStatusInscricoes(eventoAtual) === "em_breve" ? t.accent : t.danger)}>
                 {getStatusInscricoes(eventoAtual) === "em_breve"
                   ? `Em breve — abre em ${new Date(eventoAtual.dataAberturaInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}`
                   : getStatusInscricoes(eventoAtual) === "abertas"
@@ -245,15 +247,15 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
                     : "Inscrições encerradas"}
               </span>
               {eventoAtual.dataEncerramentoInscricoes && getStatusInscricoes(eventoAtual) === "abertas" && (
-                <span style={{ color: "#888", fontSize: 12 }}>
+                <span style={{ color: t.textMuted, fontSize: 12 }}>
                   até {new Date(eventoAtual.dataEncerramentoInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}
                 </span>
               )}
               {["admin","organizador","funcionario"].includes(usuarioLogado?.tipo) && !eventoAtual.sumulaLiberada && (
-                <span style={styles.statusDotInline("#555")}>Súmulas restritas</span>
+                <span style={styles.statusDotInline(t.textDisabled)}>Súmulas restritas</span>
               )}
               {eventoAtual.sumulaLiberada && (
-                <span style={styles.statusDotInline("#7acc44")}>Súmulas liberadas</span>
+                <span style={styles.statusDotInline(t.success)}>Súmulas liberadas</span>
               )}
             </div>
           </div>

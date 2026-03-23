@@ -1,11 +1,12 @@
-import authStyles from "./authStyles";
-const styles = authStyles;
+import { criarAuthStyles } from "./authStyles";
 import React, { useState } from "react";
 import FormField from "../ui/FormField";
+import { useTema } from "../../shared/TemaContext";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 function TelaTrocarSenha({ usuarioLogado, setTela, atualizarSenha, equipes, organizadores, atletasUsuarios }) {
-  const s = useStylesResponsivos(styles);
+  const t = useTema();
+  const s = useStylesResponsivos(criarAuthStyles(t));
   const [novaSenha, setNovaSenha] = useState("");
   const [confirmar, setConfirmar] = useState("");
   const [erro, setErro]           = useState("");
@@ -28,7 +29,7 @@ function TelaTrocarSenha({ usuarioLogado, setTela, atualizarSenha, equipes, orga
     <div style={s.formPage}><div style={s.formCard}>
       <div style={{ fontSize:64, textAlign:"center" }}>✅</div>
       <h2 style={{ ...s.formTitle, textAlign:"center" }}>Senha atualizada!</h2>
-      <p style={{ textAlign:"center", color:"#aaa" }}>Sua nova senha foi salva com sucesso.</p>
+      <p style={{ textAlign:"center", color:t.textTertiary }}>Sua nova senha foi salva com sucesso.</p>
       <button style={s.btnPrimary} onClick={irParaPainel}>Ir para o Painel</button>
     </div></div>
   );
@@ -37,7 +38,7 @@ function TelaTrocarSenha({ usuarioLogado, setTela, atualizarSenha, equipes, orga
     <div style={s.formPage}><div style={s.formCard}>
       <div style={{ fontSize:48, textAlign:"center", marginBottom:8 }}>🔐</div>
       <h2 style={s.formTitle}>Criar Nova Senha</h2>
-      <div style={{ background:"#1a1000", border:"1px solid #1976D266", borderRadius:6, padding:"10px 14px", fontSize:12, color:"#1976D2", marginBottom:20, textAlign:"center" }}>
+      <div style={{ background:`${t.warning}15`, border:`1px solid ${t.accent}66`, borderRadius:6, padding:"10px 14px", fontSize:12, color:t.accent, marginBottom:20, textAlign:"center" }}>
         ⚠️ Você está usando uma <strong>senha temporária</strong>. Crie uma nova senha para continuar.
       </div>
       {erro && <div style={s.erro}>{erro}</div>}

@@ -4,23 +4,26 @@ import { validarCPF, validarCNPJ } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { storage, storageRef, uploadBytes, getDownloadURL } from "../../firebase";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
+import { useTema } from "../../shared/TemaContext";
 
-const S = {
-  page: { maxWidth: 860, margin: "0 auto", padding: "40px 24px 80px" },
-  pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 6, letterSpacing: 1 },
-  painelHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, marginBottom: 32 },
-  card: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: "24px 28px", marginBottom: 20 },
-  sectionTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 800, color: "#fff", letterSpacing: 1, marginBottom: 16 },
-  label: { display: "block", fontSize: 11, fontWeight: 700, color: "#666", letterSpacing: 1, marginBottom: 5, textTransform: "uppercase" },
-  input: { width: "100%", background: "#141720", border: "1px solid #252837", borderRadius: 7, padding: "9px 12px", color: "#E0E0E0", fontSize: 13, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
-  btnPrimary: { background: "linear-gradient(135deg, #1976D2, #1565C0)", color: "#fff", border: "none", padding: "10px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
-  btnSecondary: { background: "transparent", color: "#1976D2", border: "2px solid #1976D2", padding: "9px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif" },
-  btnGhost: { background: "transparent", color: "#888", border: "1px solid #2a2d3a", padding: "9px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
-  tabBar: { display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" },
-  row: { display: "flex", justifyContent: "space-between", padding: "9px 0", borderBottom: "1px solid #1E2130" },
-  okBox: { background: "#0a1a0a", border: "1px solid #2a8a2a", borderRadius: 8, padding: "10px 16px", marginBottom: 12, color: "#4cff4c", fontSize: 13 },
-  errBox: { background: "#1a0a0a", border: "1px solid #8a2a2a", borderRadius: 8, padding: "10px 16px", marginBottom: 12, color: "#ff6b6b", fontSize: 13 },
-};
+function getS(t) {
+  return {
+    page: { maxWidth: 860, margin: "0 auto", padding: "40px 24px 80px" },
+    pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: t.textPrimary, marginBottom: 6, letterSpacing: 1 },
+    painelHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, marginBottom: 32 },
+    card: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "24px 28px", marginBottom: 20 },
+    sectionTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 800, color: t.textPrimary, letterSpacing: 1, marginBottom: 16 },
+    label: { display: "block", fontSize: 11, fontWeight: 700, color: t.textDimmed, letterSpacing: 1, marginBottom: 5, textTransform: "uppercase" },
+    input: { width: "100%", background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 7, padding: "9px 12px", color: t.textSecondary, fontSize: 13, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
+    btnPrimary: { background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", padding: "10px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
+    btnSecondary: { background: "transparent", color: t.accent, border: `2px solid ${t.accent}`, padding: "9px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif" },
+    btnGhost: { background: "transparent", color: t.textMuted, border: `1px solid ${t.borderLight}`, padding: "9px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
+    tabBar: { display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" },
+    row: { display: "flex", justifyContent: "space-between", padding: "9px 0", borderBottom: `1px solid ${t.border}` },
+    okBox: { background: `${t.success}08`, border: `1px solid ${t.success}66`, borderRadius: 8, padding: "10px 16px", marginBottom: 12, color: t.success, fontSize: 13 },
+    errBox: { background: `${t.danger}11`, border: `1px solid ${t.danger}66`, borderRadius: 8, padding: "10px 16px", marginBottom: 12, color: t.danger, fontSize: 13 },
+  };
+}
 
 // ── Info badge ────────────────────────────────────────────────────────────────
 function InfoBadge({ children, color = "#1976D2" }) {
@@ -34,6 +37,8 @@ function InfoBadge({ children, color = "#1976D2" }) {
 
 // ── Bloco de exclusão com confirmação em 2 etapas ─────────────────────────────
 function ExclusaoConfirmada({ titulo, descricao, corAccent, btnLabel, onConfirmar, confirmWord }) {
+  const t = useTema();
+  const S = getS(t);
   const [fase, setFase] = useState(0); // 0=idle 1=confirma 2=digita
   const [palavra, setPalavra] = useState("");
   const errada = palavra.trim().toUpperCase() !== confirmWord.toUpperCase();
@@ -53,7 +58,7 @@ function ExclusaoConfirmada({ titulo, descricao, corAccent, btnLabel, onConfirma
       <div style={{ fontWeight: 700, color: corAccent, marginBottom: 8, fontSize: 14 }}>
         ⚠️ {titulo}
       </div>
-      <div style={{ color: "#aaa", fontSize: 13, lineHeight: 1.7, marginBottom: 14 }}
+      <div style={{ color: t.textTertiary, fontSize: 13, lineHeight: 1.7, marginBottom: 14 }}
         dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(descricao) }} />
       <div style={{ display: "flex", gap: 8 }}>
         <button onClick={() => setFase(2)}
@@ -75,19 +80,19 @@ function ExclusaoConfirmada({ titulo, descricao, corAccent, btnLabel, onConfirma
       <div style={{ fontWeight: 700, color: corAccent, marginBottom: 8, fontSize: 14 }}>
         🔐 Confirmação final
       </div>
-      <div style={{ color: "#888", fontSize: 12, marginBottom: 10, lineHeight: 1.6 }}>
-        Para confirmar, digite <strong style={{ color: "#fff", fontFamily: "monospace",
+      <div style={{ color: t.textMuted, fontSize: 12, marginBottom: 10, lineHeight: 1.6 }}>
+        Para confirmar, digite <strong style={{ color: t.textPrimary, fontFamily: "monospace",
           letterSpacing: 2 }}>{confirmWord}</strong> no campo abaixo:
       </div>
       <input
         value={palavra} onChange={e => setPalavra(e.target.value)}
         placeholder={`Digite ${confirmWord}`}
-        style={{ ...S.input, border: `1px solid ${errada && palavra ? corAccent + "88" : "#252837"}`,
+        style={{ ...S.input, border: `1px solid ${errada && palavra ? corAccent + "88" : t.borderInput}`,
           letterSpacing: 2, fontFamily: "monospace", marginBottom: 12 }} />
       <div style={{ display: "flex", gap: 8 }}>
         <button onClick={() => { if (!errada) { onConfirmar(); setFase(0); setPalavra(""); } }}
           disabled={errada}
-          style={{ background: errada ? "#1a1c22" : corAccent, color: errada ? "#444" : "#fff",
+          style={{ background: errada ? t.bgHover : corAccent, color: errada ? t.textDisabled : "#fff",
             border: "none", padding: "9px 18px", borderRadius: 7,
             cursor: errada ? "not-allowed" : "pointer", fontSize: 13, fontWeight: 700,
             fontFamily: "'Barlow Condensed', sans-serif", transition: "all 0.2s" }}>
@@ -112,7 +117,8 @@ function TelaConfiguracoes({
   atualizarAtleta,
   solicitacoesPortabilidade, adicionarSolicitacaoPortabilidade,
 }) {
-  const s = useStylesResponsivos(S);
+  const t = useTema();
+  const s = useStylesResponsivos(getS(t));
   const [aba, setAba]           = useState("dados");
   const [feedback, setFeedback] = useState("");
   const [erro, setErro]         = useState("");
@@ -283,11 +289,11 @@ function TelaConfiguracoes({
   const orgVinculado    = usuarioLogado?.tipo === "funcionario" ? organizadores?.find(o => o.id === usuarioLogado.organizadorId)?.nome : null;
   const equipeVinculada = usuarioLogado?.tipo === "treinador"  ? equipes?.find(e => e.id === usuarioLogado.equipeId)?.nome : usuarioLogado?.tipo === "equipe" ? meuRegistro?.nome : null;
 
-  const tabStyle = (t) => ({
+  const tabStyle = (tab) => ({
     padding: "8px 18px", border: "none", cursor: "pointer", fontSize: 13,
-    fontFamily: "'Barlow', sans-serif", fontWeight: aba === t ? 700 : 400,
-    background: aba === t ? "#1976D2" : "#1a1c22",
-    color: aba === t ? "#000" : "#888", borderRadius: 6,
+    fontFamily: "'Barlow', sans-serif", fontWeight: aba === tab ? 700 : 400,
+    background: aba === tab ? t.accent : t.bgHover,
+    color: aba === tab ? "#fff" : t.textMuted, borderRadius: 6,
   });
 
   const voltar = () => {
@@ -318,7 +324,7 @@ function TelaConfiguracoes({
       <div style={s.painelHeader}>
         <div>
           <h1 style={s.pageTitle}>⚙️ Configurações da Conta</h1>
-          <div style={{ color: "#666", fontSize: 13 }}>
+          <div style={{ color: t.textDimmed, fontSize: 13 }}>
             {tipoLabel[usuarioLogado?.tipo] || "Usuário"} · {meuRegistro?.nome || "—"}
           </div>
         </div>
@@ -379,8 +385,8 @@ function TelaConfiguracoes({
                 meuRegistro?.dataCadastro ? { label: "Membro desde", value: new Date(meuRegistro.dataCadastro).toLocaleDateString("pt-BR") } : null,
               ].filter(Boolean).map((row, i) => (
                 <div key={i} style={s.row}>
-                  <span style={{ color: "#888", fontSize: 13 }}>{row.label}</span>
-                  <span style={{ color: row.color || "#fff", fontWeight: row.color ? 700 : 400, fontSize: 13 }}>{row.value}</span>
+                  <span style={{ color: t.textMuted, fontSize: 13 }}>{row.label}</span>
+                  <span style={{ color: row.color || t.textPrimary, fontWeight: row.color ? 700 : 400, fontSize: 13 }}>{row.value}</span>
                 </div>
               ))}
             </div>
@@ -388,21 +394,21 @@ function TelaConfiguracoes({
             {/* Perfis disponíveis */}
             {temOutrosPerfis && (
               <div style={{ marginTop: 16 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: "#666", letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: t.textDimmed, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>
                   Outros Perfis Vinculados
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {(perfisDisponiveis || []).map((p, i) => (
                     <div key={i} style={{ display: "flex", alignItems: "center", gap: 10,
-                      background: "#111318", border: "1px solid #1E2130", borderRadius: 7, padding: "8px 12px" }}>
+                      background: t.bgCardAlt, border: `1px solid ${t.border}`, borderRadius: 7, padding: "8px 12px" }}>
                       <span style={{ fontSize: 18 }}>{p.icon}</span>
                       <div>
-                        <div style={{ color: p.dados?.id === usuarioLogado?.id && p.tipo === usuarioLogado?.tipo ? "#1976D2" : "#fff", fontSize: 13, fontWeight: 600 }}>
+                        <div style={{ color: p.dados?.id === usuarioLogado?.id && p.tipo === usuarioLogado?.tipo ? t.accent : t.textPrimary, fontSize: 13, fontWeight: 600 }}>
                           {p.label}
                           {p.dados?.id === usuarioLogado?.id && p.tipo === usuarioLogado?.tipo &&
-                            <span style={{ marginLeft: 8, fontSize: 10, color: "#1976D2" }}>(atual)</span>}
+                            <span style={{ marginLeft: 8, fontSize: 10, color: t.accent }}>(atual)</span>}
                         </div>
-                        <div style={{ color: "#555", fontSize: 11 }}>{p.sublabel}</div>
+                        <div style={{ color: t.textDimmed, fontSize: 11 }}>{p.sublabel}</div>
                       </div>
                     </div>
                   ))}
@@ -412,22 +418,22 @@ function TelaConfiguracoes({
 
             {/* Dados históricos */}
             {isAtleta && atletaBase && (
-              <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid #1E2130" }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: "#666", letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>
+              <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${t.border}` }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: t.textDimmed, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>
                   Histórico Esportivo
                 </div>
                 <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-                  <div style={{ background: "#0d1117", border: "1px solid #1976D233", borderRadius: 7, padding: "10px 16px", textAlign: "center" }}>
+                  <div style={{ background: t.bgHeaderSolid, border: "1px solid #1976D233", borderRadius: 7, padding: "10px 16px", textAlign: "center" }}>
                     <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 28, fontWeight: 900, color: "#1976D2", lineHeight: 1 }}>{nInscricoes}</div>
-                    <div style={{ fontSize: 11, color: "#666", marginTop: 3 }}>Inscrição(ões)</div>
+                    <div style={{ fontSize: 11, color: t.textDimmed, marginTop: 3 }}>Inscrição(ões)</div>
                   </div>
-                  <div style={{ background: "#0d1117", border: "1px solid #1E2130", borderRadius: 7, padding: "10px 16px", fontSize: 12, color: "#888", display: "flex", flexDirection: "column", gap: 3, justifyContent: "center" }}>
-                    <div>Sexo: <strong style={{ color: "#fff" }}>{atletaBase.sexo === "M" ? "Masc." : "Fem."}</strong></div>
-                    <div>Ano nasc.: <strong style={{ color: "#fff" }}>{atletaBase.anoNasc || "—"}</strong></div>
-                    {atletaBase.clube && <div>Equipe: <strong style={{ color: "#1976D2" }}>{atletaBase.clube}</strong></div>}
+                  <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 7, padding: "10px 16px", fontSize: 12, color: t.textMuted, display: "flex", flexDirection: "column", gap: 3, justifyContent: "center" }}>
+                    <div>Sexo: <strong style={{ color: t.textPrimary }}>{atletaBase.sexo === "M" ? "Masc." : "Fem."}</strong></div>
+                    <div>Ano nasc.: <strong style={{ color: t.textPrimary }}>{atletaBase.anoNasc || "—"}</strong></div>
+                    {atletaBase.clube && <div>Equipe: <strong style={{ color: t.accent }}>{atletaBase.clube}</strong></div>}
                   </div>
                 </div>
-                <div style={{ marginTop: 8, fontSize: 11, color: "#555", lineHeight: 1.6 }}>
+                <div style={{ marginTop: 8, fontSize: 11, color: t.textDimmed, lineHeight: 1.6 }}>
                   ℹ️ Inscrições e resultados oficiais são registros permanentes das competições e não são afetados pelas opções de exclusão de conta abaixo.
                 </div>
               </div>
@@ -436,9 +442,9 @@ function TelaConfiguracoes({
 
           {/* ── STATUS DO CONSENTIMENTO LGPD ───────────────────────────────── */}
           {!isAdmin && (
-            <div style={{ ...s.card, borderColor: meuRegistro?.lgpdConsentimentoRevogado ? "#5a1a1a" : "#1976D233",
-              background: meuRegistro?.lgpdConsentimentoRevogado ? "#0e0a0a" : "#0a0a14" }}>
-              <h3 style={{ ...s.sectionTitle, color: meuRegistro?.lgpdConsentimentoRevogado ? "#ff6b6b" : "#1976D2" }}>
+            <div style={{ ...s.card, borderColor: meuRegistro?.lgpdConsentimentoRevogado ? `${t.danger}55` : `${t.accent}33`,
+              background: meuRegistro?.lgpdConsentimentoRevogado ? `${t.danger}08` : t.accentBg }}>
+              <h3 style={{ ...s.sectionTitle, color: meuRegistro?.lgpdConsentimentoRevogado ? t.danger : t.accent }}>
                 🔒 Consentimento LGPD
               </h3>
 
@@ -448,7 +454,7 @@ function TelaConfiguracoes({
                   {
                     label: "Status",
                     value: meuRegistro?.lgpdConsentimentoRevogado ? "⚠️ Revogado" : "✅ Ativo",
-                    color: meuRegistro?.lgpdConsentimentoRevogado ? "#ff6b6b" : "#4cff4c",
+                    color: meuRegistro?.lgpdConsentimentoRevogado ? t.danger : t.success,
                   },
                   meuRegistro?.lgpdConsentimentoData ? {
                     label: "Consentimento dado em",
@@ -461,24 +467,24 @@ function TelaConfiguracoes({
                   meuRegistro?.lgpdRevogadoEm ? {
                     label: "Revogado em",
                     value: new Date(meuRegistro.lgpdRevogadoEm).toLocaleString("pt-BR"),
-                    color: "#ff6b6b",
+                    color: t.danger,
                   } : null,
                 ].filter(Boolean).map((row, i) => (
                   <div key={i} style={s.row}>
-                    <span style={{ color: "#888", fontSize: 13 }}>{row.label}</span>
-                    <span style={{ color: row.color || "#fff", fontWeight: row.color ? 700 : 400, fontSize: 13 }}>{row.value}</span>
+                    <span style={{ color: t.textMuted, fontSize: 13 }}>{row.label}</span>
+                    <span style={{ color: row.color || t.textPrimary, fontWeight: row.color ? 700 : 400, fontSize: 13 }}>{row.value}</span>
                   </div>
                 ))}
               </div>
 
               {/* Explicação dos direitos */}
-              <div style={{ background: "#0d1117", border: "1px solid #1976D222", borderRadius: 8,
-                padding: "12px 14px", marginBottom: 16, fontSize: 12, color: "#888", lineHeight: 1.7 }}>
-                <strong style={{ color: "#1976D2" }}>Seus direitos (Art. 18º LGPD):</strong> Você pode revogar
+              <div style={{ background: t.bgHeaderSolid, border: "1px solid #1976D222", borderRadius: 8,
+                padding: "12px 14px", marginBottom: 16, fontSize: 12, color: t.textMuted, lineHeight: 1.7 }}>
+                <strong style={{ color: t.accent }}>Seus direitos (Art. 18º LGPD):</strong> Você pode revogar
                 este consentimento a qualquer momento. Ao revogar, seus dados pessoais (nome, CPF, e-mail, telefone)
-                serão <strong style={{ color: "#fff" }}>anonimizados</strong> e seu acesso será encerrado.
+                serão <strong style={{ color: t.textPrimary }}>anonimizados</strong> e seu acesso será encerrado.
                 <br/>
-                <strong style={{ color: "#7acc44" }}>Seus resultados e inscrições em competições anteriores
+                <strong style={{ color: t.success }}>Seus resultados e inscrições em competições anteriores
                 são preservados</strong> como registros históricos anônimos — conforme Art. 8º §5º e Art. 16 da LGPD
                 e obrigações dos regulamentos esportivos.
               </div>
@@ -506,8 +512,8 @@ function TelaConfiguracoes({
 
               {/* Já revogado */}
               {meuRegistro?.lgpdConsentimentoRevogado && (
-                <div style={{ background: "#1a0800", border: "1px solid #5a2a00", borderRadius: 8,
-                  padding: "10px 14px", fontSize: 12, color: "#cc7744", lineHeight: 1.6 }}>
+                <div style={{ background: `${t.warning}11`, border: `1px solid ${t.warning}55`, borderRadius: 8,
+                  padding: "10px 14px", fontSize: 12, color: t.warning, lineHeight: 1.6 }}>
                   ⚠️ Seu consentimento já foi revogado. Seus dados estão anonimizados.
                   Para reativar o uso do sistema, será necessário realizar um novo cadastro.
                 </div>
@@ -519,10 +525,10 @@ function TelaConfiguracoes({
           {!isAdmin && (
             <div style={{ ...s.card, borderColor:"#1976D233" }}>
               <h3 style={s.sectionTitle}>📦 Portabilidade dos Meus Dados</h3>
-              <p style={{ color:"#666", fontSize:13, marginBottom:14, lineHeight:1.6 }}>
-                Conforme o <strong style={{ color:"#fff" }}>Art. 18º, V da LGPD</strong>, você tem direito a receber
+              <p style={{ color:t.textDimmed, fontSize:13, marginBottom:14, lineHeight:1.6 }}>
+                Conforme o <strong style={{ color:t.textPrimary }}>Art. 18º, V da LGPD</strong>, você tem direito a receber
                 uma cópia dos seus dados pessoais em formato estruturado. A solicitação será analisada pelo
-                administrador em até <strong style={{ color:"#fff" }}>15 dias</strong>.
+                administrador em até <strong style={{ color:t.textPrimary }}>15 dias</strong>.
               </p>
 
               {(() => {
@@ -534,8 +540,8 @@ function TelaConfiguracoes({
 
                 if (solPronta) return (
                   <div>
-                    <div style={{ background:"#0a2a0a", border:"1px solid #2a6a2a", borderRadius:8,
-                      padding:"12px 16px", marginBottom:12, fontSize:13, color:"#7acc44" }}>
+                    <div style={{ background:`${t.success}15`, border:`1px solid ${t.success}66`, borderRadius:8,
+                      padding:"12px 16px", marginBottom:12, fontSize:13, color:t.success }}>
                       ✅ Seu arquivo está pronto! Solicitação aprovada em{" "}
                       {new Date(solPronta.dataResolucao).toLocaleString("pt-BR")}.
                     </div>
@@ -556,8 +562,8 @@ function TelaConfiguracoes({
                 );
 
                 if (solPendente) return (
-                  <div style={{ background:"#0a1a2a", border:"1px solid #1976D244", borderRadius:8,
-                    padding:"12px 16px", fontSize:13, color:"#88aaff" }}>
+                  <div style={{ background:t.accentBg, border:`1px solid ${t.accent}44`, borderRadius:8,
+                    padding:"12px 16px", fontSize:13, color:t.accent }}>
                     ⏳ Solicitação enviada em {new Date(solPendente.data).toLocaleString("pt-BR")}.
                     O administrador irá processar em até 15 dias.
                   </div>
@@ -584,29 +590,29 @@ function TelaConfiguracoes({
           )}
 
           {/* ── ZONA DE PERIGO ─────────────────────────────────────────────── */}
-          <div style={{ background: "#0e0a0a", border: "2px solid #3a1a1a", borderRadius: 12, padding: "20px 24px" }}>
-            <h3 style={{ color: "#ff6b6b", fontSize: 16, fontWeight: 800, marginBottom: 6 }}>⚠️ Zona de Perigo</h3>
-            <p style={{ color: "#666", fontSize: 12, marginBottom: 20, lineHeight: 1.6 }}>
+          <div style={{ background: `${t.danger}08`, border: `2px solid ${t.danger}33`, borderRadius: 12, padding: "20px 24px" }}>
+            <h3 style={{ color: t.danger, fontSize: 16, fontWeight: 800, marginBottom: 6 }}>⚠️ Zona de Perigo</h3>
+            <p style={{ color: t.textDimmed, fontSize: 12, marginBottom: 20, lineHeight: 1.6 }}>
               Ações irreversíveis relacionadas ao seu acesso ao sistema.
               Leia cada opção com atenção antes de prosseguir.
             </p>
 
             {/* OPÇÃO 1: Excluir perfil atual */}
-            <div style={{ background: "#120d0d", border: "1px solid #3a1a1a", borderRadius: 10,
+            <div style={{ background: `${t.danger}08`, border: `1px solid ${t.danger}33`, borderRadius: 10,
               padding: "16px 18px", marginBottom: 14 }}>
               <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 12 }}>
                 <span style={{ fontSize: 24, flexShrink: 0 }}>🗑️</span>
                 <div>
-                  <div style={{ color: "#ff6b6b", fontWeight: 700, fontSize: 14, marginBottom: 4 }}>
+                  <div style={{ color: t.danger, fontWeight: 700, fontSize: 14, marginBottom: 4 }}>
                     Excluir este Perfil
-                    {orgAtual && <span style={{ marginLeft: 8, fontSize: 11, color: "#cc5555",
-                      background: "#2a1010", border: "1px solid #4a2020", borderRadius: 4, padding: "1px 8px" }}>
+                    {orgAtual && <span style={{ marginLeft: 8, fontSize: 11, color: t.danger,
+                      background: `${t.danger}15`, border: `1px solid ${t.danger}33`, borderRadius: 4, padding: "1px 8px" }}>
                       {orgAtual.entidade || orgAtual.nome}
                     </span>}
                   </div>
-                  <div style={{ color: "#888", fontSize: 13, lineHeight: 1.7 }}>
-                    Remove <strong style={{ color: "#fff" }}>apenas o seu acesso</strong> vinculado a{" "}
-                    <strong style={{ color: "#ff8888" }}>
+                  <div style={{ color: t.textMuted, fontSize: 13, lineHeight: 1.7 }}>
+                    Remove <strong style={{ color: t.textPrimary }}>apenas o seu acesso</strong> vinculado a{" "}
+                    <strong style={{ color: t.danger }}>
                       {orgAtual ? `"${orgAtual.entidade || orgAtual.nome}"` : "esta organização"}
                     </strong>.
                   </div>
@@ -619,7 +625,7 @@ function TelaConfiguracoes({
                       { ico: "✅", txt: "Inscrições e resultados históricos são preservados integralmente" },
                       { ico: "✅", txt: "Seu registro de atleta não é alterado" },
                     ].filter(Boolean).map((item, i) => (
-                      <div key={i} style={{ display: "flex", gap: 6, fontSize: 12, color: "#777" }}>
+                      <div key={i} style={{ display: "flex", gap: 6, fontSize: 12, color: t.textMuted }}>
                         <span>{item.ico}</span><span>{item.txt}</span>
                       </div>
                     ))}
@@ -649,17 +655,17 @@ function TelaConfiguracoes({
 
             {/* OPÇÃO 2: Excluir todos os perfis (só mostra se atleta ou se tem múltiplos perfis) */}
             {(isAtleta || temOutrosPerfis) && (
-              <div style={{ background: "#0e0a0a", border: "1px solid #5a1a1a", borderRadius: 10,
+              <div style={{ background: `${t.danger}08`, border: `1px solid ${t.danger}55`, borderRadius: 10,
                 padding: "16px 18px" }}>
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 12 }}>
                   <span style={{ fontSize: 24, flexShrink: 0 }}>💣</span>
                   <div>
-                    <div style={{ color: "#ff4444", fontWeight: 700, fontSize: 14, marginBottom: 4 }}>
+                    <div style={{ color: t.danger, fontWeight: 700, fontSize: 14, marginBottom: 4 }}>
                       Excluir Todos os Perfis e Sair do Sistema
                     </div>
-                    <div style={{ color: "#888", fontSize: 13, lineHeight: 1.7 }}>
-                      Remove <strong style={{ color: "#fff" }}>todos os seus acessos</strong> em todas as organizações
-                      e <strong style={{ color: "#fff" }}>anonimiza seus dados pessoais</strong>.
+                    <div style={{ color: t.textMuted, fontSize: 13, lineHeight: 1.7 }}>
+                      Remove <strong style={{ color: t.textPrimary }}>todos os seus acessos</strong> em todas as organizações
+                      e <strong style={{ color: t.textPrimary }}>anonimiza seus dados pessoais</strong>.
                     </div>
                     <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 4 }}>
                       {[
@@ -668,14 +674,14 @@ function TelaConfiguracoes({
                         { ico: "✅", txt: "Inscrições e resultados históricos são preservados como registros anônimos — obrigação dos regulamentos esportivos" },
                         { ico: "✅", txt: "Nenhum resultado oficial de competição é apagado" },
                       ].map((item, i) => (
-                        <div key={i} style={{ display: "flex", gap: 6, fontSize: 12, color: "#777" }}>
+                        <div key={i} style={{ display: "flex", gap: 6, fontSize: 12, color: t.textMuted }}>
                           <span>{item.ico}</span><span>{item.txt}</span>
                         </div>
                       ))}
                     </div>
                     {nInscricoes > 0 && (
-                      <div style={{ marginTop: 10, background: "#1a0f00", border: "1px solid #5a3a00",
-                        borderRadius: 7, padding: "8px 12px", fontSize: 12, color: "#cc9944" }}>
+                      <div style={{ marginTop: 10, background: `${t.warning}11`, border: `1px solid ${t.warning}55`,
+                        borderRadius: 7, padding: "8px 12px", fontSize: 12, color: t.warning }}>
                         ⚠️ Você tem <strong>{nInscricoes} inscrição(ões) oficial(is)</strong>.
                         Elas serão preservadas como "Atleta Excluído" para integridade do histórico da competição.
                       </div>
@@ -709,23 +715,23 @@ function TelaConfiguracoes({
           {/* ── Identidade Visual ────────────────────────────────────────────── */}
           <div style={s.card}>
             <h3 style={s.sectionTitle}>🎨 Identidade Visual</h3>
-            <p style={{ color:"#666", fontSize:13, marginBottom:16, lineHeight:1.6 }}>
+            <p style={{ color:t.textDimmed, fontSize:13, marginBottom:16, lineHeight:1.6 }}>
               Personalize o ícone, logo, nome e slogan exibidos no sistema.
             </p>
 
             {/* Ícone + Logo */}
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:16 }}>
               {/* Ícone */}
-              <div style={{ background:"#0a0b10", border:"1px solid #1a1d2a", borderRadius:8, padding:12 }}>
+              <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, padding:12 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
-                  <img src={siteBranding?.icon || ""} alt="" style={{ width:36, height:36, objectFit:"contain", borderRadius:5, background:"#1a1c22" }} />
+                  <img src={siteBranding?.icon || ""} alt="" style={{ width:36, height:36, objectFit:"contain", borderRadius:5, background:t.bgHover }} />
                   <div>
-                    <div style={{ fontWeight:700, fontSize:12, color:"#fff" }}>Ícone</div>
-                    <div style={{ fontSize:10, color:"#555" }}>48×48px · máx. 300KB</div>
+                    <div style={{ fontWeight:700, fontSize:12, color:t.textPrimary }}>Ícone</div>
+                    <div style={{ fontSize:10, color:t.textDisabled }}>48×48px · máx. 300KB</div>
                   </div>
                 </div>
                 <label style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 10px",
-                  background:"#1a2a3a", border:"1px solid #2a4a6a", borderRadius:5, cursor:"pointer", fontSize:11, color:"#88aaff" }}>
+                  background:t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:5, cursor:"pointer", fontSize:11, color:t.accent }}>
                   📁 Trocar
                   <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }}
                     onChange={e => {
@@ -738,22 +744,22 @@ function TelaConfiguracoes({
                     }} />
                 </label>
                 {siteBranding?.icon && (
-                  <button style={{ fontSize:10, color:"#888", background:"transparent", border:"none", cursor:"pointer", marginLeft:6 }}
+                  <button style={{ fontSize:10, color:t.textMuted, background:"transparent", border:"none", cursor:"pointer", marginLeft:6 }}
                     onClick={() => setSiteBranding(prev => ({ ...prev, icon: "" }))}>↩ Padrão</button>
                 )}
               </div>
 
               {/* Logo */}
-              <div style={{ background:"#0a0b10", border:"1px solid #1a1d2a", borderRadius:8, padding:12 }}>
+              <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, padding:12 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
                   <img src={siteBranding?.logo || ""} alt="" style={{ height:28, objectFit:"contain", background:"#fff", padding:2, borderRadius:3 }} />
                   <div>
-                    <div style={{ fontWeight:700, fontSize:12, color:"#fff" }}>Logo</div>
-                    <div style={{ fontSize:10, color:"#555" }}>300×120px · máx. 300KB</div>
+                    <div style={{ fontWeight:700, fontSize:12, color:t.textPrimary }}>Logo</div>
+                    <div style={{ fontSize:10, color:t.textDisabled }}>300×120px · máx. 300KB</div>
                   </div>
                 </div>
                 <label style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 10px",
-                  background:"#1a2a3a", border:"1px solid #2a4a6a", borderRadius:5, cursor:"pointer", fontSize:11, color:"#88aaff" }}>
+                  background:t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:5, cursor:"pointer", fontSize:11, color:t.accent }}>
                   📁 Trocar
                   <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }}
                     onChange={e => {
@@ -766,7 +772,7 @@ function TelaConfiguracoes({
                     }} />
                 </label>
                 {siteBranding?.logo && (
-                  <button style={{ fontSize:10, color:"#888", background:"transparent", border:"none", cursor:"pointer", marginLeft:6 }}
+                  <button style={{ fontSize:10, color:t.textMuted, background:"transparent", border:"none", cursor:"pointer", marginLeft:6 }}
                     onClick={() => setSiteBranding(prev => ({ ...prev, logo: "" }))}>↩ Padrão</button>
                 )}
               </div>
@@ -787,15 +793,15 @@ function TelaConfiguracoes({
             </div>
 
             {/* Preview header */}
-            <div style={{ padding:"10px 14px", background:"linear-gradient(90deg,#0D0E12,#141720)", borderRadius:8, border:"1px solid #1E2130" }}>
-              <div style={{ fontSize:10, color:"#555", marginBottom:5 }}>Preview do header:</div>
+            <div style={{ padding:"10px 14px", background:t.bgHeader, borderRadius:8, border:`1px solid ${t.border}` }}>
+              <div style={{ fontSize:10, color:t.textDisabled, marginBottom:5 }}>Preview do header:</div>
               <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                 {siteBranding?.icon && <img src={siteBranding.icon} alt="" style={{ width:28, height:28, objectFit:"contain", borderRadius:4 }} />}
                 <div>
                   <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:16, fontWeight:900, color:"#1976D2", letterSpacing:2 }}>
                     {siteBranding?.nome || "GERENTRACK"}
                   </div>
-                  <div style={{ fontSize:10, color:"#666" }}>{siteBranding?.slogan || "COMPETIÇÃO COM PRECISÃO"}</div>
+                  <div style={{ fontSize:10, color:t.textDimmed }}>{siteBranding?.slogan || "COMPETIÇÃO COM PRECISÃO"}</div>
                 </div>
               </div>
             </div>
@@ -804,9 +810,9 @@ function TelaConfiguracoes({
           {/* ── Imagem de Fundo do Hero ──────────────────────────────────────── */}
           <div style={s.card}>
             <h3 style={s.sectionTitle}>🖼️ Imagem de Fundo do Hero</h3>
-            <p style={{ color: "#666", fontSize: 13, marginBottom: 20, lineHeight: 1.6 }}>
+            <p style={{ color: t.textDimmed, fontSize: 13, marginBottom: 20, lineHeight: 1.6 }}>
               Esta imagem aparecerá no fundo da seção principal da página inicial.<br />
-              <strong style={{ color: "#888" }}>Tamanho recomendado:</strong> 1920 × 560px · JPG ou WebP · até 2MB.
+              <strong style={{ color: t.textMuted }}>Tamanho recomendado:</strong> 1920 × 560px · JPG ou WebP · até 2MB.
             </p>
 
             {/* Preview */}
@@ -814,7 +820,7 @@ function TelaConfiguracoes({
               <label style={s.label}>Prévia</label>
               <div style={{
                 width: "100%", height: 180, borderRadius: 10,
-                border: "1px solid #252837",
+                border: `1px solid ${t.borderInput}`,
                 background: heroBgPreview
                   ? `url(${heroBgPreview}) center/cover no-repeat`
                   : "linear-gradient(180deg, #0D1018 0%, #141720 100%)",
@@ -822,7 +828,7 @@ function TelaConfiguracoes({
                 position: "relative", overflow: "hidden",
               }}>
                 {heroBgPreview && <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)" }} />}
-                <span style={{ position: "relative", zIndex: 1, color: heroBgPreview ? "#fff" : "#333", fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 2, fontWeight: 700 }}>
+                <span style={{ position: "relative", zIndex: 1, color: heroBgPreview ? "#fff" : t.textDisabled, fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 2, fontWeight: 700 }}>
                   {heroBgPreview ? "GERENTRACK" : "Sem imagem de fundo"}
                 </span>
               </div>
@@ -854,11 +860,11 @@ function TelaConfiguracoes({
               />
               <label htmlFor="heroBgUpload" style={{
                 display: "inline-flex", alignItems: "center", gap: 8,
-                background: uploadandoHero ? "#0a1a2a" : "#141720",
-                border: `1px solid ${uploadandoHero ? "#1976D2" : "#252837"}`,
+                background: uploadandoHero ? t.accentBg : t.bgInput,
+                border: `1px solid ${uploadandoHero ? t.accent : t.borderInput}`,
                 borderRadius: 7, padding: "9px 18px",
                 cursor: uploadandoHero ? "not-allowed" : "pointer",
-                fontSize: 13, color: uploadandoHero ? "#1976D2" : "#aaa",
+                fontSize: 13, color: uploadandoHero ? t.accent : t.textTertiary,
                 fontFamily: "'Barlow', sans-serif", transition: "all 0.2s",
               }}>
                 {uploadandoHero ? "⏳ Enviando para Firebase Storage..." : "📁 Escolher arquivo (JPG, PNG, WebP — máx. 2MB)"}
@@ -874,7 +880,7 @@ function TelaConfiguracoes({
                 onChange={e => { setHeroBgUrl(e.target.value); setHeroBgPreview(e.target.value); }}
                 placeholder="https://exemplo.com/imagem.jpg"
               />
-              <div style={{ fontSize: 11, color: "#555", marginTop: 5 }}>
+              <div style={{ fontSize: 11, color: t.textDimmed, marginTop: 5 }}>
                 Dica: use Firebase Storage, ImgBB ou qualquer host de imagens.
               </div>
             </div>
@@ -909,46 +915,46 @@ function TelaConfiguracoes({
           {/* ── Backup e Restauração ─────────────────────────────────────────── */}
           <div style={s.card}>
             <h3 style={s.sectionTitle}>💾 Backup e Restauração</h3>
-            <p style={{ color:"#666", fontSize:13, marginBottom:16, lineHeight:1.6 }}>
+            <p style={{ color:t.textDimmed, fontSize:13, marginBottom:16, lineHeight:1.6 }}>
               Exporte os dados para proteger suas informações ou transferir para outro ambiente.
             </p>
-            <div style={{ background:"#0a0f0a", border:"1px solid #2a3a2a", borderRadius:8, padding:14, marginBottom:10 }}>
+            <div style={{ background:`${t.success}08`, border:`1px solid ${t.success}44`, borderRadius:8, padding:14, marginBottom:10 }}>
               <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
                 <span style={{ fontSize:20 }}>📤</span>
                 <div>
-                  <div style={{ color:"#7cfc7c", fontWeight:700, fontSize:13 }}>Exportar Backup</div>
-                  <div style={{ color:"#555", fontSize:11 }}>Baixa um arquivo .json com todos os dados</div>
+                  <div style={{ color:t.success, fontWeight:700, fontSize:13 }}>Exportar Backup</div>
+                  <div style={{ color:t.textDisabled, fontSize:11 }}>Baixa um arquivo .json com todos os dados</div>
                 </div>
               </div>
-              <button style={{ ...s.btnGhost, color:"#7cfc7c", borderColor:"#2a5a2a", width:"100%", fontSize:12 }}
+              <button style={{ ...s.btnGhost, color:t.success, borderColor:`${t.success}66`, width:"100%", fontSize:12 }}
                 onClick={exportarDados}>⬇️ Baixar Backup Agora</button>
             </div>
-            <div style={{ background:"#0a0a1a", border:"1px solid #2a2a4a", borderRadius:8, padding:14 }}>
+            <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.accentBorder}`, borderRadius:8, padding:14 }}>
               <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
                 <span style={{ fontSize:20 }}>📥</span>
                 <div>
-                  <div style={{ color:"#88aaff", fontWeight:700, fontSize:13 }}>Restaurar Backup</div>
-                  <div style={{ color:"#555", fontSize:11 }}>Carrega um arquivo .json deste sistema</div>
+                  <div style={{ color:t.accent, fontWeight:700, fontSize:13 }}>Restaurar Backup</div>
+                  <div style={{ color:t.textDisabled, fontSize:11 }}>Carrega um arquivo .json deste sistema</div>
                 </div>
               </div>
               <label style={{ display:"block", cursor:"pointer" }}>
-                <div style={{ border:"1px solid #3a3a6a", color:"#88aaff", fontSize:12, textAlign:"center", padding:"8px 12px", borderRadius:6 }}>
+                <div style={{ border:`1px solid ${t.accentBorder}`, color:t.accent, fontSize:12, textAlign:"center", padding:"8px 12px", borderRadius:6 }}>
                   📂 Selecionar Arquivo de Backup
                 </div>
                 <input type="file" accept=".json" style={{ display:"none" }}
                   onChange={e => { if (e.target.files[0]) importarDados(e.target.files[0]); e.target.value = ""; }} />
               </label>
-              <div style={{ marginTop:8, fontSize:11, color:"#888" }}>⚠️ Importar substitui todos os dados atuais.</div>
+              <div style={{ marginTop:8, fontSize:11, color:t.textMuted }}>⚠️ Importar substitui todos os dados atuais.</div>
             </div>
           </div>
 
           {/* ── Zona de Perigo ───────────────────────────────────────────────── */}
-          <div style={{ ...s.card, borderColor:"#3a1a1a", background:"#0e0a0a" }}>
-            <h3 style={{ ...s.sectionTitle, color:"#ff6b6b" }}>⚠️ Zona de Perigo</h3>
-            <p style={{ color:"#666", fontSize:13, marginBottom:16, lineHeight:1.6 }}>
-              Estas ações são <strong style={{ color:"#ff6b6b" }}>irreversíveis</strong>. Use com extrema cautela.
+          <div style={{ ...s.card, borderColor:`${t.danger}33`, background:`${t.danger}08` }}>
+            <h3 style={{ ...s.sectionTitle, color:t.danger }}>⚠️ Zona de Perigo</h3>
+            <p style={{ color:t.textDimmed, fontSize:13, marginBottom:16, lineHeight:1.6 }}>
+              Estas ações são <strong style={{ color:t.danger }}>irreversíveis</strong>. Use com extrema cautela.
             </p>
-            <button style={{ ...s.btnGhost, color:"#ff6b6b", borderColor:"#5a1a1a" }} onClick={limparTodosDados}>
+            <button style={{ ...s.btnGhost, color:t.danger, borderColor:`${t.danger}55` }} onClick={limparTodosDados}>
               🗑 Limpar Todos os Dados do Sistema
             </button>
           </div>
@@ -962,7 +968,7 @@ function TelaConfiguracoes({
         const emailsEquipes = equipes.map(e => e.email).filter(Boolean);
         const emailsOrgs    = organizadores.map(o => o.email).filter(Boolean);
         const emailsFuncs   = (funcionarios || []).map(f => f.email).filter(Boolean);
-        const emailsTrein   = (treinadores  || []).map(t => t.email).filter(Boolean);
+        const emailsTrein   = (treinadores  || []).map(tr => tr.email).filter(Boolean);
 
         const mapaAfetados = {
           todos:         [...new Set([...emailsAtletas, ...emailsEquipes, ...emailsOrgs, ...emailsFuncs, ...emailsTrein])],
@@ -989,7 +995,7 @@ Prezado(a) titular,
 Informamos que identificamos um incidente de segurança${incDataDesc ? ` em ${incDataDesc}` : ""} que pode ter afetado dados pessoais armazenados na plataforma GerenTrack.
 
 NATUREZA DO INCIDENTE:
-${tiposSelecionados.length > 0 ? tiposSelecionados.map(t => `• ${t}`).join("\n") : "• A ser detalhado"}
+${tiposSelecionados.length > 0 ? tiposSelecionados.map(ts => `• ${ts}`).join("\n") : "• A ser detalhado"}
 ${incDescricao ? `\nDESCRIÇÃO:\n${incDescricao}` : ""}
 
 DADOS POSSIVELMENTE AFETADOS:
@@ -1025,7 +1031,7 @@ DATA DO INCIDENTE: ${incDataDesc || "A confirmar"}
    E-mail: gerentrack@gmail.com
 
 2. NATUREZA DO INCIDENTE
-${tiposSelecionados.length > 0 ? tiposSelecionados.map(t => `   • ${t}`).join("\n") : "   • A ser detalhado"}
+${tiposSelecionados.length > 0 ? tiposSelecionados.map(ts => `   • ${ts}`).join("\n") : "   • A ser detalhado"}
 
 3. DESCRIÇÃO DO INCIDENTE
    ${incDescricao || "Descreva o que ocorreu, como foi descoberto e qual o impacto."}
@@ -1067,9 +1073,9 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(t => `   • ${t}`).join(
                 <div style={{ color:"#ff7744", fontWeight:800, fontSize:15, marginBottom:4 }}>
                   Comunicação de Incidente — Art. 48º LGPD
                 </div>
-                <div style={{ color:"#aaa", fontSize:13, lineHeight:1.7 }}>
-                  Notifique a <strong style={{ color:"#fff" }}>ANPD em até 72h</strong> após ciência do incidente
-                  e comunique os <strong style={{ color:"#fff" }}>titulares afetados</strong>.
+                <div style={{ color:t.textTertiary, fontSize:13, lineHeight:1.7 }}>
+                  Notifique a <strong style={{ color:t.textPrimary }}>ANPD em até 72h</strong> após ciência do incidente
+                  e comunique os <strong style={{ color:t.textPrimary }}>titulares afetados</strong>.
                 </div>
                 <a href="https://peticionamento.anpd.gov.br" target="_blank" rel="noopener noreferrer"
                   style={{ display:"inline-block", marginTop:10, background:"#cc4400", color:"#fff",
@@ -1091,7 +1097,7 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(t => `   • ${t}`).join(
                       <input type="checkbox" checked={incTipos[key]}
                         onChange={e => setIncTipos(prev => ({ ...prev, [key]: e.target.checked }))}
                         style={{ width:15, height:15, cursor:"pointer" }} />
-                      <span style={{ fontSize:13, color:"#bbb" }}>{label}</span>
+                      <span style={{ fontSize:13, color:t.textSecondary }}>{label}</span>
                     </label>
                   ))}
                 </div>
@@ -1125,7 +1131,7 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(t => `   • ${t}`).join(
                 <h3 style={{ ...s.sectionTitle, margin:0 }}>2. Template — Comunicação aos Titulares</h3>
                 <div style={{ display:"flex", gap:8 }}>
                   <button onClick={() => copiar(emailsAfetados.join("; "), "emails")}
-                    style={{ ...s.btnGhost, fontSize:11, padding:"4px 12px", color:"#88aaff", borderColor:"#3a3a6a" }}>
+                    style={{ ...s.btnGhost, fontSize:11, padding:"4px 12px", color:t.accent, borderColor:`${t.accent}44` }}>
                     {incCopiado === "emails" ? "✅ Copiado!" : `📋 Copiar ${emailsAfetados.length} e-mails`}
                   </button>
                   <button onClick={() => copiar(templateEmail, "template_titular")}
@@ -1134,11 +1140,11 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(t => `   • ${t}`).join(
                   </button>
                 </div>
               </div>
-              <div style={{ fontSize:11, color:"#555", marginBottom:10 }}>
+              <div style={{ fontSize:11, color:t.textDisabled, marginBottom:10 }}>
                 Envie pelo seu cliente de e-mail. Use "Copiar e-mails" para obter a lista de destinatários.
               </div>
-              <pre style={{ background:"#080a0e", border:"1px solid #1E2130", borderRadius:8,
-                padding:"14px 16px", fontSize:11, color:"#aaa", lineHeight:1.8,
+              <pre style={{ background:t.bgCardAlt, border:`1px solid ${t.border}`, borderRadius:8,
+                padding:"14px 16px", fontSize:11, color:t.textTertiary, lineHeight:1.8,
                 whiteSpace:"pre-wrap", fontFamily:"monospace", overflowX:"auto" }}>
                 {templateEmail}
               </pre>
@@ -1153,22 +1159,22 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(t => `   • ${t}`).join(
                   {incCopiado === "template_anpd" ? "✅ Copiado!" : "📋 Copiar Template"}
                 </button>
               </div>
-              <div style={{ fontSize:11, color:"#555", marginBottom:10 }}>
+              <div style={{ fontSize:11, color:t.textDisabled, marginBottom:10 }}>
                 Use no portal:{" "}
                 <a href="https://peticionamento.anpd.gov.br" target="_blank" rel="noopener noreferrer"
                   style={{ color:"#1976D2" }}>peticionamento.anpd.gov.br →</a>
               </div>
-              <pre style={{ background:"#080a0e", border:"1px solid #1E2130", borderRadius:8,
-                padding:"14px 16px", fontSize:11, color:"#aaa", lineHeight:1.8,
+              <pre style={{ background:t.bgCardAlt, border:`1px solid ${t.border}`, borderRadius:8,
+                padding:"14px 16px", fontSize:11, color:t.textTertiary, lineHeight:1.8,
                 whiteSpace:"pre-wrap", fontFamily:"monospace", overflowX:"auto" }}>
                 {templateANPD}
               </pre>
             </div>
 
             {/* 4. Registrar */}
-            <div style={{ ...s.card, borderColor:"#3a1a1a", background:"#0e0a0a" }}>
-              <h3 style={{ ...s.sectionTitle, color:"#ff6b6b" }}>4. Registrar no Histórico</h3>
-              <p style={{ color:"#666", fontSize:13, marginBottom:14, lineHeight:1.6 }}>
+            <div style={{ ...s.card, borderColor:`${t.danger}33`, background:`${t.danger}08` }}>
+              <h3 style={{ ...s.sectionTitle, color:t.danger }}>4. Registrar no Histórico</h3>
+              <p style={{ color:t.textDimmed, fontSize:13, marginBottom:14, lineHeight:1.6 }}>
                 Registre este incidente no histórico de ações para fins de conformidade e auditoria.
               </p>
               <button onClick={() => {
@@ -1183,7 +1189,7 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(t => `   • ${t}`).join(
                   null, { modulo: "lgpd" }
                 );
                 alert("✅ Incidente registrado no histórico de ações.");
-              }} style={{ ...s.btnGhost, color:"#ff6b6b", borderColor:"#5a1a1a" }}>
+              }} style={{ ...s.btnGhost, color:t.danger, borderColor:`${t.danger}55` }}>
                 📝 Registrar Incidente no Histórico
               </button>
             </div>

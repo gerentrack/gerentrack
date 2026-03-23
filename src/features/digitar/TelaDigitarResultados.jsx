@@ -8,92 +8,95 @@ import { CombinedScoringEngine, temDuasCronometragens } from "../../shared/engin
 import { getFasesProva, buscarSeriacao, resKey, FASE_NOME } from "../../shared/constants/fases";
 import { Th, Td } from "../ui/TableHelpers";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
+import { useTema } from "../../shared/TemaContext";
 
-const styles = {
+function getStyles(t) {
+  return {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
-  pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 24, letterSpacing: 1 },
-  sectionTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, fontWeight: 800, color: "#fff", marginBottom: 20, letterSpacing: 1 },
+  pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: t.textPrimary, marginBottom: 24, letterSpacing: 1 },
+  sectionTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, fontWeight: 800, color: t.textPrimary, marginBottom: 20, letterSpacing: 1 },
   statsRow: { display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 32 },
-  btnPrimary: { background: "linear-gradient(135deg, #1976D2, #1565C0)", color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, transition: "all 0.2s" },
-  btnSecondary: { background: "transparent", color: "#1976D2", border: "2px solid #1976D2", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
-  btnGhost: { background: "transparent", color: "#888", border: "1px solid #2a2d3a", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
-  tableWrap: { overflowX: "auto", borderRadius: 12, border: "1px solid #1E2130" },
+  btnPrimary: { background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, transition: "all 0.2s" },
+  btnSecondary: { background: "transparent", color: t.accent, border: `2px solid ${t.accentBorder}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
+  btnGhost: { background: "transparent", color: t.textMuted, border: `1px solid ${t.borderLight}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
+  tableWrap: { overflowX: "auto", borderRadius: 12, border: `1px solid ${t.border}` },
   table: { width: "100%", borderCollapse: "collapse" },
-  th: { background: "#0D0E12", padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "#666", letterSpacing: 1, textTransform: "uppercase", borderBottom: "1px solid #1E2130" },
-  td: { padding: "12px 16px", fontSize: 14, color: "#bbb", borderBottom: "1px solid #12141a" },
+  th: { background: t.bgHeaderSolid, padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: t.textDimmed, letterSpacing: 1, textTransform: "uppercase", borderBottom: `1px solid ${t.border}` },
+  td: { padding: "12px 16px", fontSize: 14, color: t.textSecondary, borderBottom: `1px solid ${t.border}` },
   tr: { transition: "background 0.15s" },
-  marca: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: "#1976D2" },
-  emptyState: { textAlign: "center", padding: "60px 20px", color: "#444", display: "flex", flexDirection: "column", alignItems: "center", gap: 12, fontSize: 15 },
+  marca: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: t.accent },
+  emptyState: { textAlign: "center", padding: "60px 20px", color: t.textDisabled, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, fontSize: 15 },
   painelHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 32 },
   painelBtns: { display: "flex", gap: 10, flexWrap: "wrap" },
-  input: { width: "100%", background: "#141720", borderWidth: 1, borderStyle: "solid", borderColor: "#252837", borderRadius: 8, padding: "10px 14px", color: "#E0E0E0", fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
-  select: { width: "100%", background: "#141720", borderWidth: 1, borderStyle: "solid", borderColor: "#252837", borderRadius: 8, padding: "10px 14px", color: "#E0E0E0", fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
-  label: { display: "block", fontSize: 12, fontWeight: 600, color: "#888", letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" },
-  erro: { background: "#2a1010", border: "1px solid #ff4444", color: "#ff6b6b", padding: "10px 14px", borderRadius: 8, marginBottom: 16, fontSize: 14 },
-  linkBtn: { background: "none", border: "none", color: "#1976D2", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", padding: 0 },
+  input: { width: "100%", background: t.bgInput, borderWidth: 1, borderStyle: "solid", borderColor: t.borderInput, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
+  select: { width: "100%", background: t.bgInput, borderWidth: 1, borderStyle: "solid", borderColor: t.borderInput, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
+  label: { display: "block", fontSize: 12, fontWeight: 600, color: t.textMuted, letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" },
+  erro: { background: t.bgCardAlt, border: `1px solid ${t.danger}`, color: t.danger, padding: "10px 14px", borderRadius: 8, marginBottom: 16, fontSize: 14 },
+  linkBtn: { background: "none", border: "none", color: t.accent, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", padding: 0 },
   badge: (color) => ({ background: color + "22", color: color, border: `1px solid ${color}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }),
-  badgeGold: { background: "#1976D222", color: "#1976D2", border: "1px solid #1976D244", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 },
-  catBanner: { background: "#141720", border: "1px solid #252837", borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 14, color: "#aaa" },
+  badgeGold: { background: t.accentBg, color: t.accent, border: `1px solid ${t.accentBorder}`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 },
+  catBanner: { background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 14, color: t.textTertiary },
   filtros: { display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 },
   adminGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 32 },
-  adminCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: 24 },
-  adminCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: "#1976D2", marginBottom: 16 },
-  formCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 16, padding: 32, marginBottom: 20 },
-  formTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 800, color: "#fff", textAlign: "center", marginBottom: 8 },
-  formSub: { color: "#666", textAlign: "center", fontSize: 14, marginBottom: 24 },
+  adminCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: 24 },
+  adminCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.accent, marginBottom: 16 },
+  formCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 16, padding: 32, marginBottom: 20 },
+  formTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 800, color: t.textPrimary, textAlign: "center", marginBottom: 8 },
+  formSub: { color: t.textDimmed, textAlign: "center", fontSize: 14, marginBottom: 24 },
   grid2: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 40 },
   grid2form: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 },
-  fieldError: { color: "#ff6b6b", fontSize: 12, marginTop: 2 },
+  fieldError: { color: t.danger, fontSize: 12, marginTop: 2 },
   radioGroup: { display: "flex", gap: 8, marginBottom: 16 },
-  radioLabel: { flex: 1, background: "#141720", border: "1px solid #252837", borderRadius: 8, padding: "10px", textAlign: "center", cursor: "pointer", fontSize: 14, color: "#888", transition: "all 0.2s" },
-  radioLabelActive: { background: "#1c1f2e", border: "1px solid #1976D2", color: "#1976D2" },
-  sumuCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, marginBottom: 20, overflow: "hidden" },
-  sumuHeader: { padding: "16px 20px", background: "#0D0E12", borderBottom: "1px solid #1E2130", display: "flex", justifyContent: "space-between", alignItems: "center" },
-  sumuProva: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: "#fff", marginBottom: 6 },
+  radioLabel: { flex: 1, background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px", textAlign: "center", cursor: "pointer", fontSize: 14, color: t.textMuted, transition: "all 0.2s" },
+  radioLabelActive: { background: t.bgHover, border: `1px solid ${t.accentBorder}`, color: t.accent },
+  sumuCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, marginBottom: 20, overflow: "hidden" },
+  sumuHeader: { padding: "16px 20px", background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" },
+  sumuProva: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.textPrimary, marginBottom: 6 },
   sumuMeta: { display: "flex", gap: 8, alignItems: "center" },
-  btnIconSm: { background: "#141720", border: "1px solid #252837", color: "#888", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
-  btnIconSmDanger: { background: "#1a0a0a", border: "1px solid #3a1a1a", color: "#ff6b6b", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
-  infoCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: 24 },
-  infoCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 700, color: "#1976D2", marginBottom: 16, letterSpacing: 1 },
+  btnIconSm: { background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.textMuted, borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
+  btnIconSmDanger: { background: t.bgCardAlt, border: `1px solid ${t.danger}44`, color: t.danger, borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
+  infoCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: 24 },
+  infoCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 700, color: t.accent, marginBottom: 16, letterSpacing: 1 },
   infoList: { listStyle: "none" },
-  infoItem: { padding: "6px 0", borderBottom: "1px solid #151820", fontSize: 14, color: "#bbb", display: "flex", alignItems: "center", gap: 8 },
-  infoItemDot: { color: "#1976D2", fontWeight: 700 },
-  heroSection: { textAlign: "center", padding: "60px 20px 40px", background: "linear-gradient(180deg, #0D1018 0%, transparent 100%)", borderRadius: 16, marginBottom: 48, position: "relative", overflow: "hidden" },
-  heroBadge: { display: "inline-block", background: "#1976D2", color: "#fff", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: 3, padding: "6px 16px", borderRadius: 20, marginBottom: 20 },
-  heroTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 56, fontWeight: 900, color: "#fff", lineHeight: 1.1, marginBottom: 16, letterSpacing: 1 },
+  infoItem: { padding: "6px 0", borderBottom: `1px solid ${t.border}`, fontSize: 14, color: t.textSecondary, display: "flex", alignItems: "center", gap: 8 },
+  infoItemDot: { color: t.accent, fontWeight: 700 },
+  heroSection: { textAlign: "center", padding: "60px 20px 40px", background: `linear-gradient(180deg, ${t.bgCardAlt} 0%, transparent 100%)`, borderRadius: 16, marginBottom: 48, position: "relative", overflow: "hidden" },
+  heroBadge: { display: "inline-block", background: t.accent, color: t.textPrimary, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: 3, padding: "6px 16px", borderRadius: 20, marginBottom: 20 },
+  heroTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 56, fontWeight: 900, color: t.textPrimary, lineHeight: 1.1, marginBottom: 16, letterSpacing: 1 },
   heroBtns: { display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" },
   eventosGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 20, marginBottom: 48 },
-  eventoCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 14, padding: 24, display: "flex", flexDirection: "column", gap: 10 },
-  eventoCardNome: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: "#fff", lineHeight: 1.2 },
-  eventoCardMeta: { fontSize: 13, color: "#666" },
-  eventoCardStats: { display: "flex", gap: 16, fontSize: 13, color: "#888", flexWrap: "wrap", borderTop: "1px solid #141820", paddingTop: 10, marginTop: 4 },
+  eventoCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 14, padding: 24, display: "flex", flexDirection: "column", gap: 10 },
+  eventoCardNome: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.textPrimary, lineHeight: 1.2 },
+  eventoCardMeta: { fontSize: 13, color: t.textDimmed },
+  eventoCardStats: { display: "flex", gap: 16, fontSize: 13, color: t.textMuted, flexWrap: "wrap", borderTop: `1px solid ${t.border}`, paddingTop: 10, marginTop: 4 },
   eventoStatusBadge: (status) => ({
     display: "inline-block", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700, letterSpacing: 0.5,
-    background: status === "ao_vivo" ? "#3a0a0a" : status === "hoje_pre" ? "#2a2a0a" : status === "futuro" ? "#0a2a0a" : "#1a1a1a",
-    color: status === "ao_vivo" ? "#ff6b6b" : status === "hoje_pre" ? "#1976D2" : status === "futuro" ? "#7acc44" : "#555",
-    border: `1px solid ${status === "ao_vivo" ? "#6a2a2a" : status === "hoje_pre" ? "#4a4a0a" : status === "futuro" ? "#2a5a2a" : "#333"}`,
+    background: status === "ao_vivo" ? `${t.danger}15` : status === "hoje_pre" ? t.accentBg : status === "futuro" ? `${t.success}15` : t.bgCardAlt,
+    color: status === "ao_vivo" ? t.danger : status === "hoje_pre" ? t.accent : status === "futuro" ? t.success : t.textDisabled,
+    border: `1px solid ${status === "ao_vivo" ? `${t.danger}44` : status === "hoje_pre" ? t.accentBorder : status === "futuro" ? `${t.success}44` : t.border}`,
   }),
-  permissividadeBox: { background: "#0d1117", border: "1px solid #1976D233", borderRadius: 10, padding: 16, marginTop: 16, marginBottom: 4 },
+  permissividadeBox: { background: t.bgHeaderSolid, border: `1px solid ${t.accentBorder}`, borderRadius: 10, padding: 16, marginTop: 16, marginBottom: 4 },
   stepBar: { display: "flex", alignItems: "center", gap: 0, marginBottom: 32, maxWidth: 400 },
-  stepItem: (ativo) => ({ padding: "10px 24px", borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, background: ativo ? "#1a1c22" : "transparent", color: ativo ? "#1976D2" : "#444", border: `1px solid ${ativo ? "#1976D244" : "#1E2130"}` }),
-  stepDivider: { flex: 1, height: 1, background: "#1E2130", margin: "0 8px" },
-  tagProva: { background: "#1976D222", color: "#1976D2", border: "1px solid #1976D244", borderRadius: 6, padding: "4px 12px", fontSize: 12, cursor: "pointer" },
+  stepItem: (ativo) => ({ padding: "10px 24px", borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, background: ativo ? t.bgHover : "transparent", color: ativo ? t.accent : t.textDisabled, border: `1px solid ${ativo ? t.accentBorder : t.border}` }),
+  stepDivider: { flex: 1, height: 1, background: t.border, margin: "0 8px" },
+  tagProva: { background: t.accentBg, color: t.accent, border: `1px solid ${t.accentBorder}`, borderRadius: 6, padding: "4px 12px", fontSize: 12, cursor: "pointer" },
   eventoAcoesGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16, marginBottom: 40 },
-  eventoAcaoBtn: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: "20px 16px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, textAlign: "center", color: "#fff", fontFamily: "'Barlow', sans-serif", fontSize: 15, fontWeight: 700, transition: "border-color 0.2s" },
-  statusControlsCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: "20px 24px", marginBottom: 28 },
-  statusBar: { display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap", background: "#0D0E12", border: "1px solid #1E2130", borderRadius: 10, padding: "12px 18px", marginBottom: 24 },
-  modoSwitch: { display: "flex", gap: 0, background: "#0D0E12", border: "1px solid #1E2130", borderRadius: 10, overflow: "hidden", marginBottom: 24, width: "fit-content" },
-  modoBtn: { background: "transparent", border: "none", color: "#666", padding: "12px 24px", cursor: "pointer", fontSize: 14, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s" },
-  modoBtnActive: { background: "#141720", color: "#1976D2" },
+  eventoAcaoBtn: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "20px 16px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, textAlign: "center", color: t.textPrimary, fontFamily: "'Barlow', sans-serif", fontSize: 15, fontWeight: 700, transition: "border-color 0.2s" },
+  statusControlsCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "20px 24px", marginBottom: 28 },
+  statusBar: { display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap", background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, padding: "12px 18px", marginBottom: 24 },
+  modoSwitch: { display: "flex", gap: 0, background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, overflow: "hidden", marginBottom: 24, width: "fit-content" },
+  modoBtn: { background: "transparent", border: "none", color: t.textDimmed, padding: "12px 24px", cursor: "pointer", fontSize: 14, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s" },
+  modoBtnActive: { background: t.bgInput, color: t.accent },
   provaGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 },
-  provaBtn: { background: "#0E1016", border: "1px solid #1E2130", color: "#888", padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", lineHeight: 1.4 },
-  provaBtnSel: { background: "#1a1c22", borderColor: "#1976D2", color: "#1976D2" },
-  savedBadge: { background: "#0a2a0a", border: "1px solid #2a6a2a", color: "#4aaa4a", padding: "8px 16px", borderRadius: 8, fontSize: 13 },
-  digitarSection: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, overflow: "hidden", marginBottom: 20 },
-  digitarHeader: { padding: "16px 20px", background: "#0D0E12", borderBottom: "1px solid #1E2130", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 },
-  inputMarca: { background: "#141720", border: "1px solid #252837", borderRadius: 6, padding: "8px 12px", color: "#1976D2", fontSize: 16, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, width: 120, outline: "none" },
-  digitarDica: { color: "#666", fontSize: 12, padding: "8px 20px" },
+  provaBtn: { background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", lineHeight: 1.4 },
+  provaBtnSel: { background: t.bgHover, borderColor: t.accentBorder, color: t.accent },
+  savedBadge: { background: `${t.success}15`, border: `1px solid ${t.success}44`, color: t.success, padding: "8px 16px", borderRadius: 8, fontSize: 13 },
+  digitarSection: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, overflow: "hidden", marginBottom: 20 },
+  digitarHeader: { padding: "16px 20px", background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 },
+  inputMarca: { background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 6, padding: "8px 12px", color: t.accent, fontSize: 16, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, width: 120, outline: "none" },
+  digitarDica: { color: t.textDimmed, fontSize: 12, padding: "8px 20px" },
 };
+}
 
 // Item 8: exibe sigla da equipe quando disponível, com fallback para nome/clube
 const getExibicaoEquipe = (atleta, equipes) => {
@@ -103,36 +106,36 @@ const getExibicaoEquipe = (atleta, equipes) => {
 };
 
 // ── estilos locais extras (altura/vara) ─────────────────────────────────────
-const sty = {
+const getSty = (t) => ({
   alturaBox: {
-    background: "#0D0E12", border: "1px solid #1E2130", borderRadius: 10,
+    background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10,
     padding: "18px 20px", marginBottom: 16,
   },
   alturaRow: {
     display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 10,
   },
   alturaInput: {
-    background: "#1a1c22", border: "1px solid #2a2d3a", color: "#1976D2",
+    background: t.bgHover, border: `1px solid ${t.borderLight}`, color: t.accent,
     borderRadius: 6, padding: "6px 10px", width: 80,
     fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 700,
     textAlign: "center",
   },
   addBtn: {
-    background: "#1E2130", border: "1px solid #2a2d3a", color: "#888",
+    background: t.border, border: `1px solid ${t.borderLight}`, color: t.textMuted,
     borderRadius: 6, padding: "6px 14px", cursor: "pointer", fontSize: 13,
   },
   removeBtn: {
-    background: "transparent", border: "none", color: "#cc4444",
+    background: "transparent", border: "none", color: t.danger,
     cursor: "pointer", fontSize: 16, padding: "0 4px",
   },
   atletaCard: {
-    background: "#0D0E12", border: "1px solid #1E2130", borderRadius: 8,
+    background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 8,
     marginBottom: 12, overflow: "hidden",
   },
   atletaCardHead: {
-    background: "#13151c", padding: "10px 16px",
+    background: t.bgHover, padding: "10px 16px",
     display: "flex", justifyContent: "space-between", alignItems: "center",
-    borderBottom: "1px solid #1E2130",
+    borderBottom: `1px solid ${t.border}`,
   },
   atletaCardBody: {
     padding: "12px 16px", overflowX: "auto",
@@ -144,17 +147,17 @@ const sty = {
     width: 32, height: 32, border: "none", borderRadius: 5,
     cursor: "pointer", fontSize: 13, fontWeight: 800,
     background: active
-      ? (val === "O" ? "#1a4a1a" : val === "X" ? "#4a1a1a" : "#2a2a2a")
-      : "#1a1c22",
+      ? (val === "O" ? `${t.success}25` : val === "X" ? `${t.danger}25` : t.bgCardAlt)
+      : t.bgHover,
     color: active
-      ? (val === "O" ? "#4cff4c" : val === "X" ? "#ff5555" : "#aaa")
-      : "#444",
-    outline: active ? `2px solid ${val === "O" ? "#2a8a2a" : val === "X" ? "#cc2222" : "#555"}` : "none",
+      ? (val === "O" ? t.success : val === "X" ? t.danger : t.textTertiary)
+      : t.textDisabled,
+    outline: active ? `2px solid ${val === "O" ? `${t.success}66` : val === "X" ? `${t.danger}66` : t.textDisabled}` : "none",
   }),
   melhorBadge: (val) => ({
-    background: val ? "#1a3a1a" : "#1a1c22",
-    color: val ? "#4cff4c" : "#555",
-    border: `1px solid ${val ? "#2a8a2a" : "#2a2d3a"}`,
+    background: val ? `${t.success}20` : t.bgHover,
+    color: val ? t.success : t.textDisabled,
+    border: `1px solid ${val ? `${t.success}44` : t.borderLight}`,
     borderRadius: 6, padding: "4px 12px",
     fontFamily: "'Barlow Condensed', sans-serif",
     fontSize: 15, fontWeight: 800,
@@ -162,16 +165,17 @@ const sty = {
   th: {
     padding: "7px 6px", fontSize: 10, fontWeight: 700,
     fontFamily: "'Barlow Condensed',sans-serif", letterSpacing: 1,
-    textAlign: "center", color: "#aaa",
-    background: "#0D0E12", borderBottom: "1px solid #1E2130",
+    textAlign: "center", color: t.textTertiary,
+    background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`,
   },
-};
+});
 
 /* ════════════════════════════════════════════════════════════════════════════
    CondicoesProvaPanel — painel de condições (horário/umidade/temp) com estado
    local para evitar re-render a cada keystroke. Salva no blur.
    ════════════════════════════════════════════════════════════════════════════ */
 function CondicoesProvaPanel({ eid, filtroProva, catId, filtroSexo, eventoAtual, editarEvento }) {
+  const t = useTema();
   const condKey = `${eid}_${filtroProva}_${catId}_${filtroSexo}`;
   const condAll = eventoAtual.condicoesProva || {};
   const condSalva = condAll[condKey] || {};
@@ -202,15 +206,15 @@ function CondicoesProvaPanel({ eid, filtroProva, catId, filtroSexo, eventoAtual,
     salvar(campo, local[campo] || "");
   };
 
-  const inputSt = { background: "#0D0E12", border: "1px solid #1E2130", borderRadius: 6, padding: "6px 10px", color: "#fff", fontSize: 13, width: 100, textAlign: "center", outline: "none" };
-  const lblSt = { color: "#888", fontSize: 11, marginBottom: 2 };
+  const inputSt = { background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 6, padding: "6px 10px", color: t.textPrimary, fontSize: 13, width: 100, textAlign: "center", outline: "none" };
+  const lblSt = { color: t.textMuted, fontSize: 11, marginBottom: 2 };
   const grpSt = { display: "flex", flexDirection: "column", alignItems: "center" };
 
   return (
-    <div style={{ background: "#0a0b10", border: "1px solid #1E2130", borderRadius: 10, padding: "14px 18px", marginBottom: 16 }}>
+    <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, padding: "14px 18px", marginBottom: 16 }}>
       <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-end" }}>
         <div style={{ flex: 1, minWidth: 280 }}>
-          <div style={{ color: "#7cfc7c", fontSize: 12, fontWeight: 700, marginBottom: 8, letterSpacing: 1 }}>▶ INÍCIO DA PROVA</div>
+          <div style={{ color: t.success, fontSize: 12, fontWeight: 700, marginBottom: 8, letterSpacing: 1 }}>▶ INÍCIO DA PROVA</div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <div style={grpSt}>
               <div style={lblSt}>Horário</div>
@@ -226,9 +230,9 @@ function CondicoesProvaPanel({ eid, filtroProva, catId, filtroSexo, eventoAtual,
             </div>
           </div>
         </div>
-        <div style={{ width: 1, height: 60, background: "#1E2130", alignSelf: "center" }} />
+        <div style={{ width: 1, height: 60, background: t.border, alignSelf: "center" }} />
         <div style={{ flex: 1, minWidth: 280 }}>
-          <div style={{ color: "#ff6b6b", fontSize: 12, fontWeight: 700, marginBottom: 8, letterSpacing: 1 }}>⏹ TÉRMINO DA PROVA</div>
+          <div style={{ color: t.danger, fontSize: 12, fontWeight: 700, marginBottom: 8, letterSpacing: 1 }}>⏹ TÉRMINO DA PROVA</div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <div style={grpSt}>
               <div style={lblSt}>Horário</div>
@@ -261,7 +265,9 @@ function BlocoDigitarCategoria({
   usuarioLogado, registrarAcao, setTela,
   todasProvasComCombinadas, inscDoEvento,
 }) {
-  const s = useStylesResponsivos(styles);
+  const t = useTema();
+  const s = useStylesResponsivos(getStyles(t));
+  const sty = getSty(t);
   const confirmar = useConfirm();
 
   // ── estado próprio por categoria ──────────────────────────────────────────
@@ -385,7 +391,7 @@ function BlocoDigitarCategoria({
   // ── helpers para Altura/Vara ────────────────────────────────────────────────
   const OPCOES = ["", "O", "X", "-"];
   const LABELS = { "O": "✓ Transpôs", "X": "✗ Falha", "-": "— Passou", "": "—" };
-  const CORES  = { "O": "#2a8a2a", "X": "#cc2222", "-": "#888", "": "#333" };
+  const CORES  = { "O": t.success, "X": t.danger, "-": t.textMuted, "": t.textDisabled };
 
   const setTentativa = (atletaId, altura, idx, val) => {
     setTentativas((prev) => {
@@ -431,7 +437,7 @@ function BlocoDigitarCategoria({
     const key = alt.find(h => parseFloat(h) === melhor);
     if (!key) return 0;
     const arr = Array.isArray(tent[key]) ? tent[key] : [];
-    return arr.filter(t => t === "X" || t === "O").length;
+    return arr.filter(v => v === "X" || v === "O").length;
   };
 
   const calcFP = (atletaId) => {
@@ -442,7 +448,7 @@ function BlocoDigitarCategoria({
       if (!h) return;
       const arr = Array.isArray(tent[h]) ? tent[h] : [];
       if (arr.includes("O")) {
-        total += arr.filter(t => t === "X").length;
+        total += arr.filter(v => v === "X").length;
       }
     });
     return total;
@@ -674,30 +680,30 @@ function BlocoDigitarCategoria({
       display:"flex", alignItems:"center", justifyContent:"center", zIndex:9999,
     }}>
       <div style={{
-        background:"#13151c", border:"1px solid #cc4444",
+        background:t.bgHover, border:"1px solid #cc4444",
         borderRadius:12, padding:"28px 32px", maxWidth:360, textAlign:"center",
       }}>
         <div style={{ fontSize:32, marginBottom:12 }}>🗑️</div>
-        <div style={{ color:"#fff", fontWeight:700, fontSize:16, marginBottom:8 }}>
+        <div style={{ color: t.textPrimary, fontWeight:700, fontSize:16, marginBottom:8 }}>
           {confirmLimpar === "todos"
             ? "Limpar todos os resultados desta prova?"
             : `Limpar resultado deste atleta?`}
         </div>
-        <div style={{ color:"#ff6b6b", fontSize:13, marginBottom:4, fontWeight:600 }}>
+        <div style={{ color: t.danger, fontSize:13, marginBottom:4, fontWeight:600 }}>
           ⚠️ ATENÇÃO: Esta ação é IRREVERSÍVEL!
         </div>
-        <div style={{ color:"#888", fontSize:12, marginBottom:24 }}>
+        <div style={{ color: t.textMuted, fontSize:12, marginBottom:24 }}>
           {confirmLimpar === "todos"
             ? "Todos os resultados desta categoria serão apagados permanentemente."
             : "O resultado deste atleta será apagado permanentemente."}
         </div>
         <div style={{ display:"flex", gap:12, justifyContent:"center" }}>
           <button
-            style={{ ...s.btnGhost, borderColor:"#555", minWidth:100 }}
+            style={{ ...s.btnGhost, borderColor: t.textDisabled, minWidth:100 }}
             onClick={cancelarLimpar}
           >Cancelar</button>
           <button
-            style={{ ...s.btnPrimary, background:"#7a1a1a", borderColor:"#cc4444", minWidth:100 }}
+            style={{ ...s.btnPrimary, background: t.danger, borderColor: t.danger, minWidth:100 }}
             onClick={confirmarLimpar}
           >🗑️ Confirmar</button>
         </div>
@@ -710,50 +716,50 @@ function BlocoDigitarCategoria({
     <div style={s.digitarSection}>
       {modalLimpar}
       {/* ── Category header banner ── */}
-      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 800, color: "#1976D2", padding: "12px 20px", background: "#0D0E12", borderBottom: "1px solid #1E2130", letterSpacing: 1 }}>
+      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 800, color: t.accent, padding: "12px 20px", background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`, letterSpacing: 1 }}>
         {CATEGORIAS.find(c => c.id === catId)?.nome || catId} — {filtroSexo === "M" ? "Masculino" : "Feminino"}
       </div>
 
       <div style={s.digitarHeader}>
         <div>
-          <strong style={{ color: "#1976D2" }}><NomeProvaComImplemento nome={provaSel?.nome} style={{ color: "#1976D2" }} /></strong>
+          <strong style={{ color: t.accent }}><NomeProvaComImplemento nome={provaSel?.nome} style={{ color: t.accent }} /></strong>
           {_temFases && faseEfetiva && (
             <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 4, marginLeft: 8, fontWeight: 700,
-              background: faseEfetiva === "ELI" ? "#2a1a0a" : faseEfetiva === "SEM" ? "#0a1a2a" : "#0a2a0a",
-              color: faseEfetiva === "ELI" ? "#ff8844" : faseEfetiva === "SEM" ? "#88aaff" : "#7cfc7c",
+              background: faseEfetiva === "ELI" ? `${t.warning}15` : faseEfetiva === "SEM" ? `${t.accent}15` : `${t.success}15`,
+              color: faseEfetiva === "ELI" ? t.warning : faseEfetiva === "SEM" ? t.accent : t.success,
             }}>
               {FASE_NOME[faseEfetiva]}
             </span>
           )}
           {provaSel?.origemCombinada && (
-            <span style={{ fontSize: 11, background: "#0a1a2a", color: "#1976D2", padding: "2px 8px", borderRadius: 4, marginLeft: 8, fontWeight: 600 }}>
+            <span style={{ fontSize: 11, background: t.accentBg, color: t.accent, padding: "2px 8px", borderRadius: 4, marginLeft: 8, fontWeight: 600 }}>
               🏅 {provaSel.nomeCombinada} ({provaSel.ordem}/{provaSel.totalProvas})
             </span>
           )}
           {provaPossuiDuasCrono && (
             <span style={{ marginLeft: 12, display: "inline-flex", alignItems: "center", gap: 4 }}>
-              <span style={{ fontSize: 11, color: "#888" }}>⏱ Cronometragem:</span>
+              <span style={{ fontSize: 11, color: t.textMuted }}>⏱ Cronometragem:</span>
               <button
                 onClick={() => alternarCronometragem("ELE")}
                 style={{
                   fontSize: 11, padding: "2px 8px", borderRadius: 4, cursor: "pointer",
-                  border: cronometragem === "ELE" ? "1px solid #1976D2" : "1px solid #333",
-                  background: cronometragem === "ELE" ? "#0a1a3a" : "transparent",
-                  color: cronometragem === "ELE" ? "#1976D2" : "#666",
+                  border: cronometragem === "ELE" ? `1px solid ${t.accentBorder}` : `1px solid ${t.border}`,
+                  background: cronometragem === "ELE" ? t.accentBg : "transparent",
+                  color: cronometragem === "ELE" ? t.accent : t.textDimmed,
                   fontWeight: cronometragem === "ELE" ? 700 : 400,
                 }}>Eletrônica</button>
               <button
                 onClick={() => alternarCronometragem("MAN")}
                 style={{
                   fontSize: 11, padding: "2px 8px", borderRadius: 4, cursor: "pointer",
-                  border: cronometragem === "MAN" ? "1px solid #ff8844" : "1px solid #333",
-                  background: cronometragem === "MAN" ? "#2a1a0a" : "transparent",
-                  color: cronometragem === "MAN" ? "#ff8844" : "#666",
+                  border: cronometragem === "MAN" ? `1px solid ${t.warning}` : `1px solid ${t.border}`,
+                  background: cronometragem === "MAN" ? `${t.warning}15` : "transparent",
+                  color: cronometragem === "MAN" ? t.warning : t.textDimmed,
                   fontWeight: cronometragem === "MAN" ? 700 : 400,
                 }}>Manual</button>
             </span>
           )}
-          {isAltura && <span style={{ color: "#888", marginLeft: 12, fontSize: 12 }}>
+          {isAltura && <span style={{ color: t.textMuted, marginLeft: 12, fontSize: 12 }}>
             Salto em Altura / Vara — configure as barras abaixo
           </span>}
         </div>
@@ -764,8 +770,8 @@ function BlocoDigitarCategoria({
 
       {/* Banner de resultados existentes */}
       {atletasNaProva.some(a => resExistentes[a.id] != null) && Object.keys(marcas).length === 0 && (
-        <div style={{ background:"#0a1420", border:"1px solid #1a4a8a", borderRadius:8, padding:"12px 18px", marginBottom:16, display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
-          <span style={{ color:"#88aaff", fontSize:13 }}>
+        <div style={{ background: t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:8, padding:"12px 18px", marginBottom:16, display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
+          <span style={{ color: t.accent, fontSize:13 }}>
             📝 Esta prova já possui resultados salvos.
           </span>
           <button
@@ -806,16 +812,16 @@ function BlocoDigitarCategoria({
           >
             ✏️ Editar Resultados
           </button>
-          <span style={{ color:"#555", fontSize:11 }}>
+          <span style={{ color: t.textDimmed, fontSize:11 }}>
             Clique para carregar os dados nos campos e editar
           </span>
         </div>
       )}
       {Object.keys(marcas).length > 0 && atletasNaProva.some(a => resExistentes[a.id] != null) && (
-        <div style={{ background:"#141a10", border:"1px solid #4a8a2a", borderRadius:8, padding:"8px 16px", marginBottom:16, display:"flex", alignItems:"center", gap:8, fontSize:12, color:"#7acc44" }}>
+        <div style={{ background:`${t.success}12`, border:`1px solid ${t.success}44`, borderRadius:8, padding:"8px 16px", marginBottom:16, display:"flex", alignItems:"center", gap:8, fontSize:12, color: t.success }}>
           ✏️ <strong>Modo edição</strong> — altere os valores e clique em "Salvar e Publicar"
           <button
-            style={{ ...s.linkBtn, marginLeft:"auto", color:"#888", fontSize:11 }}
+            style={{ ...s.linkBtn, marginLeft:"auto", color: t.textMuted, fontSize:11 }}
             onClick={async () => { setMarcas({}); setTentativas({}); }}
           >Cancelar edição</button>
         </div>
@@ -896,9 +902,9 @@ function BlocoDigitarCategoria({
           return (
             <>
               {Object.keys(marcas).length > 0 && temResExistRevez && (
-                <div style={{ background:"#141a10", border:"1px solid #4a8a2a", borderRadius:8, padding:"8px 16px", marginBottom:12, display:"flex", alignItems:"center", gap:8, fontSize:12, color:"#7acc44" }}>
+                <div style={{ background:`${t.success}12`, border:`1px solid ${t.success}44`, borderRadius:8, padding:"8px 16px", marginBottom:12, display:"flex", alignItems:"center", gap:8, fontSize:12, color: t.success }}>
                   ✏️ <strong>Modo edição</strong> — altere os valores e clique em "Salvar e Publicar"
-                  <button style={{ ...s.linkBtn, marginLeft:"auto", color:"#888", fontSize:11 }}
+                  <button style={{ ...s.linkBtn, marginLeft:"auto", color: t.textMuted, fontSize:11 }}
                     onClick={() => setMarcas({})}>Cancelar edição</button>
                 </div>
               )}
@@ -939,12 +945,12 @@ function BlocoDigitarCategoria({
                     const valVento = m.vento !== undefined ? m.vento : existVento;
                     const isStatusAtivo = !!valStatus;
                     return (
-                      <tr key={eq.equipeId} style={{ ...s.tr, ...(j < 3 ? { background: "#111210" } : {}) }}>
-                        <Td><strong style={{ color: "#aaa" }}>{j + 1}</strong></Td>
-                        <Td><strong style={{ color: "#1976D2" }}>{eq.nomeEquipe}{eq.sigla ? ` (${eq.sigla})` : ""}</strong></Td>
+                      <tr key={eq.equipeId} style={{ ...s.tr, ...(j < 3 ? { background: t.bgCardAlt } : {}) }}>
+                        <Td><strong style={{ color: t.textTertiary }}>{j + 1}</strong></Td>
+                        <Td><strong style={{ color: t.accent }}>{eq.nomeEquipe}{eq.sigla ? ` (${eq.sigla})` : ""}</strong></Td>
                         <Td>{eq.atletas.length > 0
-                          ? <span style={{ fontSize: 11, color: "#aaa" }}>{eq.atletas.map(a => a.nome).join(" · ")}</span>
-                          : <span style={{ fontSize: 11, color: "#ff6b6b" }}>⚠ Sem atletas</span>
+                          ? <span style={{ fontSize: 11, color: t.textTertiary }}>{eq.atletas.map(a => a.nome).join(" · ")}</span>
+                          : <span style={{ fontSize: 11, color: t.danger }}>⚠ Sem atletas</span>
                         }</Td>
                         <Td><input type="number" min="1" max="20" style={{ ...s.input, width: 45, textAlign: "center", fontSize: 12, padding: "6px 4px" }}
                           value={valSerie} onChange={e => setMarcas(prev => ({ ...prev, [eq.equipeId]: { ...prev[eq.equipeId], serie: e.target.value } }))} /></Td>
@@ -960,8 +966,8 @@ function BlocoDigitarCategoria({
                           <input
                             type="text" inputMode="numeric" placeholder="ex: 42350"
                             style={{ ...s.input, width: 100, textAlign: "center", fontWeight: 700, fontSize: 14, padding: "8px 6px",
-                              color: isStatusAtivo ? "#666" : "#7cfc7c",
-                              background: isStatusAtivo ? "#111" : "#0D0E12" }}
+                              color: isStatusAtivo ? t.textDimmed : t.success,
+                              background: isStatusAtivo ? t.bgCardAlt : t.bgHeaderSolid }}
                             disabled={isStatusAtivo}
                             value={valMarca ? autoFormatTempo(String(valMarca)) : ""}
                             onChange={e => {
@@ -981,10 +987,10 @@ function BlocoDigitarCategoria({
                         </Td>
                         <Td>
                           {existMarca != null && !["DNS","DNF","DQ"].includes(existStatus) ? (
-                            <span style={{ color: "#888", fontSize: 12 }}>{formatarTempo(existMarca, 2)}</span>
+                            <span style={{ color: t.textMuted, fontSize: 12 }}>{formatarTempo(existMarca, 2)}</span>
                           ) : existStatus ? (
-                            <span style={{ color: "#ff8844", fontSize: 12 }}>{existStatus}</span>
-                          ) : <span style={{ color: "#333" }}>—</span>}
+                            <span style={{ color: t.warning, fontSize: 12 }}>{existStatus}</span>
+                          ) : <span style={{ color: t.textDisabled }}>—</span>}
                         </Td>
                       </tr>
                     );
@@ -999,14 +1005,14 @@ function BlocoDigitarCategoria({
                   <button style={s.btnGhost} onClick={() => setMarcas({})}>Limpar edições</button>
                 )}
                 {equipesRevezNaProva.some(eq => resExistentes[eq.equipeId] != null) && (
-                  <button style={{ ...s.btnGhost, color: "#ff6b6b", borderColor: "#5a1a1a" }}
+                  <button style={{ ...s.btnGhost, color: t.danger, borderColor: `${t.danger}44` }}
                     onClick={async () => {
                       if (!await confirmar(`⚠️ Limpar TODOS os resultados deste revezamento?\n\n${provaSel?.nome } — ${catId} — ${filtroSexo === "M" ? "Masc." : "Fem."}\n\nEsta ação é IRREVERSÍVEL.`)) return;
                       _limparTodos(eid, filtroProva, catId, filtroSexo);
                       setMarcas({});
                     }}>🗑 Limpar Todos</button>
                 )}
-                {salvo && <span style={{ color: "#7cfc7c", fontWeight: 700, fontSize: 14 }}>✅ Salvo!</span>}
+                {salvo && <span style={{ color: t.success, fontWeight: 700, fontSize: 14 }}>✅ Salvo!</span>}
               </div>
             </>
           );
@@ -1030,15 +1036,15 @@ function BlocoDigitarCategoria({
             const marca = r ? (typeof r === "object" ? r.marca : r) : null;
             return marca != null && marca !== "";
           }) && (
-            <div style={{ background:"#0a2a0a", border:"1px solid #2a6a2a", borderRadius:8, padding:"6px 14px", marginBottom:10, fontSize:11, color:"#7cfc7c" }}>
+            <div style={{ background:`${t.success}15`, border:`1px solid ${t.success}44`, borderRadius:8, padding:"6px 14px", marginBottom:10, fontSize:11, color: t.success }}>
               🏆 <strong>Prova Concluída</strong>
-              <span style={{ color:"#888", marginLeft:8 }}>Todos os atletas possuem resultado</span>
+              <span style={{ color: t.textMuted, marginLeft:8 }}>Todos os atletas possuem resultado</span>
             </div>
           )}
           {/* ── Linha de configuração das barras ───────────────────── */}
-          <div style={{ background:"#0D0E12", border:"1px solid #1E2130", borderRadius:8, padding:"14px 18px", marginBottom:16 }}>
+          <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, padding:"14px 18px", marginBottom:16 }}>
             <div style={{ display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
-              <span style={{ color:"#1976D2", fontFamily:"'Barlow Condensed',sans-serif", fontSize:13, fontWeight:800, letterSpacing:1, whiteSpace:"nowrap" }}>
+              <span style={{ color: t.accent, fontFamily:"'Barlow Condensed',sans-serif", fontSize:13, fontWeight:800, letterSpacing:1, whiteSpace:"nowrap" }}>
                 📏 ALTURAS
               </span>
               {(Array.isArray(alturas) ? alturas : [""]).map((h, i) => (
@@ -1055,47 +1061,47 @@ function BlocoDigitarCategoria({
                 </div>
               ))}
               <button style={sty.addBtn} onClick={() => setAlturas([...alturas,""])}>+ barra</button>
-              <span style={{ fontSize:11, color:"#444" }}>metros (ex: 1,20)</span>
+              <span style={{ fontSize:11, color: t.textDisabled }}>metros (ex: 1,20)</span>
             </div>
           </div>
 
           {/* ── Tabela: linhas = atletas, colunas = alturas ─────────── */}
           {temDesempateAltura && (
-            <div style={{ background:"#1a1a0a", border:"1px solid #4a4a2a", borderRadius:8, padding:"6px 14px", marginBottom:10, fontSize:11, color:"#1976D2" }}>
+            <div style={{ background: t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:8, padding:"6px 14px", marginBottom:10, fontSize:11, color: t.accent }}>
               ⚖️ <strong>RT 26.9 — Regra de Desempate Aplicada</strong>
-              <span style={{ color:"#888", marginLeft:8 }}>1º menor nº de saltos na última altura transposta (SU) · 2º menor nº total de falhas na prova (FP)</span>
+              <span style={{ color: t.textMuted, marginLeft:8 }}>1º menor nº de saltos na última altura transposta (SU) · 2º menor nº total de falhas na prova (FP)</span>
             </div>
           )}
           <div style={{ overflowX:"auto", maxHeight:"80vh", overflowY:"auto" }}>
-            <table style={{ borderCollapse:"collapse", background:"#0D0E12", minWidth:"100%" }}>
+            <table style={{ borderCollapse:"collapse", background:t.bgHeaderSolid, minWidth:"100%" }}>
               <thead style={{ position:"sticky", top:0, zIndex:2 }}>
                 {/* linha 1: altura em cada coluna */}
                 <tr>
-                  <th style={{ ...sty.th, textAlign:"left", minWidth:200, position:"sticky", left:0, zIndex:3, background:"#0D0E12" }}>ATLETA</th>
+                  <th style={{ ...sty.th, textAlign:"left", minWidth:200, position:"sticky", left:0, zIndex:3, background:t.bgHeaderSolid }}>ATLETA</th>
                   {(Array.isArray(alturas) ? alturas : []).filter(h=>h!=="").map(h => (
-                    <th key={h} colSpan={3} style={{ ...sty.th, background:"#111", color:"#1976D2", minWidth:90, textAlign:"center", borderBottom:"2px solid #1976D2" }}>
+                    <th key={h} colSpan={3} style={{ ...sty.th, background:t.bgHeaderSolid, color: t.accent, minWidth:90, textAlign:"center", borderBottom:"2px solid #1976D2" }}>
                       {parseFloat(h).toFixed(2).replace(".",",")}m
                     </th>
                   ))}
-                  <th style={{ ...sty.th, minWidth:36, color:"#ff8888", fontSize:9 }} title="Saltos na Última altura transposta (RT 26.9.1)">SU</th>
-                  <th style={{ ...sty.th, minWidth:36, color:"#ff8888", fontSize:9 }} title="Falhas na Prova inteira (RT 26.9.2)">FP</th>
-                  <th style={{ ...sty.th, minWidth:80, color:"#4cff4c" }}>MELHOR</th>
-                  <th style={{ ...sty.th, minWidth:44, color:"#88aaff" }}>POS.</th>
+                  <th style={{ ...sty.th, minWidth:36, color: t.danger, fontSize:9 }} title="Saltos na Última altura transposta (RT 26.9.1)">SU</th>
+                  <th style={{ ...sty.th, minWidth:36, color: t.danger, fontSize:9 }} title="Falhas na Prova inteira (RT 26.9.2)">FP</th>
+                  <th style={{ ...sty.th, minWidth:80, color: t.success }}>MELHOR</th>
+                  <th style={{ ...sty.th, minWidth:44, color: t.accent }}>POS.</th>
                   <th style={{ ...sty.th, minWidth:62 }}>Status</th>
                 </tr>
                 {/* linha 2: numeração das tentativas */}
                 <tr>
-                  <th style={{ ...sty.th, background:"#0a0b0e", position:"sticky", left:0, zIndex:3 }}></th>
+                  <th style={{ ...sty.th, background: t.bgCardAlt, position:"sticky", left:0, zIndex:3 }}></th>
                   {(Array.isArray(alturas) ? alturas : []).filter(h=>h!=="").flatMap(h =>
                     [1,2,3].map(n => (
-                      <th key={`${h}-${n}`} style={{ ...sty.th, background:"#0a0b0e", color:"#555", fontSize:9, minWidth:30 }}>{n}ª</th>
+                      <th key={`${h}-${n}`} style={{ ...sty.th, background: t.bgCardAlt, color: t.textDimmed, fontSize:9, minWidth:30 }}>{n}ª</th>
                     ))
                   )}
-                  <th style={{ ...sty.th, background:"#0a0b0e" }}></th>
-                  <th style={{ ...sty.th, background:"#0a0b0e" }}></th>
-                  <th style={{ ...sty.th, background:"#0a0b0e" }}></th>
-                  <th style={{ ...sty.th, background:"#0a0b0e" }}></th>
-                  <th style={{ ...sty.th, background:"#0a0b0e" }}></th>
+                  <th style={{ ...sty.th, background: t.bgCardAlt }}></th>
+                  <th style={{ ...sty.th, background: t.bgCardAlt }}></th>
+                  <th style={{ ...sty.th, background: t.bgCardAlt }}></th>
+                  <th style={{ ...sty.th, background: t.bgCardAlt }}></th>
+                  <th style={{ ...sty.th, background: t.bgCardAlt }}></th>
                 </tr>
               </thead>
               <tbody>
@@ -1110,24 +1116,24 @@ function BlocoDigitarCategoria({
                   const foraDeProva = atletaInativo || atletaNMAltura;
                   const melhor = foraDeProva ? null : melhorAltura(a.id);
                   return (
-                    <tr key={a.id} style={{ background: ai%2===0 ? "#0e0f14" : "#111318", opacity: foraDeProva ? 0.4 : 1 }}>
+                    <tr key={a.id} style={{ background: ai%2===0 ? t.bgCard : t.bgCardAlt, opacity: foraDeProva ? 0.4 : 1 }}>
                       {/* nome + nº peito — sticky */}
-                      <td style={{ padding:"8px 12px", borderBottom:"1px solid #1E2130", whiteSpace:"nowrap", position:"sticky", left:0, zIndex:1, background: ai%2===0 ? "#0e0f14" : "#111318" }}>
+                      <td style={{ padding:"8px 12px", borderBottom:`1px solid ${t.border}`, whiteSpace:"nowrap", position:"sticky", left:0, zIndex:1, background: ai%2===0 ? t.bgCard : t.bgCardAlt }}>
                         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                           {(numeracaoPeito?.[eventoAtual?.id]||{})[a.id] && (
-                            <span style={{ fontWeight:700, color:"#aaa", fontSize:12, minWidth:24 }}>{(numeracaoPeito[eventoAtual.id])[a.id]}</span>
+                            <span style={{ fontWeight:700, color: t.textTertiary, fontSize:12, minWidth:24 }}>{(numeracaoPeito[eventoAtual.id])[a.id]}</span>
                           )}
                           <div>
-                            <div style={{ fontWeight:700, color:"#fff", fontSize:13 }}>{a.nome}</div>
-                            <div style={{ color:"#555", fontSize:11 }}>{getExibicaoEquipe(a, equipes)||"—"}{atletaInativo ? ` — ${getStatusAtleta(a)}` : atletaNMAltura ? " — NM" : ""}</div>
+                            <div style={{ fontWeight:700, color: t.textPrimary, fontSize:13 }}>{a.nome}</div>
+                            <div style={{ color: t.textDimmed, fontSize:11 }}>{getExibicaoEquipe(a, equipes)||"—"}{atletaInativo ? ` — ${getStatusAtleta(a)}` : atletaNMAltura ? " — NM" : ""}</div>
                           </div>
                         </div>
                       </td>
                       {/* tentativas por altura */}
                       {(Array.isArray(alturas) ? alturas : []).filter(h=>h!=="").flatMap((h, hIdx) => {
                         if (atletaInativo) return [0,1,2].map(ti => (
-                          <td key={`${h}-${ti}`} style={{ padding:"6px 4px", textAlign:"center", borderBottom:"1px solid #1E2130", borderLeft: ti===0 ? "2px solid #1E2130" : "1px solid #0d0e12", background:"#0a0a0e" }}>
-                            <div style={{ fontSize:9, color:"#444" }}>—</div>
+                          <td key={`${h}-${ti}`} style={{ padding:"6px 4px", textAlign:"center", borderBottom:`1px solid ${t.border}`, borderLeft: ti===0 ? `2px solid ${t.border}` : `1px solid ${t.border}`, background:t.bgHeaderSolid }}>
+                            <div style={{ fontSize:9, color: t.textDisabled }}>—</div>
                           </td>
                         ));
                         const rawTent = tentativas[a.id]?.[h];
@@ -1140,23 +1146,23 @@ function BlocoDigitarCategoria({
                           return (
                           <td key={`${h}-${ti}`} style={{
                             padding:"6px 4px", textAlign:"center",
-                            borderBottom:"1px solid #1E2130",
-                            borderLeft: ti===0 ? "2px solid #1E2130" : "1px solid #0d0e12",
-                            background: estado === "eliminado" ? "#1a0808"
-                                      : estado === "bloq_sucesso" ? "#081a08"
-                                      : passou && tent[ti]==="O" ? "#0a1a0a"
-                                      : elim  && tent[ti]==="X" ? "#1a0a0a"
-                                      : estado === "aguardando" ? "#0a0a0e"
+                            borderBottom:`1px solid ${t.border}`,
+                            borderLeft: ti===0 ? `2px solid ${t.border}` : `1px solid ${t.border}`,
+                            background: estado === "eliminado" ? `${t.danger}12`
+                                      : estado === "bloq_sucesso" ? `${t.success}10`
+                                      : passou && tent[ti]==="O" ? `${t.success}10`
+                                      : elim  && tent[ti]==="X" ? `${t.danger}12`
+                                      : estado === "aguardando" ? t.bgHeaderSolid
                                       : "transparent",
                             opacity: bloqueado && tent[ti] === "" ? 0.35 : 1,
                           }}>
                             {bloqueado && tent[ti] === "" ? (
                               estado === "eliminado" ? (
-                                <div style={{ fontSize:9, color:"#ff4444", fontWeight:700 }}>
+                                <div style={{ fontSize:9, color: t.danger, fontWeight:700 }}>
                                   {ti === 1 ? "✕" : ""}
                                 </div>
                               ) : (
-                                <div style={{ fontSize:9, color:"#444" }}>—</div>
+                                <div style={{ fontSize:9, color: t.textDisabled }}>—</div>
                               )
                             ) : (
                             <div style={{ display:"flex", flexDirection:"column", gap:2 }}>
@@ -1171,13 +1177,13 @@ function BlocoDigitarCategoria({
                                     cursor: bloqueado ? "not-allowed" : "pointer",
                                     fontSize:11, fontWeight:800,
                                     background: tent[ti]===op
-                                      ? (op==="O"?"#1a4a1a":op==="X"?"#4a1a1a":"#2a2a2a")
-                                      : "#1a1c22",
+                                      ? (op==="O"?`${t.success}25`:op==="X"?`${t.danger}25`:t.bgCardAlt)
+                                      : t.bgHover,
                                     color: tent[ti]===op
-                                      ? (op==="O"?"#4cff4c":op==="X"?"#ff5555":"#aaa")
-                                      : "#333",
+                                      ? (op==="O"?t.success:op==="X"?t.danger:t.textTertiary)
+                                      : t.textDisabled,
                                     outline: tent[ti]===op
-                                      ? `1px solid ${op==="O"?"#2a8a2a":op==="X"?"#cc2222":"#555"}`
+                                      ? `1px solid ${op==="O"?`${t.success}66`:op==="X"?`${t.danger}66`:t.textDisabled}`
                                       : "none",
                                   }}
                                 >{op}</button>
@@ -1189,41 +1195,41 @@ function BlocoDigitarCategoria({
                         });
                       })}
                       {/* SU - saltos na última altura */}
-                      <td style={{ padding:"6px 4px", textAlign:"center", borderBottom:"1px solid #1E2130", borderLeft:"2px solid #1E2130" }}>
-                        <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:14, fontWeight:700, color: melhor ? "#ff8888" : "#333" }}>
+                      <td style={{ padding:"6px 4px", textAlign:"center", borderBottom:`1px solid ${t.border}`, borderLeft:`2px solid ${t.border}` }}>
+                        <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:14, fontWeight:700, color: melhor ? t.danger : t.textDisabled }}>
                           {melhor != null ? calcSU(a.id) : "—"}
                         </span>
                       </td>
                       {/* FP - falhas na prova */}
-                      <td style={{ padding:"6px 4px", textAlign:"center", borderBottom:"1px solid #1E2130" }}>
-                        <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:14, fontWeight:700, color: melhor ? "#ff8888" : "#333" }}>
+                      <td style={{ padding:"6px 4px", textAlign:"center", borderBottom:`1px solid ${t.border}` }}>
+                        <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:14, fontWeight:700, color: melhor ? t.danger : t.textDisabled }}>
                           {melhor != null ? calcFP(a.id) : "—"}
                         </span>
                       </td>
                       {/* melhor */}
-                      <td style={{ padding:"8px 10px", textAlign:"center", borderBottom:"1px solid #1E2130", borderLeft:"2px solid #1E2130" }}>
+                      <td style={{ padding:"8px 10px", textAlign:"center", borderBottom:`1px solid ${t.border}`, borderLeft:`2px solid ${t.border}` }}>
                         <span style={{
                           fontFamily:"'Barlow Condensed',sans-serif", fontSize:16, fontWeight:800,
-                          color: melhor ? "#4cff4c" : "#444",
+                          color: melhor ? t.success : t.textDisabled,
                         }}>
                           {melhor!=null ? `${melhor.toFixed(2).replace(".",",")}m` : "—"}
                         </span>
                       </td>
                       {/* POS */}
-                      <td style={{ padding:"6px 4px", textAlign:"center", borderBottom:"1px solid #1E2130" }}>
+                      <td style={{ padding:"6px 4px", textAlign:"center", borderBottom:`1px solid ${t.border}` }}>
                         {(() => {
                           const pos = calcPosAltura(a.id, atletasNaProva);
                           return (
-                            <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:15, fontWeight:800, color: pos ? "#88aaff" : "#444" }}>
+                            <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:15, fontWeight:800, color: pos ? t.accent : t.textDisabled }}>
                               {pos != null ? `${pos}º` : "—"}
                             </span>
                           );
                         })()}
                       </td>
                       {/* Status */}
-                      <td style={{ padding:"4px", textAlign:"center", borderBottom:"1px solid #1E2130" }}>
+                      <td style={{ padding:"4px", textAlign:"center", borderBottom:`1px solid ${t.border}` }}>
                         <div style={{ display:"flex", alignItems:"center", gap:2 }}>
-                          <select style={{ fontSize:10, padding:"2px", background:"#12141c", color: (marcas[a.id]?.status || getExist(a,"status","")) ? "#ff8844" : "#666", border:"1px solid #2a2a3a", borderRadius:4, width:56 }}
+                          <select style={{ fontSize:10, padding:"2px", background: t.bgInput, color: (marcas[a.id]?.status || getExist(a,"status","")) ? t.warning : t.textDimmed, border:`1px solid ${t.border}`, borderRadius:4, width:56 }}
                             value={marcas[a.id]?.status ?? getExist(a,"status","")}
                             onChange={e => {
                               const sv = e.target.value;
@@ -1235,18 +1241,18 @@ function BlocoDigitarCategoria({
                             <option value="DQ">DQ</option>
                           </select>
                           {(marcas[a.id]?.status ?? getExist(a,"status","")) === "DQ" && (
-                            <input type="text" placeholder="Regra" style={{ width:44, fontSize:9, padding:"2px 3px", background:"#1a0a0a", color:"#ff4444", border:"1px solid #4a2a2a", borderRadius:3 }}
+                            <input type="text" placeholder="Regra" style={{ width:44, fontSize:9, padding:"2px 3px", background: t.bgCardAlt, color: t.danger, border:`1px solid ${t.danger}44`, borderRadius:3 }}
                               value={marcas[a.id]?.dqRegra ?? getExist(a,"dqRegra","")}
                               onChange={e => setMarcas(prev => ({ ...prev, [a.id]: { ...(prev[a.id]||{}), dqRegra: e.target.value } }))} />
                           )}
                         </div>
                       </td>
-                      <td style={{ padding:"4px 8px", textAlign:"center", borderBottom:"1px solid #1E2130" }}>
+                      <td style={{ padding:"4px 8px", textAlign:"center", borderBottom:`1px solid ${t.border}` }}>
                         {resExistentes[a.id] != null && (
                           <button
                             title="Limpar resultado deste atleta"
                             onClick={() => pedirLimparAtleta(a.id)}
-                            style={{ background:"transparent", border:"1px solid #7a2a2a", borderRadius:6, cursor:"pointer", color:"#cc4444", fontSize:13, padding:"3px 8px" }}
+                            style={{ background:"transparent", border:`1px solid ${t.danger}44`, borderRadius:6, cursor:"pointer", color: t.danger, fontSize:13, padding:"3px 8px" }}
                           >🗑️</button>
                         )}
                       </td>
@@ -1264,7 +1270,7 @@ function BlocoDigitarCategoria({
             <div style={{ marginLeft:"auto", display:"flex", gap:8 }}>
               {atletasNaProva.some(a => resExistentes[a.id] != null) && (
                 <button
-                  style={{ ...s.btnGhost, borderColor:"#7a2a2a", color:"#ff8888", fontSize:12 }}
+                  style={{ ...s.btnGhost, borderColor: `${t.danger}44`, color: t.danger, fontSize:12 }}
                   onClick={pedirLimparTodos}
                   title="Limpar todos os resultados desta prova"
                 >🗑️ Limpar Todos</button>
@@ -1312,18 +1318,18 @@ function BlocoDigitarCategoria({
 
             return (
               <div style={{
-                marginTop: 24, background: "#0a0f1a", border: "1px solid #2a3050",
+                marginTop: 24, background: t.accentBg, border: `1px solid ${t.accentBorder}`,
                 borderRadius: 10, padding: 20, overflowX: "auto"
               }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
                   <span style={{ fontSize: 20 }}>🏅</span>
-                  <h3 style={{ color: "#1976D2", margin: 0, fontSize: 16 }}>
+                  <h3 style={{ color: t.accent, margin: 0, fontSize: 16 }}>
                     Classificação {comp?.nome || "Combinada"} — {todasCompletas ? "FINAL" : "PARCIAL"}
                   </h3>
                   <span style={{
                     fontSize: 11, padding: "2px 10px", borderRadius: 4, fontWeight: 600,
-                    background: todasCompletas ? "#0a2a0a" : "#2a2a0a",
-                    color: todasCompletas ? "#7cfc7c" : "#1976D2",
+                    background: todasCompletas ? `${t.success}15` : t.accentBg,
+                    color: todasCompletas ? t.success : t.accent,
                   }}>
                     {provasComResultado || 0}/{totalComp} provas
                   </span>
@@ -1331,51 +1337,51 @@ function BlocoDigitarCategoria({
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                   <thead>
                     <tr style={{ borderBottom: "2px solid #2a3050" }}>
-                      <th style={{ padding: "6px 8px", textAlign: "left", color: "#888" }}>#</th>
-                      <th style={{ padding: "6px 8px", textAlign: "left", color: "#888" }}>Atleta</th>
+                      <th style={{ padding: "6px 8px", textAlign: "left", color: t.textMuted }}>#</th>
+                      <th style={{ padding: "6px 8px", textAlign: "left", color: t.textMuted }}>Atleta</th>
                       {todasCompDaCombinada.map(pc => (
                         <th key={pc.id} style={{
-                          padding: "6px 4px", textAlign: "center", color: pc.id === provaSel.id ? "#1976D2" : "#888",
+                          padding: "6px 4px", textAlign: "center", color: pc.id === provaSel.id ? t.accent : t.textMuted,
                           fontSize: 10, fontWeight: pc.id === provaSel.id ? 700 : 400,
-                          background: pc.id === provaSel.id ? "#0a1a2a" : "transparent",
+                          background: pc.id === provaSel.id ? t.accentBg : "transparent",
                           borderRadius: 4, minWidth: 55
                         }}>
                           {abreviarProva(pc.nome)}
                         </th>
                       ))}
-                      <th style={{ padding: "6px 8px", textAlign: "center", color: "#1976D2", fontWeight: 700 }}>Total</th>
+                      <th style={{ padding: "6px 8px", textAlign: "center", color: t.accent, fontWeight: 700 }}>Total</th>
                     </tr>
                   </thead>
                   <tbody>
                     {rows.map((r, idx) => (
                       <tr key={r.atletaId} style={{
-                        borderBottom: "1px solid #1a1d2a",
-                        background: idx < 3 ? "#0a0f0a" : "transparent"
+                        borderBottom: `1px solid ${t.border}`,
+                        background: idx < 3 ? t.bgCardAlt : "transparent"
                       }}>
-                        <td style={{ padding: "6px 8px", color: idx < 3 ? "#1976D2" : "#888", fontWeight: 700 }}>
+                        <td style={{ padding: "6px 8px", color: idx < 3 ? t.accent : t.textMuted, fontWeight: 700 }}>
                           {idx + 1}º
                         </td>
-                        <td style={{ padding: "6px 8px", color: "#fff", fontWeight: 500, whiteSpace: "nowrap" }}>
+                        <td style={{ padding: "6px 8px", color: t.textPrimary, fontWeight: 500, whiteSpace: "nowrap" }}>
                           {r.nome}
                         </td>
                         {r.porProva.map((pp, ppIdx) => (
                           <td key={ppIdx} style={{
                             padding: "4px 4px", textAlign: "center",
-                            color: pp.marca != null && pp.marca !== "" ? "#ccc" : "#333",
+                            color: pp.marca != null && pp.marca !== "" ? t.textSecondary : t.textDisabled,
                             fontSize: 11,
-                            background: todasCompDaCombinada[ppIdx]?.id === provaSel.id ? "#0a1a2a" : "transparent",
+                            background: todasCompDaCombinada[ppIdx]?.id === provaSel.id ? t.accentBg : "transparent",
                           }}>
                             {pp.marca != null && pp.marca !== "" ? (
                               <div>
-                                <div style={{ color: "#aaa", fontSize: 10 }}>{formatarMarca(pp.marca, pp.unidade, 2)}</div>
-                                <div style={{ color: "#1976D2", fontWeight: 600 }}>{pp.pts} pts</div>
+                                <div style={{ color: t.textTertiary, fontSize: 10 }}>{formatarMarca(pp.marca, pp.unidade, 2)}</div>
+                                <div style={{ color: t.accent, fontWeight: 600 }}>{pp.pts} pts</div>
                               </div>
                             ) : "—"}
                           </td>
                         ))}
                         <td style={{
                           padding: "6px 8px", textAlign: "center",
-                          color: "#1976D2", fontWeight: 700, fontSize: 14
+                          color: t.accent, fontWeight: 700, fontSize: 14
                         }}>
                           {r.total}
                         </td>
@@ -1384,7 +1390,7 @@ function BlocoDigitarCategoria({
                   </tbody>
                 </table>
                 {!todasCompletas && (
-                  <div style={{ marginTop: 10, fontSize: 11, color: "#666", textAlign: "center" }}>
+                  <div style={{ marginTop: 10, fontSize: 11, color: t.textDimmed, textAlign: "center" }}>
                     ⚠️ Classificação parcial — faltam resultados em algumas provas. A tabela de pontuação será aplicada posteriormente.
                   </div>
                 )}
@@ -1510,8 +1516,8 @@ function BlocoDigitarCategoria({
                   <div style={s.digitarDica}>
                     Insira cada tentativa em metros (ex: 7.85) · X = nulo/falta · deixe em branco se não realizada
                   </div>
-                  <div style={{ background:"#0a0b10", border:"1px solid #1a1d2a", borderRadius:8, padding:"8px 14px", marginBottom:10, fontSize:11, color:"#888", lineHeight:1.7 }}>
-                    <strong style={{ color:"#1976D2" }}>Regras Técnicas:</strong>{" "}
+                  <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, padding:"8px 14px", marginBottom:10, fontSize:11, color: t.textMuted, lineHeight:1.7 }}>
+                    <strong style={{ color: t.accent }}>Regras Técnicas:</strong>{" "}
                     T1-T3: ordem por sorteio (RT 25.5) · T4-T6: ordem inversa da CP (RT 25.6.1) · Empate na CP: mantém ordem do sorteio (RT 25.6.2) · Desempate: 2ª melhor marca, 3ª, etc (RT 25.22)
                   </div>
                   {(() => {
@@ -1598,21 +1604,21 @@ function BlocoDigitarCategoria({
                     return (
                       <>
                         {estadoProva === 2 && (
-                          <div style={{ background:"#0a0a1a", border:"1px solid #2a3a6a", borderRadius:8, padding:"6px 14px", marginBottom:10, fontSize:11, color:"#88aaff" }}>
+                          <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.accentBorder}`, borderRadius:8, padding:"6px 14px", marginBottom:10, fontSize:11, color: t.accent }}>
                             🔄 <strong>RT 25.6.1 — Ordem Inversa Aplicada</strong>
-                            <span style={{ color:"#888", marginLeft:8 }}>Top 8 em ordem inversa do CP (pior primeiro) · Eliminados abaixo</span>
+                            <span style={{ color: t.textMuted, marginLeft:8 }}>Top 8 em ordem inversa do CP (pior primeiro) · Eliminados abaixo</span>
                           </div>
                         )}
                         {estadoProva === 3 && (
-                          <div style={{ background:"#0a2a0a", border:"1px solid #2a6a2a", borderRadius:8, padding:"6px 14px", marginBottom:10, fontSize:11, color:"#7cfc7c" }}>
+                          <div style={{ background:`${t.success}15`, border:`1px solid ${t.success}44`, borderRadius:8, padding:"6px 14px", marginBottom:10, fontSize:11, color: t.success }}>
                             🏆 <strong>Classificação Final</strong>
-                            <span style={{ color:"#888", marginLeft:8 }}>Todas as tentativas completas — ordenado pela melhor marca com desempate RT 25.22</span>
+                            <span style={{ color: t.textMuted, marginLeft:8 }}>Todas as tentativas completas — ordenado pela melhor marca com desempate RT 25.22</span>
                           </div>
                         )}
                         {temDesempate && (
-                          <div style={{ background:"#1a1a0a", border:"1px solid #4a4a2a", borderRadius:8, padding:"6px 14px", marginBottom:10, fontSize:11, color:"#1976D2" }}>
+                          <div style={{ background: t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:8, padding:"6px 14px", marginBottom:10, fontSize:11, color: t.accent }}>
                             ⚖️ <strong>RT 25.22 — Regra de Desempate Aplicada</strong>
-                            <span style={{ color:"#888", marginLeft:8 }}>Atletas com mesma melhor marca desempatados pela 2ª melhor, 3ª melhor, etc.</span>
+                            <span style={{ color: t.textMuted, marginLeft:8 }}>Atletas com mesma melhor marca desempatados pela 2ª melhor, 3ª melhor, etc.</span>
                           </div>
                         )}
                         <div style={{ overflowX: "auto" }}>
@@ -1621,22 +1627,22 @@ function BlocoDigitarCategoria({
                               <tr>
                                 <Th>Nº</Th>
                                 <Th>Atleta</Th><Th>Clube/Equipe</Th>
-                                <Th style={{ background:"#1a2a1a", color:"#7cfc7c" }}>T1</Th>
-                                <Th style={{ background:"#1a2a1a", color:"#7cfc7c" }}>T2</Th>
-                                <Th style={{ background:"#1a2a1a", color:"#7cfc7c" }}>T3</Th>
-                                <Th style={{ background:"#0a1a2a", color:"#1976D2", minWidth:52 }}>CP</Th>
-                                <Th style={{ background:"#2a1a0a", color:"#ffaa44" }}>T4</Th>
-                                <Th style={{ background:"#2a1a0a", color:"#ffaa44" }}>T5</Th>
-                                <Th style={{ background:"#2a1a0a", color:"#ffaa44" }}>T6</Th>
-                                <Th style={{ background:"#1a1a2a", color:"#88aaff", minWidth:68 }}>MELHOR</Th>
-                                <Th style={{ background:"#1a1a2a", color:"#88aaff", minWidth:44 }}>POS.</Th>
+                                <Th style={{ background:`${t.success}15`, color: t.success }}>T1</Th>
+                                <Th style={{ background:`${t.success}15`, color: t.success }}>T2</Th>
+                                <Th style={{ background:`${t.success}15`, color: t.success }}>T3</Th>
+                                <Th style={{ background: t.accentBg, color: t.accent, minWidth:52 }}>CP</Th>
+                                <Th style={{ background:`${t.warning}15`, color: t.warning }}>T4</Th>
+                                <Th style={{ background:`${t.warning}15`, color: t.warning }}>T5</Th>
+                                <Th style={{ background:`${t.warning}15`, color: t.warning }}>T6</Th>
+                                <Th style={{ background: t.accentBg, color: t.accent, minWidth:68 }}>MELHOR</Th>
+                                <Th style={{ background: t.accentBg, color: t.accent, minWidth:44 }}>POS.</Th>
                                 <Th style={{ minWidth:62 }}>Status</Th>
                                 <Th></Th>
                               </tr>
                             </thead>
                             <tbody>
                               {ordemExibicao.map(({ a, cp, mf, pos, idxOriginal }, i) => {
-                                const tGet = (t) => marcas[a.id]?.[t] ?? getExist(a, t, "");
+                                const tGet = (tk) => marcas[a.id]?.[tk] ?? getExist(a, tk, "");
                                 const top8 = cp !== null && cp <= 8;
                                 const atletaInativo = isStatusInativo(a);
                                 const atletaNM = isAutoNM(a);
@@ -1651,9 +1657,9 @@ function BlocoDigitarCategoria({
                                     {showSeparador && (
                                       <tr>
                                         <td colSpan={12} style={{
-                                          padding: "6px 12px", background: "#1a0a0a",
-                                          borderTop: "2px solid #4a2a2a", borderBottom: "1px solid #2a1a1a",
-                                          fontSize: 11, color: "#ff6b6b", fontWeight: 700, textAlign: "center"
+                                          padding: "6px 12px", background: `${t.danger}12`,
+                                          borderTop: `2px solid ${t.danger}44`, borderBottom: `1px solid ${t.danger}22`,
+                                          fontSize: 11, color: t.danger, fontWeight: 700, textAlign: "center"
                                         }}>
                                           ❌ Eliminados — não avançam para T4-T6
                                         </td>
@@ -1662,9 +1668,9 @@ function BlocoDigitarCategoria({
                                     {showSeparadorInativos && (
                                       <tr>
                                         <td colSpan={12} style={{
-                                          padding: "6px 12px", background: "#0a0a10",
-                                          borderTop: "2px solid #2a2a4a", borderBottom: "1px solid #1a1a2a",
-                                          fontSize: 11, color: "#888", fontWeight: 700, textAlign: "center"
+                                          padding: "6px 12px", background: t.bgHeaderSolid,
+                                          borderTop: `2px solid ${t.border}`, borderBottom: `1px solid ${t.border}`,
+                                          fontSize: 11, color: t.textMuted, fontWeight: 700, textAlign: "center"
                                         }}>
                                           🚫 DNS / NM / DQ
                                         </td>
@@ -1673,78 +1679,78 @@ function BlocoDigitarCategoria({
                                     <tr style={{
                                       ...s.tr,
                                       opacity: isEliminado ? 0.5 : 1,
-                                      background: atletaInativo ? "#08080a" : atletaNM ? "#0a0808" : isEliminado ? "#0a0808" : undefined,
+                                      background: atletaInativo ? t.bgHeaderSolid : atletaNM ? t.bgHeaderSolid : isEliminado ? t.bgHeaderSolid : undefined,
                                     }}>
-                                    <Td><strong style={{ color:"#aaa", fontSize:12 }}>{(numeracaoPeito?.[eventoAtual?.id]||{})[a.id]||""}</strong></Td>
-                                    <Td><strong style={{ color:"#fff" }}>{a.nome}</strong></Td>
+                                    <Td><strong style={{ color: t.textTertiary, fontSize:12 }}>{(numeracaoPeito?.[eventoAtual?.id]||{})[a.id]||""}</strong></Td>
+                                    <Td><strong style={{ color: t.textPrimary }}>{a.nome}</strong></Td>
                                     <Td>{getExibicaoEquipe(a, equipes)||"—"}</Td>
-                                    {["t1","t2","t3"].map(t => {
+                                    {["t1","t2","t3"].map(tk => {
                                       const isSaltoHoriz = provaSel?.nome?.includes("Distância") || provaSel?.nome?.includes("Triplo");
                                       return (
-                                      <td key={t} style={{ ...tdStyle, background: atletaInativo ? "#0a0a0e" : "#0d1a0d" }}>
+                                      <td key={tk} style={{ ...tdStyle, background: atletaInativo ? t.bgCardAlt : `${t.success}08` }}>
                                         <input
-                                          style={{ ...inputStyle, width:64, background: atletaInativo ? "#0a0a0e" : "#0a150a", color: atletaInativo ? "#555" : "#7cfc7c", cursor: atletaInativo ? "not-allowed" : "text" }}
+                                          style={{ ...inputStyle, width:64, background: atletaInativo ? t.bgCardAlt : `${t.success}08`, color: atletaInativo ? t.textDisabled : t.success, cursor: atletaInativo ? "not-allowed" : "text" }}
                                           placeholder="—"
                                           disabled={atletaInativo}
-                                          value={atletaInativo ? "" : exibirMarcaInput(tGet(t))}
-                                          onChange={e => setDado(a, t, normalizarMarca(e.target.value))}
+                                          value={atletaInativo ? "" : exibirMarcaInput(tGet(tk))}
+                                          onChange={e => setDado(a, tk, normalizarMarca(e.target.value))}
                                         />
                                         {isSaltoHoriz && !atletaInativo && (
                                           <input
-                                            style={{ ...inputStyle, width:54, background:"#0a1020", color:"#6ab4ff", fontSize:9, marginTop:2, textAlign:"center", border:"1px solid #1a2a4a" }}
+                                            style={{ ...inputStyle, width:54, background: t.accentBg, color: t.accent, fontSize:9, marginTop:2, textAlign:"center", border:`1px solid ${t.accentBorder}` }}
                                             placeholder="💨 m/s"
-                                            value={(marcas[a.id]?.[t+"v"] ?? getExist(a, t+"v", ""))}
-                                            onChange={e => setDado(a, t+"v", e.target.value)}
+                                            value={(marcas[a.id]?.[tk+"v"] ?? getExist(a, tk+"v", ""))}
+                                            onChange={e => setDado(a, tk+"v", e.target.value)}
                                           />
                                         )}
                                       </td>
                                       );
                                     })}
                                     {/* CP automático */}
-                                    <td style={{ ...tdStyle, background:"#0a120a" }}>
+                                    <td style={{ ...tdStyle, background:`${t.success}08` }}>
                                       {atletaInativo ? (
-                                        <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontWeight:700, fontSize:12, color:"#ff8844" }}>
+                                        <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontWeight:700, fontSize:12, color: t.warning }}>
                                           {getStatusAtleta(a)}
                                         </span>
                                       ) : atletaNM ? (
-                                        <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontWeight:700, fontSize:12, color:"#ff8844" }}>
+                                        <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontWeight:700, fontSize:12, color: t.warning }}>
                                           NM
                                         </span>
                                       ) : (
                                         <>
                                           <span style={{
                                             fontFamily:"'Barlow Condensed',sans-serif", fontWeight:800,
-                                            fontSize:15, color: top8 ? "#1976D2" : "#666",
+                                            fontSize:15, color: top8 ? t.accent : t.textDimmed,
                                           }}>
                                             {cp !== null ? `${cp}º` : "—"}
                                           </span>
-                                          {top8 && <div style={{ fontSize:9, color:"#888" }}>→ fin.</div>}
+                                          {top8 && <div style={{ fontSize:9, color: t.textMuted }}>→ fin.</div>}
                                         </>
                                       )}
                                     </td>
                                     {/* T4-T6 */}
-                                    {["t4","t5","t6"].map(t => {
+                                    {["t4","t5","t6"].map(tk => {
                                       const isSaltoHoriz = provaSel?.nome?.includes("Distância") || provaSel?.nome?.includes("Triplo");
                                       const podeEditar = top8 && !atletaInativo;
                                       return (
-                                      <td key={t} style={{ ...tdStyle, background: podeEditar ? "#1a0f00" : "#111", opacity: podeEditar ? 1 : 0.4 }}>
+                                      <td key={tk} style={{ ...tdStyle, background: podeEditar ? `${t.warning}12` : t.bgHeaderSolid, opacity: podeEditar ? 1 : 0.4 }}>
                                         <input
                                           style={{ ...inputStyle, width:64,
-                                            background: podeEditar ? "#150d00" : "#0e0e0e",
-                                            color: podeEditar ? "#ffaa44" : "#555",
+                                            background: podeEditar ? `${t.warning}10` : t.bgCardAlt,
+                                            color: podeEditar ? t.warning : t.textDisabled,
                                             cursor: podeEditar ? "text" : "not-allowed",
                                           }}
                                           placeholder="—"
                                           disabled={!podeEditar}
-                                          value={atletaInativo ? "" : exibirMarcaInput(tGet(t))}
-                                          onChange={e => setDado(a, t, normalizarMarca(e.target.value))}
+                                          value={atletaInativo ? "" : exibirMarcaInput(tGet(tk))}
+                                          onChange={e => setDado(a, tk, normalizarMarca(e.target.value))}
                                         />
                                         {isSaltoHoriz && podeEditar && (
                                           <input
-                                            style={{ ...inputStyle, width:54, background:"#0a1020", color:"#6ab4ff", fontSize:9, marginTop:2, textAlign:"center", border:"1px solid #1a2a4a" }}
+                                            style={{ ...inputStyle, width:54, background: t.accentBg, color: t.accent, fontSize:9, marginTop:2, textAlign:"center", border:`1px solid ${t.accentBorder}` }}
                                             placeholder="💨 m/s"
-                                            value={(marcas[a.id]?.[t+"v"] ?? getExist(a, t+"v", ""))}
-                                            onChange={e => setDado(a, t+"v", e.target.value)}
+                                            value={(marcas[a.id]?.[tk+"v"] ?? getExist(a, tk+"v", ""))}
+                                            onChange={e => setDado(a, tk+"v", e.target.value)}
                                           />
                                         )}
                                       </td>
@@ -1754,7 +1760,7 @@ function BlocoDigitarCategoria({
                                     <td style={{ ...tdStyle }}>
                                       <span style={{
                                         fontFamily:"'Barlow Condensed',sans-serif", fontWeight:800,
-                                        fontSize:15, color: mf !== null ? "#88aaff" : "#444",
+                                        fontSize:15, color: mf !== null ? t.accent : t.textDisabled,
                                       }}>
                                         {mf !== null ? `${mf.toFixed(2).replace(".",",")}m` : "—"}
                                       </span>
@@ -1762,14 +1768,14 @@ function BlocoDigitarCategoria({
                                     <td style={{ ...tdStyle }}>
                                       <span style={{
                                         fontFamily:"'Barlow Condensed',sans-serif", fontWeight:800,
-                                        fontSize:15, color: pos !== null ? "#88aaff" : "#444",
+                                        fontSize:15, color: pos !== null ? t.accent : t.textDisabled,
                                       }}>
                                         {pos !== null ? `${pos}º` : "—"}
                                       </span>
                                     </td>
                                     <td style={{ ...tdStyle }}>
                                       <div style={{ display:"flex", alignItems:"center", gap:2 }}>
-                                        <select style={{ fontSize:10, padding:"2px", background:"#12141c", color: (marcas[a.id]?.status || getExist(a,"status","")) ? "#ff8844" : "#666", border:"1px solid #2a2a3a", borderRadius:4, width:56 }}
+                                        <select style={{ fontSize:10, padding:"2px", background: t.bgInput, color: (marcas[a.id]?.status || getExist(a,"status","")) ? t.warning : t.textDimmed, border:`1px solid ${t.border}`, borderRadius:4, width:56 }}
                                           value={marcas[a.id]?.status ?? getExist(a,"status","")}
                                           onChange={e => {
                                             setDado(a, "status", e.target.value);
@@ -1781,7 +1787,7 @@ function BlocoDigitarCategoria({
                                           <option value="DQ">DQ</option>
                                         </select>
                                         {(marcas[a.id]?.status ?? getExist(a,"status","")) === "DQ" && (
-                                          <input type="text" placeholder="Regra" style={{ width:44, fontSize:9, padding:"2px 3px", background:"#1a0a0a", color:"#ff4444", border:"1px solid #4a2a2a", borderRadius:3 }}
+                                          <input type="text" placeholder="Regra" style={{ width:44, fontSize:9, padding:"2px 3px", background: t.bgCardAlt, color: t.danger, border:`1px solid ${t.danger}44`, borderRadius:3 }}
                                             value={marcas[a.id]?.dqRegra ?? getExist(a,"dqRegra","")}
                                             onChange={e => setDado(a, "dqRegra", e.target.value)} />
                                         )}
@@ -1790,7 +1796,7 @@ function BlocoDigitarCategoria({
                                     <td style={{ ...tdStyle }}>
                                       {resExistentes[a.id] != null && (
                                         <button title="Limpar" onClick={() => pedirLimparAtleta(a.id)}
-                                          style={{ background:"transparent", border:"1px solid #7a2a2a", borderRadius:5, cursor:"pointer", color:"#cc4444", fontSize:13, padding:"2px 6px" }}>🗑️</button>
+                                          style={{ background:"transparent", border:`1px solid ${t.danger}44`, borderRadius:5, cursor:"pointer", color: t.danger, fontSize:13, padding:"2px 6px" }}>🗑️</button>
                                       )}
                                     </td>
                                   </tr>
@@ -1815,21 +1821,21 @@ function BlocoDigitarCategoria({
                     const marca = r ? (typeof r === "object" ? r.marca : r) : null;
                     return marca != null && marca !== "";
                   }) && (
-                    <div style={{ background:"#0a2a0a", border:"1px solid #2a6a2a", borderRadius:8, padding:"6px 14px", marginBottom:10, fontSize:11, color:"#7cfc7c" }}>
+                    <div style={{ background:`${t.success}15`, border:`1px solid ${t.success}44`, borderRadius:8, padding:"6px 14px", marginBottom:10, fontSize:11, color: t.success }}>
                       🏆 <strong>Prova Concluída</strong>
-                      <span style={{ color:"#888", marginLeft:8 }}>Todos os atletas possuem resultado</span>
+                      <span style={{ color: t.textMuted, marginLeft:8 }}>Todos os atletas possuem resultado</span>
                     </div>
                   )}
                   <div style={s.digitarDica}>
                     {`Digite apenas os números — o sistema formata automaticamente (ex: 10850 → 10,850 · 12345 → 1.23,450)${temRaia ? " · Raia: nº" : ""}${temVento ? " · Vento: ex +1,2" : ""}`}
                   </div>
                   {provaSel?.especBarreiras && (
-                    <div style={{ background:"#0a0b14", border:"1px solid #1a1d3a", borderRadius:8, padding:"8px 14px", marginBottom:10, fontSize:11, color:"#aab", display:"flex", gap:14, flexWrap:"wrap", alignItems:"center" }}>
-                      <span style={{ fontWeight:700, color:"#1976D2" }}>🏃‍♂️ Barreiras:</span>
-                      <span>Altura: <strong style={{ color:"#fff" }}>{provaSel.especBarreiras.altura}</strong></span>
-                      <span>Saída→1ª: <strong style={{ color:"#fff" }}>{provaSel.especBarreiras.saida1a}</strong></span>
-                      <span>Entre barr.: <strong style={{ color:"#fff" }}>{provaSel.especBarreiras.entre}</strong></span>
-                      <span>Última→Cheg.: <strong style={{ color:"#fff" }}>{provaSel.especBarreiras.ultimaCheg}</strong></span>
+                    <div style={{ background: t.bgCardAlt, border:`1px solid ${t.border}`, borderRadius:8, padding:"8px 14px", marginBottom:10, fontSize:11, color: t.textTertiary, display:"flex", gap:14, flexWrap:"wrap", alignItems:"center" }}>
+                      <span style={{ fontWeight:700, color: t.accent }}>🏃‍♂️ Barreiras:</span>
+                      <span>Altura: <strong style={{ color: t.textPrimary }}>{provaSel.especBarreiras.altura}</strong></span>
+                      <span>Saída→1ª: <strong style={{ color: t.textPrimary }}>{provaSel.especBarreiras.saida1a}</strong></span>
+                      <span>Entre barr.: <strong style={{ color: t.textPrimary }}>{provaSel.especBarreiras.entre}</strong></span>
+                      <span>Última→Cheg.: <strong style={{ color: t.textPrimary }}>{provaSel.especBarreiras.ultimaCheg}</strong></span>
                     </div>
                   )}
                   <table style={s.table}>
@@ -1862,15 +1868,15 @@ function BlocoDigitarCategoria({
                         return (
                           <React.Fragment key={a.id}>
                           {showSerieHeader && (
-                            <tr><td colSpan={_nCols} style={{ padding:"8px 12px", background:"#0a1a2a", borderBottom:"2px solid #1a3a5a", color:"#88aaff", fontWeight:700, fontSize:12 }}>
+                            <tr><td colSpan={_nCols} style={{ padding:"8px 12px", background: t.accentBg, borderBottom:`2px solid ${t.accentBorder}`, color: t.accent, fontWeight:700, fontSize:12 }}>
                               Série {_si.serie}
                             </td></tr>
                           )}
                           <tr style={{ ...s.tr, opacity: isStatusInativo(a) ? 0.4 : 1 }}>
-                            <Td><strong style={{ color:"#aaa", fontSize:12 }}>{(numeracaoPeito?.[eventoAtual?.id]||{})[a.id]||""}</strong></Td>
-                            <Td><strong style={{ color:"#fff" }}>{a.nome}</strong></Td>
+                            <Td><strong style={{ color: t.textTertiary, fontSize:12 }}>{(numeracaoPeito?.[eventoAtual?.id]||{})[a.id]||""}</strong></Td>
+                            <Td><strong style={{ color: t.textPrimary }}>{a.nome}</strong></Td>
                             <Td>{getExibicaoEquipe(a, equipes)||"—"}</Td>
-                            {_serDigitar?.series?.length > 0 && <Td><span style={{ color:"#88aaff", fontWeight:700 }}>{_si.serie||"—"}</span></Td>}
+                            {_serDigitar?.series?.length > 0 && <Td><span style={{ color: t.accent, fontWeight:700 }}>{_si.serie||"—"}</span></Td>}
                             {temRaia && (
                               <Td><input type="number" min="1" max="10" style={inputSmall} placeholder="4"
                                 disabled={isStatusInativo(a)}
@@ -1892,18 +1898,18 @@ function BlocoDigitarCategoria({
                             </Td>
                             <Td>
                               {previewFormatado ? (
-                                <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontWeight:700, fontSize:14, color:"#7cfc7c" }}>
+                                <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontWeight:700, fontSize:14, color: t.success }}>
                                   {previewFormatado}
                                 </span>
                               ) : statusVal ? (
-                                <span style={{ fontWeight:700, fontSize:13, color: statusVal === "DQ" ? "#ff4444" : "#ff8844" }}>
+                                <span style={{ fontWeight:700, fontSize:13, color: statusVal === "DQ" ? t.danger : t.warning }}>
                                   {statusVal}{statusVal === "DQ" && dqRegraVal ? ` R.${dqRegraVal}` : ""}
                                 </span>
-                              ) : <span style={{ color:"#555" }}>—</span>}
+                              ) : <span style={{ color: t.textDimmed }}>—</span>}
                             </Td>
                             <Td>
                               <div style={{ display:"flex", alignItems:"center", gap:3 }}>
-                                <select style={{ ...inputSmall, width:62, fontSize:10, padding:"2px", background:"#12141c", color: statusVal ? "#ff8844" : "#666", border:"1px solid #2a2a3a", borderRadius:4 }}
+                                <select style={{ ...inputSmall, width:62, fontSize:10, padding:"2px", background: t.bgInput, color: statusVal ? t.warning : t.textDimmed, border:`1px solid ${t.border}`, borderRadius:4 }}
                                   value={statusVal || ""}
                                   onChange={e => {
                                     const sv = e.target.value;
@@ -1926,16 +1932,16 @@ function BlocoDigitarCategoria({
                             <Td>
                               {getExist(a,"marca") || existStatus ? (
                                 <span style={s.marca}>{existStatus ? (
-                                  <span style={{ color: existStatus === "DQ" ? "#ff4444" : "#ff8844" }}>
+                                  <span style={{ color: existStatus === "DQ" ? t.danger : t.warning }}>
                                     {existStatus}{existStatus === "DQ" && existDqRegra ? ` R.${existDqRegra}` : ""}
                                   </span>
                                 ) : formatarMarca(getExist(a,"marca"), provaSel?.unidade, 2)}</span>
-                              ) : <span style={{ color:"#555" }}>—</span>}
+                              ) : <span style={{ color: t.textDimmed }}>—</span>}
                             </Td>
                             <Td>
                               {resExistentes[a.id] != null && (
                                 <button title="Limpar" onClick={() => pedirLimparAtleta(a.id)}
-                                  style={{ background:"transparent", border:"none", cursor:"pointer", color:"#cc4444", fontSize:15, padding:"2px 6px" }}>🗑️</button>
+                                  style={{ background:"transparent", border:"none", cursor:"pointer", color: t.danger, fontSize:15, padding:"2px 6px" }}>🗑️</button>
                               )}
                             </Td>
                           </tr>
@@ -1952,7 +1958,7 @@ function BlocoDigitarCategoria({
                 </button>
                 <div style={{ marginLeft:"auto", display:"flex", gap:8 }}>
                   {atletasNaProva.some(a => resExistentes[a.id] != null) && (
-                    <button style={{ ...s.btnGhost, borderColor:"#7a2a2a", color:"#ff8888", fontSize:12 }}
+                    <button style={{ ...s.btnGhost, borderColor: `${t.danger}44`, color: t.danger, fontSize:12 }}
                       onClick={pedirLimparTodos} title="Limpar todos os resultados desta prova">
                       🗑️ Limpar Todos
                     </button>
@@ -2000,70 +2006,70 @@ function BlocoDigitarCategoria({
 
                 return (
                   <div style={{
-                    marginTop: 24, background: "#0a0f1a", border: "1px solid #2a3050",
+                    marginTop: 24, background: t.accentBg, border: `1px solid ${t.accentBorder}`,
                     borderRadius: 10, padding: 20, overflowX: "auto"
                   }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
                       <span style={{ fontSize: 20 }}>🏅</span>
-                      <h3 style={{ color: "#1976D2", margin: 0, fontSize: 16 }}>
+                      <h3 style={{ color: t.accent, margin: 0, fontSize: 16 }}>
                         Classificação {comp?.nome || "Combinada"} — {todasCompletas ? "FINAL" : "PARCIAL"}
                       </h3>
                       <span style={{
                         fontSize: 11, padding: "2px 10px", borderRadius: 4, fontWeight: 600,
-                        background: todasCompletas ? "#0a2a0a" : "#2a2a0a",
-                        color: todasCompletas ? "#7cfc7c" : "#1976D2",
+                        background: todasCompletas ? `${t.success}15` : t.accentBg,
+                        color: todasCompletas ? t.success : t.accent,
                       }}>
                         {provasComResultado || 0}/{totalComp} provas
                       </span>
                     </div>
                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                       <thead>
-                        <tr style={{ borderBottom: "2px solid #2a3050" }}>
-                          <th style={{ padding: "6px 8px", textAlign: "left", color: "#888" }}>#</th>
-                          <th style={{ padding: "6px 8px", textAlign: "left", color: "#888" }}>Atleta</th>
+                        <tr style={{ borderBottom: `2px solid ${t.border}` }}>
+                          <th style={{ padding: "6px 8px", textAlign: "left", color: t.textMuted }}>#</th>
+                          <th style={{ padding: "6px 8px", textAlign: "left", color: t.textMuted }}>Atleta</th>
                           {todasCompDaCombinada.map(pc => (
                             <th key={pc.id} style={{
                               padding: "6px 4px", textAlign: "center", color: pc.id === provaSel.id ? "#1976D2" : "#888",
                               fontSize: 10, fontWeight: pc.id === provaSel.id ? 700 : 400,
-                              background: pc.id === provaSel.id ? "#0a1a2a" : "transparent",
+                              background: pc.id === provaSel.id ? t.accentBg : "transparent",
                               borderRadius: 4, minWidth: 55
                             }}>
                               {abreviarProva(pc.nome)}
                             </th>
                           ))}
-                          <th style={{ padding: "6px 8px", textAlign: "center", color: "#1976D2", fontWeight: 700 }}>Total</th>
+                          <th style={{ padding: "6px 8px", textAlign: "center", color: t.accent, fontWeight: 700 }}>Total</th>
                         </tr>
                       </thead>
                       <tbody>
                         {rows.map((r, idx) => (
                           <tr key={r.atletaId} style={{
-                            borderBottom: "1px solid #1a1d2a",
-                            background: idx < 3 ? "#0a0f0a" : "transparent"
+                            borderBottom: `1px solid ${t.border}`,
+                            background: idx < 3 ? t.bgCardAlt : "transparent"
                           }}>
-                            <td style={{ padding: "6px 8px", color: idx < 3 ? "#1976D2" : "#888", fontWeight: 700 }}>
+                            <td style={{ padding: "6px 8px", color: idx < 3 ? t.accent : t.textMuted, fontWeight: 700 }}>
                               {idx + 1}º
                             </td>
-                            <td style={{ padding: "6px 8px", color: "#fff", fontWeight: 500, whiteSpace: "nowrap" }}>
+                            <td style={{ padding: "6px 8px", color: t.textPrimary, fontWeight: 500, whiteSpace: "nowrap" }}>
                               {r.nome}
                             </td>
                             {r.porProva.map((pp, ppIdx) => (
                               <td key={ppIdx} style={{
                                 padding: "4px 4px", textAlign: "center",
-                                color: pp.marca != null && pp.marca !== "" ? "#ccc" : "#333",
+                                color: pp.marca != null && pp.marca !== "" ? t.textSecondary : t.textDisabled,
                                 fontSize: 11,
-                                background: todasCompDaCombinada[ppIdx]?.id === provaSel.id ? "#0a1a2a" : "transparent",
+                                background: todasCompDaCombinada[ppIdx]?.id === provaSel.id ? t.accentBg : "transparent",
                               }}>
                                 {pp.marca != null && pp.marca !== "" ? (
                                   <div>
-                                    <div style={{ color: "#aaa", fontSize: 10 }}>{formatarMarca(pp.marca, pp.unidade, 2)}</div>
-                                    <div style={{ color: "#1976D2", fontWeight: 600 }}>{pp.pts} pts</div>
+                                    <div style={{ color: t.textTertiary, fontSize: 10 }}>{formatarMarca(pp.marca, pp.unidade, 2)}</div>
+                                    <div style={{ color: t.accent, fontWeight: 600 }}>{pp.pts} pts</div>
                                   </div>
                                 ) : "—"}
                               </td>
                             ))}
                             <td style={{
                               padding: "6px 8px", textAlign: "center",
-                              color: "#1976D2", fontWeight: 700, fontSize: 14
+                              color: t.accent, fontWeight: 700, fontSize: 14
                             }}>
                               {r.total}
                             </td>
@@ -2072,7 +2078,7 @@ function BlocoDigitarCategoria({
                       </tbody>
                     </table>
                     {!todasCompletas && (
-                      <div style={{ marginTop: 10, fontSize: 11, color: "#666", textAlign: "center" }}>
+                      <div style={{ marginTop: 10, fontSize: 11, color: t.textDimmed, textAlign: "center" }}>
                         ⚠️ Classificação parcial — faltam resultados em algumas provas. A tabela de pontuação será aplicada posteriormente.
                       </div>
                     )}
@@ -2091,7 +2097,8 @@ function BlocoDigitarCategoria({
    TelaDigitarResultados — componente principal (orquestrador de filtros)
    ════════════════════════════════════════════════════════════════════════════ */
 function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResultado, atualizarResultadosEmLote, limparResultado, limparTodosResultados, setTela, eventoAtual, editarEvento, usuarioLogado, registrarAcao, numeracaoPeito, getClubeAtleta, equipes, recordes }) {
-  const s = useStylesResponsivos(styles);
+  const t = useTema();
+  const s = useStylesResponsivos(getStyles(t));
   // Guard: apenas admin, organizador ou funcionário com permissão
   const tipoUser = usuarioLogado?.tipo;
   const temAcessoDigitar = tipoUser === "admin" || tipoUser === "organizador" ||
@@ -2153,8 +2160,8 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
     <div style={s.page}>
       <div style={s.emptyState}>
         <span style={{ fontSize: 48 }}>🚫</span>
-        <p style={{ color: "#ff6b6b", fontWeight: 700 }}>Acesso não autorizado</p>
-        <p style={{ color: "#666", fontSize: 14 }}>Você não tem permissão para digitar resultados.</p>
+        <p style={{ color: t.danger, fontWeight: 700 }}>Acesso não autorizado</p>
+        <p style={{ color: t.textDimmed, fontSize: 14 }}>Você não tem permissão para digitar resultados.</p>
         <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
       </div>
     </div>
@@ -2165,7 +2172,7 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
       <div style={s.painelHeader}>
         <div>
           <h1 style={s.pageTitle}>✏️ Digitar Resultados</h1>
-          <div style={{ color: "#666", fontSize: 13 }}>{eventoAtual.nome}</div>
+          <div style={{ color: t.textDimmed, fontSize: 13 }}>{eventoAtual.nome}</div>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           <button style={s.btnGhost} onClick={() => setTela("resultados")}>Ver Publicados</button>
@@ -2241,8 +2248,8 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
           {_temFases && (
             <div>
               <label style={s.label}>Fase *</label>
-              <select style={{ ...s.select, borderColor: faseEfetiva === "ELI" ? "#5a3a1a" : faseEfetiva === "SEM" ? "#2a4a6a" : "#2a4a2a",
-                color: faseEfetiva === "ELI" ? "#ff8844" : faseEfetiva === "SEM" ? "#88aaff" : "#7cfc7c", fontWeight:700 }}
+              <select style={{ ...s.select, borderColor: faseEfetiva === "ELI" ? `${t.warning}44` : faseEfetiva === "SEM" ? `${t.accent}44` : `${t.success}44`,
+                color: faseEfetiva === "ELI" ? t.warning : faseEfetiva === "SEM" ? t.accent : t.success, fontWeight:700 }}
                 value={filtroFase || _provaFases[0] || ""}
                 onChange={(e) => { setFiltroFase(e.target.value); }}>
                 {_provaFases.map(f => <option key={f} value={f}>{FASE_NOME[f] || f}</option>)}

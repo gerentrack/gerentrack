@@ -1,31 +1,36 @@
-const styles = {
-  page:       { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
-  formPage:   { maxWidth: 640, margin: "60px auto", padding: "0 24px 80px" },
-  formCard:   { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 16, padding: 32, marginBottom: 20 },
-  formIcon:   { fontSize: 48, textAlign: "center", marginBottom: 16 },
-  formTitle:  { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 800, color: "#fff", textAlign: "center", marginBottom: 8 },
-  formSub:    { color: "#666", textAlign: "center", fontSize: 14, marginBottom: 24 },
-  formLink:   { textAlign: "center", marginTop: 16, color: "#666", fontSize: 13 },
-  label:      { display: "block", fontSize: 12, fontWeight: 600, color: "#888", letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" },
-  input:      { width: "100%", background: "#141720", border: "1px solid #252837", borderRadius: 8, padding: "10px 14px", color: "#E0E0E0", fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
-  select:     { width: "100%", background: "#141720", border: "1px solid #252837", borderRadius: 8, padding: "10px 14px", color: "#E0E0E0", fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
-  btnPrimary: { background: "linear-gradient(135deg, #1976D2, #1565C0)", color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, width: "100%", transition: "all 0.2s" },
-  btnSecondary:{ background: "transparent", color: "#1976D2", border: "2px solid #1976D2", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
-  btnGhost:   { background: "transparent", color: "#888", border: "1px solid #2a2d3a", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
-  erro:       { background: "#2a1010", border: "1px solid #ff4444", color: "#ff6b6b", padding: "10px 14px", borderRadius: 8, marginBottom: 16, fontSize: 14 },
-  linkBtn:    { background: "none", border: "none", color: "#1976D2", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", padding: 0 },
-  emptyState: { textAlign: "center", padding: "60px 20px", color: "#444", display: "flex", flexDirection: "column", alignItems: "center", gap: 12, fontSize: 15 },
-  badge:      (color) => ({ background: color + "22", color: color, border: `1px solid ${color}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }),
-};
 import React, { useState } from "react";
 import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, db, getDoc, doc } from "../../firebase";
 import { _getClubeAtleta } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
+import { useTema } from "../../shared/TemaContext";
+
+function getStyles(t) {
+  return {
+    page:       { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
+    formPage:   { maxWidth: 640, margin: "60px auto", padding: "0 24px 80px" },
+    formCard:   { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 16, padding: 32, marginBottom: 20 },
+    formIcon:   { fontSize: 48, textAlign: "center", marginBottom: 16 },
+    formTitle:  { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 800, color: t.textPrimary, textAlign: "center", marginBottom: 8 },
+    formSub:    { color: t.textDimmed, textAlign: "center", fontSize: 14, marginBottom: 24 },
+    formLink:   { textAlign: "center", marginTop: 16, color: t.textDimmed, fontSize: 13 },
+    label:      { display: "block", fontSize: 12, fontWeight: 600, color: t.textMuted, letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" },
+    input:      { width: "100%", background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
+    select:     { width: "100%", background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
+    btnPrimary: { background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, width: "100%", transition: "all 0.2s" },
+    btnSecondary:{ background: "transparent", color: t.accent, border: `2px solid ${t.accent}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
+    btnGhost:   { background: "transparent", color: t.textMuted, border: `1px solid ${t.borderLight}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
+    erro:       { background: `${t.danger}15`, border: `1px solid ${t.danger}`, color: t.danger, padding: "10px 14px", borderRadius: 8, marginBottom: 16, fontSize: 14 },
+    linkBtn:    { background: "none", border: "none", color: t.accent, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", padding: 0 },
+    emptyState: { textAlign: "center", padding: "60px 20px", color: t.textDisabled, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, fontSize: 15 },
+    badge:      (color) => ({ background: color + "22", color: color, border: `1px solid ${color}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }),
+  };
+}
 
 function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, atletasUsuarios, funcionarios, treinadores, setPerfisDisponiveis, adminConfig, atletas: atletasBase,
   atualizarEquipePerfil, setOrganizadores, setAtletasUsuarios, setFuncionarios, setTreinadores, registrarAcao }) {
-  const s = useStylesResponsivos(styles);
+  const t = useTema();
+  const s = useStylesResponsivos(getStyles(t));
   const [ident,   setIdent]   = useState("");
   const [senha,   setSenha]   = useState("");
   const [erro,    setErro]    = useState("");
@@ -65,10 +70,10 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
       const org = organizadores.find(o => o.id === eq.organizadorId);
       perfisEncontrados.push({ tipo:"equipe", dados:{ tipo:"equipe", ...eq }, label:`Equipe — ${eq.entidade || eq.nome}`, icon:"🎽", sublabel:org ? org.entidade : "Sem organizador", organizadorId:eq.organizadorId, organizadorNome:org?.entidade || "" });
     });
-    treinadores.filter(t => matchIdent(t) && t.ativo !== false).forEach(t => {
-      const equipeVinc = equipes.find(eq => eq.id === t.equipeId);
-      const org = organizadores.find(o => o.id === (t.organizadorId || equipeVinc?.organizadorId));
-      perfisEncontrados.push({ tipo:"treinador", dados:{ tipo:"treinador", ...t, clube:equipeVinc?.clube, equipeNome:equipeVinc?.nome }, label:`Treinador — ${equipeVinc?.nome || "Equipe"}`, icon:"👨‍🏫", sublabel:org ? org.entidade : "", organizadorId:t.organizadorId || equipeVinc?.organizadorId, organizadorNome:org?.entidade || "" });
+    treinadores.filter(tr => matchIdent(tr) && tr.ativo !== false).forEach(tr => {
+      const equipeVinc = equipes.find(eq => eq.id === tr.equipeId);
+      const org = organizadores.find(o => o.id === (tr.organizadorId || equipeVinc?.organizadorId));
+      perfisEncontrados.push({ tipo:"treinador", dados:{ tipo:"treinador", ...tr, clube:equipeVinc?.clube, equipeNome:equipeVinc?.nome }, label:`Treinador — ${equipeVinc?.nome || "Equipe"}`, icon:"👨‍🏫", sublabel:org ? org.entidade : "", organizadorId:tr.organizadorId || equipeVinc?.organizadorId, organizadorNome:org?.entidade || "" });
     });
     atletasUsuarios.filter(a => matchIdent(a) && a.status !== "pendente" && a.status !== "recusado").forEach(a => {
       const org = organizadores.find(o => o.id === a.organizadorId);
@@ -284,32 +289,32 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.85)", zIndex:2000,
           display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}
           onClick={() => setModalPolitica(false)}>
-          <div style={{ background:"#0E1016", border:"1px solid #1976D2", borderRadius:14,
+          <div style={{ background:t.bgCard, border:`1px solid ${t.accent}`, borderRadius:14,
             padding:28, maxWidth:560, width:"100%", maxHeight:"80vh", overflowY:"auto" }}
             onClick={e => e.stopPropagation()}>
             <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:22, fontWeight:800,
-              color:"#fff", marginBottom:16 }}>📄 Política de Privacidade — GerenTrack</h3>
-            <div style={{ fontSize:13, color:"#aaa", lineHeight:1.8 }}>
-              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>1. Controlador dos dados</strong><br/>
+              color:t.textPrimary, marginBottom:16 }}>📄 Política de Privacidade — GerenTrack</h3>
+            <div style={{ fontSize:13, color:t.textTertiary, lineHeight:1.8 }}>
+              <p style={{ marginBottom:10 }}><strong style={{ color:t.textPrimary }}>1. Controlador dos dados</strong><br/>
               O GerenTrack é o responsável pelo tratamento dos seus dados pessoais, nos termos da Lei nº 13.709/2018 (LGPD).</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>2. Dados coletados</strong><br/>
+              <p style={{ marginBottom:10 }}><strong style={{ color:t.textPrimary }}>2. Dados coletados</strong><br/>
               Coletamos: nome completo, e-mail, telefone, CNPJ, cidade, estado e dados de acesso (login). Para atletas: também CPF, data de nascimento e sexo.</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>3. Finalidade do tratamento</strong><br/>
+              <p style={{ marginBottom:10 }}><strong style={{ color:t.textPrimary }}>3. Finalidade do tratamento</strong><br/>
               Os dados são usados exclusivamente para: gestão de competições de atletismo, inscrições em provas, emissão de súmulas e resultados, e comunicação relacionada às competições.</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>4. Base legal</strong><br/>
+              <p style={{ marginBottom:10 }}><strong style={{ color:t.textPrimary }}>4. Base legal</strong><br/>
               O tratamento é realizado com base no consentimento do titular (Art. 7º, I), na execução de contrato (Art. 7º, V) e no legítimo interesse (Art. 7º, IX) da organização esportiva.</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>5. Compartilhamento</strong><br/>
+              <p style={{ marginBottom:10 }}><strong style={{ color:t.textPrimary }}>5. Compartilhamento</strong><br/>
               Seus dados podem ser compartilhados com organizadores de competições nas quais você participa. Não vendemos dados a terceiros.</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>6. Retenção</strong><br/>
+              <p style={{ marginBottom:10 }}><strong style={{ color:t.textPrimary }}>6. Retenção</strong><br/>
               Resultados esportivos são mantidos permanentemente por integridade do histórico. Dados pessoais de contas excluídas são anonimizados.</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>7. Seus direitos (Art. 18º LGPD)</strong><br/>
+              <p style={{ marginBottom:10 }}><strong style={{ color:t.textPrimary }}>7. Seus direitos (Art. 18º LGPD)</strong><br/>
               Você tem direito a: confirmar a existência do tratamento, acessar, corrigir, anonimizar, bloquear, eliminar seus dados e revogar o consentimento a qualquer momento nas Configurações da conta.</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:"#fff" }}>8. Segurança</strong><br/>
+              <p style={{ marginBottom:10 }}><strong style={{ color:t.textPrimary }}>8. Segurança</strong><br/>
               Utilizamos autenticação via Firebase Auth e armazenamento seguro no Firestore. Dados sensíveis (senhas) nunca são armazenados localmente.</p>
-              <p style={{ marginBottom:0 }}><strong style={{ color:"#fff" }}>9. Contato</strong><br/>
-              Para exercer seus direitos ou tirar dúvidas: <span style={{ color:"#1976D2" }}>gerentrack@gmail.com</span></p>
+              <p style={{ marginBottom:0 }}><strong style={{ color:t.textPrimary }}>9. Contato</strong><br/>
+              Para exercer seus direitos ou tirar dúvidas: <span style={{ color:t.accent }}>gerentrack@gmail.com</span></p>
             </div>
-            <button style={{ marginTop:20, background:"#1976D2", color:"#fff", border:"none",
+            <button style={{ marginTop:20, background:t.accent, color:"#fff", border:"none",
               borderRadius:8, padding:"10px 24px", cursor:"pointer", fontSize:13, fontWeight:700,
               fontFamily:"'Barlow Condensed',sans-serif" }}
               onClick={() => setModalPolitica(false)}>✓ Fechar</button>
@@ -322,13 +327,13 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
         <h2 style={s.formTitle}>Atualização da Política de Privacidade</h2>
         <p style={{ ...s.formSub, marginBottom:20 }}>
           Para continuar usando o GerenTrack, precisamos do seu consentimento conforme a
-          <strong style={{ color:"#1976D2" }}> Lei Geral de Proteção de Dados (LGPD)</strong>.
+          <strong style={{ color:t.accent }}> Lei Geral de Proteção de Dados (LGPD)</strong>.
         </p>
 
         {/* Resumo do que será tratado */}
-        <div style={{ background:"#0a0a14", border:"1px solid #1976D233", borderRadius:10,
-          padding:"14px 16px", marginBottom:20, fontSize:13, color:"#aaa", lineHeight:1.7 }}>
-          <strong style={{ color:"#fff", display:"block", marginBottom:8 }}>📋 Resumo do tratamento:</strong>
+        <div style={{ background:t.bgCardAlt, border:`1px solid ${t.accentBorder}`, borderRadius:10,
+          padding:"14px 16px", marginBottom:20, fontSize:13, color:t.textTertiary, lineHeight:1.7 }}>
+          <strong style={{ color:t.textPrimary, display:"block", marginBottom:8 }}>📋 Resumo do tratamento:</strong>
           <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
             {[
               "Seus dados são usados para gestão de competições de atletismo",
@@ -337,7 +342,7 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
               "Resultados esportivos são preservados como registro histórico mesmo após revogação",
             ].map((item, i) => (
               <div key={i} style={{ display:"flex", gap:8 }}>
-                <span style={{ color:"#1976D2", flexShrink:0 }}>✓</span>
+                <span style={{ color:t.accent, flexShrink:0 }}>✓</span>
                 <span>{item}</span>
               </div>
             ))}
@@ -345,16 +350,16 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
         </div>
 
         {/* Checkbox de aceite */}
-        <div style={{ background:"#0a0a14", border:`1px solid ${consentimentoAceite ? "#1976D2" : "#252837"}`,
+        <div style={{ background:t.bgCardAlt, border:`1px solid ${consentimentoAceite ? t.accent : t.borderInput}`,
           borderRadius:10, padding:"14px 16px", marginBottom:20, transition:"border-color 0.2s" }}>
           <label style={{ display:"flex", alignItems:"flex-start", gap:12, cursor:"pointer" }}>
             <input type="checkbox" checked={consentimentoAceite}
               onChange={e => setConsentimentoAceite(e.target.checked)}
               style={{ marginTop:2, width:16, height:16, cursor:"pointer", flexShrink:0 }} />
-            <span style={{ fontSize:13, color:"#bbb", lineHeight:1.7 }}>
+            <span style={{ fontSize:13, color:t.textSecondary, lineHeight:1.7 }}>
               Li e concordo com a{" "}
               <button type="button" onClick={() => setModalPolitica(true)}
-                style={{ background:"none", border:"none", color:"#1976D2", cursor:"pointer",
+                style={{ background:"none", border:"none", color:t.accent, cursor:"pointer",
                   fontSize:13, padding:0, textDecoration:"underline" }}>
                 Política de Privacidade
               </button>
@@ -389,7 +394,7 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
           Recusar e Voltar ao Login
         </button>
 
-        <p style={{ fontSize:11, color:"#444", textAlign:"center", marginTop:16, lineHeight:1.6 }}>
+        <p style={{ fontSize:11, color:t.textDisabled, textAlign:"center", marginTop:16, lineHeight:1.6 }}>
           Ao recusar, você será desconectado. Seus dados já cadastrados permanecem no sistema
           conforme previsto na LGPD.
         </p>
@@ -405,7 +410,7 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
         <h2 style={s.formTitle}>Recuperar Senha</h2>
         <p style={s.formSub}>Informe seu e-mail para receber o link de redefinição</p>
         {erro && <div style={s.erro}>{erro}</div>}
-        {feedbackRecuperar && <div style={{ ...s.erro, background:"#0a2a0a", color:"#7acc44", borderColor:"#2a5a2a" }}>{feedbackRecuperar}</div>}
+        {feedbackRecuperar && <div style={{ ...s.erro, background:`${t.success}15`, color:t.success, borderColor:`${t.success}66` }}>{feedbackRecuperar}</div>}
         <FormField label="E-mail cadastrado" value={emailRecuperar} onChange={setEmailRecuperar} placeholder="seuemail@exemplo.com" />
         <button style={s.btnPrimary} onClick={handleRecuperarSenha} disabled={loading}>{loading ? <span style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><span style={{width:16,height:16,borderRadius:"50%",border:"2px solid #ffffff44",borderTopColor:"#fff",display:"inline-block",animation:"spin 0.7s linear infinite"}} />Enviando...</span> : "Enviar Link de Recuperação"}</button>
         <div style={{ textAlign:"center", marginTop:16 }}>
@@ -419,24 +424,24 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
     <div style={s.formPage}>
       <LoginStyle />
       <div style={{ ...s.formCard, maxWidth:460, position:"relative", overflow:"hidden" }}>
-        {loading && <div style={{position:"absolute",inset:0,background:"rgba(10,11,13,0.6)",zIndex:10,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:12,backdropFilter:"blur(2px)"}}><span style={{width:36,height:36,borderRadius:"50%",border:"3px solid #1976D244",borderTopColor:"#1976D2",display:"inline-block",animation:"spin 0.7s linear infinite"}} /><span style={{color:"#1976D2",fontSize:14,fontWeight:600}}>{loadingMsg || "Aguarde..."}</span></div>}
+        {loading && <div style={{position:"absolute",inset:0,background:"rgba(10,11,13,0.6)",zIndex:10,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:12,backdropFilter:"blur(2px)"}}><span style={{width:36,height:36,borderRadius:"50%",border:"3px solid #1976D244",borderTopColor:"#1976D2",display:"inline-block",animation:"spin 0.7s linear infinite"}} /><span style={{color:t.accent,fontSize:14,fontWeight:600}}>{loadingMsg || "Aguarde..."}</span></div>}
         <div style={s.formIcon}>🔐</div>
         <h2 style={s.formTitle}>Entrar no Sistema</h2>
         <p style={s.formSub}>Use seu e-mail, CPF ou CNPJ para acessar</p>
         {erro && <div style={s.erro}>{erro}</div>}
         <FormField label="E-mail / CPF / CNPJ" value={ident} onChange={setIdent} placeholder="Digite seu e-mail, CPF ou CNPJ" />
-        <div style={{ fontSize:11, color:"#555", marginTop:3, marginBottom:8 }}>O sistema buscará automaticamente seus perfis cadastrados</div>
+        <div style={{ fontSize:11, color:t.textDimmed, marginTop:3, marginBottom:8 }}>O sistema buscará automaticamente seus perfis cadastrados</div>
         <FormField label="Senha" value={senha} onChange={setSenha} type="password" placeholder="••••••••" />
         <button style={s.btnPrimary} onClick={handleLogin} disabled={loading}>{loading ? <span style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><span style={{width:16,height:16,borderRadius:"50%",border:"2px solid #ffffff44",borderTopColor:"#fff",display:"inline-block",animation:"spin 0.7s linear infinite"}} />{loadingMsg || "Entrando..."}</span> : "Entrar"}</button>
         <div style={{ textAlign:"center", marginTop:12 }}>
           <button style={s.linkBtn} onClick={() => { setModoRecuperar(true); setErro(""); setEmailRecuperar(ident.includes("@") ? ident : ""); }}>🔑 Esqueci minha senha</button>
         </div>
         <div style={{ textAlign:"center", marginTop:16 }}>
-          <p style={{ color:"#888", fontSize:13, marginBottom:12 }}>Não tem conta? Cadastre-se como:</p>
+          <p style={{ color:t.textMuted, fontSize:13, marginBottom:12 }}>Não tem conta? Cadastre-se como:</p>
           <div style={{ display:"flex", gap:8, justifyContent:"center", flexWrap:"wrap" }}>
-            <button style={{ ...s.linkBtn, padding:"6px 12px", border:"1px solid #1E2130", borderRadius:6, background:"#0D0E12" }} onClick={() => setTela("cadastro-equipe")}>🎽 Equipe</button>
-            <button style={{ ...s.linkBtn, padding:"6px 12px", border:"1px solid #1E2130", borderRadius:6, background:"#0D0E12" }} onClick={() => setTela("cadastro-organizador")}>🏟️ Organizador</button>
-            <button style={{ ...s.linkBtn, padding:"6px 12px", border:"1px solid #1E2130", borderRadius:6, background:"#0D0E12" }} onClick={() => setTela("cadastro-atleta-login")}>🏃 Atleta</button>
+            <button style={{ ...s.linkBtn, padding:"6px 12px", border:`1px solid ${t.border}`, borderRadius:6, background:t.bgHeaderSolid }} onClick={() => setTela("cadastro-equipe")}>🎽 Equipe</button>
+            <button style={{ ...s.linkBtn, padding:"6px 12px", border:`1px solid ${t.border}`, borderRadius:6, background:t.bgHeaderSolid }} onClick={() => setTela("cadastro-organizador")}>🏟️ Organizador</button>
+            <button style={{ ...s.linkBtn, padding:"6px 12px", border:`1px solid ${t.border}`, borderRadius:6, background:t.bgHeaderSolid }} onClick={() => setTela("cadastro-atleta-login")}>🏃 Atleta</button>
           </div>
         </div>
       </div>

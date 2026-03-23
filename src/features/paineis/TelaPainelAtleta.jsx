@@ -6,33 +6,37 @@ import { _getCbat } from "../../shared/formatters/utils";
 import { Th, Td } from "../ui/TableHelpers";
 import { SinoNotificacoes } from "../ui/SinoNotificacoes";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
-const styles = {
+import { useTema } from "../../shared/TemaContext";
+function getStyles(t) {
+  return {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
-  pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 24, letterSpacing: 1 },
-  sectionTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, fontWeight: 800, color: "#fff", marginBottom: 20, letterSpacing: 1 },
+  pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: t.textPrimary, marginBottom: 24, letterSpacing: 1 },
+  sectionTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, fontWeight: 800, color: t.textPrimary, marginBottom: 20, letterSpacing: 1 },
   painelHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 32 },
   painelBtns: { display: "flex", gap: 10 },
   statsRow: { display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 32 },
-  tableWrap: { overflowX: "auto", borderRadius: 12, border: "1px solid #1E2130" },
+  tableWrap: { overflowX: "auto", borderRadius: 12, border: `1px solid ${t.border}` },
   table: { width: "100%", borderCollapse: "collapse" },
-  th: { background: "#0D0E12", padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "#666", letterSpacing: 1, textTransform: "uppercase", borderBottom: "1px solid #1E2130" },
-  td: { padding: "12px 16px", fontSize: 14, color: "#bbb", borderBottom: "1px solid #12141a" },
+  th: { background: t.bgHeaderSolid, padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: t.textDimmed, letterSpacing: 1, textTransform: "uppercase", borderBottom: `1px solid ${t.border}` },
+  td: { padding: "12px 16px", fontSize: 14, color: t.textSecondary, borderBottom: `1px solid ${t.border}` },
   tr: { transition: "background 0.15s" },
-  label: { display: "block", fontSize: 12, fontWeight: 600, color: "#888", letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" },
-  input: { width: "100%", background: "#141720", borderWidth: 1, borderStyle: "solid", borderColor: "#252837", borderRadius: 8, padding: "10px 14px", color: "#E0E0E0", fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
-  select: { width: "100%", background: "#141720", borderWidth: 1, borderStyle: "solid", borderColor: "#252837", borderRadius: 8, padding: "10px 14px", color: "#E0E0E0", fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
-  emptyState: { textAlign: "center", padding: "60px 20px", color: "#444", display: "flex", flexDirection: "column", alignItems: "center", gap: 12, fontSize: 15 },
-  btnPrimary: { background: "linear-gradient(135deg, #1976D2, #1565C0)", color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, transition: "all 0.2s" },
-  btnSecondary: { background: "transparent", color: "#1976D2", border: "2px solid #1976D2", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
-  btnGhost: { background: "transparent", color: "#888", border: "1px solid #2a2d3a", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
-  linkBtn: { background: "none", border: "none", color: "#1976D2", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", padding: 0 },
-  badgeGold: { background: "#1976D222", color: "#1976D2", border: "1px solid #1976D244", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 },
+  label: { display: "block", fontSize: 12, fontWeight: 600, color: t.textMuted, letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" },
+  input: { width: "100%", background: t.bgInput, borderWidth: 1, borderStyle: "solid", borderColor: t.borderInput, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
+  select: { width: "100%", background: t.bgInput, borderWidth: 1, borderStyle: "solid", borderColor: t.borderInput, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
+  emptyState: { textAlign: "center", padding: "60px 20px", color: t.textDisabled, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, fontSize: 15 },
+  btnPrimary: { background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, transition: "all 0.2s" },
+  btnSecondary: { background: "transparent", color: t.accent, border: "2px solid #1976D2", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
+  btnGhost: { background: "transparent", color: t.textMuted, border: `1px solid ${t.borderLight}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
+  linkBtn: { background: "none", border: "none", color: t.accent, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", padding: 0 },
+  badgeGold: { background: "#1976D222", color: t.accent, border: "1px solid #1976D244", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 },
   badge: (color) => ({ background: color + "22", color: color, border: `1px solid ${color}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }),
-  catBanner: { background: "#141720", border: "1px solid #252837", borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 14, color: "#aaa" },
-  marca: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: "#1976D2" },
+  catBanner: { background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 14, color: t.textTertiary },
+  marca: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: t.accent },
 };
+}
 
 function VinculoSolicitarForm({ atletaId, atletaNome, clubeInicial, equipes, solicitarVinculo }) {
+  const t = useTema();
   const [equipeId, setEquipeSel] = useState("");
   const [enviado,     setEnviado]     = useState(false);
 
@@ -44,7 +48,7 @@ function VinculoSolicitarForm({ atletaId, atletaNome, clubeInicial, equipes, sol
   };
 
   if (enviado) return (
-    <div style={{ color:"#7cfc7c", fontSize:13, padding:"6px 0" }}>
+    <div style={{ color: t.success, fontSize:13, padding:"6px 0" }}>
       ✓ Solicitação enviada! Aguarde a aprovação da equipe.
     </div>
   );
@@ -52,18 +56,18 @@ function VinculoSolicitarForm({ atletaId, atletaNome, clubeInicial, equipes, sol
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:10, marginTop:6 }}>
       <div>
-        <label style={{ color:"#888", fontSize:12, display:"block", marginBottom:4 }}>
-          Equipe <span style={{ color:"#ff6b6b" }}>*</span>
+        <label style={{ color: t.textMuted, fontSize:12, display:"block", marginBottom:4 }}>
+          Equipe <span style={{ color: t.danger }}>*</span>
         </label>
         <select
-          style={{ background:"#1a1c22", border:"1px solid #2a2d3a", color:"#fff",
+          style={{ background:t.bgHover, border:`1px solid ${t.borderLight}`, color: t.textPrimary,
             borderRadius:6, padding:"8px 12px", width:"100%", fontSize:13 }}
           value={equipeId}
           onChange={e => setEquipeSel(e.target.value)}>
           <option value="">— Selecione a equipe —</option>
-          {equipes.map(t => (
-            <option key={t.id} value={t.id}>
-              {t.nome}{t.clube ? ` — ${t.clube}` : ""}
+          {equipes.map(eq => (
+            <option key={eq.id} value={eq.id}>
+              {eq.nome}{eq.clube ? ` — ${eq.clube}` : ""}
             </option>
           ))}
         </select>
@@ -71,9 +75,9 @@ function VinculoSolicitarForm({ atletaId, atletaNome, clubeInicial, equipes, sol
       <button
         onClick={handleEnviar}
         disabled={!equipeId}
-        style={{ background: equipeId ? "#1a3a5a" : "#111", border:"1px solid",
-          borderColor: equipeId ? "#3a7abf" : "#222",
-          color: equipeId ? "#88aaff" : "#444",
+        style={{ background: equipeId ? t.accentBg : t.bgHeaderSolid, border:"1px solid",
+          borderColor: equipeId ? t.accentBorder : t.border,
+          color: equipeId ? t.accent : t.textDisabled,
           borderRadius:6, padding:"8px 16px", cursor: equipeId ? "pointer" : "not-allowed",
           fontSize:13, fontWeight:700, fontFamily:"Inter,sans-serif" }}>
         🔗 Enviar Solicitação de Vínculo
@@ -85,12 +89,13 @@ function VinculoSolicitarForm({ atletaId, atletaNome, clubeInicial, equipes, sol
 
 
 function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, inscricoes, eventos, equipes, eventoAtual, adicionarInscricao, atualizarAtletaUsuario, solicitarVinculo, solicitacoesVinculo, responderVinculo, notificacoes, marcarNotifLida, excluirInscricao, atualizarInscricao, resultados, organizadores, solicitarDesvinculo, perfisDisponiveis, solicitarRelatorio }) {
-  const s = useStylesResponsivos(styles);
+  const t = useTema();
+  const s = useStylesResponsivos(getStyles(t));
   const confirmar = useConfirm();
   if (usuarioLogado?.tipo !== "atleta") return (
     <div style={s.page}><div style={s.emptyState}>
       <span style={{ fontSize: 48 }}>🚫</span>
-      <p style={{ color: "#ff6b6b", fontWeight: 700 }}>Acesso restrito a atletas</p>
+      <p style={{ color: t.danger, fontWeight: 700 }}>Acesso restrito a atletas</p>
       <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
     </div></div>
   );
@@ -128,7 +133,7 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
       <div style={s.painelHeader}>
         <div>
           <h1 style={s.pageTitle}>🏃 Meu Painel</h1>
-          <p style={{ color:"#aaa", margin:"4px 0 0" }}>
+          <p style={{ color: t.textTertiary, margin:"4px 0 0" }}>
             {usuarioLogado?.nome}
           </p>
           {(() => {
@@ -136,8 +141,8 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
             const org = orgId ? (organizadores||[]).find(o => o.id === orgId) : null;
             if (!org) return null;
             return (
-              <p style={{ color:"#555", fontSize:12, margin:"2px 0 0" }}>
-                Federação / Organizador: <strong style={{ color:"#1976D2" }}>{org.entidade || org.nome}</strong>
+              <p style={{ color: t.textDimmed, fontSize:12, margin:"2px 0 0" }}>
+                Federação / Organizador: <strong style={{ color: t.accent }}>{org.entidade || org.nome}</strong>
               </p>
             );
           })()}
@@ -187,13 +192,13 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
           <div style={{ marginBottom:24 }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
               <h2 style={{ ...s.sectionTitle, margin:0 }}>🤝 Competições Abertas para Você</h2>
-              <span style={{ background:"#0a2a4a", color:"#5599ff", border:"1px solid #3a5a8a",
+              <span style={{ background: t.accentBg, color: t.accent, border:`1px solid ${t.accentBorder}`,
                 borderRadius:20, padding:"2px 10px", fontSize:12, fontWeight:700 }}>
                 {disponiveis.length}
               </span>
             </div>
-            <div style={{ background:"#0a0f1a", border:"1px solid #1a3a5a", borderRadius:8,
-              padding:"10px 16px", marginBottom:12, fontSize:12, color:"#5599ff", lineHeight:1.5 }}>
+            <div style={{ background: t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:8,
+              padding:"10px 16px", marginBottom:12, fontSize:12, color: t.accent, lineHeight:1.5 }}>
               ℹ️ Sua federação foi autorizada a participar nestas competições de outros organizadores.
               Selecione uma delas para se inscrever.
             </div>
@@ -202,19 +207,19 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
                 const orgEv = (organizadores||[]).find(o => o.id === ev.organizadorId);
                 const jaInscrito = meuAtleta ? inscricoes.some(i => i.atletaId === meuAtleta.id && i.eventoId === ev.id) : false;
                 return (
-                  <div key={ev.id} style={{ background:"#0d1117", border:"1px solid #1a3a5a",
+                  <div key={ev.id} style={{ background:t.bgHeaderSolid, border:`1px solid ${t.accentBorder}`,
                     borderRadius:12, padding:"16px 18px", display:"flex", flexDirection:"column", gap:8 }}>
                     <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:18,
-                      fontWeight:800, color:"#fff", lineHeight:1.2 }}>{ev.nome}</div>
-                    <div style={{ fontSize:12, color:"#5599ff" }}>
+                      fontWeight:800, color: t.textPrimary, lineHeight:1.2 }}>{ev.nome}</div>
+                    <div style={{ fontSize:12, color: t.accent }}>
                       {orgEv?.entidade || orgEv?.nome || "—"}
                     </div>
-                    <div style={{ fontSize:12, color:"#666" }}>
+                    <div style={{ fontSize:12, color: t.textDimmed }}>
                       📅 {new Date(ev.data+"T12:00:00").toLocaleDateString("pt-BR")}
                       {ev.local ? ` · 📍 ${ev.local}` : ""}
                     </div>
                     {jaInscrito ? (
-                      <span style={{ background:"#0a2a0a", color:"#7cfc7c", border:"1px solid #2a5a2a",
+                      <span style={{ background: t.accentBg, color: t.success, border:`1px solid ${t.success}44`,
                         borderRadius:6, padding:"6px 12px", fontSize:12, fontWeight:700, textAlign:"center" }}>
                         ✓ Já inscrito
                       </span>
@@ -251,7 +256,7 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
         const solDesvinc      = minhasSol.find(sol => sol.status === "pendente" && sol.tipo === "desvinculacao");
         const solAceita       = minhasSol.find(sol => sol.status === "aceito"   && sol.tipo !== "desvinculacao");
         const semVinculo      = !meuAtleta?.equipeId;
-        const equipeVinculada = meuAtleta?.equipeId ? equipes.find(t => t.id === meuAtleta.equipeId) : null;
+        const equipeVinculada = meuAtleta?.equipeId ? equipes.find(eq => eq.id === meuAtleta.equipeId) : null;
 
         if (!meuAtleta) return null;
 
@@ -260,37 +265,37 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
 
             {/* ── COM VÍNCULO: painel do vínculo atual ─────────────── */}
             {!semVinculo && equipeVinculada && (
-              <div style={{ background:"#0a1a0a", border:"1px solid #2a5a2a", borderRadius:10,
+              <div style={{ background: t.bgCardAlt, border:`1px solid ${t.success}44`, borderRadius:10,
                 padding:"16px 18px", marginBottom:12 }}>
                 <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
                   flexWrap:"wrap", gap:12 }}>
                   <div>
-                    <div style={{ color:"#7cfc7c", fontWeight:700, fontSize:14, marginBottom:4 }}>
+                    <div style={{ color: t.success, fontWeight:700, fontSize:14, marginBottom:4 }}>
                       ✓ Vinculado à equipe
                     </div>
-                    <div style={{ color:"#fff", fontSize:15, fontWeight:700 }}>
+                    <div style={{ color: t.textPrimary, fontSize:15, fontWeight:700 }}>
                       {equipeVinculada.nome}
                       {meuAtleta.clube && meuAtleta.clube !== equipeVinculada.nome &&
-                        <span style={{ color:"#888", fontWeight:400, fontSize:13 }}> — {meuAtleta.clube}</span>}
+                        <span style={{ color: t.textMuted, fontWeight:400, fontSize:13 }}> — {meuAtleta.clube}</span>}
                     </div>
                   </div>
                   {/* Botão de solicitar desvinculação */}
                   {!solDesvinc && solicitarDesvinculo && (
                     <details>
-                      <summary style={{ cursor:"pointer", color:"#cc6666", fontSize:12,
-                        background:"#1a0a0a", border:"1px solid #4a1a1a",
+                      <summary style={{ cursor:"pointer", color: t.danger, fontSize:12,
+                        background: t.bgCardAlt, border:`1px solid ${t.danger}44`,
                         borderRadius:6, padding:"5px 12px", listStyle:"none",
                         fontFamily:"'Barlow', sans-serif", userSelect:"none" }}>
                         ✗ Solicitar saída...
                       </summary>
-                      <div style={{ marginTop:10, background:"#120808", border:"1px solid #4a1a1a",
+                      <div style={{ marginTop:10, background: t.bgCardAlt, border:`1px solid ${t.danger}44`,
                         borderRadius:8, padding:"14px 16px" }}>
-                        <div style={{ color:"#ff8888", fontWeight:700, fontSize:13, marginBottom:6 }}>
+                        <div style={{ color: t.danger, fontWeight:700, fontSize:13, marginBottom:6 }}>
                           Solicitar saída da equipe {equipeVinculada.nome}
                         </div>
-                        <div style={{ color:"#888", fontSize:12, lineHeight:1.7, marginBottom:12 }}>
+                        <div style={{ color: t.textMuted, fontSize:12, lineHeight:1.7, marginBottom:12 }}>
                           A equipe precisará aprovar sua saída.<br/>
-                          <strong style={{ color:"#aaa" }}>Seus resultados e inscrições históricas serão
+                          <strong style={{ color: t.textTertiary }}>Seus resultados e inscrições históricas serão
                           totalmente preservados</strong> — nenhum dado esportivo é apagado.
                         </div>
                         <button
@@ -314,7 +319,7 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
                               equipeVinculada.id, equipeVinculada.nome
                             );
                           }}
-                          style={{ background:"#2a0808", border:"1px solid #6a1a1a", color:"#ff6b6b",
+                          style={{ background: t.bgCardAlt, border:`1px solid ${t.danger}`, color: t.danger,
                             borderRadius:6, padding:"8px 18px", cursor:"pointer", fontSize:13,
                             fontWeight:700, fontFamily:"'Barlow Condensed', sans-serif", letterSpacing:0.5 }}>
                           Confirmar Solicitação de Saída
@@ -326,15 +331,15 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
 
                 {/* Desvinculação pendente */}
                 {solDesvinc && (
-                  <div style={{ marginTop:12, background:"#1a0e00", border:"1px solid #6a3a00",
+                  <div style={{ marginTop:12, background: t.bgCardAlt, border:`1px solid ${t.warning}44`,
                     borderRadius:7, padding:"10px 14px", display:"flex", alignItems:"center",
                     gap:10 }}>
                     <span style={{ fontSize:18 }}>⏳</span>
                     <div>
-                      <div style={{ color:"#cc9944", fontWeight:700, fontSize:13 }}>
+                      <div style={{ color: t.warning, fontWeight:700, fontSize:13 }}>
                         Solicitação de saída pendente
                       </div>
-                      <div style={{ color:"#888", fontSize:12, marginTop:2 }}>
+                      <div style={{ color: t.textMuted, fontSize:12, marginTop:2 }}>
                         Aguardando aprovação da equipe. Enquanto não for aprovada,
                         você permanece vinculado.
                       </div>
@@ -346,11 +351,11 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
 
             {/* Atleta sem vínculo e com clube solicitado salvo */}
             {semVinculo && meuAtleta.clubeSolicitado && !solPendente && (
-              <div style={{ background:"#0a1220", border:"1px solid #3a5a8a", borderRadius:8,
+              <div style={{ background: t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:8,
                 padding:"14px 18px", marginBottom:12 }}>
-                <strong style={{ color:"#88aaff" }}>🔗 Vincular-se a uma equipe</strong>
-                <p style={{ color:"#aaa", fontSize:13, margin:"6px 0 10px", lineHeight:1.6 }}>
-                  Você se inscreveu informando a equipe <strong style={{ color:"#1976D2" }}>{meuAtleta.clubeSolicitado}</strong>,
+                <strong style={{ color: t.accent }}>🔗 Vincular-se a uma equipe</strong>
+                <p style={{ color: t.textTertiary, fontSize:13, margin:"6px 0 10px", lineHeight:1.6 }}>
+                  Você se inscreveu informando a equipe <strong style={{ color: t.accent }}>{meuAtleta.clubeSolicitado}</strong>,
                   mas ela ainda não está vinculada ao seu perfil.
                   Selecione uma equipe para enviar uma solicitação de vínculo:
                 </p>
@@ -363,10 +368,10 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
 
             {/* Sem vínculo, sem clube solicitado */}
             {semVinculo && !meuAtleta.clubeSolicitado && !solPendente && (
-              <div style={{ background:"#0d0e12", border:"1px solid #2a2d3a", borderRadius:8,
+              <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.borderLight}`, borderRadius:8,
                 padding:"12px 16px", marginBottom:12 }}>
                 <details>
-                  <summary style={{ color:"#aaa", fontSize:13, cursor:"pointer" }}>
+                  <summary style={{ color: t.textTertiary, fontSize:13, cursor:"pointer" }}>
                     🔗 Vincular-se a uma equipe
                   </summary>
                   <div style={{ marginTop:10 }}>
@@ -381,11 +386,11 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
 
             {/* Solicitação de vínculo pendente — enviada PELO atleta para entrar */}
             {solPendente && solPendente.origem !== "equipe" && (
-              <div style={{ background:"#1a1500", border:"1px solid #1976D255", borderRadius:8,
+              <div style={{ background: t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:8,
                 padding:"12px 16px", marginBottom:12 }}>
-                <strong style={{ color:"#1976D2" }}>⏳ Solicitação de vínculo enviada</strong>
-                <p style={{ color:"#aaa", fontSize:13, margin:"4px 0 0" }}>
-                  Aguardando aprovação da equipe <strong>{equipes.find(t=>t.id===solPendente.equipeId)?.nome||"—"}</strong>
+                <strong style={{ color: t.accent }}>⏳ Solicitação de vínculo enviada</strong>
+                <p style={{ color: t.textTertiary, fontSize:13, margin:"4px 0 0" }}>
+                  Aguardando aprovação da equipe <strong>{equipes.find(eq=>eq.id===solPendente.equipeId)?.nome||"—"}</strong>
                   {solPendente.clube ? ` — equipe ${solPendente.clube}` : ""}.
                 </p>
               </div>
@@ -393,23 +398,23 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
 
             {/* Solicitação recebida — EQUIPE pediu ao atleta */}
             {solPendente && solPendente.origem === "equipe" && solPendente.aprovadorTipo === "atleta" && (
-              <div style={{ background:"#0a1220", border:"2px solid #3a6abf", borderRadius:8,
+              <div style={{ background: t.accentBg, border:`2px solid ${t.accent}`, borderRadius:8,
                 padding:"14px 16px", marginBottom:12 }}>
-                <strong style={{ color:"#88aaff", fontSize:14 }}>🔔 Solicitação de vínculo recebida</strong>
-                <p style={{ color:"#aaa", fontSize:13, margin:"8px 0 12px", lineHeight:1.6 }}>
-                  A equipe <strong style={{ color:"#fff" }}>{equipes.find(t=>t.id===solPendente.equipeId)?.nome||"—"}</strong>
+                <strong style={{ color: t.accent, fontSize:14 }}>🔔 Solicitação de vínculo recebida</strong>
+                <p style={{ color: t.textTertiary, fontSize:13, margin:"8px 0 12px", lineHeight:1.6 }}>
+                  A equipe <strong style={{ color: t.textPrimary }}>{equipes.find(eq=>eq.id===solPendente.equipeId)?.nome||"—"}</strong>
                   {solPendente.clube ? ` da equipe ${solPendente.clube}` : ""} está solicitando seu vínculo.
                   Deseja aceitar?
                 </p>
                 <div style={{ display:"flex", gap:8 }}>
                   <button onClick={() => responderVinculo(solPendente.id, true)}
-                    style={{ background:"#0d2a0d", border:"1px solid #2a5a2a", color:"#7cfc7c",
+                    style={{ background: t.bgCardAlt, border:`1px solid ${t.success}44`, color: t.success,
                       borderRadius:6, padding:"8px 20px", cursor:"pointer", fontSize:13,
                       fontWeight:700, fontFamily:"'Barlow', sans-serif" }}>
                     ✓ Aceitar
                   </button>
                   <button onClick={() => responderVinculo(solPendente.id, false)}
-                    style={{ background:"#1a0a0a", border:"1px solid #5a1a1a", color:"#ff6b6b",
+                    style={{ background: t.bgCardAlt, border:`1px solid ${t.danger}44`, color: t.danger,
                       borderRadius:6, padding:"8px 16px", cursor:"pointer", fontSize:13,
                       fontFamily:"'Barlow', sans-serif" }}>
                     ✗ Recusar
@@ -420,11 +425,11 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
 
             {/* Vínculo aceito recente (sem equipe atual — acabou de entrar) */}
             {solAceita && meuAtleta?.equipeId && !equipeVinculada && (
-              <div style={{ background:"#0a2a0a", border:"1px solid #2a5a2a", borderRadius:8,
+              <div style={{ background: t.bgCardAlt, border:`1px solid ${t.success}44`, borderRadius:8,
                 padding:"10px 16px", marginBottom:12 }}>
-                <strong style={{ color:"#7cfc7c" }}>✓ Vinculado</strong>
-                <span style={{ color:"#aaa", fontSize:13, marginLeft:8 }}>
-                  {equipes.find(t=>t.id===meuAtleta.equipeId)?.nome||"—"}
+                <strong style={{ color: t.success }}>✓ Vinculado</strong>
+                <span style={{ color: t.textTertiary, fontSize:13, marginLeft:8 }}>
+                  {equipes.find(eq=>eq.id===meuAtleta.equipeId)?.nome||"—"}
                   {meuAtleta.clube ? ` — ${meuAtleta.clube}` : ""}
                 </span>
               </div>
@@ -464,8 +469,8 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
                     <Td>
                       <span style={{
                         fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:4,
-                        background: i.origemAtleta ? "#1a2a1a" : "#1a1a2a",
-                        color: i.origemAtleta ? "#7cfc7c" : "#88aaff",
+                        background: t.accentBg,
+                        color: i.origemAtleta ? t.success : t.accent,
                       }}>
                         {i.origemAtleta ? "🏃 Própria" : "🎽 Equipe"}
                       </span>
@@ -474,10 +479,10 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
                       {(() => {
                         const ev = eventos.find(e => e.id === i.eventoId);
                         const inscAberta = ev && !ev.inscricoesEncerradas;
-                        if (!inscAberta) return <span style={{color:"#444",fontSize:11}}>—</span>;
+                        if (!inscAberta) return <span style={{color: t.textDisabled,fontSize:11}}>—</span>;
                         return (
                           <button onClick={async () => { if (await confirmar("⚠️ Excluir esta inscrição?\n\nEsta ação é IRREVERSÍVEL e removerá todos os resultados associados.")) excluirInscricao(i.id, { confirmado: true }); }}
-                            style={{...s.btnGhost,fontSize:11,padding:"3px 10px",color:"#ff6b6b",borderColor:"#5a1a1a"}}
+                            style={{...s.btnGhost,fontSize:11,padding:"3px 10px",color: t.danger,borderColor: t.danger+"44"}}
                             title="Excluir inscrição">
                             🗑 Excluir
                           </button>
@@ -534,29 +539,29 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
         return (
           <>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12, marginTop:32, marginBottom:20 }}>
-              <h2 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:26, fontWeight:800, color:"#fff", letterSpacing:1, margin:0 }}>
+              <h2 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:26, fontWeight:800, color: t.textPrimary, letterSpacing:1, margin:0 }}>
                 Meus Resultados
               </h2>
               {solicitarRelatorio && eventosComInsc.length > 0 && (
                 <details style={{ position:"relative" }}>
-                  <summary style={{ cursor:"pointer", background:"transparent", color:"#88cccc", border:"1px solid #2a5a5a", borderRadius:8, padding:"8px 16px", fontSize:13, fontWeight:700, fontFamily:"'Barlow Condensed', sans-serif", letterSpacing:0.5, listStyle:"none" }}>
+                  <summary style={{ cursor:"pointer", background:"transparent", color: t.accent, border:`1px solid ${t.accentBorder}`, borderRadius:8, padding:"8px 16px", fontSize:13, fontWeight:700, fontFamily:"'Barlow Condensed', sans-serif", letterSpacing:0.5, listStyle:"none" }}>
                     📄 Solicitar Relatório Oficial
                   </summary>
-                  <div style={{ marginTop:8, background:"#0d1117", border:"1px solid #2a5a5a", borderRadius:8, padding:"14px 16px", minWidth:280 }}>
+                  <div style={{ marginTop:8, background:t.bgHeaderSolid, border:`1px solid ${t.accentBorder}`, borderRadius:8, padding:"14px 16px", minWidth:280 }}>
                     {relatorioEnviado ? (
-                      <div style={{ color:"#7cfc7c", fontSize:13 }}>✓ Solicitação enviada! O organizador será notificado.</div>
+                      <div style={{ color: t.success, fontSize:13 }}>✓ Solicitação enviada! O organizador será notificado.</div>
                     ) : (
                       <>
-                        <label style={{ fontSize:11, color:"#888", display:"block", marginBottom:4 }}>Competição</label>
+                        <label style={{ fontSize:11, color: t.textMuted, display:"block", marginBottom:4 }}>Competição</label>
                         <select value={relatorioEvId} onChange={e => setRelatorioEvId(e.target.value)}
-                          style={{ width:"100%", background:"#141720", border:"1px solid #252837", borderRadius:6, padding:"8px 10px", color:"#fff", fontSize:13, marginBottom:10 }}>
+                          style={{ width:"100%", background:t.bgInput, border:`1px solid ${t.borderInput}`, borderRadius:6, padding:"8px 10px", color: t.textPrimary, fontSize:13, marginBottom:10 }}>
                           <option value="">— Selecione —</option>
                           {eventosComInsc.map(ev => <option key={ev.id} value={ev.id}>{ev.nome}</option>)}
                         </select>
                         <button disabled={!relatorioEvId} onClick={() => {
                           const ev = eventos.find(e => e.id === relatorioEvId);
                           if (ev && meuAtleta) { solicitarRelatorio(meuAtleta.id, meuAtleta.nome, "atleta", ev.id, ev.nome, [meuAtleta.id]); setRelatorioEnviado(true); setTimeout(() => setRelatorioEnviado(false), 4000); }
-                        }} style={{ background: relatorioEvId ? "#1a3a3a" : "#111", border:"1px solid", borderColor: relatorioEvId ? "#3a7a7a" : "#222", color: relatorioEvId ? "#88cccc" : "#444", borderRadius:6, padding:"8px 16px", cursor: relatorioEvId ? "pointer" : "not-allowed", fontSize:13, fontWeight:700 }}>
+                        }} style={{ background: relatorioEvId ? t.accentBg : t.bgHeaderSolid, border:"1px solid", borderColor: relatorioEvId ? t.accentBorder : t.border, color: relatorioEvId ? t.accent : t.textDisabled, borderRadius:6, padding:"8px 16px", cursor: relatorioEvId ? "pointer" : "not-allowed", fontSize:13, fontWeight:700 }}>
                           Enviar Solicitação
                         </button>
                       </>
@@ -567,34 +572,34 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
             </div>
             {cards.map(({ ev, linhas }) => (
               <div key={ev.id} style={{
-                background:"#0E1016", border:"1px solid #1E2130",
+                background:t.bgCard, border:`1px solid ${t.border}`,
                 borderRadius:12, marginBottom:20, overflow:"hidden",
               }}>
                 {/* Header da competição */}
                 <div style={{
-                  padding:"14px 20px", background:"#0D0E12",
-                  borderBottom:"1px solid #1E2130",
+                  padding:"14px 20px", background:t.bgHeaderSolid,
+                  borderBottom:`1px solid ${t.border}`,
                   display:"flex", justifyContent:"space-between",
                   alignItems:"center", flexWrap:"wrap", gap:8,
                 }}>
                   <div>
                     <div style={{
                       fontFamily:"'Barlow Condensed',sans-serif",
-                      fontSize:20, fontWeight:800, color:"#fff", marginBottom:5,
+                      fontSize:20, fontWeight:800, color: t.textPrimary, marginBottom:5,
                     }}>
                       🏟 {ev.nome}
                     </div>
                     <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap" }}>
                       {ev.data && (
-                        <span style={{ fontSize:12, color:"#666" }}>
+                        <span style={{ fontSize:12, color: t.textDimmed }}>
                           📅 {new Date(ev.data+"T12:00:00").toLocaleDateString("pt-BR")}
                         </span>
                       )}
                       {ev.local && (
-                        <span style={{ fontSize:12, color:"#555" }}>· 📍 {ev.local}</span>
+                        <span style={{ fontSize:12, color: t.textDimmed }}>· 📍 {ev.local}</span>
                       )}
                       <span style={{
-                        background:"#1976D222", color:"#1976D2",
+                        background:"#1976D222", color: t.accent,
                         border:"1px solid #1976D244", borderRadius:4,
                         padding:"2px 8px", fontSize:11, fontWeight:600,
                       }}>
@@ -609,13 +614,13 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
                   display:"grid",
                   gridTemplateColumns:"repeat(auto-fill, minmax(175px, 1fr))",
                   gap:"1px",
-                  background:"#1E2130",
+                  background:t.border,
                 }}>
                   {linhas.map((l, idx) => {
                     const isDNS = ["DNS","DNF","DQ","NM","NH"].includes(String(l.marca).toUpperCase());
                     return (
                       <div key={idx} style={{
-                        background:"#0E1016",
+                        background:t.bgCard,
                         padding:"16px 18px",
                         display:"flex", flexDirection:"column", gap:6,
                         minHeight:100,
@@ -623,7 +628,7 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
                         {/* Nome da prova */}
                         <div style={{
                           fontFamily:"'Barlow Condensed',sans-serif",
-                          fontSize:14, fontWeight:700, color:"#aaa",
+                          fontSize:14, fontWeight:700, color: t.textTertiary,
                           lineHeight:1.2, textTransform:"uppercase", letterSpacing:0.5,
                         }}>
                           {l.prova?.nome || "—"}
@@ -653,7 +658,7 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
                           {l.fase && (
                             <span style={{
                               fontSize:10, fontWeight:600, padding:"2px 7px", borderRadius:3,
-                              background:"#141720", border:"1px solid #252837", color:"#666",
+                              background:t.bgInput, border:`1px solid ${t.borderInput}`, color: t.textDimmed,
                             }}>
                               {FASE_LABEL[l.fase] || l.fase}
                             </span>
@@ -661,7 +666,7 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
                           {l.cat && (
                             <span style={{
                               fontSize:10, fontWeight:600, padding:"2px 7px", borderRadius:3,
-                              background:"#0d1520", border:"1px solid #1976D233", color:"#1976D2",
+                              background: t.accentBg, border:`1px solid ${t.accentBorder}`, color: t.accent,
                             }}>
                               {l.cat}
                             </span>

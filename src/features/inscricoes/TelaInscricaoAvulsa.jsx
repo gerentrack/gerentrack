@@ -7,6 +7,7 @@ import { ProvaSelector } from "../ui/ProvaSelector";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { getLimiteCat, validarLimiteProvas, calcularPrecoInscricao, formatarPreco } from "../../shared/engines/inscricaoEngine";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
+import { useTema } from "../../shared/TemaContext";
 
 // Verifica em tempo real se as inscrições estão encerradas,
 // levando em conta data+hora de encerramento além do flag salvo.
@@ -32,93 +33,96 @@ function isInscricaoEncerradaAgora(ev) {
   return false;
 }
 
-const styles = {
+function getStyles(t) {
+  return {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
-  pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 24, letterSpacing: 1 },
-  sectionTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, fontWeight: 800, color: "#fff", marginBottom: 20, letterSpacing: 1 },
+  pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: t.textPrimary, marginBottom: 24, letterSpacing: 1 },
+  sectionTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, fontWeight: 800, color: t.textPrimary, marginBottom: 20, letterSpacing: 1 },
   statsRow: { display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 32 },
-  btnPrimary: { background: "linear-gradient(135deg, #1976D2, #1565C0)", color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, transition: "all 0.2s" },
-  btnSecondary: { background: "transparent", color: "#1976D2", border: "2px solid #1976D2", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
-  btnGhost: { background: "transparent", color: "#888", border: "1px solid #2a2d3a", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
-  tableWrap: { overflowX: "auto", borderRadius: 12, border: "1px solid #1E2130" },
+  btnPrimary: { background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, transition: "all 0.2s" },
+  btnSecondary: { background: "transparent", color: t.accent, border: `2px solid ${t.accent}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
+  btnGhost: { background: "transparent", color: t.textMuted, border: `1px solid ${t.borderLight}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
+  tableWrap: { overflowX: "auto", borderRadius: 12, border: `1px solid ${t.border}` },
   table: { width: "100%", borderCollapse: "collapse" },
-  th: { background: "#0D0E12", padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "#666", letterSpacing: 1, textTransform: "uppercase", borderBottom: "1px solid #1E2130" },
-  td: { padding: "12px 16px", fontSize: 14, color: "#bbb", borderBottom: "1px solid #12141a" },
+  th: { background: t.bgHeaderSolid, padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: t.textDimmed, letterSpacing: 1, textTransform: "uppercase", borderBottom: `1px solid ${t.border}` },
+  td: { padding: "12px 16px", fontSize: 14, color: t.textSecondary, borderBottom: `1px solid ${t.border}` },
   tr: { transition: "background 0.15s" },
-  marca: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: "#1976D2" },
-  emptyState: { textAlign: "center", padding: "60px 20px", color: "#444", display: "flex", flexDirection: "column", alignItems: "center", gap: 12, fontSize: 15 },
+  marca: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: t.accent },
+  emptyState: { textAlign: "center", padding: "60px 20px", color: t.textDisabled, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, fontSize: 15 },
   painelHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 32 },
   painelBtns: { display: "flex", gap: 10, flexWrap: "wrap" },
-  input: { width: "100%", background: "#141720", borderWidth: 1, borderStyle: "solid", borderColor: "#252837", borderRadius: 8, padding: "10px 14px", color: "#E0E0E0", fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
-  select: { width: "100%", background: "#141720", borderWidth: 1, borderStyle: "solid", borderColor: "#252837", borderRadius: 8, padding: "10px 14px", color: "#E0E0E0", fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
-  label: { display: "block", fontSize: 12, fontWeight: 600, color: "#888", letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" },
-  erro: { background: "#2a1010", border: "1px solid #ff4444", color: "#ff6b6b", padding: "10px 14px", borderRadius: 8, marginBottom: 16, fontSize: 14 },
-  linkBtn: { background: "none", border: "none", color: "#1976D2", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", padding: 0 },
+  input: { width: "100%", background: t.bgInput, borderWidth: 1, borderStyle: "solid", borderColor: t.borderInput, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
+  select: { width: "100%", background: t.bgInput, borderWidth: 1, borderStyle: "solid", borderColor: t.borderInput, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
+  label: { display: "block", fontSize: 12, fontWeight: 600, color: t.textMuted, letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" },
+  erro: { background: t.bgCardAlt, border: `1px solid ${t.danger}`, color: t.danger, padding: "10px 14px", borderRadius: 8, marginBottom: 16, fontSize: 14 },
+  linkBtn: { background: "none", border: "none", color: t.accent, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", padding: 0 },
   badge: (color) => ({ background: color + "22", color: color, border: `1px solid ${color}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }),
-  badgeGold: { background: "#1976D222", color: "#1976D2", border: "1px solid #1976D244", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 },
-  catBanner: { background: "#141720", border: "1px solid #252837", borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 14, color: "#aaa" },
+  badgeGold: { background: t.accentBg, color: t.accent, border: `1px solid ${t.accentBorder}`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 },
+  catBanner: { background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 14, color: t.textTertiary },
   filtros: { display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 },
   adminGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 32 },
-  adminCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: 24 },
-  adminCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: "#1976D2", marginBottom: 16 },
-  formCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 16, padding: 32, marginBottom: 20 },
-  formTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 800, color: "#fff", textAlign: "center", marginBottom: 8 },
-  formSub: { color: "#666", textAlign: "center", fontSize: 14, marginBottom: 24 },
+  adminCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: 24 },
+  adminCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.accent, marginBottom: 16 },
+  formCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 16, padding: 32, marginBottom: 20 },
+  formTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 800, color: t.textPrimary, textAlign: "center", marginBottom: 8 },
+  formSub: { color: t.textDimmed, textAlign: "center", fontSize: 14, marginBottom: 24 },
   grid2: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 40 },
   grid2form: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 },
-  fieldError: { color: "#ff6b6b", fontSize: 12, marginTop: 2 },
+  fieldError: { color: t.danger, fontSize: 12, marginTop: 2 },
   radioGroup: { display: "flex", gap: 8, marginBottom: 16 },
-  radioLabel: { flex: 1, background: "#141720", border: "1px solid #252837", borderRadius: 8, padding: "10px", textAlign: "center", cursor: "pointer", fontSize: 14, color: "#888", transition: "all 0.2s" },
-  radioLabelActive: { background: "#1c1f2e", border: "1px solid #1976D2", color: "#1976D2" },
-  sumuCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, marginBottom: 20, overflow: "hidden" },
-  sumuHeader: { padding: "16px 20px", background: "#0D0E12", borderBottom: "1px solid #1E2130", display: "flex", justifyContent: "space-between", alignItems: "center" },
-  sumuProva: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: "#fff", marginBottom: 6 },
+  radioLabel: { flex: 1, background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px", textAlign: "center", cursor: "pointer", fontSize: 14, color: t.textMuted, transition: "all 0.2s" },
+  radioLabelActive: { background: t.bgHover, border: `1px solid ${t.accent}`, color: t.accent },
+  sumuCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, marginBottom: 20, overflow: "hidden" },
+  sumuHeader: { padding: "16px 20px", background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" },
+  sumuProva: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.textPrimary, marginBottom: 6 },
   sumuMeta: { display: "flex", gap: 8, alignItems: "center" },
-  btnIconSm: { background: "#141720", border: "1px solid #252837", color: "#888", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
-  btnIconSmDanger: { background: "#1a0a0a", border: "1px solid #3a1a1a", color: "#ff6b6b", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
-  infoCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: 24 },
-  infoCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 700, color: "#1976D2", marginBottom: 16, letterSpacing: 1 },
+  btnIconSm: { background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.textMuted, borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
+  btnIconSmDanger: { background: t.bgCardAlt, border: `1px solid ${t.danger}33`, color: t.danger, borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
+  infoCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: 24 },
+  infoCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 700, color: t.accent, marginBottom: 16, letterSpacing: 1 },
   infoList: { listStyle: "none" },
-  infoItem: { padding: "6px 0", borderBottom: "1px solid #151820", fontSize: 14, color: "#bbb", display: "flex", alignItems: "center", gap: 8 },
-  infoItemDot: { color: "#1976D2", fontWeight: 700 },
+  infoItem: { padding: "6px 0", borderBottom: `1px solid ${t.border}`, fontSize: 14, color: t.textSecondary, display: "flex", alignItems: "center", gap: 8 },
+  infoItemDot: { color: t.accent, fontWeight: 700 },
   heroSection: { textAlign: "center", padding: "60px 20px 40px", background: "linear-gradient(180deg, #0D1018 0%, transparent 100%)", borderRadius: 16, marginBottom: 48, position: "relative", overflow: "hidden" },
-  heroBadge: { display: "inline-block", background: "#1976D2", color: "#fff", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: 3, padding: "6px 16px", borderRadius: 20, marginBottom: 20 },
-  heroTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 56, fontWeight: 900, color: "#fff", lineHeight: 1.1, marginBottom: 16, letterSpacing: 1 },
+  heroBadge: { display: "inline-block", background: t.accent, color: "#fff", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: 3, padding: "6px 16px", borderRadius: 20, marginBottom: 20 },
+  heroTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 56, fontWeight: 900, color: t.textPrimary, lineHeight: 1.1, marginBottom: 16, letterSpacing: 1 },
   heroBtns: { display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" },
   eventosGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 20, marginBottom: 48 },
-  eventoCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 14, padding: 24, display: "flex", flexDirection: "column", gap: 10 },
-  eventoCardNome: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: "#fff", lineHeight: 1.2 },
-  eventoCardMeta: { fontSize: 13, color: "#666" },
-  eventoCardStats: { display: "flex", gap: 16, fontSize: 13, color: "#888", flexWrap: "wrap", borderTop: "1px solid #141820", paddingTop: 10, marginTop: 4 },
+  eventoCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 14, padding: 24, display: "flex", flexDirection: "column", gap: 10 },
+  eventoCardNome: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.textPrimary, lineHeight: 1.2 },
+  eventoCardMeta: { fontSize: 13, color: t.textDimmed },
+  eventoCardStats: { display: "flex", gap: 16, fontSize: 13, color: t.textMuted, flexWrap: "wrap", borderTop: `1px solid ${t.border}`, paddingTop: 10, marginTop: 4 },
   eventoStatusBadge: (status) => ({
     display: "inline-block", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700, letterSpacing: 0.5,
-    background: status === "ao_vivo" ? "#3a0a0a" : status === "hoje_pre" ? "#2a2a0a" : status === "futuro" ? "#0a2a0a" : "#1a1a1a",
-    color: status === "ao_vivo" ? "#ff6b6b" : status === "hoje_pre" ? "#1976D2" : status === "futuro" ? "#7acc44" : "#555",
-    border: `1px solid ${status === "ao_vivo" ? "#6a2a2a" : status === "hoje_pre" ? "#4a4a0a" : status === "futuro" ? "#2a5a2a" : "#333"}`,
+    background: status === "ao_vivo" ? `${t.danger}15` : status === "hoje_pre" ? `${t.accent}15` : status === "futuro" ? `${t.success}15` : t.bgCardAlt,
+    color: status === "ao_vivo" ? t.danger : status === "hoje_pre" ? t.accent : status === "futuro" ? t.success : t.textDimmed,
+    border: `1px solid ${status === "ao_vivo" ? `${t.danger}44` : status === "hoje_pre" ? `${t.accent}44` : status === "futuro" ? `${t.success}44` : t.border}`,
   }),
-  permissividadeBox: { background: "#0d1117", border: "1px solid #1976D233", borderRadius: 10, padding: 16, marginTop: 16, marginBottom: 4 },
+  permissividadeBox: { background: t.bgHeaderSolid, border: `1px solid ${t.accentBorder}`, borderRadius: 10, padding: 16, marginTop: 16, marginBottom: 4 },
   stepBar: { display: "flex", alignItems: "center", gap: 0, marginBottom: 32, maxWidth: 400 },
-  stepItem: (ativo) => ({ padding: "10px 24px", borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, background: ativo ? "#1a1c22" : "transparent", color: ativo ? "#1976D2" : "#444", border: `1px solid ${ativo ? "#1976D244" : "#1E2130"}` }),
-  stepDivider: { flex: 1, height: 1, background: "#1E2130", margin: "0 8px" },
-  tagProva: { background: "#1976D222", color: "#1976D2", border: "1px solid #1976D244", borderRadius: 6, padding: "4px 12px", fontSize: 12, cursor: "pointer" },
+  stepItem: (ativo) => ({ padding: "10px 24px", borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, background: ativo ? t.bgHover : "transparent", color: ativo ? t.accent : t.textDisabled, border: `1px solid ${ativo ? t.accentBorder : t.border}` }),
+  stepDivider: { flex: 1, height: 1, background: t.border, margin: "0 8px" },
+  tagProva: { background: t.accentBg, color: t.accent, border: `1px solid ${t.accentBorder}`, borderRadius: 6, padding: "4px 12px", fontSize: 12, cursor: "pointer" },
   eventoAcoesGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16, marginBottom: 40 },
-  eventoAcaoBtn: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: "20px 16px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, textAlign: "center", color: "#fff", fontFamily: "'Barlow', sans-serif", fontSize: 15, fontWeight: 700, transition: "border-color 0.2s" },
-  statusControlsCard: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, padding: "20px 24px", marginBottom: 28 },
-  statusBar: { display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap", background: "#0D0E12", border: "1px solid #1E2130", borderRadius: 10, padding: "12px 18px", marginBottom: 24 },
-  modoSwitch: { display: "flex", gap: 0, background: "#0D0E12", border: "1px solid #1E2130", borderRadius: 10, overflow: "hidden", marginBottom: 24, width: "fit-content" },
-  modoBtn: { background: "transparent", border: "none", color: "#666", padding: "12px 24px", cursor: "pointer", fontSize: 14, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s" },
-  modoBtnActive: { background: "#141720", color: "#1976D2" },
+  eventoAcaoBtn: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "20px 16px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, textAlign: "center", color: t.textPrimary, fontFamily: "'Barlow', sans-serif", fontSize: 15, fontWeight: 700, transition: "border-color 0.2s" },
+  statusControlsCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "20px 24px", marginBottom: 28 },
+  statusBar: { display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap", background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, padding: "12px 18px", marginBottom: 24 },
+  modoSwitch: { display: "flex", gap: 0, background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, overflow: "hidden", marginBottom: 24, width: "fit-content" },
+  modoBtn: { background: "transparent", border: "none", color: t.textDimmed, padding: "12px 24px", cursor: "pointer", fontSize: 14, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s" },
+  modoBtnActive: { background: t.bgInput, color: t.accent },
   provaGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 },
-  provaBtn: { background: "#0E1016", border: "1px solid #1E2130", color: "#888", padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", lineHeight: 1.4 },
-  provaBtnSel: { background: "#1a1c22", borderColor: "#1976D2", color: "#1976D2" },
-  savedBadge: { background: "#0a2a0a", border: "1px solid #2a6a2a", color: "#4aaa4a", padding: "8px 16px", borderRadius: 8, fontSize: 13 },
-  digitarSection: { background: "#0E1016", border: "1px solid #1E2130", borderRadius: 12, overflow: "hidden" },
-  digitarHeader: { padding: "16px 20px", background: "#0D0E12", borderBottom: "1px solid #1E2130", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 },
-  inputMarca: { background: "#141720", border: "1px solid #252837", borderRadius: 6, padding: "8px 12px", color: "#1976D2", fontSize: 16, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, width: 120, outline: "none" },
+  provaBtn: { background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", lineHeight: 1.4 },
+  provaBtnSel: { background: t.bgHover, borderColor: t.accent, color: t.accent },
+  savedBadge: { background: t.bgCardAlt, border: `1px solid ${t.success}66`, color: t.success, padding: "8px 16px", borderRadius: 8, fontSize: 13 },
+  digitarSection: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, overflow: "hidden" },
+  digitarHeader: { padding: "16px 20px", background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 },
+  inputMarca: { background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 6, padding: "8px 12px", color: t.accent, fontSize: 16, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, width: 120, outline: "none" },
 };
+}
 
 function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equipes, inscricoes, usuarioLogado, setTela, eventoAtual, eventoAtualId, eventos, selecionarEvento, adicionarAtletaUsuario, atualizarAtletaUsuario, login, loginComSelecao, atletasUsuarios=[], organizadores=[] }) {
-    const s = useStylesResponsivos(styles);
+    const t = useTema();
+    const s = useStylesResponsivos(getStyles(t));
     const [modo, setModo] = useState("existente");
   const [atletaId, setAtletaId] = useState("");
   const [buscaAtleta, setBuscaAtleta] = useState("");
@@ -222,8 +226,8 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
       <div style={s.page}>
         <div style={s.emptyState}>
           <span style={{ fontSize: 48 }}>📭</span>
-          <p style={{ fontWeight: 700, color: "#fff", fontSize: 18 }}>Nenhuma competição com inscrições abertas</p>
-          <p style={{ color: "#666", fontSize: 14 }}>Aguarde a abertura de inscrições de uma competição.</p>
+          <p style={{ fontWeight: 700, color: t.textPrimary, fontSize: 18 }}>Nenhuma competição com inscrições abertas</p>
+          <p style={{ color: t.textDimmed, fontSize: 14 }}>Aguarde a abertura de inscrições de uma competição.</p>
           <button style={s.btnGhost} onClick={() => setTela("painel-atleta")}>← Meu Painel</button>
         </div>
       </div>
@@ -234,7 +238,7 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
           <h1 style={s.pageTitle}>✍️ Me Inscrever</h1>
           <button style={s.btnGhost} onClick={() => setTela("painel-atleta")}>← Meu Painel</button>
         </div>
-        <p style={{ color: "#aaa", marginBottom: 16 }}>Selecione a competição em que deseja se inscrever:</p>
+        <p style={{ color: t.textTertiary, marginBottom: 16 }}>Selecione a competição em que deseja se inscrever:</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 700 }}>
           {eventosAbertos.map(ev => {
             const dataEv = ev.data ? new Date(ev.data + "T12:00:00").toLocaleDateString("pt-BR", { day:"2-digit", month:"long", year:"numeric" }) : "";
@@ -258,14 +262,14 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
                   }
                 }}
                 style={{
-                  background: "#0D0E12", border: "1px solid #1E2130", borderRadius: 10,
+                  background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10,
                   padding: "16px 20px", cursor: "pointer", transition: "border-color 0.2s",
                 }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = "#1976D2"; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = "#1E2130"; }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = t.accent; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; }}
               >
-                <div style={{ fontWeight: 700, color: "#fff", fontSize: 16, marginBottom: 4 }}>🏟 {ev.nome}</div>
-                <div style={{ display: "flex", gap: 12, flexWrap: "wrap", fontSize: 12, color: "#888" }}>
+                <div style={{ fontWeight: 700, color: t.textPrimary, fontSize: 16, marginBottom: 4 }}>🏟 {ev.nome}</div>
+                <div style={{ display: "flex", gap: 12, flexWrap: "wrap", fontSize: 12, color: t.textMuted }}>
                   {dataEv && <span>📅 {dataEv}</span>}
                   {(ev.local || ev.cidade) && <span>📍 {_getLocalEventoDisplay(ev)}</span>}
                   {nProvas > 0 && <span>🏃 {nProvas} provas no programa</span>}
@@ -273,13 +277,13 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
                 {atletaOrgId && ev.organizadorId && ev.organizadorId !== atletaOrgId && (() => {
                   const orgEv = (organizadores||[]).find(o => o.id === ev.organizadorId);
                   return (
-                    <div style={{ marginTop:6, fontSize:11, color:"#5599ff" }}>
+                    <div style={{ marginTop:6, fontSize:11, color: t.accent }}>
                       🤝 Participação cruzada · {orgEv?.entidade || orgEv?.nome || "outro organizador"}
                     </div>
                   );
                 })()}
                 <div style={{ marginTop: 8 }}>
-                  <span style={{ background: "#0a2a0a", color: "#7acc44", border: "1px solid #1a3a1a", borderRadius: 12, padding: "2px 10px", fontSize: 11, fontWeight: 600 }}>
+                  <span style={{ background: t.bgCardAlt, color: t.success, border: `1px solid ${t.success}44`, borderRadius: 12, padding: "2px 10px", fontSize: 11, fontWeight: 600 }}>
                     Inscrições Abertas
                   </span>
                 </div>
@@ -315,8 +319,8 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
         <div style={{ ...s.formCard, maxWidth: 480 }}>
           <div style={{ fontSize: 52, textAlign: "center", marginBottom: 12 }}>🏟️</div>
           <h2 style={{ ...s.formTitle, textAlign: "center" }}>Competição de outro organizador</h2>
-          <p style={{ color: "#aaa", fontSize: 14, textAlign: "center", lineHeight: 1.6, margin: "12px 0 20px" }}>
-            Esta competição pertence a <strong style={{ color: "#fff" }}>{modalNovoOrg.orgNome}</strong>.<br/>
+          <p style={{ color: t.textTertiary, fontSize: 14, textAlign: "center", lineHeight: 1.6, margin: "12px 0 20px" }}>
+            Esta competição pertence a <strong style={{ color: t.textPrimary }}>{modalNovoOrg.orgNome}</strong>.<br/>
             Para se inscrever, será criado um perfil seu neste organizador.<br/>
             Você poderá alternar entre perfis na hora do login.
           </p>
@@ -338,8 +342,8 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
     <div style={s.page}>
       <div style={s.emptyState}>
         <span style={{ fontSize: 48 }}>🔐</span>
-        <p style={{ fontWeight: 700, color: "#fff", fontSize: 18 }}>Login Necessário</p>
-        <p style={{ color: "#666", fontSize: 14 }}>Faça login para inscrever atletas nesta competição.</p>
+        <p style={{ fontWeight: 700, color: t.textPrimary, fontSize: 18 }}>Login Necessário</p>
+        <p style={{ color: t.textDimmed, fontSize: 14 }}>Faça login para inscrever atletas nesta competição.</p>
         <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
       </div>
     </div>
@@ -351,8 +355,8 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
     <div style={s.page}>
       <div style={s.emptyState}>
         <span style={{ fontSize: 48 }}>🔒</span>
-        <p style={{ fontWeight: 700, color: "#fff", fontSize: 18 }}>Inscrições Encerradas</p>
-        <p style={{ color: "#666", fontSize: 14 }}>
+        <p style={{ fontWeight: 700, color: t.textPrimary, fontSize: 18 }}>Inscrições Encerradas</p>
+        <p style={{ color: t.textDimmed, fontSize: 14 }}>
           As inscrições para <strong>{eventoParaInscricao.nome}</strong> estão encerradas.
         </p>
         <button style={s.btnGhost} onClick={() => isAtleta ? setEventoSelecionadoAtleta(null) : setTela("evento-detalhe")}>← Voltar</button>
@@ -364,8 +368,8 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
     <div style={s.page}>
       <div style={s.emptyState}>
         <span style={{ fontSize: 48 }}>🔓</span>
-        <p style={{ fontWeight: 700, color: "#ff6b6b", fontSize: 18 }}>Consentimento Revogado</p>
-        <p style={{ color: "#888", fontSize: 14, maxWidth: 420, textAlign: "center", lineHeight: 1.6 }}>
+        <p style={{ fontWeight: 700, color: t.danger, fontSize: 18 }}>Consentimento Revogado</p>
+        <p style={{ color: t.textMuted, fontSize: 14, maxWidth: 420, textAlign: "center", lineHeight: 1.6 }}>
           Você revogou seu consentimento LGPD. Novas inscrições não são permitidas.<br/>
           Para voltar a se inscrever em competições, realize um novo cadastro.
         </p>
@@ -576,7 +580,7 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
       <div style={s.formCard}>
         <div style={{ fontSize: 64, textAlign: "center" }}>🎉</div>
         <h2 style={{ ...s.formTitle, textAlign: "center" }}>Inscrição realizada!</h2>
-        <p style={{ textAlign: "center", color: "#aaa" }}>{provasSel.length} prova(s) em <strong style={{ color: "#1976D2" }}>{eventoParaInscricao.nome}</strong>.</p>
+        <p style={{ textAlign: "center", color: t.textTertiary }}>{provasSel.length} prova(s) em <strong style={{ color: t.accent }}>{eventoParaInscricao.nome}</strong>.</p>
 
         {/* ── Informações de pagamento — Etapa 2: preço calculado por categoria + equipe ── */}
         {isAtleta && (() => {
@@ -591,30 +595,30 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
           const temInfoPagto    = precoInfo.preco != null || forma || orientacao;
           if (!temInfoPagto) return null;
           return (
-            <div style={{ background:"#0a1220", border:"1px solid #1976D244", borderRadius:10, padding:"16px 18px", margin:"16px 0", textAlign:"left" }}>
-              <div style={{ fontWeight:700, color:"#1976D2", fontSize:14, marginBottom:10 }}>💳 Informações de Pagamento</div>
+            <div style={{ background: t.bgCardAlt, border:`1px solid ${t.accentBorder}`, borderRadius:10, padding:"16px 18px", margin:"16px 0", textAlign:"left" }}>
+              <div style={{ fontWeight:700, color: t.accent, fontSize:14, marginBottom:10 }}>💳 Informações de Pagamento</div>
               {precoInfo.preco != null && (
-                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", padding:"8px 0", borderBottom:"1px solid #1E2130", gap:12 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", padding:"8px 0", borderBottom:`1px solid ${t.border}`, gap:12 }}>
                   <div>
-                    <span style={{ color:"#888", fontSize:13 }}>Valor por atleta</span>
-                    <div style={{ fontSize:10, color:"#555", marginTop:2 }}>Taxa única por atleta na competição — independente do nº de provas</div>
+                    <span style={{ color: t.textMuted, fontSize:13 }}>Valor por atleta</span>
+                    <div style={{ fontSize:10, color: t.textDimmed, marginTop:2 }}>Taxa única por atleta na competição — independente do nº de provas</div>
                     {precoInfo.tipo !== "global" && (
-                      <div style={{ fontSize:10, color:"#666", marginTop:1 }}>{precoInfo.label}</div>
+                      <div style={{ fontSize:10, color: t.textDimmed, marginTop:1 }}>{precoInfo.label}</div>
                     )}
                   </div>
-                  <strong style={{ color:"#7acc44", fontSize:20, fontFamily:"'Barlow Condensed', sans-serif", whiteSpace:"nowrap" }}>
+                  <strong style={{ color: t.success, fontSize:20, fontFamily:"'Barlow Condensed', sans-serif", whiteSpace:"nowrap" }}>
                     {formatarPreco(precoInfo.preco)}
                   </strong>
                 </div>
               )}
               {forma && (
-                <div style={{ display:"flex", justifyContent:"space-between", padding:"6px 0", borderBottom:"1px solid #1E2130" }}>
-                  <span style={{ color:"#888", fontSize:13 }}>Forma de pagamento</span>
-                  <span style={{ color:"#fff", fontSize:13 }}>{forma}</span>
+                <div style={{ display:"flex", justifyContent:"space-between", padding:"6px 0", borderBottom:`1px solid ${t.border}` }}>
+                  <span style={{ color: t.textMuted, fontSize:13 }}>Forma de pagamento</span>
+                  <span style={{ color: t.textPrimary, fontSize:13 }}>{forma}</span>
                 </div>
               )}
               {(orientacao || contato) && (
-                <div style={{ marginTop:10, padding:"8px 12px", background:"#0d1520", borderRadius:8, fontSize:12, color:"#aaa", lineHeight:1.6, whiteSpace:"pre-wrap" }}>
+                <div style={{ marginTop:10, padding:"8px 12px", background: t.bgCardAlt, borderRadius:8, fontSize:12, color: t.textTertiary, lineHeight:1.6, whiteSpace:"pre-wrap" }}>
                   {orientacao || `Entre em contato com o organizador para efetuar o pagamento.${contato ? `\n${contato}` : ""}`}
                 </div>
               )}
@@ -623,7 +627,7 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
         })()}
 
         <div style={{ ...s.resumoInscricao, margin:"12px 0 16px" }}>
-          <strong style={{ color:"#aaa", fontSize:12 }}>Provas inscritas:</strong>
+          <strong style={{ color: t.textTertiary, fontSize:12 }}>Provas inscritas:</strong>
           <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginTop:8 }}>
             {provasSel.map(pid => {
               const p = todasAsProvas().find(x => x.id === pid);
@@ -651,9 +655,9 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
 
       {/* Info da competição para atletas */}
       {isAtleta && (
-        <div style={{ background: "#0D0E12", border: "1px solid #1E2130", borderRadius: 10, padding: "14px 18px", marginBottom: 16 }}>
-          <div style={{ fontWeight: 700, color: "#fff", fontSize: 15, marginBottom: 4 }}>🏟 {eventoParaInscricao.nome}</div>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", fontSize: 12, color: "#888" }}>
+        <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, padding: "14px 18px", marginBottom: 16 }}>
+          <div style={{ fontWeight: 700, color: t.textPrimary, fontSize: 15, marginBottom: 4 }}>🏟 {eventoParaInscricao.nome}</div>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", fontSize: 12, color: t.textMuted }}>
             {eventoParaInscricao.data && <span>📅 {new Date(eventoParaInscricao.data + "T12:00:00").toLocaleDateString("pt-BR", { day:"2-digit", month:"long", year:"numeric" })}</span>}
             {eventoParaInscricao.local && <span>📍 {eventoParaInscricao.local}</span>}
           </div>
@@ -682,7 +686,7 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
           <span style={s.badgeGold}>{getCategoria(meuAtletaInsc.anoNasc, anoComp)?.nome}</span>
           <span style={s.badge(meuAtletaInsc.sexo === "M" ? "#1a6ef5" : "#e54f9b")}>{meuAtletaInsc.sexo === "M" ? "Masculino" : "Feminino"}</span>
           {_getClubeAtleta(meuAtletaInsc, equipes) && (
-            <span style={{ fontSize: 12, color: "#888" }}>{_getClubeAtleta(meuAtletaInsc, equipes)}</span>
+            <span style={{ fontSize: 12, color: t.textMuted }}>{_getClubeAtleta(meuAtletaInsc, equipes)}</span>
           )}
         </div>
       )}
@@ -697,9 +701,9 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
             value={buscaAtleta}
             onChange={(e) => { setBuscaAtleta(e.target.value); }}
           />
-          <div style={{ maxHeight:300, overflowY:"auto", border:"1px solid #1E2130", borderRadius:8 }}>
+          <div style={{ maxHeight:300, overflowY:"auto", border:`1px solid ${t.border}`, borderRadius:8 }}>
             {atletasBusca.length === 0 ? (
-              <div style={{ padding:"16px", color:"#555", fontSize:13, textAlign:"center" }}>
+              <div style={{ padding:"16px", color: t.textDimmed, fontSize:13, textAlign:"center" }}>
                 {buscaAtleta.trim() ? `Nenhum atleta encontrado para "${buscaAtleta}"` : "Nenhum atleta disponível"}
               </div>
             ) : (
@@ -710,27 +714,27 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
                   <div key={a.id}
                     onClick={() => { setAtletaId(selecionado ? "" : a.id); }}
                     style={{ padding:"9px 14px", cursor:"pointer", display:"flex",
-                      alignItems:"center", gap:10, borderBottom:"1px solid #1a1d2a",
-                      background: selecionado ? "#1a2a1a" : "transparent",
+                      alignItems:"center", gap:10, borderBottom:`1px solid ${t.border}`,
+                      background: selecionado ? `${t.success}15` : "transparent",
                       borderLeft: selecionado ? "3px solid #7cfc7c" : "3px solid transparent" }}
-                    onMouseEnter={(e) => { if (!selecionado) e.currentTarget.style.background = "#111420"; }}
+                    onMouseEnter={(e) => { if (!selecionado) e.currentTarget.style.background = t.bgHover; }}
                     onMouseLeave={(e) => { if (!selecionado) e.currentTarget.style.background = "transparent"; }}>
-                    <span style={{ color: selecionado ? "#7cfc7c" : "#fff", fontWeight: selecionado ? 700 : 500, fontSize:13, flex:1 }}>
+                    <span style={{ color: selecionado ? t.success : t.textPrimary, fontWeight: selecionado ? 700 : 500, fontSize:13, flex:1 }}>
                       {selecionado && "✓ "}{a.nome}
                     </span>
-                    <span style={{ fontSize:11, color:"#1976D2", background:"#1a1a0a", padding:"2px 8px", borderRadius:8 }}>
+                    <span style={{ fontSize:11, color: t.accent, background: t.bgCardAlt, padding:"2px 8px", borderRadius:8 }}>
                       {cat?.nome}
                     </span>
                     <span style={{ fontSize:11, color: a.sexo === "M" ? "#1a6ef5" : "#e54f9b" }}>
                       {a.sexo === "M" ? "Masc" : "Fem"}
                     </span>
                     {_getClubeAtleta(a, equipes) && (
-                      <span style={{ fontSize:10, color:"#555" }}>{_getClubeAtleta(a, equipes)}</span>
+                      <span style={{ fontSize:10, color: t.textDimmed }}>{_getClubeAtleta(a, equipes)}</span>
                     )}
                     {/* ── Etapa 5: badge de participação cruzada ── */}
                     {atletasCruzadosIds.has(a.id) && (
-                      <span style={{ fontSize:10, color:"#5599ff", background:"#0a1a2a",
-                        border:"1px solid #1a3a5a", padding:"1px 6px", borderRadius:8 }}>
+                      <span style={{ fontSize:10, color: t.accent, background: t.accentBg,
+                        border:`1px solid ${t.accentBorder}`, padding:"1px 6px", borderRadius:8 }}>
                         🤝 cruzado
                       </span>
                     )}
@@ -739,7 +743,7 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
               })
             )}
             {atletasBusca.length > 100 && (
-              <div style={{ padding:"8px 16px", color:"#1976D2", fontSize:11, textAlign:"center" }}>
+              <div style={{ padding:"8px 16px", color: t.accent, fontSize:11, textAlign:"center" }}>
                 Mostrando 100 de {atletasBusca.length} — use a busca para refinar
               </div>
             )}
@@ -750,13 +754,13 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
               <span style={s.badgeGold}>{categoria?.nome}</span>
               <span style={s.badge(atletaSel.sexo === "M" ? "#1a6ef5" : "#e54f9b")}>{atletaSel.sexo === "M" ? "Masculino" : "Feminino"}</span>
               <button onClick={() => { setAtletaId(""); setBuscaAtleta(""); }}
-                style={{ ...s.btnGhost, fontSize:11, padding:"2px 8px", color:"#ff6b6b", borderColor:"#3a1a1a", marginLeft:8 }}>✕ Limpar</button>
+                style={{ ...s.btnGhost, fontSize:11, padding:"2px 8px", color: t.danger, borderColor:`${t.danger}44`, marginLeft:8 }}>✕ Limpar</button>
             </div>
           )}
         </div>
       ) : (
         <div style={s.formCard}>
-          <h3 style={{ color:"#1976D2", margin:"0 0 16px" }}>Dados do Atleta</h3>
+          <h3 style={{ color: t.accent, margin:"0 0 16px" }}>Dados do Atleta</h3>
           <div style={s.grid2form}>
 
             {/* CPF — recomendado para identificação futura */}
@@ -765,17 +769,17 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
                 onChange={(v) => { setNovoAtleta({ ...novoAtleta, cpf: v }); verificarCpfNovo(v); }}
                 placeholder="000.000.000-00" />
               {cpfNovoStatus === "invalido" && (
-                <div style={{ color:"#ff6b6b", fontSize:11, marginTop:4 }}>⛔ CPF inválido</div>
+                <div style={{ color: t.danger, fontSize:11, marginTop:4 }}>⛔ CPF inválido</div>
               )}
               {cpfNovoStatus === "ok" && (
-                <div style={{ color:"#7cfc7c", fontSize:11, marginTop:4 }}>✅ CPF válido</div>
+                <div style={{ color: t.success, fontSize:11, marginTop:4 }}>✅ CPF válido</div>
               )}
               {cpfNovoStatus === "existente" && atletaCpfExistente && (
-                <div style={{ background:"#1a1500", border:"1px solid #ff9800", borderRadius:8, padding:"10px 14px", marginTop:6 }}>
-                  <div style={{ color:"#ffb74d", fontSize:13, fontWeight:700, marginBottom:6 }}>
+                <div style={{ background: t.bgCardAlt, border:`1px solid ${t.warning}`, borderRadius:8, padding:"10px 14px", marginTop:6 }}>
+                  <div style={{ color: t.warning, fontSize:13, fontWeight:700, marginBottom:6 }}>
                     ⚠️ CPF já cadastrado no sistema
                   </div>
-                  <div style={{ color:"#ccc", fontSize:12, lineHeight:1.6 }}>
+                  <div style={{ color: t.textSecondary, fontSize:12, lineHeight:1.6 }}>
                     <strong>{atletaCpfExistente.nome}</strong>
                     {atletaCpfExistente.sexo && <span> · {atletaCpfExistente.sexo === "M" ? "Masc" : "Fem"}</span>}
                     {atletaCpfExistente.dataNasc && <span> · {atletaCpfExistente.dataNasc}</span>}
@@ -837,26 +841,26 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
             {/* Equipe / Clube */}
             <div style={{ gridColumn:"1/-1" }}>
               <label style={s.label}>
-                Equipe / Clube <span style={{ color:"#555", fontSize:11 }}>(opcional)</span>
+                Equipe / Clube <span style={{ color: t.textDimmed, fontSize:11 }}>(opcional)</span>
               </label>
               <select
                 style={s.select}
                 value={novoAtleta.equipeId}
                 onChange={e => {
                   const eqId = e.target.value;
-                  const eq = equipes.find(t => t.id === eqId);
+                  const eq = equipes.find(eq2 => eq2.id === eqId);
                   setNovoAtleta({ ...novoAtleta, equipeId: eqId, clube: eq ? (eq.clube || eq.nome || "") : "" });
                 }}>
                 <option value="">— Sem equipe —</option>
-                {equipes.map(t => (
-                  <option key={t.id} value={t.id}>
-                    {t.nome}{t.clube ? ` — ${t.clube}` : ""}
+                {equipes.map(eq => (
+                  <option key={eq.id} value={eq.id}>
+                    {eq.nome}{eq.clube ? ` — ${eq.clube}` : ""}
                   </option>
                 ))}
               </select>
               {novoAtleta.equipeId && (
-                <div style={{ fontSize:11, color:"#7cfc7c", marginTop:4 }}>
-                  ✅ Equipe: <strong>{equipes.find(t => t.id === novoAtleta.equipeId)?.nome || "—"}</strong>
+                <div style={{ fontSize:11, color: t.success, marginTop:4 }}>
+                  ✅ Equipe: <strong>{equipes.find(eq => eq.id === novoAtleta.equipeId)?.nome || "—"}</strong>
                   {novoAtleta.clube && <span> · Clube: {novoAtleta.clube}</span>}
                 </div>
               )}
@@ -866,9 +870,9 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
 
           {/* Aviso se CPF e email vazios */}
           {!novoAtleta.cpf && !novoAtleta.email && novoAtleta.nome && (
-            <div style={{ background:"#1a1500", border:"1px solid #ff980055", borderRadius:8, padding:"10px 14px", marginTop:12, display:"flex", alignItems:"flex-start", gap:8 }}>
+            <div style={{ background: t.bgCardAlt, border:`1px solid ${t.warning}55`, borderRadius:8, padding:"10px 14px", marginTop:12, display:"flex", alignItems:"flex-start", gap:8 }}>
               <span style={{ fontSize:16 }}>⚠️</span>
-              <div style={{ fontSize:12, color:"#ffb74d", lineHeight:1.6 }}>
+              <div style={{ fontSize:12, color: t.warning, lineHeight:1.6 }}>
                 <strong>Sem CPF e email</strong> — este atleta não poderá criar conta própria nem ser identificado automaticamente em futuras competições. Recomendamos preencher ao menos o CPF.
               </div>
             </div>
@@ -924,23 +928,23 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
               {limInd > 0 && (
                 <div style={{
                   display:"inline-flex", alignItems:"center", gap:8, padding:"6px 14px", borderRadius:8, marginBottom:12,
-                  background: restantes <= 0 ? "#3a0a0a" : restantes <= 2 ? "#0a1a2a" : "#0a1a0a",
-                  border: `1px solid ${restantes <= 0 ? "#6a2a2a" : restantes <= 2 ? "#4a3a0a" : "#1a3a1a"}`,
+                  background: restantes <= 0 ? `${t.danger}15` : restantes <= 2 ? `${t.accent}15` : `${t.success}15`,
+                  border: `1px solid ${restantes <= 0 ? `${t.danger}44` : restantes <= 2 ? `${t.accent}44` : `${t.success}44`}`,
                   fontSize:12, fontWeight:600,
-                  color: restantes <= 0 ? "#ff6b6b" : restantes <= 2 ? "#1976D2" : "#7acc44",
+                  color: restantes <= 0 ? t.danger : restantes <= 2 ? t.accent : t.success,
                 }}>
                   🎯 Limite: {inscAtletaAtual + novasContam}/{limInd} prova(s)
                   {restantes > 0
                     ? ` · ${restantes} vaga(s) restante(s)`
                     : " · Limite atingido"}
                   {(eventoParaInscricao.provasExcetoLimite || []).length > 0 && (
-                    <span style={{ color:"#888", fontWeight:400 }}> · Exceções não contam</span>
+                    <span style={{ color: t.textMuted, fontWeight:400 }}> · Exceções não contam</span>
                   )}
                 </div>
               )}
               <div style={s.catBanner}>
                 Provas no programa para: <strong>{catOficial.nome}</strong> · <strong>{atletaAtivo.sexo === "M" ? "Masculino" : "Feminino"}</strong>
-                {provasDisp.length === 0 && <span style={{ color: "#ff6b6b", marginLeft: 12 }}>⚠ Nenhuma prova desta categoria/sexo no programa desta competição</span>}
+                {provasDisp.length === 0 && <span style={{ color: t.danger, marginLeft: 12 }}>⚠ Nenhuma prova desta categoria/sexo no programa desta competição</span>}
               </div>
               {permissividade && (
                 <div style={s.permissividadeAlert}>
@@ -993,13 +997,13 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
         const equipeIdUser = tipoInsc === "equipe" ? usuarioLogado.id : tipoInsc === "treinador" ? usuarioLogado.equipeId : null;
         const nMinhas = equipeIdUser ? inscsRevezEvt.filter(i => i.equipeId === equipeIdUser).length : inscsRevezEvt.length;
         return (
-          <div style={{ marginTop: 32, padding: 20, background: "#0d0e14", border: "1px solid #1976D233", borderRadius: 12 }}>
+          <div style={{ marginTop: 32, padding: 20, background: t.bgHeaderSolid, border: "1px solid #1976D233", borderRadius: 12 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
               <div>
-                <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: "#1976D2", margin: 0 }}>
+                <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.accent, margin: 0 }}>
                   🏃‍♂️ Inscrição de Revezamento
                 </h2>
-                <p style={{ color: "#888", fontSize: 13, marginTop: 4 }}>
+                <p style={{ color: t.textMuted, fontSize: 13, marginTop: 4 }}>
                   {nMinhas > 0 ? `${nMinhas} equipe(s) inscrita(s)` : "Nenhuma equipe inscrita ainda"}
                   {" · "}{provasRevezEvento.length} prova(s) disponível(eis)
                 </p>
