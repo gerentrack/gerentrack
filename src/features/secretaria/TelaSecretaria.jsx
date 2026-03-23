@@ -61,7 +61,7 @@ function getStyles(t) {
 }
 
 // ── Componente principal ──────────────────────────────────────────────────────
-function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados, usuarioLogado, numeracaoPeito }) {
+function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados, usuarioLogado, numeracaoPeito, registrarAcao }) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const MEDALHA_CONFIG = getMedalhaConfig(t);
@@ -335,6 +335,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
       if (estado === "confirmado") { beepDuplicado(); return { status: "duplicado", msg: `🔁 ${nomeDisplay} já confirmado`, cor: "azul" }; }
       // Confirmar
       atualizarPresenca(grupo.prova.id, cat.id, grupo.sexo, atletaId, "confirmado");
+      if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, "Confirmou presença via QR", `${nomeDisplay} — ${grupo.prova.nome} ${cat.nome} ${grupo.sexo}`, usuarioLogado?.organizadorId, { metodo: "qr", modulo: "secretaria" });
       beepOk(); vibrarOk();
       return { status: "ok", msg: `✓ ${nomeDisplay} confirmado`, cor: "verde" };
     }
@@ -691,7 +692,10 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                       <button
                         onClick={() => {
                           marcarEntrega(p.prova.id, p.cat.id, p.sexo, medalhaAtletaInfo.atl.id, p.tipo, usuarioLogado?.id, usuarioLogado?.nome);
-                          if (!p.medalha.entregue) { beepOk(); vibrarOk(); }
+                          if (!p.medalha.entregue) {
+                            beepOk(); vibrarOk();
+                            if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, "Entregou medalha via QR", `${medalhaAtletaInfo.peito ? "#" + medalhaAtletaInfo.peito + " " : ""}${medalhaAtletaInfo.atl.nome} — ${p.conf?.label || p.tipo} — ${p.prova.nome}`, usuarioLogado?.organizadorId, { metodo: "qr", modulo: "secretaria" });
+                          }
                         }}
                         style={{
                           ...s.btn(p.medalha.entregue ? t.success : t.textMuted, p.medalha.entregue ? t.bgCardAlt : t.bgInput),
@@ -715,6 +719,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                     elegibles.forEach(p => {
                       marcarEntrega(p.prova.id, p.cat.id, p.sexo, medalhaAtletaInfo.atl.id, p.tipo, usuarioLogado?.id, usuarioLogado?.nome);
                     });
+                    if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, "Entregou medalhas via QR (lote)", `${medalhaAtletaInfo.peito ? "#" + medalhaAtletaInfo.peito + " " : ""}${medalhaAtletaInfo.atl.nome} — ${elegibles.length} medalha(s)`, usuarioLogado?.organizadorId, { metodo: "qr", modulo: "secretaria" });
                     beepOk(); vibrarOk();
                   }}
                   style={{ ...s.btn(t.success, `${t.success}15`), width: "100%", padding: "10px 16px", marginTop: 4, fontSize: 14 }}>
