@@ -14,7 +14,7 @@ export function ConfirmModal({ mensagem, onConfirm, onCancel }) {
 
   return (
     <div style={{ position: "fixed", inset: 0, background: t.bgOverlay, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, padding: 24 }} onClick={onCancel}>
-      <div style={{ background: t.bgCard, border: `1px solid ${t.danger}44`, borderRadius: 14, padding: "28px 32px", maxWidth: 480, width: "100%", boxShadow: "0 8px 40px rgba(0,0,0,0.8)", animation: "fadeInUp 0.18s ease" }} onClick={e => e.stopPropagation()}>
+      <div style={{ background: t.bgCard, border: `1px solid ${t.danger}44`, borderRadius: 14, padding: "28px 32px", maxWidth: 480, width: "100%", boxShadow: t.shadowLg, animation: "fadeInUp 0.18s ease" }} onClick={e => e.stopPropagation()}>
         <div style={{ fontSize: 36, textAlign: "center", marginBottom: 16 }}>⚠️</div>
         <div style={{ marginBottom: 24 }}>
           {linhas.map((l, i) => (

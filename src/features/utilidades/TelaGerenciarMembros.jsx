@@ -195,7 +195,7 @@ function TelaGerenciarMembros({ usuarioLogado, setTela, equipes, atualizarEquipe
   };
 
   const handleRemover = async (equipeId) => {
-    const membro = equipe.equipes?.find(m => m.id === equipeId);
+    const membro = equipe.membros?.find(m => m.id === equipeId);
     
     if (!confirm(`⚠️ Excluir membro "${membro.nome}"?\n\nEsta ação é IRREVERSÍVEL!`)) {
       return;
@@ -203,7 +203,7 @@ function TelaGerenciarMembros({ usuarioLogado, setTela, equipes, atualizarEquipe
 
     const equipeatualizada = {
       ...equipe,
-      membros: equipe.equipes?.filter(m => m.id !== equipeId)
+      membros: equipe.membros?.filter(m => m.id !== equipeId)
     };
 
     await atualizarEquipe(equipeatualizada);

@@ -1345,7 +1345,7 @@ function BlocoDigitarCategoria({
                 </div>
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                   <thead>
-                    <tr style={{ borderBottom: "2px solid #2a3050" }}>
+                    <tr style={{ borderBottom: `2px solid ${t.border}` }}>
                       <th style={{ padding: "6px 8px", textAlign: "left", color: t.textMuted }}>#</th>
                       <th style={{ padding: "6px 8px", textAlign: "left", color: t.textMuted }}>Atleta</th>
                       {todasCompDaCombinada.map(pc => (
@@ -2038,7 +2038,7 @@ function BlocoDigitarCategoria({
                           <th style={{ padding: "6px 8px", textAlign: "left", color: t.textMuted }}>Atleta</th>
                           {todasCompDaCombinada.map(pc => (
                             <th key={pc.id} style={{
-                              padding: "6px 4px", textAlign: "center", color: pc.id === provaSel.id ? "#1976D2" : "#888",
+                              padding: "6px 4px", textAlign: "center", color: pc.id === provaSel.id ? t.accent : t.textMuted,
                               fontSize: 10, fontWeight: pc.id === provaSel.id ? 700 : 400,
                               background: pc.id === provaSel.id ? t.accentBg : "transparent",
                               borderRadius: 4, minWidth: 55

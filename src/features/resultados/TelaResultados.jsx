@@ -79,7 +79,7 @@ function getStyles(t) {
   infoList: { listStyle: "none" },
   infoItem: { padding: "6px 0", borderBottom: `1px solid ${t.border}`, fontSize: 14, color: t.textSecondary, display: "flex", alignItems: "center", gap: 8 },
   infoItemDot: { color: t.accent, fontWeight: 700 },
-  heroSection: { textAlign: "center", padding: "60px 20px 40px", background: "linear-gradient(180deg, #0D1018 0%, transparent 100%)", borderRadius: 16, marginBottom: 48, position: "relative", overflow: "hidden" },
+  heroSection: { textAlign: "center", padding: "60px 20px 40px", background: t.bgHeader, borderRadius: 16, marginBottom: 48, position: "relative", overflow: "hidden" },
   heroBadge: { display: "inline-block", background: t.accent, color: "#fff", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: 3, padding: "6px 16px", borderRadius: 20, marginBottom: 20 },
   heroTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 56, fontWeight: 900, color: t.textPrimary, lineHeight: 1.1, marginBottom: 16, letterSpacing: 1 },
   heroBtns: { display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" },
@@ -862,7 +862,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
           {/* Classificação das Combinadas */}
           {blocosCombinadas.map((bc, bcIdx) => (
             <div key={"comb" + bcIdx} style={{
-              background: t.bgCard, border:"1px solid #0a1a2a",
+              background: t.bgCard, border:`1px solid ${t.border}`,
               borderRadius:12, marginBottom:20, overflow:"hidden",
             }}>
               <div style={{ padding:"14px 20px", background:t.bgHeaderSolid, borderBottom:`1px solid ${t.border}`, display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12 }}>

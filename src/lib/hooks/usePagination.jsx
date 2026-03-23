@@ -7,7 +7,7 @@
  *   <PaginaControles {...infoPage} />
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import React from "react";
 import { useTema } from "../../shared/TemaContext";
 
@@ -19,7 +19,7 @@ export function usePagination(lista = [], itensPorPagina = 10) {
 
   // Reset para página 1 quando a lista muda de tamanho (ex: filtro aplicado)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useMemo(() => { setPaginaRaw(1); }, [lista.length]);
+  useEffect(() => { setPaginaRaw(1); }, [lista.length]);
 
   const paginado = useMemo(() => {
     const ini = (paginaAtual - 1) * itensPorPagina;

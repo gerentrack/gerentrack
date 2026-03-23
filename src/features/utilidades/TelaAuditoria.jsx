@@ -180,7 +180,7 @@ function TelaAuditoria({ usuarioLogado, setTela, historicoAcoes }) {
       </div>
       {auditoriaFiltrada.length > 0 && (
         <div style={{ marginTop:24, padding:16, background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, textAlign:"center", color: t.textDimmed, fontSize:12 }}>
-          Mostrando {auditoriaFiltrada.length} de {auditoriaEquipe.length} registro(s) · Máximo 2000 registros mantidos
+          Mostrando {auditoriaFiltrada.length} de {auditoriaEquipe.length} registro(s) · Máximo 500 registros mantidos
         </div>
       )}
     </div>

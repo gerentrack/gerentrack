@@ -15,6 +15,8 @@ const ICONES = {
   medals_ready:       "🏅",
   relatorio_solicitado: "📄",
   relatorio_gerado:    "📄",
+  relatorio_cancelado: "❌",
+  relatorio_excluido:  "🗑️",
   info:               "ℹ️",
 };
 
@@ -28,6 +30,8 @@ function getCores(t) {
     medals_ready:         { txt: t.gold },
     relatorio_solicitado: { txt: t.accent },
     relatorio_gerado:     { txt: t.success },
+    relatorio_cancelado:  { txt: t.warning },
+    relatorio_excluido:   { txt: t.danger },
     info:                 { txt: t.textMuted },
   };
 }
@@ -87,7 +91,7 @@ export function SinoNotificacoes({ notificacoes = [], usuarioId, marcarNotifLida
           position: "absolute", top: "calc(100% + 8px)", right: 0,
           width: 340, maxHeight: 420, overflowY: "auto",
           background: t.bgCard, border: `1px solid ${t.border}`,
-          borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
+          borderRadius: 12, boxShadow: t.shadowLg,
           zIndex: 1000,
         }}>
           {/* Header do dropdown */}

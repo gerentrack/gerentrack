@@ -88,7 +88,7 @@ function VinculoSolicitarForm({ atletaId, atletaNome, clubeInicial, equipes, sol
 
 
 
-function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, inscricoes, eventos, equipes, eventoAtual, adicionarInscricao, atualizarAtletaUsuario, solicitarVinculo, solicitacoesVinculo, responderVinculo, notificacoes, marcarNotifLida, excluirInscricao, atualizarInscricao, resultados, organizadores, solicitarDesvinculo, perfisDisponiveis, solicitarRelatorio }) {
+function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, inscricoes, eventos, equipes, eventoAtual, adicionarInscricao, atualizarAtletaUsuario, solicitarVinculo, solicitacoesVinculo, responderVinculo, notificacoes, marcarNotifLida, excluirInscricao, atualizarInscricao, resultados, organizadores, solicitarDesvinculo, perfisDisponiveis, solicitarRelatorio, setAtletaEditandoId }) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const confirmar = useConfirm();
@@ -115,7 +115,7 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
 
   // Equipe vinculada
   const minhaEquipe = meuAtleta?.equipeId
-    ? equipes.find(t => t.id === meuAtleta.equipeId)
+    ? equipes.find(eq => eq.id === meuAtleta.equipeId)
     : null;
   
   const anoBase = new Date().getFullYear();
@@ -150,7 +150,7 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
         <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
           {meuAtleta && (
             <div style={s.painelBtns}>
-              <button style={s.btnSecondary} onClick={async () => { window.__atletaEditId = meuAtleta?.id; setTela("editar-atleta"); }}>✏️ Meus Dados</button>
+              <button style={s.btnSecondary} onClick={async () => { if (setAtletaEditandoId) setAtletaEditandoId(meuAtleta?.id); setTela("editar-atleta"); }}>✏️ Meus Dados</button>
               <button style={s.btnSecondary} onClick={() => setTela("gerenciar-inscricoes")}>📋 Minhas Inscrições</button>
               <button style={s.btnPrimary} onClick={() => setTela("inscricao-avulsa")}>✍️ Me Inscrever</button>
             </div>
