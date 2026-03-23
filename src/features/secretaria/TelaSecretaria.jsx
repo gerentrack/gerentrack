@@ -73,6 +73,8 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
   const [filtroProva, setFiltroProva] = useState("");
   const [buscaChamada, setBuscaChamada] = useState("");
   const [scannerAberto, setScannerAberto] = useState(false);
+  const [scannerMedalhaAberto, setScannerMedalhaAberto] = useState(false);
+  const [medalhaAtletaInfo, setMedalhaAtletaInfo] = useState(null); // { atl, provas: [{ prova, cat, sexo, tipo, conf, medalha, bloqueio }] }
   const [limiteParticipacao, setLimiteParticipacao] = useState(1);
   const [classificacaoBloqueiaParticipacao, setClassificacaoBloqueiaParticipacao] = useState(true);
 
@@ -353,6 +355,68 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
     atualizarPresenca(filtroProva, cat.id, atl.sexo, atletaId, null);
   }, [atletas, filtroProva, atualizarPresenca, peitoParaAtleta, anoComp]);
 
+  // ── Scanner QR — medalhas ──────────────────────────────────────────────────
+  const handleScanMedalha = useCallback((raw) => {
+    const qr = parsearQrSecretaria(raw);
+    let atletaId;
+
+    if (qr) {
+      if (qr.eventoId !== eid) { beepInvalido(); vibrarInvalido(); return { status: "erro", msg: "⚠️ QR de outro evento", cor: "vermelho" }; }
+      atletaId = qr.atletaId;
+    } else {
+      atletaId = peitoParaAtleta[raw.trim()];
+      if (!atletaId) { beepInvalido(); vibrarInvalido(); return { status: "erro", msg: `❌ Nº ${raw} não encontrado`, cor: "vermelho" }; }
+    }
+
+    const atl = atletas.find(a => a.id === atletaId);
+    if (!atl) { beepInvalido(); vibrarInvalido(); return { status: "erro", msg: "⚠️ Atleta não encontrado", cor: "vermelho" }; }
+
+    const peito = peitos[atletaId] || "";
+    const nomeDisplay = `${peito ? "#" + peito + " " : ""}${atl.nome}`;
+
+    // Buscar todas as provas do atleta com info de medalha
+    const provasDoAtleta = provasFiltradasMedalhas
+      .filter(g => g.atletas.some(a => a.id === atletaId))
+      .map(g => {
+        const classificados = getClassificados(g.prova, g.cat, g.sexo);
+        const idx = classificados.findIndex(c => c.aId === atletaId);
+        const posicao = idx >= 0 ? idx + 1 : null;
+        const tipoCalculado = posicao ? getTipoMedalha(posicao) : (apenasClassificacao ? null : "participacao");
+        const medalha = getMedalha(g.prova.id, g.cat.id, g.sexo, atletaId);
+        const tipo = apenasParticipacao ? "participacao" : (medalha.tipo || tipoCalculado);
+        const conf = tipo ? MEDALHA_CONFIG[tipo] : null;
+
+        // Bloqueios
+        const isParticipacao = tipo === "participacao";
+        const dnsTodas = isParticipacao && !medalha.entregue && atletaSomenteDns(atletaId);
+        const jaLimite = isParticipacao && !medalha.entregue && !dnsTodas && contarParticipacoes(atletaId).length >= limiteParticipacao;
+        const classBloq = isParticipacao && !medalha.entregue && !dnsTodas && classificacaoBloqueiaParticipacao && temClassificacaoEntregue(atletaId);
+        const pend = isParticipacao && !medalha.entregue && !dnsTodas && !classBloq && !jaLimite
+          ? provasPendentes(atletaId).filter(nome => nome !== g.prova.nome) : [];
+
+        let bloqueio = null;
+        if (dnsTodas) bloqueio = "🚫 DNS em todas as provas";
+        else if (classBloq) bloqueio = "🏅 Tem classificação";
+        else if (pend.length > 0) bloqueio = `⏳ Provas pendentes: ${pend.slice(0,2).join(", ")}`;
+        else if (jaLimite) bloqueio = "🚫 Limite atingido";
+
+        return { prova: g.prova, cat: g.cat, sexo: g.sexo, posicao, tipo, conf, medalha, bloqueio };
+      });
+
+    if (provasDoAtleta.length === 0) {
+      beepAviso(); vibrarAviso();
+      return { status: "aviso", msg: `⚠️ ${nomeDisplay} sem provas para medalha`, cor: "amarelo" };
+    }
+
+    // Mostrar modal com cards
+    setMedalhaAtletaInfo({ atl, peito, provas: provasDoAtleta });
+    beepOk(); vibrarOk();
+    return { status: "ok", msg: `🏅 ${nomeDisplay} — ${provasDoAtleta.length} prova(s)`, cor: "verde" };
+  }, [eid, atletas, provasFiltradasMedalhas, getClassificados, getTipoMedalha, getMedalha, MEDALHA_CONFIG,
+      apenasParticipacao, apenasClassificacao, atletaSomenteDns, contarParticipacoes,
+      classificacaoBloqueiaParticipacao, temClassificacaoEntregue, provasPendentes,
+      limiteParticipacao, peitoParaAtleta, peitos]);
+
   // Contador para o scanner
   const contadorScanLabel = useMemo(() => {
     if (!filtroProva) return null;
@@ -564,9 +628,121 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
         </>
       )}
 
+      {/* ── Scanner QR medalhas ── */}
+      <QrScanner
+        aberto={scannerMedalhaAberto}
+        onScan={handleScanMedalha}
+        onFechar={() => { setScannerMedalhaAberto(false); setMedalhaAtletaInfo(null); }}
+      />
+
+      {/* ── Modal de medalhas do atleta escaneado ── */}
+      {medalhaAtletaInfo && !scannerMedalhaAberto && (
+        <div style={{ position: "fixed", inset: 0, background: t.bgOverlay, zIndex: 8000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 16, padding: "24px 28px", maxWidth: 420, width: "100%", maxHeight: "80vh", overflowY: "auto" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <div>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 20, color: t.textPrimary }}>
+                  {medalhaAtletaInfo.peito ? `#${medalhaAtletaInfo.peito} ` : ""}{medalhaAtletaInfo.atl.nome}
+                </div>
+                <div style={{ fontSize: 12, color: t.textMuted }}>{medalhaAtletaInfo.atl.clube || "Sem equipe"}</div>
+              </div>
+              <button onClick={() => setMedalhaAtletaInfo(null)}
+                style={{ background: "transparent", border: "none", color: t.textMuted, fontSize: 20, cursor: "pointer" }}>✕</button>
+            </div>
+
+            {/* Cards por prova */}
+            {medalhaAtletaInfo.provas.map((p, i) => {
+              const corCard = p.bloqueio ? t.danger : p.medalha.entregue ? t.success : p.conf ? p.conf.cor : t.textMuted;
+              return (
+                <div key={i} style={{
+                  background: `${corCard}08`, border: `1px solid ${corCard}33`,
+                  borderRadius: 10, padding: "12px 16px", marginBottom: 8,
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                    <div>
+                      <div style={{ fontWeight: 700, color: t.textPrimary, fontSize: 14 }}>{p.prova.nome}</div>
+                      <div style={{ fontSize: 11, color: t.textMuted }}>{p.cat.nome} · {p.sexo === "M" ? "Masc" : "Fem"}{p.posicao ? ` · ${p.posicao}º lugar` : ""}</div>
+                    </div>
+                    {p.conf && (
+                      <span style={{ fontSize: 13, fontWeight: 700, color: p.conf.cor }}>
+                        {p.conf.emoji} {p.conf.label}
+                      </span>
+                    )}
+                  </div>
+                  {p.bloqueio ? (
+                    <div style={{ marginTop: 8, fontSize: 12, color: t.danger, fontWeight: 600 }}>{p.bloqueio}</div>
+                  ) : (
+                    <div style={{ marginTop: 8 }}>
+                      <button
+                        onClick={() => {
+                          marcarEntrega(p.prova.id, p.cat.id, p.sexo, medalhaAtletaInfo.atl.id, p.tipo, usuarioLogado?.id, usuarioLogado?.nome);
+                          // Atualizar info local
+                          setMedalhaAtletaInfo(prev => ({
+                            ...prev,
+                            provas: prev.provas.map((pp, j) => j === i ? { ...pp, medalha: { ...pp.medalha, entregue: !pp.medalha.entregue } } : pp),
+                          }));
+                          if (!p.medalha.entregue) { beepOk(); vibrarOk(); }
+                        }}
+                        style={{
+                          ...s.btn(p.medalha.entregue ? t.success : t.textMuted, p.medalha.entregue ? t.bgCardAlt : t.bgInput),
+                          width: "100%", padding: "8px 16px",
+                        }}>
+                        {p.medalha.entregue ? "✅ Entregue — desfazer?" : "⬜ Entregar"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* Botão "Entregar todas" */}
+            {(() => {
+              const elegibles = medalhaAtletaInfo.provas.filter(p => !p.bloqueio && !p.medalha.entregue && p.tipo);
+              if (elegibles.length <= 1) return null;
+              return (
+                <button
+                  onClick={() => {
+                    elegibles.forEach(p => {
+                      marcarEntrega(p.prova.id, p.cat.id, p.sexo, medalhaAtletaInfo.atl.id, p.tipo, usuarioLogado?.id, usuarioLogado?.nome);
+                    });
+                    setMedalhaAtletaInfo(prev => ({
+                      ...prev,
+                      provas: prev.provas.map(pp => !pp.bloqueio && !pp.medalha.entregue && pp.tipo ? { ...pp, medalha: { ...pp.medalha, entregue: true } } : pp),
+                    }));
+                    beepOk(); vibrarOk();
+                  }}
+                  style={{ ...s.btn(t.success, `${t.success}15`), width: "100%", padding: "10px 16px", marginTop: 4, fontSize: 14 }}>
+                  🏅 Entregar todas ({elegibles.length})
+                </button>
+              );
+            })()}
+
+            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              <button onClick={() => { setMedalhaAtletaInfo(null); setScannerMedalhaAberto(true); }}
+                style={{ ...s.btn(t.accent, t.accentBg), flex: 1, padding: "10px 16px" }}>
+                📷 Próximo atleta
+              </button>
+              <button onClick={() => setMedalhaAtletaInfo(null)}
+                style={{ ...s.btn(t.textMuted, t.bgCardAlt), flex: 1, padding: "10px 16px" }}>
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── ABA: MEDALHAS ────────────────────────────────────────────────────── */}
       {aba === "medalhas" && (
         <>
+          {/* Botão Scanner Medalhas */}
+          <div style={{ marginBottom: 16 }}>
+            <button
+              onClick={() => setScannerMedalhaAberto(true)}
+              style={{ background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", borderRadius: 10, padding: "12px 24px", cursor: "pointer", fontSize: 15, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, display: "flex", alignItems: "center", gap: 8 }}>
+              📷 Escanear QR — Medalhas
+            </button>
+          </div>
+
           {/* Configuração de limite de participação (oculto no modo apenas classificação) */}
           {modoMedalhas === "classificacao_participacao" && <>
           <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20, background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 10, padding: "14px 20px", flexWrap: "wrap" }}>
