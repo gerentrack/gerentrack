@@ -640,7 +640,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
       <QrScanner
         aberto={scannerMedalhaAberto}
         onScan={handleScanMedalha}
-        onFechar={() => { setScannerMedalhaAberto(false); setMedalhaAtletaInfo(null); }}
+        onFechar={() => setScannerMedalhaAberto(false)}
       />
 
       {/* ── Modal de medalhas do atleta escaneado ── */}
