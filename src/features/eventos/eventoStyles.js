@@ -12,7 +12,7 @@ function criarEventoStyles(t) {
     statsRow: { display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 32 },
     sectionTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, fontWeight: 800, color: t.textPrimary, marginBottom: 20, letterSpacing: 1 },
     emptyState: { textAlign: "center", padding: "60px 20px", color: t.textDisabled, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, fontSize: 15 },
-    eventosGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 20, marginBottom: 48 },
+    eventosGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(320px, 100%), 1fr))", gap: 20, marginBottom: 48 },
     eventoCard: { background: t.bgCard, border: `1px solid ${t.border}`, boxShadow: t.shadow, borderRadius: 14, padding: 24, display: "flex", flexDirection: "column", gap: 10 },
     eventoCardNome: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.textPrimary, lineHeight: 1.2 },
     eventoCardMeta: { fontSize: 13, color: t.textMuted },

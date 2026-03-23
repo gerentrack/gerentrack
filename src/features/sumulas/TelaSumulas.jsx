@@ -1455,6 +1455,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
               </div>
               {sum.isRevezamento ? (
                 /* ── REVEZAMENTO: tabela por equipe ── */
+                <div style={{ overflowX: "auto" }}>
                 <table style={s.table}>
                   <thead>
                     <tr>
@@ -1476,7 +1477,9 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                     ))}
                   </tbody>
                 </table>
+                </div>
               ) : (
+              <div style={{ overflowX: "auto" }}>
               <table style={s.table}>
                 <thead>
                   <tr>
@@ -1588,6 +1591,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                   })()}
                 </tbody>
               </table>
+              </div>
               )}
             </div>
           ))}

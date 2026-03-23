@@ -851,8 +851,8 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                 {outroTipo > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background: t.bgCardAlt, color:"#44dddd", fontWeight:600 }}>🔄 {outroTipo} em outro tipo</span>}
                 {tipoDesconhecido > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background: t.bgCardAlt, color: t.warning, fontWeight:600 }}>⚠️ {tipoDesconhecido} tipo não encontrado</span>}
               </div>
-              <div style={{ maxHeight:400, overflowY:"auto", marginBottom:10 }}>
-                <table style={{ width:"100%", borderCollapse:"collapse", fontSize:11 }}>
+              <div style={{ maxHeight:400, overflowY:"auto", overflowX:"auto", marginBottom:10 }}>
+                <table style={{ width:"100%", borderCollapse:"collapse", fontSize:11, minWidth: 700 }}>
                   <thead>
                     <tr style={{ borderBottom:"2px solid #2a3050" }}>
                       <th style={{ padding:"4px 4px", color:t.textMuted, fontSize:9, width:24 }}></th>

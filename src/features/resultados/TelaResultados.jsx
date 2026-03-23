@@ -1353,7 +1353,8 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                 <>
                   {/* ── REVEZAMENTO: tabela por equipe ── */}
                   {b.isRevezamento ? (
-                    <table style={{ ...s.table, fontSize: 13 }}>
+                    <div style={{ overflowX: "auto" }}>
+                    <table style={{ ...s.table, fontSize: 13, minWidth: 500 }}>
                       <thead><tr>
                         <Th>Pos.</Th>
                         <Th>Equipe</Th>
@@ -1397,6 +1398,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                         })}
                       </tbody>
                     </table>
+                    </div>
                   ) : (
                   <>
                   {temDesempateBlk && (
@@ -1411,7 +1413,8 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                       <span style={{ color: t.textMuted, marginLeft:6 }}>1º menor nº de saltos na última altura transposta (SU) · 2º menor nº total de falhas na prova (FP)</span>
                     </div>
                   )}
-                  <table style={{ ...s.table, fontSize: isCampoBlk ? 12 : 13 }}>
+                  <div style={{ overflowX: "auto" }}>
+                  <table style={{ ...s.table, fontSize: isCampoBlk ? 12 : 13, minWidth: 600 }}>
                   <thead>
                     <tr>
                       <Th>Pos.</Th>
@@ -1707,6 +1710,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                     })()}
                   </tbody>
                 </table>
+                </div>
                 </>
                 )}
                 </>

@@ -40,7 +40,7 @@ function getStyles(t) {
   tab:        { padding: "10px 24px", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, cursor: "pointer", border: "none", background: "transparent", color: t.textDimmed },
   tabActive:  { background: t.accent, color: t.textPrimary },
   card:       { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, marginBottom: 16, overflow: "hidden" },
-  cardHead:   { padding: "14px 20px", background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 },
+  cardHead:   { padding: "14px 20px", background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`, display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 8 },
   cardTitle:  { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 800, color: t.textPrimary, letterSpacing: 1 },
   cardMeta:   { display: "flex", gap: 8, alignItems: "center" },
   badge:      (cor) => ({ background: cor + "22", color: cor, border: `1px solid ${cor}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }),
@@ -583,7 +583,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
           <div style={{ marginBottom: 16 }}>
             <button
               onClick={() => setScannerAberto(true)}
-              style={{ background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", borderRadius: 10, padding: "12px 24px", cursor: "pointer", fontSize: 15, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, display: "flex", alignItems: "center", gap: 8 }}>
+              style={{ background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", borderRadius: 10, padding: "12px 24px", cursor: "pointer", fontSize: 15, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", maxWidth: 320 }}>
               📷 Escanear QR Code
             </button>
           </div>
@@ -646,6 +646,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                     <span style={{ color: t.textDimmed, fontSize: 12 }}>{buscaLower && atlsFiltrados.length !== atls.length ? `${atlsFiltrados.length}/` : ""}{atls.length} atleta(s)</span>
                   </div>
                 </div>
+                <div style={{ overflowX: "auto" }}>
                 <table style={s.table}>
                   <thead>
                     <tr>
@@ -696,6 +697,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                     })}
                   </tbody>
                 </table>
+                </div>
               </div>
             );
           })}
@@ -807,7 +809,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
           <div style={{ marginBottom: 16 }}>
             <button
               onClick={() => setScannerMedalhaAberto(true)}
-              style={{ background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", borderRadius: 10, padding: "12px 24px", cursor: "pointer", fontSize: 15, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, display: "flex", alignItems: "center", gap: 8 }}>
+              style={{ background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", borderRadius: 10, padding: "12px 24px", cursor: "pointer", fontSize: 15, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", maxWidth: 320 }}>
               📷 Escanear QR — Medalhas
             </button>
           </div>
@@ -954,6 +956,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                     <span style={s.pill(t.success, t.bgCardAlt)}>{entregues}/{atls.length} entregues</span>
                   </div>
                 </div>
+                <div style={{ overflowX: "auto" }}>
                 <table style={s.table}>
                   <thead>
                     <tr>
@@ -1073,6 +1076,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                     })}
                   </tbody>
                 </table>
+                </div>
               </div>
             );
           })}
@@ -1177,6 +1181,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                 <div style={s.cardHead}>
                   <span style={s.cardTitle}>Medalhas por Equipe / Clube</span>
                 </div>
+                <div style={{ overflowX: "auto" }}>
                 <table style={s.table}>
                   <thead>
                     <tr>
@@ -1206,6 +1211,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                       })}
                   </tbody>
                 </table>
+                </div>
               </div>
             )}
 
