@@ -146,16 +146,51 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
     });
   }, [eventoAtual, inscricoes, atletas, eid, anoComp]);
 
+  // ── Provas de revezamento com atletas expandidos (para medalhas) ─────────
+  const provasRevezamento = useMemo(() => {
+    if (!eventoAtual || !inscricoes || !atletas) return [];
+    const todas = todasAsProvas();
+    const inscsRevez = inscricoes.filter(i => i.eventoId === eid && i.tipo === "revezamento");
+    const grupos = {};
+    inscsRevez.forEach(insc => {
+      const prova = todas.find(p => p.id === insc.provaId);
+      if (!prova) return;
+      const catId = insc.categoriaOficialId || insc.categoriaId;
+      const cat = CATEGORIAS.find(c => c.id === catId);
+      if (!cat) return;
+      const key = `revez_${insc.provaId}_${catId}_${insc.sexo}`;
+      if (!grupos[key]) {
+        grupos[key] = { prova, cat, sexo: insc.sexo, atletas: [], equipes: [], isRevezamento: true };
+      }
+      // Expandir atletasIds para atletas individuais
+      const atletasIds = insc.atletasIds || [];
+      atletasIds.forEach(aid => {
+        const atl = atletas.find(a => a.id === aid);
+        if (atl && !grupos[key].atletas.some(a => a.id === aid)) {
+          grupos[key].atletas.push(atl);
+        }
+      });
+      // Guardar info da equipe para cruzar com resultado
+      if (insc.equipeId && !grupos[key].equipes.some(e => e.equipeId === insc.equipeId)) {
+        grupos[key].equipes.push({ equipeId: insc.equipeId, atletasIds });
+      }
+    });
+    return Object.values(grupos);
+  }, [eventoAtual, inscricoes, atletas, eid]);
+
   const provasFiltradas = useMemo(() => {
     if (!filtroProva) return provasComAtletas;
     return provasComAtletas.filter(g => g.prova.nome === filtroProva);
   }, [provasComAtletas, filtroProva]);
 
-  // Medalhas: excluir provas componentes de combinada (origemCombinada=true)
-  // — a medalha é apenas da classificação final da combinada
-  const provasFiltradasMedalhas = useMemo(() =>
-    provasFiltradas.filter(g => !g.prova.origemCombinada)
-  , [provasFiltradas]);
+  // Medalhas: excluir provas componentes de combinada + incluir revezamento
+  const provasFiltradasMedalhas = useMemo(() => {
+    const individuais = provasFiltradas.filter(g => !g.prova.origemCombinada);
+    const revezFiltradas = filtroProva
+      ? provasRevezamento.filter(g => g.prova.nome === filtroProva)
+      : provasRevezamento;
+    return [...individuais, ...revezFiltradas];
+  }, [provasFiltradas, provasRevezamento, filtroProva]);
 
   const provasUnicas = useMemo(() =>
     [...new Map(provasComAtletas.map(g => [g.prova.nome, g.prova])).values()]
@@ -360,10 +395,13 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
 
   // ── Calcular info de medalhas do atleta (reutilizável) ──────────────────────
   const calcularMedalhasAtleta = useCallback((atletaId) => {
+    const resultado = [];
+
+    // 1. Provas individuais
     const todasProvasMedalha = provasComAtletas.filter(g => !g.prova.origemCombinada);
-    return todasProvasMedalha
+    todasProvasMedalha
       .filter(g => g.atletas.some(a => a.id === atletaId))
-      .map(g => {
+      .forEach(g => {
         const classificados = getClassificados(g.prova, g.cat, g.sexo);
         const idx = classificados.findIndex(c => c.aId === atletaId);
         const posicao = idx >= 0 ? idx + 1 : null;
@@ -382,9 +420,29 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
         else if (classBloq) bloqueio = "🏅 Tem classificação";
         else if (pend.length > 0) bloqueio = `⏳ Provas pendentes: ${pend.slice(0,2).join(", ")}`;
         else if (jaLimite) bloqueio = "🚫 Limite atingido";
-        return { prova: g.prova, cat: g.cat, sexo: g.sexo, posicao, tipo, conf, medalha, bloqueio };
+        resultado.push({ prova: g.prova, cat: g.cat, sexo: g.sexo, posicao, tipo, conf, medalha, bloqueio });
       });
-  }, [provasComAtletas, getClassificados, getTipoMedalha, getMedalha, MEDALHA_CONFIG,
+
+    // 2. Provas de revezamento — expandir resultado da equipe para o atleta
+    provasRevezamento
+      .filter(g => g.atletas.some(a => a.id === atletaId))
+      .forEach(g => {
+        const classificados = getClassificados(g.prova, g.cat, g.sexo);
+        // Encontrar a equipe do atleta nesta prova
+        const equipe = g.equipes.find(eq => eq.atletasIds.includes(atletaId));
+        if (!equipe) return;
+        // Posição da equipe nos resultados
+        const idx = classificados.findIndex(c => c.aId === equipe.equipeId);
+        const posicao = idx >= 0 ? idx + 1 : null;
+        const tipoCalculado = posicao ? getTipoMedalha(posicao) : (apenasClassificacao ? null : "participacao");
+        const medalha = getMedalha(g.prova.id, g.cat.id, g.sexo, atletaId);
+        const tipo = apenasParticipacao ? "participacao" : (medalha.tipo || tipoCalculado);
+        const conf = tipo ? MEDALHA_CONFIG[tipo] : null;
+        resultado.push({ prova: g.prova, cat: g.cat, sexo: g.sexo, posicao, tipo, conf, medalha, bloqueio: null, isRevezamento: true });
+      });
+
+    return resultado;
+  }, [provasComAtletas, provasRevezamento, getClassificados, getTipoMedalha, getMedalha, MEDALHA_CONFIG,
       apenasParticipacao, apenasClassificacao, atletaSomenteDns, contarParticipacoes,
       classificacaoBloqueiaParticipacao, temClassificacaoEntregue, provasPendentes, limiteParticipacao]);
 
@@ -676,8 +734,8 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
                     <div>
-                      <div style={{ fontWeight: 700, color: t.textPrimary, fontSize: 14 }}>{p.prova.nome}</div>
-                      <div style={{ fontSize: 11, color: t.textMuted }}>{p.cat.nome} · {p.sexo === "M" ? "Masc" : "Fem"}{p.posicao ? ` · ${p.posicao}º lugar` : ""}</div>
+                      <div style={{ fontWeight: 700, color: t.textPrimary, fontSize: 14 }}>{p.prova.nome}{p.isRevezamento ? " 🏃‍♂️" : ""}</div>
+                      <div style={{ fontSize: 11, color: t.textMuted }}>{p.cat.nome} · {p.sexo === "M" ? "Masc" : "Fem"}{p.posicao ? ` · ${p.posicao}º lugar` : ""}{p.isRevezamento ? " · Revezamento" : ""}</div>
                     </div>
                     {p.conf && (
                       <span style={{ fontSize: 13, fontWeight: 700, color: p.conf.cor }}>
@@ -828,7 +886,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
             <div style={s.empty}>Nenhuma prova com atletas inscritos.</div>
           )}
 
-          {provasFiltradasMedalhas.map(({ prova, cat, sexo, atletas: atls, horario }) => {
+          {provasFiltradasMedalhas.map(({ prova, cat, sexo, atletas: atls, horario, isRevezamento: isRevez, equipes: equipesRevez }) => {
             const peitos = numeracaoPeito?.[eid] || {};
             const buscaLower = buscaChamada.toLowerCase().trim();
             const atlsFiltradosMed = buscaLower
@@ -843,20 +901,38 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
             const filtradosIds = new Set(atlsFiltradosMed.map(a => a.id));
             if (buscaLower && atlsFiltradosMed.length === 0) return null;
 
-            const atletasOrdenados = (temResultados
-              ? [
-                  ...classificados.map(({ aId }, idx) => ({
-                    atl: atletas.find(a => a.id === aId),
-                    posicao: idx + 1,
-                    tipoCalculado: getTipoMedalha(idx + 1),
-                    temResultado: true,
-                  })),
-                  ...atls
-                    .filter(a => !classificados.some(c => c.aId === a.id))
-                    .map(a => ({ atl: a, posicao: null, tipoCalculado: null, temResultado: false })),
-                ]
-              : atls.map(a => ({ atl: a, posicao: null, tipoCalculado: null, temResultado: false }))
-            ).filter(({ atl }) => !buscaLower || (atl && filtradosIds.has(atl.id)));
+            // Para revezamento: expandir classificação da equipe → atletas individuais
+            let atletasOrdenados;
+            if (isRevez && temResultados && equipesRevez) {
+              const expandidos = [];
+              classificados.forEach(({ aId: equipeId }, idx) => {
+                const equipe = equipesRevez.find(eq => eq.equipeId === equipeId);
+                const atletasIds = equipe?.atletasIds || [];
+                atletasIds.forEach(aid => {
+                  const atl = atletas.find(a => a.id === aid);
+                  if (atl) expandidos.push({ atl, posicao: idx + 1, tipoCalculado: getTipoMedalha(idx + 1), temResultado: true });
+                });
+              });
+              // Atletas inscritos mas sem resultado
+              atls.filter(a => !expandidos.some(e => e.atl.id === a.id))
+                .forEach(a => expandidos.push({ atl: a, posicao: null, tipoCalculado: null, temResultado: false }));
+              atletasOrdenados = expandidos.filter(({ atl }) => !buscaLower || filtradosIds.has(atl.id));
+            } else {
+              atletasOrdenados = (temResultados
+                ? [
+                    ...classificados.map(({ aId }, idx) => ({
+                      atl: atletas.find(a => a.id === aId),
+                      posicao: idx + 1,
+                      tipoCalculado: getTipoMedalha(idx + 1),
+                      temResultado: true,
+                    })),
+                    ...atls
+                      .filter(a => !classificados.some(c => c.aId === a.id))
+                      .map(a => ({ atl: a, posicao: null, tipoCalculado: null, temResultado: false })),
+                  ]
+                : atls.map(a => ({ atl: a, posicao: null, tipoCalculado: null, temResultado: false }))
+              ).filter(({ atl }) => !buscaLower || (atl && filtradosIds.has(atl.id)));
+            }
 
             const entregues = atletasOrdenados.filter(({ atl }) =>
               atl && getMedalha(prova.id, cat.id, sexo, atl.id).entregue
