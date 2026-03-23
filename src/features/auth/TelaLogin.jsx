@@ -35,6 +35,7 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
   const [senha,   setSenha]   = useState("");
   const [erro,    setErro]    = useState("");
   const [loading, setLoading] = useState(false);
+  const [cadastroAberto, setCadastroAberto] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState("");
   const [modoRecuperar, setModoRecuperar] = useState(false);
   const [emailRecuperar, setEmailRecuperar] = useState("");
@@ -437,12 +438,21 @@ function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, at
           <button style={s.linkBtn} onClick={() => { setModoRecuperar(true); setErro(""); setEmailRecuperar(ident.includes("@") ? ident : ""); }}>🔑 Esqueci minha senha</button>
         </div>
         <div style={{ textAlign:"center", marginTop:16 }}>
-          <p style={{ color:t.textMuted, fontSize:13, marginBottom:12 }}>Não tem conta? Cadastre-se como:</p>
-          <div style={{ display:"flex", gap:8, justifyContent:"center", flexWrap:"wrap" }}>
-            <button style={{ ...s.linkBtn, padding:"6px 12px", border:`1px solid ${t.border}`, borderRadius:6, background:t.bgHeaderSolid }} onClick={() => setTela("cadastro-equipe")}>🎽 Equipe</button>
-            <button style={{ ...s.linkBtn, padding:"6px 12px", border:`1px solid ${t.border}`, borderRadius:6, background:t.bgHeaderSolid }} onClick={() => setTela("cadastro-organizador")}>🏟️ Organizador</button>
-            <button style={{ ...s.linkBtn, padding:"6px 12px", border:`1px solid ${t.border}`, borderRadius:6, background:t.bgHeaderSolid }} onClick={() => setTela("cadastro-atleta-login")}>🏃 Atleta</button>
-          </div>
+          <p style={{ color:t.textMuted, fontSize:13 }}>
+            Não tem conta?{" "}
+            <button
+              onClick={() => setCadastroAberto(prev => !prev)}
+              style={{ background:"none", border:"none", color:t.accent, cursor:"pointer", fontSize:13, fontWeight:600, fontFamily:"'Barlow', sans-serif", textDecoration:"underline" }}>
+              Cadastre-se
+            </button>
+          </p>
+          {cadastroAberto && (
+            <div style={{ display:"flex", gap:8, justifyContent:"center", flexWrap:"wrap", marginTop:10 }}>
+              <button style={{ ...s.linkBtn, padding:"6px 12px", border:`1px solid ${t.border}`, borderRadius:6, background:t.bgHeaderSolid }} onClick={() => setTela("cadastro-equipe")}>🎽 Equipe</button>
+              <button style={{ ...s.linkBtn, padding:"6px 12px", border:`1px solid ${t.border}`, borderRadius:6, background:t.bgHeaderSolid }} onClick={() => setTela("cadastro-organizador")}>🏟️ Organizador</button>
+              <button style={{ ...s.linkBtn, padding:"6px 12px", border:`1px solid ${t.border}`, borderRadius:6, background:t.bgHeaderSolid }} onClick={() => setTela("cadastro-atleta-login")}>🏃 Atleta</button>
+            </div>
+          )}
         </div>
       </div>
     </div>
