@@ -124,6 +124,7 @@ import { useStorageSync }  from "./lib/storage/useStorageSync";
 import "./lib/migration/migrarDadosLegacy";
 import { ConfirmProvider, useConfirm } from "./features/ui/ConfirmContext";
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 // SheetJS for Excel file handling - will be loaded via script tag in HTML
 
@@ -1652,6 +1653,7 @@ function App() {
       </footer>
     </div>
     <Analytics />
+    <SpeedInsights />
     </ConfirmProvider>
   );
 }
