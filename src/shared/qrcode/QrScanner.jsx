@@ -23,7 +23,9 @@ export default function QrScanner({
   contadorLabel,    // string ex: "✓ 23/45 confirmados — 100m Sub-14 Masc"
   aberto,           // boolean — controla visibilidade
   onFechar,         // () => void — callback ao fechar
-  resumoSessao,     // { total, bloqueados, duplicados, tempo } — preenchido ao fechar
+  provas,           // [{ id, label }] — lista de provas para seletor
+  provaSelecionada, // string — id da prova selecionada
+  onTrocarProva,    // (provaId: string) => void — callback ao trocar prova
 }) {
   const t = useTema();
   const [cameraAtiva, setCameraAtiva] = useState(false);
@@ -265,6 +267,23 @@ export default function QrScanner({
           </button>
         </div>
       </div>
+
+      {/* Seletor de prova */}
+      {provas && provas.length > 0 && (
+        <div style={{ background: t.bgHeaderSolid, padding: "8px 16px", borderBottom: `1px solid ${t.border}`, display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 12, color: t.textMuted, flexShrink: 0 }}>Prova:</span>
+          <select
+            value={provaSelecionada || ""}
+            onChange={e => onTrocarProva && onTrocarProva(e.target.value)}
+            style={{ flex: 1, background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 6, padding: "8px 10px", color: t.textPrimary, fontSize: 13, outline: "none" }}
+          >
+            <option value="">— Selecione a prova —</option>
+            {provas.map(p => (
+              <option key={p.id} value={p.id}>{p.label}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Contador flutuante */}
       {contadorLabel && (

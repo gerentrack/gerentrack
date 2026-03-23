@@ -337,12 +337,9 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
       return { status: "ok", msg: `✓ ${nomeDisplay} confirmado`, cor: "verde" };
     }
 
-    // Sem prova selecionada: avisar para selecionar uma prova
+    // Sem prova selecionada: avisar para selecionar
     beepAviso(); vibrarAviso();
-    const provasDoAtleta = provasComAtletas.filter(g => g.atletas.some(a => a.id === atletaId));
-    const nomes = provasDoAtleta.map(g => g.prova.nome).slice(0, 3).join(", ");
-    const extras = provasDoAtleta.length > 3 ? ` +${provasDoAtleta.length - 3}` : "";
-    return { status: "aviso", msg: `⚠️ ${nomeDisplay} — selecione uma prova no filtro (${nomes}${extras})`, cor: "amarelo" };
+    return { status: "aviso", msg: `⚠️ Selecione uma prova no seletor acima`, cor: "amarelo" };
   }, [eid, atletas, filtroProva, provasComAtletas, getPresenca, atualizarPresenca, peitoParaAtleta, peitos, anoComp]);
 
   const handleDesfazerChamada = useCallback((raw) => {
@@ -436,6 +433,9 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
         onDesfazer={handleDesfazerChamada}
         contadorLabel={contadorScanLabel}
         onFechar={() => setScannerAberto(false)}
+        provas={provasUnicas.map(p => ({ id: p.id, label: p.nome }))}
+        provaSelecionada={filtroProva}
+        onTrocarProva={setFiltroProva}
       />
 
       {/* ── ABA: CÂMARA DE CHAMADA ─────────────────────────────────────────── */}
