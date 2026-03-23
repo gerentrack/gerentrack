@@ -148,7 +148,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
 
   const provasFiltradas = useMemo(() => {
     if (!filtroProva) return provasComAtletas;
-    return provasComAtletas.filter(g => g.prova.id === filtroProva);
+    return provasComAtletas.filter(g => g.prova.nome === filtroProva);
   }, [provasComAtletas, filtroProva]);
 
   // Medalhas: excluir provas componentes de combinada (origemCombinada=true)
@@ -158,7 +158,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
   , [provasFiltradas]);
 
   const provasUnicas = useMemo(() =>
-    [...new Map(provasComAtletas.map(g => [g.prova.id, g.prova])).values()]
+    [...new Map(provasComAtletas.map(g => [g.prova.nome, g.prova])).values()]
     , [provasComAtletas]);
 
   // ── Calcular classificação por prova para medalhas ────────────────────────
@@ -327,14 +327,14 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
     if (filtroProva) {
       const cat = getCategoria(atl.anoNasc, anoComp);
       if (!cat) { beepAviso(); vibrarAviso(); return { status: "aviso", msg: `⚠️ ${nomeDisplay} — categoria indefinida`, cor: "amarelo" }; }
-      // Verificar se atleta está inscrito nesta prova
-      const inscrito = provasComAtletas.some(g => g.prova.id === filtroProva && g.cat.id === cat.id && g.atletas.some(a => a.id === atletaId));
-      if (!inscrito) { beepAviso(); vibrarAviso(); return { status: "aviso", msg: `⚠️ ${nomeDisplay} não inscrito nesta prova`, cor: "amarelo" }; }
+      // Buscar grupo correspondente (por nome da prova + categoria do atleta)
+      const grupo = provasComAtletas.find(g => g.prova.nome === filtroProva && g.cat.id === cat.id && g.atletas.some(a => a.id === atletaId));
+      if (!grupo) { beepAviso(); vibrarAviso(); return { status: "aviso", msg: `⚠️ ${nomeDisplay} não inscrito nesta prova`, cor: "amarelo" }; }
       // Verificar se já confirmado
-      const estado = getPresenca(filtroProva, cat.id, atl.sexo, atletaId);
+      const estado = getPresenca(grupo.prova.id, cat.id, grupo.sexo, atletaId);
       if (estado === "confirmado") { beepDuplicado(); return { status: "duplicado", msg: `🔁 ${nomeDisplay} já confirmado`, cor: "azul" }; }
       // Confirmar
-      atualizarPresenca(filtroProva, cat.id, atl.sexo, atletaId, "confirmado");
+      atualizarPresenca(grupo.prova.id, cat.id, grupo.sexo, atletaId, "confirmado");
       beepOk(); vibrarOk();
       return { status: "ok", msg: `✓ ${nomeDisplay} confirmado`, cor: "verde" };
     }
@@ -352,8 +352,10 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
     if (!atl) return;
     const cat = getCategoria(atl.anoNasc, anoComp);
     if (!cat) return;
-    atualizarPresenca(filtroProva, cat.id, atl.sexo, atletaId, null);
-  }, [atletas, filtroProva, atualizarPresenca, peitoParaAtleta, anoComp]);
+    const grupo = provasComAtletas.find(g => g.prova.nome === filtroProva && g.cat.id === cat.id && g.atletas.some(a => a.id === atletaId));
+    if (!grupo) return;
+    atualizarPresenca(grupo.prova.id, cat.id, grupo.sexo, atletaId, null);
+  }, [atletas, filtroProva, provasComAtletas, atualizarPresenca, peitoParaAtleta, anoComp]);
 
   // ── Scanner QR — medalhas ──────────────────────────────────────────────────
   const handleScanMedalha = useCallback((raw) => {
@@ -420,11 +422,15 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
   // Contador para o scanner
   const contadorScanLabel = useMemo(() => {
     if (!filtroProva) return null;
-    const grupo = provasComAtletas.find(g => g.prova.id === filtroProva);
-    if (!grupo) return null;
-    const presenca = getPresencaProva(grupo.prova.id, grupo.cat.id, grupo.sexo);
-    const confirmados = Object.values(presenca).filter(v => v === "confirmado").length;
-    return `✓ ${confirmados}/${grupo.atletas.length} confirmados — ${grupo.prova.nome} ${grupo.cat.nome} ${grupo.sexo === "M" ? "Masc" : "Fem"}`;
+    const grupos = provasComAtletas.filter(g => g.prova.nome === filtroProva);
+    if (grupos.length === 0) return null;
+    let totalAtletas = 0, totalConf = 0;
+    grupos.forEach(g => {
+      totalAtletas += g.atletas.length;
+      const presenca = getPresencaProva(g.prova.id, g.cat.id, g.sexo);
+      totalConf += Object.values(presenca).filter(v => v === "confirmado").length;
+    });
+    return `✓ ${totalConf}/${totalAtletas} confirmados — ${filtroProva}`;
   }, [filtroProva, provasComAtletas, getPresencaProva]);
 
   // ── Estatísticas rápidas ──────────────────────────────────────────────────
@@ -462,7 +468,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
             style={s.selectEvento}
           >
             <option value="">Todas as provas</option>
-            {provasUnicas.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
+            {provasUnicas.map(p => <option key={p.nome} value={p.nome}>{p.nome}</option>)}
           </select>
           <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
         </div>
@@ -497,7 +503,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
         onDesfazer={handleDesfazerChamada}
         contadorLabel={contadorScanLabel}
         onFechar={() => setScannerAberto(false)}
-        provas={provasUnicas.map(p => ({ id: p.id, label: p.nome }))}
+        provas={provasUnicas.map(p => ({ id: p.nome, label: p.nome }))}
         provaSelecionada={filtroProva}
         onTrocarProva={setFiltroProva}
       />
