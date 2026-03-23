@@ -41,12 +41,16 @@ function calcularPosicoes(docResultados, provaId) {
   const isPista = prova.unidade === "s";
   const isAltVara = prova.tipo === "salto" && (prova.id.includes("altura") || prova.id.includes("vara"));
 
+  const STATUS_LIST = ["DNS","DNF","DQ","NM","NH"];
   const entradas = Object.entries(docResultados).map(([id, raw]) => {
     const obj = (raw != null && typeof raw === "object") ? raw : { marca: raw };
     const status = obj.status || "";
-    const isStatus = ["DNS","DNF","DQ","NM","NH"].includes(status);
-    const marca = (!isStatus && obj.marca != null) ? parseFloat(obj.marca) : null;
-    return { id, raw: obj, marca, status, isStatus };
+    const marcaStr = String(obj.marca || "").toUpperCase();
+    const isStatus = STATUS_LIST.includes(status) || STATUS_LIST.includes(marcaStr);
+    const statusEfetivo = STATUS_LIST.includes(status) ? status : STATUS_LIST.includes(marcaStr) ? marcaStr : "";
+    const marcaNum = (!isStatus && obj.marca != null) ? parseFloat(obj.marca) : null;
+    const marca = (marcaNum != null && !isNaN(marcaNum)) ? marcaNum : null;
+    return { id, raw: obj, marca, status: statusEfetivo, isStatus };
   });
 
   entradas.sort((a, b) => {

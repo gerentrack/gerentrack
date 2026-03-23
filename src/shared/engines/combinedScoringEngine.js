@@ -267,7 +267,10 @@ const CombinedScoringEngine = {
         }
       });
 
-      const valor = resultado?.marca ? parseFloat(String(resultado.marca).replace(",", ".")) : null;
+      const _marcaStr = String(resultado?.marca || "").toUpperCase();
+      const _isStatusComb = ["DNS","DNF","DQ","NM","NH"].includes(_marcaStr) || ["DNS","DNF","DQ","NM","NH"].includes(resultado?.status || "");
+      const _valorRaw = !_isStatusComb && resultado?.marca ? parseFloat(String(resultado.marca).replace(",", ".")) : null;
+      const valor = (_valorRaw != null && !isNaN(_valorRaw)) ? _valorRaw : null;
       const pontos = valor != null ? this.calcularPontosProva(pc.provaOriginalSufixo, valor, sexo, pc.combinadaId) : 0;
       // Permite pontos manuais se definidos
       const pontosFinais = resultado?.pontosTabela != null ? Number(resultado.pontosTabela) : pontos;

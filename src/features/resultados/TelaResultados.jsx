@@ -223,8 +223,11 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
           const classificados = Object.entries(res)
             .map(([eqId, raw]) => {
               const marca = (raw != null && typeof raw === "object") ? (raw.marca ?? null) : raw;
-              const status = (raw != null && typeof raw === "object") ? (raw.status || "") : "";
-              const isStatus = ["DNS","DNF","DQ","NM"].includes(status);
+              let status = (raw != null && typeof raw === "object") ? (raw.status || "") : "";
+              if (!status && marca != null && ["DNS","DNF","NM","NH","DQ"].includes(String(marca).toUpperCase())) {
+                status = String(marca).toUpperCase();
+              }
+              const isStatus = ["DNS","DNF","DQ","NM","NH"].includes(status);
               const insc = inscsRevez.find(i => i.equipeId === eqId);
               const eq = equipes.find(e => e.id === eqId);
               const nomeEquipe = eq ? (eq.clube || eq.nome || "—") : (eqId.startsWith("clube_") ? eqId.substring(6) : "—");
@@ -1283,20 +1286,20 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
 
               // Detectar desempate por RT 25.22 em provas de campo
               const temDesempateBlk = isCampoBlk && (() => {
-                if (b.classificados.length < 2) return false;
-                const marcas2 = b.classificados.map(x => x.marca);
-                for (let ii = 0; ii < marcas2.length - 1; ii++) {
-                  if (marcas2[ii] === marcas2[ii+1]) return true;
+                const comMarca = b.classificados.filter(x => !x.isStatus && x.marca != null);
+                if (comMarca.length < 2) return false;
+                for (let ii = 0; ii < comMarca.length - 1; ii++) {
+                  if (comMarca[ii].marca === comMarca[ii+1].marca) return true;
                 }
                 return false;
               })();
 
               // Detectar desempate por RT 26.9 em saltos verticais
               const temDesempateAltBlk = isAlturaVara && (() => {
-                if (b.classificados.length < 2) return false;
-                const marcas2 = b.classificados.map(x => x.marca);
-                for (let ii = 0; ii < marcas2.length - 1; ii++) {
-                  if (marcas2[ii] === marcas2[ii+1]) return true;
+                const comMarca = b.classificados.filter(x => !x.isStatus && x.marca != null);
+                if (comMarca.length < 2) return false;
+                for (let ii = 0; ii < comMarca.length - 1; ii++) {
+                  if (comMarca[ii].marca === comMarca[ii+1].marca) return true;
                 }
                 return false;
               })();

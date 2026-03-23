@@ -878,6 +878,7 @@ function App() {
       adicionarNotificacao(evt.organizadorId, "relatorio_solicitado",
         `${solicitanteNome} solicitou relatório oficial de participação para "${eventoNome}".`);
     }
+    registrarAcao(solicitanteId, solicitanteNome, "Solicitou relatório", `${eventoNome}${assinaturaEquipe ? " (com assinatura)" : ""}`, evt?.organizadorId || null, { equipeId, modulo: "relatorios" });
   };
   const resolverRelatorio = (solId, status) => {
     const sol = solicitacoesRelatorio.find(s => s.id === solId);
@@ -890,6 +891,7 @@ function App() {
           ? `Seu relatório oficial de participação para "${sol.eventoNome}" foi gerado pelo organizador.`
           : `Sua solicitação de relatório para "${sol.eventoNome}" foi recusada.`);
     }
+    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, status === "gerado" ? "Gerou relatório" : "Recusou relatório", `${sol?.eventoNome || ""} — solicitado por ${sol?.solicitanteNome || ""}`, usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: sol?.equipeId, modulo: "relatorios" });
   };
   const cancelarRelatorio = (solId) => {
     const sol = solicitacoesRelatorio.find(s => s.id === solId);
@@ -903,6 +905,7 @@ function App() {
           `${sol.solicitanteNome} cancelou a solicitação de relatório para "${sol.eventoNome}".`);
       }
     }
+    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Cancelou solicitação de relatório", sol?.eventoNome || "", usuarioLogado.organizadorId || null, { equipeId: sol?.equipeId || usuarioLogado.equipeId, modulo: "relatorios" });
   };
   const excluirRelatorio = (solId) => {
     const sol = solicitacoesRelatorio.find(s => s.id === solId);
@@ -911,6 +914,7 @@ function App() {
       adicionarNotificacao(sol.solicitanteId, "relatorio_excluido",
         `O relatório de participação para "${sol.eventoNome}" foi excluído. Solicite novamente se necessário.`);
     }
+    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Excluiu relatório", sol?.eventoNome || "", usuarioLogado.organizadorId || null, { equipeId: sol?.equipeId || usuarioLogado.equipeId, modulo: "relatorios" });
   };
 
   const excluirAtleta = async (atletaId) => {

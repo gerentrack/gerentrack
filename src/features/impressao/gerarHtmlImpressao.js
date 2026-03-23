@@ -415,8 +415,11 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
         const raia = raiaRes || serInfo.raia;
         const serie = serieRes || serInfo.serie;
         const vento = raw != null && typeof raw === "object" ? (raw.vento || "") : "";
-        const isStatus = ["DNS","DNF","DQ","NM"].includes(status);
-        return { ...eq, marca: !isStatus && marca != null ? parseFloat(marca) : null, status, isStatus, raia, serie, vento };
+        const marcaUp = String(marca || "").toUpperCase();
+        const isStatus = ["DNS","DNF","DQ","NM","NH"].includes(status) || ["DNS","DNF","DQ","NM","NH"].includes(marcaUp);
+        const statusEfetivo = ["DNS","DNF","DQ","NM","NH"].includes(status) ? status : ["DNS","DNF","DQ","NM","NH"].includes(marcaUp) ? marcaUp : "";
+        const marcaNum = !isStatus && marca != null ? parseFloat(marca) : null;
+        return { ...eq, marca: marcaNum != null && !isNaN(marcaNum) ? marcaNum : null, status: statusEfetivo, isStatus, raia, serie, vento };
       }).sort((a, b) => {
         if (temRes) {
           if (a.isStatus && !b.isStatus) return 1;
@@ -526,10 +529,12 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
       const classificados = [...atl]
         .map(a => {
           const raw = res[a.id];
-          const marca = raw != null ? parseFloat(getMarca(raw)) : null;
+          const marcaRaw = getMarca(raw);
+          const marcaUp = String(marcaRaw || "").toUpperCase();
           const status = (raw != null && typeof raw === "object") ? (raw.status || "") : "";
-          const isStatus = ["DNS","DNF","NM","NH","DQ"].indexOf(status) !== -1;
-          return { atleta: a, marca: (!isStatus && marca != null && !isNaN(marca)) ? marca : null, raw, isStatus };
+          const isStatus = ["DNS","DNF","NM","NH","DQ"].includes(status) || ["DNS","DNF","NM","NH","DQ"].includes(marcaUp);
+          const marcaNum = !isStatus && marcaRaw != null ? parseFloat(marcaRaw) : null;
+          return { atleta: a, marca: (marcaNum != null && !isNaN(marcaNum)) ? marcaNum : null, raw, isStatus };
         })
         .filter(x => x.marca != null || x.isStatus)
         .sort((a, b) => {
@@ -661,7 +666,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
           // Com resultado — classificação geral unificada por tempo
           const classGeral = [...atl]
             .map((a) => ({ a, m: res[a.id] != null ? parseFloat(getMarca(res[a.id])) : null, raw: res[a.id] }))
-            .filter((x) => x.m != null)
+            .filter((x) => x.m != null && !isNaN(x.m))
             .sort((a2,b2) => a2.m - b2.m);
           
           if (classGeral.length > 0) {
@@ -916,7 +921,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
             numPag++;
             const serie = atl.slice(si*MAX_EFETIVO, (si+1)*MAX_EFETIVO);
             const lbl = temSemi ? `SEMIFINAL \u2014 S\u00c9RIE ${si+1} / ${totalSeries} \u00b7 APURADA` : "S\u00c9RIE \u00daNICA \u00b7 APURADA";
-            const serieOrd = [...serie].map((a)=>({a, m:res[a.id]!=null?parseFloat(getMarca(res[a.id])):null})).filter(x=>x.m!=null).sort((a,b)=>a.m-b.m);
+            const serieOrd = [...serie].map((a)=>({a, m:res[a.id]!=null?parseFloat(getMarca(res[a.id])):null})).filter(x=>x.m!=null && !isNaN(x.m)).sort((a,b)=>a.m-b.m);
             pags.push(`
               <div class="${pgClass(s)}">
                 ${cabPrv(s, numPag, null)}

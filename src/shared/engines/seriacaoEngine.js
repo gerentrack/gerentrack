@@ -391,10 +391,12 @@ const SeriacaoEngine = {
       const atlComRes = serie.atletas.map(sa => {
         const aid = sa.id || sa.atletaId;
         const raw = resultadosAnterior[aid];
-        const marca = raw != null ? (typeof raw === "object" ? parseFloat(raw.marca) : parseFloat(raw)) : null;
+        const marcaRaw = raw != null ? (typeof raw === "object" ? raw.marca : raw) : null;
+        const marcaUp = String(marcaRaw || "").toUpperCase();
         const status = raw != null && typeof raw === "object" ? (raw.status || "") : "";
-        const isStatus = ["DNS", "DNF", "DQ"].includes(status);
-        return { ...sa, atletaId: aid, marca: (!isStatus && marca != null) ? marca : null, status, isStatus };
+        const isStatus = ["DNS","DNF","DQ","NM","NH"].includes(status) || ["DNS","DNF","DQ","NM","NH"].includes(marcaUp);
+        const marcaNum = !isStatus && marcaRaw != null ? parseFloat(marcaRaw) : null;
+        return { ...sa, atletaId: aid, marca: (marcaNum != null && !isNaN(marcaNum)) ? marcaNum : null, status, isStatus };
       });
       // Ordenar por marca (menor = melhor para pista)
       return atlComRes

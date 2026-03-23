@@ -211,7 +211,8 @@ const TeamScoringEngine = {
               var atletaId = entry[0], raw = entry[1];
               var marca = (raw != null && typeof raw === "object") ? (raw.marca != null ? raw.marca : null) : raw;
               var status = (raw != null && typeof raw === "object") ? (raw.status || "").toUpperCase() : "";
-              var isStatus = ["DNS","DNF","NM","DQ"].indexOf(status) !== -1;
+              var marcaUp = String(marca || "").toUpperCase();
+              var isStatus = ["DNS","DNF","NM","DQ","NH"].indexOf(status) !== -1 || ["DNS","DNF","NM","DQ","NH"].indexOf(marcaUp) !== -1;
               var atletaFound = atletas.find(function(a) { return a.id === atletaId; });
               if (!atletaFound) {
                 var inscA = inscDoEvento.find(function(i) { return i.atletaId === atletaId; });
@@ -220,7 +221,8 @@ const TeamScoringEngine = {
                     || { id: atletaId, nome: inscA.atletaNome || "?", equipeId: inscA.equipeCadastroId || null, clube: inscA.equipeCadastro || "" };
                 }
               }
-              return { atleta: atletaFound, marca: (!isStatus && marca != null) ? parseFloat(marca) : null };
+              var marcaNum = (!isStatus && marca != null) ? parseFloat(marca) : null;
+              return { atleta: atletaFound, marca: (marcaNum != null && !isNaN(marcaNum)) ? marcaNum : null };
             })
             .filter(function(x) { return x.atleta && x.marca != null && !isNaN(x.marca); })
             .sort(function(a, b) {
@@ -278,8 +280,10 @@ const TeamScoringEngine = {
               var eqId = entry[0], raw = entry[1];
               var marca = (raw != null && typeof raw === "object") ? (raw.marca != null ? raw.marca : null) : raw;
               var status = (raw != null && typeof raw === "object") ? (raw.status || "").toUpperCase() : "";
-              var isStatus = ["DNS","DNF","DQ","NM"].indexOf(status) !== -1;
-              return { equipeId: eqId, marca: (!isStatus && marca != null) ? parseFloat(marca) : null, isStatus: isStatus };
+              var marcaUpR = String(marca || "").toUpperCase();
+              var isStatus = ["DNS","DNF","DQ","NM","NH"].indexOf(status) !== -1 || ["DNS","DNF","DQ","NM","NH"].indexOf(marcaUpR) !== -1;
+              var marcaNumR = (!isStatus && marca != null) ? parseFloat(marca) : null;
+              return { equipeId: eqId, marca: (marcaNumR != null && !isNaN(marcaNumR)) ? marcaNumR : null, isStatus: isStatus };
             })
             .filter(function(x) { return x.marca != null && !isNaN(x.marca); })
             .sort(function(a, b) { return a.marca - b.marca; });
