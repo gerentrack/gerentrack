@@ -807,23 +807,6 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                   </div>
                 </label>
               </div>
-              <div style={s.statusControlBox(eventoAtual.medalhasApenasParticipacao, "#e67e22", "#1a1400")}>
-                <label style={s.statusControlLabel}>
-                  <input type="checkbox" checked={!!eventoAtual.medalhasApenasParticipacao}
-                    onChange={() => alterarStatusEvento(eventoAtual.id, { medalhasApenasParticipacao: !eventoAtual.medalhasApenasParticipacao })}
-                    style={{ width:18, height:18, accentColor:"#e67e22", cursor:"pointer", marginRight:10, flexShrink:0 }} />
-                  <div>
-                    <div style={{ fontWeight:700, color: eventoAtual.medalhasApenasParticipacao ? t.warning : t.textTertiary }}>
-                      {eventoAtual.medalhasApenasParticipacao ? "🎖️ Somente Medalhas de Participação" : "🏅 Medalhas de Classificação + Participação"}
-                    </div>
-                    <div style={{ fontSize:12, color: t.textDimmed, marginTop:3 }}>
-                      {eventoAtual.medalhasApenasParticipacao
-                        ? "Todos os atletas recebem medalha de participação, sem ouro/prata/bronze."
-                        : "1º, 2º e 3º recebem ouro/prata/bronze. Demais recebem participação."}
-                    </div>
-                  </div>
-                </label>
-              </div>
             </div>
           </div>
 

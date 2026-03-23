@@ -58,13 +58,17 @@ function getStyles(t) {
 }
 
 // ── Componente principal ──────────────────────────────────────────────────────
-function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados, usuarioLogado }) {
+function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados, usuarioLogado, numeracaoPeito }) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
-  // STATUS_CHAMADA removido — agora usa dois botões toggle
   const MEDALHA_CONFIG = getMedalhaConfig(t);
+  // Modo de medalhas: retrocompatível com campo boolean antigo
+  const modoMedalhas = eventoAtual?.modoMedalhas || (eventoAtual?.medalhasApenasParticipacao ? "apenas_participacao" : "classificacao_participacao");
+  const apenasParticipacao = modoMedalhas === "apenas_participacao";
+  const apenasClassificacao = modoMedalhas === "apenas_classificacao";
   const [aba, setAba] = useState("chamada");
   const [filtroProva, setFiltroProva] = useState("");
+  const [buscaChamada, setBuscaChamada] = useState("");
   const [limiteParticipacao, setLimiteParticipacao] = useState(1);
   const [classificacaoBloqueiaParticipacao, setClassificacaoBloqueiaParticipacao] = useState(true);
 
@@ -120,11 +124,18 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
       grupos[key].atletas = [...new Map(grupos[key].atletas.map(a => [a.id, a])).values()];
     });
 
-    // Ordenar por horário → nome da prova
+    // Ordenar por horário → categoria crescente (sub14→adulto) → nome da prova
+    const catOrdem = CATEGORIAS.reduce((acc, c, i) => { acc[c.id] = i; return acc; }, {});
     return Object.values(grupos).sort((a, b) => {
-      if (a.horario && b.horario) return a.horario.localeCompare(b.horario);
-      if (a.horario) return -1;
-      if (b.horario) return 1;
+      // 1. Horário
+      if (a.horario && b.horario && a.horario !== b.horario) return a.horario.localeCompare(b.horario);
+      if (a.horario && !b.horario) return -1;
+      if (!a.horario && b.horario) return 1;
+      // 2. Categoria crescente
+      const catA = catOrdem[a.cat.id] ?? 99;
+      const catB = catOrdem[b.cat.id] ?? 99;
+      if (catA !== catB) return catA - catB;
+      // 3. Nome da prova
       return a.prova.nome.localeCompare(b.prova.nome, "pt-BR");
     });
   }, [eventoAtual, inscricoes, atletas, eid, anoComp]);
@@ -177,11 +188,12 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
     return [];
   };
 
-  const getTipoMedalha = (posicao, totalClassificados) => {
-    if (eventoAtual?.medalhasApenasParticipacao) return "participacao";
+  const getTipoMedalha = (posicao) => {
+    if (apenasParticipacao) return "participacao";
     if (posicao === 1) return "ouro";
     if (posicao === 2) return "prata";
     if (posicao === 3) return "bronze";
+    if (apenasClassificacao) return null; // sem medalha para demais
     return "participacao";
   };
 
@@ -238,6 +250,43 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
       if (!temRes) acc.push(prova.nome);
       return acc;
     }, []);
+  };
+
+  // Verifica se atleta tem DNS em TODAS as provas (não recebe medalha de participação)
+  // DQ, NM, DNF contam como participação efetiva
+  const atletaSomenteDns = (atletaId) => {
+    if (!inscricoes || !resultados) return false;
+    const todas = todasAsProvas();
+    const inscsAtleta = inscricoes.filter(i =>
+      i.atletaId === atletaId && i.eventoId === eid &&
+      i.tipo !== "revezamento" && !i.combinadaId
+    );
+    if (inscsAtleta.length === 0) return false;
+    let temAlgumaParticipacao = false;
+    for (const insc of inscsAtleta) {
+      const prova = todas.find(p => p.id === insc.provaId);
+      if (!prova) continue;
+      const atl = atletas.find(a => a.id === atletaId);
+      if (!atl) continue;
+      const cat = getCategoria(atl.anoNasc, anoComp);
+      if (!cat) continue;
+      const fases = getFasesProva(prova.id, eventoAtual?.programaHorario || {});
+      const fasesCheck = fases.length > 1 ? fases : [null];
+      for (const fase of fasesCheck) {
+        const key = resKey(eid, prova.id, cat.id, insc.sexo || atl.sexo, fase);
+        const res = resultados?.[key]?.[atletaId];
+        if (!res) continue;
+        const marca = typeof res === "object" ? res.marca : res;
+        const status = typeof res === "object" ? (res.status || "") : "";
+        const marcaStr = String(marca || "").toUpperCase();
+        // DNS = não participou. DQ/NM/DNF = participou
+        if (marcaStr === "DNS" || status.toUpperCase() === "DNS") continue;
+        // Qualquer outro resultado (incluindo DQ, NM, DNF, ou marca válida) = participou
+        if (marca != null || status) { temAlgumaParticipacao = true; break; }
+      }
+      if (temAlgumaParticipacao) break;
+    }
+    return !temAlgumaParticipacao;
   };
 
   // ── Estatísticas rápidas ──────────────────────────────────────────────────
@@ -320,11 +369,31 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
             ))}
           </div>
 
+          {/* Busca por nº peito ou nome */}
+          <div style={{ marginBottom: 16 }}>
+            <input
+              type="text"
+              placeholder="🔍 Buscar por nº peito ou nome..."
+              value={buscaChamada}
+              onChange={e => setBuscaChamada(e.target.value)}
+              style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 14px", color: t.textPrimary, fontSize: 13, width: "100%", maxWidth: 400, outline: "none", fontFamily: "'Barlow', sans-serif" }}
+            />
+          </div>
+
           {provasFiltradas.length === 0 && (
             <div style={s.empty}>Nenhuma prova com atletas inscritos.</div>
           )}
 
           {provasFiltradas.map(({ prova, cat, sexo, atletas: atls, horario }) => {
+            const peitos = numeracaoPeito?.[eid] || {};
+            const buscaLower = buscaChamada.toLowerCase().trim();
+            const atlsFiltrados = buscaLower
+              ? atls.filter(atl => {
+                  const peito = peitos[atl.id] ? String(peitos[atl.id]) : "";
+                  return atl.nome.toLowerCase().includes(buscaLower) || peito.includes(buscaLower);
+                })
+              : atls;
+            if (buscaLower && atlsFiltrados.length === 0) return null;
             const presencaProva = getPresencaProva(prova.id, cat.id, sexo);
             const nConfirmados = Object.values(presencaProva).filter(v => v === "confirmado").length;
             const nDns         = Object.values(presencaProva).filter(v => v === "dns").length;
@@ -341,23 +410,26 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                   <div style={s.cardMeta}>
                     {nConfirmados > 0 && <span style={s.pill(t.success, t.bgCardAlt)}>{nConfirmados} confirmado(s)</span>}
                     {nDns > 0 && <span style={s.pill(t.danger, t.bgCardAlt)}>{nDns} DNS</span>}
-                    <span style={{ color: t.textDimmed, fontSize: 12 }}>{atls.length} atleta(s)</span>
+                    <span style={{ color: t.textDimmed, fontSize: 12 }}>{buscaLower && atlsFiltrados.length !== atls.length ? `${atlsFiltrados.length}/` : ""}{atls.length} atleta(s)</span>
                   </div>
                 </div>
                 <table style={s.table}>
                   <thead>
                     <tr>
+                      <th style={{ ...s.th, width: 50, textAlign: "center" }}>Nº</th>
                       <th style={s.th}>Atleta</th>
                       <th style={s.th}>Clube / Equipe</th>
                       <th style={{ ...s.th, textAlign: "center", width: 200 }}>Status</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {[...atls].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR")).map(atl => {
+                    {[...atlsFiltrados].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR")).map(atl => {
                       const estado = getPresenca(prova.id, cat.id, sexo, atl.id);
                       const rowBg = estado === "confirmado" ? `${t.success}08` : estado === "dns" ? `${t.danger}08` : undefined;
+                      const peito = peitos[atl.id] || "";
                       return (
                         <tr key={`${prova.id}_${cat.id}_${sexo}_${atl.id}`} style={{ background: rowBg }}>
+                          <td style={{ ...s.td, textAlign: "center", fontWeight: 700, color: t.warning, fontSize: 14, fontFamily: "'Barlow Condensed', sans-serif" }}>{peito || "—"}</td>
                           <td style={s.td}>
                             <span style={s.nomeAtleta}>{atl.nome}</span>
                           </td>
@@ -400,7 +472,8 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
       {/* ── ABA: MEDALHAS ────────────────────────────────────────────────────── */}
       {aba === "medalhas" && (
         <>
-          {/* Configuração de limite de participação */}
+          {/* Configuração de limite de participação (oculto no modo apenas classificação) */}
+          {modoMedalhas === "classificacao_participacao" && <>
           <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20, background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 10, padding: "14px 20px", flexWrap: "wrap" }}>
             <div style={{ fontSize: 13, color: t.textTertiary }}>
               🎖️ <strong style={{ color: t.textPrimary }}>Limite de medalhas de participação por atleta:</strong>
@@ -434,21 +507,39 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
               </div>
             </div>
           </label>
+          </>}
 
-          {eventoAtual?.medalhasApenasParticipacao && (
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20, background: `${t.warning}12`, border: `1px solid ${t.warning}44`, borderRadius: 10, padding: "12px 18px" }}>
-              <span style={{ fontSize: 22 }}>🎖️</span>
+          {modoMedalhas !== "classificacao_participacao" && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20, background: `${apenasParticipacao ? t.warning : t.gold}12`, border: `1px solid ${apenasParticipacao ? t.warning : t.gold}44`, borderRadius: 10, padding: "12px 18px" }}>
+              <span style={{ fontSize: 22 }}>{apenasParticipacao ? "🎖️" : "🥇"}</span>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: t.warning }}>Modo: Somente Medalhas de Participação</div>
-                <div style={{ fontSize: 11, color: t.textMuted, marginTop: 2 }}>Todos os atletas recebem medalha de participação. Para habilitar ouro/prata/bronze, desative esta opção nos controles da competição.</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: apenasParticipacao ? t.warning : t.gold }}>
+                  {apenasParticipacao ? "Modo: Somente Medalhas de Participação" : "Modo: Somente Medalhas de Classificação"}
+                </div>
+                <div style={{ fontSize: 11, color: t.textMuted, marginTop: 2 }}>
+                  {apenasParticipacao
+                    ? "Todos os atletas recebem medalha de participação, sem ouro/prata/bronze."
+                    : "Apenas 1º/2º/3º recebem medalha (ouro/prata/bronze). Sem medalha de participação."}
+                </div>
               </div>
             </div>
           )}
 
           <div style={{ color: t.textDimmed, fontSize: 13, marginBottom: 20 }}>
-            {eventoAtual?.medalhasApenasParticipacao
+            {apenasParticipacao
               ? "Clique em \"Entregar\" para confirmar a entrega física da medalha de participação."
               : "Posições calculadas automaticamente a partir dos resultados. Clique em \"Entregar\" para confirmar a entrega física."}
+          </div>
+
+          {/* Busca por nº peito ou nome */}
+          <div style={{ marginBottom: 16 }}>
+            <input
+              type="text"
+              placeholder="🔍 Buscar por nº peito ou nome..."
+              value={buscaChamada}
+              onChange={e => setBuscaChamada(e.target.value)}
+              style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 14px", color: t.textPrimary, fontSize: 13, width: "100%", maxWidth: 400, outline: "none", fontFamily: "'Barlow', sans-serif" }}
+            />
           </div>
 
           {provasFiltradasMedalhas.length === 0 && (
@@ -456,10 +547,21 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
           )}
 
           {provasFiltradasMedalhas.map(({ prova, cat, sexo, atletas: atls, horario }) => {
+            const peitos = numeracaoPeito?.[eid] || {};
+            const buscaLower = buscaChamada.toLowerCase().trim();
+            const atlsFiltradosMed = buscaLower
+              ? atls.filter(atl => {
+                  const peito = peitos[atl.id] ? String(peitos[atl.id]) : "";
+                  return atl.nome.toLowerCase().includes(buscaLower) || peito.includes(buscaLower);
+                })
+              : atls;
             const classificados = getClassificados(prova, cat, sexo);
             const temResultados = classificados.length > 0;
 
-            const atletasOrdenados = temResultados
+            const filtradosIds = new Set(atlsFiltradosMed.map(a => a.id));
+            if (buscaLower && atlsFiltradosMed.length === 0) return null;
+
+            const atletasOrdenados = (temResultados
               ? [
                   ...classificados.map(({ aId }, idx) => ({
                     atl: atletas.find(a => a.id === aId),
@@ -471,7 +573,8 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                     .filter(a => !classificados.some(c => c.aId === a.id))
                     .map(a => ({ atl: a, posicao: null, tipoCalculado: null, temResultado: false })),
                 ]
-              : atls.map(a => ({ atl: a, posicao: null, tipoCalculado: null, temResultado: false }));
+              : atls.map(a => ({ atl: a, posicao: null, tipoCalculado: null, temResultado: false }))
+            ).filter(({ atl }) => !buscaLower || (atl && filtradosIds.has(atl.id)));
 
             const entregues = atletasOrdenados.filter(({ atl }) =>
               atl && getMedalha(prova.id, cat.id, sexo, atl.id).entregue
@@ -497,6 +600,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                   <thead>
                     <tr>
                       <th style={{ ...s.th, width: 44, textAlign: "center" }}>Pos.</th>
+                      <th style={{ ...s.th, width: 50, textAlign: "center" }}>Nº</th>
                       <th style={s.th}>Atleta</th>
                       <th style={s.th}>Clube / Equipe</th>
                       <th style={{ ...s.th, textAlign: "center", width: 120 }}>Medalha</th>
@@ -507,29 +611,31 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                     {atletasOrdenados.map(({ atl, posicao, tipoCalculado }) => {
                       if (!atl) return null;
                       const medalha = getMedalha(prova.id, cat.id, sexo, atl.id);
-                      const tipo = eventoAtual?.medalhasApenasParticipacao
+                      const tipo = apenasParticipacao
                         ? "participacao"
                         : (medalha.tipo || tipoCalculado);
                       const conf = tipo ? MEDALHA_CONFIG[tipo] : null;
 
                       // Verificar bloqueios de participação
                       const isParticipacao = tipo === "participacao";
+                      const dnsTodas = isParticipacao && !medalha.entregue && atletaSomenteDns(atl.id);
                       const participacoesEntregues = contarParticipacoes(atl.id);
-                      const jaAtigindoLimite = isParticipacao && !medalha.entregue
+                      const jaAtigindoLimite = isParticipacao && !medalha.entregue && !dnsTodas
                         && participacoesEntregues.length >= limiteParticipacao;
-                      const classificacaoBloqueio = isParticipacao && !medalha.entregue
+                      const classificacaoBloqueio = isParticipacao && !medalha.entregue && !dnsTodas
                         && classificacaoBloqueiaParticipacao
                         && temClassificacaoEntregue(atl.id);
-                      const pendentes = isParticipacao && !medalha.entregue && !classificacaoBloqueio && !jaAtigindoLimite
+                      const pendentes = isParticipacao && !medalha.entregue && !dnsTodas && !classificacaoBloqueio && !jaAtigindoLimite
                         ? provasPendentes(atl.id).filter(nome => nome !== prova.nome)
                         : [];
                       const bloqueadoPorPendentes = pendentes.length > 0;
 
                       return (
                         <tr key={`${prova.id}_${cat.id}_${sexo}_${atl.id}`} style={{ background: conf ? conf.bg : undefined }}>
-                          <td style={{ ...s.td, textAlign: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 18, color: conf ? conf.cor : "#444" }}>
+                          <td style={{ ...s.td, textAlign: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 18, color: conf ? conf.cor : t.textDisabled }}>
                             {posicao ? `${posicao}º` : "—"}
                           </td>
+                          <td style={{ ...s.td, textAlign: "center", fontWeight: 700, color: t.warning, fontSize: 14, fontFamily: "'Barlow Condensed', sans-serif" }}>{peitos[atl.id] || "—"}</td>
                           <td style={s.td}>
                             <span style={s.nomeAtleta}>{atl.nome}</span>
                           </td>
@@ -546,7 +652,11 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                           <td style={{ ...s.td, textAlign: "center" }}>
                             {tipo ? (
                               <div style={{ display: "flex", flexDirection: "column", gap: 3, alignItems: "center" }}>
-                                {classificacaoBloqueio ? (
+                                {dnsTodas ? (
+                                  <button style={s.btnDisabled} disabled>
+                                    🚫 DNS em todas as provas
+                                  </button>
+                                ) : classificacaoBloqueio ? (
                                   <button style={s.btnDisabled} disabled>
                                     🏅 Tem classificação
                                   </button>
@@ -617,32 +727,60 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
         const totais = { ouro: 0, prata: 0, bronze: 0, participacao: 0, pendentes: 0 };
         const porEquipe = {};
 
-        provasFiltradasMedalhas.forEach(({ prova, cat, sexo, atletas: atls }) => {
-          const classificados = getClassificados(prova, cat, sexo);
-          const temRes = classificados.length > 0;
+        if (apenasParticipacao) {
+          // Modo participação: contar por ATLETA (não por inscrição)
+          // Cada atleta recebe no máximo 1 medalha de participação
+          const atletasUnicos = new Set();
+          provasFiltradasMedalhas.forEach(({ atletas: atls }) => {
+            atls.forEach(a => atletasUnicos.add(a.id));
+          });
 
-          const atletasOrdenados = temRes
-            ? [
-                ...classificados.map(({ aId }, idx) => ({ aId, tipo: getTipoMedalha(idx + 1) })),
-                ...atls.filter(a => !classificados.some(c => c.aId === a.id)).map(a => ({ aId: a.id, tipo: "participacao" })),
-              ]
-            : atls.map(a => ({ aId: a.id, tipo: "participacao" }));
-
-          atletasOrdenados.forEach(({ aId, tipo }) => {
-            if (!tipo) return;
-            const medalha = getMedalha(prova.id, cat.id, sexo, aId);
+          atletasUnicos.forEach(aId => {
+            // Atleta com DNS em todas as provas não recebe medalha
+            if (atletaSomenteDns(aId)) return;
             const atl = atletas.find(a => a.id === aId);
             const equipe = atl?.clube || "Sem equipe";
-
-            if (medalha.entregue) {
-              totais[tipo] = (totais[tipo] || 0) + 1;
+            // Verificar se TEM entrega em qualquer prova do evento
+            const entregue = Object.entries(medalhas).some(([key, val]) =>
+              key.startsWith(eid + "_") && key.endsWith("_" + aId) && val.entregue
+            );
+            if (entregue) {
+              totais.participacao++;
               if (!porEquipe[equipe]) porEquipe[equipe] = { ouro: 0, prata: 0, bronze: 0, participacao: 0 };
-              porEquipe[equipe][tipo] = (porEquipe[equipe][tipo] || 0) + 1;
+              porEquipe[equipe].participacao++;
             } else {
               totais.pendentes++;
             }
           });
-        });
+        } else {
+          // Modo normal: contar por inscrição/prova
+          provasFiltradasMedalhas.forEach(({ prova, cat, sexo, atletas: atls }) => {
+            const classificados = getClassificados(prova, cat, sexo);
+            const temRes = classificados.length > 0;
+
+            const atletasOrdenados = temRes
+              ? [
+                  ...classificados.map(({ aId }, idx) => ({ aId, tipo: getTipoMedalha(idx + 1) })),
+                  ...atls.filter(a => !classificados.some(c => c.aId === a.id)).map(a => ({ aId: a.id, tipo: "participacao" })),
+                ]
+              : atls.map(a => ({ aId: a.id, tipo: "participacao" }));
+
+            atletasOrdenados.forEach(({ aId, tipo }) => {
+              if (!tipo) return;
+              const medalha = getMedalha(prova.id, cat.id, sexo, aId);
+              const atl = atletas.find(a => a.id === aId);
+              const equipe = atl?.clube || "Sem equipe";
+
+              if (medalha.entregue) {
+                totais[tipo] = (totais[tipo] || 0) + 1;
+                if (!porEquipe[equipe]) porEquipe[equipe] = { ouro: 0, prata: 0, bronze: 0, participacao: 0 };
+                porEquipe[equipe][tipo] = (porEquipe[equipe][tipo] || 0) + 1;
+              } else {
+                totais.pendentes++;
+              }
+            });
+          });
+        }
 
         const totalEntregues = totais.ouro + totais.prata + totais.bronze + totais.participacao;
         const totalGeral = totalEntregues + totais.pendentes;

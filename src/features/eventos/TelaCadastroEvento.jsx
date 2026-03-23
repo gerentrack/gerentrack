@@ -344,13 +344,14 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
     if (!("valorInscricao"      in base)) base.valorInscricao      = "";
     if (!("formaPagamento"      in base)) base.formaPagamento      = "";
     if (!("orientacaoPagamento" in base)) base.orientacaoPagamento = "";
+    if (!("modoMedalhas" in base)) base.modoMedalhas = base.medalhasApenasParticipacao ? "apenas_participacao" : "classificacao_participacao";
     return base;
   });
   const [erros, setErros] = useState({});
   // Steps: 1=Dados | 2=Configurações | 3=Provas | 4=Horários (editing only)
   const [step, setStep] = useState(1);
   // Acordeões do step 2
-  const [acordeoes, setAcordeoes] = useState({ limites: false, precos: false, logos: false });
+  const [acordeoes, setAcordeoes] = useState({ limites: false, precos: false, logos: false, medalhas: false });
   const toggleAcordeo = (key) => setAcordeoes(a => ({ ...a, [key]: !a[key] }));
 
   // Número total de steps
@@ -440,6 +441,13 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
   const resumoLogos = (() => {
     const n = [form.logoCompeticao, form.logoCabecalho, form.logoCabecalhoDireito, form.logoRodape].filter(Boolean).length;
     return n === 0 ? "Nenhuma imagem carregada" : `${n} imagem(ns) carregada(s) ✓`;
+  })();
+
+  const resumoMedalhas = (() => {
+    const m = form.modoMedalhas || "classificacao_participacao";
+    if (m === "apenas_participacao") return "🎖️ Somente participação";
+    if (m === "apenas_classificacao") return "🥇 Somente classificação";
+    return "🏅 Classificação + participação";
   })();
 
   return (
@@ -1143,6 +1151,37 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
                 )}
               </div>
             </div>
+          </Acordeao>
+
+          {/* ── Modo de Medalhas ── */}
+          <Acordeao keyName="medalhas" aberto={acordeoes["medalhas"]} onToggle={toggleAcordeo} titulo="Modo de Medalhas" icone="🏅" resumo={resumoMedalhas}>
+            <div style={{ fontSize:12, color: t.textMuted, marginBottom:12 }}>
+              Define como as medalhas serão atribuídas na Secretaria da competição.
+            </div>
+            {[
+              { value: "classificacao_participacao", icon: "🏅", label: "Classificação + Participação", desc: "1º/2º/3º recebem ouro/prata/bronze. Demais recebem participação.", cor: t.accent },
+              { value: "apenas_participacao", icon: "🎖️", label: "Somente Participação", desc: "Todos os atletas recebem medalha de participação, sem ouro/prata/bronze.", cor: t.warning },
+              { value: "apenas_classificacao", icon: "🥇", label: "Somente Classificação", desc: "Apenas 1º/2º/3º recebem medalha (ouro/prata/bronze). Sem medalha de participação.", cor: t.gold },
+            ].map(opt => {
+              const ativo = (form.modoMedalhas || "classificacao_participacao") === opt.value;
+              return (
+                <label key={opt.value} style={{
+                  display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 12px", marginBottom: 6,
+                  background: ativo ? `${opt.cor}12` : "transparent", border: `1px solid ${ativo ? opt.cor+"44" : t.border}`,
+                  borderRadius: 8, cursor: "pointer",
+                }}>
+                  <input type="radio" name="modoMedalhasCad" checked={ativo}
+                    onChange={() => setForm(f => ({ ...f, modoMedalhas: opt.value, medalhasApenasParticipacao: opt.value === "apenas_participacao" }))}
+                    style={{ width:16, height:16, accentColor: opt.cor, cursor:"pointer", marginTop:2, flexShrink:0 }} />
+                  <div>
+                    <div style={{ fontWeight:700, color: ativo ? opt.cor : t.textTertiary, fontSize:13 }}>
+                      {opt.icon} {opt.label}
+                    </div>
+                    <div style={{ fontSize:11, color: t.textDimmed, marginTop:2 }}>{opt.desc}</div>
+                  </div>
+                </label>
+              );
+            })}
           </Acordeao>
 
           {/* ── Navegação Step 2 ── */}
