@@ -281,9 +281,9 @@ export default function QrScanner({
   }
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: t.bgOverlay, zIndex: 9000, display: "flex", flexDirection: "column" }}>
+    <div style={{ position: "fixed", inset: 0, background: t.bgOverlay, zIndex: 9000, display: "flex", flexDirection: "column", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
       {/* Header */}
-      <div style={{ background: t.bgHeaderSolid, padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `1px solid ${t.border}` }}>
+      <div style={{ background: t.bgHeaderSolid, paddingTop: "calc(env(safe-area-inset-top, 0px) + 10px)", paddingBottom: 10, paddingLeft: 16, paddingRight: 16, display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `1px solid ${t.border}` }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: t.textPrimary, letterSpacing: 1 }}>
             📷 SCANNER QR
