@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { auth, createUserWithEmailAndPassword, signOut as firebaseSignOut } from "../../firebase";
 import { validarCNPJ, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { criarInscricaoStyles } from "../inscricoes/inscricaoStyles";

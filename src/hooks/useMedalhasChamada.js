@@ -104,7 +104,12 @@ export function useMedalhasChamada(eventoId) {
 
   const getPresencaProva = useCallback((provaId, catId, sexo) => {
     const key = chamadaKey(eventoId, provaId, catId, sexo);
-    return chamada[key] || {};
+    const raw = chamada[key] || {};
+    const sanitized = {};
+    Object.entries(raw).forEach(([aId, val]) => {
+      sanitized[aId] = (val === "confirmado" || val === "dns") ? val : null;
+    });
+    return sanitized;
   }, [eventoId, chamada]);
 
   // ── Medalhas: marcar entrega ─────────────────────────────────────────────

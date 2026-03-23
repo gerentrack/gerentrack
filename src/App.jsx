@@ -228,7 +228,7 @@ function App() {
       setAdminConfig(prev => ({
         email: oldE || prev.email,
         nome: oldN || prev.nome,
-        senha: oldS || prev.senha,
+        configurado: true,
       }));
       localStorage.removeItem("gerentrack_admin_email");
       localStorage.removeItem("gerentrack_admin_nome");
@@ -1186,7 +1186,6 @@ function App() {
 
   const limparTodosDados = async () => {
     if (!await confirmar("⚠️ ATENÇÃO: Esta ação é IRREVERSÍVEL e EXTREMAMENTE DESTRUTIVA!\n\nVocê está prestes a APAGAR TODOS OS DADOS do sistema:\n\n• Todas as competições\n• Todos os atletas\n• Todas as equipes\n• Todos os organizadores\n• Todas as inscrições\n• Todos os resultados\n• Todos os recordes\n• Todas as pendências de recorde\n• Todo o histórico\n\n⚠️ AS CONTAS DE LOGIN (Firebase Auth) NÃO SERÃO APAGADAS.\nOs usuários ainda conseguirão fazer login, mas sem perfil no sistema.\nPara apagar as contas de login, acesse o Console do Firebase manualmente.\n\nEsta ação NÃO PODE SER DESFEITA.\n\nDeseja realmente continuar?")) return;
-    resetEquipes();
     setOrganizadores([]);
     setAtletasUsuarios([]);
     setSolicitacoesRecuperacao([]);

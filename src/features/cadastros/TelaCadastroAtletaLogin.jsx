@@ -101,6 +101,7 @@ function BlocoLGPD({ aceite, onChange, erro }) {
 // ── Bloco de Consentimento Parental (Art. 14 LGPD) ───────────────────────────
 function BlocoConsentimentoParental({ responsavel, onResponsavel, aceite, onChange, erroResponsavel, erroAceite }) {
   const t = useTema();
+  const styles = getStyles(t);
   return (
     <div style={{ background:`${t.success}11`, border:`1px solid ${t.success}44`, borderRadius:10,
       padding:"16px 18px", marginTop:16 }}>

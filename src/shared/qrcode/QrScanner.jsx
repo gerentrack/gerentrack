@@ -48,6 +48,7 @@ export default function QrScanner({
   const inatividadeRef = useRef(null);
   const ultimoScanRef = useRef(null);
   const processandoRef = useRef(false);
+  const fecharScannerRef = useRef(null);
 
   // Monitorar status online/offline
   useEffect(() => {
@@ -70,7 +71,7 @@ export default function QrScanner({
   const resetInatividade = useCallback(() => {
     if (inatividadeRef.current) clearTimeout(inatividadeRef.current);
     inatividadeRef.current = setTimeout(() => {
-      fecharScanner();
+      fecharScannerRef.current?.();
     }, INATIVIDADE_MS);
   }, []);
 
@@ -136,6 +137,7 @@ export default function QrScanner({
       if (onFechar) onFechar();
     }
   }, [onFechar, sessaoStats.total]);
+  fecharScannerRef.current = fecharScanner;
 
   // Toggle lanterna
   const toggleLanterna = useCallback(async () => {

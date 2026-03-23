@@ -264,7 +264,7 @@ function TelaNumericaPeito({ setTela, eventoAtual, inscricoes, atletas, equipes,
         const eqNome = getEquipeNome(a) === "ZZZ_SEM_EQUIPE" ? "" : getEquipeNome(a);
         const cat = getCategoria(a.anoNasc, anoComp);
         const peito = editNum[a.id] ?? numMap[a.id] ?? "";
-        const provas = inscsEvt.filter(i => i.atletaId === a.id && !i.origemCombinada).map(i => {
+        const provas = inscsEvt.filter(i => i.atletaId === a.id && !i.combinadaId).map(i => {
           const p = todasAsProvas().find(pp => pp.id === i.provaId);
           return p?.nome || i.provaId;
         }).join(", ");
@@ -382,7 +382,7 @@ function TelaNumericaPeito({ setTela, eventoAtual, inscricoes, atletas, equipes,
       "CPF": a.cpf || "",
       "Data Nasc.": a.dataNasc || "",
       "Sexo": a.sexo || "",
-      "Provas": inscsEvt.filter(i => i.atletaId === a.id && !i.origemCombinada).map(i => {
+      "Provas": inscsEvt.filter(i => i.atletaId === a.id && !i.combinadaId).map(i => {
         const p = todasAsProvas().find(pp => pp.id === i.provaId);
         return p?.nome || i.provaId;
       }).join(", "),
@@ -403,7 +403,7 @@ function TelaNumericaPeito({ setTela, eventoAtual, inscricoes, atletas, equipes,
       const eqNome = getEquipeNome(a) === "ZZZ_SEM_EQUIPE" ? "—" : getEquipeNome(a);
       const cat = getCategoria(a.anoNasc, anoComp);
       const peito = editNum[a.id] ?? numMap[a.id] ?? "";
-      const provas = inscsEvt.filter(i => i.atletaId === a.id && !i.origemCombinada).map(i => {
+      const provas = inscsEvt.filter(i => i.atletaId === a.id && !i.combinadaId).map(i => {
         const p = todasAsProvas().find(pp => pp.id === i.provaId);
         return p?.nome || i.provaId;
       }).join(", ");
@@ -567,7 +567,7 @@ function TelaNumericaPeito({ setTela, eventoAtual, inscricoes, atletas, equipes,
               const novaEquipe = eqNome !== equipeAtual;
               equipeAtual = eqNome;
               const cat = getCategoria(a.anoNasc, anoComp);
-              const provas = inscsEvt.filter(i => i.atletaId === a.id && !i.origemCombinada).map(i => {
+              const provas = inscsEvt.filter(i => i.atletaId === a.id && !i.combinadaId).map(i => {
                 const p = todasAsProvas().find(pp => pp.id === i.provaId);
                 return p?.nome || i.provaId;
               }).join(", ");
