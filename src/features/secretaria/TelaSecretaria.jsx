@@ -357,6 +357,44 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
     atualizarPresenca(grupo.prova.id, cat.id, grupo.sexo, atletaId, null);
   }, [atletas, filtroProva, provasComAtletas, atualizarPresenca, peitoParaAtleta, anoComp]);
 
+  // ── Calcular info de medalhas do atleta (reutilizável) ──────────────────────
+  const calcularMedalhasAtleta = useCallback((atletaId) => {
+    const todasProvasMedalha = provasComAtletas.filter(g => !g.prova.origemCombinada);
+    return todasProvasMedalha
+      .filter(g => g.atletas.some(a => a.id === atletaId))
+      .map(g => {
+        const classificados = getClassificados(g.prova, g.cat, g.sexo);
+        const idx = classificados.findIndex(c => c.aId === atletaId);
+        const posicao = idx >= 0 ? idx + 1 : null;
+        const tipoCalculado = posicao ? getTipoMedalha(posicao) : (apenasClassificacao ? null : "participacao");
+        const medalha = getMedalha(g.prova.id, g.cat.id, g.sexo, atletaId);
+        const tipo = apenasParticipacao ? "participacao" : (medalha.tipo || tipoCalculado);
+        const conf = tipo ? MEDALHA_CONFIG[tipo] : null;
+        const isParticipacao = tipo === "participacao";
+        const dnsTodas = isParticipacao && !medalha.entregue && atletaSomenteDns(atletaId);
+        const jaLimite = isParticipacao && !medalha.entregue && !dnsTodas && contarParticipacoes(atletaId).length >= limiteParticipacao;
+        const classBloq = isParticipacao && !medalha.entregue && !dnsTodas && classificacaoBloqueiaParticipacao && temClassificacaoEntregue(atletaId);
+        const pend = isParticipacao && !medalha.entregue && !dnsTodas && !classBloq && !jaLimite
+          ? provasPendentes(atletaId).filter(nome => nome !== g.prova.nome) : [];
+        let bloqueio = null;
+        if (dnsTodas) bloqueio = "🚫 DNS em todas as provas";
+        else if (classBloq) bloqueio = "🏅 Tem classificação";
+        else if (pend.length > 0) bloqueio = `⏳ Provas pendentes: ${pend.slice(0,2).join(", ")}`;
+        else if (jaLimite) bloqueio = "🚫 Limite atingido";
+        return { prova: g.prova, cat: g.cat, sexo: g.sexo, posicao, tipo, conf, medalha, bloqueio };
+      });
+  }, [provasComAtletas, getClassificados, getTipoMedalha, getMedalha, MEDALHA_CONFIG,
+      apenasParticipacao, apenasClassificacao, atletaSomenteDns, contarParticipacoes,
+      classificacaoBloqueiaParticipacao, temClassificacaoEntregue, provasPendentes, limiteParticipacao]);
+
+  // Recalcular modal quando medalhas mudam (ex: após entrega)
+  React.useEffect(() => {
+    if (medalhaAtletaInfo) {
+      const provasAtualizadas = calcularMedalhasAtleta(medalhaAtletaInfo.atl.id);
+      setMedalhaAtletaInfo(prev => prev ? { ...prev, provas: provasAtualizadas } : null);
+    }
+  }, [medalhas]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── Scanner QR — medalhas ──────────────────────────────────────────────────
   const handleScanMedalha = useCallback((raw) => {
     const qr = parsearQrSecretaria(raw);
@@ -376,35 +414,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
     const peito = peitos[atletaId] || "";
     const nomeDisplay = `${peito ? "#" + peito + " " : ""}${atl.nome}`;
 
-    // Buscar TODAS as provas do atleta (sem filtro de prova)
-    const todasProvasMedalha = provasComAtletas.filter(g => !g.prova.origemCombinada);
-    const provasDoAtleta = todasProvasMedalha
-      .filter(g => g.atletas.some(a => a.id === atletaId))
-      .map(g => {
-        const classificados = getClassificados(g.prova, g.cat, g.sexo);
-        const idx = classificados.findIndex(c => c.aId === atletaId);
-        const posicao = idx >= 0 ? idx + 1 : null;
-        const tipoCalculado = posicao ? getTipoMedalha(posicao) : (apenasClassificacao ? null : "participacao");
-        const medalha = getMedalha(g.prova.id, g.cat.id, g.sexo, atletaId);
-        const tipo = apenasParticipacao ? "participacao" : (medalha.tipo || tipoCalculado);
-        const conf = tipo ? MEDALHA_CONFIG[tipo] : null;
-
-        // Bloqueios
-        const isParticipacao = tipo === "participacao";
-        const dnsTodas = isParticipacao && !medalha.entregue && atletaSomenteDns(atletaId);
-        const jaLimite = isParticipacao && !medalha.entregue && !dnsTodas && contarParticipacoes(atletaId).length >= limiteParticipacao;
-        const classBloq = isParticipacao && !medalha.entregue && !dnsTodas && classificacaoBloqueiaParticipacao && temClassificacaoEntregue(atletaId);
-        const pend = isParticipacao && !medalha.entregue && !dnsTodas && !classBloq && !jaLimite
-          ? provasPendentes(atletaId).filter(nome => nome !== g.prova.nome) : [];
-
-        let bloqueio = null;
-        if (dnsTodas) bloqueio = "🚫 DNS em todas as provas";
-        else if (classBloq) bloqueio = "🏅 Tem classificação";
-        else if (pend.length > 0) bloqueio = `⏳ Provas pendentes: ${pend.slice(0,2).join(", ")}`;
-        else if (jaLimite) bloqueio = "🚫 Limite atingido";
-
-        return { prova: g.prova, cat: g.cat, sexo: g.sexo, posicao, tipo, conf, medalha, bloqueio };
-      });
+    const provasDoAtleta = calcularMedalhasAtleta(atletaId);
 
     if (provasDoAtleta.length === 0) {
       beepAviso(); vibrarAviso();
@@ -416,10 +426,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
     setMedalhaAtletaInfo({ atl, peito, provas: provasDoAtleta });
     beepOk(); vibrarOk();
     return { status: "ok", msg: `🏅 ${nomeDisplay} — ${provasDoAtleta.length} prova(s)`, cor: "verde" };
-  }, [eid, atletas, provasFiltradasMedalhas, getClassificados, getTipoMedalha, getMedalha, MEDALHA_CONFIG,
-      apenasParticipacao, apenasClassificacao, atletaSomenteDns, contarParticipacoes,
-      classificacaoBloqueiaParticipacao, temClassificacaoEntregue, provasPendentes,
-      limiteParticipacao, peitoParaAtleta, peitos]);
+  }, [eid, atletas, calcularMedalhasAtleta, peitoParaAtleta, peitos]);
 
   // Contador para o scanner
   const contadorScanLabel = useMemo(() => {
@@ -684,11 +691,6 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                       <button
                         onClick={() => {
                           marcarEntrega(p.prova.id, p.cat.id, p.sexo, medalhaAtletaInfo.atl.id, p.tipo, usuarioLogado?.id, usuarioLogado?.nome);
-                          // Atualizar info local
-                          setMedalhaAtletaInfo(prev => ({
-                            ...prev,
-                            provas: prev.provas.map((pp, j) => j === i ? { ...pp, medalha: { ...pp.medalha, entregue: !pp.medalha.entregue } } : pp),
-                          }));
                           if (!p.medalha.entregue) { beepOk(); vibrarOk(); }
                         }}
                         style={{
@@ -713,10 +715,6 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                     elegibles.forEach(p => {
                       marcarEntrega(p.prova.id, p.cat.id, p.sexo, medalhaAtletaInfo.atl.id, p.tipo, usuarioLogado?.id, usuarioLogado?.nome);
                     });
-                    setMedalhaAtletaInfo(prev => ({
-                      ...prev,
-                      provas: prev.provas.map(pp => !pp.bloqueio && !pp.medalha.entregue && pp.tipo ? { ...pp, medalha: { ...pp.medalha, entregue: true } } : pp),
-                    }));
                     beepOk(); vibrarOk();
                   }}
                   style={{ ...s.btn(t.success, `${t.success}15`), width: "100%", padding: "10px 16px", marginTop: 4, fontSize: 14 }}>
