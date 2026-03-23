@@ -20,7 +20,7 @@ function getStatusInscricoes(ev) {
 }
 
 function getStyles(t) { return {
-  header: { background: t.bgHeader, borderBottom: `1px solid ${t.border}`, position: "sticky", top: 0, zIndex: 100, boxShadow: t.shadowLg },
+  header: { background: t.bgHeader, borderBottom: `1px solid ${t.border}`, position: "sticky", top: 0, zIndex: 100, boxShadow: t.shadowLg, paddingTop: "env(safe-area-inset-top, 0px)" },
   headerInner: { maxWidth: 1200, margin: "0 auto", padding: "14px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 },
   headerInnerMobile: { maxWidth: 1200, margin: "0 auto", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 },
   logo: { background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 14 },

@@ -128,6 +128,8 @@ import { TemaProvider } from "./shared/TemaContext";
 import { temaDark, temaLight } from "./shared/tema";
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
+import AtualizacaoDisponivel from "./features/ui/AtualizacaoDisponivel";
+import BannerInstalar from "./features/ui/BannerInstalar";
 
 // SheetJS for Excel file handling - will be loaded via script tag in HTML
 
@@ -156,6 +158,13 @@ function App() {
 
   const [usuarioLogado, setUsuarioLogado] = useLocalOnly("atl_usuario", null);
   const [temaClaro, setTemaClaro] = useLocalOnly("gt_tema_claro", false);
+
+  // PWA: atualizar theme-color da barra do navegador/sistema
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", temaClaro ? "#FFFFFF" : "#0D0E12");
+  }, [temaClaro]);
+
   const [auditoria, _setAuditoria] = useLocalStorage("atl_auditoria", []);
   // Wrapper com limite de 500 entradas — protege o documento Firestore de ultrapassar 1MB
   const setAuditoria = (fn) => _setAuditoria(prev => {
@@ -1527,6 +1536,8 @@ function App() {
     <TemaProvider temaClaro={temaClaro}>
     <ConfirmProvider>
     <ConfirmBridge />
+    <AtualizacaoDisponivel />
+    <BannerInstalar />
     <div style={{ ...styles.root, background: temaClaro ? temaLight.bgPage : temaDark.bgPage, color: temaClaro ? temaLight.textPrimary : temaDark.textPrimary }} className={temaClaro ? "tema-claro" : ""}>
       <style>{cssGlobal}</style>
 
