@@ -5,7 +5,7 @@ import { _getLocalEventoDisplay, _getNascDisplay, validarCNPJ, emailJaCadastrado
 import { StatCard } from "../ui/StatCard";
 import FormField from "../ui/FormField";
 import { Th, Td } from "../ui/TableHelpers";
-import { auth, createUserWithEmailAndPassword, signOut as firebaseSignOut, sendPasswordResetEmail } from "../../firebase";
+import { auth, secondaryAuth, createUserWithEmailAndPassword, signOut as firebaseSignOut, sendPasswordResetEmail } from "../../firebase";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 
@@ -131,8 +131,10 @@ function TelaAdmin({
     if (emailJaCadastrado(formOrg.email, { organizadores, equipes, atletasUsuarios, funcionarios, treinadores })) e.email = "E-mail já cadastrado";
     if (organizadores.some(o => o.cnpj && formOrg.cnpj && o.cnpj.replace(/\D/g,"") === formOrg.cnpj.replace(/\D/g,""))) e.cnpj = "CNPJ já cadastrado";
     if (Object.keys(e).length) { setErrosOrg(e); return; }
-    try { await createUserWithEmailAndPassword(auth, formOrg.email.trim(), formOrg.senha); } catch (_) {}
-    await firebaseSignOut(auth).catch(() => {});
+    try {
+      await createUserWithEmailAndPassword(secondaryAuth, formOrg.email.trim(), formOrg.senha);
+      await firebaseSignOut(secondaryAuth).catch(() => {});
+    } catch (_) {}
     adicionarOrganizador({ ...formOrg, id:Date.now().toString(), status:"aprovado", dataCadastro:new Date().toISOString(), tipo:"organizador" });
     setFormOrg({ nome:"", email:"", senha:"", entidade:"", fone:"", cnpj:"" });
     setErrosOrg({}); setSalvoOrg(true); setTimeout(() => setSalvoOrg(false), 3000); setShowOrgForm(false);

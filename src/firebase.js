@@ -34,6 +34,10 @@ const db  = getFirestore(app);
 const auth = getAuth(app);
 const storage = getStorage(app);
 
+// Segunda instância exclusiva para criar contas sem afetar a sessão atual
+const secondaryApp = initializeApp(firebaseConfig, "secondary");
+const secondaryAuth = getAuth(secondaryApp);
+
 export {
   // Firestore — existentes
   db, doc, setDoc, onSnapshot,
@@ -44,4 +48,6 @@ export {
   signOut, sendPasswordResetEmail, updatePassword, onAuthStateChanged,
   // Storage
   storage, storageRef, uploadBytes, getDownloadURL, deleteObject,
+  // Auth secundário (criar contas sem deslogar o usuário atual)
+  secondaryAuth,
 };

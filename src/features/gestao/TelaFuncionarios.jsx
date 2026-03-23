@@ -3,7 +3,7 @@ import { useConfirm } from "../../features/ui/ConfirmContext";
 import { validarCPF, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { Th, Td } from "../ui/TableHelpers";
-import { auth, createUserWithEmailAndPassword, signOut as firebaseSignOut } from "../../firebase";
+import { secondaryAuth, createUserWithEmailAndPassword, signOut as firebaseSignOut } from "../../firebase";
 const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
@@ -283,9 +283,15 @@ function TelaFuncionarios({ usuarioLogado, setTela, funcionarios, adicionarFunci
       // Criar no Firebase Auth apenas se for perfil novo
       if (!docExistente) {
         try {
-          await createUserWithEmailAndPassword(auth, form.email.trim(), form.senha);
-        } catch (err) { if (err.code !== "auth/email-already-in-use") { /* ok */ } }
-        await firebaseSignOut(auth).catch(() => {});
+          await createUserWithEmailAndPassword(secondaryAuth, form.email.trim(), form.senha);
+          await firebaseSignOut(secondaryAuth).catch(() => {});
+        } catch (err) {
+          if (err.code !== "auth/email-already-in-use") {
+            setFeedback(`❌ Erro ao criar conta: ${err.message}`);
+            setTimeout(() => setFeedback(""), 5000);
+            return;
+          }
+        }
       }
       adicionarFuncionario(novo);
       registrarAcao(usuarioLogado.id, usuarioLogado.nome,

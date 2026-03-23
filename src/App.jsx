@@ -99,6 +99,7 @@ import {
   setDoc,
   onSnapshot,
   auth,
+  secondaryAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
@@ -632,8 +633,8 @@ function App() {
           const emailAuth = (solicitacao?.email || atletaBase.email || "").trim();
           if (emailAuth) {
             try {
-              await createUserWithEmailAndPassword(auth, emailAuth, senhaTemp);
-              await firebaseSignOut(auth).catch(() => {});
+              await createUserWithEmailAndPassword(secondaryAuth, emailAuth, senhaTemp);
+              await firebaseSignOut(secondaryAuth).catch(() => {});
             } catch (authErr) {
               // auth/email-already-in-use: conta já existe no Auth com senha própria — não faz nada.
               // O flag senhaTemporaria já foi setado e forçará a troca no próximo login.
@@ -655,8 +656,8 @@ function App() {
       const emailAuth = registro?.email?.trim();
       if (emailAuth) {
         try {
-          await createUserWithEmailAndPassword(auth, emailAuth, senhaTemp);
-          await firebaseSignOut(auth).catch(() => {});
+          await createUserWithEmailAndPassword(secondaryAuth, emailAuth, senhaTemp);
+          await firebaseSignOut(secondaryAuth).catch(() => {});
         } catch (authErr) {
           // auth/email-already-in-use: conta já existe no Auth — não faz nada.
           // O flag senhaTemporaria já foi setado e forçará a troca no próximo login.
@@ -865,7 +866,21 @@ function App() {
     }, ...p]);
 
   const marcarNotifLida = (id) =>
-    setNotificacoes(p => p.map(n => n.id === id ? {...n, lida: true} : n));
+    setNotificacoes(p => p.map(n => n.id === id ? {...n, lida: true, lidaEm: new Date().toISOString()} : n));
+
+  // Limpar notificações: lidas há +48h, não lidas há +168h (7 dias)
+  useEffect(() => {
+    const agora = Date.now();
+    const _48h = 48 * 60 * 60 * 1000;
+    const _168h = 168 * 60 * 60 * 1000;
+    setNotificacoes(p => {
+      const filtradas = p.filter(n => {
+        if (n.lida && n.lidaEm) return agora - new Date(n.lidaEm).getTime() < _48h;
+        return agora - new Date(n.data).getTime() < _168h;
+      });
+      return filtradas.length === p.length ? p : filtradas;
+    });
+  }, []);
 
   // ── Solicitações de relatório de participação ──
   const solicitarRelatorio = (solicitanteId, solicitanteNome, solicitanteTipo, eventoId, eventoNome, atletaIds = [], equipeId = null, assinaturaEquipe = null) => {
