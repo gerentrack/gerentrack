@@ -62,22 +62,22 @@ export default function QrScanner({
         { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1 },
         (texto) => {
           if (processandoRef.current) return;
-          if (ultimoScanRef.current === texto && Date.now() - (ultimoScanRef.current?._ts || 0) < 2000) return;
+          const agora = Date.now();
+          // Debounce: ignorar mesmo QR lido nos últimos 2s
+          if (ultimoScanRef.current?.texto === texto && agora - ultimoScanRef.current.ts < 2000) return;
           processandoRef.current = true;
-          ultimoScanRef.current = texto;
-          ultimoScanRef.current._ts = Date.now();
+          ultimoScanRef.current = { texto, ts: agora };
 
           const resultado = onScan(texto);
-          if (resultado) {
-            setHistorico(prev => [{ dados: texto, ...resultado, ts: Date.now() }, ...prev].slice(0, 5));
-            setSessaoStats(prev => ({
-              total: prev.total + 1,
-              bloqueados: prev.bloqueados + (resultado.cor === "vermelho" ? 1 : 0),
-              duplicados: prev.duplicados + (resultado.cor === "azul" ? 1 : 0),
-            }));
-          }
+          const res = resultado || { status: "erro", msg: "❌ QR não reconhecido", cor: "vermelho" };
+          setHistorico(prev => [{ dados: texto, ...res, ts: agora }, ...prev].slice(0, 5));
+          setSessaoStats(prev => ({
+            total: prev.total + 1,
+            bloqueados: prev.bloqueados + (res.cor === "vermelho" ? 1 : 0),
+            duplicados: prev.duplicados + (res.cor === "azul" ? 1 : 0),
+          }));
           resetInatividade();
-          setTimeout(() => { processandoRef.current = false; }, 1000);
+          setTimeout(() => { processandoRef.current = false; }, 1500);
         },
         () => {} // erro de leitura contínua (ignorar)
       );
@@ -129,14 +129,13 @@ export default function QrScanner({
     const val = inputManual.trim();
     if (!val) return;
     const resultado = onScan(val);
-    if (resultado) {
-      setHistorico(prev => [{ dados: val, ...resultado, ts: Date.now(), manual: true }, ...prev].slice(0, 5));
-      setSessaoStats(prev => ({
-        total: prev.total + 1,
-        bloqueados: prev.bloqueados + (resultado.cor === "vermelho" ? 1 : 0),
-        duplicados: prev.duplicados + (resultado.cor === "azul" ? 1 : 0),
-      }));
-    }
+    const res = resultado || { status: "erro", msg: `❌ Nº ${val} não reconhecido`, cor: "vermelho" };
+    setHistorico(prev => [{ dados: val, ...res, ts: Date.now(), manual: true }, ...prev].slice(0, 5));
+    setSessaoStats(prev => ({
+      total: prev.total + 1,
+      bloqueados: prev.bloqueados + (res.cor === "vermelho" ? 1 : 0),
+      duplicados: prev.duplicados + (res.cor === "azul" ? 1 : 0),
+    }));
     setInputManual("");
     resetInatividade();
   };
