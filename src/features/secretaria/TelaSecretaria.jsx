@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { CATEGORIAS, getCategoria } from "../../shared/constants/categorias";
 import { resKey, getFasesProva, FASE_ORDEM } from "../../shared/constants/fases";
@@ -6,6 +6,9 @@ import { abreviarProva } from "../../shared/formatters/utils";
 import { useMedalhasChamada } from "../../hooks/useMedalhasChamada";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import QrScanner from "../../shared/qrcode/QrScanner";
+import { parsearQrSecretaria } from "../../shared/qrcode/gerarQrCode";
+import { beepOk, beepErro, beepAviso, beepDuplicado, beepInvalido, vibrarOk, vibrarErro, vibrarAviso, vibrarInvalido } from "../../shared/qrcode/scannerSons";
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 // Removido: getStatusChamada — substituído por dois botões independentes (Confirmado / DNS)
@@ -69,6 +72,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
   const [aba, setAba] = useState("chamada");
   const [filtroProva, setFiltroProva] = useState("");
   const [buscaChamada, setBuscaChamada] = useState("");
+  const [scannerAberto, setScannerAberto] = useState(false);
   const [limiteParticipacao, setLimiteParticipacao] = useState(1);
   const [classificacaoBloqueiaParticipacao, setClassificacaoBloqueiaParticipacao] = useState(true);
 
@@ -289,6 +293,91 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
     return !temAlgumaParticipacao;
   };
 
+  // ── Scanner QR — callback de scan ──────────────────────────────────────────
+  const peitos = numeracaoPeito?.[eid] || {};
+  const peitoParaAtleta = useMemo(() => {
+    const map = {};
+    Object.entries(peitos).forEach(([aId, num]) => { map[String(num)] = aId; });
+    return map;
+  }, [peitos]);
+
+  const handleScanChamada = useCallback((raw) => {
+    // Tentar parsear QR da secretaria
+    const qr = parsearQrSecretaria(raw);
+    let atletaId;
+
+    if (qr) {
+      if (qr.eventoId !== eid) { beepInvalido(); vibrarInvalido(); return { status: "erro", msg: "⚠️ QR de outro evento", cor: "vermelho" }; }
+      atletaId = qr.atletaId;
+    } else {
+      // Fallback: input manual (nº peito)
+      atletaId = peitoParaAtleta[raw.trim()];
+      if (!atletaId) { beepInvalido(); vibrarInvalido(); return { status: "erro", msg: `❌ Nº ${raw} não encontrado`, cor: "vermelho" }; }
+    }
+
+    const atl = atletas.find(a => a.id === atletaId);
+    if (!atl) { beepInvalido(); vibrarInvalido(); return { status: "erro", msg: "⚠️ Atleta não encontrado", cor: "vermelho" }; }
+
+    const peito = peitos[atletaId] || "";
+    const nomeDisplay = `${peito ? "#" + peito + " " : ""}${atl.nome}`;
+
+    // Se tem prova selecionada, confirmar nessa prova
+    if (filtroProva) {
+      const cat = getCategoria(atl.anoNasc, anoComp);
+      if (!cat) { beepAviso(); vibrarAviso(); return { status: "aviso", msg: `⚠️ ${nomeDisplay} — categoria indefinida`, cor: "amarelo" }; }
+      // Verificar se atleta está inscrito nesta prova
+      const inscrito = provasComAtletas.some(g => g.prova.id === filtroProva && g.cat.id === cat.id && g.atletas.some(a => a.id === atletaId));
+      if (!inscrito) { beepAviso(); vibrarAviso(); return { status: "aviso", msg: `⚠️ ${nomeDisplay} não inscrito nesta prova`, cor: "amarelo" }; }
+      // Verificar se já confirmado
+      const estado = getPresenca(filtroProva, cat.id, atl.sexo, atletaId);
+      if (estado === "confirmado") { beepDuplicado(); return { status: "duplicado", msg: `🔁 ${nomeDisplay} já confirmado`, cor: "azul" }; }
+      // Confirmar
+      atualizarPresenca(filtroProva, cat.id, atl.sexo, atletaId, "confirmado");
+      beepOk(); vibrarOk();
+      return { status: "ok", msg: `✓ ${nomeDisplay} confirmado`, cor: "verde" };
+    }
+
+    // Sem prova selecionada: confirmar em todas as provas do atleta
+    const cat = getCategoria(atl.anoNasc, anoComp);
+    if (!cat) { beepAviso(); vibrarAviso(); return { status: "aviso", msg: `⚠️ ${nomeDisplay} — categoria indefinida`, cor: "amarelo" }; }
+    const provasDoAtleta = provasComAtletas.filter(g => g.atletas.some(a => a.id === atletaId));
+    if (provasDoAtleta.length === 0) { beepAviso(); vibrarAviso(); return { status: "aviso", msg: `⚠️ ${nomeDisplay} sem provas inscritas`, cor: "amarelo" }; }
+    let jaConfirmado = true;
+    provasDoAtleta.forEach(g => {
+      const estado = getPresenca(g.prova.id, g.cat.id, g.sexo, atletaId);
+      if (estado !== "confirmado") { jaConfirmado = false; atualizarPresenca(g.prova.id, g.cat.id, g.sexo, atletaId, "confirmado"); }
+    });
+    if (jaConfirmado) { beepDuplicado(); return { status: "duplicado", msg: `🔁 ${nomeDisplay} já confirmado em todas`, cor: "azul" }; }
+    beepOk(); vibrarOk();
+    return { status: "ok", msg: `✓ ${nomeDisplay} confirmado em ${provasDoAtleta.length} prova(s)`, cor: "verde" };
+  }, [eid, atletas, filtroProva, provasComAtletas, getPresenca, atualizarPresenca, peitoParaAtleta, peitos, anoComp]);
+
+  const handleDesfazerChamada = useCallback((raw) => {
+    const qr = parsearQrSecretaria(raw);
+    const atletaId = qr ? qr.atletaId : peitoParaAtleta[raw.trim()];
+    if (!atletaId) return;
+    const atl = atletas.find(a => a.id === atletaId);
+    if (!atl) return;
+    const cat = getCategoria(atl.anoNasc, anoComp);
+    if (!cat) return;
+    if (filtroProva) {
+      atualizarPresenca(filtroProva, cat.id, atl.sexo, atletaId, null);
+    } else {
+      provasComAtletas.filter(g => g.atletas.some(a => a.id === atletaId))
+        .forEach(g => atualizarPresenca(g.prova.id, g.cat.id, g.sexo, atletaId, null));
+    }
+  }, [eid, atletas, filtroProva, provasComAtletas, atualizarPresenca, peitoParaAtleta, anoComp]);
+
+  // Contador para o scanner
+  const contadorScanLabel = useMemo(() => {
+    if (!filtroProva) return null;
+    const grupo = provasComAtletas.find(g => g.prova.id === filtroProva);
+    if (!grupo) return null;
+    const presenca = getPresencaProva(grupo.prova.id, grupo.cat.id, grupo.sexo);
+    const confirmados = Object.values(presenca).filter(v => v === "confirmado").length;
+    return `✓ ${confirmados}/${grupo.atletas.length} confirmados — ${grupo.prova.nome} ${grupo.cat.nome} ${grupo.sexo === "M" ? "Masc" : "Fem"}`;
+  }, [filtroProva, provasComAtletas, getPresencaProva]);
+
   // ── Estatísticas rápidas ──────────────────────────────────────────────────
   const statsPresenca = useMemo(() => {
     let confirmado = 0, dns = 0, total = 0;
@@ -352,9 +441,27 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
         </button>
       </div>
 
+      {/* ── Scanner QR (compartilhado entre abas) ── */}
+      <QrScanner
+        aberto={scannerAberto}
+        onScan={handleScanChamada}
+        onDesfazer={handleDesfazerChamada}
+        contadorLabel={contadorScanLabel}
+        onFechar={() => setScannerAberto(false)}
+      />
+
       {/* ── ABA: CÂMARA DE CHAMADA ─────────────────────────────────────────── */}
       {aba === "chamada" && (
         <>
+          {/* Botão Scanner */}
+          <div style={{ marginBottom: 16 }}>
+            <button
+              onClick={() => setScannerAberto(true)}
+              style={{ background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", borderRadius: 10, padding: "12px 24px", cursor: "pointer", fontSize: 15, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, display: "flex", alignItems: "center", gap: 8 }}>
+              📷 Escanear QR Code
+            </button>
+          </div>
+
           {/* Stats */}
           <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
             {[

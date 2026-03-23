@@ -6,6 +6,8 @@ import { getCategoria } from "../../shared/constants/categorias";
 import { Th, Td } from "../ui/TableHelpers";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { gerarQrPublico, gerarQrSecretaria } from "../../shared/qrcode/gerarQrCode";
+import ExcelJS from "exceljs";
 
 function getStyles(t) {
   return {
@@ -190,6 +192,134 @@ function TelaNumericaPeito({ setTela, eventoAtual, inscricoes, atletas, equipes,
     setErroNum({});
   };
 
+  // ── Exportação com QR Codes ────────────────────────────────────────────────
+  const [gerandoQr, setGerandoQr] = useState(false);
+  const [qrProgresso, setQrProgresso] = useState("");
+
+  const exportarComQr = async () => {
+    if (!eventoAtual?.slug) {
+      alert("⚠️ Defina um slug para a competição antes de exportar com QR.\n\nO slug é necessário para o QR público funcionar corretamente.\n\nVá em: Cadastrar/Editar Competição → Dados da competição → Slug.");
+      return;
+    }
+
+    setGerandoQr(true);
+    setQrProgresso("Gerando QR público...");
+
+    try {
+      // QR público — um só para todo o evento
+      const qrPubDataUrl = await gerarQrPublico(eventoAtual.slug);
+
+      // QR secretaria — um por atleta
+      const qrSecs = {};
+      const total = atletasOrdenados.length;
+      for (let i = 0; i < total; i++) {
+        const a = atletasOrdenados[i];
+        const peito = editNum[a.id] ?? numMap[a.id] ?? "";
+        if (peito) {
+          qrSecs[a.id] = await gerarQrSecretaria(eventoAtual.id, a.id, peito);
+        }
+        if (i % 10 === 0) {
+          setQrProgresso(`Gerando QR codes... ${i + 1}/${total}`);
+          await new Promise(r => setTimeout(r, 0));
+        }
+      }
+      setQrProgresso("Montando planilha XLSX...");
+
+      // Extrair base64 puro de data URL
+      const dataUrlToBase64 = (dataUrl) => dataUrl.split(",")[1];
+
+      const wb = new ExcelJS.Workbook();
+      const ws = wb.addWorksheet("Numeração de Peito");
+
+      // Colunas (mesmos dados do CSV + QR codes)
+      ws.columns = [
+        { header: "Nº Peito", key: "peito", width: 10 },
+        { header: "CBAt", key: "cbat", width: 12 },
+        { header: "Atleta", key: "nome", width: 30 },
+        { header: "Categoria", key: "cat", width: 12 },
+        { header: "Equipe", key: "equipe", width: 25 },
+        { header: "CPF", key: "cpf", width: 16 },
+        { header: "Data Nasc.", key: "dataNasc", width: 12 },
+        { header: "Sexo", key: "sexo", width: 6 },
+        { header: "Provas", key: "provas", width: 35 },
+        { header: "QR Público", key: "qrPub", width: 16 },
+        { header: "QR Staff", key: "qrSec", width: 16 },
+      ];
+
+      // Estilo do header
+      ws.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" }, size: 10 };
+      ws.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1B5E20" } };
+      ws.getRow(1).alignment = { vertical: "middle", horizontal: "center" };
+
+      // Adicionar QR público como imagem reutilizável
+      const qrPubImageId = wb.addImage({ base64: dataUrlToBase64(qrPubDataUrl), extension: "png" });
+
+      // Linhas de dados
+      const qrSize = 90; // pixels na célula
+      const rowHeightPt = 72; // ~96px
+
+      atletasOrdenados.forEach((a, idx) => {
+        const eqNome = getEquipeNome(a) === "ZZZ_SEM_EQUIPE" ? "" : getEquipeNome(a);
+        const cat = getCategoria(a.anoNasc, anoComp);
+        const peito = editNum[a.id] ?? numMap[a.id] ?? "";
+        const provas = inscsEvt.filter(i => i.atletaId === a.id && !i.origemCombinada).map(i => {
+          const p = todasAsProvas().find(pp => pp.id === i.provaId);
+          return p?.nome || i.provaId;
+        }).join(", ");
+
+        const rowNum = idx + 2;
+        const row = ws.addRow({
+          peito: peito || "",
+          cbat: _getCbat(a) || "",
+          nome: a.nome || "",
+          cat: cat?.nome || "",
+          equipe: eqNome,
+          cpf: a.cpf || "",
+          dataNasc: a.dataNasc || "",
+          sexo: a.sexo || "",
+          provas,
+          qrPub: "",
+          qrSec: "",
+        });
+
+        row.height = rowHeightPt;
+        row.alignment = { vertical: "middle", wrapText: true };
+        row.getCell("peito").font = { bold: true, size: 14 };
+        row.getCell("peito").alignment = { vertical: "middle", horizontal: "center" };
+
+        // QR público (mesmo para todos) — coluna 10 (índice 9)
+        ws.addImage(qrPubImageId, {
+          tl: { col: 9, row: rowNum - 1 },
+          ext: { width: qrSize, height: qrSize },
+        });
+
+        // QR secretaria (individual) — coluna 11 (índice 10)
+        if (qrSecs[a.id]) {
+          const qrSecImageId = wb.addImage({ base64: dataUrlToBase64(qrSecs[a.id]), extension: "png" });
+          ws.addImage(qrSecImageId, {
+            tl: { col: 10, row: rowNum - 1 },
+            ext: { width: qrSize, height: qrSize },
+          });
+        }
+      });
+
+      // Gerar e baixar
+      const buffer = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `numeracao-peito-qr-${eventoAtual.nome.replace(/\s+/g, "_")}.xlsx`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("Erro ao gerar planilha com QR: " + err.message);
+    } finally {
+      setGerandoQr(false);
+      setQrProgresso("");
+    }
+  };
+
   const exportarCsv = () => {
     const linhas = atletasOrdenados.map(a => ({
       "Nº Peito": editNum[a.id] ?? numMap[a.id] ?? "",
@@ -317,6 +447,9 @@ function TelaNumericaPeito({ setTela, eventoAtual, inscricoes, atletas, equipes,
         <button style={s.btnSecondary} onClick={salvar}>💾 Salvar Numeração</button>
         <button style={s.btnSecondary} onClick={exportarCsv}>📥 Exportar CSV</button>
         <button style={s.btnSecondary} onClick={exportarPDF}>📄 Exportar PDF</button>
+        <button style={s.btnSecondary} onClick={exportarComQr} disabled={gerandoQr}>
+          {gerandoQr ? `⏳ ${qrProgresso || "Gerando..."}` : "📱 Exportar com QR"}
+        </button>
         <button style={s.btnGhost} onClick={limparTudo}>🗑️ Limpar</button>
         <div style={{ flex: 1 }} />
         <input style={{ ...s.input, maxWidth: 250 }} placeholder="🔍 Filtrar atleta ou equipe..." value={filtro} onChange={e => setFiltro(e.target.value)} />
