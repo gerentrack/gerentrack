@@ -40,6 +40,9 @@ export default function QrScanner({
 
   const scannerRef = useRef(null);
   const scannerIdRef = useRef("qr-scanner-" + Date.now());
+  // Ref para onScan — sempre a versão mais recente (evita closure stale no callback do scanner)
+  const onScanRef = useRef(onScan);
+  onScanRef.current = onScan;
   const inatividadeRef = useRef(null);
   const ultimoScanRef = useRef(null);
   const processandoRef = useRef(false);
@@ -70,7 +73,7 @@ export default function QrScanner({
           processandoRef.current = true;
           ultimoScanRef.current = { texto, ts: agora };
 
-          const resultado = onScan(texto);
+          const resultado = onScanRef.current(texto);
           const res = resultado || { status: "erro", msg: "❌ QR não reconhecido", cor: "vermelho" };
           setHistorico(prev => [{ dados: texto, ...res, ts: agora }, ...prev].slice(0, 5));
           setSessaoStats(prev => ({
@@ -95,7 +98,7 @@ export default function QrScanner({
         setErro("generico");
       }
     }
-  }, [usarFrontal, onScan, resetInatividade]);
+  }, [usarFrontal, resetInatividade]);
 
   // Fechar câmera
   const fecharScanner = useCallback((mostrarRes = true) => {
@@ -134,7 +137,7 @@ export default function QrScanner({
   const handleInputManual = () => {
     const val = inputManual.trim();
     if (!val) return;
-    const resultado = onScan(val);
+    const resultado = onScanRef.current(val);
     const res = resultado || { status: "erro", msg: `❌ Nº ${val} não reconhecido`, cor: "vermelho" };
     setHistorico(prev => [{ dados: val, ...res, ts: Date.now(), manual: true }, ...prev].slice(0, 5));
     setSessaoStats(prev => ({
