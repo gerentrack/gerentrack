@@ -458,6 +458,13 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                 <span style={{ color: t.textDimmed, fontSize: 13 }}>Câmara de chamada · Entrega de medalhas</span>
               </button>
             )}
+            {(tpU === "admin" || tpU === "organizador" || tpU === "funcionario") && (
+              <button style={{ ...s.eventoAcaoBtn, borderColor: t.warning + "66" }} onClick={() => setTela("preparar-offline")}>
+                <span style={{ fontSize: 36 }}>📶</span>
+                <strong>Preparar Offline</strong>
+                <span style={{ color: t.textDimmed, fontSize: 13 }}>Sincronizar dados para uso sem internet</span>
+              </button>
+            )}
           </div>
         );
       }

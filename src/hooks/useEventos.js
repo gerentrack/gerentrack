@@ -30,7 +30,10 @@ const COLLECTION = "eventos";
 
 
 export function useEventos() {
-  const [eventos, setEventosLocal] = useState([]);
+  const [eventos, setEventosLocal] = useState(() => {
+    try { const c = localStorage.getItem("cache_eventos"); return c ? JSON.parse(c) : []; }
+    catch { return []; }
+  });
   const [carregando, setCarregando] = useState(true);
 
   const eventosRef = useRef(eventos);
@@ -50,6 +53,7 @@ export function useEventos() {
           return 0;
         });
         setEventosLocal(lista);
+        try { localStorage.setItem("cache_eventos", JSON.stringify(lista)); } catch {}
         setCarregando(false);
       },
       (err) => {

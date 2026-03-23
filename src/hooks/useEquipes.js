@@ -23,7 +23,10 @@ const COLLECTION = "equipes";
 
 
 export function useEquipes() {
-  const [equipes, setEquipesLocal] = useState([]);
+  const [equipes, setEquipesLocal] = useState(() => {
+    try { const c = localStorage.getItem("cache_equipes"); return c ? JSON.parse(c) : []; }
+    catch { return []; }
+  });
   const [carregando, setCarregando] = useState(true);
 
   const equipesRef = useRef(equipes);
@@ -37,6 +40,7 @@ export function useEquipes() {
         const lista = [];
         snap.forEach((d) => lista.push({ id: d.id, ...d.data() }));
         setEquipesLocal(lista);
+        try { localStorage.setItem("cache_equipes", JSON.stringify(lista)); } catch {}
         setCarregando(false);
       },
       (err) => {

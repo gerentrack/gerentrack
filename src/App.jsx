@@ -54,6 +54,7 @@ import { TelaCadastroEvento,
          ProgramaHorarioStep,
          RichTextEditor }          from "./features/eventos/TelaCadastroEvento";
 import TelaEventoDetalhe           from "./features/eventos/TelaEventoDetalhe";
+import PrepararOffline             from "./features/eventos/PrepararOffline";
 import { getStatusEvento,
          getStatusInscricoes,
          labelStatusEvento,
@@ -115,6 +116,7 @@ import { useAtletas }    from "./hooks/useAtletas";
 import { useEquipes }    from "./hooks/useEquipes";
 import { useEventos }    from "./hooks/useEventos";
 import { useMedalhasChamada } from "./hooks/useMedalhasChamada";
+import { useOfflineStatus } from "./hooks/useOfflineStatus";
 
 // ── Infraestrutura extraída — Etapa 1 ──────────────────────────────
 import { useLocalStorage } from "./lib/storage/useLocalStorage";
@@ -129,6 +131,7 @@ import { temaDark, temaLight } from "./shared/tema";
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import AtualizacaoDisponivel from "./features/ui/AtualizacaoDisponivel";
+import RelatorioSync from "./features/ui/RelatorioSync";
 import BannerInstalar from "./features/ui/BannerInstalar";
 
 // SheetJS for Excel file handling - will be loaded via script tag in HTML
@@ -1088,6 +1091,7 @@ function App() {
   // (essas coleções exigem request.auth != null para leitura)
   const eventoAtualIdForChamada = (firebaseAuthed && usuarioLogado) ? (eventoAtual?.id || null) : null;
   const { chamada, getPresencaProva } = useMedalhasChamada(eventoAtualIdForChamada);
+  const { online, pendentes: pendentesOffline, acabouDeReconectar, pendentesAntesSync, fecharRelatorio } = useOfflineStatus();
 
   // ── Atletas via Firestore ─────────────────────────────────────────────────
   const {
@@ -1527,6 +1531,7 @@ function App() {
     pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes,
     siteBranding, setSiteBranding, gtIcon, gtLogo, gtNome, gtSlogan,
     RecordDetectionEngine,
+    online, pendentesOffline,
     // ⚠️ SEGURANÇA: adminConfig removido do spread global.
     // Injetado explicitamente apenas em TelaLogin, TelaConfiguracoes e TelaAdmin.
   };
@@ -1538,6 +1543,7 @@ function App() {
     <ConfirmBridge />
     <AtualizacaoDisponivel />
     <BannerInstalar />
+    <RelatorioSync acabouDeReconectar={acabouDeReconectar} pendentesAntesSync={pendentesAntesSync} pendentesAtual={pendentesOffline} fecharRelatorio={fecharRelatorio} />
     <div style={{ ...styles.root, background: temaClaro ? temaLight.bgPage : temaDark.bgPage, color: temaClaro ? temaLight.textPrimary : temaDark.textPrimary }} className={temaClaro ? "tema-claro" : ""}>
       <style>{cssGlobal}</style>
 
@@ -1636,6 +1642,7 @@ function App() {
         {tela === "cadastrar-atleta"  && <TelaCadastrarAtleta {...props} />}
         {tela === "novo-evento"       && <TelaCadastroEvento key={eventoAtualId || "novo"} {...props} />}
         {tela === "evento-detalhe"    && <TelaEventoDetalhe {...props} />}
+        {tela === "preparar-offline"  && <PrepararOffline {...props} />}
 
         {/* Bloqueio global: telas de edição bloqueadas se competição finalizada */}
         {eventoAtual?.competicaoFinalizada && ["inscricao-avulsa","digitar-resultados","gestao-inscricoes","inscricao-revezamento","config-pontuacao-equipes","numeracao-peito","secretaria"].includes(tela) ? (

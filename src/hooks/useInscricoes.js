@@ -40,7 +40,10 @@ const _resKey = (eventoId, provaId, catId, sexo, faseSufixo) =>
  * @param {object}   opts.usuarioLogado  — usuário atual
  */
 export function useInscricoes({ atletas = [], registrarAcao, usuarioLogado } = {}) {
-  const [inscricoes, setInscricoesLocal] = useState([]);
+  const [inscricoes, setInscricoesLocal] = useState(() => {
+    try { const c = localStorage.getItem("cache_inscricoes"); return c ? JSON.parse(c) : []; }
+    catch { return []; }
+  });
   const [carregando, setCarregando] = useState(true);
 
   const inscricoesRef = useRef(inscricoes);
@@ -56,6 +59,7 @@ export function useInscricoes({ atletas = [], registrarAcao, usuarioLogado } = {
         setInscricoesLocal(lista);
         // Compatibilidade: expõe no window para CombinedEventEngine
         if (typeof window !== "undefined") window.__atletismoInscricoes = lista;
+        try { localStorage.setItem("cache_inscricoes", JSON.stringify(lista)); } catch {}
         setCarregando(false);
       },
       (err) => {

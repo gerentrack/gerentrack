@@ -144,7 +144,10 @@ function calcularPosicoes(docResultados, provaId) {
  * @param {Function} opts.editarEvento — salva evento com snapshot (para snapshot de recordes)
  */
 export function useResultados({ eventos = [], recordes = [], editarEvento } = {}) {
-  const [resultados, setResultadosLocal] = useState({});
+  const [resultados, setResultadosLocal] = useState(() => {
+    try { const c = localStorage.getItem("cache_resultados"); return c ? JSON.parse(c) : {}; }
+    catch { return {}; }
+  });
   const [carregando, setCarregando] = useState(true);
 
   // Ref para acesso síncrono no callback sem re-closure
@@ -161,6 +164,7 @@ export function useResultados({ eventos = [], recordes = [], editarEvento } = {}
           dados[d.id] = d.data();
         });
         setResultadosLocal(dados);
+        try { localStorage.setItem("cache_resultados", JSON.stringify(dados)); } catch {}
         setCarregando(false);
       },
       (err) => {

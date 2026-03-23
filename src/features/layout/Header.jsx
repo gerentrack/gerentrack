@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { _getLocalEventoDisplay } from "../../shared/formatters/utils";
 import { useResponsivo } from "../../hooks/useResponsivo";
 import { useTema } from "../../shared/TemaContext";
@@ -59,23 +59,11 @@ function NavBtn({ onClick, label, active, mobile, styles }) {
   );
 }
 
-function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDisponiveis, gtIcon, gtNome, gtSlogan, pendenciasRecorde, temaClaro, setTemaClaro }) {
+function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDisponiveis, gtIcon, gtNome, gtSlogan, pendenciasRecorde, temaClaro, setTemaClaro, online, pendentesOffline }) {
   const t = useTema();
   const styles = getStyles(t);
-  const [online, setOnline] = useState(navigator.onLine);
   const [menuAberto, setMenuAberto] = useState(false);
   const { mobile } = useResponsivo();
-
-  useEffect(() => {
-    const handleOnline  = () => setOnline(true);
-    const handleOffline = () => setOnline(false);
-    window.addEventListener("online",  handleOnline);
-    window.addEventListener("offline", handleOffline);
-    return () => {
-      window.removeEventListener("online",  handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, []);
 
   // Fecha menu ao navegar
   const navegar = (destino) => { setTela(destino); setMenuAberto(false); };
@@ -183,7 +171,7 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
     <>
       {!online && (
         <div style={styles.offlineBanner}>
-          ⚡ Sem conexão com a internet — algumas funções podem não estar disponíveis
+          Sem conexao com a internet{pendentesOffline > 0 ? ` · ${pendentesOffline} acao(oes) pendente(s) de sync` : " — modo offline ativo"}
         </div>
       )}
       <header style={styles.header}>
