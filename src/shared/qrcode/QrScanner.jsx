@@ -63,8 +63,8 @@ export default function QrScanner({
         (texto) => {
           if (processandoRef.current) return;
           const agora = Date.now();
-          // Debounce: ignorar mesmo QR lido nos últimos 2s
-          if (ultimoScanRef.current?.texto === texto && agora - ultimoScanRef.current.ts < 2000) return;
+          // Debounce: ignorar mesmo QR lido nos últimos 5s
+          if (ultimoScanRef.current?.texto === texto && agora - ultimoScanRef.current.ts < 5000) return;
           processandoRef.current = true;
           ultimoScanRef.current = { texto, ts: agora };
 
@@ -96,17 +96,21 @@ export default function QrScanner({
   }, [usarFrontal, onScan, resetInatividade]);
 
   // Fechar câmera
-  const fecharScanner = useCallback(() => {
+  const fecharScanner = useCallback((mostrarRes = true) => {
     if (scannerRef.current) {
       scannerRef.current.stop().catch(() => {});
-      scannerRef.current.clear().catch(() => {});
+      try { scannerRef.current.clear(); } catch {}
       scannerRef.current = null;
     }
     setCameraAtiva(false);
     setLanterna(false);
     if (inatividadeRef.current) clearTimeout(inatividadeRef.current);
-    setMostrarResumo(true);
-  }, []);
+    if (mostrarRes && sessaoStats.total > 0) {
+      setMostrarResumo(true);
+    } else {
+      if (onFechar) onFechar();
+    }
+  }, [onFechar, sessaoStats.total]);
 
   // Toggle lanterna
   const toggleLanterna = useCallback(async () => {

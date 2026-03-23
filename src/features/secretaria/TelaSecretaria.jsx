@@ -337,36 +337,24 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
       return { status: "ok", msg: `✓ ${nomeDisplay} confirmado`, cor: "verde" };
     }
 
-    // Sem prova selecionada: confirmar em todas as provas do atleta
-    const cat = getCategoria(atl.anoNasc, anoComp);
-    if (!cat) { beepAviso(); vibrarAviso(); return { status: "aviso", msg: `⚠️ ${nomeDisplay} — categoria indefinida`, cor: "amarelo" }; }
+    // Sem prova selecionada: avisar para selecionar uma prova
+    beepAviso(); vibrarAviso();
     const provasDoAtleta = provasComAtletas.filter(g => g.atletas.some(a => a.id === atletaId));
-    if (provasDoAtleta.length === 0) { beepAviso(); vibrarAviso(); return { status: "aviso", msg: `⚠️ ${nomeDisplay} sem provas inscritas`, cor: "amarelo" }; }
-    let jaConfirmado = true;
-    provasDoAtleta.forEach(g => {
-      const estado = getPresenca(g.prova.id, g.cat.id, g.sexo, atletaId);
-      if (estado !== "confirmado") { jaConfirmado = false; atualizarPresenca(g.prova.id, g.cat.id, g.sexo, atletaId, "confirmado"); }
-    });
-    if (jaConfirmado) { beepDuplicado(); return { status: "duplicado", msg: `🔁 ${nomeDisplay} já confirmado em todas`, cor: "azul" }; }
-    beepOk(); vibrarOk();
-    return { status: "ok", msg: `✓ ${nomeDisplay} confirmado em ${provasDoAtleta.length} prova(s)`, cor: "verde" };
+    const nomes = provasDoAtleta.map(g => g.prova.nome).slice(0, 3).join(", ");
+    const extras = provasDoAtleta.length > 3 ? ` +${provasDoAtleta.length - 3}` : "";
+    return { status: "aviso", msg: `⚠️ ${nomeDisplay} — selecione uma prova no filtro (${nomes}${extras})`, cor: "amarelo" };
   }, [eid, atletas, filtroProva, provasComAtletas, getPresenca, atualizarPresenca, peitoParaAtleta, peitos, anoComp]);
 
   const handleDesfazerChamada = useCallback((raw) => {
     const qr = parsearQrSecretaria(raw);
     const atletaId = qr ? qr.atletaId : peitoParaAtleta[raw.trim()];
-    if (!atletaId) return;
+    if (!atletaId || !filtroProva) return;
     const atl = atletas.find(a => a.id === atletaId);
     if (!atl) return;
     const cat = getCategoria(atl.anoNasc, anoComp);
     if (!cat) return;
-    if (filtroProva) {
-      atualizarPresenca(filtroProva, cat.id, atl.sexo, atletaId, null);
-    } else {
-      provasComAtletas.filter(g => g.atletas.some(a => a.id === atletaId))
-        .forEach(g => atualizarPresenca(g.prova.id, g.cat.id, g.sexo, atletaId, null));
-    }
-  }, [eid, atletas, filtroProva, provasComAtletas, atualizarPresenca, peitoParaAtleta, anoComp]);
+    atualizarPresenca(filtroProva, cat.id, atl.sexo, atletaId, null);
+  }, [atletas, filtroProva, atualizarPresenca, peitoParaAtleta, anoComp]);
 
   // Contador para o scanner
   const contadorScanLabel = useMemo(() => {
