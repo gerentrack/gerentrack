@@ -34,6 +34,8 @@ export default function QrScanner({
   const [lanterna, setLanterna] = useState(false);
   const [inputManual, setInputManual] = useState("");
   const [historico, setHistorico] = useState([]); // últimos 5 scans: { dados, status, msg, cor, ts }
+  const [online, setOnline] = useState(navigator.onLine);
+  const [acoesPendentes, setAcoesPendentes] = useState(0);
   const [sessaoStats, setSessaoStats] = useState({ total: 0, bloqueados: 0, duplicados: 0 });
   const [sessaoInicio] = useState(Date.now());
   const [mostrarResumo, setMostrarResumo] = useState(false);
@@ -46,6 +48,23 @@ export default function QrScanner({
   const inatividadeRef = useRef(null);
   const ultimoScanRef = useRef(null);
   const processandoRef = useRef(false);
+
+  // Monitorar status online/offline
+  useEffect(() => {
+    const goOnline = () => setOnline(true);
+    const goOffline = () => setOnline(false);
+    window.addEventListener("online", goOnline);
+    window.addEventListener("offline", goOffline);
+    return () => {
+      window.removeEventListener("online", goOnline);
+      window.removeEventListener("offline", goOffline);
+    };
+  }, []);
+
+  // Resetar pendentes ao voltar online
+  useEffect(() => {
+    if (online) setAcoesPendentes(0);
+  }, [online]);
 
   // Resetar timeout de inatividade
   const resetInatividade = useCallback(() => {
@@ -81,6 +100,7 @@ export default function QrScanner({
             bloqueados: prev.bloqueados + (res.cor === "vermelho" ? 1 : 0),
             duplicados: prev.duplicados + (res.cor === "azul" ? 1 : 0),
           }));
+          if (!navigator.onLine && res.cor === "verde") setAcoesPendentes(prev => prev + 1);
           resetInatividade();
           setTimeout(() => { processandoRef.current = false; }, 1500);
         },
@@ -262,8 +282,20 @@ export default function QrScanner({
     <div style={{ position: "fixed", inset: 0, background: t.bgOverlay, zIndex: 9000, display: "flex", flexDirection: "column" }}>
       {/* Header */}
       <div style={{ background: t.bgHeaderSolid, padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `1px solid ${t.border}` }}>
-        <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: t.textPrimary, letterSpacing: 1 }}>
-          📷 SCANNER QR
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: t.textPrimary, letterSpacing: 1 }}>
+            📷 SCANNER QR
+          </span>
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 5,
+            fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 10,
+            background: online ? `${t.success}18` : `${t.warning}18`,
+            color: online ? t.success : t.warning,
+            border: `1px solid ${online ? t.success : t.warning}44`,
+          }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: online ? t.success : t.warning }} />
+            {online ? "Online" : `Offline${acoesPendentes > 0 ? ` · ${acoesPendentes} pendente${acoesPendentes > 1 ? "s" : ""}` : ""}`}
+          </span>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <button onClick={() => setUsarFrontal(f => !f)} title="Alternar câmera"
