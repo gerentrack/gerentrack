@@ -521,7 +521,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
         ${eventoAtual.logoRodape ? `<div style="margin-top:10px;text-align:center;"><img src="${eventoAtual.logoRodape}" alt="" style="max-width:100%;max-height:28mm;object-fit:contain;"/></div>` : ""}
         <div style="margin-top:12px;text-align:center;padding-top:6px;border-top:1px solid #e0e0e0;">
           <div style="font-size:7px;color:#999;letter-spacing:1px;margin-bottom:3px;">Desenvolvido por:</div>
-          <img src="${_gtLogo2}" alt="GERENTRACK" style="max-height:10mm;object-fit:contain;opacity:0.7;" />
+          <img src="${_gtLogo2}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7;" />
         </div>
       </div>`;
 
@@ -709,7 +709,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                   const _dg = new Date().toLocaleString("pt-BR");
                   const _de = new Date(eventoAtual.data + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
                   const htmlEq = `<html><head><meta charset="utf-8"><title>Classificação por Equipes</title>
-                    <style>body{font-family:Arial,sans-serif;margin:0;padding:12mm 14mm 10mm;font-size:11px;min-height:297mm;display:flex;flex-direction:column}
+                    <style>body{font-family:Arial,sans-serif;margin:0;padding:12mm 14mm 30mm;font-size:11px;min-height:297mm;display:flex;flex-direction:column;position:relative}
                     table{width:100%;border-collapse:collapse}th,td{padding:6px 8px;border-bottom:1px solid #ddd}
                     th{text-align:left;border-bottom:2px solid #333}
                     .top3{background:#f9f9f0}
@@ -717,11 +717,11 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                     .cab-left{display:flex;align-items:center;min-width:45mm;}.cab-left img{max-height:28mm;max-width:45mm;object-fit:contain;}
                     .cab-c{flex:1;text-align:center;}.cab-ev{font-size:14px;font-weight:800;color:#111;text-transform:uppercase;letter-spacing:.5px;line-height:1.2;}
                     .cab-dt{font-size:10px;color:#555;margin-top:3px;}
-                    .rod-wrap{margin-top:auto;padding-top:10px;}
+                    .rod-wrap{position:absolute;bottom:0;left:0;right:0;padding:0 14mm 10mm;}
                     .rod{display:flex;justify-content:space-between;align-items:flex-end;margin-top:10px;padding-top:8px;border-top:1px solid #ccc;gap:10px;}
                     .rod-ass{flex:1;text-align:center;}.rod-ln{border-bottom:1px solid #333;margin-bottom:3px;height:30px;}.rod-lb{font-size:9px;color:#555;}
                     .rod-info{text-align:center;font-size:8px;color:#888;min-width:100px;}
-                    @media print{@page{margin:10mm}}</style></head><body>
+                    @media print{@page{margin:10mm}body{height:100vh}}</style></head><body>
                     <div class="cab">
                       <div class="cab-left">${eventoAtual.logoCabecalho ? `<img src="${eventoAtual.logoCabecalho}" alt=""/>` : ""}</div>
                       <div class="cab-c"><div class="cab-ev">${eventoAtual.nome}</div><div class="cab-dt">\u{1F4C5} ${_de} \u00a0\u00b7\u00a0 \u{1F4CD} ${_getLocalEventoDisplay(eventoAtual)}</div></div>
@@ -760,7 +760,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                       ${eventoAtual.logoRodape ? `<div style="margin-top:10px;text-align:center;"><img src="${eventoAtual.logoRodape}" alt="" style="max-width:100%;max-height:28mm;object-fit:contain;"/></div>` : ""}
                       <div style="margin-top:12px;text-align:center;padding-top:6px;border-top:1px solid #e0e0e0;">
                         <div style="font-size:7px;color:#999;letter-spacing:1px;margin-bottom:3px;">Desenvolvido por:</div>
-                        <img src="${_gl}" alt="GERENTRACK" style="max-height:10mm;object-fit:contain;opacity:0.7;" />
+                        <img src="${_gl}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7;" />
                       </div>
                     </div>
                     </body></html>`;
@@ -890,7 +890,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                       const _dg3 = new Date().toLocaleString("pt-BR");
                       const _de3 = new Date(eventoAtual.data + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
                       const htmlComb = `<html><head><meta charset="utf-8"><title>Classificação ${bc.comp.nome}</title>
-                        <style>body{font-family:Arial,sans-serif;margin:0;padding:12mm 14mm 10mm;font-size:11px;min-height:297mm;display:flex;flex-direction:column}
+                        <style>body{font-family:Arial,sans-serif;margin:0;padding:12mm 14mm 30mm;font-size:11px;min-height:297mm;display:flex;flex-direction:column;position:relative}
                         table{width:100%;border-collapse:collapse}th,td{padding:5px 6px;border-bottom:1px solid #ddd}
                         th{text-align:left;border-bottom:2px solid #333;font-size:10px}
                         .top3{background:#f9f9f0}
@@ -898,11 +898,11 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                         .cab-left{display:flex;align-items:center;min-width:45mm;}.cab-left img{max-height:28mm;max-width:45mm;object-fit:contain;}
                         .cab-c{flex:1;text-align:center;}.cab-ev{font-size:14px;font-weight:800;color:#111;text-transform:uppercase;letter-spacing:.5px;line-height:1.2;}
                         .cab-dt{font-size:10px;color:#555;margin-top:3px;}
-                        .rod-wrap{margin-top:auto;padding-top:10px;}
+                        .rod-wrap{position:absolute;bottom:0;left:0;right:0;padding:0 14mm 10mm;}
                         .rod{display:flex;justify-content:space-between;align-items:flex-end;margin-top:10px;padding-top:8px;border-top:1px solid #ccc;gap:10px;}
                         .rod-ass{flex:1;text-align:center;}.rod-ln{border-bottom:1px solid #333;margin-bottom:3px;height:30px;}.rod-lb{font-size:9px;color:#555;}
                         .rod-info{text-align:center;font-size:8px;color:#888;min-width:100px;}
-                        @media print{@page{margin:10mm}}</style></head><body>
+                        @media print{@page{margin:10mm}body{height:100vh}}</style></head><body>
                         <div class="cab">
                           <div class="cab-left">${eventoAtual.logoCabecalho ? `<img src="${eventoAtual.logoCabecalho}" alt=""/>` : ""}</div>
                           <div class="cab-c"><div class="cab-ev">${eventoAtual.nome}</div><div class="cab-dt">\u{1F4C5} ${_de3} \u00a0\u00b7\u00a0 \u{1F4CD} ${_getLocalEventoDisplay(eventoAtual)}</div></div>
@@ -939,7 +939,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                           ${eventoAtual.logoRodape ? `<div style="margin-top:10px;text-align:center;"><img src="${eventoAtual.logoRodape}" alt="" style="max-width:100%;max-height:28mm;object-fit:contain;"/></div>` : ""}
                           <div style="margin-top:12px;text-align:center;padding-top:6px;border-top:1px solid #e0e0e0;">
                             <div style="font-size:7px;color:#999;letter-spacing:1px;margin-bottom:3px;">Desenvolvido por:</div>
-                            <img src="${_gl3}" alt="GERENTRACK" style="max-height:10mm;object-fit:contain;opacity:0.7;" />
+                            <img src="${_gl3}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7;" />
                           </div>
                         </div>
                         </body></html>`;

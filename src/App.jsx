@@ -865,11 +865,12 @@ function App() {
     setNotificacoes(p => p.map(n => n.id === id ? {...n, lida: true} : n));
 
   // ── Solicitações de relatório de participação ──
-  const solicitarRelatorio = (solicitanteId, solicitanteNome, solicitanteTipo, eventoId, eventoNome, atletaIds = [], equipeId = null) => {
+  const solicitarRelatorio = (solicitanteId, solicitanteNome, solicitanteTipo, eventoId, eventoNome, atletaIds = [], equipeId = null, assinaturaEquipe = null) => {
     const id = Date.now().toString() + Math.random().toString(36).slice(2,6);
     setSolicitacoesRelatorio(p => [...p, {
       id, solicitanteId, solicitanteNome, solicitanteTipo,
       eventoId, eventoNome, atletaIds, equipeId,
+      ...(assinaturaEquipe ? { assinaturaEquipe } : {}),
       status: "pendente", data: new Date().toISOString()
     }]);
     const evt = eventos.find(e => e.id === eventoId);
@@ -888,6 +889,27 @@ function App() {
         status === "gerado"
           ? `Seu relatório oficial de participação para "${sol.eventoNome}" foi gerado pelo organizador.`
           : `Sua solicitação de relatório para "${sol.eventoNome}" foi recusada.`);
+    }
+  };
+  const cancelarRelatorio = (solId) => {
+    const sol = solicitacoesRelatorio.find(s => s.id === solId);
+    setSolicitacoesRelatorio(p => p.map(s =>
+      s.id === solId ? { ...s, status: "cancelado", resolvidoEm: new Date().toISOString() } : s
+    ));
+    if (sol) {
+      const evt = eventos.find(e => e.id === sol.eventoId);
+      if (evt?.organizadorId) {
+        adicionarNotificacao(evt.organizadorId, "relatorio_cancelado",
+          `${sol.solicitanteNome} cancelou a solicitação de relatório para "${sol.eventoNome}".`);
+      }
+    }
+  };
+  const excluirRelatorio = (solId) => {
+    const sol = solicitacoesRelatorio.find(s => s.id === solId);
+    setSolicitacoesRelatorio(p => p.filter(s => s.id !== solId));
+    if (sol) {
+      adicionarNotificacao(sol.solicitanteId, "relatorio_excluido",
+        `O relatório de participação para "${sol.eventoNome}" foi excluído. Solicite novamente se necessário.`);
     }
   };
 
@@ -1444,7 +1466,7 @@ function App() {
     gerarSenhaTemp, aplicarSenhaTemp, atualizarSenha,
     solicitacoesRecuperacao, adicionarSolicitacaoRecuperacao, resolverSolicitacaoRecuperacao,
     solicitacoesPortabilidade, adicionarSolicitacaoPortabilidade, resolverSolicitacaoPortabilidade, excluirSolicitacaoPortabilidade,
-    solicitacoesRelatorio, solicitarRelatorio, resolverRelatorio,
+    solicitacoesRelatorio, solicitarRelatorio, resolverRelatorio, cancelarRelatorio, excluirRelatorio,
     sincronizarNomesEquipes,
     funcionarios, adicionarFuncionario, atualizarFuncionario, removerFuncionario,
     treinadores, adicionarTreinador, atualizarTreinador, removerTreinador,

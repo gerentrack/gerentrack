@@ -58,7 +58,7 @@ export default function TelaPainelEquipe({
   usuarioLogado, setTela, logout,
   atletas, inscricoes, eventos, equipes, treinadores,
   resultados,
-  solicitarRelatorio,
+  solicitarRelatorio, solicitacoesRelatorio, cancelarRelatorio, excluirRelatorio,
   solicitacoesVinculo, responderVinculo,
   selecionarEvento,
   desvincularAtleta, setAtletaEditandoId,
@@ -75,6 +75,9 @@ export default function TelaPainelEquipe({
   const [buscaRes, setBuscaRes] = useState("");
   const [relEvId, setRelEvId] = useState("");
   const [relEnviado, setRelEnviado] = useState(false);
+  const [relAssinatura, setRelAssinatura] = useState("");
+  const [relPreview, setRelPreview] = useState(false);
+  const [relHistAberto, setRelHistAberto] = useState(false);
 
   const anoBase = new Date().getFullYear();
   const meusAtletas   = (atletas  || []).filter(a => a.equipeId === equipeId);
@@ -491,21 +494,154 @@ export default function TelaPainelEquipe({
 
           {/* Solicitar relatório */}
           {solicitarRelatorio && eventosComInsc.length > 0 && (
-            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16, flexWrap:"wrap" }}>
-              <select value={relEvId} onChange={e => setRelEvId(e.target.value)}
-                style={{ background:"#141720", border:"1px solid #252837", borderRadius:6, padding:"8px 12px", color:"#fff", fontSize:12 }}>
-                <option value="">— Selecione competição —</option>
-                {eventosComInsc.map(ev => <option key={ev.id} value={ev.id}>{ev.nome}</option>)}
-              </select>
-              {relEnviado ? (
-                <span style={{ color:"#7cfc7c", fontSize:12, fontWeight:700 }}>✓ Solicitação enviada!</span>
-              ) : (
-                <button disabled={!relEvId} onClick={() => {
-                  const ev = (eventos||[]).find(e => e.id === relEvId);
-                  if (ev) { solicitarRelatorio(equipeId, equipe?.nome || "", "equipe", ev.id, ev.nome, meusAtletas.map(a => a.id), equipeId); setRelEnviado(true); setTimeout(() => setRelEnviado(false), 4000); }
-                }} style={{ background: relEvId ? "#1a3a3a" : "#111", border:"1px solid", borderColor: relEvId ? "#3a7a7a" : "#222", color: relEvId ? "#88cccc" : "#444", borderRadius:6, padding:"8px 16px", cursor: relEvId ? "pointer" : "not-allowed", fontSize:12, fontWeight:700, fontFamily:"'Barlow Condensed', sans-serif" }}>
-                  📄 Solicitar Relatório Oficial
+            <div style={{ background:"#0f1118", border:"1px solid #252837", borderRadius:10, padding:16, marginBottom:20 }}>
+              <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:14, fontWeight:700, color:"#88cccc", marginBottom:12, letterSpacing:1 }}>
+                SOLICITAR RELATÓRIO OFICIAL
+              </div>
+
+              {/* Seleção de competição */}
+              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12, flexWrap:"wrap" }}>
+                <select value={relEvId} onChange={e => { setRelEvId(e.target.value); setRelPreview(false); setRelEnviado(false); }}
+                  style={{ background:"#141720", border:"1px solid #252837", borderRadius:6, padding:"8px 12px", color:"#fff", fontSize:12, flex:1, minWidth:200 }}>
+                  <option value="">— Selecione competição —</option>
+                  {eventosComInsc.map(ev => <option key={ev.id} value={ev.id}>{ev.nome}</option>)}
+                </select>
+              </div>
+
+              {/* Aviso se já existe solicitação ativa */}
+              {relEvId && (() => {
+                const solExistente = (solicitacoesRelatorio||[]).find(s => s.equipeId === equipeId && s.eventoId === relEvId && (s.status === "pendente" || s.status === "gerado"));
+                if (!solExistente) return null;
+                return (
+                  <div style={{ fontSize:11, color: solExistente.status === "pendente" ? "#ff8844" : "#7cfc7c", background: solExistente.status === "pendente" ? "#1a1200" : "#0a1a0a", border:"1px solid", borderColor: solExistente.status === "pendente" ? "#3a2a00" : "#1a3a1a", borderRadius:6, padding:"8px 12px", marginBottom:12 }}>
+                    {solExistente.status === "pendente"
+                      ? "Já existe uma solicitação pendente para esta competição. Aguarde o organizador processar ou cancele a solicitação no histórico abaixo."
+                      : "O relatório para esta competição já foi gerado. Consulte o histórico abaixo."}
+                  </div>
+                );
+              })()}
+
+              {/* Upload de assinatura/logo */}
+              {relEvId && !relEnviado && !(solicitacoesRelatorio||[]).some(s => s.equipeId === equipeId && s.eventoId === relEvId && (s.status === "pendente" || s.status === "gerado")) && (
+                <div style={{ marginBottom:12 }}>
+                  <div style={{ fontSize:11, color:"#888", marginBottom:6 }}>Assinatura / Logo da equipe (opcional):</div>
+                  <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
+                    <label style={{ background:"#1a1a2e", border:"1px solid #333", borderRadius:6, padding:"6px 14px", cursor:"pointer", fontSize:11, color:"#aaa" }}>
+                      Escolher imagem...
+                      <input type="file" accept="image/*" style={{ display:"none" }} onChange={e => {
+                        const f = e.target.files?.[0];
+                        if (!f) return;
+                        if (f.size > 500_000) { alert("Imagem muito grande (máx. 500KB)"); return; }
+                        const reader = new FileReader();
+                        reader.onload = (ev) => setRelAssinatura(ev.target.result);
+                        reader.readAsDataURL(f);
+                      }} />
+                    </label>
+                    {relAssinatura && (
+                      <>
+                        <img src={relAssinatura} alt="Assinatura" style={{ maxHeight:40, maxWidth:120, objectFit:"contain", borderRadius:4, border:"1px solid #333" }} />
+                        <button onClick={() => setRelAssinatura("")} style={{ background:"transparent", border:"1px solid #7a2a2a", borderRadius:4, color:"#cc4444", fontSize:10, padding:"3px 8px", cursor:"pointer" }}>
+                          Remover
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Preview / Confirmação */}
+              {relEvId && !relEnviado && !relPreview && !(solicitacoesRelatorio||[]).some(s => s.equipeId === equipeId && s.eventoId === relEvId && (s.status === "pendente" || s.status === "gerado")) && (
+                <button onClick={() => setRelPreview(true)}
+                  style={{ background:"#1a3a3a", border:"1px solid #3a7a7a", color:"#88cccc", borderRadius:6, padding:"8px 16px", cursor:"pointer", fontSize:12, fontWeight:700, fontFamily:"'Barlow Condensed', sans-serif" }}>
+                  Visualizar antes de enviar
                 </button>
+              )}
+
+              {relPreview && !relEnviado && (() => {
+                const ev = (eventos||[]).find(e => e.id === relEvId);
+                if (!ev) return null;
+                const atlEvt = meusAtletas.filter(a => (inscricoes||[]).some(i => i.atletaId === a.id && i.eventoId === ev.id));
+                return (
+                  <div style={{ background:"#141720", border:"1px solid #252837", borderRadius:8, padding:14, marginTop:8 }}>
+                    <div style={{ fontSize:13, fontWeight:700, color:"#fff", marginBottom:8 }}>Confirmar solicitação</div>
+                    <div style={{ fontSize:11, color:"#aaa", marginBottom:4 }}>Competição: <span style={{ color:"#fff" }}>{ev.nome}</span></div>
+                    <div style={{ fontSize:11, color:"#aaa", marginBottom:4 }}>Equipe: <span style={{ color:"#fff" }}>{equipe?.nome || "—"}</span></div>
+                    <div style={{ fontSize:11, color:"#aaa", marginBottom:4 }}>Atletas: <span style={{ color:"#fff" }}>{atlEvt.length}</span></div>
+                    {relAssinatura && (
+                      <div style={{ fontSize:11, color:"#aaa", marginBottom:4 }}>
+                        Assinatura: <img src={relAssinatura} alt="" style={{ maxHeight:30, maxWidth:100, objectFit:"contain", verticalAlign:"middle", marginLeft:6, borderRadius:3, border:"1px solid #333" }} />
+                      </div>
+                    )}
+                    <div style={{ display:"flex", gap:8, marginTop:10 }}>
+                      <button onClick={() => {
+                        solicitarRelatorio(equipeId, equipe?.nome || "", "equipe", ev.id, ev.nome, meusAtletas.map(a => a.id), equipeId, relAssinatura || null);
+                        setRelEnviado(true); setRelPreview(false);
+                        setTimeout(() => setRelEnviado(false), 5000);
+                      }} style={{ background:"#1a3a1a", border:"1px solid #3a7a3a", color:"#7cfc7c", borderRadius:6, padding:"8px 18px", cursor:"pointer", fontSize:12, fontWeight:700, fontFamily:"'Barlow Condensed', sans-serif" }}>
+                        Confirmar e enviar
+                      </button>
+                      <button onClick={() => setRelPreview(false)}
+                        style={{ background:"transparent", border:"1px solid #333", color:"#888", borderRadius:6, padding:"8px 14px", cursor:"pointer", fontSize:11 }}>
+                        Voltar
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {relEnviado && (
+                <div style={{ color:"#7cfc7c", fontSize:12, fontWeight:700, marginTop:8 }}>
+                  Solicitação enviada com sucesso! O organizador será notificado.
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Histórico de relatórios */}
+          {(solicitacoesRelatorio || []).filter(s => s.equipeId === equipeId).length > 0 && (
+            <div style={{ marginBottom:20 }}>
+              <button onClick={() => setRelHistAberto(!relHistAberto)}
+                style={{ background:"transparent", border:"none", color:"#888", cursor:"pointer", fontSize:12, fontWeight:700, fontFamily:"'Barlow Condensed', sans-serif", letterSpacing:1, padding:0, marginBottom:8 }}>
+                {relHistAberto ? "▾" : "▸"} HISTÓRICO DE RELATÓRIOS ({(solicitacoesRelatorio||[]).filter(s => s.equipeId === equipeId).length})
+              </button>
+              {relHistAberto && (
+                <div style={{ background:"#0f1118", border:"1px solid #252837", borderRadius:8, overflow:"hidden" }}>
+                  {(solicitacoesRelatorio||[])
+                    .filter(s => s.equipeId === equipeId)
+                    .sort((a,b) => new Date(b.data) - new Date(a.data))
+                    .map(sol => {
+                      const statusCor = { pendente:"#ff8844", gerado:"#7cfc7c", recusado:"#ff4444", cancelado:"#888" }[sol.status] || "#666";
+                      const statusLabel = { pendente:"Pendente", gerado:"Gerado", recusado:"Recusado", cancelado:"Cancelado" }[sol.status] || sol.status;
+                      return (
+                        <div key={sol.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", borderBottom:"1px solid #1a1d2a", gap:10, flexWrap:"wrap" }}>
+                          <div style={{ flex:1, minWidth:150 }}>
+                            <div style={{ fontSize:12, color:"#ddd", fontWeight:600 }}>{sol.eventoNome}</div>
+                            <div style={{ fontSize:10, color:"#666", marginTop:2 }}>
+                              {new Date(sol.data).toLocaleDateString("pt-BR")} {new Date(sol.data).toLocaleTimeString("pt-BR", { hour:"2-digit", minute:"2-digit" })}
+                              {sol.resolvidoEm && ` — resolvido em ${new Date(sol.resolvidoEm).toLocaleDateString("pt-BR")}`}
+                            </div>
+                          </div>
+                          <span style={{ fontSize:10, fontWeight:700, color:statusCor, border:`1px solid ${statusCor}44`, borderRadius:4, padding:"2px 8px", whiteSpace:"nowrap" }}>
+                            {statusLabel}
+                          </span>
+                          <div style={{ display:"flex", gap:6 }}>
+                            {sol.status === "pendente" && cancelarRelatorio && (
+                              <button onClick={() => cancelarRelatorio(sol.id)}
+                                style={{ background:"transparent", border:"1px solid #7a5a00", borderRadius:4, color:"#cc9900", fontSize:10, padding:"3px 10px", cursor:"pointer" }}>
+                                Cancelar
+                              </button>
+                            )}
+                            {(sol.status !== "pendente") && excluirRelatorio && (
+                              <button onClick={() => excluirRelatorio(sol.id)}
+                                style={{ background:"transparent", border:"1px solid #7a2a2a", borderRadius:4, color:"#cc4444", fontSize:10, padding:"3px 10px", cursor:"pointer" }}>
+                                Excluir
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
               )}
             </div>
           )}

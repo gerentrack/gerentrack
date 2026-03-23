@@ -105,9 +105,9 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
       border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;}
     .conteudo{padding-top:74px;}
     .pg{background:#fff;width:210mm;min-height:297mm;margin:16px auto;
-      padding:12mm 15mm 10mm;display:flex;flex-direction:column;
-      box-shadow:0 4px 24px rgba(0,0,0,.2);}
-    .pg.landscape{width:297mm;min-height:210mm;padding:10mm 12mm 8mm;}
+      padding:12mm 15mm 30mm;display:flex;flex-direction:column;
+      box-shadow:0 4px 24px rgba(0,0,0,.2);position:relative;}
+    .pg.landscape{width:297mm;min-height:210mm;padding:10mm 12mm 21mm;}
     .cab{display:flex;align-items:flex-start;justify-content:space-between;
       padding-bottom:4px;margin-bottom:4px;border-bottom:2px solid #111;gap:6px;
       font-size:initial;}
@@ -173,7 +173,8 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
     .cond-campo-hr{min-width:40px;}
     .cond-unidade{font-size:7.5px;color:#666;}
     .cond-sep{width:1px;background:#ccc;align-self:stretch;margin:0 4px;}
-    .rod-wrap{margin-top:auto;padding-bottom:3mm;}
+    .rod-wrap{position:absolute;bottom:0;left:0;right:0;padding:0 15mm 10mm;}
+    .pg.landscape .rod-wrap{padding:0 12mm 8mm;}
     .rod{padding-top:4px;}
     .rod-assinaturas{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:6px;}
     .rod-ass{flex:1;max-width:185px;}
@@ -186,9 +187,9 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
       body{background:#fff;}
       .barra{display:none!important;}
       .conteudo{padding-top:0;}
-      .pg{margin:0;border:none;box-shadow:none;width:100%;height:100vh;padding:12mm 15mm 10mm;overflow:hidden;}
+      .pg{margin:0;border:none;box-shadow:none;width:100%;height:100vh;padding:12mm 15mm 30mm;overflow:hidden;}
       .pg:not(:last-child){page-break-after:always;}
-      .pg.landscape{page:landscape-page;padding:10mm 12mm 8mm;}
+      .pg.landscape{page:landscape-page;padding:10mm 12mm 21mm;}
     }
   `;
 
@@ -224,7 +225,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
         <div>Gerado em: ${dataGeracao}</div>
         <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:0;margin-bottom:0;">
           <span>Plataforma de Competições -</span>
-          <img src="${_gtLogo}" alt="GERENTRACK" style="max-height:20mm;object-fit:contain;opacity:0.7;vertical-align:middle;" />
+          <img src="${_gtLogo}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7;vertical-align:middle;" />
         </div>
       </div>
     </div>
@@ -1103,6 +1104,17 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
 
           const semRes = atl.filter(a => !classAltura.some(c => c.a.id === a.id));
 
+          // Detectar status (DNS/NM/DQ) dos atletas sem marca válida
+          const getStatusAltura = (a) => {
+            const r = res[a.id];
+            if (!r) return null;
+            const st = (typeof r === "object") ? (r.status || "") : "";
+            const mk = String(getMarca(r) || "").toUpperCase();
+            if (["DNS","DNF","NM","NH","DQ"].includes(st)) return st;
+            if (["DNS","DNF","NM","NH","DQ"].includes(mk)) return mk;
+            return null;
+          };
+
           const thAlturaRes = `<tr>
             <th style="width:22px">#</th>
             <th style="width:30px">Nº</th>
@@ -1119,12 +1131,14 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
 
           const fmtTent = (t) => t === "O" ? "\u25CF" : t === "X" ? "\u2717" : t === "-" ? "\u2013" : "";
 
-          const linhaAlturaRes = (a, pos, j, su, fp) => {
+          const linhaAlturaRes = (a, pos, j, su, fp, status) => {
             const r = res[a.id];
             const tentsObj = (r && typeof r === "object" && r.tentativas && typeof r.tentativas === "object") ? r.tentativas : {};
             const melhor = r != null ? parseFloat(getMarca(r)) : null;
+            const hasStatus = !!status;
+            const trStyle = hasStatus ? ' style="opacity:.5"' : '';
             return `
-            <tr class="${j%2===0?"par":"imp"}">
+            <tr class="${j%2===0?"par":"imp"}"${trStyle}>
               <td class="tdn">${j+1}</td>
               <td class="tdn" style="font-weight:700;color:#333">${numPeito[a.id]||""}</td>
               <td class="tdcbat">${_getCbat(a)}</td>
@@ -1143,14 +1157,14 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
               }).join("")}
               <td style="width:28px;text-align:center;font-size:10px;font-weight:700;color:#cc4444;border:1px solid #ddd">${melhor != null ? su : "\u2014"}</td>
               <td style="width:28px;text-align:center;font-size:10px;font-weight:700;color:#cc4444;border:1px solid #ddd">${melhor != null ? fp : "\u2014"}</td>
-              <td class="tdmbd">${melhor != null ? melhor.toFixed(2).replace(".",",") + "m" : "\u2014"}</td>
+              <td class="tdmbd">${hasStatus ? `<span style="color:#c44">${status}</span>` : melhor != null ? melhor.toFixed(2).replace(".",",") + "m" : "\u2014"}</td>
               <td class="tdpf">${pos != null ? pos + "\u00b0" : "\u2014"}</td>
             </tr>`;
           };
 
           const todosOrdenados = [
-            ...classAltura.map((c,i) => ({ a: c.a, pos: i+1, su: c.su, fp: c.fp })),
-            ...semRes.map(a => ({ a, pos: null, su: 0, fp: 0 }))
+            ...classAltura.map((c,i) => ({ a: c.a, pos: i+1, su: c.su, fp: c.fp, status: null })),
+            ...semRes.map(a => ({ a, pos: null, su: 0, fp: 0, status: getStatusAltura(a) }))
           ];
           const totalGruposR = Math.ceil(todosOrdenados.length / MAX);
 
@@ -1166,7 +1180,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
                 ${avisoDesempateAlt}
                 <table style="table-layout:fixed">
                   <thead>${thAlturaRes}</thead>
-                  <tbody>${grp.map(({a, pos, su, fp}, j) => linhaAlturaRes(a, pos, gi*MAX + j, su, fp)).join("")}</tbody>
+                  <tbody>${grp.map(({a, pos, su, fp, status}, j) => linhaAlturaRes(a, pos, gi*MAX + j, su, fp, status)).join("")}</tbody>
                 </table>
                 ${rodape(s)}
               </div>`);
@@ -1370,8 +1384,8 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
         var pxPerMm = 96 / 25.4; // ~3.78 px/mm
         var availPx = availMm * pxPerMm;
 
-        // Reservar espaço fixo para o rodapé (~45mm)
-        var rodapeMm = 45;
+        // Reservar 10% da página para o rodapé fixo
+        var rodapeMm = pgStyleH * 0.10;
         availPx -= rodapeMm * pxPerMm;
 
         var scale = 100;

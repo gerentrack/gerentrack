@@ -859,7 +859,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
             <div>Emitido em: ${dataEmissao}</div>
             <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin-top:2px;">
               ${gtLogo
-                ? `<span>Plataforma de Competições -</span><img src="${gtLogo}" alt="GERENTRACK" style="max-height:20mm;object-fit:contain;opacity:0.7;vertical-align:middle;" />`
+                ? `<span>Plataforma de Competições -</span><img src="${gtLogo}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7;vertical-align:middle;" />`
                 : `<span>Plataforma de Competições - GERENTRACK</span>`}
             </div>
           </div>

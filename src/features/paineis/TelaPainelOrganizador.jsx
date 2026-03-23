@@ -146,7 +146,7 @@ const styles = {
   provaCheckBtnSel: { background: "#1a1c22", borderColor: "#1976D2", color: "#1976D2" },
 };
 
-function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, atletas, selecionarEvento, adicionarEvento, editarEvento, excluirEvento, alterarStatusEvento, organizadores, funcionarios, solicitacoesVinculo, responderVinculo, equipes, solicitacoesEquipe=[], aprovarEquipe, recusarEquipe, atualizarAtleta, registrarAcao, setAtletaEditandoId, notificacoes, marcarNotifLida, resultados, solicitacoesRelatorio, resolverRelatorio, sincronizarNomesEquipes, numeracaoPeito }) {
+function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, atletas, selecionarEvento, adicionarEvento, editarEvento, excluirEvento, alterarStatusEvento, organizadores, funcionarios, solicitacoesVinculo, responderVinculo, equipes, solicitacoesEquipe=[], aprovarEquipe, recusarEquipe, atualizarAtleta, registrarAcao, setAtletaEditandoId, notificacoes, marcarNotifLida, resultados, solicitacoesRelatorio, resolverRelatorio, excluirRelatorio, sincronizarNomesEquipes, numeracaoPeito }) {
   const s = useStylesResponsivos(styles);
   const tipoOrg = usuarioLogado?.tipo;
   if (tipoOrg !== "organizador" && tipoOrg !== "funcionario" && tipoOrg !== "admin") return (
@@ -284,7 +284,15 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
                         {sol.solicitanteTipo === "atleta" ? "🏃 Atleta" : "🎽 Equipe"}
                       </span></Td>
                       <Td>{sol.eventoNome}</Td>
-                      <Td style={{ fontSize: 11, color: "#555" }}>{new Date(sol.data).toLocaleString("pt-BR")}</Td>
+                      <Td style={{ fontSize: 11, color: "#555" }}>
+                        {new Date(sol.data).toLocaleString("pt-BR")}
+                        {sol.assinaturaEquipe && (
+                          <div style={{ marginTop:4 }}>
+                            <span style={{ fontSize:9, color:"#888" }}>Assinatura anexada:</span>
+                            <img src={sol.assinaturaEquipe} alt="" style={{ display:"block", maxHeight:28, maxWidth:80, objectFit:"contain", marginTop:2, borderRadius:3, border:"1px solid #333" }} />
+                          </div>
+                        )}
+                      </Td>
                       <Td>
                         <div style={{ display: "flex", gap: 6 }}>
                           <button onClick={() => {
@@ -293,7 +301,7 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
                             const atletasFiltrados = (sol.atletaIds || []).map(aid => atletas.find(a => a.id === aid)).filter(Boolean);
                             if (atletasFiltrados.length === 0) return;
                             const org = organizadores?.find(o => o.id === evt.organizadorId);
-                            gerarHtmlRelatorioParticipacao(evt, atletasFiltrados, inscricoes, resultados || {}, equipes, org, relAssinatura, numeracaoPeito);
+                            gerarHtmlRelatorioParticipacao(evt, atletasFiltrados, inscricoes, resultados || {}, equipes, org, relAssinatura || sol.assinaturaEquipe, numeracaoPeito);
                             resolverRelatorio(sol.id, "gerado");
                           }} style={{ background: "#0d2a2a", border: "1px solid #2a6a6a", color: "#88cccc", borderRadius: 6, padding: "4px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700, fontFamily: "'Barlow', sans-serif" }}>
                             📄 Gerar e Enviar
@@ -747,7 +755,7 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
           if (sol.status === "pendente") return false;
           const evt = eventos.find(e => e.id === sol.eventoId);
           return evt?.organizadorId === orgId;
-        }).sort((a, b) => (b.resolvidoEm || b.data || "").localeCompare(a.resolvidoEm || a.data || "")).slice(0, 20);
+        }).sort((a, b) => new Date(b.resolvidoEm || b.data) - new Date(a.resolvidoEm || a.data)).slice(0, 20);
         if (relHistorico.length === 0) return null;
         return (
           <details style={{ background: "#0a0a10", border: "1px solid #1E2130", borderRadius: 10, padding: "12px 18px", marginBottom: 16 }}>
@@ -756,18 +764,27 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
             </summary>
             <div style={{ marginTop: 12, overflowX: "auto" }}>
               <table style={s.table}>
-                <thead><tr><Th>Solicitante</Th><Th>Competição</Th><Th>Status</Th><Th>Data</Th></tr></thead>
+                <thead><tr><Th>Solicitante</Th><Th>Competição</Th><Th>Status</Th><Th>Data</Th><Th>Ações</Th></tr></thead>
                 <tbody>
                   {relHistorico.map(sol => {
-                    const cor = sol.status === "gerado" ? "#7cfc7c" : "#ff6b6b";
+                    const cor = sol.status === "gerado" ? "#7cfc7c" : sol.status === "cancelado" ? "#888" : "#ff6b6b";
+                    const label = { gerado: "Gerado", recusado: "Recusado", cancelado: "Cancelado" }[sol.status] || sol.status;
                     return (
                       <tr key={sol.id} style={s.tr}>
                         <Td><strong style={{ color: "#fff" }}>{sol.solicitanteNome}</strong></Td>
                         <Td>{sol.eventoNome}</Td>
                         <Td><span style={{ background: cor + "22", color: cor, border: `1px solid ${cor}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
-                          {sol.status === "gerado" ? "✓ Gerado" : "✗ Recusado"}
+                          {label}
                         </span></Td>
                         <Td style={{ fontSize: 11, color: "#555" }}>{sol.resolvidoEm ? new Date(sol.resolvidoEm).toLocaleString("pt-BR") : "—"}</Td>
+                        <Td>
+                          {excluirRelatorio && (
+                            <button onClick={() => excluirRelatorio(sol.id)}
+                              style={{ background:"transparent", border:"1px solid #7a2a2a", borderRadius:4, color:"#cc4444", fontSize:10, padding:"3px 10px", cursor:"pointer" }}>
+                              Excluir
+                            </button>
+                          )}
+                        </Td>
                       </tr>
                     );
                   })}
