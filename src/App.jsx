@@ -1626,7 +1626,7 @@ function App() {
         ) : (
           <>
             {tela === "inscricao-avulsa"  && <TelaInscricaoAvulsa {...props} />}
-            {tela === "digitar-resultados"&& <TelaDigitarResultados {...props} />}
+            {tela === "digitar-resultados"&& <TelaDigitarResultados {...props} getPresencaProva={getPresencaProva} />}
             {tela === "numeracao-peito"  && <TelaNumericaPeito {...props} />}
             {tela === "gestao-inscricoes"&& <TelaGestaoInscricoes {...props} />}
             {tela === "inscricao-revezamento" && <TelaInscricaoRevezamento {...props} />}

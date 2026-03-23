@@ -85,7 +85,7 @@ export function useMedalhasChamada(eventoId) {
   }, [eventoId]);
 
   // ── Câmara: atualiza estado de um atleta ─────────────────────────────────
-  // estados: "ausente" → "presente" → "confirmado" → "ausente"
+  // estados: null (sem marcação) | "confirmado" | "dns"
   const atualizarPresenca = useCallback(async (provaId, catId, sexo, atletaId, novoEstado) => {
     if (!eventoId) return;
     const key  = chamadaKey(eventoId, provaId, catId, sexo);
@@ -96,7 +96,10 @@ export function useMedalhasChamada(eventoId) {
 
   const getPresenca = useCallback((provaId, catId, sexo, atletaId) => {
     const key = chamadaKey(eventoId, provaId, catId, sexo);
-    return (chamada[key] || {})[atletaId] || "ausente";
+    const val = (chamada[key] || {})[atletaId];
+    // Retrocompatibilidade: "ausente" e "presente" viram null
+    if (val === "confirmado" || val === "dns") return val;
+    return null;
   }, [eventoId, chamada]);
 
   const getPresencaProva = useCallback((provaId, catId, sexo) => {

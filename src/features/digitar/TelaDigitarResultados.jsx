@@ -10,6 +10,15 @@ import { Th, Td } from "../ui/TableHelpers";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 
+// Badge de chamada (Conf./DNS) ao lado do nome do atleta
+function ChamadaBadge({ atletaId, provaId, catId, sexo, getPresencaProva, t }) {
+  if (!getPresencaProva) return null;
+  const st = getPresencaProva(provaId, catId, sexo)[atletaId];
+  if (!st || (st !== "confirmado" && st !== "dns")) return null;
+  const cor = st === "confirmado" ? t.success : t.danger;
+  return <span style={{ marginLeft:4, fontSize:9, padding:"1px 5px", borderRadius:3, fontWeight:700, background:cor+"18", color:cor, border:`1px solid ${cor}44` }}>{st === "confirmado" ? "Conf." : "DNS"}</span>;
+}
+
 function getStyles(t) {
   return {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
@@ -263,7 +272,7 @@ function BlocoDigitarCategoria({
   atualizarResultado, atualizarResultadosEmLote, limparResultado, limparTodosResultados,
   editarEvento, numeracaoPeito, getClubeAtleta, recordes,
   usuarioLogado, registrarAcao, setTela,
-  todasProvasComCombinadas, inscDoEvento,
+  todasProvasComCombinadas, inscDoEvento, getPresencaProva,
 }) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
@@ -1124,7 +1133,7 @@ function BlocoDigitarCategoria({
                             <span style={{ fontWeight:700, color: t.textTertiary, fontSize:12, minWidth:24 }}>{(numeracaoPeito[eventoAtual.id])[a.id]}</span>
                           )}
                           <div>
-                            <div style={{ fontWeight:700, color: t.textPrimary, fontSize:13 }}>{a.nome}</div>
+                            <div style={{ fontWeight:700, color: t.textPrimary, fontSize:13 }}>{a.nome}<ChamadaBadge atletaId={a.id} provaId={filtroProva} catId={catId} sexo={filtroSexo} getPresencaProva={getPresencaProva} t={t} /></div>
                             <div style={{ color: t.textDimmed, fontSize:11 }}>{getExibicaoEquipe(a, equipes)||"—"}{atletaInativo ? ` — ${getStatusAtleta(a)}` : atletaNMAltura ? " — NM" : ""}</div>
                           </div>
                         </div>
@@ -1682,7 +1691,7 @@ function BlocoDigitarCategoria({
                                       background: atletaInativo ? t.bgHeaderSolid : atletaNM ? t.bgHeaderSolid : isEliminado ? t.bgHeaderSolid : undefined,
                                     }}>
                                     <Td><strong style={{ color: t.textTertiary, fontSize:12 }}>{(numeracaoPeito?.[eventoAtual?.id]||{})[a.id]||""}</strong></Td>
-                                    <Td><strong style={{ color: t.textPrimary }}>{a.nome}</strong></Td>
+                                    <Td><strong style={{ color: t.textPrimary }}>{a.nome}</strong><ChamadaBadge atletaId={a.id} provaId={filtroProva} catId={catId} sexo={filtroSexo} getPresencaProva={getPresencaProva} t={t} /></Td>
                                     <Td>{getExibicaoEquipe(a, equipes)||"—"}</Td>
                                     {["t1","t2","t3"].map(tk => {
                                       const isSaltoHoriz = provaSel?.nome?.includes("Distância") || provaSel?.nome?.includes("Triplo");
@@ -1874,7 +1883,7 @@ function BlocoDigitarCategoria({
                           )}
                           <tr style={{ ...s.tr, opacity: isStatusInativo(a) ? 0.4 : 1 }}>
                             <Td><strong style={{ color: t.textTertiary, fontSize:12 }}>{(numeracaoPeito?.[eventoAtual?.id]||{})[a.id]||""}</strong></Td>
-                            <Td><strong style={{ color: t.textPrimary }}>{a.nome}</strong></Td>
+                            <Td><strong style={{ color: t.textPrimary }}>{a.nome}</strong><ChamadaBadge atletaId={a.id} provaId={filtroProva} catId={catId} sexo={filtroSexo} getPresencaProva={getPresencaProva} t={t} /></Td>
                             <Td>{getExibicaoEquipe(a, equipes)||"—"}</Td>
                             {_serDigitar?.series?.length > 0 && <Td><span style={{ color: t.accent, fontWeight:700 }}>{_si.serie||"—"}</span></Td>}
                             {temRaia && (
@@ -2096,7 +2105,7 @@ function BlocoDigitarCategoria({
 /* ════════════════════════════════════════════════════════════════════════════
    TelaDigitarResultados — componente principal (orquestrador de filtros)
    ════════════════════════════════════════════════════════════════════════════ */
-function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResultado, atualizarResultadosEmLote, limparResultado, limparTodosResultados, setTela, eventoAtual, editarEvento, usuarioLogado, registrarAcao, numeracaoPeito, getClubeAtleta, equipes, recordes }) {
+function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResultado, atualizarResultadosEmLote, limparResultado, limparTodosResultados, setTela, eventoAtual, editarEvento, usuarioLogado, registrarAcao, numeracaoPeito, getClubeAtleta, equipes, recordes, getPresencaProva }) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   // Guard: apenas admin, organizador ou funcionário com permissão
@@ -2306,6 +2315,7 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
             setTela={setTela}
             todasProvasComCombinadas={todasProvasComCombinadas}
             inscDoEvento={inscDoEvento}
+            getPresencaProva={getPresencaProva}
           />
         ));
       })()}

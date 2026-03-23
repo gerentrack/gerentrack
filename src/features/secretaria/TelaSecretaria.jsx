@@ -8,13 +8,7 @@ import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 
 // ── Constantes ────────────────────────────────────────────────────────────────
-function getStatusChamada(t) {
-  return {
-    ausente:    { label: "Ausente",    cor: t.textDisabled, bg: t.bgCardAlt, next: "presente"   },
-    presente:   { label: "Presente",   cor: t.accent,       bg: t.accentBg,  next: "confirmado" },
-    confirmado: { label: "Confirmado", cor: t.success,      bg: t.bgCardAlt, next: "ausente"    },
-  };
-}
+// Removido: getStatusChamada — substituído por dois botões independentes (Confirmado / DNS)
 
 function getMedalhaConfig(t) {
   return {
@@ -67,7 +61,7 @@ function getStyles(t) {
 function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados, usuarioLogado }) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
-  const STATUS_CHAMADA = getStatusChamada(t);
+  // STATUS_CHAMADA removido — agora usa dois botões toggle
   const MEDALHA_CONFIG = getMedalhaConfig(t);
   const [aba, setAba] = useState("chamada");
   const [filtroProva, setFiltroProva] = useState("");
@@ -248,16 +242,16 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
 
   // ── Estatísticas rápidas ──────────────────────────────────────────────────
   const statsPresenca = useMemo(() => {
-    let ausente = 0, presente = 0, confirmado = 0;
+    let confirmado = 0, dns = 0, total = 0;
     provasComAtletas.forEach(({ prova, cat, sexo, atletas: atls }) => {
       atls.forEach(atl => {
+        total++;
         const estado = getPresenca(prova.id, cat.id, sexo, atl.id);
-        if (estado === "presente") presente++;
-        else if (estado === "confirmado") confirmado++;
-        else ausente++;
+        if (estado === "confirmado") confirmado++;
+        else if (estado === "dns") dns++;
       });
     });
-    return { ausente, presente, confirmado, total: ausente + presente + confirmado };
+    return { confirmado, dns, total };
   }, [provasComAtletas, getPresenca]);
 
   if (!eventoAtual) return (
@@ -316,9 +310,8 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
           <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
             {[
               { label: "Total", valor: statsPresenca.total, cor: t.textMuted },
-              { label: "Ausente", valor: statsPresenca.ausente, cor: t.danger },
-              { label: "Presente", valor: statsPresenca.presente, cor: t.accent },
-              { label: "Confirmado", valor: statsPresenca.confirmado, cor: t.success },
+              { label: "Confirmados", valor: statsPresenca.confirmado, cor: t.success },
+              { label: "DNS", valor: statsPresenca.dns, cor: t.danger },
             ].map(stat => (
               <div key={stat.label} style={{ background: t.bgCard, border: `1px solid ${stat.cor}33`, borderRadius: 10, padding: "12px 20px", textAlign: "center", minWidth: 90 }}>
                 <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 28, fontWeight: 900, color: stat.cor }}>{stat.valor}</div>
@@ -334,7 +327,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
           {provasFiltradas.map(({ prova, cat, sexo, atletas: atls, horario }) => {
             const presencaProva = getPresencaProva(prova.id, cat.id, sexo);
             const nConfirmados = Object.values(presencaProva).filter(v => v === "confirmado").length;
-            const nPresentes   = Object.values(presencaProva).filter(v => v === "presente").length;
+            const nDns         = Object.values(presencaProva).filter(v => v === "dns").length;
 
             return (
               <div key={`${prova.id}_${cat.id}_${sexo}`} style={s.card}>
@@ -346,8 +339,8 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                     <span style={s.badge(sexo === "M" ? "#1a6ef5" : "#e54f9b")}>{sexo === "M" ? "Masc" : "Fem"}</span>
                   </div>
                   <div style={s.cardMeta}>
-                    <span style={s.pill(t.success, t.bgCardAlt)}>{nConfirmados} confirmado(s)</span>
-                    <span style={s.pill(t.accent, t.accentBg)}>{nPresentes} presente(s)</span>
+                    {nConfirmados > 0 && <span style={s.pill(t.success, t.bgCardAlt)}>{nConfirmados} confirmado(s)</span>}
+                    {nDns > 0 && <span style={s.pill(t.danger, t.bgCardAlt)}>{nDns} DNS</span>}
                     <span style={{ color: t.textDimmed, fontSize: 12 }}>{atls.length} atleta(s)</span>
                   </div>
                 </div>
@@ -356,26 +349,42 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
                     <tr>
                       <th style={s.th}>Atleta</th>
                       <th style={s.th}>Clube / Equipe</th>
-                      <th style={{ ...s.th, textAlign: "center", width: 160 }}>Status</th>
+                      <th style={{ ...s.th, textAlign: "center", width: 200 }}>Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {[...atls].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR")).map(atl => {
                       const estado = getPresenca(prova.id, cat.id, sexo, atl.id);
-                      const conf = STATUS_CHAMADA[estado] || STATUS_CHAMADA.ausente;
+                      const rowBg = estado === "confirmado" ? `${t.success}08` : estado === "dns" ? `${t.danger}08` : undefined;
                       return (
-                        <tr key={`${prova.id}_${cat.id}_${sexo}_${atl.id}`} style={{ background: conf.bg }}>
+                        <tr key={`${prova.id}_${cat.id}_${sexo}_${atl.id}`} style={{ background: rowBg }}>
                           <td style={s.td}>
                             <span style={s.nomeAtleta}>{atl.nome}</span>
                           </td>
                           <td style={{ ...s.td, color: t.textDimmed, fontSize: 12 }}>{atl.clube || "—"}</td>
                           <td style={{ ...s.td, textAlign: "center" }}>
-                            <button
-                              style={s.btn(conf.cor, conf.bg)}
-                              onClick={() => atualizarPresenca(prova.id, cat.id, sexo, atl.id, conf.next)}
-                            >
-                              {conf.label} →
-                            </button>
+                            <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
+                              <button
+                                style={s.btn(
+                                  estado === "confirmado" ? t.success : t.textDisabled,
+                                  estado === "confirmado" ? `${t.success}18` : t.bgCardAlt
+                                )}
+                                onClick={() => atualizarPresenca(prova.id, cat.id, sexo, atl.id,
+                                  estado === "confirmado" ? null : "confirmado")}
+                              >
+                                ✓ Conf.
+                              </button>
+                              <button
+                                style={s.btn(
+                                  estado === "dns" ? t.danger : t.textDisabled,
+                                  estado === "dns" ? `${t.danger}18` : t.bgCardAlt
+                                )}
+                                onClick={() => atualizarPresenca(prova.id, cat.id, sexo, atl.id,
+                                  estado === "dns" ? null : "dns")}
+                              >
+                                DNS
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );

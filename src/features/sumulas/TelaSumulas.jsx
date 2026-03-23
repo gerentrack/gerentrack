@@ -1359,15 +1359,23 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                     {!sum.isRevezamento && getPresencaProva && (() => {
                       const presenca = getPresencaProva(sum.prova.id, sum.categoria.id, sum.sexo);
                       const confirmados = Object.values(presenca).filter(v => v === "confirmado").length;
-                      const presentes   = Object.values(presenca).filter(v => v === "presente").length;
-                      const total = sum.atletas.length;
-                      if (confirmados === 0 && presentes === 0) return null;
-                      const cor = confirmados === total ? "#7acc44" : "#1976D2";
+                      const dns         = Object.values(presenca).filter(v => v === "dns").length;
+                      if (confirmados === 0 && dns === 0) return null;
                       return (
-                        <span style={{ fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:700,
-                          background: cor + "18", color: cor, border: `1px solid ${cor}44` }}>
-                          📋 {confirmados > 0 ? `${confirmados} conf.` : ""}{presentes > 0 ? `${confirmados > 0 ? " · " : ""}${presentes} pres.` : ""}
-                        </span>
+                        <>
+                          {confirmados > 0 && (
+                            <span style={{ fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:700,
+                              background: `${t.success}18`, color: t.success, border: `1px solid ${t.success}44` }}>
+                              ✓ {confirmados} conf.
+                            </span>
+                          )}
+                          {dns > 0 && (
+                            <span style={{ fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:700,
+                              background: `${t.danger}18`, color: t.danger, border: `1px solid ${t.danger}44` }}>
+                              {dns} DNS
+                            </span>
+                          )}
+                        </>
                       );
                     })()}
                     {sum.isRevezamento && (
@@ -1514,7 +1522,15 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                             <tr key={`${si}-${a.id}-${sai}`} style={s.tr}>
                               <Td>{idx}</Td>
                               <Td><strong style={{ color: t.textTertiary, fontSize:12 }}>{(numeracaoPeito?.[eventoAtual?.id]||{})[a.id]||""}</strong></Td>
-                              <Td><strong style={{ color: t.textPrimary }}>{a.nome}</strong></Td>
+                              <Td>
+                                <strong style={{ color: t.textPrimary }}>{a.nome}</strong>
+                                {getPresencaProva && (() => {
+                                  const st = getPresencaProva(sum.prova.id, sum.categoria.id, sum.sexo)[a.id];
+                                  if (!st || (st !== "confirmado" && st !== "dns")) return null;
+                                  const cor = st === "confirmado" ? t.success : t.danger;
+                                  return <span style={{ marginLeft:6, fontSize:9, padding:"1px 6px", borderRadius:3, fontWeight:700, background:cor+"18", color:cor, border:`1px solid ${cor}44` }}>{st === "confirmado" ? "Conf." : "DNS"}</span>;
+                                })()}
+                              </Td>
                               <Td>{_getNascDisplay(a) || "—"}</Td>
                               <Td>{getExibicaoEquipe(a, equipes) || "—"}</Td>
                               <Td><strong style={{ color: t.accent }}>{serie.numero}</strong></Td>
@@ -1545,7 +1561,15 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                         <tr key={`std-${a.id}-${j}`} style={s.tr}>
                           <Td>{j + 1}</Td>
                           <Td><strong style={{ color: t.textTertiary, fontSize:12 }}>{(numeracaoPeito?.[eventoAtual?.id]||{})[a.id]||""}</strong></Td>
-                          <Td><strong style={{ color: t.textPrimary }}>{a.nome}</strong></Td>
+                          <Td>
+                            <strong style={{ color: t.textPrimary }}>{a.nome}</strong>
+                            {getPresencaProva && (() => {
+                              const st = getPresencaProva(sum.prova.id, sum.categoria.id, sum.sexo)[a.id];
+                              if (!st || (st !== "confirmado" && st !== "dns")) return null;
+                              const cor = st === "confirmado" ? t.success : t.danger;
+                              return <span style={{ marginLeft:6, fontSize:9, padding:"1px 6px", borderRadius:3, fontWeight:700, background:cor+"18", color:cor, border:`1px solid ${cor}44` }}>{st === "confirmado" ? "Conf." : "DNS"}</span>;
+                            })()}
+                          </Td>
                           <Td>{_getNascDisplay(a) || "—"}</Td>
                           <Td>{getExibicaoEquipe(a, equipes) || "—"}</Td>
                           <Td>
