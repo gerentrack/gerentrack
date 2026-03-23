@@ -6,7 +6,9 @@ import { getCategoria } from "../../shared/constants/categorias";
 import { Th, Td } from "../ui/TableHelpers";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
-import { gerarQrPublico, gerarQrSecretaria } from "../../shared/qrcode/gerarQrCode";
+import { gerarQrPublico, gerarQrSecretaria, parsearQrSecretaria } from "../../shared/qrcode/gerarQrCode";
+import QrScanner from "../../shared/qrcode/QrScanner";
+import { beepOk, beepInvalido, vibrarOk, vibrarInvalido } from "../../shared/qrcode/scannerSons";
 import ExcelJS from "exceljs";
 
 function getStyles(t) {
@@ -320,6 +322,56 @@ function TelaNumericaPeito({ setTela, eventoAtual, inscricoes, atletas, equipes,
     }
   };
 
+  // ── Preview / Teste de QR ──────────────────────────────────────────────────
+  const [testeQrAberto, setTesteQrAberto] = useState(false);
+  const [testeQrPreview, setTesteQrPreview] = useState(null); // { qrPub, qrSec, atleta, peito }
+
+  const gerarPreviewQr = async () => {
+    if (!eventoAtual?.slug) {
+      alert("⚠️ Defina um slug para a competição antes de testar QR.");
+      return;
+    }
+    // Pegar o primeiro atleta com nº de peito
+    const primeiro = atletasOrdenados.find(a => editNum[a.id] ?? numMap[a.id]);
+    if (!primeiro) {
+      alert("⚠️ Numere pelo menos um atleta antes de testar.");
+      return;
+    }
+    const peito = editNum[primeiro.id] ?? numMap[primeiro.id];
+    setQrProgresso("Gerando QR de teste...");
+    setGerandoQr(true);
+    try {
+      const qrPub = await gerarQrPublico(eventoAtual.slug);
+      const qrSec = await gerarQrSecretaria(eventoAtual.id, primeiro.id, peito);
+      setTesteQrPreview({ qrPub, qrSec, atleta: primeiro.nome, peito });
+    } catch (err) {
+      alert("Erro: " + err.message);
+    } finally {
+      setGerandoQr(false);
+      setQrProgresso("");
+    }
+  };
+
+  const handleTesteQrScan = (raw) => {
+    const qr = parsearQrSecretaria(raw);
+    if (qr) {
+      if (qr.eventoId !== eventoAtual?.id) {
+        beepInvalido(); vibrarInvalido();
+        return { status: "erro", msg: "⚠️ QR de outro evento", cor: "vermelho" };
+      }
+      const atl = atletas.find(a => a.id === qr.atletaId);
+      beepOk(); vibrarOk();
+      return { status: "ok", msg: `✅ QR Staff válido — #${qr.numPeito} ${atl?.nome || qr.atletaId}`, cor: "verde" };
+    }
+    // Tentar como URL pública
+    if (raw.includes("/competicao/") && raw.includes("/resultados")) {
+      beepOk(); vibrarOk();
+      return { status: "ok", msg: `✅ QR Público válido — ${raw}`, cor: "verde" };
+    }
+    beepInvalido(); vibrarInvalido();
+    return { status: "erro", msg: `❌ QR não reconhecido: ${raw.slice(0, 50)}`, cor: "vermelho" };
+  };
+
   const exportarCsv = () => {
     const linhas = atletasOrdenados.map(a => ({
       "Nº Peito": editNum[a.id] ?? numMap[a.id] ?? "",
@@ -428,6 +480,52 @@ function TelaNumericaPeito({ setTela, eventoAtual, inscricoes, atletas, equipes,
 
   return (
     <div style={s.page}>
+      {/* Scanner de teste QR */}
+      <QrScanner
+        aberto={testeQrAberto}
+        onScan={handleTesteQrScan}
+        onFechar={() => setTesteQrAberto(false)}
+      />
+
+      {/* Modal preview QR */}
+      {testeQrPreview && !testeQrAberto && (
+        <div style={{ position: "fixed", inset: 0, background: t.bgOverlay, zIndex: 8000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 16, padding: "28px 32px", maxWidth: 420, width: "100%", textAlign: "center" }}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 20, color: t.textPrimary, marginBottom: 4 }}>
+              🔍 Preview QR Code
+            </div>
+            <div style={{ fontSize: 12, color: t.textMuted, marginBottom: 20 }}>
+              Atleta: #{testeQrPreview.peito} {testeQrPreview.atleta}
+            </div>
+            <div style={{ display: "flex", justifyContent: "center", gap: 24, marginBottom: 20 }}>
+              <div>
+                <img src={testeQrPreview.qrPub} alt="QR Público" style={{ width: 140, height: 140, borderRadius: 8, border: `1px solid ${t.border}` }} />
+                <div style={{ fontSize: 11, color: t.textDimmed, marginTop: 6 }}>QR Público</div>
+                <div style={{ fontSize: 9, color: t.textDisabled }}>Resultados</div>
+              </div>
+              <div>
+                <img src={testeQrPreview.qrSec} alt="QR Staff" style={{ width: 140, height: 140, borderRadius: 8, border: `1px solid ${t.border}` }} />
+                <div style={{ fontSize: 11, color: t.textDimmed, marginTop: 6 }}>QR Staff</div>
+                <div style={{ fontSize: 9, color: t.textDisabled }}>Secretaria</div>
+              </div>
+            </div>
+            <div style={{ fontSize: 12, color: t.textMuted, marginBottom: 16, lineHeight: 1.6 }}>
+              Escaneie os QR codes acima com a câmera para verificar se são legíveis antes de imprimir.
+            </div>
+            <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+              <button onClick={() => { setTesteQrPreview(null); setTesteQrAberto(true); }}
+                style={{ background: t.accent, color: "#fff", border: "none", borderRadius: 8, padding: "10px 20px", cursor: "pointer", fontWeight: 700, fontSize: 14 }}>
+                📷 Abrir Scanner para Testar
+              </button>
+              <button onClick={() => setTesteQrPreview(null)}
+                style={{ background: "transparent", color: t.textMuted, border: `1px solid ${t.border}`, borderRadius: 8, padding: "10px 20px", cursor: "pointer", fontSize: 14 }}>
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={s.painelHeader}>
         <div>
           <h1 style={s.pageTitle}>🔢 Numeração de Peito</h1>
@@ -450,6 +548,7 @@ function TelaNumericaPeito({ setTela, eventoAtual, inscricoes, atletas, equipes,
         <button style={s.btnSecondary} onClick={exportarComQr} disabled={gerandoQr}>
           {gerandoQr ? `⏳ ${qrProgresso || "Gerando..."}` : "📱 Exportar com QR"}
         </button>
+        <button style={s.btnSecondary} onClick={gerarPreviewQr} disabled={gerandoQr}>🔍 Testar QR</button>
         <button style={s.btnGhost} onClick={limparTudo}>🗑️ Limpar</button>
         <div style={{ flex: 1 }} />
         <input style={{ ...s.input, maxWidth: 250 }} placeholder="🔍 Filtrar atleta ou equipe..." value={filtro} onChange={e => setFiltro(e.target.value)} />
