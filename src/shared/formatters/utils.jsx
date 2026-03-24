@@ -426,6 +426,32 @@ function nomeProvaHtml(nome) {
   return `${m[1]}<span style="color:#FFD700;font-weight:900">${m[2]}</span>`;
 }
 
+/**
+ * resolverAtleta — retorna dados do atleta congelados (snapshot) para eventos finalizados,
+ * ou dados vivos do cadastro para eventos ativos.
+ * O objeto retornado tem a mesma forma de um atleta normal para compatibilidade downstream.
+ */
+function resolverAtleta(atletaId, atletas, evento) {
+  var snap = evento && evento.competicaoFinalizada && evento.snapshotAtletas && evento.snapshotAtletas[atletaId];
+  var atl = Array.isArray(atletas) ? atletas.find(function(a) { return a.id === atletaId; }) : null;
+  if (snap) {
+    // Retorna objeto com shape de atleta + campos extras do snapshot
+    return Object.assign({}, atl || {}, {
+      id: atletaId,
+      nome: snap.nome || (atl && atl.nome) || "—",
+      clube: snap.clube || (atl && atl.clube) || "",
+      equipeId: snap.equipeId || (atl && atl.equipeId) || null,
+      anoNasc: snap.anoNasc || (atl && atl.anoNasc) || "",
+      dataNasc: snap.dataNasc || (atl && atl.dataNasc) || "",
+      sexo: snap.sexo || (atl && atl.sexo) || "",
+      cbat: snap.cbat || (atl && atl.cbat) || "",
+      _siglaEquipe: snap._siglaEquipe || "",
+      _snapshotAtivo: true,
+    });
+  }
+  return atl || null;
+}
+
 export {
   formatarTempo, formatarTempoMs, autoFormatTempo,
   parseTempoPista, _parseDigitsPuros, _parseMinSeg, _marcaParaMs,
@@ -436,5 +462,6 @@ export {
   _getNascDisplay, _getCbat, _getAnoNasc,
   _getEquipeIdAtleta, _getClubeAtleta,
   _getLocalRecorde, _getLocalEventoDisplay,
-  emailJaCadastrado, validarCPF, validarCNPJ
+  emailJaCadastrado, validarCPF, validarCNPJ,
+  resolverAtleta
 };

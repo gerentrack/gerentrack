@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { todasAsProvas, getComposicaoCombinada } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/constants/categorias";
-import { _getLocalEventoDisplay, NomeProvaComImplemento, abreviarProva, formatarMarca, formatarMarcaExibicao, _marcasComEmpateCentesimal, _marcaParaMs } from "../../shared/formatters/utils";
+import { _getLocalEventoDisplay, NomeProvaComImplemento, abreviarProva, formatarMarca, formatarMarcaExibicao, _marcasComEmpateCentesimal, _marcaParaMs, resolverAtleta } from "../../shared/formatters/utils";
 import { RecordHelper } from "../../shared/engines/recordHelper";
 import { TeamScoringEngine } from "../../shared/engines/teamScoringEngine";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
@@ -146,6 +146,7 @@ function getStyles(t) {
 
 // Item 8: exibe sigla da equipe quando disponível, com fallback para nome/clube
 const getExibicaoEquipe = (atleta, equipes) => {
+  if (atleta?._siglaEquipe) return atleta._siglaEquipe;
   const eq = (equipes||[]).find(e => e.id === atleta?.equipeId);
   if (eq) return (eq.sigla?.trim() || eq.nome || atleta?.clube || "—");
   return atleta?.clube || "—";
@@ -236,7 +237,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
               const eq = equipes.find(e => e.id === eqId);
               const nomeEquipe = eq ? (eq.clube || eq.nome || "—") : (eqId.startsWith("clube_") ? eqId.substring(6) : "—");
               const atletasIds = insc?.atletasIds || (raw?.atletasIds) || [];
-              const atlsObj = atletasIds.map(aid => atletas.find(a => a.id === aid)).filter(Boolean);
+              const atlsObj = atletasIds.map(aid => resolverAtleta(aid, atletas, eventoAtual)).filter(Boolean);
               return {
                 atleta: { id: eqId, nome: nomeEquipe }, // "atleta" é na verdade a equipe (compatibilidade)
                 equipeId: eqId, nomeEquipe, atletasRevez: atlsObj,
@@ -267,7 +268,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
             const isStatus = ["DNS","DNF","NM","NH","DQ"].indexOf(status) !== -1;
             // Tenta achar pelo ID; se não achar (atleta excluído e reimportado),
             // recupera via inscrição pelo nome
-            let atleta = atletas.find((a) => a.id === atletaId);
+            let atleta = resolverAtleta(atletaId, atletas, eventoAtual);
             if (!atleta) {
               const inscAtleta = inscDoEvento.find(i => i.atletaId === atletaId);
               if (inscAtleta) {
@@ -390,7 +391,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
 
     // Calcular pontuação de cada atleta
     const rows = atletaIds.map(aId => {
-      const atl = atletas.find(a => a.id === aId);
+      const atl = resolverAtleta(aId, atletas, eventoAtual);
       let total = 0;
       let provasRealizadas = 0;
       const porProva = todasCompDaCombinada.map(pc => {
@@ -482,7 +483,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
         const idsNosClass = new Set(atletasInsc.map(a => a.id));
         inscs.forEach(i => {
           if (!idsNosClass.has(i.atletaId)) {
-            const a = atletas.find(at => at.id === i.atletaId);
+            const a = resolverAtleta(i.atletaId, atletas, eventoAtual);
             if (a) atletasInsc.push(a);
           }
         });
@@ -562,7 +563,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
             <tbody>
               ${bc.rows.map((r, idx) => {
                 const pos = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : (idx+1)+"º";
-                const atl = r.atleta || atletas.find(a => a.id === r.atletaId);
+                const atl = r.atleta || resolverAtleta(r.atletaId, atletas, eventoAtual);
                 const clube = atl ? (getExibicaoEquipe(atl, equipes) || "—") : "—";
                 return `<tr style="border-bottom:1px solid #ddd;${idx < 3 ? "background:#f9f9f0" : ""}">
                   <td style="padding:4px 6px;font-weight:700">${pos}</td>
@@ -928,7 +929,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                           ${pontEqAtivo ? `<th style="text-align:center;font-weight:800;background:#fffde0">Pts Eq.</th>` : ""}
                         </tr></thead><tbody>
                         ${bc.rows.map((r, idx) => {
-                          const atl = r.atleta || atletas.find(a => a.id === r.atletaId);
+                          const atl = r.atleta || resolverAtleta(r.atletaId, atletas, eventoAtual);
                           const clube = atl ? (getExibicaoEquipe(atl, equipes) || "") : "";
                           return `<tr${idx < 3 ? ` class="top3"` : ""}>
                             <td style="font-weight:700">${idx < 3 ? ["🥇","🥈","🥉"][idx] : (idx+1)+"º"}</td>
@@ -1139,7 +1140,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                       const idsNosClass = new Set(atletasInsc.map(a => a.id));
                       inscs.forEach(i => {
                         if (!idsNosClass.has(i.atletaId)) {
-                          const a = atletas.find(at => at.id === i.atletaId);
+                          const a = resolverAtleta(i.atletaId, atletas, eventoAtual);
                           if (a) atletasInsc.push(a);
                         }
                       });

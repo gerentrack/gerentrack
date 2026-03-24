@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import DOMPurify from "dompurify";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { getStatusEvento, getStatusInscricoes, labelStatusEvento } from "./eventoHelpers";
-import { _getLocalEventoDisplay } from "../../shared/formatters/utils";
+import { _getLocalEventoDisplay, _getClubeAtleta as _getClubeAtletaUtil, _getCbat } from "../../shared/formatters/utils";
 import { todasAsProvas, getComposicaoCombinada } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/constants/categorias";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
@@ -1195,11 +1195,30 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                     if (novasRanking.length > 0)
                       setRanking(prev => RankingExtractionEngine.mesclarEntradas(prev, novasRanking));
                   } catch (e) { console.error("Erro ao extrair ranking:", e); }
+                  // ── Snapshot de atletas para congelar dados históricos ──
+                  const snapshotAtletas = {};
+                  const atletaIdsEvento = new Set((inscricoes || []).filter(i => i.eventoId === eventoAtual.id).map(i => i.atletaId));
+                  atletaIdsEvento.forEach(aId => {
+                    const atl = atletas.find(a => a.id === aId);
+                    if (!atl) return;
+                    const eq = atl.equipeId ? (equipes || []).find(e => e.id === atl.equipeId) : null;
+                    snapshotAtletas[aId] = {
+                      nome: atl.nome || "",
+                      clube: _getClubeAtletaUtil(atl, equipes) || "",
+                      equipeId: atl.equipeId || null,
+                      _siglaEquipe: eq?.sigla || "",
+                      anoNasc: atl.anoNasc || "",
+                      dataNasc: atl.dataNasc || "",
+                      sexo: atl.sexo || "",
+                      cbat: _getCbat(atl) || "",
+                    };
+                  });
                   alterarStatusEvento(eventoAtual.id, {
                     competicaoFinalizada:    true,
                     competicaoFinalizadaEm:  Date.now(),
                     competicaoFinalizadaPor: usuarioLogado?.nome || "—",
                     competicaoEncerrada:     true,
+                    snapshotAtletas,
                   });
                 }
               }}>

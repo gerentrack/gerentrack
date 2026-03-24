@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas, getComposicaoCombinada, nPernasRevezamento } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/constants/categorias";
-import { NomeProvaComImplemento, abreviarProva, formatarMarca, normalizarMarca, exibirMarcaInput, formatarTempo, autoFormatTempo, parseTempoPista } from "../../shared/formatters/utils";
+import { NomeProvaComImplemento, abreviarProva, formatarMarca, normalizarMarca, exibirMarcaInput, formatarTempo, autoFormatTempo, parseTempoPista, resolverAtleta } from "../../shared/formatters/utils";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { CombinedScoringEngine, temDuasCronometragens } from "../../shared/engines/combinedScoringEngine";
 import { getFasesProva, buscarSeriacao, resKey, FASE_NOME } from "../../shared/constants/fases";
@@ -109,6 +109,7 @@ function getStyles(t) {
 
 // Item 8: exibe sigla da equipe quando disponível, com fallback para nome/clube
 const getExibicaoEquipe = (atleta, equipes) => {
+  if (atleta?._siglaEquipe) return atleta._siglaEquipe;
   const eq = (equipes||[]).find(e => e.id === atleta?.equipeId);
   if (eq) return (eq.sigla?.trim() || eq.nome || atleta?.clube || "—");
   return atleta?.clube || "—";
@@ -294,7 +295,7 @@ function BlocoDigitarCategoria({
   // Para provas individuais: atletas inscritos
   let atletasNaProva = isRevezamento ? [] : inscricoes
     .filter((i) => i.eventoId === eid && i.provaId === filtroProva && (i.categoriaOficialId || i.categoriaId) === catId && i.sexo === filtroSexo && i.tipo !== "revezamento")
-    .map((i) => atletas.find((a) => a.id === i.atletaId))
+    .map((i) => resolverAtleta(i.atletaId, atletas, eventoAtual))
     .filter(Boolean);
 
   // Para revezamentos: equipes inscritas
@@ -305,7 +306,7 @@ function BlocoDigitarCategoria({
         .map(i => {
           const eq = equipes.find(e => e.id === i.equipeId);
           const nomeEq = eq ? (eq.clube || eq.nome || "—") : (i.equipeId?.startsWith("clube_") ? i.equipeId.substring(6) : "—");
-          const atlsObj = (i.atletasIds || []).map(aid => atletas.find(a => a.id === aid)).filter(Boolean);
+          const atlsObj = (i.atletasIds || []).map(aid => resolverAtleta(aid, atletas, eventoAtual)).filter(Boolean);
           return { equipeId: i.equipeId, nomeEquipe: nomeEq, sigla: eq?.sigla || "", atletasIds: i.atletasIds || [], atletas: atlsObj };
         })
     : [];
@@ -1298,7 +1299,7 @@ function BlocoDigitarCategoria({
             if (atletaIds.length === 0 || todasCompDaCombinada.length === 0) return null;
 
             const rows = atletaIds.map(aId => {
-              const atl = atletas.find(a => a.id === aId);
+              const atl = resolverAtleta(aId, atletas, eventoAtual);
               let total = 0;
               let provasRealizadas = 0;
               const porProva = todasCompDaCombinada.map(pc => {
@@ -1986,7 +1987,7 @@ function BlocoDigitarCategoria({
                 if (atletaIds.length === 0 || todasCompDaCombinada.length === 0) return null;
 
                 const rows = atletaIds.map(aId => {
-                  const atl = atletas.find(a => a.id === aId);
+                  const atl = resolverAtleta(aId, atletas, eventoAtual);
                   let total = 0;
                   let provasRealizadas = 0;
                   const porProva = todasCompDaCombinada.map(pc => {

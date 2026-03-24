@@ -5,7 +5,7 @@ import { getFasesProva, temMultiFases, buscarSeriacao, serKey, resKey, FASE_NOME
 import { gerarHtmlImpressao } from "../impressao/gerarHtmlImpressao";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { SeriacaoEngine } from "../../shared/engines/seriacaoEngine";
-import { _getNascDisplay, NomeProvaComImplemento, formatarTempo } from "../../shared/formatters/utils";
+import { _getNascDisplay, NomeProvaComImplemento, formatarTempo, resolverAtleta } from "../../shared/formatters/utils";
 import { Th, Td } from "../ui/TableHelpers";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
@@ -33,6 +33,7 @@ function getStyles(t) {
 
 // Item 8: exibe sigla da equipe quando disponível, com fallback para nome/clube
 const getExibicaoEquipe = (atleta, equipes) => {
+  if (atleta?._siglaEquipe) return atleta._siglaEquipe;
   const eq = (equipes||[]).find(e => e.id === atleta?.equipeId);
   if (eq) return (eq.sigla?.trim() || eq.nome || atleta?.clube || "—");
   return atleta?.clube || "—";
@@ -122,7 +123,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
           const equipesRevez = inscsRevez.map(i => {
             const eq = equipes.find(e => e.id === i.equipeId);
             const nomeEquipe = eq ? (eq.clube || eq.nome || "—") : (i.equipeId?.startsWith("clube_") ? i.equipeId.substring(6) : "—");
-            const atlsObj = (i.atletasIds || []).map(aid => atletas.find(a => a.id === aid)).filter(Boolean);
+            const atlsObj = (i.atletasIds || []).map(aid => resolverAtleta(aid, atletas, eventoAtual)).filter(Boolean);
             return { equipeId: i.equipeId, nomeEquipe, sigla: eq?.sigla || "", atletasIds: i.atletasIds || [], atletas: atlsObj, inscId: i.id };
           });
           const chavRes = `${eventoAtual.id}_${prova.id}_${cat.id}_${sexo}`;
@@ -138,7 +139,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
         if (inscs.length === 0) return [];
         // Deduplicar por atletaId — atleta inscrito 2x na mesma prova não duplica na súmula
         const atletasInsc = inscs
-          .map((i) => atletas.find((a) => a.id === i.atletaId))
+          .map((i) => resolverAtleta(i.atletaId, atletas, eventoAtual))
           .filter(Boolean)
           .filter((a, idx, arr) => arr.findIndex(x => x.id === a.id) === idx);
 
@@ -424,7 +425,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
           const mRef = {};
           const mSer = {};
           item.inscs.forEach(i => {
-            const a = atletas.find(aa => aa.id === i.atletaId);
+            const a = resolverAtleta(i.atletaId, atletas, eventoAtual);
             if (a) {
               mRef[a.id] = salva?.marcasRef?.[a.id] || "";
               mSer[a.id] = { serie: 1, raia: "" };
@@ -476,7 +477,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
             Object.entries(manualSeries).forEach(([atletaId, cfg]) => {
               const serNum = parseInt(cfg.serie) || 1;
               if (!seriesMap[serNum]) seriesMap[serNum] = [];
-              const a = atletas.find(aa => aa.id === atletaId);
+              const a = resolverAtleta(atletaId, atletas, eventoAtual);
               if (a) seriesMap[serNum].push({ ...a, atletaId, raia: parseInt(cfg.raia) || null, posicao: parseInt(cfg.raia) || null, ranking: null });
             });
             const seriesArr = Object.keys(seriesMap).sort((a,b) => a-b).map(num => ({
@@ -489,7 +490,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
           } else if (seriacaoModo === "aleatorio") {
             // Aleatório: sorteio livre (RT 20.4.1)
             const atletasList = item.inscs.map(i => {
-              const a = atletas.find(aa => aa.id === i.atletaId);
+              const a = resolverAtleta(i.atletaId, atletas, eventoAtual);
               return { ...a, atletaId: a?.id, marcaRef: "" };
             }).filter(x => x.atletaId);
             // Embaralhar
@@ -502,7 +503,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
           } else {
             // Por marca (padrão) — usa a fase selecionada
             const atletasComMarca = item.inscs.map(i => {
-              const a = atletas.find(aa => aa.id === i.atletaId);
+              const a = resolverAtleta(i.atletaId, atletas, eventoAtual);
               return { ...a, atletaId: a?.id, marcaRef: marcasRef[a?.id] || "" };
             }).filter(x => x.atletaId);
             const result = SeriacaoEngine.seriarProva(atletasComMarca, item.prova, configEngine);

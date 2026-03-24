@@ -16,6 +16,7 @@ const _nomeProvaMatch = (a, b) => {
 function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = {}, numPeito = {}, equipes = [], recordesAll = [], opts = {}) {
   const getClubeAtleta = (a) => _getClubeAtleta(a, equipes);
   const getSiglaEquipe = (a) => {
+    if (a?._siglaEquipe) return a._siglaEquipe;
     const eq = equipes.find(e => e.id === a?.equipeId);
     return eq?.sigla?.trim() || eq?.nome || getClubeAtleta(a) || "\u2014";
   };
