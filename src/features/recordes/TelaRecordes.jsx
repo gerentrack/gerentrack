@@ -24,7 +24,9 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
   const [editTipoId, setEditTipoId] = useState(null);
   const [abaRecordes, setAbaRecordes] = useState("registros"); // "registros" | "pendencias" | "historico"
   // Modal de observação/rejeição (substitui prompt do navegador)
-  const [obsModal, setObsModal] = useState(null); // { pendId, tipo: "rejeitar"|"observar", texto: "" }
+  const [obsModal, setObsModal] = useState(null); // { pendId, tipo: "rejeitar"|"observar"|"homologar", texto: "", pend } ou { lote: [...], tipo, texto }
+  // Seleção de pendências para ações em lote
+  const [pendsSelecionadas, setPendsSelecionadas] = useState(new Set());
 
   // Escopos geográficos
   const ESCOPOS = [
@@ -1243,6 +1245,35 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                   {relBadge("outro_estado", "UF")}
                 </div>
 
+                {/* Barra de ações para selecionados */}
+                {pendsSelecionadas.size > 0 && (
+                  <div style={{ display:"flex", gap:8, flexWrap:"wrap", alignItems:"center", marginBottom:14, padding:"10px 14px", background:`${t.accent}08`, borderRadius:8, border:`1px solid ${t.accentBorder}` }}>
+                    <span style={{ fontSize:12, fontWeight:700, color:t.accent }}>{pendsSelecionadas.size} selecionada(s)</span>
+                    <button onClick={() => {
+                      const lista = pendentes.filter(p => pendsSelecionadas.has(p.id));
+                      setObsModal({ lote: lista, tipo: "homologar", texto: "" });
+                    }} style={{ padding:"5px 12px", borderRadius:6, border:`1px solid ${t.success}44`, background:`${t.success}15`, color:t.success, fontSize:11, fontWeight:700, cursor:"pointer" }}>
+                      ✅ Homologar {pendsSelecionadas.size}
+                    </button>
+                    <button onClick={() => {
+                      const lista = pendentes.filter(p => pendsSelecionadas.has(p.id));
+                      setObsModal({ lote: lista, tipo: "rejeitar", texto: "" });
+                    }} style={{ padding:"5px 12px", borderRadius:6, border:`1px solid ${t.danger}44`, background:`${t.danger}10`, color:t.danger, fontSize:11, fontWeight:700, cursor:"pointer" }}>
+                      ❌ Rejeitar {pendsSelecionadas.size}
+                    </button>
+                    <button onClick={() => {
+                      const lista = pendentes.filter(p => pendsSelecionadas.has(p.id));
+                      setObsModal({ lote: lista, tipo: "observar", texto: "" });
+                    }} style={{ padding:"5px 12px", borderRadius:6, border:`1px solid ${t.accentBorder}`, background:t.bgHeaderSolid, color:t.accent, fontSize:11, fontWeight:700, cursor:"pointer" }}>
+                      ☑️ Resolver sem atualizar {pendsSelecionadas.size}
+                    </button>
+                    <button onClick={() => setPendsSelecionadas(new Set())}
+                      style={{ padding:"5px 12px", borderRadius:6, border:`1px solid ${t.borderLight}`, background:"transparent", color:t.textMuted, fontSize:11, cursor:"pointer" }}>
+                      Limpar seleção
+                    </button>
+                  </div>
+                )}
+
                 {eventosComPend.map(evtId => {
                   const pendsEvt = pendentes.filter(p => p.eventoId === evtId).sort(sortPend);
                   const locais = pendsEvt.filter(p => p.relevancia === "local");
@@ -1259,47 +1290,32 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                         </div>
                         <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
                           {locais.length > 0 && (
-                            <button onClick={async () => { 
-                              if (!await confirmar(`Homologar ${locais.length } pendência(s) do estado local (${evtUf}) de uma vez?`)) return;
-                              const obs = prompt("Observação para todas (opcional):", "") || "";
-                              homologarLote(locais, obs);
-                            }} style={{ padding:"4px 10px", borderRadius:4, border:`1px solid ${t.success}44`, background:`${t.success}15`,
+                            <button onClick={() => setObsModal({ lote: locais, tipo: "homologar", texto: "" })}
+                              style={{ padding:"4px 10px", borderRadius:4, border:`1px solid ${t.success}44`, background:`${t.success}15`,
                               color: t.success, fontSize:10, fontWeight:700, cursor:"pointer" }}>
                               ✅ Homologar {locais.length} local ({evtUf})
                             </button>
                           )}
-                          {atletaRelevantes.length > 0 && (() => { 
+                          {atletaRelevantes.length > 0 && (() => {
                             const ufsAtl = [...new Set(atletaRelevantes.map(p => p.recordeEstado).filter(Boolean))];
                             return (
-                              <button onClick={async () => {
-                                if (!await confirmar(`Homologar ${atletaRelevantes.length } pendência(s) de RE do estado do atleta (${ufsAtl.join(", ")}) de uma vez?`)) return;
-                                const obs = prompt("Observação para todas (opcional):", "") || "";
-                                homologarLote(atletaRelevantes, obs);
-                              }} style={{ padding:"4px 10px", borderRadius:4, border:`1px solid ${t.accentBorder}`, background: t.accentBg,
+                              <button onClick={() => setObsModal({ lote: atletaRelevantes, tipo: "homologar", texto: "" })}
+                                style={{ padding:"4px 10px", borderRadius:4, border:`1px solid ${t.accentBorder}`, background: t.accentBg,
                                 color: t.accent, fontSize:10, fontWeight:700, cursor:"pointer" }}>
                                 ✅ Homologar {atletaRelevantes.length} atleta ({ufsAtl.join(", ")})
                               </button>
                             );
                           })()}
                           {nacionais.length > 0 && (
-                            <button onClick={async () => { 
-                              if (!await confirmar(`Homologar ${nacionais.length } pendência(s) nacionais de uma vez?`)) return;
-                              const obs = prompt("Observação para todas (opcional):", "") || "";
-                              homologarLote(nacionais, obs);
-                            }} style={{ padding:"4px 10px", borderRadius:4, border:`1px solid ${t.accentBorder}`, background:t.bgHeaderSolid,
+                            <button onClick={() => setObsModal({ lote: nacionais, tipo: "homologar", texto: "" })}
+                              style={{ padding:"4px 10px", borderRadius:4, border:`1px solid ${t.accentBorder}`, background:t.bgHeaderSolid,
                               color: t.accent, fontSize:10, fontWeight:700, cursor:"pointer" }}>
                               ✅ Homologar {nacionais.length} nacionais
                             </button>
                           )}
                           {outroEstado.length > 0 && (
-                            <button onClick={async () => { 
-                              if (!await confirmar(`Rejeitar ${outroEstado.length } pendência(s) de outros estados? (competição ocorreu em ${evtUf})`)) return;
-                              const obs = prompt("Motivo (opcional):", `Competição em ${evtUf}, não se aplica a este RE`) || `Competição em ${evtUf}`;
-                              setPendenciasRecorde(prev => prev.map(p =>
-                                outroEstado.some(o => o.id === p.id) ? { ...p, status: "nao_homologado", resolvidoPor: usuarioLogado?.nome || "admin", resolvidoEm: Date.now(), observacao: obs } : p
-                              ));
-                              if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, "Rejeitou recordes (lote)", `${outroEstado.length} pendência(s) outros UFs`, null, { modulo: "recordes" });
-                            }} style={{ padding:"4px 10px", borderRadius:4, border:`1px solid ${t.warning}44`, background: t.bgCardAlt,
+                            <button onClick={() => setObsModal({ lote: outroEstado, tipo: "rejeitar", texto: `Competição em ${evtUf}, não se aplica a este RE` })}
+                              style={{ padding:"4px 10px", borderRadius:4, border:`1px solid ${t.warning}44`, background: t.bgCardAlt,
                               color: t.warning, fontSize:10, fontWeight:700, cursor:"pointer" }}>
                               ❌ Rejeitar {outroEstado.length} outros UFs
                             </button>
@@ -1310,6 +1326,20 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                       <table style={{ width:"100%", borderCollapse:"collapse", fontSize:11 }}>
                         <thead>
                           <tr style={{ borderBottom:"2px solid #2a3050" }}>
+                            <th style={{ padding:"6px 4px", width:28 }}>
+                              <input type="checkbox"
+                                checked={pendsEvt.length > 0 && pendsEvt.every(p => pendsSelecionadas.has(p.id))}
+                                onChange={ev => {
+                                  setPendsSelecionadas(prev => {
+                                    const next = new Set(prev);
+                                    if (ev.target.checked) pendsEvt.forEach(p => next.add(p.id));
+                                    else pendsEvt.forEach(p => next.delete(p.id));
+                                    return next;
+                                  });
+                                }}
+                                style={{ cursor:"pointer", width:14, height:14 }}
+                              />
+                            </th>
                             <th style={{ padding:"6px 6px", color:t.textMuted, fontSize:10 }}>Relev.</th>
                             <th style={{ padding:"6px 8px", textAlign:"left", color:t.textMuted, fontSize:10 }}>Prova</th>
                             <th style={{ padding:"6px 4px", color:t.textMuted, fontSize:10 }}>Cat.</th>
@@ -1328,6 +1358,18 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                             return (
                               <tr key={pend.id} style={{ borderBottom:`1px solid ${t.border}`,
                                 background: pend.relevancia === "local" ? `${t.success}08` : pend.relevancia === "atleta" ? `${t.accent}08` : pend.relevancia === "outro_estado" ? t.bgCardAlt : "transparent" }}>
+                                <td style={{ padding:"6px 4px", textAlign:"center" }}>
+                                  <input type="checkbox" checked={pendsSelecionadas.has(pend.id)}
+                                    onChange={ev => {
+                                      setPendsSelecionadas(prev => {
+                                        const next = new Set(prev);
+                                        ev.target.checked ? next.add(pend.id) : next.delete(pend.id);
+                                        return next;
+                                      });
+                                    }}
+                                    style={{ cursor:"pointer", width:14, height:14 }}
+                                  />
+                                </td>
                                 <td style={{ padding:"6px 6px", textAlign:"center" }}>
                                   {relBadge(pend.relevancia, pend.recordeEstado || pend.eventoUf)}
                                 </td>
@@ -1518,55 +1560,80 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
       })()}
 
       {/* ═══ MODAL DE OBSERVAÇÃO / REJEIÇÃO ═══ */}
-      {obsModal && (
-        <div style={{ position:"fixed", inset:0, background:t.bgOverlay, display:"flex", alignItems:"center", justifyContent:"center", zIndex:9999, padding:24 }} onClick={() => setObsModal(null)}>
-          <div style={{ background:t.bgCard, border:`1px solid ${obsModal.tipo === "rejeitar" ? t.danger + "44" : t.accentBorder}`, borderRadius:14, padding:"28px 32px", maxWidth:480, width:"100%", boxShadow:t.shadowLg }} onClick={ev => ev.stopPropagation()}>
-            <div style={{ fontSize:28, textAlign:"center", marginBottom:12 }}>{obsModal.tipo === "rejeitar" ? "❌" : obsModal.tipo === "homologar" ? "✅" : "☑️"}</div>
-            <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontWeight:800, fontSize:16, color: obsModal.tipo === "rejeitar" ? t.danger : obsModal.tipo === "homologar" ? t.success : t.accent, textAlign:"center", letterSpacing:1, marginBottom:6 }}>
-              {obsModal.tipo === "rejeitar" ? "REJEITAR RECORDE" : obsModal.tipo === "homologar" ? "HOMOLOGAR RECORDE" : "RESOLVER SEM ATUALIZAR"}
-            </div>
-            <div style={{ fontSize:12, color:t.textMuted, textAlign:"center", marginBottom:16, lineHeight:1.5 }}>
-              {obsModal.pend?.atletaNome} — {obsModal.pend?.provaNome} ({obsModal.pend?.recordeTipoSigla})
-            </div>
-            <label style={{ display:"block", fontSize:12, fontWeight:600, color:t.textDimmed, letterSpacing:1, marginBottom:6 }}>
-              {obsModal.tipo === "rejeitar" ? "MOTIVO DA REJEIÇÃO" : "OBSERVAÇÃO (OPCIONAL)"}
-            </label>
-            <textarea
-              autoFocus
-              value={obsModal.texto}
-              onChange={ev => setObsModal(prev => ({ ...prev, texto: ev.target.value }))}
-              placeholder={obsModal.tipo === "rejeitar" ? "Informe o motivo..." : "Observação opcional..."}
-              style={{ width:"100%", minHeight:80, background:t.bgInput, border:`1px solid ${t.borderInput}`, borderRadius:8, padding:"10px 14px", color:t.textSecondary, fontSize:14, fontFamily:"'Barlow', sans-serif", outline:"none", resize:"vertical", marginBottom:20 }}
-            />
-            <div style={{ display:"flex", gap:10, justifyContent:"flex-end" }}>
-              <button onClick={() => setObsModal(null)}
-                style={{ background:"transparent", border:`1px solid ${t.borderLight}`, color:t.textMuted, padding:"10px 22px", borderRadius:8, cursor:"pointer", fontSize:14, fontFamily:"'Barlow', sans-serif" }}>
-                Cancelar
-              </button>
-              <button onClick={() => {
-                const { tipo, texto, pend } = obsModal;
-                const st = tipo === "rejeitar" ? "nao_homologado" : tipo === "homologar" ? "homologado" : "homologado_nao_aplicado";
-                setPendenciasRecorde(prev => prev.map(p => p.id !== pend.id ? p : {
-                  ...p, status: st, resolvidoPor: usuarioLogado?.nome || "admin", resolvidoEm: Date.now(), observacao: texto || p.observacao
-                }));
-                if (st === "homologado") {
-                  const { recordesAtualizados, novoHistorico } = RecordDetectionEngine.aplicarHomologacao(
-                    { ...pend, observacao: texto || pend.observacao }, recordes, usuarioLogado?.nome || "admin"
-                  );
-                  setRecordes(recordesAtualizados);
-                  setHistoricoRecordes(prev => [...prev, novoHistorico]);
+      {obsModal && (() => {
+        const isLote = Array.isArray(obsModal.lote);
+        const qtd = isLote ? obsModal.lote.length : 1;
+        const titulo = obsModal.tipo === "rejeitar" ? `REJEITAR ${qtd > 1 ? qtd + " RECORDES" : "RECORDE"}`
+          : obsModal.tipo === "homologar" ? `HOMOLOGAR ${qtd > 1 ? qtd + " RECORDES" : "RECORDE"}`
+          : `RESOLVER ${qtd > 1 ? qtd + " RECORDES" : "RECORDE"} SEM ATUALIZAR`;
+        const cor = obsModal.tipo === "rejeitar" ? t.danger : obsModal.tipo === "homologar" ? t.success : t.accent;
+        const ico = obsModal.tipo === "rejeitar" ? "❌" : obsModal.tipo === "homologar" ? "✅" : "☑️";
+        return (
+          <div style={{ position:"fixed", inset:0, background:t.bgOverlay, display:"flex", alignItems:"center", justifyContent:"center", zIndex:9999, padding:24 }} onClick={() => setObsModal(null)}>
+            <div style={{ background:t.bgCard, border:`1px solid ${cor}44`, borderRadius:14, padding:"28px 32px", maxWidth:480, width:"100%", boxShadow:t.shadowLg }} onClick={ev => ev.stopPropagation()}>
+              <div style={{ fontSize:28, textAlign:"center", marginBottom:12 }}>{ico}</div>
+              <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontWeight:800, fontSize:16, color:cor, textAlign:"center", letterSpacing:1, marginBottom:6 }}>
+                {titulo}
+              </div>
+              <div style={{ fontSize:12, color:t.textMuted, textAlign:"center", marginBottom:16, lineHeight:1.5 }}>
+                {isLote
+                  ? `${qtd} pendência(s) selecionada(s)`
+                  : <>{obsModal.pend?.atletaNome} — {obsModal.pend?.provaNome} ({obsModal.pend?.recordeTipoSigla})</>
                 }
-                const acaoNome = st === "homologado" ? "Homologou recorde" : st === "nao_homologado" ? "Rejeitou recorde" : "Resolveu recorde";
-                if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, acaoNome, `${pend.atletaNome} — ${pend.provaNome} (${pend.recordeTipoSigla})`, null, { modulo: "recordes" });
-                setObsModal(null);
-              }}
-                style={{ background: obsModal.tipo === "rejeitar" ? `linear-gradient(135deg, ${t.danger}, #a93226)` : obsModal.tipo === "homologar" ? `linear-gradient(135deg, ${t.success}, #1a8a1a)` : `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, border:"none", color:"#fff", padding:"10px 22px", borderRadius:8, cursor:"pointer", fontSize:14, fontWeight:700, fontFamily:"'Barlow Condensed', sans-serif", letterSpacing:1 }}>
-                {obsModal.tipo === "rejeitar" ? "Rejeitar" : obsModal.tipo === "homologar" ? "Homologar" : "Confirmar"}
-              </button>
+              </div>
+              <label style={{ display:"block", fontSize:12, fontWeight:600, color:t.textDimmed, letterSpacing:1, marginBottom:6 }}>
+                {obsModal.tipo === "rejeitar" ? "MOTIVO DA REJEIÇÃO" : "OBSERVAÇÃO (OPCIONAL)"}
+              </label>
+              <textarea autoFocus value={obsModal.texto}
+                onChange={ev => setObsModal(prev => ({ ...prev, texto: ev.target.value }))}
+                placeholder={obsModal.tipo === "rejeitar" ? "Informe o motivo..." : "Observação opcional..."}
+                style={{ width:"100%", minHeight:80, background:t.bgInput, border:`1px solid ${t.borderInput}`, borderRadius:8, padding:"10px 14px", color:t.textSecondary, fontSize:14, fontFamily:"'Barlow', sans-serif", outline:"none", resize:"vertical", marginBottom:20 }}
+              />
+              <div style={{ display:"flex", gap:10, justifyContent:"flex-end" }}>
+                <button onClick={() => setObsModal(null)}
+                  style={{ background:"transparent", border:`1px solid ${t.borderLight}`, color:t.textMuted, padding:"10px 22px", borderRadius:8, cursor:"pointer", fontSize:14, fontFamily:"'Barlow', sans-serif" }}>
+                  Cancelar
+                </button>
+                <button onClick={() => {
+                  const { tipo, texto } = obsModal;
+                  const st = tipo === "rejeitar" ? "nao_homologado" : tipo === "homologar" ? "homologado" : "homologado_nao_aplicado";
+                  if (isLote) {
+                    const ids = new Set(obsModal.lote.map(p => p.id));
+                    if (st === "homologado") {
+                      homologarLote(obsModal.lote, texto);
+                    } else {
+                      setPendenciasRecorde(prev => prev.map(p => ids.has(p.id) ? {
+                        ...p, status: st, resolvidoPor: usuarioLogado?.nome || "admin", resolvidoEm: Date.now(), observacao: texto || p.observacao
+                      } : p));
+                      const acaoNome = st === "nao_homologado" ? "Rejeitou recordes (lote)" : "Resolveu recordes (lote)";
+                      if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, acaoNome, `${obsModal.lote.length} pendência(s)`, null, { modulo: "recordes" });
+                    }
+                    setPendsSelecionadas(new Set());
+                  } else {
+                    const pend = obsModal.pend;
+                    setPendenciasRecorde(prev => prev.map(p => p.id !== pend.id ? p : {
+                      ...p, status: st, resolvidoPor: usuarioLogado?.nome || "admin", resolvidoEm: Date.now(), observacao: texto || p.observacao
+                    }));
+                    if (st === "homologado") {
+                      const { recordesAtualizados, novoHistorico } = RecordDetectionEngine.aplicarHomologacao(
+                        { ...pend, observacao: texto || pend.observacao }, recordes, usuarioLogado?.nome || "admin"
+                      );
+                      setRecordes(recordesAtualizados);
+                      setHistoricoRecordes(prev => [...prev, novoHistorico]);
+                    }
+                    const acaoNome = st === "homologado" ? "Homologou recorde" : st === "nao_homologado" ? "Rejeitou recorde" : "Resolveu recorde";
+                    if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, acaoNome, `${pend.atletaNome} — ${pend.provaNome} (${pend.recordeTipoSigla})`, null, { modulo: "recordes" });
+                  }
+                  setObsModal(null);
+                }}
+                  style={{ background: obsModal.tipo === "rejeitar" ? `linear-gradient(135deg, ${t.danger}, #a93226)` : obsModal.tipo === "homologar" ? `linear-gradient(135deg, ${t.success}, #1a8a1a)` : `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, border:"none", color:"#fff", padding:"10px 22px", borderRadius:8, cursor:"pointer", fontSize:14, fontWeight:700, fontFamily:"'Barlow Condensed', sans-serif", letterSpacing:1 }}>
+                  {obsModal.tipo === "rejeitar" ? "Rejeitar" : obsModal.tipo === "homologar" ? "Homologar" : "Confirmar"}{qtd > 1 ? ` (${qtd})` : ""}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

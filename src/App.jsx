@@ -232,7 +232,16 @@ function App() {
       subtitulo: { x: 50, y: 48 },
       stats: { x: 50, y: 72 },
     },
+    assinaturasFederacao: {
+      MG: { nome: "Federação Mineira de Atletismo", logo: "" },
+    },
   });
+  // Migração: garantir assinaturasFederacao com MG padrão
+  React.useEffect(() => {
+    if (!siteBranding.assinaturasFederacao) {
+      setSiteBranding(prev => ({ ...prev, assinaturasFederacao: { MG: { nome: "Federação Mineira de Atletismo", logo: "" } } }));
+    }
+  }, []);
   const gtIcon = siteBranding.icon || GT_DEFAULT_ICON;
   const gtLogo = siteBranding.logo || GT_DEFAULT_LOGO;
   const gtNome = siteBranding.nome || "GERENTRACK";

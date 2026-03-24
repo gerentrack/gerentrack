@@ -1106,6 +1106,62 @@ function TelaConfiguracoes({
             </div>
           </div>
 
+          {/* ── Assinaturas de Federações (Ranking) ─────────────────────────── */}
+          <div style={s.card}>
+            <h3 style={s.sectionTitle}>🏅 Assinaturas de Federações (Ranking)</h3>
+            <p style={{ color:t.textDimmed, fontSize:13, marginBottom:14, lineHeight:1.6 }}>
+              Logo/assinatura de cada federação estadual que aparecerá na impressão do ranking oficial ao filtrar pela UF correspondente.
+            </p>
+            {Object.entries(siteBranding?.assinaturasFederacao || {}).map(([uf, fed]) => (
+              <div key={uf} style={{ display:"flex", alignItems:"center", gap:14, flexWrap:"wrap", padding:"10px 14px", background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, marginBottom:8 }}>
+                <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontWeight:800, fontSize:16, color:t.accent, width:30 }}>{uf}</span>
+                <input style={{ ...s.input, flex:1, minWidth:180, marginBottom:0 }} value={fed.nome || ""} placeholder="Nome da federação"
+                  onChange={ev => setSiteBranding(prev => ({ ...prev, assinaturasFederacao: { ...prev.assinaturasFederacao, [uf]: { ...prev.assinaturasFederacao[uf], nome: ev.target.value } } }))} />
+                {fed.logo ? (
+                  <img src={fed.logo} alt={uf} style={{ maxHeight:40, maxWidth:160, objectFit:"contain", background:"#fff", padding:2, borderRadius:4, border:`1px solid ${t.border}` }} />
+                ) : (
+                  <span style={{ fontSize:10, color:t.textDisabled }}>Sem logo</span>
+                )}
+                <label style={{ display:"inline-flex", alignItems:"center", gap:4, padding:"4px 10px",
+                  background:t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:5, cursor:"pointer", fontSize:11, color:t.accent }}>
+                  📁 {fed.logo ? "Trocar" : "Enviar"}
+                  <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }}
+                    onChange={async ev => {
+                      const f = ev.target.files?.[0]; if (!f) return;
+                      if (f.size > 2*1024*1024) { setErro("Máx. 2MB."); return; }
+                      try {
+                        const ref = storageRef(storage, `branding/assinatura-federacao-${uf}`);
+                        await uploadBytes(ref, f);
+                        const url = await getDownloadURL(ref);
+                        setSiteBranding(prev => ({ ...prev, assinaturasFederacao: { ...prev.assinaturasFederacao, [uf]: { ...prev.assinaturasFederacao[uf], logo: url } } }));
+                      } catch (err) { setErro("Erro ao enviar: " + err.message); }
+                      ev.target.value = "";
+                    }} />
+                </label>
+                {fed.logo && (
+                  <button style={{ fontSize:10, color:t.danger, background:"transparent", border:`1px solid ${t.danger}44`, borderRadius:4, padding:"3px 8px", cursor:"pointer" }}
+                    onClick={() => setSiteBranding(prev => ({ ...prev, assinaturasFederacao: { ...prev.assinaturasFederacao, [uf]: { ...prev.assinaturasFederacao[uf], logo: "" } } }))}>🗑️</button>
+                )}
+                <button style={{ fontSize:10, color:t.danger, background:"transparent", border:"none", cursor:"pointer" }}
+                  onClick={() => setSiteBranding(prev => {
+                    const novo = { ...prev.assinaturasFederacao };
+                    delete novo[uf];
+                    return { ...prev, assinaturasFederacao: novo };
+                  })}>✕</button>
+              </div>
+            ))}
+            <button style={{ marginTop:6, padding:"6px 14px", borderRadius:6, border:`1px dashed ${t.accentBorder}`, background:"transparent", color:t.accent, fontSize:12, fontWeight:600, cursor:"pointer" }}
+              onClick={() => {
+                const uf = prompt("Sigla do estado (ex: SP, RJ, BA):");
+                if (!uf || uf.length !== 2) return;
+                const ufUp = uf.toUpperCase();
+                if (siteBranding?.assinaturasFederacao?.[ufUp]) { setErro(`${ufUp} já cadastrado.`); return; }
+                setSiteBranding(prev => ({ ...prev, assinaturasFederacao: { ...prev.assinaturasFederacao, [ufUp]: { nome: "", logo: "" } } }));
+              }}>
+              + Adicionar Federação
+            </button>
+          </div>
+
           {/* ── Backup e Restauração ─────────────────────────────────────────── */}
           <div style={s.card}>
             <h3 style={s.sectionTitle}>💾 Backup e Restauração</h3>

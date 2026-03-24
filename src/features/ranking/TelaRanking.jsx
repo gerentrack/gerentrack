@@ -6,6 +6,7 @@ import { _getCbat } from "../../shared/formatters/utils";
 import { criarInscricaoStyles } from "../inscricoes/inscricaoStyles";
 import { useTema } from "../../shared/TemaContext";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
+import { GT_DEFAULT_LOGO } from "../../shared/branding";
 
 export default function TelaRanking({ ranking, setRanking, historicoRanking, setHistoricoRanking, atletas, equipes, usuarioLogado, registrarAcao, setTela }) {
   const t = useTema();
@@ -39,8 +40,8 @@ export default function TelaRanking({ ranking, setRanking, historicoRanking, set
 
   // ── Listas para filtros ──
   const provasDisponiveis = useMemo(() => {
-    const ids = new Set((ranking || []).filter(r => r.status === "homologado").map(r => r.provaId));
-    return todasAsProvas().filter(p => ids.has(p.id));
+    const nomes = new Set((ranking || []).filter(r => r.status === "homologado" && r.provaNome).map(r => r.provaNome));
+    return [...nomes].sort((a, b) => a.localeCompare(b));
   }, [ranking]);
 
   const anosDisponiveis = useMemo(() => {
@@ -70,15 +71,15 @@ export default function TelaRanking({ ranking, setRanking, historicoRanking, set
     if (filtroAno !== "todos") lista = lista.filter(r => r.eventoData?.startsWith(filtroAno));
     if (filtroCat !== "todas") lista = lista.filter(r => r.categoriaId === filtroCat);
     if (filtroSexo !== "todos") lista = lista.filter(r => r.sexo === filtroSexo);
-    if (filtroProva !== "todas") lista = lista.filter(r => r.provaId === filtroProva);
+    if (filtroProva !== "todas") lista = lista.filter(r => r.provaNome === filtroProva);
     if (filtroUfAtleta !== "todos") lista = lista.filter(r => r.atletaUf?.toUpperCase() === filtroUfAtleta);
     if (filtroUfEvento !== "todos") lista = lista.filter(r => r.eventoUf?.toUpperCase() === filtroUfEvento);
     if (filtroClube !== "todos") lista = lista.filter(r => r.atletaClube === filtroClube);
 
-    // Melhor marca por atleta (por prova)
+    // Melhor marca por atleta (por prova — agrupa por provaNome)
     const melhor = {};
     lista.forEach(r => {
-      const chave = `${r.atletaId}_${r.provaId}`;
+      const chave = `${r.atletaId}_${r.provaNome}`;
       if (!melhor[chave]) { melhor[chave] = r; return; }
       const isTempo = r.unidade === "s";
       if (isTempo ? r.marcaNum < melhor[chave].marcaNum : r.marcaNum > melhor[chave].marcaNum) {
@@ -89,7 +90,7 @@ export default function TelaRanking({ ranking, setRanking, historicoRanking, set
 
     // Ordenar
     lista.sort((a, b) => {
-      if (a.provaId !== b.provaId) return a.provaNome.localeCompare(b.provaNome);
+      if (a.provaNome !== b.provaNome) return a.provaNome.localeCompare(b.provaNome);
       const isTempo = a.unidade === "s";
       return isTempo ? a.marcaNum - b.marcaNum : b.marcaNum - a.marcaNum;
     });
@@ -434,7 +435,7 @@ export default function TelaRanking({ ranking, setRanking, historicoRanking, set
       <div style={s.painelHeader}>
         <div>
           <h1 style={s.pageTitle}>Ranking</h1>
-          <p style={{ color: t.textDimmed, fontSize: 13 }}>Ranking de atletismo — somente atletas com CBAt</p>
+          <p style={{ color: t.textDimmed, fontSize: 13 }}>Ranking de Atletismo - Oficial</p>
         </div>
         <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
       </div>
@@ -488,7 +489,7 @@ export default function TelaRanking({ ranking, setRanking, historicoRanking, set
               <label style={s.label}>Prova</label>
               <select style={{ ...s.select, width: 200 }} value={filtroProva} onChange={ev => { setFiltroProva(ev.target.value); setPagina(0); }}>
                 <option value="todas">Todas as provas</option>
-                {provasDisponiveis.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
+                {provasDisponiveis.map(nome => <option key={nome} value={nome}>{nome}</option>)}
               </select>
             </div>
             <div>
@@ -496,13 +497,6 @@ export default function TelaRanking({ ranking, setRanking, historicoRanking, set
               <select style={{ ...s.select, width: 90 }} value={filtroUfAtleta} onChange={ev => { setFiltroUfAtleta(ev.target.value); setPagina(0); }}>
                 <option value="todos">Todos</option>
                 {ufsAtletaDisponiveis.map(uf => <option key={uf} value={uf}>{uf}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={s.label}>Local</label>
-              <select style={{ ...s.select, width: 90 }} value={filtroUfEvento} onChange={ev => { setFiltroUfEvento(ev.target.value); setPagina(0); }}>
-                <option value="todos">Todos</option>
-                {ufsEventoDisponiveis.map(uf => <option key={uf} value={uf}>{uf}</option>)}
               </select>
             </div>
             <div>
@@ -515,13 +509,30 @@ export default function TelaRanking({ ranking, setRanking, historicoRanking, set
           </div>
 
           {/* Tabela */}
-          {rankingFiltrado.length === 0 ? (
+          {filtroAno === "todos" || filtroCat === "todas" || filtroSexo === "todos" || filtroProva === "todas" ? (
             <div style={s.emptyState}>
               <span style={{ fontSize: 48 }}>📊</span>
-              <p>Nenhuma entrada no ranking{filtroProva !== "todas" || filtroAno !== "todos" || filtroCat !== "todas" || filtroSexo !== "todos" || filtroUfAtleta !== "todos" || filtroUfEvento !== "todos" || filtroClube !== "todos" ? " com os filtros selecionados" : ""}.</p>
+              <p>Selecione <strong>Ano</strong>, <strong>Categoria</strong>, <strong>Sexo</strong> e <strong>Prova</strong> para exibir o ranking.</p>
+            </div>
+          ) : rankingFiltrado.length === 0 ? (
+            <div style={s.emptyState}>
+              <span style={{ fontSize: 48 }}>📊</span>
+              <p>Nenhuma entrada no ranking com os filtros selecionados.</p>
             </div>
           ) : (
             <>
+              {(() => {
+                const branding = (() => { try { return JSON.parse(localStorage.getItem("gt_branding")) || {}; } catch { return {}; } })();
+                const fed = branding.assinaturasFederacao?.[filtroUfAtleta];
+                if (!fed?.nome) return null;
+                return (
+                  <div style={{ textAlign:"center", padding:"14px 20px", marginBottom:16, background:`${t.accent}08`, border:`1px solid ${t.accentBorder}`, borderRadius:10 }}>
+                    <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontWeight:800, fontSize:16, color:t.accent, letterSpacing:1 }}>
+                      Ranking Oficial - Homologado pela {fed.nome}
+                    </div>
+                  </div>
+                );
+              })()}
               <div style={s.tableWrap}>
                 <table style={s.table}>
                   <thead>
@@ -539,9 +550,14 @@ export default function TelaRanking({ ranking, setRanking, historicoRanking, set
                     </tr>
                   </thead>
                   <tbody>
-                    {paginaAtual.map((r, idx) => (
-                      <tr key={r.id} style={{ ...s.tr, background: idx % 2 === 0 ? "transparent" : t.bgHeaderSolid }}>
-                        <td style={{ ...s.td, textAlign: "center", fontWeight: 700, color: t.accent }}>{pagina * POR_PAG + idx + 1}</td>
+                    {paginaAtual.map((r, idx) => {
+                      const pos = pagina * POR_PAG + idx + 1;
+                      const bgPodio = pos === 1 ? "#FFD70018" : pos === 2 ? "#C0C0C018" : pos === 3 ? "#CD7F3218" : null;
+                      const corPos = pos === 1 ? "#FFD700" : pos === 2 ? "#C0C0C0" : pos === 3 ? "#CD7F32" : t.accent;
+                      const medalha = pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : null;
+                      return (
+                      <tr key={r.id} style={{ ...s.tr, background: bgPodio || (idx % 2 === 0 ? "transparent" : t.bgHeaderSolid) }}>
+                        <td style={{ ...s.td, textAlign: "center", fontWeight: 700, color: corPos }}>{medalha ? <>{medalha} {pos}º</> : `${pos}º`}</td>
                         <td style={{ ...s.td, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 15, color: t.textPrimary }}>
                           {formatarMarca(r.marcaNum, r.unidade)}
                           {r.ventoAssistido && <span style={{ fontSize: 10, color: t.warning, marginLeft: 3 }}>w</span>}
@@ -556,7 +572,7 @@ export default function TelaRanking({ ranking, setRanking, historicoRanking, set
                         <td style={{ ...s.td, fontSize: 12, color: t.textMuted }}>{r.eventoLocal || "—"}</td>
                         <td style={{ ...s.td, fontSize: 12, color: t.textMuted }}>{r.eventoData ? new Date(r.eventoData + "T12:00:00").toLocaleDateString("pt-BR") : "—"}</td>
                       </tr>
-                    ))}
+                    );})}
                   </tbody>
                 </table>
               </div>
@@ -570,7 +586,81 @@ export default function TelaRanking({ ranking, setRanking, historicoRanking, set
                 </div>
               )}
 
-              <div style={{ color: t.textDisabled, fontSize: 11, marginTop: 12 }}>{rankingFiltrado.length} entrada(s) · melhor marca por atleta</div>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop: 12, flexWrap:"wrap", gap:8 }}>
+                <div style={{ color: t.textDisabled, fontSize: 11 }}>{rankingFiltrado.length} entrada(s) · melhor marca por atleta</div>
+                {(() => {
+                  const branding = (() => { try { return JSON.parse(localStorage.getItem("gt_branding")) || {}; } catch { return {}; } })();
+                  const fed = branding.assinaturasFederacao?.[filtroUfAtleta];
+                  if (!fed?.nome) return null;
+                  const nomeUfCompleto = { AC:"Acre",AL:"Alagoas",AP:"Amapá",AM:"Amazonas",BA:"Bahia",CE:"Ceará",DF:"Distrito Federal",ES:"Espírito Santo",GO:"Goiás",MA:"Maranhão",MT:"Mato Grosso",MS:"Mato Grosso do Sul",MG:"Minas Gerais",PA:"Pará",PB:"Paraíba",PR:"Paraná",PE:"Pernambuco",PI:"Piauí",RJ:"Rio de Janeiro",RN:"Rio Grande do Norte",RS:"Rio Grande do Sul",RO:"Rondônia",RR:"Roraima",SC:"Santa Catarina",SP:"São Paulo",SE:"Sergipe",TO:"Tocantins" }[filtroUfAtleta] || filtroUfAtleta;
+                  return (
+                    <button style={{ padding:"6px 14px", borderRadius:6, border:`1px solid ${t.accentBorder}`, background:t.accentBg, color:t.accent, fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'Barlow Condensed', sans-serif", letterSpacing:1 }}
+                      onClick={() => {
+                        const gtLogo = branding.logo || GT_DEFAULT_LOGO;
+                        const logoFed = fed.logo || "";
+                        const catNome = CATEGORIAS.find(c => c.id === filtroCat)?.nome || filtroCat;
+                        const sexoLabel = filtroSexo === "M" ? "Masculino" : "Feminino";
+                        const linhas = rankingFiltrado.map((r, idx) => {
+                          const pos = idx + 1;
+                          const medal = pos <= 3 ? ["🥇","🥈","🥉"][pos-1] : "";
+                          return `<tr style="border-bottom:1px solid #ddd;${pos <= 3 ? "background:#fffbe6" : idx % 2 === 0 ? "" : "background:#f8f8f8"}">
+                            <td style="padding:5px 8px;text-align:center;font-weight:700;font-size:12px">${medal} ${pos}º</td>
+                            <td style="padding:5px 8px;font-weight:700;font-size:13px;font-family:'Barlow Condensed',sans-serif">${formatarMarca(r.marcaNum, r.unidade)}${r.ventoAssistido ? ' <span style="color:#c66;font-size:9px">w</span>' : ""}</td>
+                            <td style="padding:5px 8px;font-size:11px;color:#666">${r.atletaCbat || "—"}</td>
+                            <td style="padding:5px 8px;font-weight:600;font-size:12px">${r.atletaNome || "—"}</td>
+                            <td style="padding:5px 8px;font-size:11px;color:#666">${r.atletaNasc?.substring(0,4) || "—"}</td>
+                            <td style="padding:5px 8px;font-size:11px">${r.atletaClube || "—"}</td>
+                          </tr>`;
+                        }).join("");
+                        const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+                          <title>Ranking Estadual - ${nomeUfCompleto}</title>
+                          <style>
+                            @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;600;700&display=swap');
+                            @page { size: A4 portrait; margin: 12mm 15mm 20mm; }
+                            @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+                            body { font-family:'Barlow',sans-serif; margin:0; padding:20px; color:#111; }
+                            table { width:100%; border-collapse:collapse; }
+                            th { background:#eee; padding:6px 8px; font-size:10px; font-weight:700; text-align:left; border-bottom:2px solid #999; text-transform:uppercase; letter-spacing:0.5px; }
+                          </style>
+                        </head><body>
+                          <div style="text-align:center;margin-bottom:20px">
+                            <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;letter-spacing:2px;color:#111">RANKING ESTADUAL - ${nomeUfCompleto.toUpperCase()}</div>
+                            <div style="font-size:13px;color:#555;margin-top:6px">
+                              Ano: <strong>${filtroAno}</strong> · Categoria: <strong>${catNome}</strong> · Sexo: <strong>${sexoLabel}</strong> · Prova: <strong>${filtroProva}</strong>
+                            </div>
+                          </div>
+                          <table>
+                            <thead><tr>
+                              <th style="width:50px;text-align:center">POS</th>
+                              <th style="width:80px">MARCA</th>
+                              <th style="width:70px">CBAt</th>
+                              <th>NOME</th>
+                              <th style="width:50px">NASC</th>
+                              <th>CLUBE</th>
+                            </tr></thead>
+                            <tbody>${linhas}</tbody>
+                          </table>
+                          <div style="margin-top:40px;text-align:center">
+                            ${logoFed ? `<img src="${logoFed}" alt="Federação" style="max-height:120px;max-width:400px;object-fit:contain;margin-bottom:10px;display:block;margin-left:auto;margin-right:auto"/>` : ""}
+                            <div style="width:280px;border-top:1px solid #333;margin:8px auto 0;padding-top:6px;font-size:12px;font-weight:700">${fed.nome}</div>
+                          </div>
+                          <div style="margin-top:24px;text-align:center;font-size:9px;color:#999;border-top:1px solid #ddd;padding-top:8px">
+                            <div>Gerado em: ${new Date().toLocaleString("pt-BR")}</div>
+                            <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px">
+                              <span>Plataforma de Competições -</span>
+                              <img src="${gtLogo}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7"/>
+                            </div>
+                          </div>
+                        </body></html>`;
+                        const win = window.open("", "_blank", "width=900,height=700");
+                        if (!win) { alert("Permita pop-ups para imprimir."); return; }
+                        win.document.open(); win.document.write(html); win.document.close();
+                      }}>
+                      🖨️ Imprimir Ranking Oficial
+                    </button>
+                  );
+                })()}
+              </div>
             </>
           )}
         </>
