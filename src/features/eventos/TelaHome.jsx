@@ -135,12 +135,12 @@ const getStyles = (t) => ({
   provaCheckBtnSel: { background: t.bgHover, borderColor: t.accent, color: t.accent },
 });
 
-function StatCard({ value, label }) {
+function StatCard({ value, label, escala = 1 }) {
   const t = useTema();
   return (
-    <div style={{ background:t.bgCard, border:`1px solid ${t.border}`, borderRadius:12, padding:"20px 24px", flex:1, minWidth:160, textAlign:"center", boxShadow:t.shadow }}>
-      <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:36, fontWeight:900, color: t.accent, lineHeight:1 }}>{value}</div>
-      <div style={{ color: t.textDimmed, fontSize:12, letterSpacing:1, textTransform:"uppercase", marginTop:6 }}>{label}</div>
+    <div style={{ background:t.bgCard+"cc", border:`1px solid ${t.border}`, borderRadius:10, padding:`${Math.round(12*escala)}px ${Math.round(20*escala)}px`, textAlign:"center" }}>
+      <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:Math.round(28*escala), fontWeight:900, color: t.accent, lineHeight:1 }}>{value}</div>
+      <div style={{ color: t.textDimmed, fontSize:Math.round(11*escala), letterSpacing:1, textTransform:"uppercase", marginTop:4 }}>{label}</div>
     </div>
   );
 }
@@ -285,6 +285,8 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
     <div style={s.page}>
       <div style={{
         ...s.heroSection,
+        height: siteBranding?.heroAltura || 400,
+        padding: 0,
         ...(siteBranding?.heroBg ? {
           backgroundImage: `url(${siteBranding.heroBg})`,
           backgroundSize: "cover",
@@ -294,25 +296,60 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
         } : {}),
       }}>
         {siteBranding?.heroBg && <div style={s.heroOverlay} />}
-        <div style={s.heroContent}>
-        <div style={s.heroBadge}>PLATAFORMA DE COMPETIÇÕES</div>
-        <h1 style={s.heroTitle}>GERENTRACK</h1>
-        <p style={{ color: t.textMuted, fontSize:16, marginBottom:32 }}>
-          Gerencie competições, inscrições, súmulas e resultados em um só lugar.
-        </p>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(220px, 1fr))", gap:20, marginBottom:40 }}>
-          <StatCard value={eventos.filter(ev=>!ev.statusAprovacao||ev.statusAprovacao==="aprovado").length} label="Competições" />
-          <StatCard value={organizadores?.filter(o => !o.status || o.status === "aprovado").length || 0} label="Organizadores" />
-          <StatCard value={equipes?.length || 0} label="Equipes" />
-          <StatCard value={atletas.length} label="Atletas" />
-        </div>
-        <div style={s.heroBtns}>
-          {usuarioLogado?.tipo === "admin" && (
-            <button style={{ ...s.btnPrimary, width:"auto" }} onClick={() => { selecionarEvento(null); setTela("novo-evento"); }}>
-              + Nova Competição
-            </button>
-          )}
-        </div>
+        <div style={{ position:"relative", zIndex:1, width:"100%", height:"100%" }}>
+        {(() => {
+          const tam = siteBranding?.heroTamanhos || { badge: 1, titulo: 1, subtitulo: 1, stats: 1 };
+          const pos = siteBranding?.heroPosicoes || { badge:{x:50,y:8}, titulo:{x:50,y:28}, subtitulo:{x:50,y:48}, stats:{x:50,y:72} };
+          const hs = siteBranding?.heroStats || { competicoes: true, organizadores: true, equipes: true, atletas: true };
+
+          const wrap = (key, child) => child ? (
+            <div key={key} style={{
+              position:"absolute",
+              left: `${pos[key]?.x ?? 50}%`,
+              top: `${pos[key]?.y ?? 50}%`,
+              transform: "translate(-50%, -50%)",
+              textAlign: "center",
+              whiteSpace: key === "stats" ? "normal" : "nowrap",
+              maxWidth: key === "stats" ? "90%" : undefined,
+            }}>
+              {child}
+            </div>
+          ) : null;
+
+          return [
+            wrap("badge", (siteBranding?.heroBadge ?? "PLATAFORMA DE COMPETIÇÕES") ? (
+              <div style={{ ...s.heroBadge, fontSize: 12 * (tam.badge || 1), padding: `${6*(tam.badge||1)}px ${16*(tam.badge||1)}px` }}>
+                {siteBranding?.heroBadge || "PLATAFORMA DE COMPETIÇÕES"}
+              </div>
+            ) : null),
+
+            wrap("titulo", (siteBranding?.heroMostrarTitulo !== false) ? (
+              <h1 style={{ ...s.heroTitle, fontSize: 56 * (tam.titulo || 1), margin: 0 }}>
+                {siteBranding?.nome || "GERENTRACK"}
+              </h1>
+            ) : null),
+
+            wrap("subtitulo", (siteBranding?.heroSubtitulo ?? "Gerencie competições, inscrições, súmulas e resultados em um só lugar.") ? (
+              <p style={{ color: t.textMuted, fontSize: 16 * (tam.subtitulo || 1), margin: 0 }}>
+                {siteBranding?.heroSubtitulo || "Gerencie competições, inscrições, súmulas e resultados em um só lugar."}
+              </p>
+            ) : null),
+
+            wrap("stats", (() => {
+              const cards = [];
+              if (hs.competicoes) cards.push(<StatCard key="comp" value={eventos.filter(ev=>!ev.statusAprovacao||ev.statusAprovacao==="aprovado").length} label="Competições" escala={tam.stats || 1} />);
+              if (hs.organizadores) cards.push(<StatCard key="org" value={organizadores?.filter(o => !o.status || o.status === "aprovado").length || 0} label="Organizadores" escala={tam.stats || 1} />);
+              if (hs.equipes) cards.push(<StatCard key="eq" value={equipes?.length || 0} label="Equipes" escala={tam.stats || 1} />);
+              if (hs.atletas) cards.push(<StatCard key="atl" value={atletas.length} label="Atletas" escala={tam.stats || 1} />);
+              if (cards.length === 0) return null;
+              return (
+                <div style={{ display:"flex", justifyContent:"center", gap:14, flexWrap:"wrap" }}>
+                  {cards}
+                </div>
+              );
+            })()),
+          ].filter(Boolean);
+        })()}
         </div>
       </div>
 

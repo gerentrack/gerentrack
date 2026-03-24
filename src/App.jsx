@@ -215,6 +215,19 @@ function App() {
     nome: "GERENTRACK",
     slogan: "COMPETIÇÃO COM PRECISÃO",
     heroBg: "", // imagem de fundo do hero na home
+    heroBadge: "PLATAFORMA DE COMPETIÇÕES",
+    heroSubtitulo: "Gerencie competições, inscrições, súmulas e resultados em um só lugar.",
+    heroStats: { competicoes: true, organizadores: true, equipes: true, atletas: true },
+    heroMostrarTitulo: true,
+    heroOrdem: ["badge", "titulo", "stats", "subtitulo"],
+    heroTamanhos: { badge: 1, titulo: 1, subtitulo: 1, stats: 1 },
+    heroAltura: 400,
+    heroPosicoes: {
+      badge: { x: 50, y: 8 },
+      titulo: { x: 50, y: 28 },
+      subtitulo: { x: 50, y: 48 },
+      stats: { x: 50, y: 72 },
+    },
   });
   const gtIcon = siteBranding.icon || GT_DEFAULT_ICON;
   const gtLogo = siteBranding.logo || GT_DEFAULT_LOGO;
