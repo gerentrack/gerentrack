@@ -216,8 +216,8 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
     const status = getStatusEvento(ev, resultados);
     return (
       <div key={ev.id} style={{ ...s.eventoCard, padding:0, overflow:"hidden" }}>
-        <div style={{ position:"relative", width:"100%", minHeight: ev.logoCompeticao ? 0 : 60, background: ev.logoCompeticao ? "transparent" : "linear-gradient(135deg, #0a1a2a 0%, #1a0a2a 100%)", borderBottom:"1px solid #1E2130", overflow:"hidden" }}>
-          {ev.logoCompeticao ? (
+        <div style={{ position:"relative", width:"100%", minHeight: (ev.logoCompeticao && !ev.competicaoFinalizada) ? 0 : 60, background: (ev.logoCompeticao && !ev.competicaoFinalizada) ? "transparent" : "linear-gradient(135deg, #0a1a2a 0%, #1a0a2a 100%)", borderBottom:"1px solid #1E2130", overflow:"hidden" }}>
+          {ev.logoCompeticao && !ev.competicaoFinalizada ? (
             <img src={ev.logoCompeticao} alt="" style={{ width:"100%", display:"block", objectFit:"contain" }} />
           ) : (
             <span style={{ fontSize:28, opacity:0.3 }}>🏟️</span>
