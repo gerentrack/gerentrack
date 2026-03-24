@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { auth, createUserWithEmailAndPassword, signOut as firebaseSignOut } from "../../firebase";
+import { auth, createUserWithEmailAndPassword, signOut as firebaseSignOut, sendEmailVerification } from "../../firebase";
 import { validarCNPJ, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { criarInscricaoStyles } from "../inscricoes/inscricaoStyles";
@@ -97,7 +97,8 @@ function TelaCadastroOrganizador({ setTela, adicionarOrganizador, login, organiz
     if (Object.keys(e).length) { setErros(e); return; }
     // Criar usuário no Firebase Auth
     try {
-      await createUserWithEmailAndPassword(auth, form.email.trim(), form.senha);
+      const cred = await createUserWithEmailAndPassword(auth, form.email.trim(), form.senha);
+      try { await sendEmailVerification(cred.user); } catch {}
     } catch (err) {
       if (err.code === "auth/email-already-in-use") {
         // Email já existe no Firebase Auth — ok, pode ser multi-perfil

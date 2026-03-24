@@ -109,6 +109,7 @@ import {
   sendPasswordResetEmail,
   updatePassword,
   onAuthStateChanged,
+  sendEmailVerification,
 } from "./firebase";
 
 // Hooks de domínio (já existiam)
@@ -1659,6 +1660,23 @@ function App() {
       )}
 
       <Header {...props} />
+      {/* Banner de verificação de e-mail */}
+      {usuarioLogado && firebaseAuthed && auth.currentUser && !auth.currentUser.emailVerified && (
+        <div style={{ background:"#fff3e0", borderBottom:"1px solid #f0c040", padding:"8px 20px", display:"flex", alignItems:"center", justifyContent:"center", gap:10, flexWrap:"wrap", fontSize:13, color:"#8a6d00" }}>
+          <span>📧 Seu e-mail ainda não foi verificado.</span>
+          <button onClick={async () => {
+            try {
+              await sendEmailVerification(auth.currentUser);
+              alert("✅ E-mail de verificação enviado! Verifique sua caixa de entrada e spam.");
+            } catch (err) {
+              if (err.code === "auth/too-many-requests") alert("⚠️ Aguarde alguns minutos antes de solicitar novamente.");
+              else alert("❌ Erro ao enviar: " + err.message);
+            }
+          }} style={{ background:"#f0a000", color:"#fff", border:"none", borderRadius:6, padding:"4px 14px", fontSize:12, fontWeight:700, cursor:"pointer" }}>
+            Enviar verificação
+          </button>
+        </div>
+      )}
       <main style={styles.main}>
         {tela === "home"                  && <TelaHome {...props} />}
         {tela === "login"                 && <TelaLogin {...props} adminConfig={adminConfig} setOrganizadores={setOrganizadores} setAtletasUsuarios={setAtletasUsuarios} setFuncionarios={setFuncionarios} setTreinadores={setTreinadores} />}

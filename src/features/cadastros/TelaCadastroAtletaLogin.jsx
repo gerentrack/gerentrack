@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { auth, signOut as firebaseSignOut, createUserWithEmailAndPassword } from "../../firebase";
+import { auth, signOut as firebaseSignOut, createUserWithEmailAndPassword, sendEmailVerification } from "../../firebase";
 import { validarCPF, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
@@ -304,7 +304,8 @@ function TelaCadastroAtletaLogin({ setTela, adicionarAtletaUsuario, adicionarAtl
     const senhaFinal = docModo === "vincular" ? (docExistente?.senha || form.senha) : form.senha;
     // Criar usuário no Firebase Auth
     try {
-      await createUserWithEmailAndPassword(auth, form.email.trim(), senhaFinal);
+      const cred = await createUserWithEmailAndPassword(auth, form.email.trim(), senhaFinal);
+      try { await sendEmailVerification(cred.user); } catch {}
     } catch (err) {
       if (err.code !== "auth/email-already-in-use") {
         if (err.code === "auth/weak-password") { setErros({ senha: "Senha fraca. Use pelo menos 6 caracteres." }); return; }

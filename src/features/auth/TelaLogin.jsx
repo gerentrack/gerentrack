@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, db, getDoc, doc } from "../../firebase";
+import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, db, getDoc, doc } from "../../firebase";
 import { _getClubeAtleta } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";

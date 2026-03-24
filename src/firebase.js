@@ -18,6 +18,7 @@ import {
   sendPasswordResetEmail,
   updatePassword,
   onAuthStateChanged,
+  sendEmailVerification,
 } from "firebase/auth";
 
 const firebaseConfig = {
@@ -45,7 +46,7 @@ export {
   collection, getDoc, deleteDoc, writeBatch,
   // Auth
   auth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  signOut, sendPasswordResetEmail, updatePassword, onAuthStateChanged,
+  signOut, sendPasswordResetEmail, updatePassword, onAuthStateChanged, sendEmailVerification,
   // Storage
   storage, storageRef, uploadBytes, getDownloadURL, deleteObject,
   // Auth secundário (criar contas sem deslogar o usuário atual)
