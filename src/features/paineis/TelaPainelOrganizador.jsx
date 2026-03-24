@@ -149,7 +149,7 @@ function getStyles(t) {
 };
 }
 
-function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, atletas, selecionarEvento, adicionarEvento, editarEvento, excluirEvento, alterarStatusEvento, organizadores, funcionarios, solicitacoesVinculo, responderVinculo, equipes, solicitacoesEquipe=[], aprovarEquipe, recusarEquipe, atualizarAtleta, registrarAcao, setAtletaEditandoId, notificacoes, marcarNotifLida, resultados, solicitacoesRelatorio, resolverRelatorio, excluirRelatorio, sincronizarNomesEquipes, numeracaoPeito }) {
+function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, atletas, selecionarEvento, adicionarEvento, editarEvento, excluirEvento, alterarStatusEvento, organizadores, funcionarios, solicitacoesVinculo, responderVinculo, equipes, solicitacoesEquipe=[], aprovarEquipe, recusarEquipe, atualizarAtleta, registrarAcao, setAtletaEditandoId, notificacoes, marcarNotifLida, resultados, solicitacoesRelatorio, resolverRelatorio, excluirRelatorio, sincronizarNomesEquipes, numeracaoPeito, historicoAcoes }) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const tipoOrg = usuarioLogado?.tipo;
@@ -183,6 +183,7 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
   const [relBuscaAtl, setRelBuscaAtl] = useState("");
   const [relAtletasSel, setRelAtletasSel] = useState([]);
   const [relAssinatura, setRelAssinatura] = useState("");
+  const [auditPagina, setAuditPagina] = useState(1);
 
   return (
     <div style={s.page}>
@@ -794,6 +795,65 @@ function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, at
                   })}
                 </tbody>
               </table>
+            </div>
+          </details>
+        );
+      })()}
+
+      {/* ── Auditoria de Ações ── */}
+      {!isFuncionario && (() => {
+        const POR_PAG = 10;
+        const auditoriaOrg = (historicoAcoes || [])
+          .filter(a => a.organizadorId === orgId)
+          .sort((a, b) => new Date(b.data) - new Date(a.data));
+        if (auditoriaOrg.length === 0) return null;
+        const totalPags = Math.ceil(auditoriaOrg.length / POR_PAG);
+        const pag = Math.min(auditPagina, totalPags);
+        const pagina = auditoriaOrg.slice((pag - 1) * POR_PAG, pag * POR_PAG);
+        const getModuloIcon = (mod) => ({ equipes:"🏢", atletas:"🏃", competicoes:"🏟️", inscricoes:"📝", resultados:"📊", sumulas:"📋", recordes:"🏆", numeracao:"🔢", membros:"👥", treinadores:"👨‍🏫", funcionarios:"👷", auth:"🔐", sistema:"⚙️", secretaria:"📋" }[mod] || "📋");
+        const formatarDt = (ts) => {
+          const d = new Date(ts);
+          const hoje = new Date();
+          const hora = d.toLocaleTimeString("pt-BR", { hour:"2-digit", minute:"2-digit" });
+          if (d.toDateString() === hoje.toDateString()) return `Hoje ${hora}`;
+          const ontem = new Date(hoje); ontem.setDate(hoje.getDate() - 1);
+          if (d.toDateString() === ontem.toDateString()) return `Ontem ${hora}`;
+          return `${d.toLocaleDateString("pt-BR")} ${hora}`;
+        };
+        return (
+          <details style={{ marginTop: 32 }}>
+            <summary style={{ ...s.sectionTitle, cursor: "pointer", userSelect: "none" }}>
+              📊 Auditoria de Ações ({auditoriaOrg.length})
+            </summary>
+            <p style={{ color: t.textDimmed, fontSize: 13, marginBottom: 16 }}>
+              Ações realizadas por você e seus funcionários
+            </p>
+            <div style={{ display: "grid", gap: 6 }}>
+              {pagina.map(reg => (
+                <div key={reg.id} style={{ background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 8, padding: "10px 14px", display: "flex", gap: 10, alignItems: "center" }}>
+                  <span style={{ fontSize: 18, flexShrink: 0 }}>{getModuloIcon(reg.modulo)}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ color: t.textPrimary, fontSize: 13, fontWeight: 600 }}>{reg.acao}</div>
+                    {reg.detalhe && <div style={{ color: t.textMuted, fontSize: 11, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{reg.detalhe}</div>}
+                  </div>
+                  <div style={{ textAlign: "right", flexShrink: 0 }}>
+                    <div style={{ color: t.accent, fontSize: 11, fontWeight: 600 }}>{reg.nomeUsuario || "—"}</div>
+                    <div style={{ color: t.textDimmed, fontSize: 10 }}>{formatarDt(reg.data)}</div>
+                  </div>
+                  {reg.metodo === "qr" && <span style={{ padding: "2px 6px", borderRadius: 4, fontSize: 9, background: t.accent + "18", color: t.accent, border: `1px solid ${t.accent}44`, flexShrink: 0 }}>QR</span>}
+                  {reg.modulo && <span style={{ padding: "2px 6px", borderRadius: 4, fontSize: 9, background: t.bgInput, color: t.textDimmed, border: `1px solid ${t.border}`, flexShrink: 0 }}>{reg.modulo}</span>}
+                </div>
+              ))}
+            </div>
+            {totalPags > 1 && (
+              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginTop: 14 }}>
+                <button disabled={pag <= 1} onClick={() => setAuditPagina(pag - 1)} style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, color: pag <= 1 ? t.textDisabled : t.textSecondary, borderRadius: 6, padding: "6px 14px", cursor: pag <= 1 ? "default" : "pointer", fontSize: 13 }}>Anterior</button>
+                <span style={{ color: t.textMuted, fontSize: 12 }}>{pag} / {totalPags}</span>
+                <button disabled={pag >= totalPags} onClick={() => setAuditPagina(pag + 1)} style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, color: pag >= totalPags ? t.textDisabled : t.textSecondary, borderRadius: 6, padding: "6px 14px", cursor: pag >= totalPags ? "default" : "pointer", fontSize: 13 }}>Próxima</button>
+              </div>
+            )}
+            <div style={{ marginTop: 12, padding: 12, background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 8, textAlign: "center", color: t.textDimmed, fontSize: 11 }}>
+              {auditoriaOrg.length} registro(s) · Página {pag} de {totalPags}
             </div>
           </details>
         );
