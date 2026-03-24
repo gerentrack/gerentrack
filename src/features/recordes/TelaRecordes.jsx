@@ -1545,8 +1545,19 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
               </button>
               <button onClick={() => {
                 const { tipo, texto, pend } = obsModal;
-                const status = tipo === "rejeitar" ? "nao_homologado" : tipo === "homologar" ? "homologado" : "homologado_nao_aplicado";
-                resolver(pend, status, texto);
+                const st = tipo === "rejeitar" ? "nao_homologado" : tipo === "homologar" ? "homologado" : "homologado_nao_aplicado";
+                setPendenciasRecorde(prev => prev.map(p => p.id !== pend.id ? p : {
+                  ...p, status: st, resolvidoPor: usuarioLogado?.nome || "admin", resolvidoEm: Date.now(), observacao: texto || p.observacao
+                }));
+                if (st === "homologado") {
+                  const { recordesAtualizados, novoHistorico } = RecordDetectionEngine.aplicarHomologacao(
+                    { ...pend, observacao: texto || pend.observacao }, recordes, usuarioLogado?.nome || "admin"
+                  );
+                  setRecordes(recordesAtualizados);
+                  setHistoricoRecordes(prev => [...prev, novoHistorico]);
+                }
+                const acaoNome = st === "homologado" ? "Homologou recorde" : st === "nao_homologado" ? "Rejeitou recorde" : "Resolveu recorde";
+                if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, acaoNome, `${pend.atletaNome} — ${pend.provaNome} (${pend.recordeTipoSigla})`, null, { modulo: "recordes" });
                 setObsModal(null);
               }}
                 style={{ background: obsModal.tipo === "rejeitar" ? `linear-gradient(135deg, ${t.danger}, #a93226)` : obsModal.tipo === "homologar" ? `linear-gradient(135deg, ${t.success}, #1a8a1a)` : `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, border:"none", color:"#fff", padding:"10px 22px", borderRadius:8, cursor:"pointer", fontSize:14, fontWeight:700, fontFamily:"'Barlow Condensed', sans-serif", letterSpacing:1 }}>
