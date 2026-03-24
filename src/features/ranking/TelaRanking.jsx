@@ -612,39 +612,48 @@ export default function TelaRanking({ ranking, setRanking, historicoRanking, set
                             <td style="padding:5px 8px;font-size:11px">${r.atletaClube || "—"}</td>
                           </tr>`;
                         }).join("");
+                        const cabHtml = `<div style="text-align:center;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #333">
+                          <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:2px;color:#111">RANKING ESTADUAL - ${nomeUfCompleto.toUpperCase()}</div>
+                          <div style="font-size:12px;color:#555;margin-top:4px">
+                            Ano: <strong>${filtroAno}</strong> · Categoria: <strong>${catNome}</strong> · Sexo: <strong>${sexoLabel}</strong> · Prova: <strong>${filtroProva}</strong>
+                          </div>
+                        </div>`;
                         const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
                           <title>Ranking Estadual - ${nomeUfCompleto}</title>
                           <style>
                             @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;600;700&display=swap');
-                            @page { size: A4 portrait; margin: 12mm 15mm 20mm; }
+                            @page { size: A4 portrait; margin: 12mm 15mm 25mm;
+                              @bottom-center { content: "Página " counter(page) " de " counter(pages); font-size:9px; color:#999; font-family:'Barlow',sans-serif; }
+                            }
                             @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
                             body { font-family:'Barlow',sans-serif; margin:0; padding:20px; color:#111; }
                             table { width:100%; border-collapse:collapse; }
+                            thead { display:table-header-group; }
+                            thead tr.cab-row td { padding:0; border:none; }
                             th { background:#eee; padding:6px 8px; font-size:10px; font-weight:700; text-align:left; border-bottom:2px solid #999; text-transform:uppercase; letter-spacing:0.5px; }
+                            .assinatura { page-break-inside:avoid; margin-top:40px; text-align:center; }
+                            .rodape-gt { margin-top:20px; text-align:center; font-size:9px; color:#999; border-top:1px solid #ddd; padding-top:8px; }
                           </style>
                         </head><body>
-                          <div style="text-align:center;margin-bottom:20px">
-                            <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;letter-spacing:2px;color:#111">RANKING ESTADUAL - ${nomeUfCompleto.toUpperCase()}</div>
-                            <div style="font-size:13px;color:#555;margin-top:6px">
-                              Ano: <strong>${filtroAno}</strong> · Categoria: <strong>${catNome}</strong> · Sexo: <strong>${sexoLabel}</strong> · Prova: <strong>${filtroProva}</strong>
-                            </div>
-                          </div>
                           <table>
-                            <thead><tr>
-                              <th style="width:50px;text-align:center">POS</th>
-                              <th style="width:80px">MARCA</th>
-                              <th style="width:70px">CBAt</th>
-                              <th>NOME</th>
-                              <th style="width:50px">NASC</th>
-                              <th>CLUBE</th>
-                            </tr></thead>
+                            <thead>
+                              <tr class="cab-row"><td colspan="6">${cabHtml}</td></tr>
+                              <tr>
+                                <th style="width:50px;text-align:center">POS</th>
+                                <th style="width:80px">MARCA</th>
+                                <th style="width:70px">CBAt</th>
+                                <th>NOME</th>
+                                <th style="width:50px">NASC</th>
+                                <th>CLUBE</th>
+                              </tr>
+                            </thead>
                             <tbody>${linhas}</tbody>
                           </table>
-                          <div style="margin-top:40px;text-align:center">
-                            ${logoFed ? `<img src="${logoFed}" alt="Federação" style="max-height:120px;max-width:400px;object-fit:contain;margin-bottom:10px;display:block;margin-left:auto;margin-right:auto"/>` : ""}
-                            <div style="width:280px;border-top:1px solid #333;margin:8px auto 0;padding-top:6px;font-size:12px;font-weight:700">${fed.nome}</div>
+                          <div class="assinatura">
+                            ${logoFed ? `<img src="${logoFed}" alt="Federação" style="max-height:120px;max-width:400px;object-fit:contain;margin-bottom:-20px;display:block;margin-left:auto;margin-right:auto"/>` : ""}
+                            <div style="width:280px;border-top:1px solid #333;margin:0 auto;padding-top:6px;font-size:12px;font-weight:700">${fed.nome}</div>
                           </div>
-                          <div style="margin-top:24px;text-align:center;font-size:9px;color:#999;border-top:1px solid #ddd;padding-top:8px">
+                          <div class="rodape-gt">
                             <div>Gerado em: ${new Date().toLocaleString("pt-BR")}</div>
                             <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px">
                               <span>Plataforma de Competições -</span>

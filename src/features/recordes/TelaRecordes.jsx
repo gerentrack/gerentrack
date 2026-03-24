@@ -19,6 +19,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
   const [importPreview, setImportPreview] = useState(null); // preview de importação
   const [filtroCategoria, setFiltroCategoria] = useState("todas");
   const [filtroSexo, setFiltroSexo] = useState("todos");
+  const [filtroProvaRec, setFiltroProvaRec] = useState("todas");
   const [novoTipo, setNovoTipo] = useState({ nome: "", sigla: "", escopo: "estado", pais: "Brasil", estado: "", municipio: "" });
   const [showNovoTipo, setShowNovoTipo] = useState(false);
   const [editTipoId, setEditTipoId] = useState(null);
@@ -494,8 +495,11 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
   const registrosFiltrados = tipoAtivo ? tipoAtivo.registros.filter(r => {
     if (filtroCategoria !== "todas" && r.categoriaId !== filtroCategoria) return false;
     if (filtroSexo !== "todos" && r.sexo !== filtroSexo) return false;
+    if (filtroProvaRec !== "todas" && r.provaNome !== filtroProvaRec) return false;
     return true;
   }).sort((a,b) => (a.provaNome || "").localeCompare(b.provaNome || "")) : [];
+
+  const provasUnicasRec = tipoAtivo ? [...new Set(tipoAtivo.registros.map(r => r.provaNome).filter(Boolean))].sort() : [];
 
   const categoriasUnicas = tipoAtivo ? [...new Set(tipoAtivo.registros.map(r => r.categoriaId || r.categoriaNome || "").filter(Boolean))] : [];
 
@@ -510,7 +514,7 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
         <div>
           <h2 style={s.pageTitle}>🏆 Recordes</h2>
-          <p style={{ color:t.textDimmed, fontSize:13 }}>Acervo de recordes por tipo de competição</p>
+          <p style={{ color:t.textDimmed, fontSize:13 }}>Acervo de recordes</p>
         </div>
         <div style={{ display:"flex", gap:8, alignItems:"center" }}>
           {isAdmin && (
@@ -1053,6 +1057,13 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                 <option value="todos">Todos</option>
                 <option value="M">M</option>
                 <option value="F">F</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize:10, color:t.textMuted }}>Prova:</label>
+              <select style={{ ...S.inputSm, marginLeft:4, width:180 }} value={filtroProvaRec} onChange={e => setFiltroProvaRec(e.target.value)}>
+                <option value="todas">Todas</option>
+                {provasUnicasRec.map(nome => <option key={nome} value={nome}>{nome}</option>)}
               </select>
             </div>
             <span style={{ color:t.textDimmed, fontSize:11 }}>{registrosFiltrados.length} registros</span>
