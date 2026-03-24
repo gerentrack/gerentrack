@@ -597,7 +597,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
       {/* ══ CABEÇALHO ═══════════════════════════════════════════════════════ */}
       <div style={s.painelHeader}>
         <div style={{ flex: 1 }}>
-          {eventoAtual.logoCompeticao && !eventoAtual.competicaoFinalizada && (
+          {eventoAtual.logoCompeticao && (
             <div style={{ marginBottom: 14, padding: 16, background: "#fff", borderRadius: 12, border: `1px solid ${t.border}`, display: "inline-block" }}>
               <img src={eventoAtual.logoCompeticao} alt="" style={{ maxWidth: 220, maxHeight: 140, objectFit: "contain", display: "block" }} />
             </div>
