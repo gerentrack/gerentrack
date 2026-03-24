@@ -597,7 +597,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
       {/* ══ CABEÇALHO ═══════════════════════════════════════════════════════ */}
       <div style={s.painelHeader}>
         <div style={{ flex: 1 }}>
-          {eventoAtual.logoCompeticao && (
+          {eventoAtual.logoCompeticao && !eventoAtual.competicaoFinalizada && (
             <div style={{ marginBottom: 14, padding: 16, background: "#fff", borderRadius: 12, border: `1px solid ${t.border}`, display: "inline-block" }}>
               <img src={eventoAtual.logoCompeticao} alt="" style={{ maxWidth: 220, maxHeight: 140, objectFit: "contain", display: "block" }} />
             </div>
@@ -680,7 +680,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
       </div>
 
       {/* ══ BANNER COMPETIÇÃO FINALIZADA ════════════════════════════════════ */}
-      {eventoAtual.competicaoFinalizada && isAdmin && (
+      {eventoAtual.competicaoFinalizada && (
         <div style={{ background: t.accentBg, border:`2px solid ${t.danger}44`, borderRadius:12, padding:"16px 20px", marginBottom:20, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
           <div>
             <div style={{ fontWeight:800, fontSize:15, color: t.danger, marginBottom:4 }}>🔒 Competição Finalizada</div>
