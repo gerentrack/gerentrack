@@ -1197,7 +1197,11 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                   } catch (e) { console.error("Erro ao extrair ranking:", e); }
                   // ── Snapshot de atletas para congelar dados históricos ──
                   const snapshotAtletas = {};
-                  const atletaIdsEvento = new Set((inscricoes || []).filter(i => i.eventoId === eventoAtual.id).map(i => i.atletaId));
+                  const atletaIdsEvento = new Set();
+                  (inscricoes || []).filter(i => i.eventoId === eventoAtual.id).forEach(i => {
+                    if (i.atletaId) atletaIdsEvento.add(i.atletaId);
+                    if (Array.isArray(i.atletasIds)) i.atletasIds.forEach(aid => atletaIdsEvento.add(aid));
+                  });
                   atletaIdsEvento.forEach(aId => {
                     const atl = atletas.find(a => a.id === aId);
                     if (!atl) return;

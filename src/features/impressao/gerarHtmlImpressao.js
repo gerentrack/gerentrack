@@ -1,4 +1,4 @@
-import { _getClubeAtleta, _getLocalEventoDisplay, _getNascDisplay, _getCbat, nomeProvaHtml, formatarMarca, formatarMarcaExibicaoHtml, _marcasComEmpateCentesimal } from "../../shared/formatters/utils";
+import { _getClubeAtleta, _getLocalEventoDisplay, _getNascDisplay, _getCbat, nomeProvaHtml, formatarMarca, formatarMarcaExibicaoHtml, _marcasComEmpateCentesimal, resolverAtleta } from "../../shared/formatters/utils";
 import { GT_DEFAULT_LOGO } from "../../shared/branding";
 import { getFasesProva, buscarSeriacao, serKey, FASE_ORDEM } from "../../shared/constants/fases";
 import { RecordHelper } from "../../shared/engines/recordHelper";
@@ -13,7 +13,11 @@ const _nomeProvaMatch = (a, b) => {
 };
 
 // ─── GERADOR DE HTML DE IMPRESSÃO ─────────────────────────────────────────────
-function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = {}, numPeito = {}, equipes = [], recordesAll = [], opts = {}) {
+function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap = {}, numPeito = {}, equipes = [], recordesAll = [], opts = {}) {
+  // Resolver atletas via snapshot para eventos finalizados
+  const _atletas = (evento?.competicaoFinalizada && evento?.snapshotAtletas)
+    ? (_atletasRaw || []).map(a => resolverAtleta(a.id, _atletasRaw, evento) || a)
+    : (_atletasRaw || []);
   const getClubeAtleta = (a) => _getClubeAtleta(a, equipes);
   const getSiglaEquipe = (a) => {
     if (a?._siglaEquipe) return a._siglaEquipe;

@@ -274,7 +274,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
               if (inscAtleta) {
                 const porNome = atletas.find(a => a.nome && inscAtleta.atletaNome &&
                   a.nome.trim().toLowerCase() === inscAtleta.atletaNome.trim().toLowerCase());
-                atleta = porNome || { id: atletaId, nome: inscAtleta.atletaNome || "Atleta removido", anoNasc: inscAtleta.anoNasc || "", sexo: inscAtleta.sexo || "", clube: inscAtleta.clube || "" };
+                atleta = porNome ? resolverAtleta(porNome.id, atletas, eventoAtual) || porNome : { id: atletaId, nome: inscAtleta.atletaNome || "Atleta removido", anoNasc: inscAtleta.anoNasc || "", sexo: inscAtleta.sexo || "", clube: inscAtleta.clube || "" };
               }
             }
             return { atleta, marca: (!isStatus && marca != null) ? parseFloat(marca) : null, raw, status, dqRegra, isStatus };

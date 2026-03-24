@@ -546,7 +546,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
 
           // Mapear atletas completos
           const atletasClassif = classificados.map(c => {
-            const a = atletas.find(aa => aa.id === c.atletaId);
+            const a = resolverAtleta(c.atletaId, atletas, eventoAtual);
             return a ? { ...a, atletaId: a.id, marcaRef: c.marcaRef, origemClassif: c.origemClassif, ranking: c.ranking } : null;
           }).filter(Boolean);
 
@@ -920,7 +920,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                         </thead>
                         <tbody>
                           {itemAtivo.inscs.map((insc, idx) => {
-                            const a = atletas.find(aa => aa.id === insc.atletaId);
+                            const a = resolverAtleta(insc.atletaId, atletas, eventoAtual);
                             if (!a) return null;
                             return (
                               <tr key={insc.id || `ref-${idx}`} style={{ borderBottom:`1px solid ${t.border}` }}>
@@ -972,7 +972,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                         </thead>
                         <tbody>
                           {itemAtivo.inscs.map((insc, idx) => {
-                            const a = atletas.find(aa => aa.id === insc.atletaId);
+                            const a = resolverAtleta(insc.atletaId, atletas, eventoAtual);
                             if (!a) return null;
                             const ms = manualSeries[a.id] || { serie: 1, raia: "" };
                             return (
@@ -1518,7 +1518,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                         ) : null;
 
                         const rows = serie.atletas.map((sa, sai) => {
-                          const a = sum.atletas.find(aa => aa.id === sa.id || aa.id === sa.atletaId);
+                          const a = sum.atletas.find(aa => aa.id === sa.id || aa.id === sa.atletaId) || resolverAtleta(sa.id || sa.atletaId, atletas, eventoAtual);
                           if (!a) return null;
                           const insc = sum.inscs.find((ii) => ii.atletaId === a.id);
                           idx++;
