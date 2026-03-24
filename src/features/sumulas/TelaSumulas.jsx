@@ -42,6 +42,7 @@ const getExibicaoEquipe = (atleta, equipes) => {
 function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual, resultados, registrarAcao, numeracaoPeito, getClubeAtleta, equipes, editarEvento, alterarStatusEvento, recordes, chamada, getPresencaProva }) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
+  const isFinalizado = !!eventoAtual?.competicaoFinalizada;
   const [filtroProva, setFiltroProva] = useState("todas");
   const [filtroCat, setFiltroCat] = useState("todas");
   const [filtroSexo, setFiltroSexo] = useState("todos");
@@ -315,6 +316,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
 
         // Salvar config de uma prova no evento
         const salvarConfigProva = (provaId, campo, valor) => {
+          if (isFinalizado) return;
           const cfgAtual = { ...configSeriacao };
           const base = todasP.find(p => p.id === provaId);
           const mesmoNome = todasP.filter(p => p.nome === base?.nome && (eventoAtual.provasPrograma || []).includes(p.id));
@@ -581,7 +583,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
         };
 
         const salvarSeriacao = () => {
-          if (!seriacaoPreview) return;
+          if (isFinalizado || !seriacaoPreview) return;
           const item = provasPista.find(pp => pp.chave === seriacaoChaveAtiva);
           const novasSer = { ...seriacaoSalva };
           novasSer[seriacaoChaveAtiva] = {
@@ -602,6 +604,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
         };
 
         const limparSeriacao = (chave) => {
+          if (isFinalizado) return;
           const novasSer = { ...seriacaoSalva };
           delete novasSer[chave];
           editarEvento({ ...eventoAtual, seriacao: novasSer });
@@ -629,13 +632,18 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
 
         return (
           <div style={{ background: t.bgCardAlt, border:`1px solid ${t.border}`, borderRadius:12, padding:"16px 20px", marginBottom:20 }}>
+            {isFinalizado && (
+              <div style={{ background:`${t.danger}10`, border:`1px solid ${t.danger}44`, borderRadius:8, padding:"8px 14px", marginBottom:12, fontSize:12, color: t.danger, fontWeight:600 }}>
+                🔒 Competição finalizada — seriação em modo somente leitura
+              </div>
+            )}
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
               <div>
                 <div style={{ color: t.accent, fontWeight:800, fontSize:16, fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:1 }}>
                   🔀 SERIAÇÃO — RT 20.3 a 20.8
                 </div>
                 <div style={{ color: t.textDimmed, fontSize:11, marginTop:2 }}>
-                  Configure modo e capacidade por prova, depois serie cada prova individualmente
+                  {isFinalizado ? "Visualização da seriação configurada" : "Configure modo e capacidade por prova, depois serie cada prova individualmente"}
                 </div>
               </div>
               <button style={s.btnGhost} onClick={() => setShowSeriar(false)}>✕ Fechar</button>
