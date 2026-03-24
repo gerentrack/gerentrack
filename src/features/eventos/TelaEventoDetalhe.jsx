@@ -700,18 +700,25 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                     const merged = RecordDetectionEngine.mesclarPendencias(pendenciasRecorde || [], novasPendencias);
                     const novas = merged.length - antes;
                     setPendenciasRecorde(merged);
-                    alert(novas > 0
-                      ? `🏆 Reprocessamento concluído!\n\n${novasPendencias.length} quebra(s) detectada(s).\n${novas} nova(s) pendência(s) adicionada(s).\n\nAcesse 🏆 Recordes → ⏳ Pendências para analisar.`
-                      : `✅ Reprocessamento concluído!\n\n${novasPendencias.length} quebra(s) detectada(s), mas todas já constavam como pendências existentes.\nNenhuma nova pendência adicionada.`
-                    );
                     // Ranking
+                    let nRnk = 0;
                     try {
                       const novasRnk = RankingExtractionEngine.extrairEntradas(eventoAtual, resultados, atletas, equipes, inscricoes);
-                      if (novasRnk.length > 0) setRanking(prev => RankingExtractionEngine.mesclarEntradas(prev, novasRnk));
+                      if (novasRnk.length > 0) {
+                        const antesRnk = (ranking || []).length;
+                        setRanking(prev => RankingExtractionEngine.mesclarEntradas(prev, novasRnk));
+                        nRnk = novasRnk.length;
+                      }
                     } catch (er) { console.error("Erro ranking:", er); }
+                    alert(
+                      `Reprocessamento concluído!\n\n` +
+                      `🏆 Recordes: ${novasPendencias.length} quebra(s) detectada(s), ${novas} nova(s) pendência(s).\n` +
+                      `📊 Ranking: ${nRnk} entrada(s) extraída(s).` +
+                      (novas > 0 ? `\n\nAcesse 🏆 Recordes → ⏳ Pendências para analisar.` : "")
+                    );
                   } catch (e) { alert("Erro ao reprocessar: " + e.message); }
                 }}>
-                🏆 Reprocessar Recordes
+                🏆 Reprocessar Recordes e Ranking
               </button>
               <button style={{ padding:"8px 18px", borderRadius:8, border:`1px solid ${t.danger}44`, background: t.accentBg, color: t.danger, fontWeight:700, fontSize:12, cursor:"pointer" }}
                 onClick={async () => { 
