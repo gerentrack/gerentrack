@@ -14,6 +14,7 @@ import { CombinedScoringEngine }           from "./shared/engines/combinedScorin
 import { TeamScoringEngine }               from "./shared/engines/teamScoringEngine";
 import { SeriacaoEngine }                  from "./shared/engines/seriacaoEngine";
 import { RecordDetectionEngine }           from "./shared/engines/recordDetectionEngine";
+import RankingExtractionEngine             from "./shared/engines/rankingExtractionEngine";
 import { GT_DEFAULT_ICON, GT_DEFAULT_LOGO } from "./shared/branding";
 
 // ── Shared — Constants — Etapa 3 ──────────────────────────────────
@@ -65,6 +66,7 @@ import TelaInscricaoRevezamento    from "./features/inscricoes/TelaInscricaoReve
 import TelaSumulas                 from "./features/sumulas/TelaSumulas";
 import TelaResultados              from "./features/resultados/TelaResultados";
 import TelaRecordes                from "./features/recordes/TelaRecordes";
+import TelaRanking                 from "./features/ranking/TelaRanking";
 import { gerarHtmlImpressao }      from "./features/impressao/gerarHtmlImpressao";
 import TelaDigitarResultados       from "./features/digitar/TelaDigitarResultados";
 import TelaConfigPontuacaoEquipes  from "./features/configuracoes/TelaConfigPontuacaoEquipes";
@@ -200,6 +202,8 @@ function App() {
   const [recordes, setRecordes] = useLocalStorage("atl_recordes", []);
   const [pendenciasRecorde, setPendenciasRecorde] = useLocalStorage("atl_pendencias_recorde", []);
   const [historicoRecordes, setHistoricoRecordes] = useLocalStorage("atl_historico_recordes", []);
+  const [ranking, setRanking] = useLocalStorage("atl_ranking", []);
+  const [historicoRanking, setHistoricoRanking] = useLocalStorage("atl_historico_ranking", []);
   const [eventoAtualId, setEventoAtualId] = useLocalOnly("atl_eventoAtualId", null);
   // Substitutos para window.__ globals
   const [atletaEditandoId, setAtletaEditandoId] = React.useState(null);
@@ -294,6 +298,7 @@ function App() {
       path = `/competicao/${ev?.slug || evtId}/resultados`;
     }
     else if (novaTela === "recordes") path = "/recordes";
+    else if (novaTela === "ranking") path = "/ranking";
     else if (novaTela === "login") path = "/entrar";
     else if (novaTela === "home") path = "/";
     if (path) {
@@ -319,6 +324,7 @@ function App() {
       if (existe) return { tela: "evento-detalhe", eventoId: existe.id };
     }
     if (path === "/recordes") return { tela: "recordes" };
+    if (path === "/ranking") return { tela: "ranking" };
     if (path === "/entrar") return { tela: "login" };
     return null;
   }, [eventos]);
@@ -1231,6 +1237,8 @@ function App() {
     setRecordes([]);
     setPendenciasRecorde([]);
     setHistoricoRecordes([]);
+    setRanking([]);
+    setHistoricoRanking([]);
     setPerfisDisponiveis([]);
     setAdminConfig(prev => ({ ...prev, configurado: true }));
     registrarAcao(usuarioLogado?.id || "system", usuarioLogado?.nome || "Sistema", "Limpou todos os dados", "Reset completo do sistema", null, { modulo: "sistema" });
@@ -1244,6 +1252,7 @@ function App() {
       atletas, eventos, inscricoes, resultados, numeracaoPeito,
       solicitacoesRecuperacao, historicoAcoes,
       recordes, pendenciasRecorde, historicoRecordes,
+      ranking, historicoRanking,
       auditoria, solicitacoesVinculo, notificacoes,
       solicitacoesPortabilidade,
       siteBranding, perfisDisponiveis,
@@ -1294,6 +1303,8 @@ function App() {
         if (dados.recordes)                setRecordes(dados.recordes);
         if (dados.pendenciasRecorde)       setPendenciasRecorde(dados.pendenciasRecorde);
         if (dados.historicoRecordes)       setHistoricoRecordes(dados.historicoRecordes);
+        if (dados.ranking)                 setRanking(dados.ranking);
+        if (dados.historicoRanking)        setHistoricoRanking(dados.historicoRanking);
         if (dados.auditoria)               setAuditoria(dados.auditoria);
         if (dados.solicitacoesVinculo)     setSolicitacoesVinculo(dados.solicitacoesVinculo);
         if (dados.notificacoes)            setNotificacoes(dados.notificacoes);
@@ -1544,6 +1555,8 @@ function App() {
     pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes,
     siteBranding, setSiteBranding, gtIcon, gtLogo, gtNome, gtSlogan,
     RecordDetectionEngine,
+    RankingExtractionEngine,
+    ranking, setRanking, historicoRanking, setHistoricoRanking,
     online, pendentesOffline,
     // ⚠️ SEGURANÇA: adminConfig removido do spread global.
     // Injetado explicitamente apenas em TelaLogin, TelaConfiguracoes e TelaAdmin.
@@ -1688,6 +1701,7 @@ function App() {
         {tela === "sumulas"           && usuarioLogado && <TelaSumulas {...props} chamada={chamada} getPresencaProva={getPresencaProva} />}
         {tela === "resultados"        && <TelaResultados {...props} />}
         {tela === "recordes"          && <TelaRecordes {...props} />}
+        {tela === "ranking"           && <TelaRanking {...props} />}
         {tela === "admin"             && <TelaAdmin {...props} adminConfig={adminConfig} setAdminConfig={setAdminConfig} solicitacoesPortabilidade={solicitacoesPortabilidade} resolverSolicitacaoPortabilidade={resolverSolicitacaoPortabilidade} excluirSolicitacaoPortabilidade={excluirSolicitacaoPortabilidade} setHistoricoAcoes={setHistoricoAcoes} setAuditoria={setAuditoria} auditoria={auditoria} />}
         {tela === "gerenciar-equipes" && <TelaGerenciarEquipes {...props} />}
         {tela === "gerenciar-usuarios" && <TelaGerenciarUsuarios {...props} />}

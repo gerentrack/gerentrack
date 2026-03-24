@@ -59,7 +59,7 @@ function NavBtn({ onClick, label, active, mobile, styles }) {
   );
 }
 
-function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDisponiveis, gtIcon, gtNome, gtSlogan, pendenciasRecorde, temaClaro, setTemaClaro, online, pendentesOffline }) {
+function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDisponiveis, gtIcon, gtNome, gtSlogan, pendenciasRecorde, ranking, temaClaro, setTemaClaro, online, pendentesOffline }) {
   const t = useTema();
   const styles = getStyles(t);
   const [menuAberto, setMenuAberto] = useState(false);
@@ -69,6 +69,7 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
   const navegar = (destino) => { setTela(destino); setMenuAberto(false); };
 
   const pendCount = usuarioLogado?.tipo === "admin" ? (pendenciasRecorde || []).filter(p => p.status === "pendente").length : 0;
+  const rankingPendCount = usuarioLogado?.tipo === "admin" ? (ranking || []).filter(r => r.status === "pendente").length : 0;
 
   const navItems = (
     <>
@@ -78,6 +79,13 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
         {pendCount > 0 && (
           <span style={{ position: "absolute", top: mobile ? 6 : -4, right: mobile ? 8 : -4, background: t.danger, color: "#fff", fontSize: 9,
             fontWeight: 800, borderRadius: 10, padding: "1px 5px", minWidth: 16, textAlign: "center" }}>{pendCount}</span>
+        )}
+      </div>
+      <div style={{ position: "relative", display: mobile ? "block" : "inline-block", width: mobile ? "100%" : "auto" }}>
+        <NavBtn styles={styles} onClick={() => navegar("ranking")} label="Ranking" mobile={mobile} />
+        {rankingPendCount > 0 && (
+          <span style={{ position: "absolute", top: mobile ? 6 : -4, right: mobile ? 8 : -4, background: t.danger, color: "#fff", fontSize: 9,
+            fontWeight: 800, borderRadius: 10, padding: "1px 5px", minWidth: 16, textAlign: "center" }}>{rankingPendCount}</span>
         )}
       </div>
       {usuarioLogado ? (
@@ -165,7 +173,7 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
     </div>
   );
 
-  const showEventoBar = eventoAtual && !["home","login","cadastro-equipe","cadastro-organizador","cadastro-atleta-login","recuperar-senha","trocar-senha","selecionar-perfil","configuracoes","recordes","painel","painel-organizador","gerenciar-equipes","funcionarios","cadastrar-atleta","editar-atleta","importar-atletas","treinadores","gerenciar-inscricoes","painel-atleta","admin"].includes(tela);
+  const showEventoBar = eventoAtual && !["home","login","cadastro-equipe","cadastro-organizador","cadastro-atleta-login","recuperar-senha","trocar-senha","selecionar-perfil","configuracoes","recordes","ranking","painel","painel-organizador","gerenciar-equipes","funcionarios","cadastrar-atleta","editar-atleta","importar-atletas","treinadores","gerenciar-inscricoes","painel-atleta","admin"].includes(tela);
 
   return (
     <>

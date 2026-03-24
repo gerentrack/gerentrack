@@ -704,6 +704,11 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                       ? `🏆 Reprocessamento concluído!\n\n${novasPendencias.length} quebra(s) detectada(s).\n${novas} nova(s) pendência(s) adicionada(s).\n\nAcesse 🏆 Recordes → ⏳ Pendências para analisar.`
                       : `✅ Reprocessamento concluído!\n\n${novasPendencias.length} quebra(s) detectada(s), mas todas já constavam como pendências existentes.\nNenhuma nova pendência adicionada.`
                     );
+                    // Ranking
+                    try {
+                      const novasRnk = RankingExtractionEngine.extrairEntradas(eventoAtual, resultados, atletas, equipes, inscricoes);
+                      if (novasRnk.length > 0) setRanking(prev => RankingExtractionEngine.mesclarEntradas(prev, novasRnk));
+                    } catch (er) { console.error("Erro ranking:", er); }
                   } catch (e) { alert("Erro ao reprocessar: " + e.message); }
                 }}>
                 🏆 Reprocessar Recordes
@@ -1184,6 +1189,12 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                     if (novasPendencias.length > 0)
                       setPendenciasRecorde(prev => RecordDetectionEngine.mesclarPendencias(prev, novasPendencias));
                    } catch (e) { console.error("Erro ao detectar quebras de recorde:", e); }
+                  // ── Ranking: extrair entradas de atletas com CBAt ──
+                  try {
+                    const novasRanking = RankingExtractionEngine.extrairEntradas(eventoAtual, resultados, atletas, equipes, inscricoes);
+                    if (novasRanking.length > 0)
+                      setRanking(prev => RankingExtractionEngine.mesclarEntradas(prev, novasRanking));
+                  } catch (e) { console.error("Erro ao extrair ranking:", e); }
                   alterarStatusEvento(eventoAtual.id, {
                     competicaoFinalizada:    true,
                     competicaoFinalizadaEm:  Date.now(),
