@@ -680,7 +680,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
       </div>
 
       {/* ══ BANNER COMPETIÇÃO FINALIZADA ════════════════════════════════════ */}
-      {eventoAtual.competicaoFinalizada && (
+      {eventoAtual.competicaoFinalizada && isAdmin && (
         <div style={{ background: t.accentBg, border:`2px solid ${t.danger}44`, borderRadius:12, padding:"16px 20px", marginBottom:20, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
           <div>
             <div style={{ fontWeight:800, fontSize:15, color: t.danger, marginBottom:4 }}>🔒 Competição Finalizada</div>
