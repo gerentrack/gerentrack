@@ -89,8 +89,31 @@ export default function TelaPainelEquipe({
 
   const anoBase = new Date().getFullYear();
   const meusAtletas   = (atletas  || []).filter(a => a.equipeId === equipeId);
+  const meusAtletaIds = useMemo(() => new Set(meusAtletas.map(a => a.id)), [meusAtletas]);
   const meusTrein     = (treinadores || []).filter(tr => tr.equipeId === equipeId);
-  const minhasInscs   = (inscricoes || []).filter(i => meusAtletas.some(a => a.id === i.atletaId));
+
+  // Inscrições da equipe — respeita snapshot de equipe para eventos encerrados
+  // Eventos encerrados: usa equipeCadastroId (equipe no momento da inscrição)
+  // Eventos ativos: usa equipeId atual do atleta
+  const eventoStatusCache = useMemo(() => {
+    const cache = {};
+    (eventos || []).forEach(ev => { cache[ev.id] = getStatusEvento(ev); });
+    return cache;
+  }, [eventos]);
+  const minhasInscs = useMemo(() =>
+    (inscricoes || []).filter(insc => {
+      const status = eventoStatusCache[insc.eventoId];
+      if (status === "encerrado") {
+        // Evento encerrado: pertence à equipe que inscreveu
+        if (insc.equipeCadastroId) return insc.equipeCadastroId === equipeId;
+        // Fallback legado (sem equipeCadastroId): usa equipeId atual
+        return meusAtletaIds.has(insc.atletaId);
+      }
+      // Evento ativo: pertence à equipe atual do atleta
+      return meusAtletaIds.has(insc.atletaId);
+    }),
+    [inscricoes, eventoStatusCache, equipeId, meusAtletaIds]
+  );
 
   // Vínculos pendentes para esta equipe responder
   const vincPendentes      = (solicitacoesVinculo||[]).filter(sol => sol.equipeId === equipeId && sol.status === "pendente" && sol.aprovadorTipo !== "equipe_atual" && sol.tipo !== "desvinculacao");
@@ -208,6 +231,7 @@ export default function TelaPainelEquipe({
           notificacoes={notificacoes}
           usuarioId={usuarioLogado?.id}
           marcarNotifLida={marcarNotifLida}
+          tiposExcluidos={["medals_ready", "relatorio_solicitado"]}
         />
       </div>
 

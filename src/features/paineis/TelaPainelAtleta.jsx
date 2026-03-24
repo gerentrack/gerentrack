@@ -159,6 +159,7 @@ function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, in
             notificacoes={notificacoes}
             usuarioId={usuarioLogado?.id}
             marcarNotifLida={marcarNotifLida}
+            tiposExcluidos={["medals_ready", "relatorio_solicitado"]}
           />
         </div>
       </div>

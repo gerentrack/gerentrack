@@ -1,13 +1,13 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
-import { CATEGORIAS } from "../../shared/constants/categorias";
+import { CATEGORIAS, ESTADOS_BR } from "../../shared/constants/categorias";
 import { formatarMarca } from "../../shared/formatters/utils";
 import { _getCbat } from "../../shared/formatters/utils";
 import { criarInscricaoStyles } from "../inscricoes/inscricaoStyles";
 import { useTema } from "../../shared/TemaContext";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
-export default function TelaRanking({ ranking, setRanking, historicoRanking, setHistoricoRanking, atletas, usuarioLogado, registrarAcao, setTela }) {
+export default function TelaRanking({ ranking, setRanking, historicoRanking, setHistoricoRanking, atletas, equipes, usuarioLogado, registrarAcao, setTela }) {
   const t = useTema();
   const base = criarInscricaoStyles(t);
   const s = useStylesResponsivos({
@@ -25,6 +25,9 @@ export default function TelaRanking({ ranking, setRanking, historicoRanking, set
   const [filtroAno, setFiltroAno] = useState("todos");
   const [filtroCat, setFiltroCat] = useState("todas");
   const [filtroSexo, setFiltroSexo] = useState("todos");
+  const [filtroUfAtleta, setFiltroUfAtleta] = useState("todos");
+  const [filtroUfEvento, setFiltroUfEvento] = useState("todos");
+  const [filtroClube, setFiltroClube] = useState("todos");
   const [pagina, setPagina] = useState(0);
   const POR_PAG = 20;
 
@@ -45,14 +48,32 @@ export default function TelaRanking({ ranking, setRanking, historicoRanking, set
     return [...anos].sort((a, b) => b - a);
   }, [ranking]);
 
+  const ufsAtletaDisponiveis = useMemo(() => {
+    const ufs = new Set((ranking || []).filter(r => r.status === "homologado" && r.atletaUf).map(r => r.atletaUf.toUpperCase()));
+    return ESTADOS_BR.filter(uf => ufs.has(uf));
+  }, [ranking]);
+
+  const ufsEventoDisponiveis = useMemo(() => {
+    const ufs = new Set((ranking || []).filter(r => r.status === "homologado" && r.eventoUf).map(r => r.eventoUf.toUpperCase()));
+    return ESTADOS_BR.filter(uf => ufs.has(uf));
+  }, [ranking]);
+
+  const clubesDisponiveis = useMemo(() => {
+    const clubes = new Set((ranking || []).filter(r => r.status === "homologado" && r.atletaClube).map(r => r.atletaClube));
+    return [...clubes].sort((a, b) => a.localeCompare(b));
+  }, [ranking]);
+
   // ── Ranking filtrado e ordenado ──
   const rankingFiltrado = useMemo(() => {
     let lista = (ranking || []).filter(r => r.status === "homologado");
 
-    if (filtroProva !== "todas") lista = lista.filter(r => r.provaId === filtroProva);
     if (filtroAno !== "todos") lista = lista.filter(r => r.eventoData?.startsWith(filtroAno));
     if (filtroCat !== "todas") lista = lista.filter(r => r.categoriaId === filtroCat);
     if (filtroSexo !== "todos") lista = lista.filter(r => r.sexo === filtroSexo);
+    if (filtroProva !== "todas") lista = lista.filter(r => r.provaId === filtroProva);
+    if (filtroUfAtleta !== "todos") lista = lista.filter(r => r.atletaUf?.toUpperCase() === filtroUfAtleta);
+    if (filtroUfEvento !== "todos") lista = lista.filter(r => r.eventoUf?.toUpperCase() === filtroUfEvento);
+    if (filtroClube !== "todos") lista = lista.filter(r => r.atletaClube === filtroClube);
 
     // Melhor marca por atleta (por prova)
     const melhor = {};
@@ -74,7 +95,7 @@ export default function TelaRanking({ ranking, setRanking, historicoRanking, set
     });
 
     return lista;
-  }, [ranking, filtroProva, filtroAno, filtroCat, filtroSexo]);
+  }, [ranking, filtroProva, filtroAno, filtroCat, filtroSexo, filtroUfAtleta, filtroUfEvento, filtroClube]);
 
   const totalPags = Math.ceil(rankingFiltrado.length / POR_PAG) || 1;
   const paginaAtual = rankingFiltrado.slice(pagina * POR_PAG, (pagina + 1) * POR_PAG);
@@ -142,11 +163,11 @@ export default function TelaRanking({ ranking, setRanking, historicoRanking, set
       provaNome: prova.nome,
       unidade: prova.unidade || "s",
       atletaId: atl?.id || "",
-      atletaNome: atl?.nome || manualForm.atletaNome || "",
-      atletaCbat: cbat,
-      atletaNasc: atl?.dataNasc || atl?.anoNasc || manualForm.atletaNasc || "",
-      atletaUf: atl?.uf || atl?.estado || manualForm.atletaUf || "",
-      atletaClube: atl?.clube || manualForm.atletaClube || "",
+      atletaNome: manualForm.atletaNome || atl?.nome || "",
+      atletaCbat: manualForm.atletaCbat || cbat,
+      atletaNasc: manualForm.atletaNasc || "",
+      atletaUf: manualForm.atletaUf || "",
+      atletaClube: manualForm.atletaClube || "",
       marca: String(manualForm.marca),
       marcaNum,
       categoriaId: manualForm.categoriaId || "",
@@ -180,12 +201,231 @@ export default function TelaRanking({ ranking, setRanking, historicoRanking, set
     }).slice(0, 8);
   }, [buscaAtleta, atletas]);
 
+  // ── Importação por planilha ──
+  const [importPreview, setImportPreview] = useState(null); // array de entradas parseadas
+  const [importErros, setImportErros] = useState([]);
+  const [importStatus, setImportStatus] = useState(""); // "" | "carregando" | "pronto" | "importado"
+  const fileInputRef = useRef(null);
+
+  const carregarXLSX = async () => {
+    let XL = typeof window !== "undefined" && window.XLSX ? window.XLSX : null;
+    if (!XL) {
+      try { XL = await import("https://cdn.sheetjs.com/xlsx-0.20.0/package/xlsx.mjs"); } catch {
+        try {
+          await new Promise((res, rej) => {
+            const sc = document.createElement("script");
+            sc.src = "https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js";
+            sc.onload = res; sc.onerror = rej;
+            document.head.appendChild(sc);
+          });
+          XL = window.XLSX;
+        } catch { return null; }
+      }
+    }
+    return XL;
+  };
+
+  const normalizarNomeProva = (nome) => {
+    if (!nome) return "";
+    return String(nome).trim()
+      .replace(/\s+/g, " ")
+      .replace(/metros/gi, "m")
+      .replace(/^(\d+)m\s+rasos$/i, "$1m Rasos")
+      .replace(/c\/\s*/g, "c/ ")
+      .replace(/c\.\s*/g, "c/ ");
+  };
+
+  const encontrarProva = (nomeRaw, sexo) => {
+    const nome = normalizarNomeProva(nomeRaw);
+    if (!nome) return null;
+    const todas = todasAsProvas();
+    const nomeLower = nome.toLowerCase();
+    // Match exato por nome
+    let match = todas.find(p => p.nome.toLowerCase() === nomeLower && p.id.startsWith(sexo === "F" ? "F_" : "M_"));
+    if (match) return match;
+    // Match sem sexo
+    match = todas.find(p => p.nome.toLowerCase() === nomeLower);
+    if (match) return match;
+    // Match parcial
+    match = todas.find(p => nomeLower.includes(p.nome.toLowerCase()) && p.id.startsWith(sexo === "F" ? "F_" : "M_"));
+    if (!match) match = todas.find(p => nomeLower.includes(p.nome.toLowerCase()));
+    return match || null;
+  };
+
+  const encontrarCategoria = (nomeRaw) => {
+    if (!nomeRaw) return null;
+    const nome = String(nomeRaw).trim().toLowerCase().replace(/[-\s]/g, "");
+    return CATEGORIAS.find(c => c.id.toLowerCase().replace(/[-\s]/g, "") === nome
+      || c.nome.toLowerCase().replace(/[-\s]/g, "") === nome) || null;
+  };
+
+  const handleImportFile = async (ev) => {
+    const file = ev.target.files?.[0];
+    if (!file) return;
+    setImportStatus("carregando");
+    setImportPreview(null);
+    setImportErros([]);
+
+    const XL = await carregarXLSX();
+    if (!XL) { setImportErros(["Erro ao carregar biblioteca XLSX."]); setImportStatus(""); return; }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const wb = XL.read(e.target.result, { type: "array" });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XL.utils.sheet_to_json(ws, { defval: "" });
+        if (!rows.length) { setImportErros(["Planilha vazia."]); setImportStatus(""); return; }
+
+        // Mapear colunas (aceitar variações)
+        const colMap = (header) => {
+          const h = String(header).trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+          if (/^prova$/.test(h)) return "prova";
+          if (/^marca$|^resultado$|^tempo$|^performance$/.test(h)) return "marca";
+          if (/^nome$|^atleta$/.test(h)) return "atletaNome";
+          if (/^cbat$|^cba$|^registro$/.test(h)) return "cbat";
+          if (/^nasc|^ano.*nasc|^data.*nasc/.test(h)) return "nasc";
+          if (/^uf$|^estado$/.test(h)) return "uf";
+          if (/^clube$|^equipe$/.test(h)) return "clube";
+          if (/^categ/.test(h)) return "categoria";
+          if (/^sexo$|^genero$/.test(h)) return "sexo";
+          if (/^vento$|^wind$/.test(h)) return "vento";
+          if (/^compet|^evento$/.test(h)) return "eventoNome";
+          if (/^data$/.test(h)) return "eventoData";
+          if (/^local$|^cidade$/.test(h)) return "eventoLocal";
+          if (/^uf.*evento$|^uf.*comp/.test(h)) return "eventoUf";
+          return null;
+        };
+
+        const headers = Object.keys(rows[0]);
+        const mapa = {};
+        headers.forEach(h => { const k = colMap(h); if (k) mapa[k] = h; });
+
+        if (!mapa.prova) { setImportErros(["Coluna 'Prova' não encontrada na planilha."]); setImportStatus(""); return; }
+        if (!mapa.marca) { setImportErros(["Coluna 'Marca' (ou 'Resultado'/'Tempo') não encontrada."]); setImportStatus(""); return; }
+        if (!mapa.atletaNome && !mapa.cbat) { setImportErros(["Coluna 'Nome'/'Atleta' ou 'CBAt' não encontrada."]); setImportStatus(""); return; }
+
+        const entradas = [];
+        const erros = [];
+
+        rows.forEach((row, idx) => {
+          const linha = idx + 2; // +2 = header + 0-index
+          const provaNome = String(row[mapa.prova] || "").trim();
+          const marcaRaw = String(row[mapa.marca] || "").trim();
+          const nome = mapa.atletaNome ? String(row[mapa.atletaNome] || "").trim() : "";
+          const cbatRaw = mapa.cbat ? String(row[mapa.cbat] || "").trim() : "";
+          const sexoRaw = mapa.sexo ? String(row[mapa.sexo] || "").trim().toUpperCase() : "";
+          const sexo = sexoRaw === "F" || sexoRaw === "FEM" || sexoRaw === "FEMININO" ? "F" : "M";
+          const catRaw = mapa.categoria ? String(row[mapa.categoria] || "").trim() : "";
+          const ventoRaw = mapa.vento ? String(row[mapa.vento] || "").trim() : "";
+          const nascRaw = mapa.nasc ? String(row[mapa.nasc] || "").trim() : "";
+          const ufRaw = mapa.uf ? String(row[mapa.uf] || "").trim() : "";
+          const clubeRaw = mapa.clube ? String(row[mapa.clube] || "").trim() : "";
+          const evNome = mapa.eventoNome ? String(row[mapa.eventoNome] || "").trim() : "";
+          const evDataRaw = mapa.eventoData ? row[mapa.eventoData] : "";
+          const evLocal = mapa.eventoLocal ? String(row[mapa.eventoLocal] || "").trim() : "";
+          const evUf = mapa.eventoUf ? String(row[mapa.eventoUf] || "").trim() : "";
+
+          if (!provaNome && !marcaRaw && !nome) return; // linha vazia
+
+          const prova = encontrarProva(provaNome, sexo);
+          if (!prova) { erros.push(`Linha ${linha}: prova "${provaNome}" não encontrada.`); return; }
+
+          const marcaNum = parseFloat(String(marcaRaw).replace(",", "."));
+          if (isNaN(marcaNum) || marcaNum <= 0) { erros.push(`Linha ${linha}: marca "${marcaRaw}" inválida.`); return; }
+
+          // Tentar encontrar atleta pelo CBAt
+          const cbat = cbatRaw.replace(/\D/g, "");
+          let atl = null;
+          if (cbat) atl = atletas.find(a => _getCbat(a) === cbat);
+          if (!atl && nome) atl = atletas.find(a => a.nome?.toLowerCase() === nome.toLowerCase() && _getCbat(a));
+
+          const atletaCbat = atl ? _getCbat(atl) : cbat;
+          if (!atletaCbat && !nome) { erros.push(`Linha ${linha}: sem nome nem CBAt.`); return; }
+
+          const cat = encontrarCategoria(catRaw);
+          const ventoNum = parseFloat(ventoRaw.replace(",", "."));
+          const ventoAssistido = !isNaN(ventoNum) && ventoNum > 2.0;
+
+          // Normalizar data do evento
+          let eventoData = "";
+          if (evDataRaw) {
+            if (typeof evDataRaw === "number") {
+              // Serial date do Excel
+              const d = new Date((evDataRaw - 25569) * 86400 * 1000);
+              eventoData = d.toISOString().substring(0, 10);
+            } else {
+              const ds = String(evDataRaw).trim();
+              // dd/mm/yyyy
+              const m = ds.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+              if (m) eventoData = `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
+              // yyyy-mm-dd
+              else if (/^\d{4}-\d{2}-\d{2}/.test(ds)) eventoData = ds.substring(0, 10);
+            }
+          }
+
+          entradas.push({
+            id: "rnk_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 6) + "_" + idx,
+            eventoId: "",
+            eventoNome: evNome || "Importação planilha",
+            eventoData,
+            eventoLocal: evLocal,
+            eventoUf: evUf,
+            provaId: prova.id,
+            provaNome: prova.nome,
+            unidade: prova.unidade || "s",
+            atletaId: atl?.id || "",
+            atletaNome: nome || atl?.nome || "",
+            atletaCbat: atletaCbat,
+            atletaNasc: nascRaw || "",
+            atletaUf: ufRaw,
+            atletaClube: clubeRaw,
+            marca: marcaRaw,
+            marcaNum,
+            categoriaId: cat?.id || "",
+            sexo,
+            vento: ventoRaw,
+            ventoAssistido,
+            status: "homologado",
+            fonte: "importacao",
+            resolvidoPor: usuarioLogado?.nome,
+            resolvidoEm: Date.now(),
+            observacao: "",
+            criadoEm: Date.now(),
+            _chave: `import_${Date.now()}_${idx}`,
+            _linha: linha,
+          });
+        });
+
+        setImportPreview(entradas);
+        setImportErros(erros);
+        setImportStatus(entradas.length > 0 ? "pronto" : "");
+      } catch (err) {
+        setImportErros(["Erro ao processar planilha: " + err.message]);
+        setImportStatus("");
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    ev.target.value = "";
+  };
+
+  const confirmarImportacao = () => {
+    if (!importPreview?.length) return;
+    // Remover campo auxiliar _linha
+    const entradas = importPreview.map(({ _linha, ...rest }) => rest);
+    setRanking(prev => [...prev, ...entradas]);
+    if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Importou ranking (planilha)", `${entradas.length} entradas`, null, { modulo: "ranking" });
+    setImportStatus("importado");
+    setImportPreview(null);
+  };
+
   // ── Abas ──
   const abas = [
     { id: "ranking", label: "Ranking", badge: null },
     ...(isAdmin ? [
       { id: "pendencias", label: "Pendências", badge: pendentes.length || null },
       { id: "manual", label: "Inserção Manual", badge: null },
+      { id: "importar", label: "Importar Planilha", badge: null },
     ] : []),
   ];
 
@@ -223,13 +463,6 @@ export default function TelaRanking({ ranking, setRanking, historicoRanking, set
           {/* Filtros */}
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 20 }}>
             <div>
-              <label style={s.label}>Prova</label>
-              <select style={{ ...s.select, width: 200 }} value={filtroProva} onChange={ev => { setFiltroProva(ev.target.value); setPagina(0); }}>
-                <option value="todas">Todas as provas</option>
-                {provasDisponiveis.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
-              </select>
-            </div>
-            <div>
               <label style={s.label}>Ano</label>
               <select style={{ ...s.select, width: 100 }} value={filtroAno} onChange={ev => { setFiltroAno(ev.target.value); setPagina(0); }}>
                 <option value="todos">Todos</option>
@@ -251,13 +484,41 @@ export default function TelaRanking({ ranking, setRanking, historicoRanking, set
                 <option value="F">Feminino</option>
               </select>
             </div>
+            <div>
+              <label style={s.label}>Prova</label>
+              <select style={{ ...s.select, width: 200 }} value={filtroProva} onChange={ev => { setFiltroProva(ev.target.value); setPagina(0); }}>
+                <option value="todas">Todas as provas</option>
+                {provasDisponiveis.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={s.label}>UF Atleta</label>
+              <select style={{ ...s.select, width: 90 }} value={filtroUfAtleta} onChange={ev => { setFiltroUfAtleta(ev.target.value); setPagina(0); }}>
+                <option value="todos">Todos</option>
+                {ufsAtletaDisponiveis.map(uf => <option key={uf} value={uf}>{uf}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={s.label}>Local</label>
+              <select style={{ ...s.select, width: 90 }} value={filtroUfEvento} onChange={ev => { setFiltroUfEvento(ev.target.value); setPagina(0); }}>
+                <option value="todos">Todos</option>
+                {ufsEventoDisponiveis.map(uf => <option key={uf} value={uf}>{uf}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={s.label}>Clube</label>
+              <select style={{ ...s.select, width: 180 }} value={filtroClube} onChange={ev => { setFiltroClube(ev.target.value); setPagina(0); }}>
+                <option value="todos">Todos</option>
+                {clubesDisponiveis.map(cl => <option key={cl} value={cl}>{cl}</option>)}
+              </select>
+            </div>
           </div>
 
           {/* Tabela */}
           {rankingFiltrado.length === 0 ? (
             <div style={s.emptyState}>
               <span style={{ fontSize: 48 }}>📊</span>
-              <p>Nenhuma entrada no ranking{filtroProva !== "todas" || filtroAno !== "todos" || filtroCat !== "todas" || filtroSexo !== "todos" ? " com os filtros selecionados" : ""}.</p>
+              <p>Nenhuma entrada no ranking{filtroProva !== "todas" || filtroAno !== "todos" || filtroCat !== "todas" || filtroSexo !== "todos" || filtroUfAtleta !== "todos" || filtroUfEvento !== "todos" || filtroClube !== "todos" ? " com os filtros selecionados" : ""}.</p>
             </div>
           ) : (
             <>
@@ -478,6 +739,134 @@ export default function TelaRanking({ ranking, setRanking, historicoRanking, set
           </div>
 
           <button style={s.btnPrimary} onClick={inserirManual}>+ Inserir no Ranking</button>
+        </div>
+      )}
+
+      {/* ═══ ABA IMPORTAR PLANILHA ═══ */}
+      {aba === "importar" && isAdmin && (
+        <div style={{ ...s.formCard, maxWidth: 900 }}>
+          <h3 style={{ ...s.sectionTitle, marginBottom: 8 }}>Importar Ranking via Planilha</h3>
+          <p style={{ color: t.textDimmed, fontSize: 13, marginBottom: 20, lineHeight: 1.6 }}>
+            Envie um arquivo <strong>.xlsx</strong> com as colunas abaixo. As entradas serão importadas como <strong>homologadas</strong>.
+          </p>
+
+          {/* Colunas esperadas */}
+          <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, padding: "14px 18px", marginBottom: 20 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: t.textMuted, letterSpacing: 1, marginBottom: 8 }}>COLUNAS DA PLANILHA</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {[
+                { nome: "Prova", req: true }, { nome: "Marca", req: true }, { nome: "Nome", req: true },
+                { nome: "CBAt", req: false }, { nome: "Sexo", req: false }, { nome: "Categoria", req: false },
+                { nome: "Nascimento", req: false }, { nome: "UF", req: false }, { nome: "Clube", req: false },
+                { nome: "Vento", req: false }, { nome: "Competição", req: false }, { nome: "Data", req: false },
+                { nome: "Local", req: false }, { nome: "Local", req: false },
+              ].map(col => (
+                <span key={col.nome} style={{
+                  background: col.req ? `${t.accent}18` : t.bgInput,
+                  border: `1px solid ${col.req ? t.accent + "44" : t.borderInput}`,
+                  color: col.req ? t.accent : t.textMuted,
+                  borderRadius: 6, padding: "3px 10px", fontSize: 11, fontWeight: 600,
+                }}>
+                  {col.nome}{col.req ? " *" : ""}
+                </span>
+              ))}
+            </div>
+            <div style={{ fontSize: 11, color: t.textDisabled, marginTop: 8 }}>
+              * Obrigatórias. Sexo padrão = M se não informado. Nomes de prova devem corresponder ao cadastro do sistema (ex: "100m Rasos", "Salto em Distância").
+            </div>
+          </div>
+
+          {/* Upload */}
+          <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 20 }}>
+            <input ref={fileInputRef} type="file" accept=".xlsx,.xls" onChange={handleImportFile} style={{ display: "none" }} />
+            <button style={s.btnPrimary} onClick={() => { fileInputRef.current?.click(); setImportStatus(""); setImportPreview(null); setImportErros([]); }}>
+              📁 Selecionar Planilha
+            </button>
+            {importStatus === "carregando" && <span style={{ color: t.textMuted, fontSize: 13 }}>Processando...</span>}
+            {importStatus === "importado" && <span style={{ color: t.success, fontSize: 13, fontWeight: 700 }}>✅ Importação concluída!</span>}
+          </div>
+
+          {/* Erros */}
+          {importErros.length > 0 && (
+            <div style={{ background: `${t.danger}10`, border: `1px solid ${t.danger}44`, borderRadius: 10, padding: "12px 16px", marginBottom: 16, maxHeight: 200, overflowY: "auto" }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: t.danger, marginBottom: 6 }}>
+                {importPreview?.length ? `${importErros.length} linha(s) com erro (ignoradas):` : "Erros:"}
+              </div>
+              {importErros.map((err, i) => (
+                <div key={i} style={{ fontSize: 12, color: t.danger, padding: "2px 0" }}>{err}</div>
+              ))}
+            </div>
+          )}
+
+          {/* Preview */}
+          {importPreview && importPreview.length > 0 && importStatus === "pronto" && (
+            <>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: t.textPrimary }}>
+                  {importPreview.length} entrada(s) prontas para importar
+                </span>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button style={s.btnGhost} onClick={() => { setImportPreview(null); setImportStatus(""); setImportErros([]); }}>
+                    Cancelar
+                  </button>
+                  <button style={s.btnPrimary} onClick={confirmarImportacao}>
+                    ✅ Confirmar Importação ({importPreview.length})
+                  </button>
+                </div>
+              </div>
+
+              <div style={s.tableWrap}>
+                <table style={s.table}>
+                  <thead>
+                    <tr>
+                      <th style={{ ...s.th, width: 45 }}>LN</th>
+                      <th style={s.th}>ATLETA</th>
+                      <th style={{ ...s.th, width: 70 }}>CBAt</th>
+                      <th style={s.th}>PROVA</th>
+                      <th style={{ ...s.th, width: 90 }}>MARCA</th>
+                      <th style={{ ...s.th, width: 40 }}>SX</th>
+                      <th style={{ ...s.th, width: 90 }}>CAT.</th>
+                      <th style={s.th}>COMPETIÇÃO</th>
+                      <th style={{ ...s.th, width: 90 }}>DATA</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {importPreview.slice(0, 50).map((r, idx) => (
+                      <tr key={idx} style={{ ...s.tr, background: idx % 2 === 0 ? "transparent" : t.bgHeaderSolid }}>
+                        <td style={{ ...s.td, fontSize: 11, color: t.textDisabled, textAlign: "center" }}>{r._linha}</td>
+                        <td style={{ ...s.td, fontWeight: 600, fontSize: 13 }}>
+                          {r.atletaNome}
+                          {r.atletaId && <span style={{ fontSize: 10, color: t.success, marginLeft: 4 }}>✓</span>}
+                        </td>
+                        <td style={{ ...s.td, fontSize: 12, color: t.textMuted }}>{r.atletaCbat || "—"}</td>
+                        <td style={{ ...s.td, fontSize: 12 }}>{r.provaNome}</td>
+                        <td style={{ ...s.td, fontWeight: 700, color: t.accent, fontFamily: "'Barlow Condensed', sans-serif" }}>
+                          {formatarMarca(r.marcaNum, r.unidade)}
+                          {r.ventoAssistido && <span style={{ fontSize: 10, color: t.warning, marginLeft: 3 }}>w</span>}
+                        </td>
+                        <td style={{ ...s.td, fontSize: 12, textAlign: "center" }}>{r.sexo}</td>
+                        <td style={{ ...s.td, fontSize: 12 }}>{CATEGORIAS.find(c => c.id === r.categoriaId)?.nome || "—"}</td>
+                        <td style={{ ...s.td, fontSize: 12, color: t.textMuted }}>{r.eventoNome || "—"}</td>
+                        <td style={{ ...s.td, fontSize: 12, color: t.textMuted }}>{r.eventoData ? new Date(r.eventoData + "T12:00:00").toLocaleDateString("pt-BR") : "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {importPreview.length > 50 && (
+                <div style={{ color: t.textDisabled, fontSize: 11, marginTop: 8, textAlign: "center" }}>
+                  Mostrando 50 de {importPreview.length} entradas
+                </div>
+              )}
+            </>
+          )}
+
+          {importPreview && importPreview.length === 0 && importStatus === "" && (
+            <div style={s.emptyState}>
+              <span style={{ fontSize: 36 }}>⚠️</span>
+              <p>Nenhuma entrada válida encontrada na planilha.</p>
+            </div>
+          )}
         </div>
       )}
     </div>

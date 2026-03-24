@@ -36,13 +36,13 @@ function getCores(t) {
   };
 }
 
-export function SinoNotificacoes({ notificacoes = [], usuarioId, marcarNotifLida }) {
+export function SinoNotificacoes({ notificacoes = [], usuarioId, marcarNotifLida, tiposExcluidos }) {
   const t = useTema();
   const CORES = getCores(t);
   const [aberto, setAberto] = useState(false);
   const ref = useRef(null);
 
-  const minhas = notificacoes.filter(n => n.para === usuarioId);
+  const minhas = notificacoes.filter(n => n.para === usuarioId && (!tiposExcluidos || !tiposExcluidos.includes(n.tipo)));
   const naoLidas = minhas.filter(n => !n.lida);
 
   // Fechar ao clicar fora

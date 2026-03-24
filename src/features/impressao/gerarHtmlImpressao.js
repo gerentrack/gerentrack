@@ -218,8 +218,6 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
     <div class="rod">
       <div class="rod-assinaturas">
         <div class="rod-ass"><div class="rod-ln"></div><div class="rod-lb">\u00c1rbitro Respons\u00e1vel</div></div>
-        <div style="flex:1"></div>
-        <div class="rod-ass"><div class="rod-ln"></div><div class="rod-lb">Anotador / Cronometrista</div></div>
       </div>
       <div class="rod-info">
         <div>Gerado em: ${dataGeracao}</div>

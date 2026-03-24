@@ -94,7 +94,8 @@ const RankingExtractionEngine = {
         chavesVistas.add(_chave);
 
         const clube = _getClubeAtleta(atl, equipes) || atl.clube || "";
-        const atletaUf = atl.uf || atl.estado || "";
+        const eqAtl = atl.equipeId ? equipes.find(eq => eq.id === atl.equipeId) : null;
+        const atletaUf = eqAtl?.uf || eqAtl?.estado || "";
 
         entradas.push({
           id: "rnk_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 6),
@@ -112,6 +113,8 @@ const RankingExtractionEngine = {
           atletaNasc: atl.dataNasc || atl.anoNasc || "",
           atletaUf,
           atletaClube: clube,
+          equipeCadastroId: atl.equipeId || null,
+          equipeCadastroNome: eqAtl?.nome || clube || "",
           marca: String(m),
           marcaNum,
           categoriaId: catId,
