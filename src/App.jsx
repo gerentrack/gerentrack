@@ -1250,7 +1250,7 @@ function App() {
       exportadoEm: new Date().toISOString(),
       equipes, organizadores, atletasUsuarios, funcionarios, treinadores,
       atletas, eventos, inscricoes, resultados, numeracaoPeito,
-      solicitacoesRecuperacao, historicoAcoes,
+      solicitacoesRecuperacao, solicitacoesEquipe, solicitacoesRelatorio, historicoAcoes,
       recordes, pendenciasRecorde, historicoRecordes,
       ranking, historicoRanking,
       auditoria, solicitacoesVinculo, notificacoes,
@@ -1299,6 +1299,8 @@ function App() {
         if (dados.resultados)              await importarResultados(dados.resultados);
         if (dados.numeracaoPeito)          setNumeracaoPeito(dados.numeracaoPeito);
         if (dados.solicitacoesRecuperacao) setSolicitacoesRecuperacao(dados.solicitacoesRecuperacao);
+        if (dados.solicitacoesEquipe)    setSolicitacoesEquipe(dados.solicitacoesEquipe);
+        if (dados.solicitacoesRelatorio) setSolicitacoesRelatorio(dados.solicitacoesRelatorio);
         if (dados.historicoAcoes)          setHistoricoAcoes(dados.historicoAcoes);
         if (dados.recordes)                setRecordes(dados.recordes);
         if (dados.pendenciasRecorde)       setPendenciasRecorde(dados.pendenciasRecorde);

@@ -123,30 +123,30 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
     .cab-n{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
       color:#888;text-align:right;white-space:nowrap;}
     .cab-nbig{font-size:14px;font-weight:900;color:#bbb;display:block;line-height:1.1;}
-    .faixa{background:#111;padding:5px 13px;border-radius:3px 3px 0 0;
+    .faixa{background:#eee;padding:5px 13px;border-radius:3px 3px 0 0;border:1px solid #999;border-bottom:2px solid #333;
       display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;}
     .faixa-nome{font-family:'Barlow Condensed',sans-serif;font-size:22px;
-      font-weight:900;letter-spacing:1px;color:#FFD700;}
+      font-weight:900;letter-spacing:1px;color:#000;}
     .faixa-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
-    .b-cat{background:rgba(255,215,0,.13);color:#FFD700;border:1px solid rgba(255,215,0,.4);
+    .b-cat{background:rgba(0,0,0,.08);color:#000;border:1px solid rgba(0,0,0,.3);
       border-radius:3px;padding:1px 8px;font-size:11px;font-weight:700;font-family:'Barlow Condensed',sans-serif;}
     .b-sx{border-radius:3px;padding:1px 8px;font-size:11px;font-weight:700;font-family:'Barlow Condensed',sans-serif;}
-    .b-info{background:rgba(255,255,255,.09);color:#ccc;border:1px solid rgba(255,255,255,.13);
+    .b-info{background:rgba(0,0,0,.05);color:#333;border:1px solid rgba(0,0,0,.15);
       border-radius:3px;padding:1px 8px;font-size:10px;}
     .blk{padding:3px 13px;font-family:'Barlow Condensed',sans-serif;font-size:11px;
       font-weight:800;letter-spacing:1px;text-transform:uppercase;
       display:flex;justify-content:space-between;align-items:center;}
-    .blk-semi{background:#444;color:#ddd;}
-    .blk-final{background:#111;color:#FFD700;}
-    .blk-parc{background:#2a4a1a;color:#aad066;}
-    .blk-cfin{background:#1a2a0a;color:#FFD700;border-top:2px solid #FFD70033;}
+    .blk-semi{background:#ddd;color:#000;border:1px solid #999;}
+    .blk-final{background:#ddd;color:#000;border:1px solid #999;}
+    .blk-parc{background:#e8f0e0;color:#000;border:1px solid #999;}
+    .blk-cfin{background:#e8f0e0;color:#000;border:1px solid #999;border-top:2px solid #333;}
     .blk-exc{background:#1c1c1c;color:#666;font-size:10px;}
     .blk-s{font-size:10px;font-weight:400;}
     .gap{height:5px;}
     table{width:100%;border-collapse:collapse;border:1px solid #ccc;}
-    thead tr{background:#222;color:#fff;}
+    thead tr{background:#eee;color:#000;}
     th{padding:3px 3px;font-size:9px;font-weight:700;font-family:'Barlow Condensed',sans-serif;
-      letter-spacing:.6px;text-align:center;border:1px solid #444;text-transform:uppercase;}
+      letter-spacing:.6px;text-align:center;border:1px solid #999;text-transform:uppercase;}
     .thal{text-align:left!important;padding-left:5px!important;}
     td{padding:2px 3px;font-size:10px;border:1px solid #ddd;text-align:center;vertical-align:middle;line-height:1.15;}
     .tdal{text-align:left;padding-left:5px;}
@@ -964,16 +964,16 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
           .td-barra-sub { width:9px; font-size:8px; text-align:center; padding:3px 0; border:1px solid #ccc; border-left:none; }
           .td-barra-sub:first-child, .td-barra-sub.bl { border-left:1px solid #ccc; }
           .td-barra-h { font-size:8px; font-weight:700; text-align:center;
-            padding:2px 1px; background:#1a1a1a; color:#FFD700; border:1px solid #333; }
-          .td-tent-num { font-size:6px; color:#666; text-align:center; padding:1px 0;
-            background:#0d0d0d; border:1px solid #333; border-left:none; }
-          .td-tent-num.bl { border-left:1px solid #333; }
+            padding:2px 1px; background:#eee; color:#000; border:1px solid #999; }
+          .td-tent-num { font-size:6px; color:#000; text-align:center; padding:1px 0;
+            background:#f5f5f5; border:1px solid #999; border-left:none; }
+          .td-tent-num.bl { border-left:1px solid #999; }
         `;
         // CSS para versão com resultados (inalterado)
         const cssAlturaRes = `
           .td-barra { width:28px; font-size:10px; text-align:center; padding:4px 1px; border:1px solid #ccc; }
           .td-barra-h { width:28px; font-size:9px; font-weight:700; text-align:center;
-            padding:3px 1px; background:#1a1a1a; color:#FFD700; border:1px solid #333; }
+            padding:3px 1px; background:#eee; color:#000; border:1px solid #999; }
         `;
 
         const thAltura = `<tr>
@@ -984,12 +984,12 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
           <th style="width:64px">NASCIMENTO</th>
           <th style="width:90px" class="thal">EQUIPE</th>
           ${barras.map((_, i) => `<th colspan="3" class="td-barra-h">${i+1}</th>`).join("")}
-          <th style="width:28px;font-size:8px;background:#2a1a1a;color:#ff8888;text-align:center;border:1px solid #444" title="Saltos na \u00daltima">SU</th>
-          <th style="width:28px;font-size:8px;background:#2a1a1a;color:#ff8888;text-align:center;border:1px solid #444" title="Falhas na Prova">FP</th>
+          <th style="width:28px;font-size:8px;background:#f0e0e0;color:#000;text-align:center;border:1px solid #999" title="Saltos na \u00daltima">SU</th>
+          <th style="width:28px;font-size:8px;background:#f0e0e0;color:#000;text-align:center;border:1px solid #999" title="Falhas na Prova">FP</th>
           <th style="width:52px">MELHOR</th>
           <th style="width:30px">POS.</th>
         </tr>
-        <tr style="background:#0d0d0d">
+        <tr style="background:#f5f5f5">
           <td style="border:1px solid #333"></td>
           <td style="border:1px solid #333"></td>
           <td style="border:1px solid #333"></td>
@@ -1126,8 +1126,8 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
             <th style="width:64px">NASCIMENTO</th>
             <th style="width:90px" class="thal">EQUIPE</th>
             ${alturasRes.map(h => `<th colspan="3" class="td-barra-h" style="font-size:9px;min-width:60px">${h.toFixed(2).replace(".",",")}</th>`).join("")}
-            <th style="width:28px;font-size:8px;background:#2a1a1a;color:#ff8888;text-align:center;border:1px solid #444">SU</th>
-            <th style="width:28px;font-size:8px;background:#2a1a1a;color:#ff8888;text-align:center;border:1px solid #444">FP</th>
+            <th style="width:28px;font-size:8px;background:#f0e0e0;color:#000;text-align:center;border:1px solid #999">SU</th>
+            <th style="width:28px;font-size:8px;background:#f0e0e0;color:#000;text-align:center;border:1px solid #999">FP</th>
             <th style="width:52px">MELHOR</th>
             <th style="width:30px">POS.</th>
           </tr>`;
