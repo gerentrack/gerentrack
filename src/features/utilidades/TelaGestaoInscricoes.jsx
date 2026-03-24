@@ -682,7 +682,48 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
       return acc + (calcularPrecoInscricao(atl, cat?.id || null, eventoAtual)?.preco || 0);
     }, 0);
 
-    const cabecalho = `
+    // Paginar: máximo 14 atletas por página
+    const POR_PAG = 16;
+    const linhasArr = _porAtletaArr.map(([atletaId, inscs]) => {
+      const atl = atletas.find(a => a.id === atletaId);
+      const cat = atl ? getCategoria(atl.anoNasc, anoComp) : null;
+      const precoInfo = calcularPrecoInscricao(atl, cat?.id || null, eventoAtual);
+      const peito = numeracaoPeito?.[eid]?.[atletaId] ?? "";
+      const equipeNome = inscs[0]?.equipeCadastro || atl?.clube || "Sem equipe";
+      const provas = inscs.filter(i => !i.combinadaId)
+        .map(i => `<span style="display:inline-block;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:3px;padding:1px 5px;font-size:9px;margin:1px 2px;">${todasAsProvas().find(p => p.id === i.provaId)?.nome || i.provaId}</span>`).join("");
+      const valor = precoInfo?.preco != null ? formatarPreco(precoInfo.preco) : "Gratuito";
+      const pagoCell = isPago(inscs)
+        ? `<span style="color:#1a6b1a;font-weight:700;">✅ Pago</span>`
+        : `<span style="color:#888;">⏳ Pendente</span>`;
+      return `<tr>
+        <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:900;color:#e67e00;font-size:14px;">${peito || "—"}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #eee;font-size:10px;color:#888;">${_getCbat(atl) || "—"}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #eee;font-weight:600;">${atl?.nome || "—"}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #eee;font-size:10px;"><span style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:3px;padding:1px 5px;">${cat?.nome || "—"}</span></td>
+        <td style="padding:6px 8px;border-bottom:1px solid #eee;font-size:10px;color:#888;">${atl?.sexo === "M" ? "M" : "F"}</td>
+        ${mostrarEquipe ? `<td style="padding:6px 8px;border-bottom:1px solid #eee;font-size:10px;">${equipeNome}</td>` : ""}
+        <td style="padding:6px 8px;border-bottom:1px solid #eee;">${provas}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:right;font-size:11px;font-weight:700;">${valor}</td>
+        ${mostrarPago ? `<td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:center;font-size:10px;">${pagoCell}</td>` : ""}
+      </tr>`;
+    });
+
+    const totalPags = Math.ceil(linhasArr.length / POR_PAG) || 1;
+
+    const thRow = `<tr>
+      <th style="width:55px;text-align:center;">Nº Peito</th>
+      <th style="width:70px;">CBAt</th>
+      <th>Atleta</th>
+      <th style="width:90px;">Categoria</th>
+      <th style="width:35px;text-align:center;">Sexo</th>
+      ${mostrarEquipe ? `<th>Equipe</th>` : ""}
+      <th>Provas</th>
+      <th style="width:70px;text-align:right;">Valor</th>
+      ${mostrarPago ? `<th style="width:70px;text-align:center;">Pagamento</th>` : ""}
+    </tr>`;
+
+    const mkCabecalho = (pagNum) => `
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:12px;border-bottom:2px solid #1b5e20;gap:12px;">
         <div style="display:flex;align-items:center;gap:14px;">
           ${logoEsq ? `<img src="${logoEsq}" alt="" style="max-height:56px;max-width:120px;object-fit:contain;" />` : ""}
@@ -700,28 +741,46 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
             ${org ? `<div style="font-weight:700;font-size:12px;color:#111;">${org.entidade || org.nome || ""}</div>
             ${org.cnpj ? `<div>CNPJ: ${org.cnpj}</div>` : ""}` : ""}
             <div style="margin-top:3px;color:#aaa;">${_porAtletaArr.length} atleta(s) · Emitido em ${dataEmissao}</div>
+            <div style="font-weight:700;color:#1b5e20;font-size:11px;">Página ${pagNum} de ${totalPags}</div>
           </div>
           ${logoDir ? `<img src="${logoDir}" alt="" style="max-height:56px;max-width:100px;object-fit:contain;" />` : ""}
         </div>
       </div>`;
 
-    const rodape = `
+    const mkRodape = (isUltima) => `
       <div class="rod-wrap">
+        ${isUltima ? `<div style="text-align:right;padding:6px 0;font-size:12px;font-weight:700;border-top:2px solid #1b5e20;">TOTAL&nbsp;&nbsp;${formatarPreco(totalGeral)}</div>` : ""}
         <div style="padding-top:9px;border-top:1px solid #ddd;display:flex;justify-content:flex-end;align-items:center;gap:8px;font-size:9px;color:#aaa;">
           <span>Emitido em: ${dataEmissao}</span>
           <span>·</span>
           <span>Plataforma de Competições - GERENTRACK</span>
         </div>
-        ${logoRodap ? `<div style="margin-top:10px;text-align:center;"><img src="${logoRodap}" alt="" style="max-height:28mm;max-width:100%;object-fit:contain;" /></div>` : ""}
+        ${logoRodap ? `<div style="margin-top:6px;text-align:center;"><img src="${logoRodap}" alt="" style="max-height:18mm;max-width:100%;object-fit:contain;" /></div>` : ""}
       </div>`;
 
+    const paginas = [];
+    for (let p = 0; p < totalPags; p++) {
+      const fatia = linhasArr.slice(p * POR_PAG, (p + 1) * POR_PAG);
+      const isUltima = p === totalPags - 1;
+      paginas.push(`
+        <div class="pg">
+          <div class="conteudo">
+            ${mkCabecalho(p + 1)}
+            <table><thead>${thRow}</thead><tbody>${fatia.join("")}</tbody></table>
+          </div>
+          ${mkRodape(isUltima)}
+        </div>`);
+    }
+
     const css = `
-      @media print{.no-print{display:none!important;}body{margin:0;}@page{size:A4 landscape;margin:0;}}
+      @media print{.no-print{display:none!important;}body{margin:0;}@page{size:A4 landscape;margin:0;}
+        .pg{margin:0;border:none;box-shadow:none;width:100%;height:100vh;}
+        .pg:not(:last-child){page-break-after:always;}}
       body{font-family:Arial,sans-serif;color:#111;background:#fff;margin:0;padding:0;font-size:12px;}
-      .pg{background:#fff;width:297mm;min-height:210mm;margin:16px auto;padding:10mm 12mm 8mm;
+      .pg{background:#fff;width:297mm;min-height:210mm;margin:16px auto;padding:10mm 12mm 10mm;
         display:flex;flex-direction:column;box-shadow:0 4px 24px rgba(0,0,0,.2);box-sizing:border-box;}
       .conteudo{flex:1;}
-      .rod-wrap{margin-top:auto;padding-top:8px;}
+      .rod-wrap{margin-top:12px;padding-top:8px;flex-shrink:0;}
       table{width:100%;border-collapse:collapse;}
       thead th{background:#1b5e20;color:#fff;padding:7px 8px;text-align:left;font-size:9px;letter-spacing:1px;text-transform:uppercase;}
       tr:nth-child(even){background:#f9f9f9;}`;
@@ -731,28 +790,9 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
       <div class="no-print" style="padding:14px 20px;background:#f5f5f5;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:12px;">
         <button onclick="window.print()" style="background:#1b5e20;color:#fff;border:none;padding:10px 24px;border-radius:6px;cursor:pointer;font-size:14px;">🖨️ Imprimir / Salvar PDF</button>
         <button onclick="window.close()" style="background:#eee;border:1px solid #ccc;padding:10px 18px;border-radius:6px;cursor:pointer;">✕ Fechar</button>
-        <span style="font-size:12px;color:#666;">${_porAtletaArr.length} atleta(s)</span>
+        <span style="font-size:12px;color:#666;">${_porAtletaArr.length} atleta(s) · ${totalPags} página(s)</span>
       </div>
-      <div class="pg">
-        <div class="conteudo">
-          ${cabecalho}
-          <table>
-            <thead><tr>
-              <th style="width:55px;text-align:center;">Nº Peito</th>
-              <th style="width:70px;">CBAt</th>
-              <th>Atleta</th>
-              <th style="width:90px;">Categoria</th>
-              <th style="width:35px;text-align:center;">Sexo</th>
-              ${mostrarEquipe ? `<th>Equipe</th>` : ""}
-              <th>Provas</th>
-              <th style="width:70px;text-align:right;">Valor</th>
-              ${mostrarPago ? `<th style="width:70px;text-align:center;">Pagamento</th>` : ""}
-            </tr></thead>
-            <tbody>${linhas}</tbody>
-          </table>
-        </div>
-        ${rodape}
-      </div>
+      ${paginas.join("")}
     </body></html>`;
 
     const w = window.open("", "_blank", "width=1100,height=780");
@@ -766,9 +806,9 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
   const [marcarComoPago, setMarcarComoPago] = useState(false);
 
   // ── Bloco HTML base de 1 recibo ───────────────────────────────────────────
-  const _blocoRecibo = ({ titulo, pagador, atletasLista, org, dataEmissao, assinatura, isEquipe = false }) => {
+  const _blocoRecibo = ({ titulo, pagador, atletasLista, org, dataEmissao, assinatura, isEquipe = false, totalOverride }) => {
     const temPrecoConfig = !!(eventoAtual.regrasPreco?.length > 0 || eventoAtual.valorInscricao);
-    const total = atletasLista.reduce((acc, { precoInfo }) => acc + (precoInfo?.preco || 0), 0);
+    const total = totalOverride != null ? totalOverride : atletasLista.reduce((acc, { precoInfo }) => acc + (precoInfo?.preco || 0), 0);
     const logoEsq   = eventoAtual.logoCabecalho       || "";
     const logoDir   = eventoAtual.logoCabecalhoDireito || "";
     const logoRodap = eventoAtual.logoRodape           || "";
@@ -871,7 +911,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
             <div class="rod-ln"></div><div class="rod-lb">.</div>
           </div>
         </div>
-        ${logoRodap ? `<div style="margin-top:10px;text-align:center;"><img src="${logoRodap}" alt="" style="max-width:100%;max-height:28mm;object-fit:contain;" /></div>` : ""}
+        ${logoRodap ? `<div style="margin-top:10px;text-align:center;"><img src="${logoRodap}" alt="" style="max-width:100%;max-height:18mm;object-fit:contain;" /></div>` : ""}
       </div>`;
 
     return `
@@ -917,6 +957,8 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
       atletasSelecionados.forEach(([, inscs]) => inscs.forEach(i => atualizarInscricao({ ...i, pago: true })));
     }
 
+    const _scriptAutoScale = `<script>function autoScale(){document.querySelectorAll('.recibo,.pg').forEach(function(pg){var rod=pg.querySelector('.rod-wrap');if(!rod)return;for(var r=0;r<pg.children.length;r++){if(pg.children[r]===rod)continue;pg.children[r].style.fontSize='';pg.children[r].querySelectorAll('table').forEach(function(t){t.style.fontSize='';});}var pgH=pg.offsetHeight;var rodH=rod.offsetHeight;var dH=pgH-rodH;var cH=0;for(var i=0;i<pg.children.length;i++){var c=pg.children[i];if(c===rod)continue;cH+=c.offsetHeight+(parseFloat(getComputedStyle(c).marginTop)||0)+(parseFloat(getComputedStyle(c).marginBottom)||0);}if(cH>dH){var s=Math.max(0.55,dH/cH);for(var j=0;j<pg.children.length;j++){if(pg.children[j]===rod)continue;pg.children[j].style.fontSize=(s*100)+'%';pg.children[j].querySelectorAll('table').forEach(function(t){t.style.fontSize=(s*100)+'%';});}}});}window.addEventListener('load',autoScale);window.addEventListener('beforeprint',autoScale);</scrip` + `t>`;
+
     const cssBase = `
       @media print{
         .no-print{display:none!important;}
@@ -936,7 +978,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
       .recibo-conteudo{flex:1;}
       .cab-recibo{font-size:initial;}
       .cab-recibo img{max-height:18mm;max-width:32mm;object-fit:contain;}
-      .rod-wrap{margin-top:auto;padding-bottom:3mm;}
+      .rod-wrap{margin-top:auto;padding-bottom:3mm;flex-shrink:0;}
       .rod{padding-top:4px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;}
       .rod-ass{flex:1;max-width:220px;}
       .rod-ln{border-bottom:1px solid #aaa;margin-bottom:5px;height:64px;display:flex;align-items:flex-end;justify-content:center;}
@@ -966,7 +1008,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
           ${_blocoRecibo({ titulo: "RECIBO DE INSCRIÇÃO", pagador: item.atl?.nome || "—", atletasLista: [item], org, dataEmissao, assinatura: assinaturaUrl })}
         </div>`
       ).join("");
-      const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/><title>Recibos Individuais — ${eventoAtual.nome}</title><style>${cssBase}</style></head><body>${btnBar(atletasLista.length + " recibo(s) individual(is)")}<div class="print-wrap">${blocos}</div></body></html>`;
+      const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/><title>Recibos Individuais — ${eventoAtual.nome}</title><style>${cssBase}</style></head><body>${btnBar(atletasLista.length + " recibo(s) individual(is)")}<div class="print-wrap">${blocos}</div>${_scriptAutoScale}<\/body><\/html>`;
       const w = window.open("", "_blank", "width=960,height=780");
       if (w) { w.document.write(html); w.document.close(); }
 
@@ -997,13 +1039,23 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
         ...semEquipe.map(item => ({ pagador: item.atl?.nome || "—", lista: [item], titulo: "RECIBO DE INSCRIÇÃO" })),
       ];
 
-      const blocos = todosGrupos.map(({ pagador, lista, titulo }, idx) =>
-        `<div class="recibo">
-          ${_blocoRecibo({ titulo, pagador, atletasLista: lista, org, dataEmissao, assinatura: assinaturaUrl, isEquipe: lista.length > 1 })}
-        </div>`
-      ).join("");
+      const MAX_POR_PAG = 16;
+      const blocos = todosGrupos.flatMap(({ pagador, lista, titulo }) => {
+        const totalPagsGrupo = Math.ceil(lista.length / MAX_POR_PAG) || 1;
+        const totalGrupo = lista.reduce((acc, { precoInfo }) => acc + (precoInfo?.preco || 0), 0);
+        const pags = [];
+        for (let p = 0; p < totalPagsGrupo; p++) {
+          const fatia = lista.slice(p * MAX_POR_PAG, (p + 1) * MAX_POR_PAG);
+          const isUltima = p === totalPagsGrupo - 1;
+          const tituloP = totalPagsGrupo > 1 ? `${titulo} — ${p + 1}/${totalPagsGrupo}` : titulo;
+          pags.push(`<div class="recibo">
+            ${_blocoRecibo({ titulo: tituloP, pagador, atletasLista: fatia, org, dataEmissao, assinatura: isUltima ? assinaturaUrl : "", isEquipe: lista.length > 1, totalOverride: isUltima ? totalGrupo : 0 })}
+          </div>`);
+        }
+        return pags;
+      }).join("");
 
-      const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/><title>Recibos — ${eventoAtual.nome}</title><style>${cssBase}</style></head><body>${btnBar(Object.keys(porEquipe).length + " equipe(s) · " + semEquipe.length + " sem equipe")}<div class="print-wrap">${blocos}</div></body></html>`;
+      const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/><title>Recibos — ${eventoAtual.nome}</title><style>${cssBase}</style></head><body>${btnBar(Object.keys(porEquipe).length + " equipe(s) · " + semEquipe.length + " sem equipe")}<div class="print-wrap">${blocos}</div>${_scriptAutoScale}<\/body><\/html>`;
       const w = window.open("", "_blank", "width=960,height=780");
       if (w) { w.document.write(html); w.document.close(); }
     }

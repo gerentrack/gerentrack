@@ -1055,7 +1055,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
                       <div style="text-align:center;font-size:15px;font-weight:800;color:#333;margin:10px 0 14px;letter-spacing:1px">🕐 PROGRAMA HORÁRIO</div>
                       <table><thead>${thPrint}</thead><tbody>${tableBody}</tbody></table>
                       <div class="rod-wrap">
-                        ${logoRod ? `<div style="margin-top:14px;padding-top:10px;border-top:1px solid #ddd;text-align:center;"><img src="${logoRod}" alt="" style="max-width:100%;max-height:28mm;object-fit:contain;"/></div>` : ""}
+                        ${logoRod ? `<div style="margin-top:14px;padding-top:10px;border-top:1px solid #ddd;text-align:center;"><img src="${logoRod}" alt="" style="max-width:100%;max-height:18mm;object-fit:contain;"/></div>` : ""}
                         <div style="padding-top:6px;text-align:center;">
                           <div style="font-size:9px;color:#aaa;line-height:1.9">Gerado em: ${new Date().toLocaleString("pt-BR")} · Plataforma de Competições - GERENTRACK</div>
                         </div>

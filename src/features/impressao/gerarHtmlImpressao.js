@@ -105,9 +105,9 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
       border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;}
     .conteudo{padding-top:74px;}
     .pg{background:#fff;width:210mm;min-height:297mm;margin:16px auto;
-      padding:12mm 15mm 30mm;display:flex;flex-direction:column;
+      padding:12mm 15mm 38mm;display:flex;flex-direction:column;
       box-shadow:0 4px 24px rgba(0,0,0,.2);position:relative;}
-    .pg.landscape{width:297mm;min-height:210mm;padding:10mm 12mm 21mm;}
+    .pg.landscape{width:297mm;min-height:210mm;padding:10mm 12mm 28mm;}
     .cab{display:flex;align-items:flex-start;justify-content:space-between;
       padding-bottom:4px;margin-bottom:4px;border-bottom:2px solid #111;gap:6px;
       font-size:initial;}
@@ -173,7 +173,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
     .cond-campo-hr{min-width:40px;}
     .cond-unidade{font-size:7.5px;color:#666;}
     .cond-sep{width:1px;background:#ccc;align-self:stretch;margin:0 4px;}
-    .rod-wrap{position:absolute;bottom:0;left:0;right:0;padding:0 15mm 10mm;}
+    .rod-wrap{position:absolute;bottom:0;left:0;right:0;padding:0 15mm 8mm;}
     .pg.landscape .rod-wrap{padding:0 12mm 8mm;}
     .rod{padding-top:4px;}
     .rod-assinaturas{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:6px;}
@@ -187,9 +187,9 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
       body{background:#fff;}
       .barra{display:none!important;}
       .conteudo{padding-top:0;}
-      .pg{margin:0;border:none;box-shadow:none;width:100%;height:100vh;padding:12mm 15mm 30mm;overflow:hidden;}
+      .pg{margin:0;border:none;box-shadow:none;width:100%;height:100vh;padding:12mm 15mm 38mm;overflow:hidden;}
       .pg:not(:last-child){page-break-after:always;}
-      .pg.landscape{page:landscape-page;padding:10mm 12mm 21mm;}
+      .pg.landscape{page:landscape-page;padding:10mm 12mm 28mm;}
     }
   `;
 
@@ -229,7 +229,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
         </div>
       </div>
     </div>
-    ${evento.logoRodape ? `<div style="margin-top:1px;text-align:center;"><img src="${evento.logoRodape}" alt="" style="max-width:100%;max-height:28mm;object-fit:contain;"/></div>` : ""}
+    ${evento.logoRodape ? `<div style="margin-top:1px;text-align:center;"><img src="${evento.logoRodape}" alt="" style="max-width:100%;max-height:18mm;object-fit:contain;"/></div>` : ""}
     </div>`;
   };
 
@@ -1425,7 +1425,40 @@ function gerarHtmlImpressao(sumulas, evento, _atletas, _resultados, orientMap = 
     </div>
   </div>
   <div class="conteudo">${pags.join("")}</div>
-  <script>window.focus();<\/script>
+  <script>
+  window.focus();
+  function autoScale(){
+    document.querySelectorAll('.pg').forEach(function(pg){
+      var rod = pg.querySelector('.rod-wrap');
+      if(!rod) return;
+      // Resetar escalas anteriores
+      for(var r=0;r<pg.children.length;r++){
+        if(pg.children[r]===rod) continue;
+        pg.children[r].style.fontSize = '';
+        pg.children[r].querySelectorAll('table').forEach(function(tbl){ tbl.style.fontSize = ''; });
+      }
+      var pgH = pg.offsetHeight;
+      var rodH = rod.offsetHeight;
+      var disponivelH = pgH - rodH;
+      var conteudoH = 0;
+      for(var i=0;i<pg.children.length;i++){
+        var ch = pg.children[i];
+        if(ch===rod) continue;
+        conteudoH += ch.offsetHeight + (parseFloat(getComputedStyle(ch).marginTop)||0) + (parseFloat(getComputedStyle(ch).marginBottom)||0);
+      }
+      if(conteudoH > disponivelH){
+        var escala = Math.max(0.55, disponivelH / conteudoH);
+        for(var j=0;j<pg.children.length;j++){
+          if(pg.children[j]===rod) continue;
+          pg.children[j].style.fontSize = (escala * 100) + '%';
+          pg.children[j].querySelectorAll('table').forEach(function(tbl){ tbl.style.fontSize = (escala * 100) + '%'; });
+        }
+      }
+    });
+  }
+  window.addEventListener('load', autoScale);
+  window.addEventListener('beforeprint', autoScale);
+  <\/script>
 </body>
 </html>`;
 }

@@ -212,7 +212,7 @@ export function gerarHtmlRelatorioParticipacao(evento, atletasFiltrados, inscric
           <img src="${_gtLogo}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7;vertical-align:middle;" />
         </div>
       </div>
-      ${evento.logoRodape ? `<div style="margin-top:6px;text-align:center;"><img src="${evento.logoRodape}" alt="" style="max-width:100%;max-height:20mm;object-fit:contain;"/></div>` : ""}
+      ${evento.logoRodape ? `<div style="margin-top:6px;text-align:center;"><img src="${evento.logoRodape}" alt="" style="max-width:100%;max-height:18mm;object-fit:contain;"/></div>` : ""}
     </div>
   `;
 
@@ -308,6 +308,31 @@ export function gerarHtmlRelatorioParticipacao(evento, atletasFiltrados, inscric
 <div class="conteudo">
   ${pagesHtml}
 </div>
+<script>
+window.addEventListener('load', function(){
+  document.querySelectorAll('.pg').forEach(function(pg){
+    var rod = pg.querySelector('.rod-wrap');
+    if(!rod) return;
+    var pgH = pg.offsetHeight;
+    var rodH = rod.offsetHeight;
+    var disponivelH = pgH - rodH;
+    var conteudoH = 0;
+    for(var i=0;i<pg.children.length;i++){
+      var ch = pg.children[i];
+      if(ch===rod) continue;
+      conteudoH += ch.offsetHeight + (parseFloat(getComputedStyle(ch).marginTop)||0) + (parseFloat(getComputedStyle(ch).marginBottom)||0);
+    }
+    if(conteudoH > disponivelH){
+      var escala = Math.max(0.55, disponivelH / conteudoH);
+      for(var j=0;j<pg.children.length;j++){
+        if(pg.children[j]===rod) continue;
+        pg.children[j].style.fontSize = (escala * 100) + '%';
+        pg.children[j].querySelectorAll('table').forEach(function(tbl){ tbl.style.fontSize = (escala * 100) + '%'; });
+      }
+    }
+  });
+});
+<\/script>
 </body></html>`;
 
   const win = window.open("", "_blank", "width=900,height=700");
