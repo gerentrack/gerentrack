@@ -5,10 +5,11 @@ import FormField from "../ui/FormField";
 import { storage, storageRef, uploadBytes, getDownloadURL } from "../../firebase";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import CortarImagem from "../../shared/CortarImagem";
 
 // Faz upload da imagem para Firebase Storage e retorna a URL pública
 async function uploadLogo(file, eventoId, campo) {
-  const ext = file.name.split(".").pop();
+  const ext = file.name?.split(".")?.pop() || "png";
   const path = `logos/${eventoId}/${campo}.${ext}`;
   const ref = storageRef(storage, path);
   await uploadBytes(ref, file);
@@ -351,7 +352,10 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
   // Steps: 1=Dados | 2=Configurações | 3=Provas | 4=Horários (editing only)
   const [step, setStep] = useState(1);
   // Acordeões do step 2
-  const [acordeoes, setAcordeoes] = useState({ limites: false, precos: false, logos: false, medalhas: false });
+  const [acordeoes, setAcordeoes] = useState({ limites: false, precos: false, logos: false, regulamento: false, medalhas: false });
+  const [uploadandoRegulamento, setUploadandoRegulamento] = useState(false);
+  // Estado do modal de corte: { src, campo, aspecto } ou null
+  const [cropModal, setCropModal] = useState(null);
   const toggleAcordeo = (key) => setAcordeoes(a => ({ ...a, [key]: !a[key] }));
 
   // Número total de steps
@@ -609,6 +613,10 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
             <p style={{ color: t.textDimmed, fontSize:12, marginTop:8, lineHeight:1.5 }}>
               💡 Opcional. Este texto será exibido na página da competição para todos os usuários.
             </p>
+            <div style={{ marginTop:10, padding:"10px 14px", background:t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:8, display:"flex", alignItems:"center", gap:8 }}>
+              <span style={{ fontSize:18 }}>📋</span>
+              <span style={{ fontSize:12, color:t.accent, fontWeight:600 }}>Upload do regulamento em PDF disponível na próxima tela (Configurações).</span>
+            </div>
           </div>
 
           <button style={{ ...s.btnPrimary, marginTop: 8 }} onClick={() => { if (validarStep1()) setStep(2); }}>
@@ -1006,23 +1014,23 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
                     <strong style={{ color: t.accent }}>Tamanho recomendado: 500×500px</strong> (quadrada). PNG/JPG.
                   </p>
                   <div style={{ marginTop:8, display:"flex", gap:8, alignItems:"center" }}>
-                    <label style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", background: t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:6, cursor:"pointer", fontSize:12, color: t.accent, fontWeight:600 }}>
+                    <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }} id="crop_logoCompeticao"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]; if (!file) return;
+                        if (file.size > 2 * 1024 * 1024) { alert("Imagem muito grande (máx. 2MB)."); e.target.value = ""; return; }
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          setCropModal({ src: ev.target.result, campo: "logoCompeticao", aspecto: 1 });
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                    />
+                    <button type="button" onClick={() => document.getElementById("crop_logoCompeticao").click()}
+                      style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", background: t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:6, cursor:"pointer", fontSize:12, color: t.accent, fontWeight:600 }}>
                       📁 Escolher imagem
-                      <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }}
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          if (file.size > 2 * 1024 * 1024) { alert("Imagem muito grande (máx. 2MB)."); return; }
-                          try {
-                            const id = eventoAtualId || form._uploadId || (form._uploadId = Date.now().toString());
-                            const url = await uploadLogo(file, id, "logoCompeticao");
-                            setForm({ ...form, logoCompeticao: url });
-                          } catch { alert("Erro ao enviar imagem. Tente novamente."); }
-                        }}
-                      />
-                    </label>
+                    </button>
                     {form.logoCompeticao && (
-                      <button style={{ fontSize:11, color: t.danger, background:"transparent", border:`1px solid ${t.danger}44`, borderRadius:4, padding:"4px 10px", cursor:"pointer" }}
+                      <button type="button" style={{ fontSize:11, color: t.danger, background:"transparent", border:`1px solid ${t.danger}44`, borderRadius:4, padding:"4px 10px", cursor:"pointer" }}
                         onClick={() => setForm({ ...form, logoCompeticao: "" })}>✕ Remover</button>
                     )}
                   </div>
@@ -1045,23 +1053,21 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
                     <strong style={{ color: t.accent }}>Tamanho recomendado: 300×120px</strong> (retangular horizontal). PNG com fundo transparente.
                   </p>
                   <div style={{ marginTop:8, display:"flex", gap:8, alignItems:"center" }}>
-                    <label style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", background: t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:6, cursor:"pointer", fontSize:12, color: t.accent, fontWeight:600 }}>
+                    <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }} id="crop_logoCabecalho"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]; if (!file) return;
+                        if (file.size > 2 * 1024 * 1024) { alert("Imagem muito grande (máx. 2MB)."); e.target.value = ""; return; }
+                        const reader = new FileReader();
+                        reader.onload = (ev) => { setCropModal({ src: ev.target.result, campo: "logoCabecalho", aspecto: 2.5 }); };
+                        reader.readAsDataURL(file);
+                      }}
+                    />
+                    <button type="button" onClick={() => document.getElementById("crop_logoCabecalho").click()}
+                      style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", background: t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:6, cursor:"pointer", fontSize:12, color: t.accent, fontWeight:600 }}>
                       📁 Escolher imagem
-                      <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }}
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          if (file.size > 2 * 1024 * 1024) { alert("Imagem muito grande (máx. 2MB)."); return; }
-                          try {
-                            const id = eventoAtualId || form._uploadId || (form._uploadId = Date.now().toString());
-                            const url = await uploadLogo(file, id, "logoCabecalho");
-                            setForm({ ...form, logoCabecalho: url });
-                          } catch { alert("Erro ao enviar imagem. Tente novamente."); }
-                        }}
-                      />
-                    </label>
+                    </button>
                     {form.logoCabecalho && (
-                      <button style={{ fontSize:11, color: t.danger, background:"transparent", border:`1px solid ${t.danger}44`, borderRadius:4, padding:"4px 10px", cursor:"pointer" }}
+                      <button type="button" style={{ fontSize:11, color: t.danger, background:"transparent", border:`1px solid ${t.danger}44`, borderRadius:4, padding:"4px 10px", cursor:"pointer" }}
                         onClick={() => setForm({ ...form, logoCabecalho: "" })}>✕ Remover</button>
                     )}
                   </div>
@@ -1084,23 +1090,21 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
                     <strong style={{ color: t.accent }}>Tamanho recomendado: 300×120px</strong> (retangular horizontal). PNG com fundo transparente.
                   </p>
                   <div style={{ marginTop:8, display:"flex", gap:8, alignItems:"center" }}>
-                    <label style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", background: t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:6, cursor:"pointer", fontSize:12, color: t.accent, fontWeight:600 }}>
+                    <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }} id="crop_logoCabecalhoDireito"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]; if (!file) return;
+                        if (file.size > 2 * 1024 * 1024) { alert("Imagem muito grande (máx. 2MB)."); e.target.value = ""; return; }
+                        const reader = new FileReader();
+                        reader.onload = (ev) => { setCropModal({ src: ev.target.result, campo: "logoCabecalhoDireito", aspecto: 2.5 }); };
+                        reader.readAsDataURL(file);
+                      }}
+                    />
+                    <button type="button" onClick={() => document.getElementById("crop_logoCabecalhoDireito").click()}
+                      style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", background: t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:6, cursor:"pointer", fontSize:12, color: t.accent, fontWeight:600 }}>
                       📁 Escolher imagem
-                      <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }}
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          if (file.size > 2 * 1024 * 1024) { alert("Imagem muito grande (máx. 2MB)."); return; }
-                          try {
-                            const id = eventoAtualId || form._uploadId || (form._uploadId = Date.now().toString());
-                            const url = await uploadLogo(file, id, "logoCabecalhoDireito");
-                            setForm({ ...form, logoCabecalhoDireito: url });
-                          } catch { alert("Erro ao enviar imagem. Tente novamente."); }
-                        }}
-                      />
-                    </label>
+                    </button>
                     {form.logoCabecalhoDireito && (
-                      <button style={{ fontSize:11, color: t.danger, background:"transparent", border:`1px solid ${t.danger}44`, borderRadius:4, padding:"4px 10px", cursor:"pointer" }}
+                      <button type="button" style={{ fontSize:11, color: t.danger, background:"transparent", border:`1px solid ${t.danger}44`, borderRadius:4, padding:"4px 10px", cursor:"pointer" }}
                         onClick={() => setForm({ ...form, logoCabecalhoDireito: "" })}>✕ Remover</button>
                     )}
                   </div>
@@ -1123,21 +1127,19 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
                     <strong style={{ color: t.accent }}>Tamanho recomendado: 1200×200px</strong> (retangular largo). PNG/JPG.
                   </p>
                   <div style={{ marginTop:8, display:"flex", gap:8, alignItems:"center" }}>
-                    <label style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", background: t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:6, cursor:"pointer", fontSize:12, color: t.accent, fontWeight:600 }}>
+                    <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }} id="crop_logoRodape"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]; if (!file) return;
+                        if (file.size > 2 * 1024 * 1024) { alert("Imagem muito grande (máx. 2MB)."); e.target.value = ""; return; }
+                        const reader = new FileReader();
+                        reader.onload = (ev) => { setCropModal({ src: ev.target.result, campo: "logoRodape", aspecto: 6 }); };
+                        reader.readAsDataURL(file);
+                      }}
+                    />
+                    <button type="button" onClick={() => document.getElementById("crop_logoRodape").click()}
+                      style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", background: t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:6, cursor:"pointer", fontSize:12, color: t.accent, fontWeight:600 }}>
                       📁 Escolher imagem
-                      <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }}
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          if (file.size > 2 * 1024 * 1024) { alert("Imagem muito grande (máx. 2MB)."); return; }
-                          try {
-                            const id = eventoAtualId || form._uploadId || (form._uploadId = Date.now().toString());
-                            const url = await uploadLogo(file, id, "logoRodape");
-                            setForm({ ...form, logoRodape: url });
-                          } catch { alert("Erro ao enviar imagem. Tente novamente."); }
-                        }}
-                      />
-                    </label>
+                    </button>
                     {form.logoRodape && (
                       <button style={{ fontSize:11, color: t.danger, background:"transparent", border:`1px solid ${t.danger}44`, borderRadius:4, padding:"4px 10px", cursor:"pointer" }}
                         onClick={() => setForm({ ...form, logoRodape: "" })}>✕ Remover</button>
@@ -1147,6 +1149,69 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
                 {form.logoRodape && (
                   <div style={{ width:260, height:50, borderRadius:4, border:`2px solid ${t.border}`, overflow:"hidden", background:"#fff", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
                     <img src={form.logoRodape} alt="Rodapé" style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain" }} />
+                  </div>
+                )}
+              </div>
+            </div>
+          </Acordeao>
+
+          {/* ── Regulamento (PDF) ── */}
+          <Acordeao keyName="regulamento" aberto={acordeoes["regulamento"]} onToggle={toggleAcordeo} titulo="Regulamento da Competição" icone="📋" resumo={form.regulamentoUrl ? "PDF enviado" : "Nenhum"}>
+            <p style={{ color: t.textDimmed, fontSize:12, marginBottom:14, lineHeight:1.5 }}>
+              Opcional. Faça upload do regulamento em PDF. O arquivo ficará disponível para download pelos participantes. Máximo 10MB.
+            </p>
+            <div style={{ padding:"12px 14px", background:t.bgHeaderSolid, borderRadius:8, border:`1px solid ${t.border}` }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12 }}>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontWeight:700, fontSize:13, color: t.textPrimary, marginBottom:4 }}>📋 Regulamento (PDF)</div>
+                  <p style={{ fontSize:11, color: t.textMuted, margin:0, lineHeight:1.5 }}>
+                    Arquivo PDF com as regras e regulamento da competição.<br/>
+                    <strong style={{ color: t.accent }}>Formato: PDF · Máximo: 10MB</strong>
+                  </p>
+                  <div style={{ marginTop:8, display:"flex", gap:8, alignItems:"center", flexWrap:"wrap" }}>
+                    <label style={{
+                      display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px",
+                      background: uploadandoRegulamento ? t.bgInput : t.accentBg,
+                      border:`1px solid ${uploadandoRegulamento ? t.borderInput : t.accentBorder}`,
+                      borderRadius:6, cursor: uploadandoRegulamento ? "not-allowed" : "pointer",
+                      fontSize:12, color: uploadandoRegulamento ? t.textDisabled : t.accent, fontWeight:600,
+                    }}>
+                      {uploadandoRegulamento ? "Enviando..." : "📁 Escolher PDF"}
+                      <input type="file" accept="application/pdf" style={{ display:"none" }} disabled={uploadandoRegulamento}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          if (file.size > 10 * 1024 * 1024) { alert("Arquivo muito grande (máx. 10MB)."); e.target.value = ""; return; }
+                          if (file.type !== "application/pdf") { alert("Apenas arquivos PDF são aceitos."); e.target.value = ""; return; }
+                          setUploadandoRegulamento(true);
+                          try {
+                            const id = eventoAtualId || form._uploadId || (form._uploadId = Date.now().toString());
+                            const ext = "pdf";
+                            const path = `regulamentos/${id}/regulamento.${ext}`;
+                            const ref = storageRef(storage, path);
+                            await uploadBytes(ref, file);
+                            const url = await getDownloadURL(ref);
+                            setForm(prev => ({ ...prev, regulamentoUrl: url, regulamentoNome: file.name }));
+                          } catch { alert("Erro ao enviar PDF. Tente novamente."); }
+                          finally { setUploadandoRegulamento(false); e.target.value = ""; }
+                        }}
+                      />
+                    </label>
+                    {form.regulamentoUrl && (
+                      <>
+                        <a href={form.regulamentoUrl} target="_blank" rel="noopener noreferrer"
+                          style={{ fontSize:11, color: t.accent, textDecoration:"underline", cursor:"pointer" }}>
+                          {form.regulamentoNome || "regulamento.pdf"}
+                        </a>
+                        <button style={{ fontSize:11, color: t.danger, background:"transparent", border:`1px solid ${t.danger}44`, borderRadius:4, padding:"4px 10px", cursor:"pointer" }}
+                          onClick={() => setForm(prev => ({ ...prev, regulamentoUrl: "", regulamentoNome: "" }))}>✕ Remover</button>
+                      </>
+                    )}
+                  </div>
+                </div>
+                {form.regulamentoUrl && (
+                  <div style={{ width:60, height:60, borderRadius:8, border:`2px solid ${t.border}`, overflow:"hidden", background:t.bgInput, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <span style={{ fontSize:28 }}>📄</span>
                   </div>
                 )}
               </div>
@@ -1225,6 +1290,27 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
           inscricoes={inscricoes}
           atletas={atletas}
           eventoAtualId={eventoAtualId}
+        />
+      )}
+
+      {/* Modal de corte de imagem */}
+      {cropModal && (
+        <CortarImagem
+          imageSrc={cropModal.src}
+          aspecto={cropModal.aspecto}
+          onCancelar={() => setCropModal(null)}
+          onConfirmar={async (blob) => {
+            const campo = cropModal.campo;
+            setCropModal(null);
+            try {
+              const id = eventoAtualId || form._uploadId || (form._uploadId = Date.now().toString());
+              const path = `logos/${id}/${campo}.png`;
+              const ref = storageRef(storage, path);
+              await uploadBytes(ref, blob);
+              const url = await getDownloadURL(ref);
+              setForm(prev => ({ ...prev, [campo]: url }));
+            } catch { alert("Erro ao enviar imagem. Tente novamente."); }
+          }}
         />
       )}
     </div>
@@ -2022,6 +2108,7 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
         </button>
       </div>
     </div>
+
   );
 }
 
