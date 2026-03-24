@@ -75,7 +75,7 @@ const getStyles = (t) => ({
   heroBadge: { display: "inline-block", background: t.accent, color: "#fff", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: 3, padding: "6px 16px", borderRadius: 20, marginBottom: 20 },
   heroTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 56, fontWeight: 900, color: t.textPrimary, lineHeight: 1.1, marginBottom: 16, letterSpacing: 1 },
   heroBtns: { display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" },
-  eventosGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(320px, 100%), 1fr))", gap: 20, marginBottom: 48 },
+  eventosGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(320px, 100%), 1fr))", gap: 20, marginBottom: 48, overflowX: "auto" },
   eventoCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 14, padding: 24, display: "flex", flexDirection: "column", gap: 10 },
   eventoCardNome: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.textPrimary, lineHeight: 1.2 },
   eventoCardMeta: { fontSize: 13, color: t.textDimmed },
@@ -375,15 +375,6 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
             </div>
           )}
 
-          {eventosPassados.length > 0 && (
-            <div style={{ marginBottom:48 }}>
-              <h2 style={s.sectionTitle}>🏆 Eventos Passados</h2>
-              <div style={s.eventosGrid}>
-                {eventosPassados.map(ev => renderEvCard(ev))}
-              </div>
-            </div>
-          )}
-
           {maisEventos.length > 0 && (
             <div style={{ marginBottom:48 }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:24 }}>
@@ -412,6 +403,32 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
             </div>
           )}
         </>
+      )}
+
+      {eventosPassados.length > 0 && (
+        <div style={{ marginBottom:48 }}>
+          <h2 style={s.sectionTitle}>🏆 Competições Finalizadas</h2>
+          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+            {eventosPassados.map(ev => {
+              const dataFmt = ev.data ? new Date(ev.data + "T12:00:00").toLocaleDateString("pt-BR") : "—";
+              const local = _getLocalEventoDisplay(ev);
+              return (
+                <div key={ev.id}
+                  onClick={() => { selecionarEvento(ev.id); setTela("evento-detalhe"); }}
+                  style={{ display:"flex", flexDirection:"column", gap:2, padding:"12px 16px", background:t.bgCard, border:`1px solid ${t.border}`, borderRadius:10, cursor:"pointer", transition:"border-color 0.15s" }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = t.accent}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = t.border}>
+                  <div style={{ fontSize:14, fontWeight:700, color:t.textPrimary }}>
+                    <span style={{ color:t.textDimmed, fontWeight:600 }}>{dataFmt}</span>
+                    <span style={{ margin:"0 8px", color:t.textDisabled }}>—</span>
+                    {ev.nome}
+                  </div>
+                  {local && <div style={{ fontSize:12, color:t.textMuted }}>📍 {local}</div>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
       )}
 
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(280px, 1fr))", gap:24, marginTop:48 }}>

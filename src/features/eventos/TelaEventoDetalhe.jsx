@@ -296,11 +296,13 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
     if (!usuarioLogado) {
       return (
         <div style={s.eventoAcoesGrid}>
-          <button style={s.eventoAcaoBtn} onClick={() => setTela("login")}>
-            <span style={{ fontSize: 36 }}>✍️</span>
-            <strong>Inscreva-se</strong>
-            <span style={{ color: t.textMuted, fontSize: 13 }}>Faça login ou cadastre-se para inscrever atletas</span>
-          </button>
+          {!eventoAtual.competicaoFinalizada && (
+            <button style={s.eventoAcaoBtn} onClick={() => setTela("login")}>
+              <span style={{ fontSize: 36 }}>✍️</span>
+              <strong>Inscreva-se</strong>
+              <span style={{ color: t.textMuted, fontSize: 13 }}>Faça login ou cadastre-se para inscrever atletas</span>
+            </button>
+          )}
           {podeVerResultados ? (
             <button style={s.eventoAcaoBtn} onClick={() => setTela("resultados")}>
               <span style={{ fontSize: 36 }}>🏆</span>
@@ -680,7 +682,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
       </div>
 
       {/* ══ BANNER COMPETIÇÃO FINALIZADA ════════════════════════════════════ */}
-      {eventoAtual.competicaoFinalizada && (
+      {eventoAtual.competicaoFinalizada && (isAdmin || tpU === "organizador") && (
         <div style={{ background: t.accentBg, border:`2px solid ${t.danger}44`, borderRadius:12, padding:"16px 20px", marginBottom:20, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
           <div>
             <div style={{ fontWeight:800, fontSize:15, color: t.danger, marginBottom:4 }}>🔒 Competição Finalizada</div>
@@ -834,7 +836,7 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
       )}
 
       {/* ══ PROGRAMA HORÁRIO ════════════════════════════════════════════════ */}
-      {(() => {
+      {!eventoAtual.competicaoFinalizada && (() => {
         const prog   = eventoAtual.programaHorario || {};
         const oldH   = eventoAtual.horariosProvas || {};
         const oldF   = eventoAtual.fasesProvas || {};
@@ -1108,11 +1110,11 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
       })()}
 
       {/* ══ DESCRIÇÃO ═══════════════════════════════════════════════════════ */}
-      {eventoAtual.descricao && (
+      {eventoAtual.descricao && (!eventoAtual.competicaoFinalizada || isAdmin || tpU === "organizador") && (
         <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:10, padding:"20px 24px", marginBottom:24 }}>
           <div style={{ color: t.accent, fontWeight:700, fontSize:14, marginBottom:12 }}>📝 Informações</div>
           <div
-            style={{ color: t.textSecondary, fontFamily:"'Inter', sans-serif", fontSize:14, lineHeight:1.7, wordBreak:"break-word", whiteSpace:"pre-wrap", maxHeight: isAdmin ? 320 : undefined, overflowY: isAdmin ? "auto" : undefined }}
+            style={{ color: t.textSecondary, fontFamily:"'Inter', sans-serif", fontSize:14, lineHeight:1.7, wordBreak:"break-word", whiteSpace:"pre-wrap", maxHeight: 400, overflowY: "auto" }}
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(eventoAtual.descricao) }}
           />
         </div>
