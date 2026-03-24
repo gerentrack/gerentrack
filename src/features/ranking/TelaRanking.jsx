@@ -7,6 +7,7 @@ import { criarInscricaoStyles } from "../inscricoes/inscricaoStyles";
 import { useTema } from "../../shared/TemaContext";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { GT_DEFAULT_LOGO } from "../../shared/branding";
+import QRCode from "qrcode";
 
 export default function TelaRanking({ ranking, setRanking, historicoRanking, setHistoricoRanking, atletas, equipes, usuarioLogado, registrarAcao, setTela }) {
   const t = useTema();
@@ -595,9 +596,12 @@ export default function TelaRanking({ ranking, setRanking, historicoRanking, set
                   const nomeUfCompleto = { AC:"Acre",AL:"Alagoas",AP:"Amapá",AM:"Amazonas",BA:"Bahia",CE:"Ceará",DF:"Distrito Federal",ES:"Espírito Santo",GO:"Goiás",MA:"Maranhão",MT:"Mato Grosso",MS:"Mato Grosso do Sul",MG:"Minas Gerais",PA:"Pará",PB:"Paraíba",PR:"Paraná",PE:"Pernambuco",PI:"Piauí",RJ:"Rio de Janeiro",RN:"Rio Grande do Norte",RS:"Rio Grande do Sul",RO:"Rondônia",RR:"Roraima",SC:"Santa Catarina",SP:"São Paulo",SE:"Sergipe",TO:"Tocantins" }[filtroUfAtleta] || filtroUfAtleta;
                   return (
                     <button style={{ padding:"6px 14px", borderRadius:6, border:`1px solid ${t.accentBorder}`, background:t.accentBg, color:t.accent, fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'Barlow Condensed', sans-serif", letterSpacing:1 }}
-                      onClick={() => {
+                      onClick={async () => {
                         const gtLogo = branding.logo || GT_DEFAULT_LOGO;
                         const logoFed = fed.logo || "";
+                        const qrUrl = "https://gerentrack.com.br/ranking";
+                        let qrDataUrl = "";
+                        try { qrDataUrl = await QRCode.toDataURL(qrUrl, { width: 200, margin: 1, errorCorrectionLevel: "M", color: { dark: "#000000", light: "#ffffff" } }); } catch {};
                         const catNome = CATEGORIAS.find(c => c.id === filtroCat)?.nome || filtroCat;
                         const sexoLabel = filtroSexo === "M" ? "Masculino" : "Feminino";
                         const linhas = rankingFiltrado.map((r, idx) => {
@@ -652,6 +656,13 @@ export default function TelaRanking({ ranking, setRanking, historicoRanking, set
                           <div class="assinatura">
                             ${logoFed ? `<img src="${logoFed}" alt="Federação" style="max-height:120px;max-width:400px;object-fit:contain;margin-bottom:-20px;display:block;margin-left:auto;margin-right:auto"/>` : ""}
                             <div style="width:280px;border-top:1px solid #333;margin:0 auto;padding-top:6px;font-size:12px;font-weight:700">${fed.nome}</div>
+                          </div>
+                          <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-top:20px;padding:12px 16px;background:#f8f8f8;border:1px solid #ddd;border-radius:6px">
+                            ${qrDataUrl ? `<img src="${qrDataUrl}" alt="QR" style="width:70px;height:70px;flex-shrink:0"/>` : ""}
+                            <div style="text-align:left;font-size:11px;color:#444;line-height:1.6">
+                              <div style="font-weight:700;font-size:12px;color:#111">Consulte o ranking atualizado</div>
+                              <div>gerentrack.com.br/ranking</div>
+                            </div>
                           </div>
                           <div class="rodape-gt">
                             <div>Gerado em: ${new Date().toLocaleString("pt-BR")}</div>
