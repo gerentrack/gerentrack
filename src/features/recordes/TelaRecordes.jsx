@@ -23,6 +23,8 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
   const [showNovoTipo, setShowNovoTipo] = useState(false);
   const [editTipoId, setEditTipoId] = useState(null);
   const [abaRecordes, setAbaRecordes] = useState("registros"); // "registros" | "pendencias" | "historico"
+  // Modal de observação/rejeição (substitui prompt do navegador)
+  const [obsModal, setObsModal] = useState(null); // { pendId, tipo: "rejeitar"|"observar", texto: "" }
 
   // Escopos geográficos
   const ESCOPOS = [
@@ -1358,33 +1360,18 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
                                 </td>
                                 <td style={{ padding:"6px 8px", textAlign:"center" }}>
                                   <div style={{ display:"flex", gap:4, justifyContent:"center", flexWrap:"wrap" }}>
-                                    <button onClick={async () => {
-                                      const obs = prompt("Observação (opcional):", "");
-                                      if (obs === null) return;
-                                      resolver(pend, "homologado", obs);
-                                    }} style={{ padding:"3px 8px", borderRadius:4, border:`1px solid ${t.success}44`, background:`${t.success}15`,
+                                    <button onClick={() => setObsModal({ pendId: pend.id, tipo: "homologar", texto: "", pend })}
+                                      style={{ padding:"3px 8px", borderRadius:4, border:`1px solid ${t.success}44`, background:`${t.success}15`,
                                       color: t.success, fontSize:10, fontWeight:700, cursor:"pointer" }}>
                                       ✅
                                     </button>
-                                    <button onClick={async () => {
-                                      const obs = prompt("Observação (opcional):", "");
-                                      if (obs === null) return;
-                                      setPendenciasRecorde(prev => prev.map(p => p.id !== pend.id ? p : {
-                                        ...p, status: "homologado_nao_aplicado", resolvidoPor: usuarioLogado?.nome || "admin",
-                                        resolvidoEm: Date.now(), observacao: obs }));
-                                      if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, "Resolveu recorde (sem atualizar)", `${pend.atletaNome} — ${pend.provaNome} (${pend.recordeTipoSigla})`, null, { modulo: "recordes" });
-                                    }} style={{ padding:"3px 8px", borderRadius:4, border:`1px solid ${t.accentBorder}`, background:t.bgHeaderSolid,
+                                    <button onClick={() => setObsModal({ pendId: pend.id, tipo: "observar", texto: "", pend })}
+                                      style={{ padding:"3px 8px", borderRadius:4, border:`1px solid ${t.accentBorder}`, background:t.bgHeaderSolid,
                                       color: t.accent, fontSize:10, fontWeight:700, cursor:"pointer" }}>
                                       ☑️
                                     </button>
-                                    <button onClick={async () => {
-                                      const obs = prompt("Motivo da rejeição:", "");
-                                      if (obs === null) return;
-                                      setPendenciasRecorde(prev => prev.map(p => p.id !== pend.id ? p : {
-                                        ...p, status: "nao_homologado", resolvidoPor: usuarioLogado?.nome || "admin",
-                                        resolvidoEm: Date.now(), observacao: obs }));
-                                      if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, "Rejeitou recorde", `${pend.atletaNome} — ${pend.provaNome} (${pend.recordeTipoSigla})`, null, { modulo: "recordes" });
-                                    }} style={{ padding:"3px 8px", borderRadius:4, border:`1px solid ${t.danger}44`, background: t.bgCardAlt,
+                                    <button onClick={() => setObsModal({ pendId: pend.id, tipo: "rejeitar", texto: "", pend })}
+                                      style={{ padding:"3px 8px", borderRadius:4, border:`1px solid ${t.danger}44`, background: t.bgCardAlt,
                                       color: t.danger, fontSize:10, fontWeight:700, cursor:"pointer" }}>
                                       ❌
                                     </button>
@@ -1530,6 +1517,45 @@ function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClu
         );
       })()}
 
+      {/* ═══ MODAL DE OBSERVAÇÃO / REJEIÇÃO ═══ */}
+      {obsModal && (
+        <div style={{ position:"fixed", inset:0, background:t.bgOverlay, display:"flex", alignItems:"center", justifyContent:"center", zIndex:9999, padding:24 }} onClick={() => setObsModal(null)}>
+          <div style={{ background:t.bgCard, border:`1px solid ${obsModal.tipo === "rejeitar" ? t.danger + "44" : t.accentBorder}`, borderRadius:14, padding:"28px 32px", maxWidth:480, width:"100%", boxShadow:t.shadowLg }} onClick={ev => ev.stopPropagation()}>
+            <div style={{ fontSize:28, textAlign:"center", marginBottom:12 }}>{obsModal.tipo === "rejeitar" ? "❌" : obsModal.tipo === "homologar" ? "✅" : "☑️"}</div>
+            <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontWeight:800, fontSize:16, color: obsModal.tipo === "rejeitar" ? t.danger : obsModal.tipo === "homologar" ? t.success : t.accent, textAlign:"center", letterSpacing:1, marginBottom:6 }}>
+              {obsModal.tipo === "rejeitar" ? "REJEITAR RECORDE" : obsModal.tipo === "homologar" ? "HOMOLOGAR RECORDE" : "RESOLVER SEM ATUALIZAR"}
+            </div>
+            <div style={{ fontSize:12, color:t.textMuted, textAlign:"center", marginBottom:16, lineHeight:1.5 }}>
+              {obsModal.pend?.atletaNome} — {obsModal.pend?.provaNome} ({obsModal.pend?.recordeTipoSigla})
+            </div>
+            <label style={{ display:"block", fontSize:12, fontWeight:600, color:t.textDimmed, letterSpacing:1, marginBottom:6 }}>
+              {obsModal.tipo === "rejeitar" ? "MOTIVO DA REJEIÇÃO" : "OBSERVAÇÃO (OPCIONAL)"}
+            </label>
+            <textarea
+              autoFocus
+              value={obsModal.texto}
+              onChange={ev => setObsModal(prev => ({ ...prev, texto: ev.target.value }))}
+              placeholder={obsModal.tipo === "rejeitar" ? "Informe o motivo..." : "Observação opcional..."}
+              style={{ width:"100%", minHeight:80, background:t.bgInput, border:`1px solid ${t.borderInput}`, borderRadius:8, padding:"10px 14px", color:t.textSecondary, fontSize:14, fontFamily:"'Barlow', sans-serif", outline:"none", resize:"vertical", marginBottom:20 }}
+            />
+            <div style={{ display:"flex", gap:10, justifyContent:"flex-end" }}>
+              <button onClick={() => setObsModal(null)}
+                style={{ background:"transparent", border:`1px solid ${t.borderLight}`, color:t.textMuted, padding:"10px 22px", borderRadius:8, cursor:"pointer", fontSize:14, fontFamily:"'Barlow', sans-serif" }}>
+                Cancelar
+              </button>
+              <button onClick={() => {
+                const { tipo, texto, pend } = obsModal;
+                const status = tipo === "rejeitar" ? "nao_homologado" : tipo === "homologar" ? "homologado" : "homologado_nao_aplicado";
+                resolver(pend, status, texto);
+                setObsModal(null);
+              }}
+                style={{ background: obsModal.tipo === "rejeitar" ? `linear-gradient(135deg, ${t.danger}, #a93226)` : obsModal.tipo === "homologar" ? `linear-gradient(135deg, ${t.success}, #1a8a1a)` : `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, border:"none", color:"#fff", padding:"10px 22px", borderRadius:8, cursor:"pointer", fontSize:14, fontWeight:700, fontFamily:"'Barlow Condensed', sans-serif", letterSpacing:1 }}>
+                {obsModal.tipo === "rejeitar" ? "Rejeitar" : obsModal.tipo === "homologar" ? "Homologar" : "Confirmar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

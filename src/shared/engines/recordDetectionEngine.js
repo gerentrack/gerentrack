@@ -12,6 +12,7 @@ import { getFasesProva }      from '../constants/fases';
 import { RecordHelper }       from './recordHelper';
 import { _marcaParaMs }       from '../formatters/utils.jsx';
 import { _getClubeAtleta }    from '../formatters/utils.jsx';
+import { _getCbat }           from '../formatters/utils.jsx';
 import { _getLocalRecorde }   from '../formatters/utils.jsx';
 
 const _nomeProvaMatch = (a, b) => {
@@ -143,6 +144,8 @@ const RecordDetectionEngine = {
 
         const isRevez = prova.tipo === "revezamento";
         const atletaObj = isRevez ? null : atletas.find(a => a.id === aId);
+        // Somente atletas com CBAt podem quebrar recorde (revezamento isento)
+        if (!isRevez && (!atletaObj || !_getCbat(atletaObj)?.trim())) return;
         const equipeObj = isRevez ? equipes.find(e => e.id === aId) : null;
         const nomeAtl = isRevez ? (equipeObj?.clube || equipeObj?.nome || "—") : (atletaObj?.nome || "—");
         const nomeEq = isRevez ? nomeAtl : (atletaObj ? (_getClubeAtleta(atletaObj, equipes) || "—") : "—");
