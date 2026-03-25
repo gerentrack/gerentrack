@@ -6,6 +6,8 @@
  * Etapa 2 — GerenTrack
  */
 
+import { getGrupoNorma12, isCombinada, NOMES_GRUPOS_NORMA12 } from "../constants/gruposNorma12";
+
 // ─── LIMITE DE PROVAS ────────────────────────────────────────────────────────
 
 /**
@@ -77,6 +79,175 @@ export function validarLimiteProvas(evento, inscricoes, atletaId, catId, novasPr
   }
 
   return { ok: true, lim, inscAtual, novasContam, restantes };
+}
+
+// ─── NORMA 12 CBAt — RESTRIÇÕES SUB-14 ──────────────────────────────────────
+
+/**
+ * Valida as restrições da Norma 12, Art. 1ª, § 4º da CBAt para Sub-14.
+ *
+ * Regras:
+ *   1. Máximo 2 provas individuais
+ *   2. As 2 devem ser de grupos DIFERENTES (Vel/Barr, Fundo/Marcha, Saltos, Lanç)
+ *   3. Se inscrito na combinada (Tetratlo), NÃO pode ter provas individuais (e vice-versa)
+ *   4. Revezamento e provas origemCombinada NÃO contam
+ *
+ * @param {object}   evento      — objeto do evento (precisa de evento.aplicarNorma12Sub14)
+ * @param {Array}    inscricoes  — todas as inscrições do sistema
+ * @param {string}   atletaId    — id do atleta (null para atleta novo)
+ * @param {string}   catId       — id da categoria do atleta
+ * @param {string[]} novasProvas — ids das provas sendo inscritas agora
+ * @param {Array}    provasRef   — lista de provas disponíveis (para checar tipo)
+ * @returns {{ ok: boolean, msg?: string }}
+ */
+export function validarNorma12Sub14(evento, inscricoes, atletaId, catId, novasProvas, provasRef) {
+  if (!evento?.aplicarNorma12Sub14 || catId !== "sub14") return { ok: true };
+
+  const provasMap = new Map((provasRef || []).map(p => [p.id, p]));
+
+  // Inscrições existentes do atleta neste evento (excluir origemCombinada e revezamento)
+  const inscExistentes = (atletaId && inscricoes)
+    ? inscricoes.filter(i =>
+        i.eventoId === evento.id &&
+        i.atletaId === atletaId &&
+        !i.origemCombinada &&
+        i.tipo !== "revezamento" &&
+        provasMap.get(i.provaId)?.tipo !== "revezamento"
+      )
+    : [];
+
+  // Novas provas (excluir revezamento)
+  const novasFiltradas = (novasProvas || []).filter(pId => {
+    const p = provasMap.get(pId);
+    return p && p.tipo !== "revezamento";
+  });
+
+  // Juntar existentes + novas
+  const todasProvasIds = [
+    ...inscExistentes.map(i => i.provaId),
+    ...novasFiltradas,
+  ];
+
+  // Separar combinada vs individual
+  const temCombinada = todasProvasIds.some(pId => isCombinada(pId));
+  const individuais  = todasProvasIds.filter(pId => !isCombinada(pId));
+
+  // Regra 3: combinada + individual = erro
+  if (temCombinada && individuais.length > 0) {
+    return {
+      ok: false,
+      msg: "Norma 12 CBAt: atleta Sub-14 inscrito na prova combinada (Tetratlo) não pode participar de provas individuais.",
+    };
+  }
+
+  // Se só tem combinada, ok
+  if (temCombinada) return { ok: true };
+
+  // Regra 1: máximo 2 individuais
+  if (individuais.length > 2) {
+    return {
+      ok: false,
+      msg: `Norma 12 CBAt: atleta Sub-14 pode participar de no máximo 2 provas individuais (tentando inscrever ${individuais.length}).`,
+    };
+  }
+
+  // Regra 2: grupos diferentes
+  const gruposUsados = new Map();
+  for (const pId of individuais) {
+    const grupo = getGrupoNorma12(pId);
+    if (grupo && gruposUsados.has(grupo)) {
+      const nomeGrupo = NOMES_GRUPOS_NORMA12[grupo] || grupo;
+      return {
+        ok: false,
+        msg: `Norma 12 CBAt: atleta Sub-14 não pode ter 2 provas do mesmo grupo "${nomeGrupo}". As provas devem ser de grupos diferentes.`,
+      };
+    }
+    if (grupo) gruposUsados.set(grupo, pId);
+  }
+
+  return { ok: true };
+}
+
+/**
+ * Calcula restrições da Norma 12 para a UI (quais provas bloquear em tempo real).
+ *
+ * @param {object}   evento            — objeto do evento
+ * @param {Array}    inscricoes        — todas as inscrições
+ * @param {string}   atletaId          — id do atleta
+ * @param {string}   catId             — categoria do atleta
+ * @param {string[]} provasSelecionadas — provas selecionadas no formulário (ainda não salvas)
+ * @param {Array}    provasDisponiveis — provas disponíveis para seleção
+ * @returns {{ desabilitadas: Map<string, string>, temCombinada: boolean, totalIndividuais: number }}
+ */
+export function getRestricoesNorma12(evento, inscricoes, atletaId, catId, provasSelecionadas, provasDisponiveis) {
+  const desabilitadas = new Map();
+
+  if (!evento?.aplicarNorma12Sub14 || catId !== "sub14") {
+    return { desabilitadas, temCombinada: false, totalIndividuais: 0 };
+  }
+
+  const provasMap = new Map((provasDisponiveis || []).map(p => [p.id, p]));
+
+  // Inscrições já salvas (excluir origemCombinada e revezamento)
+  const inscExistentes = (atletaId && inscricoes)
+    ? inscricoes.filter(i =>
+        i.eventoId === evento.id &&
+        i.atletaId === atletaId &&
+        !i.origemCombinada &&
+        i.tipo !== "revezamento" &&
+        provasMap.get(i.provaId)?.tipo !== "revezamento"
+      ).map(i => i.provaId)
+    : [];
+
+  // Selecionadas no formulário (excluir revezamento)
+  const selFiltradas = (provasSelecionadas || []).filter(pId => {
+    const p = provasMap.get(pId);
+    return p && p.tipo !== "revezamento";
+  });
+
+  const todasAtivas = [...inscExistentes, ...selFiltradas];
+
+  const temCombinada = todasAtivas.some(pId => isCombinada(pId));
+  const individuais  = todasAtivas.filter(pId => !isCombinada(pId));
+
+  // Grupos já ocupados
+  const gruposOcupados = new Set();
+  for (const pId of individuais) {
+    const g = getGrupoNorma12(pId);
+    if (g) gruposOcupados.add(g);
+  }
+
+  // Para cada prova disponível, determinar se deve ser bloqueada
+  for (const p of (provasDisponiveis || [])) {
+    if (p.tipo === "revezamento") continue; // revezamento nunca bloqueado
+    const jaAtiva = todasAtivas.includes(p.id);
+    if (jaAtiva) continue;
+
+    if (temCombinada && !isCombinada(p.id)) {
+      desabilitadas.set(p.id, "Inscrito na combinada (Tetratlo)");
+      continue;
+    }
+
+    if (!temCombinada && individuais.length > 0 && isCombinada(p.id)) {
+      desabilitadas.set(p.id, "Já possui prova(s) individual(is)");
+      continue;
+    }
+
+    if (!isCombinada(p.id)) {
+      if (individuais.length >= 2) {
+        desabilitadas.set(p.id, "Limite de 2 provas individuais atingido");
+        continue;
+      }
+      const grupo = getGrupoNorma12(p.id);
+      if (grupo && gruposOcupados.has(grupo)) {
+        const nomeGrupo = NOMES_GRUPOS_NORMA12[grupo] || grupo;
+        desabilitadas.set(p.id, `Grupo "${nomeGrupo}" já selecionado`);
+        continue;
+      }
+    }
+  }
+
+  return { desabilitadas, temCombinada, totalIndividuais: individuais.length };
 }
 
 // ─── PRECIFICAÇÃO ────────────────────────────────────────────────────────────

@@ -330,7 +330,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
     if (filtroSexoAtl !== "todos" && a.sexo !== filtroSexoAtl) return false;
     if (filtroCatAtl !== "todas") {
       const cat = getCategoria(a.anoNasc, anoBase);
-      if (cat.id !== filtroCatAtl) return false;
+      if (!cat || cat.id !== filtroCatAtl) return false;
     }
     if (filtroEquipeAtl !== "todas") {
       if (filtroEquipeAtl === "_sem") { if (a.equipeId) return false; }
@@ -426,6 +426,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
     const e = {};
     if (!form.nome)     e.nome    = "Nome obrigatório";
     if (!form.dataNasc) e.dataNasc = "Data de nascimento obrigatória";
+    else if (form.anoNasc && !getCategoria(form.anoNasc, anoBase)) e.dataNasc = "Idade mínima para cadastro é 11 anos (Sub-14)";
     if (!form.cpf)      e.cpf     = "CPF obrigatório";
     else if (!validarCPF(form.cpf)) e.cpf = "CPF inválido";
     if (usuarioLogado?.tipo === "admin" && !form.organizadorId) e.organizadorId = "Selecione o organizador responsável";
@@ -693,7 +694,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
                       <h3 style={{ color: t.textPrimary, fontSize: 14, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.nome}</h3>
-                      <span style={{ fontSize: 10, padding: "1px 7px", borderRadius: 4, background: `${t.gold}12`, color: t.gold, border: `1px solid ${t.gold}33`, flexShrink: 0 }}>{catAtl.nome}</span>
+                      <span style={{ fontSize: 10, padding: "1px 7px", borderRadius: 4, background: `${t.gold}12`, color: t.gold, border: `1px solid ${t.gold}33`, flexShrink: 0 }}>{catAtl?.nome || "—"}</span>
                       {a.cbat && <span style={{ fontSize: 10, color: t.textMuted, background: t.bgCardAlt, padding: "1px 6px", borderRadius: 3, flexShrink: 0 }}>CBAt {a.cbat}</span>}
                     </div>
                     <div style={{ color: t.textMuted, fontSize: 11 }}>
@@ -900,7 +901,7 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
                     <span>📅 {atletaExistente.dataNasc
                       ? (() => { const [y,m,d]=atletaExistente.dataNasc.split("-"); return `${d}/${m}/${y}`; })()
                       : atletaExistente.anoNasc || "—"}</span>
-                    <span>🏆 {getCategoria(atletaExistente.anoNasc, anoBase).nome}</span>
+                    <span>🏆 {getCategoria(atletaExistente.anoNasc, anoBase)?.nome || "Idade inválida"}</span>
                     <span>{atletaExistente.sexo === "M" ? "Masc." : "Fem."}</span>
                     {atletaExistente.equipeId && (() => {
                     const eq = equipes?.find(e => e.id === atletaExistente.equipeId);
@@ -1084,11 +1085,13 @@ function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, exclui
             </div>
           )}
         </div>
-        {form.anoNasc && !isNaN(form.anoNasc) && (
-          <div style={s.catPreview}>
-            Categoria detectada: <strong>{getCategoria(form.anoNasc, anoBase).display}</strong>
-          </div>
-        )}
+        {form.anoNasc && !isNaN(form.anoNasc) && (() => {
+          const catDetect = getCategoria(form.anoNasc, anoBase);
+          const idadeDetect = anoBase - parseInt(form.anoNasc);
+          return catDetect
+            ? <div style={s.catPreview}>Categoria detectada: <strong>{catDetect.display}</strong></div>
+            : <div style={{ ...s.catPreview, color: t.danger }}>Atleta com {idadeDetect} ano(s) — idade mínima é 11 anos (Sub-14). Cadastro não permitido.</div>;
+        })()}
 
         {/* ── LGPD: Consentimento Parental (menores) ── */}
         {(() => {

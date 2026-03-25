@@ -5,7 +5,7 @@ import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { getCategoria, getPermissividade, podeCategoriaSuperior } from "../../shared/constants/categorias";
 import { _getClubeAtleta, _getCbat } from "../../shared/formatters/utils";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
-import { calcularPrecoInscricao, formatarPreco, validarLimiteProvas, getLimiteCat } from "../../shared/engines/inscricaoEngine";
+import { calcularPrecoInscricao, formatarPreco, validarLimiteProvas, validarNorma12Sub14, getRestricoesNorma12, getLimiteCat } from "../../shared/engines/inscricaoEngine";
 import { Th, Td } from "../ui/TableHelpers";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
@@ -340,6 +340,21 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
     const validacao = validarLimiteProvas(eventoAtual, inscsEvt, inserirAtletaId, cat?.id || null, todasNovas);
     if (!validacao.ok) {
       alert(`⚠️ Limite atingido: ${validacao.motivo}`); return;
+    }
+
+    // Validar Norma 12 CBAt — Sub-14
+    // Considerar inscrições salvas + carrinho + novas seleções
+    const inscsComCarrinho = [
+      ...inscsEvt,
+      ...carrinho.filter(c => c.atletaId === inserirAtletaId).map(c => ({
+        eventoId: eventoAtual.id, atletaId: inserirAtletaId, provaId: c.provaId,
+      })),
+    ];
+    const validacaoNorma12 = validarNorma12Sub14(
+      eventoAtual, inscsComCarrinho, inserirAtletaId, cat?.id || null, [...inserirProvasIds], todasAsProvas()
+    );
+    if (!validacaoNorma12.ok) {
+      alert(`⚠️ ${validacaoNorma12.msg}`); return;
     }
 
     const novas = [];
@@ -1182,7 +1197,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
         <button
           style={{ ...s.modoBtn, ...(modoCarrinho ? s.modoBtnActive : {}) }}
           onClick={async () => { setModoCarrinho(true); setEtapa("montagem"); }}>
-          🛒 Novo Lote
+          🛒 Realizar Inscrições
           {carrinho.length > 0 && (
             <span style={{ background: t.accent, color: "#fff", borderRadius: 10, padding: "1px 7px", fontSize: 11, marginLeft: 6 }}>
               {carrinho.length}
@@ -1511,8 +1526,29 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                   const restam = limite > 0 ? limite - jaInscritas - jaNoLoteAtleta : Infinity;
                   const limiteAtingido = limite > 0 && (jaInscritas + jaNoLoteAtleta + selecionadas) >= limite;
 
+                  // Norma 12 CBAt — restrições Sub-14
+                  const inscsComCarrinhoUI = [
+                    ...inscsEvt,
+                    ...carrinho.filter(c => c.atletaId === inserirAtletaId).map(c => ({
+                      eventoId: eventoAtual.id, atletaId: inserirAtletaId, provaId: c.provaId,
+                    })),
+                  ];
+                  const norma12 = getRestricoesNorma12(eventoAtual, inscsComCarrinhoUI, inserirAtletaId, cat?.id || null, [...inserirProvasIds], provasDoAtleta);
+                  const norma12Ativa = eventoAtual.aplicarNorma12Sub14 && cat?.id === "sub14";
+
                   return (
                     <div>
+                      {/* Banner Norma 12 */}
+                      {norma12Ativa && (
+                        <div style={{
+                          display:"flex", alignItems:"center", gap:10, padding:"8px 14px", borderRadius:8, marginBottom:10,
+                          background: `${t.warning}12`, border: `1px solid ${t.warning}33`,
+                          fontSize:11, color: t.warning, lineHeight:1.5,
+                        }}>
+                          <span style={{ fontSize:14, flexShrink:0 }}>⚖</span>
+                          <span><strong>Norma 12 CBAt</strong> — Máximo 2 provas individuais de grupos diferentes, ou somente Tetratlo.</span>
+                        </div>
+                      )}
                       {/* Cabeçalho com categoria e limite */}
                       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
                         <span style={{ fontSize: 12, color: t.textTertiary, textTransform: "uppercase", letterSpacing: 1 }}>PROVAS DISPONÍVEIS</span>
@@ -1549,7 +1585,8 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                               const jaInscrito  = inscsEvt.some(i => i.atletaId === inserirAtletaId && i.provaId === p.id && !i.combinadaId);
                               const jaNoLote    = carrinho.some(c => c.atletaId === inserirAtletaId && c.provaId === p.id);
                               const selecionada = inserirProvasIds.has(p.id);
-                              const bloqueada   = jaInscrito || jaNoLote || (limiteAtingido && !selecionada);
+                              const norma12Bloq = norma12.desabilitadas.get(p.id);
+                              const bloqueada   = jaInscrito || jaNoLote || (limiteAtingido && !selecionada) || (!!norma12Bloq && !selecionada);
 
                               let chipStyle = {
                                 padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: 600,
@@ -1581,7 +1618,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
 
                               return (
                                 <button key={p.id} style={chipStyle} onClick={toggle}
-                                  title={jaInscrito ? "Já inscrito" : jaNoLote ? "Já no lote" : bloqueada ? "Limite atingido" : "Clique para selecionar"}>
+                                  title={jaInscrito ? "Já inscrito" : jaNoLote ? "Já no lote" : norma12Bloq ? norma12Bloq : bloqueada ? "Limite atingido" : "Clique para selecionar"}>
                                   {jaInscrito ? "✓ " : jaNoLote ? "🛒 " : selecionada ? "✔ " : ""}{p.nome}
                                 </button>
                               );
@@ -1878,7 +1915,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                   </button>
                 </div>
                 <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-                  <button style={s.btnPrimary} onClick={resetCarrinho}>+ Novo Lote</button>
+                  <button style={s.btnPrimary} onClick={resetCarrinho}>+ Realizar Inscrições</button>
                   <button style={s.btnGhost} onClick={async () => { resetCarrinho(); setModoCarrinho(false); }}>
                     Ver Inscrições Salvas
                   </button>

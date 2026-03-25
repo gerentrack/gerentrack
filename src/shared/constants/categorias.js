@@ -20,7 +20,8 @@ const CATEGORIAS = [
 function getCategoria(anoNasc, anoCompeticao) {
   const ano = anoCompeticao ? parseInt(anoCompeticao) : new Date().getFullYear();
   const idade = ano - parseInt(anoNasc);
-  return CATEGORIAS.find((c) => idade >= c.minIdade && idade <= c.maxIdade) || CATEGORIAS[4];
+  if (idade < CATEGORIAS[0].minIdade) return null; // abaixo de Sub-14 → não permitido
+  return CATEGORIAS.find((c) => idade >= c.minIdade && idade <= c.maxIdade) || CATEGORIAS[5];
 }
 
 // Verifica se atleta se enquadra na exceção da norma (CBAt) para participar em categoria superior

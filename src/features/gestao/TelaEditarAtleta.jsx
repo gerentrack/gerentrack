@@ -209,7 +209,7 @@ function TelaEditarAtleta({ usuarioLogado, atletas, atualizarAtleta, excluirAtle
                   <Td><span style={s.badge(a.sexo==="M"?"#1a6ef5":"#e54f9b")}>
                     {a.sexo==="M"?"Masc":"Fem"}</span></Td>
                   <Td>{_getNascDisplay(a) || "—"}</Td>
-                  <Td><span style={s.badgeGold}>{cat.nome}</span></Td>
+                  <Td><span style={s.badgeGold}>{cat?.nome || "—"}</span></Td>
                   <Td>{_getClubeAtleta(a, equipes)||<span style={{color: t.textDisabled}}>—</span>}</Td>
                   <Td>{tren?.nome||<span style={{color: t.textDisabled}}>—</span>}</Td>
                   <Td style={{fontSize:11,color: t.textDimmed}}>{a.cpf||"—"}</Td>
@@ -300,7 +300,7 @@ function TelaEditarAtleta({ usuarioLogado, atletas, atualizarAtleta, excluirAtle
                 ? (() => { const [y,m,d]=atleta.dataNasc.split("-"); return `${d}/${m}/${y}`; })()
                 : atleta.anoNasc],
               ["Sexo", atleta.sexo==="M"?"Masculino":"Feminino"],
-              ["Categoria", cat.nome],
+              ["Categoria", cat?.nome || "Idade inválida"],
               ["CPF", atleta.cpf||"—"],
               ["Nº CBAt", _getCbat(atleta)||"—"],
               ["Equipe/Clube", _getClubeAtleta(atleta, equipes)||"—"],

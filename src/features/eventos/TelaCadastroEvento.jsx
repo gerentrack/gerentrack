@@ -804,6 +804,22 @@ function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtua
                 )}
               </div>
             )}
+            <div style={{ marginTop:14, padding:"12px 14px", background:t.bgHeaderSolid, borderRadius:8, border:`1px solid ${t.border}` }}>
+              <label style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer" }}>
+                <input type="checkbox"
+                  checked={form.aplicarNorma12Sub14 || false}
+                  onChange={e => setForm(f => ({ ...f, aplicarNorma12Sub14: e.target.checked }))}
+                  style={{ width:15, height:15, accentColor: t.accent }} />
+                <span style={{ fontSize:12, color: t.accent, fontWeight:700 }}>
+                  Aplicar Norma 12 CBAt para Sub-14
+                </span>
+              </label>
+              <p style={{ fontSize:11, color: t.textDimmed, marginTop:6, lineHeight:1.5 }}>
+                Limita atletas Sub-14 a 2 provas individuais de grupos diferentes
+                (Velocidade/Barreiras, Fundo/Marcha, Saltos, Lançamentos) ou somente a prova combinada (Tetratlo).
+                Revezamento sempre permitido.
+              </p>
+            </div>
           </Acordeao>
 
           {/* ── Preços e Pagamento (acordeão) ── */}

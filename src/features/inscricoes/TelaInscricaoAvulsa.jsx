@@ -5,7 +5,7 @@ import { _getClubeAtleta, _getLocalEventoDisplay, validarCPF } from "../../share
 import FormField from "../ui/FormField";
 import { ProvaSelector } from "../ui/ProvaSelector";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
-import { getLimiteCat, validarLimiteProvas, calcularPrecoInscricao, formatarPreco } from "../../shared/engines/inscricaoEngine";
+import { getLimiteCat, validarLimiteProvas, validarNorma12Sub14, getRestricoesNorma12, calcularPrecoInscricao, formatarPreco } from "../../shared/engines/inscricaoEngine";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 
@@ -475,15 +475,30 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
     }
     if (provasSel.length === 0) { setErro("Selecione ao menos uma prova"); return; }
 
-    // ── Validar limite de provas por categoria (Etapa 2) ──
+    // ── Validar categoria e limite de provas ──
     const atletaParaValidar = modo === "novo" ? novoAtleta : atletaSel;
     const catParaValidar = atletaParaValidar ? getCategoria(atletaParaValidar.anoNasc, anoComp) : null;
+    if (atletaParaValidar && !catParaValidar) {
+      const idadeAtleta = anoComp - parseInt(atletaParaValidar.anoNasc);
+      setErro(`Atleta com ${idadeAtleta} ano(s) não pode ser inscrito — idade mínima é 11 anos (Sub-14).`);
+      return;
+    }
     const aIdCheck = modo === "novo" ? null : atletaId;
     const validacaoLimite = validarLimiteProvas(
       eventoParaInscricao, inscricoes, aIdCheck, catParaValidar?.id || null, provasSel
     );
     if (!validacaoLimite.ok) {
       setErro(validacaoLimite.msg);
+      return;
+    }
+
+    // ── Validar Norma 12 CBAt — Sub-14 ──
+    const provasRefValidacao = todasAsProvas();
+    const validacaoNorma12 = validarNorma12Sub14(
+      eventoParaInscricao, inscricoes, aIdCheck, catParaValidar?.id || null, provasSel, provasRefValidacao
+    );
+    if (!validacaoNorma12.ok) {
+      setErro(validacaoNorma12.msg);
       return;
     }
 
@@ -879,17 +894,24 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
           )}
 
           {/* Preview categoria */}
-          {novoAtleta.dataNasc && (
-            <div style={s.catPreview}>
-              Categoria: <strong>{getCategoria(novoAtleta.anoNasc, anoComp).display}</strong>
-            </div>
-          )}
+          {novoAtleta.dataNasc && (() => {
+            const catPreviewVal = getCategoria(novoAtleta.anoNasc, anoComp);
+            const idadePreview = anoComp - parseInt(novoAtleta.anoNasc);
+            return catPreviewVal
+              ? <div style={s.catPreview}>Categoria: <strong>{catPreviewVal.display}</strong></div>
+              : <div style={{ ...s.catPreview, color: t.danger }}>Atleta com {idadePreview} ano(s) — idade mínima é 11 anos (Sub-14)</div>;
+          })()}
         </div>
       ))}
 
       {(atletaSel || (!isAtleta && modo === "novo" && novoAtleta.anoNasc && !isNaN(novoAtleta.anoNasc))) && (() => {
           const atletaAtivo = (!isAtleta && modo === "novo") ? novoAtleta : atletaSel;
           const catOficial = getCategoria(atletaAtivo.anoNasc, anoComp);
+          if (!catOficial) return (
+            <div style={{ padding:"12px 16px", borderRadius:8, background:`${t.danger}15`, border:`1px solid ${t.danger}44`, color:t.danger, fontSize:13, marginTop:16 }}>
+              Atleta com {anoComp - parseInt(atletaAtivo.anoNasc)} ano(s) — idade mínima para inscrição é 11 anos (Sub-14).
+            </div>
+          );
           // catExibida = catOficial (não mais influenciada por permissividade)
           const catExibida = catOficial;
           // permissividade para exibição: verifica se atleta é exceção em alguma prova do evento
@@ -958,10 +980,24 @@ function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equ
                   </div>
                 </div>
               )}
-              {grupos.map((grupo) => (
-                <ProvaSelector key={grupo} provas={provasDisp.filter((p) => p.grupo === grupo)}
-                  titulo={grupo} selecionadas={provasSel} onToggle={toggleProva} jaInscrito={jaInscrito} />
-              ))}
+              {eventoParaInscricao.aplicarNorma12Sub14 && catOficial.id === "sub14" && (
+                <div style={{
+                  display:"flex", alignItems:"center", gap:10, padding:"10px 14px", borderRadius:8, marginBottom:12,
+                  background: `${t.warning}12`, border: `1px solid ${t.warning}33`,
+                  fontSize:12, color: t.warning, lineHeight:1.5,
+                }}>
+                  <span style={{ fontSize:16, flexShrink:0 }}>⚖</span>
+                  <span><strong>Norma 12 CBAt</strong> — Máximo 2 provas individuais de grupos diferentes, ou somente a prova combinada (Tetratlo). Revezamento sempre permitido.</span>
+                </div>
+              )}
+              {(() => {
+                const norma12 = getRestricoesNorma12(eventoParaInscricao, inscricoes, atletaId, catOficial.id, provasSel, provasDisp);
+                return grupos.map((grupo) => (
+                  <ProvaSelector key={grupo} provas={provasDisp.filter((p) => p.grupo === grupo)}
+                    titulo={grupo} selecionadas={provasSel} onToggle={toggleProva} jaInscrito={jaInscrito}
+                    desabilitadas={norma12.desabilitadas} />
+                ));
+              })()}
               {provasSel.length > 0 && (
                 <div style={s.resumoInscricao}>
                   <strong>Provas selecionadas: {provasSel.length}</strong>
