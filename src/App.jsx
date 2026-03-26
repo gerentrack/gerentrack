@@ -1,5 +1,9 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useState, useEffect, useRef, useCallback } from "react";
+// ── Contexts (Etapa 2 — migração React Router) ──────────────────
+import { AuthProvider, buildAuthValue } from "./contexts/AuthContext";
+import { EventoProvider, buildEventoValue } from "./contexts/EventoContext";
+import { AppProvider, buildAppValue } from "./contexts/AppContext";
 // ── Domínio do Atletismo — Etapa 2 ────────────────────────────────
 import PROVAS_DEF                             from "./domain/provas/provasDef.json";
 import { getProvasCat }                       from "./domain/provas/getProvasCat";
@@ -1652,8 +1656,25 @@ function App() {
     // Injetado explicitamente apenas em TelaLogin, TelaConfiguracoes e TelaAdmin.
   };
 
-  
+  // ── Context values (coexistem com props durante migração) ─────────
+  const authValue = useMemo(() => buildAuthValue(props), [
+    props.usuarioLogado, props.perfisDisponiveis,
+  ]);
+  const eventoValue = useMemo(() => buildEventoValue(props), [
+    props.eventos, props.eventoAtual, props.inscricoes, props.resultados,
+    props.atletas, props.equipes, props.numeracaoPeito,
+    props.recordes, props.ranking,
+  ]);
+  const appValue = useMemo(() => buildAppValue(props), [
+    props.tela, props.notificacoes, props.organizadores, props.funcionarios,
+    props.treinadores, props.atletasUsuarios, props.historicoAcoes,
+    props.siteBranding, props.online,
+  ]);
+
   return (
+    <AuthProvider value={authValue}>
+    <EventoProvider value={eventoValue}>
+    <AppProvider value={appValue}>
     <TemaProvider temaClaro={temaClaro}>
     <ConfirmProvider>
     <ConfirmBridge />
@@ -1827,6 +1848,9 @@ function App() {
     <SpeedInsights />
     </ConfirmProvider>
     </TemaProvider>
+    </AppProvider>
+    </EventoProvider>
+    </AuthProvider>
   );
 }
 
