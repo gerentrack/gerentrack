@@ -3,6 +3,7 @@ import DOMPurify from "dompurify";
 import { validarCPF, validarCNPJ } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { storage, storageRef, uploadBytes, getDownloadURL } from "../../firebase";
+import CortarImagem from "../../shared/CortarImagem";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
@@ -163,12 +164,13 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
   });
   const [perfilUploading, setPerfilUploading] = useState(false);
   const [perfilSalvo, setPerfilSalvo] = useState(false);
+  const [bannerParaCortar, setBannerParaCortar] = useState(null);
 
   const uploadImagemOrg = async (file, tipo) => {
     if (!meuOrgPerfil || !editarOrganizadorAdmin) return;
     setPerfilUploading(true);
     try {
-      const ext = file.name.split(".").pop();
+      const ext = file.name ? file.name.split(".").pop() : "png";
       const ref = storageRef(storage, `organizadores/${meuOrgPerfil.id}/${tipo}.${ext}`);
       await uploadBytes(ref, file);
       const url = await getDownloadURL(ref);
@@ -794,7 +796,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                 </div>
                 <label style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 6, padding: "5px 14px", cursor: "pointer", fontSize: 12, color: t.textTertiary }}>
                   {perfilUploading ? "Enviando..." : "Alterar banner"}
-                  <input type="file" accept="image/*" style={{ display: "none" }} disabled={perfilUploading} onChange={e => { const f = e.target.files?.[0]; if (f) uploadImagemOrg(f, "banner"); }} />
+                  <input type="file" accept="image/*" style={{ display: "none" }} disabled={perfilUploading} onChange={e => { const f = e.target.files?.[0]; if (f) { const url = URL.createObjectURL(f); setBannerParaCortar(url); } e.target.value = ""; }} />
                 </label>
                 <div style={{ fontSize: 10, color: t.textDimmed, marginTop: 4 }}>Recomendado: 1600×500px (proporção 16:5)</div>
               </div>
@@ -1607,6 +1609,13 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(ts => `   • ${ts}`).joi
         );
       })()}
 
+      {bannerParaCortar && (
+        <CortarImagem
+          imageSrc={bannerParaCortar}
+          onConfirmar={(blob) => { setBannerParaCortar(null); uploadImagemOrg(blob, "banner"); }}
+          onCancelar={() => setBannerParaCortar(null)}
+        />
+      )}
     </div>
   );
 }
