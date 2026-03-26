@@ -796,6 +796,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                   {perfilUploading ? "Enviando..." : "Alterar banner"}
                   <input type="file" accept="image/*" style={{ display: "none" }} disabled={perfilUploading} onChange={e => { const f = e.target.files?.[0]; if (f) uploadImagemOrg(f, "banner"); }} />
                 </label>
+                <div style={{ fontSize: 10, color: t.textDimmed, marginTop: 4 }}>Recomendado: 1600×500px (proporção 16:5)</div>
               </div>
             </div>
 
