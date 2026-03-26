@@ -1237,15 +1237,20 @@ function TelaResultados() {
               const isFaseFinal = !b.faseSufixo || b.faseSufixo === "FIN";
               // Só mostra pontuação quando o ÚLTIMO resultado da prova for digitado
               const isRevezBlk = b.prova.tipo === "revezamento" || b.isRevezamento;
-              const inscsBlkPont = inscDoEvento.filter(i =>
+              const chaveBlkPont = resKey(eid, b.prova.id, b.categoria.id, b.sexo, b.faseSufixo || "");
+              const resBlkObj = resultados[chaveBlkPont] || {};
+              const entradasBrutas = Object.keys(resBlkObj).length;
+              // Para fases com seriação (SEM/FIN), contar apenas atletas na seriação (classificados)
+              const _serBlkPont = b.faseSufixo ? buscarSeriacao(eventoAtual.seriacao, b.prova.id, b.categoria.id, b.sexo, b.faseSufixo) : null;
+              const _inscsBase = inscDoEvento.filter(i =>
                 i.provaId === b.prova.id &&
                 (i.categoriaOficialId || i.categoriaId) === b.categoria.id &&
                 i.sexo === b.sexo &&
                 (isRevezBlk ? i.tipo === "revezamento" : i.tipo !== "revezamento")
               );
-              const chaveBlkPont = resKey(eid, b.prova.id, b.categoria.id, b.sexo, b.faseSufixo || "");
-              const resBlkObj = resultados[chaveBlkPont] || {};
-              const entradasBrutas = Object.keys(resBlkObj).length;
+              const inscsBlkPont = (_serBlkPont?.series && _serBlkPont.series.length > 0)
+                ? _serBlkPont.series.flatMap(ser => ser.atletas.map(a => ({ atletaId: a.id || a.atletaId })))
+                : _inscsBase;
               // Para provas de campo com tentativas (salto/lançamento, exceto altura/vara):
               // só pontuam quando TODOS os atletas têm T3 preenchido ou têm status (DNS/NM/DQ)
               const isAltVaraBlk = b.prova.tipo === "salto" && (b.prova.id.includes("altura") || b.prova.id.includes("vara"));

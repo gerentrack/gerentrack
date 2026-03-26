@@ -61,14 +61,23 @@ const SeriacaoEngine = {
     return false;
   },
 
-  // ─── RT 20.3.3 — DISTRIBUIÇÃO SEQUENCIAL ────────────────────────────────────
-  // Preenche cada série ao máximo antes de abrir a próxima
+  // ─── RT 20.3.3 — DISTRIBUIÇÃO BALANCEADA ─────────────────────────────────────
+  // Distribui atletas uniformemente entre séries (ex: 13 atletas em 2 séries → 7+6, não 8+5)
+  // Séries com mais atletas ficam primeiro (série 1 pode ter 1 a mais que série 2)
   distribuirSerpentina(atletasRankeados, nSeries, nRaias) {
     const series = Array.from({ length: nSeries }, () => []);
-    atletasRankeados.forEach((atl, idx) => {
-      const serieIdx = Math.min(Math.floor(idx / nRaias), nSeries - 1);
-      series[serieIdx].push({ ...atl, ranking: idx + 1 });
-    });
+    const nAtletas = atletasRankeados.length;
+    const base = Math.floor(nAtletas / nSeries);
+    const extras = nAtletas % nSeries; // primeiras N séries recebem 1 atleta extra
+
+    let idx = 0;
+    for (let si = 0; si < nSeries; si++) {
+      const count = base + (si < extras ? 1 : 0);
+      for (let ai = 0; ai < count && idx < nAtletas; ai++) {
+        series[si].push({ ...atletasRankeados[idx], ranking: idx + 1 });
+        idx++;
+      }
+    }
     return series;
   },
 

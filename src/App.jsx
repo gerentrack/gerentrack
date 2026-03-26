@@ -1433,11 +1433,17 @@ function App() {
 
             // ── Todos os resultados presentes → auto-gerar próxima fase ──
             const cfg = configSeriacaoEvt[provaId];
-            const cfgP = !cfg ? { porPosicao: 3, porTempo: 2, nRaias: 8, atlPorSerie: 12 }
-              : typeof cfg === "string" ? { porPosicao: 3, porTempo: 2, nRaias: 8, atlPorSerie: 12 }
-              : { porPosicao: cfg.porPosicao ?? 3, porTempo: cfg.porTempo ?? 2, nRaias: cfg.nRaias || 8, atlPorSerie: cfg.atlPorSerie || 12 };
+            const pFallback = (cfg && typeof cfg === "object") ? (cfg.porPosicao ?? 3) : 3;
+            const tFallback = (cfg && typeof cfg === "object") ? (cfg.porTempo ?? 2) : 2;
+            const cfgP = !cfg ? { nRaias: 8, atlPorSerie: 12 }
+              : typeof cfg === "string" ? { nRaias: 8, atlPorSerie: 12 }
+              : { nRaias: cfg.nRaias || 8, atlPorSerie: cfg.atlPorSerie || 12 };
 
-            const progressao = { porPosicao: cfgP.porPosicao, porTempo: cfgP.porTempo };
+            // Determinar qual par P+T usar baseado na transição de fase
+            const isEliParaSem = faseSuf === "ELI" && proximaFase === "SEM";
+            const progressao = isEliParaSem
+              ? { porPosicao: (cfg && typeof cfg === "object") ? (cfg.porPosicaoEliSem ?? pFallback) : pFallback, porTempo: (cfg && typeof cfg === "object") ? (cfg.porTempoEliSem ?? tFallback) : tFallback }
+              : { porPosicao: (cfg && typeof cfg === "object") ? (cfg.porPosicaoSemFin ?? pFallback) : pFallback, porTempo: (cfg && typeof cfg === "object") ? (cfg.porTempoSemFin ?? tFallback) : tFallback };
             const classificados = SeriacaoEngine.rankearRT20_3_2a(serAtual, resAtual, progressao);
             if (classificados.length === 0) return;
 
@@ -1688,7 +1694,7 @@ function App() {
         {tela === "preparar-offline"  && <PrepararOffline {...props} />}
 
         {/* Bloqueio global: telas de edição bloqueadas se competição finalizada */}
-        {eventoAtual?.competicaoFinalizada && ["inscricao-avulsa","digitar-resultados","gestao-inscricoes","inscricao-revezamento","config-pontuacao-equipes","numeracao-peito","secretaria"].includes(tela) ? (
+        {eventoAtual?.competicaoFinalizada && ["inscricao-avulsa","digitar-resultados","inscricao-revezamento","config-pontuacao-equipes","numeracao-peito","secretaria"].includes(tela) ? (
           <div style={styles.page}><div style={styles.emptyState}>
             <span style={{ fontSize:48 }}>🔒</span>
             <p style={{ color:"#ff6b6b", fontWeight:700, fontSize:18 }}>Competição Finalizada</p>
@@ -1704,7 +1710,6 @@ function App() {
             {tela === "digitar-resultados"&& <TelaDigitarResultados getPresencaProva={getPresencaProva} />}
             {tela === "numeracao-peito"  && <TelaNumericaPeito />}
             {tela === "export-lynx"      && <TelaFinishLynx />}
-            {tela === "gestao-inscricoes"&& <TelaGestaoInscricoes />}
             {tela === "inscricao-revezamento" && <TelaInscricaoRevezamento />}
             {tela === "config-pontuacao-equipes" && <TelaConfigPontuacaoEquipes />}
             {tela === "secretaria" && (() => {
@@ -1716,6 +1721,7 @@ function App() {
           </>
         )}
 
+        {tela === "gestao-inscricoes"&& <TelaGestaoInscricoes />}
         {tela === "sumulas"           && usuarioLogado && <TelaSumulas chamada={chamada} getPresencaProva={getPresencaProva} />}
         {tela === "resultados"        && <TelaResultados {...props} />}
         {tela === "recordes"          && <TelaRecordes {...props} />}

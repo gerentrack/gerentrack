@@ -327,9 +327,20 @@ function TelaSumulas({ chamada, getPresencaProva }) {
         };
         const getConfigProva = (provaId) => {
           const cfg = configSeriacao[provaId];
-          if (!cfg) return { modo: "final", nRaias: 8, atlPorSerie: 12, porPosicao: 3, porTempo: 2 };
-          if (typeof cfg === "string") return { modo: normalizarModo(cfg), nRaias: 8, atlPorSerie: 12, porPosicao: 3, porTempo: 2 };
-          return { modo: normalizarModo(cfg.modo), nRaias: cfg.nRaias || 8, atlPorSerie: cfg.atlPorSerie || 12, porPosicao: cfg.porPosicao ?? 3, porTempo: cfg.porTempo ?? 2 };
+          if (!cfg) return { modo: "final", nRaias: 8, atlPorSerie: 12, porPosicaoEliSem: 3, porTempoEliSem: 2, porPosicaoSemFin: 3, porTempoSemFin: 2 };
+          if (typeof cfg === "string") return { modo: normalizarModo(cfg), nRaias: 8, atlPorSerie: 12, porPosicaoEliSem: 3, porTempoEliSem: 2, porPosicaoSemFin: 3, porTempoSemFin: 2 };
+          // Retrocompat: porPosicao/porTempo antigos → usados como fallback para ambas transições
+          const pFallback = cfg.porPosicao ?? 3;
+          const tFallback = cfg.porTempo ?? 2;
+          return {
+            modo: normalizarModo(cfg.modo),
+            nRaias: cfg.nRaias || 8,
+            atlPorSerie: cfg.atlPorSerie || 12,
+            porPosicaoEliSem: cfg.porPosicaoEliSem ?? pFallback,
+            porTempoEliSem: cfg.porTempoEliSem ?? tFallback,
+            porPosicaoSemFin: cfg.porPosicaoSemFin ?? pFallback,
+            porTempoSemFin: cfg.porTempoSemFin ?? tFallback,
+          };
         };
 
         // Salvar config de uma prova no evento
@@ -541,7 +552,11 @@ function TelaSumulas({ chamada, getPresencaProva }) {
           if (!item || !item.faseAnterior) return;
 
           const cfgP = getConfigProva(item.provaId);
-          const progressao = { porPosicao: cfgP.porPosicao ?? 3, porTempo: cfgP.porTempo ?? 2 };
+          // Determinar qual par P+T usar baseado na transição de fase
+          const isEliParaSem = item.faseAnterior === "ELI" && item.faseSufixo === "SEM";
+          const progressao = isEliParaSem
+            ? { porPosicao: cfgP.porPosicaoEliSem, porTempo: cfgP.porTempoEliSem }
+            : { porPosicao: cfgP.porPosicaoSemFin, porTempo: cfgP.porTempoSemFin };
 
           // Buscar seriação da fase anterior
           const chaveSerAnterior = serKey(item.provaId, item.cat.id, item.sexo, item.faseAnterior);
@@ -712,31 +727,125 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                               color: cfgP.modo === val ? corAtivo : t.textDimmed,
                               borderColor: cfgP.modo === val ? `${corAtivo}44` : t.border,
                             }}
-                            onClick={() => salvarConfigProva(provas[0].id, "modo", val)}
+                            onClick={() => {
+                              if (isFinalizado) return;
+                              const nR = cfgP.nRaias || 8;
+                              const maxInsc = Math.max(...provas.map(pv => inscDoEvento.filter(i => i.provaId === pv.id && !i.origemCombinada && i.tipo !== "revezamento").length), 0);
+                              // Auto-preencher P+T via RT 20.8
+                              const updates = { modo: val };
+                              if (val === "semi_final") {
+                                const nSerSem = Math.ceil(maxInsc / nR) || 1;
+                                const pSemFin = Math.floor(nR / nSerSem);
+                                const tSemFin = Math.max(0, nR - pSemFin * nSerSem);
+                                updates.porPosicaoSemFin = pSemFin;
+                                updates.porTempoSemFin = tSemFin;
+                              } else if (val === "eli_semi_final") {
+                                const nSerEli = Math.ceil(maxInsc / nR) || 1;
+                                // Eli→Semi: preencher 2 séries semi = 2×nR atletas
+                                const targetSem = nR * 2;
+                                const pEliSem = Math.min(Math.floor(targetSem / nSerEli), nR);
+                                const tEliSem = Math.max(0, targetSem - pEliSem * nSerEli);
+                                updates.porPosicaoEliSem = pEliSem;
+                                updates.porTempoEliSem = tEliSem;
+                                // Semi→Fin: 2 séries semi → 1 final = nR atletas
+                                const nSerSem2 = 2;
+                                const pSemFin2 = Math.floor(nR / nSerSem2);
+                                const tSemFin2 = Math.max(0, nR - pSemFin2 * nSerSem2);
+                                updates.porPosicaoSemFin = pSemFin2;
+                                updates.porTempoSemFin = tSemFin2;
+                              }
+                              // Salvar tudo numa única operação
+                              const cfgAtual = { ...configSeriacao };
+                              const base = todasP.find(pv => pv.id === provas[0].id);
+                              const mesmoNome = todasP.filter(pv => pv.nome === base?.nome && (eventoAtual.provasPrograma || []).includes(pv.id));
+                              mesmoNome.forEach(pv => {
+                                const prev = cfgAtual[pv.id];
+                                const prevObj = (!prev) ? {} : (typeof prev === "string") ? { modo: prev } : { ...prev };
+                                cfgAtual[pv.id] = { ...prevObj, ...updates };
+                              });
+                              editarEvento({ ...eventoAtual, configSeriacao: cfgAtual });
+                            }}
                           >{lbl}</button>
                           );
                         })}
                       </div>
                       {/* Progressão P+T: aparece quando modo tem multi-fases */}
-                      {(cfgP.modo === "semi_final" || cfgP.modo === "eli_semi_final") && (
-                        <div style={{ display:"flex", alignItems:"center", gap:4, borderLeft:`2px solid ${t.border}`, paddingLeft:6 }}>
-                          <span style={{ fontSize:9, color: t.textMuted }}>Progressão:</span>
-                          <span style={{ fontSize:9, color: t.success }}>P</span>
-                          <input type="number" min="0" max="8"
-                            style={{ width:32, padding:"2px 3px", background:t.bgHover, border:`1px solid ${t.success}44`, borderRadius:3, color: t.success, textAlign:"center", fontSize:11, fontWeight:700 }}
-                            value={cfgP.porPosicao ?? 3}
-                            onChange={(e) => salvarConfigProva(provas[0].id, "porPosicao", Math.max(0, Math.min(8, parseInt(e.target.value) || 0)))}
-                            title="Classificados por posição (primeiros de cada série)"
-                          />
-                          <span style={{ fontSize:9, color: t.accent }}>+T</span>
-                          <input type="number" min="0" max="16"
-                            style={{ width:32, padding:"2px 3px", background:t.bgHover, border:`1px solid ${t.accent}44`, borderRadius:3, color: t.accent, textAlign:"center", fontSize:11, fontWeight:700 }}
-                            value={cfgP.porTempo ?? 2}
-                            onChange={(e) => salvarConfigProva(provas[0].id, "porTempo", Math.max(0, Math.min(16, parseInt(e.target.value) || 0)))}
-                            title="Classificados por tempo (melhores tempos entre os restantes)"
-                          />
-                        </div>
-                      )}
+                      {(() => {
+                        if (cfgP.modo !== "semi_final" && cfgP.modo !== "eli_semi_final") return null;
+                        const nRaias = cfgP.nRaias || 8;
+                        // Contar máximo de inscritos nesta prova (para calcular séries)
+                        const maxInscritos = Math.max(...provas.map(pv => inscDoEvento.filter(i => i.provaId === pv.id && !i.origemCombinada && i.tipo !== "revezamento").length), 0);
+                        const nSeriesEli = Math.ceil(maxInscritos / nRaias) || 1;
+
+                        const autoCalcT = (p, nSeries) => Math.max(0, nRaias - (p * nSeries));
+
+                        const handlePChange = (campo, tCampo, nSeries, val) => {
+                          if (isFinalizado) return;
+                          const p = Math.max(0, Math.min(8, parseInt(val) || 0));
+                          const tAuto = autoCalcT(p, nSeries);
+                          // Salvar P e T numa única operação para evitar race condition
+                          const cfgAtual = { ...configSeriacao };
+                          const base = todasP.find(pv => pv.id === provas[0].id);
+                          const mesmoNome = todasP.filter(pv => pv.nome === base?.nome && (eventoAtual.provasPrograma || []).includes(pv.id));
+                          mesmoNome.forEach(pv => {
+                            const prev = cfgAtual[pv.id];
+                            const prevObj = (!prev) ? {} : (typeof prev === "string") ? { modo: prev } : { ...prev };
+                            cfgAtual[pv.id] = { ...prevObj, [campo]: p, [tCampo]: tAuto };
+                          });
+                          editarEvento({ ...eventoAtual, configSeriacao: cfgAtual });
+                        };
+
+                        const renderProgressao = (label, cor, pCampo, tCampo, pVal, tVal, nSeries, totalAtlFase, nSeriesProx) => (
+                          <div style={{ display:"flex", alignItems:"center", gap:6, borderLeft:`2px solid ${t.border}`, paddingLeft:8, flexWrap:"wrap" }}>
+                            <span style={{ fontSize:10, color: cor, fontWeight:600 }}>{label}:</span>
+                            <span style={{ fontSize:11, color: t.success, fontWeight:700 }}>P</span>
+                            <input type="number" min="0" max="8"
+                              style={{ width:46, padding:"4px 6px", background:t.bgHover, border:`1px solid ${t.success}44`, borderRadius:4, color: t.success, textAlign:"center", fontSize:13, fontWeight:700 }}
+                              value={pVal}
+                              onChange={(e) => handlePChange(pCampo, tCampo, nSeries, e.target.value)}
+                              title={`Classificados por posição (${label})`}
+                            />
+                            <span style={{ fontSize:11, color: t.accent, fontWeight:700 }}>+T</span>
+                            <input type="number" min="0" max="16"
+                              style={{ width:46, padding:"4px 6px", background:t.bgHover, border:`1px solid ${t.accent}44`, borderRadius:4, color: t.accent, textAlign:"center", fontSize:13, fontWeight:700 }}
+                              value={tVal}
+                              onChange={(e) => salvarConfigProva(provas[0].id, tCampo, Math.max(0, Math.min(16, parseInt(e.target.value) || 0)))}
+                              title={`Classificados por tempo (${label})`}
+                            />
+                            <span style={{ fontSize:11, color: t.textDimmed, fontWeight:600 }}>
+                              {nSeries} sér × P{pVal} + T{tVal} = {pVal * nSeries + tVal} atl
+                              {nSeriesProx != null && <> → {nSeriesProx === 1 ? "Final" : `${nSeriesProx} sér`}</>}
+                            </span>
+                          </div>
+                        );
+
+                        if (cfgP.modo === "semi_final") {
+                          const nSeriesSem = Math.ceil(maxInscritos / nRaias) || 1;
+                          const totalSemFin = cfgP.porPosicaoSemFin * nSeriesSem + cfgP.porTempoSemFin;
+                          return (
+                            <>
+                              <span style={{ fontSize:11, color: t.textDimmed, fontWeight:600, borderLeft:`2px solid ${t.border}`, paddingLeft:8 }}>
+                                {maxInscritos} inscritos · {nSeriesSem} séries
+                              </span>
+                              {renderProgressao("Semi→Fin", t.textMuted, "porPosicaoSemFin", "porTempoSemFin", cfgP.porPosicaoSemFin, cfgP.porTempoSemFin, nSeriesSem, maxInscritos, 1)}
+                            </>
+                          );
+                        }
+
+                        // eli_semi_final
+                        const totalEliSem = cfgP.porPosicaoEliSem * nSeriesEli + cfgP.porTempoEliSem;
+                        const nSeriesSemCalc = Math.ceil(totalEliSem / nRaias) || 1;
+                        const totalSemFin = cfgP.porPosicaoSemFin * nSeriesSemCalc + cfgP.porTempoSemFin;
+                        return (
+                          <>
+                            <span style={{ fontSize:11, color: t.textDimmed, fontWeight:600, borderLeft:`2px solid ${t.border}`, paddingLeft:8 }}>
+                              {maxInscritos} inscritos · {nSeriesEli} séries eli
+                            </span>
+                            {renderProgressao("Eli→Semi", t.warning, "porPosicaoEliSem", "porTempoEliSem", cfgP.porPosicaoEliSem, cfgP.porTempoEliSem, nSeriesEli, maxInscritos, nSeriesSemCalc)}
+                            {renderProgressao("Semi→Fin", t.accent, "porPosicaoSemFin", "porTempoSemFin", cfgP.porPosicaoSemFin, cfgP.porTempoSemFin, nSeriesSemCalc, totalEliSem, 1)}
+                          </>
+                        );
+                      })()}
                     </div>
                   );
                 })}
@@ -1093,7 +1202,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                           </thead>
                           <tbody>
                             {serie.atletas.map((atl, ai) => (
-                              <tr key={`${si}-${atl.id || atl.atletaId || ai}`} style={{ borderBottom:`1px solid ${t.border}` }}>
+                              <tr key={`prev-${serie.numero}-${atl.id || atl.atletaId}-${ai}`} style={{ borderBottom:`1px solid ${t.border}` }}>
                                 {!isGrupoPreview && <td style={{ padding:"3px 6px", textAlign:"center", color: t.accent, fontWeight:700 }}>{atl.raia || "\u2014"}</td>}
                                 {isGrupoPreview && <td style={{ padding:"3px 6px", textAlign:"center", color: t.accent, fontWeight:700 }}>{atl.posicao || (ai+1)}</td>}
                                 <td style={{ padding:"3px 6px", textAlign:"center", color: t.textMuted }}>{atl.ranking ? `${atl.ranking}º` : "\u2014"}</td>

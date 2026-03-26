@@ -9,7 +9,7 @@
 
 import { todasAsProvas }           from '../../domain/provas/todasAsProvas';
 import { CATEGORIAS }              from '../constants/categorias';
-import { getFasesModo }             from '../constants/fases';
+import { getFasesModo, buscarSeriacao } from '../constants/fases';
 import { getComposicaoCombinada }  from '../../domain/combinadas/composicao';
 import { CombinedEventEngine }     from './combinedEventEngine';
 import { CombinedScoringEngine }   from './combinedScoringEngine';
@@ -173,12 +173,17 @@ const TeamScoringEngine = {
           if (!res || Object.keys(res).length === 0) return;
 
           // Só pontua quando o último resultado da prova for digitado
-          var inscsProva = inscDoEvento.filter(function(i) {
-            return i.provaId === prova.id &&
-              (i.categoriaOficialId || i.categoriaId) === cat.id &&
-              i.sexo === sexo &&
-              i.tipo !== "revezamento";
-          });
+          // Para fases com seriação (FIN), contar apenas classificados
+          const _faseSuf = fasesConf.length > 1 ? "FIN" : "";
+          const _serPont = _faseSuf ? buscarSeriacao(eventoAtual.seriacao, prova.id, cat.id, sexo, _faseSuf) : null;
+          var inscsProva = (_serPont?.series && _serPont.series.length > 0)
+            ? _serPont.series.flatMap(ser => ser.atletas.map(a => ({ atletaId: a.id || a.atletaId })))
+            : inscDoEvento.filter(function(i) {
+                return i.provaId === prova.id &&
+                  (i.categoriaOficialId || i.categoriaId) === cat.id &&
+                  i.sexo === sexo &&
+                  i.tipo !== "revezamento";
+              });
           var isAltVaraEng = prova.tipo === "salto" && (prova.id.includes("altura") || prova.id.includes("vara"));
           var isCampoTentEng = prova.unidade !== "s" && !isAltVaraEng;
           var provaCompleta;
@@ -267,11 +272,15 @@ const TeamScoringEngine = {
           if (!res || Object.keys(res).length === 0) return;
 
           // Só pontua quando todos os inscritos nesse revezamento/cat/sexo têm resultado
-          var inscsRevezEng = inscDoEvento.filter(function(i) {
-            return i.tipo === "revezamento" && i.provaId === prova.id &&
-              (i.categoriaOficialId || i.categoriaId) === cat.id &&
-              i.sexo === sexo;
-          });
+          const _faseSufR = fasesConfR.length > 1 ? "FIN" : "";
+          const _serPontR = _faseSufR ? buscarSeriacao(eventoAtual.seriacao, prova.id, cat.id, sexo, _faseSufR) : null;
+          var inscsRevezEng = (_serPontR?.series && _serPontR.series.length > 0)
+            ? _serPontR.series.flatMap(ser => ser.atletas.map(a => ({ atletaId: a.id || a.atletaId })))
+            : inscDoEvento.filter(function(i) {
+                return i.tipo === "revezamento" && i.provaId === prova.id &&
+                  (i.categoriaOficialId || i.categoriaId) === cat.id &&
+                  i.sexo === sexo;
+              });
           var revezCompleto = inscsRevezEng.length === 0 || Object.keys(res).length >= inscsRevezEng.length;
 
           // Revezamento: chaves são equipeId (não atletaId)
