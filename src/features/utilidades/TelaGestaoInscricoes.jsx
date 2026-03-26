@@ -371,7 +371,9 @@ function TelaGestaoInscricoes() {
   const catsUnicas = [...new Set(inscsEvt.map(i => i.categoriaId || i.categoria))].filter(Boolean);
 
   // ── Ações tabela existente ───────────────────────────────────────────────
-  const handleExcluir = async (insc) => { 
+  const isFinalizado = eventoAtual?.competicaoFinalizada || eventoAtual?.competicaoEncerrada;
+  const handleExcluir = async (insc) => {
+    if (isFinalizado) return;
     const atl = atletas.find(a => a.id === insc.atletaId);
     const prv = todasAsProvas().find(p => p.id === insc.provaId);
     if (!await confirmar(`Remover ${atl?.nome || "atleta" } da prova ${prv?.nome || insc.provaId}?`)) return;
@@ -1501,8 +1503,8 @@ function TelaGestaoInscricoes() {
                                   {isPago(inscs) ? "✅ Pago" : "⏳ Pendente"}
                                 </button>
                               )}
-                              {/* Excluir — admin/org sempre; equipe só com inscrições abertas */}
-                              {(isPrivileg || (isEquipeUsuario && inscricoesAbertas)) && (
+                              {/* Excluir — admin/org sempre; equipe só com inscrições abertas; bloqueado se finalizado */}
+                              {!isFinalizado && (isPrivileg || (isEquipeUsuario && inscricoesAbertas)) && (
                                 <button onClick={async () => {
                                   if (await confirmar(`Remover TODAS as ${inscsVisiveis.length} inscrições de ${atl?.nome || "atleta"}?`)) {
                                     inscs.forEach(i => excluirInscricao(i.id, { confirmado: true }));
