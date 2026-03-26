@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { AuthProvider, buildAuthValue } from "./contexts/AuthContext";
 import { EventoProvider, buildEventoValue } from "./contexts/EventoContext";
 import { AppProvider, buildAppValue } from "./contexts/AppContext";
+// ── Router Bridge (Etapa 4 — sincroniza tela ↔ URL) ─────────────
+import { useRouterBridge } from "./router/useRouterBridge";
 // ── Domínio do Atletismo — Etapa 2 ────────────────────────────────
 import PROVAS_DEF                             from "./domain/provas/provasDef.json";
 import { getProvasCat }                       from "./domain/provas/getProvasCat";
@@ -299,7 +301,7 @@ function App() {
 
   const eventoAtual = eventos.find((e) => e.id === eventoAtualId) || null;
 
-  // ── Hash-based routing ──
+  // ── Routing via React Router Bridge (substitui pushState/popstate manual) ──
   const eventoAtualIdRef = useRef(eventoAtualId);
   eventoAtualIdRef.current = eventoAtualId;
   const organizadorPerfilIdRef = useRef(organizadorPerfilId);
@@ -307,118 +309,13 @@ function App() {
   const organizadoresRef = useRef(organizadores);
   organizadoresRef.current = organizadores;
 
-  const setTela = useCallback((novaTela, { replace = false } = {}) => {
-    _setTela(novaTela);
-    const evtId = eventoAtualIdRef.current;
-    let path = "";
-    if (novaTela === "evento-detalhe" && evtId) {
-      const ev = eventosRef.current.find(e => e.id === evtId);
-      path = `/competicao/${ev?.slug || evtId}`;
-    }
-    else if (novaTela === "resultados" && evtId) {
-      const ev = eventosRef.current.find(e => e.id === evtId);
-      path = `/competicao/${ev?.slug || evtId}/resultados`;
-    }
-    else if (novaTela === "organizador-perfil") {
-      const orgId = organizadorPerfilIdRef.current;
-      const orgItem = organizadoresRef.current.find(o => o.id === orgId);
-      if (orgItem?.slug) path = `/${orgItem.slug}`;
-    }
-    else if (novaTela === "recordes") path = "/recordes";
-    else if (novaTela === "ranking") path = "/ranking";
-    else if (novaTela === "login") path = "/entrar";
-    else if (novaTela === "home") path = "/";
-    if (path) {
-      const state = { tela: novaTela, eventoId: evtId || null, organizadorPerfilId: organizadorPerfilIdRef.current || null };
-      if (replace) window.history.replaceState(state, "", path);
-      else         window.history.pushState(state, "", path);
-    }
-  }, []);
-
-  // Resolver tela a partir do pathname (usado na inicialização e no popstate)
-  const resolverTelaDoPath = useCallback((path) => {
-    if (!path || path === "/") return { tela: "home" };
-    const matchResultados = path.match(/^\/competicao\/(.+)\/resultados$/);
-    if (matchResultados) {
-      const param = matchResultados[1];
-      const existe = eventos.find(e => e.slug === param || e.id === param);
-      if (existe) return { tela: "resultados", eventoId: existe.id };
-    }
-    const match = path.match(/^\/competicao\/(.+)$/);
-    if (match) {
-      const param = match[1];
-      const existe = eventos.find(e => e.slug === param || e.id === param);
-      if (existe) return { tela: "evento-detalhe", eventoId: existe.id };
-    }
-    if (path === "/recordes") return { tela: "recordes" };
-    if (path === "/ranking") return { tela: "ranking" };
-    if (path === "/entrar") return { tela: "login" };
-    // ── Slug do organizador (última checagem — ocupa raiz /{slug}) ──
-    const orgSlug = path.replace(/^\//, "").replace(/\/$/, "");
-    if (orgSlug && !orgSlug.includes("/")) {
-      const orgItem = organizadores.find(o => o.slug === orgSlug);
-      if (orgItem) return { tela: "organizador-perfil", organizadorPerfilId: orgItem.id };
-    }
-    return null;
-  }, [eventos, organizadores]);
-
-  // Ler path na inicialização (apenas uma vez quando eventos carregam)
-  const hashProcessado = useRef(false);
-  useEffect(() => {
-    if (hashProcessado.current) return;
-    if (eventos.length === 0) return; // esperar Firestore carregar
-    hashProcessado.current = true;
-    const resultado = resolverTelaDoPath(window.location.pathname);
-    if (resultado) {
-      if (resultado.eventoId) {
-        setEventoAtualId(resultado.eventoId);
-        eventoAtualIdRef.current = resultado.eventoId;
-      }
-      if (resultado.organizadorPerfilId) {
-        setOrganizadorPerfilId(resultado.organizadorPerfilId);
-        organizadorPerfilIdRef.current = resultado.organizadorPerfilId;
-      }
-      _setTela(resultado.tela);
-      // Setar state inicial no histórico para que popstate funcione
-      window.history.replaceState({ tela: resultado.tela, eventoId: resultado.eventoId || null, organizadorPerfilId: resultado.organizadorPerfilId || null }, "");
-    }
-  }, [eventos.length]);
-
-  // ── Listener do botão voltar/avançar do navegador ──────────────────────────
-  useEffect(() => {
-    const handlePopState = (e) => {
-      const state = e.state;
-      if (state?.tela) {
-        if (state.eventoId) {
-          setEventoAtualId(state.eventoId);
-          eventoAtualIdRef.current = state.eventoId;
-        }
-        if (state.organizadorPerfilId) {
-          setOrganizadorPerfilId(state.organizadorPerfilId);
-          organizadorPerfilIdRef.current = state.organizadorPerfilId;
-        }
-        _setTela(state.tela);
-      } else {
-        // Fallback: resolver a partir da URL atual
-        const resultado = resolverTelaDoPath(window.location.pathname);
-        if (resultado) {
-          if (resultado.eventoId) {
-            setEventoAtualId(resultado.eventoId);
-            eventoAtualIdRef.current = resultado.eventoId;
-          }
-          if (resultado.organizadorPerfilId) {
-            setOrganizadorPerfilId(resultado.organizadorPerfilId);
-            organizadorPerfilIdRef.current = resultado.organizadorPerfilId;
-          }
-          _setTela(resultado.tela);
-        } else {
-          _setTela("home");
-        }
-      }
-    };
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, [resolverTelaDoPath]);
+  const { setTela } = useRouterBridge({
+    tela, _setTela,
+    eventos, organizadores,
+    eventoAtualId, setEventoAtualId,
+    organizadorPerfilId, setOrganizadorPerfilId,
+    setAtletaEditandoId,
+  });
 
   // ── Migração: gerar slugs para eventos legados que não têm ─────────────────
   const slugsMigrados = useRef(false);
@@ -1587,22 +1484,14 @@ function App() {
   const selecionarEvento = (id) => {
     setEventoAtualId(id);
     eventoAtualIdRef.current = id;
-    _setTela("evento-detalhe");
-    if (id) {
-      const ev = eventos.find(e => e.id === id);
-      window.history.pushState({ tela: "evento-detalhe", eventoId: id }, "", `/competicao/${ev?.slug || id}`);
-    }
+    setTela("evento-detalhe");
   };
 
   const selecionarOrganizador = useCallback((orgId) => {
     setOrganizadorPerfilId(orgId);
     organizadorPerfilIdRef.current = orgId;
-    _setTela("organizador-perfil");
-    const orgItem = organizadoresRef.current.find(o => o.id === orgId);
-    if (orgItem?.slug) {
-      window.history.pushState({ tela: "organizador-perfil", organizadorPerfilId: orgId }, "", `/${orgItem.slug}`);
-    }
-  }, []);
+    setTela("organizador-perfil");
+  }, [setTela]);
 
   // Helper: resolve nome da equipe/clube para exibição (closure sobre equipes do componente)
   const getClubeAtleta = (atleta) => _getClubeAtleta(atleta, equipes);
