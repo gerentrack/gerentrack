@@ -136,7 +136,7 @@ function getStyles(t) {
 };
 }
 
-function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, editarEquipeFiliada, excluirEquipeFiliada, equipes, atletas, organizadores, gerarSenhaTemp }) {
+function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, editarEquipeFiliada, excluirEquipeFiliada, equipes, atletas, atualizarAtleta, inscricoes, atualizarInscricao, organizadores, gerarSenhaTemp }) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const [modo, setModo] = useState("lista"); // lista | novo | editar | importar
@@ -201,7 +201,33 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
       if (!dadosAtualizar.senha) delete dadosAtualizar.senha; // manter senha anterior se vazio
       const equipeAtualizada = { ...equipeSelecionada, ...dadosAtualizar, organizadorId: orgId };
       editarEquipeFiliada(equipeAtualizada);
-      alert(`✅ Equipe "${form.nome}" atualizada!`);
+
+      // Atualizar atletas vinculados se nome da equipe mudou
+      const nomeAntigo = equipeSelecionada.nome;
+      const nomeNovo = form.nome;
+      if (nomeAntigo && nomeNovo && nomeAntigo !== nomeNovo) {
+        const atletasVinculados = atletas.filter(a =>
+          a.equipeId === equipeSelecionada.id || a.clube === nomeAntigo
+        );
+        atletasVinculados.forEach(a => {
+          const updates = {};
+          if (a.clube === nomeAntigo) updates.clube = nomeNovo;
+          if (Object.keys(updates).length > 0) atualizarAtleta({ ...a, ...updates });
+        });
+        // Atualizar inscrições com equipeCadastro antigo
+        if (inscricoes) {
+          inscricoes.filter(i => i.equipeCadastro === nomeAntigo).forEach(i => {
+            atualizarInscricao({ ...i, equipeCadastro: nomeNovo });
+          });
+        }
+        if (atletasVinculados.length > 0) {
+          alert(`✅ Equipe "${nomeNovo}" atualizada!\n\n🔄 ${atletasVinculados.length} atleta(s) e inscrições atualizados automaticamente.`);
+        } else {
+          alert(`✅ Equipe "${nomeNovo}" atualizada!`);
+        }
+      } else {
+        alert(`✅ Equipe "${form.nome}" atualizada!`);
+      }
     }
 
     setModo("lista");
@@ -815,7 +841,20 @@ function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, 
                     </button>
                     <button
                       style={s.btnGhost}
-                      onClick={() => excluirEquipeFiliada(equipe.id)}
+                      onClick={() => {
+                        const atletasVinc = atletas.filter(a => a.equipeId === equipe.id || a.clube === equipe.nome);
+                        const msg = atletasVinc.length > 0
+                          ? `Excluir equipe "${equipe.nome}"?\n\n⚠ ${atletasVinc.length} atleta(s) vinculado(s) terão o vínculo removido.`
+                          : `Excluir equipe "${equipe.nome}"?`;
+                        if (!window.confirm(msg)) return;
+                        atletasVinc.forEach(a => {
+                          const updates = {};
+                          if (a.equipeId === equipe.id) updates.equipeId = null;
+                          if (a.clube === equipe.nome) updates.clube = "";
+                          if (Object.keys(updates).length > 0) atualizarAtleta({ ...a, ...updates });
+                        });
+                        excluirEquipeFiliada(equipe.id);
+                      }}
                     >
                       🗑️
                     </button>

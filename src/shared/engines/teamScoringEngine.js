@@ -468,10 +468,29 @@ const TeamScoringEngine = {
       });
     }
 
+    // ── Aplicar penalidades ──────────────────────────────────────────────────
+    var penalidades = (config.penalidades || []);
+    var totalPenalidades = 0;
+    penalidades.forEach(function(pen) {
+      if (!pen.equipeId || !equipesMap[pen.equipeId]) return;
+      var pts = parseInt(pen.pontos) || 0;
+      if (pts <= 0) return;
+      equipesMap[pen.equipeId].totalPontos -= pts;
+      totalPenalidades += pts;
+      if (!equipesMap[pen.equipeId].penalidades) equipesMap[pen.equipeId].penalidades = [];
+      equipesMap[pen.equipeId].penalidades.push({
+        pontos: pts,
+        motivo: pen.motivo === "atraso" ? "Atraso de entrada em prova" : (pen.obs || "Outro"),
+        obs: pen.obs || "",
+        aplicadoPor: pen.aplicadoPor || "—",
+        data: pen.data || "",
+      });
+    });
+
     // Gerar classificação ordenada
     var classificacao = Object.values(equipesMap).sort(function(a, b) { return b.totalPontos - a.totalPontos; });
     classificacao.forEach(function(c, idx) { c.posicao = idx + 1; });
-    return { classificacao: classificacao, totalProvasComResultado: totalProvasComResultado, totalProvas: totalProvas, totalBonusRecordes: totalBonusRecordes };
+    return { classificacao: classificacao, totalProvasComResultado: totalProvasComResultado, totalProvas: totalProvas, totalBonusRecordes: totalBonusRecordes, totalPenalidades: totalPenalidades };
   },
 };
 

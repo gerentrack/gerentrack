@@ -91,6 +91,7 @@ import TelaEditarAtleta            from "./features/gestao/TelaEditarAtleta";
 // Utilitários
 import TelaImportarAtletas         from "./features/utilidades/TelaImportarAtletas";
 import TelaNumericaPeito           from "./features/utilidades/TelaNumericaPeito";
+import TelaExportLynx              from "./features/utilidades/TelaExportLynx";
 import TelaGestaoInscricoes        from "./features/utilidades/TelaGestaoInscricoes";
 import TelaGerenciarMembros        from "./features/utilidades/TelaGerenciarMembros";
 import TelaAuditoria               from "./features/utilidades/TelaAuditoria";
@@ -1715,6 +1716,7 @@ function App() {
             {tela === "inscricao-avulsa"  && <TelaInscricaoAvulsa {...props} />}
             {tela === "digitar-resultados"&& <TelaDigitarResultados {...props} getPresencaProva={getPresencaProva} />}
             {tela === "numeracao-peito"  && <TelaNumericaPeito {...props} />}
+            {tela === "export-lynx"      && <TelaExportLynx {...props} />}
             {tela === "gestao-inscricoes"&& <TelaGestaoInscricoes {...props} />}
             {tela === "inscricao-revezamento" && <TelaInscricaoRevezamento {...props} />}
             {tela === "config-pontuacao-equipes" && <TelaConfigPontuacaoEquipes {...props} />}

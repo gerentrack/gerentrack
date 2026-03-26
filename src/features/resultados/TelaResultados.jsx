@@ -744,18 +744,22 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                       <th style="width:40px">Pos</th><th>Equipe</th><th style="width:60px">Sigla</th>
                       <th style="text-align:center;width:80px">Provas</th>
                       ${classifEquipes.totalBonusRecordes > 0 ? `<th style="text-align:center;width:70px">Bônus Rec.</th>` : ""}
+                      ${classifEquipes.totalPenalidades > 0 ? `<th style="text-align:center;width:70px">Penal.</th>` : ""}
                       <th style="text-align:center;width:70px;font-weight:800">Total</th>
                     </tr></thead><tbody>
                     ${classifEquipes.classificacao.map((eq, idx) => {
                       const nProvas = Object.keys(eq.pontosPorProva).length;
                       const totalBonus = (eq.bonusRecordes || []).reduce((acc, b) => acc + b.pontos, 0);
                       const bonusDetail = (eq.bonusRecordes || []).map(b => `${b.tipoSigla} ${b.provaNome} (+${b.pontos})`).join(", ");
+                      const totalPenPrint = (eq.penalidades || []).reduce((acc, p) => acc + p.pontos, 0);
+                      const penDetail = (eq.penalidades || []).map(p => `${p.motivo}${p.obs ? " — " + p.obs : ""} (-${p.pontos})`).join(", ");
                       return `<tr${idx < 3 ? ` class="top3"` : ""}>
                         <td style="font-weight:700">${idx < 3 ? ["🥇","🥈","🥉"][idx] : (idx+1)+"º"}</td>
-                        <td style="font-weight:600">${eq.nome}${bonusDetail ? `<div style="font-size:8px;color:#996600;margin-top:2px">🏆 ${bonusDetail}</div>` : ""}</td>
+                        <td style="font-weight:600">${eq.nome}${bonusDetail ? `<div style="font-size:8px;color:#996600;margin-top:2px">🏆 ${bonusDetail}</div>` : ""}${penDetail ? `<div style="font-size:8px;color:#cc0000;margin-top:2px">⚠ ${penDetail}</div>` : ""}</td>
                         <td style="font-weight:600">${eq.sigla}</td>
                         <td style="text-align:center;color:#666">${nProvas}</td>
                         ${classifEquipes.totalBonusRecordes > 0 ? `<td style="text-align:center;color:#996600;font-weight:700">${totalBonus > 0 ? "+" + totalBonus : "—"}</td>` : ""}
+                        ${classifEquipes.totalPenalidades > 0 ? `<td style="text-align:center;color:#cc0000;font-weight:700">${totalPenPrint > 0 ? "-" + totalPenPrint : "—"}</td>` : ""}
                         <td style="text-align:center;font-weight:800;font-size:16px">${eq.totalPontos}</td>
                       </tr>`;
                     }).join("")}
@@ -795,6 +799,9 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                   {classifEquipes.totalBonusRecordes > 0 && (
                     <th style={{ padding: "8px", textAlign: "center", color: t.warning, fontSize: 11 }}>🏆 Bônus Rec.</th>
                   )}
+                  {classifEquipes.totalPenalidades > 0 && (
+                    <th style={{ padding: "8px", textAlign: "center", color: t.danger, fontSize: 11 }}>⚠ Penal.</th>
+                  )}
                   <th style={{ padding: "8px", textAlign: "center", color: t.accent, fontWeight: 700, fontSize: 13 }}>Total</th>
                 </tr>
               </thead>
@@ -805,7 +812,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                   return (
                     <React.Fragment key={eq.equipeId}>
                     <tr style={{
-                      borderBottom: (eq.bonusRecordes && eq.bonusRecordes.length > 0) ? "none" : `1px solid ${t.border}`,
+                      borderBottom: ((eq.bonusRecordes && eq.bonusRecordes.length > 0) || (eq.penalidades && eq.penalidades.length > 0)) ? "none" : `1px solid ${t.border}`,
                       background: idx === 0 ? t.bgMarca : idx < 3 ? t.trTop : "transparent"
                     }}>
                       <td style={{
@@ -822,16 +829,39 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                           {totalBonus > 0 ? "+" + totalBonus : "—"}
                         </td>
                       )}
+                      {classifEquipes.totalPenalidades > 0 && (() => {
+                        var totalPen = (eq.penalidades || []).reduce(function(acc, p) { return acc + p.pontos; }, 0);
+                        return (
+                          <td style={{ padding: "10px 8px", textAlign: "center", color: totalPen > 0 ? t.danger : t.textDisabled, fontWeight: 700 }}>
+                            {totalPen > 0 ? "-" + totalPen : "—"}
+                          </td>
+                        );
+                      })()}
                       <td style={{ padding: "10px 8px", textAlign: "center", color: t.accent, fontWeight: 700, fontSize: 18 }}>{eq.totalPontos}</td>
                     </tr>
                     {eq.bonusRecordes && eq.bonusRecordes.length > 0 && (
-                      <tr style={{ borderBottom: `1px solid ${t.border}`, background: idx === 0 ? t.bgMarca : idx < 3 ? t.trTop : "transparent" }}>
-                        <td colSpan={classifEquipes.totalBonusRecordes > 0 ? 6 : 5} style={{ padding: "0 8px 8px 44px" }}>
+                      <tr style={{ borderBottom: (eq.penalidades && eq.penalidades.length > 0) ? "none" : `1px solid ${t.border}`, background: idx === 0 ? t.bgMarca : idx < 3 ? t.trTop : "transparent" }}>
+                        <td colSpan={5 + (classifEquipes.totalBonusRecordes > 0 ? 1 : 0) + (classifEquipes.totalPenalidades > 0 ? 1 : 0)} style={{ padding: "0 8px 8px 44px" }}>
                           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                             {eq.bonusRecordes.map(function(b, bi) {
                               return (
                                 <span key={bi} style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: t.bgCardAlt, color: t.warning, border: `1px solid ${t.warning}44` }}>
                                   🏆 {b.tipoSigla} {b.provaNome} — {b.atletaNome} (+{b.pontos}pts)
+                                </span>
+                              );
+                            })}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                    {eq.penalidades && eq.penalidades.length > 0 && (
+                      <tr style={{ borderBottom: `1px solid ${t.border}`, background: idx === 0 ? t.bgMarca : idx < 3 ? t.trTop : "transparent" }}>
+                        <td colSpan={5 + (classifEquipes.totalBonusRecordes > 0 ? 1 : 0) + (classifEquipes.totalPenalidades > 0 ? 1 : 0)} style={{ padding: "0 8px 8px 44px" }}>
+                          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                            {eq.penalidades.map(function(pen, pi) {
+                              return (
+                                <span key={pi} style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: `${t.danger}10`, color: t.danger, border: `1px solid ${t.danger}33` }}>
+                                  ⚠ {pen.motivo}{pen.obs ? " — " + pen.obs : ""} (-{pen.pontos}pts)
                                 </span>
                               );
                             })}

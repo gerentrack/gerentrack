@@ -90,7 +90,7 @@ function getStyles(t) {
 };
 }
 
-function TelaConfigPontuacaoEquipes({ setTela, eventoAtual, editarEvento, equipes, inscricoes, atletas, recordes }) {
+function TelaConfigPontuacaoEquipes({ setTela, eventoAtual, editarEvento, equipes, inscricoes, atletas, recordes, usuarioLogado }) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   if (!eventoAtual) return (
@@ -112,6 +112,8 @@ function TelaConfigPontuacaoEquipes({ setTela, eventoAtual, editarEvento, equipe
   const [salvo, setSalvo] = useState(false);
   const [atletasPorEquipe, setAtletasPorEquipe] = useState(config.atletasPorEquipePorProva || 1);
   const [bonusRecordes, setBonusRecordes] = useState(config.bonusRecordes || {});
+  const [penalidades, setPenalidades] = useState(config.penalidades || []);
+  const [novaPen, setNovaPen] = useState({ equipeId: "", pontos: "", motivo: "atraso", obs: "" });
 
   // Equipes com atletas inscritos neste evento
   const eid = eventoAtual.id;
@@ -201,6 +203,7 @@ function TelaConfigPontuacaoEquipes({ setTela, eventoAtual, editarEvento, equipe
         tabelaPontuacaoRevezamentos: temRevezamentos ? tabelaRevezObj : {},
         atletasPorEquipePorProva: Math.max(1, parseInt(atletasPorEquipe) || 1),
         bonusRecordes: bonusLimpo,
+        penalidades: penalidades,
       }
     });
     setSalvo(true);
@@ -409,6 +412,114 @@ function TelaConfigPontuacaoEquipes({ setTela, eventoAtual, editarEvento, equipe
                 </div>
               );
             })()}
+
+            {/* ── Penalidades ── */}
+            <div style={{ marginBottom: 24 }}>
+              <h3 style={{ color: t.danger, fontSize: 15, marginBottom: 6 }}>⚠ Penalidades</h3>
+              <div style={{ fontSize: 12, color: t.textMuted, marginBottom: 12, lineHeight: 1.5 }}>
+                Retire pontos de equipes por infrações. O valor será subtraído do total de pontos na classificação.
+              </div>
+
+              {/* Formulário para adicionar */}
+              <div style={{
+                display: "flex", gap: 8, flexWrap: "wrap", alignItems: "flex-end",
+                padding: "12px 14px", background: t.bgHeaderSolid, border: `1px solid ${t.border}`,
+                borderRadius: 8, marginBottom: 12,
+              }}>
+                <div style={{ flex: "1 1 180px" }}>
+                  <label style={{ fontSize: 11, color: t.textDimmed, display: "block", marginBottom: 3 }}>Equipe</label>
+                  <select style={{ ...s.input, width: "100%", marginBottom: 0 }}
+                    value={novaPen.equipeId}
+                    onChange={function(ev) { setNovaPen(function(p) { return { ...p, equipeId: ev.target.value }; }); }}>
+                    <option value="">Selecione...</option>
+                    {equipesDisponiveis.map(function(eq) {
+                      return <option key={eq.id} value={eq.id}>{eq.nome}{eq.sigla ? " (" + eq.sigla + ")" : ""}</option>;
+                    })}
+                  </select>
+                </div>
+                <div style={{ flex: "0 0 80px" }}>
+                  <label style={{ fontSize: 11, color: t.textDimmed, display: "block", marginBottom: 3 }}>Pontos</label>
+                  <input type="number" min="1" style={{ ...s.input, width: "100%", textAlign: "center", marginBottom: 0 }}
+                    value={novaPen.pontos}
+                    onChange={function(ev) { setNovaPen(function(p) { return { ...p, pontos: ev.target.value }; }); }}
+                    placeholder="0" />
+                </div>
+                <div style={{ flex: "1 1 180px" }}>
+                  <label style={{ fontSize: 11, color: t.textDimmed, display: "block", marginBottom: 3 }}>Motivo</label>
+                  <select style={{ ...s.input, width: "100%", marginBottom: 0 }}
+                    value={novaPen.motivo}
+                    onChange={function(ev) { setNovaPen(function(p) { return { ...p, motivo: ev.target.value }; }); }}>
+                    <option value="atraso">Atraso de entrada em prova</option>
+                    <option value="outro">Outro (campo livre)</option>
+                  </select>
+                </div>
+                <div style={{ flex: "1 1 180px" }}>
+                  <label style={{ fontSize: 11, color: t.textDimmed, display: "block", marginBottom: 3 }}>
+                    {novaPen.motivo === "outro" ? "Descrição *" : "Observação (opcional)"}
+                  </label>
+                  <input type="text" style={{ ...s.input, width: "100%", marginBottom: 0 }}
+                    value={novaPen.obs}
+                    onChange={function(ev) { setNovaPen(function(p) { return { ...p, obs: ev.target.value }; }); }}
+                    placeholder={novaPen.motivo === "outro" ? "Descreva o motivo..." : "Ex: 100m rasos masculino"} />
+                </div>
+                <button
+                  style={{ ...s.btnPrimary, padding: "8px 18px", fontSize: 13, whiteSpace: "nowrap", flexShrink: 0 }}
+                  disabled={!novaPen.equipeId || !novaPen.pontos || (parseInt(novaPen.pontos) || 0) <= 0 || (novaPen.motivo === "outro" && !novaPen.obs.trim())}
+                  onClick={function() {
+                    var pts = parseInt(novaPen.pontos) || 0;
+                    if (!novaPen.equipeId || pts <= 0) return;
+                    if (novaPen.motivo === "outro" && !novaPen.obs.trim()) return;
+                    var nova = {
+                      id: Date.now().toString(),
+                      equipeId: novaPen.equipeId,
+                      pontos: pts,
+                      motivo: novaPen.motivo,
+                      obs: novaPen.obs.trim(),
+                      aplicadoPor: usuarioLogado?.nome || "—",
+                      data: new Date().toISOString(),
+                    };
+                    setPenalidades(function(prev) { return [].concat(prev, [nova]); });
+                    setNovaPen({ equipeId: "", pontos: "", motivo: "atraso", obs: "" });
+                  }}>
+                  + Aplicar
+                </button>
+              </div>
+
+              {/* Lista de penalidades */}
+              {penalidades.length > 0 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {penalidades.map(function(pen) {
+                    var eq = equipesDisponiveis.find(function(e) { return e.id === pen.equipeId; });
+                    var motivoLabel = pen.motivo === "atraso" ? "Atraso de entrada em prova" : (pen.obs || "Outro");
+                    return (
+                      <div key={pen.id} style={{
+                        display: "flex", alignItems: "center", gap: 10, padding: "8px 14px",
+                        background: `${t.danger}10`, border: `1px solid ${t.danger}33`,
+                        borderRadius: 8, fontSize: 12,
+                      }}>
+                        <span style={{ color: t.danger, fontWeight: 700, fontSize: 14, flexShrink: 0 }}>-{pen.pontos}pts</span>
+                        <span style={{ color: t.textPrimary, fontWeight: 600 }}>{eq?.nome || pen.equipeId}</span>
+                        <span style={{ color: t.textMuted }}>·</span>
+                        <span style={{ color: t.textSecondary, flex: 1 }}>
+                          {motivoLabel}
+                          {pen.motivo === "atraso" && pen.obs ? ` — ${pen.obs}` : ""}
+                        </span>
+                        <span style={{ color: t.textDimmed, fontSize: 10 }}>por {pen.aplicadoPor}</span>
+                        <button
+                          style={{ background: "none", border: "none", color: t.danger, cursor: "pointer", fontSize: 14, padding: "2px 6px", flexShrink: 0 }}
+                          title="Remover penalidade"
+                          onClick={function() { setPenalidades(function(prev) { return prev.filter(function(p) { return p.id !== pen.id; }); }); }}>
+                          ✕
+                        </button>
+                      </div>
+                    );
+                  })}
+                  <div style={{ fontSize: 11, color: t.danger, fontWeight: 700, marginTop: 4 }}>
+                    Total de penalidades: -{penalidades.reduce(function(acc, p) { return acc + (parseInt(p.pontos) || 0); }, 0)} pts
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Salvar */}
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>

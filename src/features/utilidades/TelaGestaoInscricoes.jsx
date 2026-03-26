@@ -2,7 +2,7 @@ import { usePagination, PaginaControles } from "../../lib/hooks/usePagination.js
 import React, { useState, useMemo } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
-import { getCategoria, getPermissividade, podeCategoriaSuperior } from "../../shared/constants/categorias";
+import { CATEGORIAS, getCategoria, getPermissividade, podeCategoriaSuperior } from "../../shared/constants/categorias";
 import { _getClubeAtleta, _getCbat } from "../../shared/formatters/utils";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { calcularPrecoInscricao, formatarPreco, validarLimiteProvas, validarNorma12Sub14, getRestricoesNorma12, getLimiteCat } from "../../shared/engines/inscricaoEngine";
@@ -160,7 +160,7 @@ function getStyles(t) {
 };
 }
 
-function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equipes, excluirInscricao, adicionarInscricao, atualizarInscricao, usuarioLogado, registrarAcao, numeracaoPeito, organizadores, gtLogo }) {
+function TelaGestaoInscricoes({ setTela, eventoAtual, editarEvento, inscricoes, atletas, equipes, excluirInscricao, adicionarInscricao, atualizarInscricao, usuarioLogado, registrarAcao, numeracaoPeito, organizadores, gtLogo }) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const confirmar = useConfirm();
@@ -216,6 +216,15 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
   const provasProg = todasAsProvas().filter(p => (eventoAtual.provasPrograma || []).includes(p.id));
   const anoComp = eventoAtual.data ? parseInt(eventoAtual.data.slice(0, 4)) : new Date().getFullYear();
 
+  // Helper: nome atual da equipe (prioriza equipe cadastrada, ignora snapshots antigos)
+  const getNomeEquipeAtual = (atl, inscFallback) => {
+    if (atl?.equipeId) {
+      const eq = equipes.find(e => e.id === atl.equipeId);
+      if (eq) return eq.nome;
+    }
+    return atl?.clube || inscFallback?.equipeCadastro || "Sem equipe";
+  };
+
   // ── Filtros da tabela ────────────────────────────────────────────────────
   const [filtroProva, setFiltroProva] = useState("");
   const [filtroCat, setFiltroCat]     = useState("");
@@ -242,6 +251,42 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
   const [inserirAtletaId, setInserirAtletaId] = useState("");
   const [inserirProvasIds, setInserirProvasIds] = useState(new Set()); // multi-seleção
   const [etapa, setEtapa]                 = useState("montagem"); // montagem | confirmacao | concluido
+  const [filtroSexoLote, setFiltroSexoLote] = useState("todos");
+  const [filtroCatLote, setFiltroCatLote]   = useState("todas");
+  const [filtroEquipeLote, setFiltroEquipeLote] = useState("todas");
+  const [preInscModalAtleta, setPreInscModalAtleta] = useState(null); // atletaId para definir provas
+
+  // ── Pré-inscrições (atletas sem provas definidas) ──────────────────────────
+  const preInscricoes = eventoAtual.preInscricoes || [];
+
+  const handlePreInscricao = () => {
+    if (!inserirAtletaId) { alert("Selecione um atleta."); return; }
+    if (preInscricoes.some(p => p.atletaId === inserirAtletaId)) { alert("Atleta já possui pré-inscrição."); return; }
+    if (inscsEvt.some(i => i.atletaId === inserirAtletaId)) { alert("Atleta já possui inscrições neste evento."); return; }
+    const atl = atletas.find(a => a.id === inserirAtletaId);
+    if (!atl) return;
+    const cat = getCategoria(atl.anoNasc, anoComp);
+    const novaPreInsc = {
+      atletaId: inserirAtletaId,
+      atletaNome: atl.nome,
+      sexo: atl.sexo,
+      categoriaId: cat?.id || "",
+      categoria: cat?.nome || "—",
+      equipeId: atl.equipeId || null,
+      equipeCadastro: atl.clube || _getClubeAtleta(atl, equipes) || "",
+      data: new Date().toISOString(),
+      inscritoPor: usuarioLogado?.nome || "—",
+    };
+    editarEvento({ ...eventoAtual, preInscricoes: [...preInscricoes, novaPreInsc] });
+    setInserirAtletaId("");
+    setInserirProvasIds(new Set());
+    setFeedback(`Pré-inscrição: ${atl.nome} adicionado(a) sem provas.`);
+    setTimeout(() => setFeedback(""), 3000);
+  };
+
+  const handleRemoverPreInscricao = (atletaId) => {
+    editarEvento({ ...eventoAtual, preInscricoes: preInscricoes.filter(p => p.atletaId !== atletaId) });
+  };
 
   const todosAtletas = useMemo(() => {
     // Equipe/treinador: mostrar apenas atletas da própria equipe no carrinho
@@ -264,8 +309,16 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
   if (filtroCat)   inscsFiltradas = inscsFiltradas.filter(i => i.categoriaId === filtroCat || i.categoria === filtroCat);
   if (filtroSexo)  inscsFiltradas = inscsFiltradas.filter(i => i.sexo === filtroSexo);
   if (filtroNome) {
-    const q = filtroNome.toLowerCase();
-    inscsFiltradas = inscsFiltradas.filter(i => atletas.find(a => a.id === i.atletaId)?.nome?.toLowerCase().includes(q));
+    const q = filtroNome.trim().toLowerCase();
+    const numPeitoEvt = (numeracaoPeito || {})[eventoAtual?.id] || {};
+    const ehNumero = /^\d+$/.test(q);
+    inscsFiltradas = inscsFiltradas.filter(i => {
+      if (ehNumero) {
+        const num = numPeitoEvt[i.atletaId];
+        return num != null && String(num) === q;
+      }
+      return atletas.find(a => a.id === i.atletaId)?.nome?.toLowerCase().includes(q);
+    });
   }
   if (filtroPago) {
     const idsPagos = new Set(
@@ -279,19 +332,28 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
     const idsEquipe = new Set(
       inscsEvt.filter(i => {
         const atl = atletas.find(a => a.id === i.atletaId);
-        const eq = i.equipeCadastro || atl?.clube || "";
-        return eq === filtroEquipe;
+        if (!atl) return (i.equipeCadastro || "") === filtroEquipe;
+        if (atl.equipeId) {
+          const eq = equipes.find(e => e.id === atl.equipeId);
+          if (eq) return eq.nome === filtroEquipe;
+        }
+        return (atl.clube || i.equipeCadastro || "") === filtroEquipe;
       }).map(i => i.atletaId)
     );
     inscsFiltradas = inscsFiltradas.filter(i => idsEquipe.has(i.atletaId));
   }
-
   const inscsRevez   = inscsEvt.filter(i => i.tipo === "revezamento");
   const provasRevez  = provasProg.filter(p => p.tipo === "revezamento");
   const equipesUnicas = [...new Set(
     inscsEvt.map(i => {
       const atl = atletas.find(a => a.id === i.atletaId);
-      return i.equipeCadastro || atl?.clube || "";
+      if (!atl) return i.equipeCadastro || "";
+      // Priorizar nome atual da equipe cadastrada, não o snapshot
+      if (atl.equipeId) {
+        const eq = equipes.find(e => e.id === atl.equipeId);
+        if (eq) return eq.nome;
+      }
+      return atl.clube || i.equipeCadastro || "";
     }).filter(Boolean)
   )].sort((a, b) => a.localeCompare(b, "pt-BR"));
   const provasUnicas = [...new Set(inscsEvt.map(i => i.provaId))].map(pid => {
@@ -550,6 +612,13 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
         for (const ic of inscricoesComp) await adicionarInscricao(ic);
       }
     }
+    // Remover pré-inscrições dos atletas que acabaram de receber provas
+    const atletasNoCarrinho = new Set(carrinho.map(c => c.atletaId));
+    const preInscAtual = eventoAtual.preInscricoes || [];
+    const preInscRestantes = preInscAtual.filter(p => !atletasNoCarrinho.has(p.atletaId));
+    if (preInscRestantes.length !== preInscAtual.length) {
+      editarEvento({ ...eventoAtual, preInscricoes: preInscRestantes });
+    }
     if (registrarAcao) registrarAcao(
       usuarioLogado?.id, usuarioLogado?.nome,
       "Inscreveu atletas em lote", `${carrinho.length} inscrição(ões)`,
@@ -591,7 +660,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
       const cat = atl ? getCategoria(atl.anoNasc, anoComp) : null;
       const precoInfo = calcularPrecoInscricao(atl, cat?.id || null, eventoAtual);
       const valor = precoInfo?.preco || 0;
-      const equipeNome = inscs[0]?.equipeCadastro || atl?.clube || "Sem equipe";
+      const equipeNome = getNomeEquipeAtual(atl, inscs[0]);
       const pago = isPago(inscs);
       if (!porEquipe[equipeNome]) porEquipe[equipeNome] = { atletas: 0, valor: 0, pago: 0 };
       porEquipe[equipeNome].atletas++;
@@ -663,7 +732,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
       const cat = atl ? getCategoria(atl.anoNasc, anoComp) : null;
       const precoInfo = calcularPrecoInscricao(atl, cat?.id || null, eventoAtual);
       const peito = numeracaoPeito?.[eid]?.[atletaId] ?? "";
-      const equipeNome = inscs[0]?.equipeCadastro || atl?.clube || "Sem equipe";
+      const equipeNome = getNomeEquipeAtual(atl, inscs[0]);
       const provas = inscs.filter(i => !i.combinadaId)
         .map(i => `<span style="display:inline-block;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:3px;padding:1px 5px;font-size:9px;margin:1px 2px;">${todasAsProvas().find(p => p.id === i.provaId)?.nome || i.provaId}</span>`).join("");
       const valor = precoInfo?.preco != null ? formatarPreco(precoInfo.preco) : "Gratuito";
@@ -704,7 +773,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
       const cat = atl ? getCategoria(atl.anoNasc, anoComp) : null;
       const precoInfo = calcularPrecoInscricao(atl, cat?.id || null, eventoAtual);
       const peito = numeracaoPeito?.[eid]?.[atletaId] ?? "";
-      const equipeNome = inscs[0]?.equipeCadastro || atl?.clube || "Sem equipe";
+      const equipeNome = getNomeEquipeAtual(atl, inscs[0]);
       const provas = inscs.filter(i => !i.combinadaId)
         .map(i => `<span style="display:inline-block;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:3px;padding:1px 5px;font-size:9px;margin:1px 2px;">${todasAsProvas().find(p => p.id === i.provaId)?.nome || i.provaId}</span>`).join("");
       const valor = precoInfo?.preco != null ? formatarPreco(precoInfo.preco) : "Gratuito";
@@ -1038,7 +1107,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
         const cat = atl ? getCategoria(atl.anoNasc, anoComp) : null;
         const precoInfo = calcularPrecoInscricao(atl, cat?.id || null, eventoAtual);
         const peito = numeracaoPeito?.[eid]?.[atletaId];
-        const equipeNome = inscs[0]?.equipeCadastro || atl?.clube || "";
+        const equipeNome = getNomeEquipeAtual(atl, inscs[0]).replace("Sem equipe", "");
         const item = { atl, inscs, peito, cat, precoInfo };
 
         if (!equipeNome) {
@@ -1225,7 +1294,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
               <option value="M">Masc</option>
               <option value="F">Fem</option>
             </select>
-            <input style={{ ...s.input, maxWidth: 200 }} placeholder="🔍 Nome..." value={filtroNome} onChange={e => setFiltroNome(e.target.value)} />
+            <input style={{ ...s.input, maxWidth: 220 }} placeholder="🔍 Nome ou Nº Peito" value={filtroNome} onChange={e => setFiltroNome(e.target.value)} />
             {isPrivileg && equipesUnicas.length > 0 && (
               <select value={filtroEquipe} onChange={e => setFiltroEquipe(e.target.value)} style={{ ...s.input, maxWidth: 200 }}>
                 <option value="">Todas as equipes</option>
@@ -1240,6 +1309,53 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
               </select>
             )}
           </div>
+
+          {/* Pré-inscrições (sem provas) */}
+          {isPrivileg && preInscricoes.length > 0 && (
+            <div style={{ marginBottom: 16, padding: "14px 18px", background: `${t.warning}08`, border: `1px solid ${t.warning}33`, borderRadius: 10 }}>
+              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, fontWeight: 700, color: t.warning, marginBottom: 10 }}>
+                📋 Pré-inscrições — Sem provas definidas ({preInscricoes.length})
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {preInscricoes.map(pre => {
+                  const atl = atletas.find(a => a.id === pre.atletaId);
+                  const peito = numeracaoPeito?.[eid]?.[pre.atletaId];
+                  return (
+                    <div key={pre.atletaId} style={{
+                      display: "flex", alignItems: "center", gap: 10, padding: "8px 12px",
+                      background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 8, flexWrap: "wrap",
+                    }}>
+                      {peito && <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: t.accent, minWidth: 40 }}>#{peito}</span>}
+                      <span style={{ fontWeight: 600, color: t.textPrimary, flex: "1 1 180px" }}>{atl?.nome || pre.atletaNome || "—"}</span>
+                      <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 4, background: `${t.gold}12`, color: t.gold, border: `1px solid ${t.gold}33` }}>{pre.categoria || "—"}</span>
+                      <span style={{ fontSize: 11, color: pre.sexo === "M" ? "#1a6ef5" : "#e54f9b" }}>{pre.sexo === "M" ? "Masc" : "Fem"}</span>
+                      <span style={{ fontSize: 11, color: t.textDimmed }}>{pre.equipeCadastro || "Sem equipe"}</span>
+                      <div style={{ display: "flex", gap: 6, marginLeft: "auto" }}>
+                        <button
+                          style={{ ...s.btnPrimary, padding: "5px 14px", fontSize: 12 }}
+                          onClick={() => {
+                            setModoCarrinho(true);
+                            setEtapa("montagem");
+                            setInserirAtletaId(pre.atletaId);
+                            setInserirProvasIds(new Set());
+                          }}>
+                          Definir Provas
+                        </button>
+                        <button
+                          style={{ background: "none", border: `1px solid ${t.danger}44`, color: t.danger, borderRadius: 6, cursor: "pointer", fontSize: 11, padding: "5px 10px" }}
+                          onClick={async () => {
+                            const ok = await confirmar("Remover pré-inscrição de " + (atl?.nome || "atleta") + "?");
+                            if (ok) handleRemoverPreInscricao(pre.atletaId);
+                          }}>
+                          Remover
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <div style={s.tableWrap}>
             <table style={s.table}>
@@ -1268,7 +1384,7 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                     const atl = atletas.find(a => a.id === atletaId);
                     const primeiraInsc = inscs[0];
                     const inscsVisiveis = inscs.filter(i => !i.combinadaId);
-                    const equipeNome = primeiraInsc?.equipeCadastro || atl?.clube || "Sem equipe";
+                    const equipeNome = getNomeEquipeAtual(atl, primeiraInsc);
                     const peito = numeracaoPeito?.[eid]?.[atletaId];
                     const cat = atl ? getCategoria(atl.anoNasc, anoComp) : null;
                     const precoInfo = calcularPrecoInscricao(atl, cat?.id || null, eventoAtual);
@@ -1461,15 +1577,47 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                   ➕ Selecionar atleta e provas
                 </div>
 
-                {/* Seletor de atleta */}
+                {/* Filtros + Seletor de atleta */}
                 <div style={{ marginBottom: 16 }}>
                   <label style={{ display: "block", color: t.textTertiary, fontSize: 12, marginBottom: 6 }}>ATLETA</label>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+                    <select value={filtroSexoLote} onChange={ev => { setFiltroSexoLote(ev.target.value); setInserirAtletaId(""); setInserirProvasIds(new Set()); }}
+                      style={{ ...s.input, marginBottom: 0, width: "auto", minWidth: 120 }}>
+                      <option value="todos">Todos os sexos</option>
+                      <option value="M">Masculino</option>
+                      <option value="F">Feminino</option>
+                    </select>
+                    <select value={filtroCatLote} onChange={ev => { setFiltroCatLote(ev.target.value); setInserirAtletaId(""); setInserirProvasIds(new Set()); }}
+                      style={{ ...s.input, marginBottom: 0, width: "auto", minWidth: 140 }}>
+                      <option value="todas">Todas as categorias</option>
+                      {CATEGORIAS.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
+                    </select>
+                    <select value={filtroEquipeLote} onChange={ev => { setFiltroEquipeLote(ev.target.value); setInserirAtletaId(""); setInserirProvasIds(new Set()); }}
+                      style={{ ...s.input, marginBottom: 0, width: "auto", minWidth: 160 }}>
+                      <option value="todas">Todas as equipes</option>
+                      {[...new Set([
+                        ...equipes.map(eq => eq.nome),
+                        ...atletas.map(a => a.clube).filter(Boolean),
+                      ])].sort((a, b) => a.localeCompare(b, "pt-BR")).map(eq => <option key={eq} value={eq}>{eq}</option>)}
+                    </select>
+                  </div>
                   <select
                     value={inserirAtletaId}
                     onChange={e => { setInserirAtletaId(e.target.value); setInserirProvasIds(new Set()); }}
                     style={{ ...s.input, marginBottom: 0, maxWidth: 400 }}>
                     <option value="">Selecione o atleta...</option>
-                    {todosAtletas.map(a => {
+                    {todosAtletas.filter(a => {
+                      if (filtroSexoLote !== "todos" && a.sexo !== filtroSexoLote) return false;
+                      if (filtroCatLote !== "todas") {
+                        const catA = getCategoria(a.anoNasc, anoComp);
+                        if (!catA || catA.id !== filtroCatLote) return false;
+                      }
+                      if (filtroEquipeLote !== "todas") {
+                        const eqNome = _getClubeAtleta(a, equipes) || a.clube || "";
+                        if (eqNome !== filtroEquipeLote) return false;
+                      }
+                      return true;
+                    }).map(a => {
                       const eq = equipes?.find(e => e.id === a.equipeId);
                       const cat = getCategoria(a.anoNasc, anoComp);
                       return (
@@ -1479,6 +1627,14 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, inscricoes, atletas, equip
                       );
                     })}
                   </select>
+                  {isPrivileg && inserirAtletaId && (
+                    <button
+                      style={{ ...s.btnGhost, fontSize: 12, padding: "7px 16px", whiteSpace: "nowrap", color: t.warning, borderColor: `${t.warning}55` }}
+                      onClick={handlePreInscricao}
+                      title="Registrar atleta sem definir provas agora">
+                      📋 Pré-inscrição (sem provas)
+                    </button>
+                  )}
                 </div>
 
                 {/* Chips de provas — só aparecem após selecionar atleta */}

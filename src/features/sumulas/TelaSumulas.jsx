@@ -278,6 +278,12 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
               🔀 Seriar Provas
             </button>
           )}
+          {isAmplo && (
+            <button style={{ ...s.btnSecondary, background: `${t.success}12`, borderColor: `${t.success}44`, color: t.success }}
+              onClick={() => setTela("export-lynx")}>
+              📥 Exportar .evt
+            </button>
+          )}
           {(isAdmin || isOrg || (usuarioLogado?.tipo === "funcionario" && usuarioLogado?.permissoes?.includes("resultados"))) && (
             <button style={s.btnSecondary} onClick={() => setTela("digitar-resultados")}>✏️ Digitar Resultados</button>
           )}
