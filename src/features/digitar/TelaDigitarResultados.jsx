@@ -300,7 +300,8 @@ function BlocoDigitarCategoria({
   let atletasNaProva = isRevezamento ? [] : inscricoes
     .filter((i) => i.eventoId === eid && i.provaId === filtroProva && (i.categoriaOficialId || i.categoriaId) === catId && i.sexo === filtroSexo && i.tipo !== "revezamento")
     .map((i) => resolverAtleta(i.atletaId, atletas, eventoAtual))
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((a, idx, arr) => arr.findIndex(x => x.id === a.id) === idx); // deduplicar por atletaId
 
   // Para revezamentos: equipes inscritas
   const equipesRevezNaProva = isRevezamento
@@ -320,26 +321,30 @@ function BlocoDigitarCategoria({
   const _temFases = _provaFases.length > 1;
   const faseEfetiva = _temFases ? (filtroFase || _provaFases[0] || "") : "";
 
-  // ── Filtrar atletas pela seriação da fase selecionada (ou fase única) ──
+  // ── Filtrar e ordenar atletas pela seriação da fase selecionada (ou fase única) ──
   const _serDigitar = buscarSeriacao(eventoAtual.seriacao, filtroProva, catId, filtroSexo, faseEfetiva);
+  // Mapa posicional: índice no atletasNaProva → { serie, raia } (preserva ordem da seriação)
+  const _serInfoByIndex = new Map();
   if (_serDigitar?.series && _serDigitar.series.length > 0 && !isRevezamento) {
-    const idsNaSeriacao = _serDigitar.series.flatMap(serie => serie.atletas.map(a => a.id || a.atletaId));
-    const filtrados = atletasNaProva.filter(a => idsNaSeriacao.includes(a.id));
-    if (filtrados.length > 0) {
-      atletasNaProva = filtrados.sort((a, b) => {
-        let sA = 99, rA = 99, sB = 99, rB = 99;
-        for (const serie of _serDigitar.series) {
-          const fA = serie.atletas.find(x => (x.id || x.atletaId) === a.id);
-          if (fA) { sA = serie.numero; rA = fA.raia || 99; }
-          const fB = serie.atletas.find(x => (x.id || x.atletaId) === b.id);
-          if (fB) { sB = serie.numero; rB = fB.raia || 99; }
+    const atletasMap = new Map(atletasNaProva.map(a => [a.id, a]));
+    const atletasDaSeriacao = [];
+    for (const serie of [..._serDigitar.series].sort((a, b) => a.numero - b.numero)) {
+      for (const sa of serie.atletas) {
+        const aId = sa.id || sa.atletaId;
+        const atleta = atletasMap.get(aId) || resolverAtleta(aId, atletas, eventoAtual);
+        if (atleta) {
+          _serInfoByIndex.set(atletasDaSeriacao.length, { serie: String(serie.numero), raia: sa.raia ? String(sa.raia) : "" });
+          atletasDaSeriacao.push(atleta);
         }
-        return sA !== sB ? sA - sB : rA - rB;
-      });
+      }
+    }
+    if (atletasDaSeriacao.length > 0) {
+      atletasNaProva = atletasDaSeriacao;
     }
   }
-  // Helper: buscar série/raia de um atleta na seriação da fase
-  const _getSerInfo = (atletaId) => {
+  // Helper: buscar série/raia pelo índice na lista (posicional) ou por atletaId (fallback)
+  const _getSerInfo = (atletaId, index) => {
+    if (_serInfoByIndex.has(index)) return _serInfoByIndex.get(index);
     if (!_serDigitar?.series) return { serie: "", raia: "" };
     for (const serie of _serDigitar.series) {
       const found = serie.atletas.find(x => (x.id || x.atletaId) === atletaId);
@@ -1667,7 +1672,7 @@ function BlocoDigitarCategoria({
                                 const showSeparadorInativos = atletasInativos.length > 0 && i === idxInativos && !atletasInativos.some(x => x === ordemExibicao[0]);
 
                                 return (
-                                  <React.Fragment key={a.id}>
+                                  <React.Fragment key={`${a.id}-${i}`}>
                                     {showSeparador && (
                                       <tr>
                                         <td colSpan={12} style={{
@@ -1864,8 +1869,8 @@ function BlocoDigitarCategoria({
                     </thead>
                     <tbody>
                       {atletasNaProva.map((a, i) => {
-                        const _si = _getSerInfo(a.id);
-                        const _prevSi = i > 0 ? _getSerInfo(atletasNaProva[i-1].id) : { serie: "" };
+                        const _si = _getSerInfo(a.id, i);
+                        const _prevSi = i > 0 ? _getSerInfo(atletasNaProva[i-1].id, i-1) : { serie: "" };
                         const showSerieHeader = _serDigitar?.series?.length > 1 && _si.serie && _si.serie !== _prevSi.serie;
                         const rawDigits = marcas[a.id]?.marca ?? "";
                         const existMs   = getExist(a,"marca","");
@@ -1875,12 +1880,12 @@ function BlocoDigitarCategoria({
                         const dqRegraVal = marcas[a.id]?.dqRegra ?? existDqRegra;
                         const inputVal = rawDigits !== "" ? rawDigits
                           : existMs !== "" && !existStatus ? String(Math.round(parseFloat(existMs))) : "";
-                        const raiaVal  = marcas[a.id]?.raia  ?? (getExist(a,"raia","") || _getSerInfo(a.id).raia);
+                        const raiaVal  = marcas[a.id]?.raia  ?? (getExist(a,"raia","") || _getSerInfo(a.id, i).raia);
                         const ventoVal = marcas[a.id]?.vento ?? getExist(a,"vento","");
                         const previewFormatado = inputVal && !statusVal ? autoFormatTempo(inputVal) : "";
                         const _nCols = 9 + (temRaia?1:0) + (temVento?1:0) + (_serDigitar?.series?.length>0?1:0);
                         return (
-                          <React.Fragment key={a.id}>
+                          <React.Fragment key={`${a.id}-${i}`}>
                           {showSerieHeader && (
                             <tr><td colSpan={_nCols} style={{ padding:"8px 12px", background: t.accentBg, borderBottom:`2px solid ${t.accentBorder}`, color: t.accent, fontWeight:700, fontSize:12 }}>
                               Série {_si.serie}

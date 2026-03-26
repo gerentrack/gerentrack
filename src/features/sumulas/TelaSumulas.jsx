@@ -526,7 +526,8 @@ function TelaSumulas({ chamada, getPresencaProva }) {
             const atletasList = item.inscs.map(i => {
               const a = resolverAtleta(i.atletaId, atletas, eventoAtual);
               return { ...a, atletaId: a?.id, marcaRef: "" };
-            }).filter(x => x.atletaId);
+            }).filter(x => x.atletaId)
+              .filter((x, idx, arr) => arr.findIndex(y => y.atletaId === x.atletaId) === idx);
             // Embaralhar
             for (let i = atletasList.length - 1; i > 0; i--) {
               const j = Math.floor(Math.random() * (i + 1));
@@ -539,7 +540,8 @@ function TelaSumulas({ chamada, getPresencaProva }) {
             const atletasComMarca = item.inscs.map(i => {
               const a = resolverAtleta(i.atletaId, atletas, eventoAtual);
               return { ...a, atletaId: a?.id, marcaRef: marcasRef[a?.id] || "" };
-            }).filter(x => x.atletaId);
+            }).filter(x => x.atletaId)
+              .filter((x, idx, arr) => arr.findIndex(y => y.atletaId === x.atletaId) === idx);
             const result = SeriacaoEngine.seriarProva(atletasComMarca, item.prova, configEngine);
             setSeriacaoPreview({ ...result, modo: item.modo, chave: item.chave });
           }
