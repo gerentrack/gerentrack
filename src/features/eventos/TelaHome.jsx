@@ -3,6 +3,9 @@ import { getStatusEvento, labelStatusEvento } from "./eventoHelpers";
 import { _getLocalEventoDisplay } from "../../shared/formatters/utils";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
 const getStyles = (t) => ({
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
@@ -162,7 +165,10 @@ function InfoCard({ icon, title, items }) {
   );
 }
 
-export default function TelaHome({ setTela, eventos, inscricoes, atletas, resultados, selecionarEvento, usuarioLogado, excluirEvento, organizadores, equipes, siteBranding, selecionarOrganizador }) {
+export default function TelaHome() {
+  const { usuarioLogado } = useAuth();
+  const { eventos, inscricoes, atletas, resultados, selecionarEvento, excluirEvento, equipes } = useEvento();
+  const { setTela, organizadores, selecionarOrganizador, siteBranding } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const totalResultados = resultados && typeof resultados === "object"

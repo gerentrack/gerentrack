@@ -4,6 +4,9 @@ import { validarCPF, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 function getStyles(t) {
   return {
   formPage:    { maxWidth: 640, margin: "60px auto", padding: "0 24px 80px" },
@@ -136,7 +139,10 @@ function BlocoConsentimentoParental({ responsavel, onResponsavel, aceite, onChan
   );
 }
 
-function TelaCadastroAtletaLogin({ setTela, adicionarAtletaUsuario, adicionarAtleta, atualizarAtleta, atletasUsuarios, atletas, equipes, login, adicionarSolicitacaoRecuperacao, gerarSenhaTemp, organizadores, funcionarios, treinadores, solicitarVinculo }) {
+function TelaCadastroAtletaLogin() {
+  const { login, gerarSenhaTemp, adicionarSolicitacaoRecuperacao } = useAuth();
+  const { atletas, equipes, adicionarAtleta, atualizarAtleta, solicitarVinculo } = useEvento();
+  const { setTela, atletasUsuarios, adicionarAtletaUsuario, organizadores, funcionarios, treinadores } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const [form, setForm] = useState({

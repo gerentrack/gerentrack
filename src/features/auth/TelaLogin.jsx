@@ -4,6 +4,9 @@ import { _getClubeAtleta } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
 function getStyles(t) {
   return {
@@ -27,8 +30,11 @@ function getStyles(t) {
   };
 }
 
-function TelaLogin({ setTela, login, loginComSelecao, equipes, organizadores, atletasUsuarios, funcionarios, treinadores, setPerfisDisponiveis, adminConfig, atletas: atletasBase,
-  atualizarEquipePerfil, setOrganizadores, setAtletasUsuarios, setFuncionarios, setTreinadores, registrarAcao }) {
+function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFuncionarios, setTreinadores }) {
+  // Props extras de segurança (adminConfig, setters) injetadas explicitamente no App.jsx
+  const { login, loginComSelecao, setPerfisDisponiveis } = useAuth();
+  const { equipes, atletas: atletasBase, atualizarEquipePerfil } = useEvento();
+  const { setTela, organizadores, atletasUsuarios, funcionarios, treinadores, registrarAcao } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const [ident,   setIdent]   = useState("");

@@ -8,8 +8,14 @@ import { formatarMarca } from "../../shared/formatters/utils";
 import { criarInscricaoStyles } from "../inscricoes/inscricaoStyles";
 import { useTema } from "../../shared/TemaContext";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
-function TelaRecordes({ recordes, setRecordes, eventos, atletas, equipes, getClubeAtleta, usuarioLogado, setTela, pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes, registrarAcao }) {
+function TelaRecordes() {
+  const { usuarioLogado } = useAuth();
+  const { recordes, setRecordes, eventos, atletas, equipes, getClubeAtleta, pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes } = useEvento();
+  const { setTela, registrarAcao } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(criarInscricaoStyles(t));
   const confirmar = useConfirm();

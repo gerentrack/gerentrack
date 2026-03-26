@@ -8,8 +8,14 @@ import { useTema } from "../../shared/TemaContext";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { GT_DEFAULT_LOGO } from "../../shared/branding";
 import QRCode from "qrcode";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
-export default function TelaRanking({ ranking, setRanking, historicoRanking, setHistoricoRanking, atletas, equipes, usuarioLogado, registrarAcao, setTela }) {
+export default function TelaRanking() {
+  const { usuarioLogado } = useAuth();
+  const { ranking, setRanking, historicoRanking, setHistoricoRanking, atletas, equipes } = useEvento();
+  const { setTela, registrarAcao } = useApp();
   const t = useTema();
   const base = criarInscricaoStyles(t);
   const s = useStylesResponsivos({

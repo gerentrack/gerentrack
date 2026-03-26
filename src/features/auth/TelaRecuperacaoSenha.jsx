@@ -3,8 +3,14 @@ import React, { useState } from "react";
 import { auth, sendPasswordResetEmail } from "../../firebase";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
-function TelaRecuperacaoSenha({ setTela, equipes, organizadores, atletasUsuarios, funcionarios, treinadores, gerarSenhaTemp, aplicarSenhaTemp, adicionarSolicitacaoRecuperacao }) {
+function TelaRecuperacaoSenha() {
+  const { gerarSenhaTemp, aplicarSenhaTemp, adicionarSolicitacaoRecuperacao } = useAuth();
+  const { equipes } = useEvento();
+  const { setTela, organizadores, atletasUsuarios, funcionarios, treinadores } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(criarAuthStyles(t));
   const [perfil, setPerfil]   = useState("");

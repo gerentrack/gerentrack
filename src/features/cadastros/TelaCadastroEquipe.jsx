@@ -5,6 +5,9 @@ import FormField from "../ui/FormField";
 import { criarInscricaoStyles } from "../inscricoes/inscricaoStyles";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
 // ── Bloco de Consentimento LGPD ──────────────────────────────────────────────
 function BlocoLGPD({ aceite, onChange, erro }) {
@@ -71,7 +74,10 @@ function BlocoLGPD({ aceite, onChange, erro }) {
   );
 }
 
-function TelaCadastroEquipe({ setTela, adicionarEquipe, login, organizadores, usuarioLogado, equipes, atletasUsuarios, funcionarios, treinadores, adicionarSolicitacaoEquipe }) {
+function TelaCadastroEquipe() {
+  const { usuarioLogado, login } = useAuth();
+  const { equipes, adicionarEquipe } = useEvento();
+  const { setTela, organizadores, atletasUsuarios, funcionarios, treinadores, adicionarSolicitacaoEquipe } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(criarInscricaoStyles(t));
   const [form, setForm] = useState({ nome: "", sigla: "", cidade: "", uf: "", email: "", senha: "", cnpj: "", fone: "", organizadorId: "" });

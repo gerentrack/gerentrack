@@ -3,8 +3,14 @@ import React, { useState } from "react";
 import FormField from "../ui/FormField";
 import { useTema } from "../../shared/TemaContext";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
-function TelaTrocarSenha({ usuarioLogado, setTela, atualizarSenha, equipes, organizadores, atletasUsuarios }) {
+function TelaTrocarSenha() {
+  const { usuarioLogado, atualizarSenha } = useAuth();
+  const { equipes } = useEvento();
+  const { setTela, organizadores, atletasUsuarios } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(criarAuthStyles(t));
   const [novaSenha, setNovaSenha] = useState("");

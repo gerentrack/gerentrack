@@ -5,6 +5,8 @@ import FormField from "../ui/FormField";
 import { criarInscricaoStyles } from "../inscricoes/inscricaoStyles";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useApp } from "../../contexts/AppContext";
 
 // ── Bloco de Consentimento LGPD ──────────────────────────────────────────────
 function BlocoLGPD({ aceite, onChange, erro }) {
@@ -71,7 +73,9 @@ function BlocoLGPD({ aceite, onChange, erro }) {
   );
 }
 
-function TelaCadastroOrganizador({ setTela, adicionarOrganizador, login, organizadores }) {
+function TelaCadastroOrganizador() {
+  const { login } = useAuth();
+  const { setTela, organizadores, adicionarOrganizador } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(criarInscricaoStyles(t));
   const [form, setForm] = useState({ nome:"", email:"", senha:"", entidade:"", fone:"", cnpj:"", equipeId:"", cidade:"", estado:"" });
