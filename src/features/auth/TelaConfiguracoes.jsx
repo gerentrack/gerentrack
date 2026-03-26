@@ -118,6 +118,7 @@ function TelaConfiguracoes({
   exportarDados, importarDados, limparTodosDados,
   atualizarAtleta,
   solicitacoesPortabilidade, adicionarSolicitacaoPortabilidade,
+  editarOrganizadorAdmin, selecionarOrganizador,
 }) {
   const t = useTema();
   const s = useStylesResponsivos(getS(t));
@@ -152,6 +153,59 @@ function TelaConfiguracoes({
   const [heroBgUrl, setHeroBgUrl] = useState(siteBranding?.heroBg || "");
   const [heroBgPreview, setHeroBgPreview] = useState(siteBranding?.heroBg || "");
   const [uploadandoHero, setUploadandoHero] = useState(false);
+
+  // ── Perfil Público do Organizador ──────────────────────────────────────────
+  const meuOrgPerfil = isOrg ? organizadores?.find(o => o.id === usuarioLogado?.id) : null;
+  const [perfilForm, setPerfilForm] = useState({
+    descricao: meuOrgPerfil?.descricao || "",
+    site: meuOrgPerfil?.site || "",
+    cidade: meuOrgPerfil?.cidade || "",
+    estado: meuOrgPerfil?.estado || "",
+    corPrimaria: meuOrgPerfil?.corPrimaria || "#1976D2",
+    corSecundaria: meuOrgPerfil?.corSecundaria || "#0D47A1",
+    instagram: meuOrgPerfil?.redesSociais?.instagram || "",
+    facebook: meuOrgPerfil?.redesSociais?.facebook || "",
+    twitter: meuOrgPerfil?.redesSociais?.twitter || "",
+  });
+  const [perfilUploading, setPerfilUploading] = useState(false);
+  const [perfilSalvo, setPerfilSalvo] = useState(false);
+
+  const uploadImagemOrg = async (file, tipo) => {
+    if (!meuOrgPerfil || !editarOrganizadorAdmin) return;
+    setPerfilUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const ref = storageRef(storage, `organizadores/${meuOrgPerfil.id}/${tipo}.${ext}`);
+      await uploadBytes(ref, file);
+      const url = await getDownloadURL(ref);
+      editarOrganizadorAdmin({ ...meuOrgPerfil, [tipo]: url });
+      setPerfilUploading(false);
+    } catch (err) {
+      console.error("Erro upload:", err);
+      setPerfilUploading(false);
+      alert("Erro ao enviar imagem. Tente novamente.");
+    }
+  };
+
+  const salvarPerfilOrg = () => {
+    if (!meuOrgPerfil || !editarOrganizadorAdmin) return;
+    editarOrganizadorAdmin({
+      ...meuOrgPerfil,
+      descricao: perfilForm.descricao.trim(),
+      site: perfilForm.site.trim(),
+      cidade: perfilForm.cidade.trim(),
+      estado: perfilForm.estado.trim().toUpperCase().slice(0, 2),
+      corPrimaria: perfilForm.corPrimaria,
+      corSecundaria: perfilForm.corSecundaria,
+      redesSociais: {
+        instagram: perfilForm.instagram.trim(),
+        facebook: perfilForm.facebook.trim(),
+        twitter: perfilForm.twitter.trim(),
+      },
+    });
+    setPerfilSalvo(true);
+    setTimeout(() => setPerfilSalvo(false), 3000);
+  };
 
   // ── State da aba Incidente LGPD ──────────────────────────────────────────
   const [incTipos, setIncTipos] = useState({
@@ -340,6 +394,7 @@ function TelaConfiguracoes({
         <button style={tabStyle("dados")} onClick={() => { setAba("dados"); setErro(""); }}>📝 Dados Pessoais</button>
         <button style={tabStyle("senha")} onClick={() => { setAba("senha"); setErro(""); }}>🔒 Alterar Senha</button>
         {!isAdmin && <button style={tabStyle("conta")} onClick={() => { setAba("conta"); setErro(""); }}>ℹ️ Minha Conta</button>}
+        {isOrg    && <button style={tabStyle("perfil")} onClick={() => { setAba("perfil"); setErro(""); }}>🏢 Perfil Público</button>}
         {isAdmin  && <button style={tabStyle("aparencia")} onClick={() => { setAba("aparencia"); setErro(""); }}>⚙️ Configurações Avançadas</button>}
         {isAdmin  && <button style={tabStyle("incidente")} onClick={() => { setAba("incidente"); setErro(""); }}>🚨 Incidente LGPD</button>}
       </div>
@@ -710,6 +765,115 @@ function TelaConfiguracoes({
           </div>
         </div>
       )}
+      {/* ── ABA: PERFIL PÚBLICO (organizador only) ──────────────────────────── */}
+      {aba === "perfil" && isOrg && meuOrgPerfil && (
+        <div style={{ maxWidth: 700 }}>
+          <div style={s.card}>
+            <h3 style={s.sectionTitle}>🏢 Perfil Público</h3>
+            <div style={{ fontSize: 13, color: t.textDimmed, marginBottom: 16, lineHeight: 1.6 }}>
+              Configure as informações que aparecem na sua página pública.
+              {meuOrgPerfil.slug && (
+                <span style={{ display: "block", marginTop: 4 }}>
+                  Sua URL: <strong style={{ color: t.accent }}>gerentrack.com.br/{meuOrgPerfil.slug}</strong>
+                </span>
+              )}
+            </div>
+
+            {perfilSalvo && <div style={s.okBox}>✓ Perfil salvo com sucesso!</div>}
+
+            {/* Logo + Banner */}
+            <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "flex-start", marginBottom: 20 }}>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: t.textMuted, letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" }}>Logo</div>
+                <div style={{ width: 90, height: 90, borderRadius: 14, overflow: "hidden", border: `2px solid ${(meuOrgPerfil.corPrimaria || t.accent)}33`, background: t.bgCardAlt, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 8px" }}>
+                  {meuOrgPerfil.logo ? <img src={meuOrgPerfil.logo} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} /> : <span style={{ fontSize: 40, opacity: 0.3 }}>🏢</span>}
+                </div>
+                <label style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 6, padding: "5px 14px", cursor: "pointer", fontSize: 12, color: t.textTertiary }}>
+                  {perfilUploading ? "Enviando..." : "Alterar logo"}
+                  <input type="file" accept="image/*" style={{ display: "none" }} disabled={perfilUploading} onChange={e => { const f = e.target.files?.[0]; if (f) uploadImagemOrg(f, "logo"); }} />
+                </label>
+              </div>
+              <div style={{ flex: 1, minWidth: 220 }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: t.textMuted, letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" }}>Banner / Capa</div>
+                <div style={{ width: "100%", height: 120, borderRadius: 12, overflow: "hidden", border: `1px solid ${t.border}`, background: meuOrgPerfil.banner ? "transparent" : `linear-gradient(135deg, ${perfilForm.corPrimaria}, ${perfilForm.corSecundaria})`, marginBottom: 8 }}>
+                  {meuOrgPerfil.banner && <img src={meuOrgPerfil.banner} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
+                </div>
+                <label style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 6, padding: "5px 14px", cursor: "pointer", fontSize: 12, color: t.textTertiary }}>
+                  {perfilUploading ? "Enviando..." : "Alterar banner"}
+                  <input type="file" accept="image/*" style={{ display: "none" }} disabled={perfilUploading} onChange={e => { const f = e.target.files?.[0]; if (f) uploadImagemOrg(f, "banner"); }} />
+                </label>
+              </div>
+            </div>
+
+            {/* Cores */}
+            <div style={{ display: "flex", gap: 20, flexWrap: "wrap", marginBottom: 20 }}>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: t.textMuted, letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" }}>Cor Primária</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <input type="color" value={perfilForm.corPrimaria} onChange={e => setPerfilForm(p => ({ ...p, corPrimaria: e.target.value }))}
+                    style={{ width: 44, height: 38, border: "none", cursor: "pointer", background: "transparent" }} />
+                  <input type="text" value={perfilForm.corPrimaria} onChange={e => setPerfilForm(p => ({ ...p, corPrimaria: e.target.value }))}
+                    style={{ ...s.input, width: 100, marginBottom: 0 }} />
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: t.textMuted, letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" }}>Cor Secundária</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <input type="color" value={perfilForm.corSecundaria} onChange={e => setPerfilForm(p => ({ ...p, corSecundaria: e.target.value }))}
+                    style={{ width: 44, height: 38, border: "none", cursor: "pointer", background: "transparent" }} />
+                  <input type="text" value={perfilForm.corSecundaria} onChange={e => setPerfilForm(p => ({ ...p, corSecundaria: e.target.value }))}
+                    style={{ ...s.input, width: 100, marginBottom: 0 }} />
+                </div>
+              </div>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 6, paddingBottom: 4 }}>
+                <div style={{ width: 80, height: 32, borderRadius: 8, background: `linear-gradient(135deg, ${perfilForm.corPrimaria}, ${perfilForm.corSecundaria})` }} />
+                <span style={{ fontSize: 10, color: t.textDimmed }}>Preview</span>
+              </div>
+            </div>
+
+            {/* Localização */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 100px", gap: 12, marginBottom: 16 }}>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: t.textMuted, letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" }}>Cidade</div>
+                <input type="text" value={perfilForm.cidade} onChange={e => setPerfilForm(p => ({ ...p, cidade: e.target.value }))} style={{ ...s.input, marginBottom: 0 }} />
+              </div>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: t.textMuted, letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" }}>UF</div>
+                <input type="text" value={perfilForm.estado} maxLength={2} onChange={e => setPerfilForm(p => ({ ...p, estado: e.target.value }))} style={{ ...s.input, marginBottom: 0, textTransform: "uppercase" }} />
+              </div>
+            </div>
+
+            {/* Descrição */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: t.textMuted, letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" }}>Descrição / Sobre</div>
+              <textarea value={perfilForm.descricao} onChange={e => setPerfilForm(p => ({ ...p, descricao: e.target.value }))}
+                rows={4} placeholder="Fale sobre sua organização..."
+                style={{ ...s.input, resize: "vertical", minHeight: 80, marginBottom: 0 }} />
+            </div>
+
+            {/* Site e Redes Sociais */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
+              <FormField label="Site" value={perfilForm.site} onChange={v => setPerfilForm(p => ({ ...p, site: v }))} placeholder="www.exemplo.com.br" />
+              <FormField label="Instagram" value={perfilForm.instagram} onChange={v => setPerfilForm(p => ({ ...p, instagram: v }))} placeholder="@perfil" />
+              <FormField label="Facebook" value={perfilForm.facebook} onChange={v => setPerfilForm(p => ({ ...p, facebook: v }))} placeholder="pagina ou URL" />
+              <FormField label="X / Twitter" value={perfilForm.twitter} onChange={v => setPerfilForm(p => ({ ...p, twitter: v }))} placeholder="@perfil" />
+            </div>
+
+            {/* Botões */}
+            <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+              <button style={s.btnPrimary} onClick={salvarPerfilOrg}>💾 Salvar Perfil</button>
+              {meuOrgPerfil.slug && (
+                <button style={s.btnSecondary} onClick={() => {
+                  if (selecionarOrganizador) selecionarOrganizador(meuOrgPerfil.id);
+                }}>
+                  👁 Ver Página Pública
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── ABA: CONFIGURAÇÕES AVANÇADAS (admin only) ───────────────────────── */}
       {aba === "aparencia" && isAdmin && (
         <div style={{ maxWidth: 700 }}>

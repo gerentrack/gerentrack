@@ -162,7 +162,7 @@ function InfoCard({ icon, title, items }) {
   );
 }
 
-export default function TelaHome({ setTela, eventos, inscricoes, atletas, resultados, selecionarEvento, usuarioLogado, excluirEvento, organizadores, equipes, siteBranding }) {
+export default function TelaHome({ setTela, eventos, inscricoes, atletas, resultados, selecionarEvento, usuarioLogado, excluirEvento, organizadores, equipes, siteBranding, selecionarOrganizador }) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const totalResultados = resultados && typeof resultados === "object"
@@ -262,13 +262,13 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
                 (ev.sumulaLiberada && usuarioLogado);
               return temAcessoSumula && (
                 <button style={{...s.btnSecondary, flex:1}} onClick={() => { selecionarEvento(ev.id); setTela("sumulas"); }}>
-                  📋 Súmulas
+                  Súmulas
                 </button>
               );
             })()}
             {(status === "ao_vivo" || status === "encerrado" || status === "hoje_pre") && (
               <button style={{...s.btnSecondary, flex:1}} onClick={() => { selecionarEvento(ev.id); setTela("resultados"); }}>
-                🏆 Resultados
+                Resultados
               </button>
             )}
           </div>
@@ -353,10 +353,63 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
         </div>
       </div>
 
+      {/* ── ORGANIZADORES ── */}
+      {(() => {
+        const orgsAtivos = (organizadores || []).filter(o => o.status === "aprovado");
+        const orgsComEventos = orgsAtivos.filter(o =>
+          eventos.some(ev => ev.organizadorId === o.id && (!ev.statusAprovacao || ev.statusAprovacao === "aprovado"))
+        );
+        if (orgsComEventos.length === 0) return null;
+        return (
+          <div style={{ marginBottom: 40 }}>
+            <h2 style={s.sectionTitle}>Organizadores</h2>
+            <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 8 }}>
+              {orgsComEventos.map(org => {
+                const nComp = eventos.filter(ev => ev.organizadorId === org.id && (!ev.statusAprovacao || ev.statusAprovacao === "aprovado")).length;
+                const corPri = org.corPrimaria || t.accent;
+                return (
+                  <div key={org.id}
+                    onClick={() => {
+                      if (selecionarOrganizador) selecionarOrganizador(org.id);
+                    }}
+                    style={{
+                      flex: "0 0 auto", width: 160, background: t.bgCard,
+                      border: `1px solid ${t.border}`, borderRadius: 14,
+                      padding: "18px 14px", textAlign: "center", cursor: "pointer",
+                      transition: "border-color 0.2s, transform 0.15s",
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = corPri; e.currentTarget.style.transform = "translateY(-2px)"; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.transform = "translateY(0)"; }}>
+                    <div style={{
+                      width: 56, height: 56, borderRadius: 12, margin: "0 auto 10px",
+                      overflow: "hidden", background: t.bgCardAlt,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      border: `2px solid ${corPri}33`,
+                    }}>
+                      {org.logo ? (
+                        <img src={org.logo} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                      ) : (
+                        <span style={{ fontSize: 16, opacity: 0.4, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, color: t.textDisabled }}>ORG</span>
+                      )}
+                    </div>
+                    <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, fontWeight: 700, color: t.textPrimary, lineHeight: 1.2, marginBottom: 4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                      {org.entidade || org.nome}
+                    </div>
+                    <div style={{ fontSize: 11, color: t.textDimmed }}>
+                      {nComp} competição{nComp !== 1 ? "ões" : ""}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* ── PRÓXIMOS EVENTOS (mês atual) ── */}
       {aprovados.length === 0 ? (
         <div style={s.emptyState}>
-          <span style={{ fontSize:56 }}>🏟</span>
+          <span style={{ fontSize:20, color: t.textDisabled, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>SEM COMPETIÇÕES</span>
           <p>Nenhuma competição cadastrada ainda.</p>
           {usuarioLogado?.tipo === "admin" && (
             <button style={{ ...s.btnPrimary, width:"auto" }} onClick={() => { selecionarEvento(null); setTela("novo-evento"); }}>
@@ -368,7 +421,7 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
         <>
           {proximosEventos.length > 0 && (
             <div style={{ marginBottom:48 }}>
-              <h2 style={s.sectionTitle}>📅 Próximos Eventos</h2>
+              <h2 style={s.sectionTitle}>Próximos Eventos</h2>
               <div style={s.eventosGrid}>
                 {proximosEventos.map(ev => renderEvCard(ev))}
               </div>
@@ -379,7 +432,7 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
             <div style={{ marginBottom:48 }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:24 }}>
                 <h2 style={{ ...s.sectionTitle, margin:0 }}>
-                  📋 Mais Eventos
+                  Mais Eventos
                   {totalPagsMais > 1 && <span style={{ color: t.textDimmed, fontSize:16, fontWeight:400, marginLeft:10 }}>— Seção {maisEventosPag + 1} de {totalPagsMais}</span>}
                 </h2>
                 {totalPagsMais > 1 && (
@@ -407,7 +460,7 @@ export default function TelaHome({ setTela, eventos, inscricoes, atletas, result
 
       {eventosPassados.length > 0 && (
         <div style={{ marginBottom:48 }}>
-          <h2 style={s.sectionTitle}>🏆 Competições Finalizadas</h2>
+          <h2 style={s.sectionTitle}>Competições Finalizadas</h2>
           <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
             {eventosPassados.map(ev => {
               const dataFmt = ev.data ? new Date(ev.data + "T12:00:00").toLocaleDateString("pt-BR") : "—";

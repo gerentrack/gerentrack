@@ -74,7 +74,7 @@ function BlocoLGPD({ aceite, onChange, erro }) {
 function TelaCadastroOrganizador({ setTela, adicionarOrganizador, login, organizadores }) {
   const t = useTema();
   const s = useStylesResponsivos(criarInscricaoStyles(t));
-  const [form, setForm] = useState({ nome:"", email:"", senha:"", entidade:"", fone:"", cnpj:"", equipeId:"" });
+  const [form, setForm] = useState({ nome:"", email:"", senha:"", entidade:"", fone:"", cnpj:"", equipeId:"", cidade:"", estado:"" });
   const [erros, setErros] = useState({});
   const [ok, setOk] = useState(false);
   const [lgpdAceite, setLgpdAceite] = useState(false);
@@ -147,6 +147,8 @@ function TelaCadastroOrganizador({ setTela, adicionarOrganizador, login, organiz
         <FormField label="Telefone"             value={form.fone}      onChange={v=>setForm({...form,fone:v})} />
         <FormField label="Senha *"              value={form.senha}     onChange={v=>setForm({...form,senha:v})}     type="password" error={erros.senha} />
         <FormField label="CNPJ *"                value={form.cnpj}      onChange={v=>setForm({...form,cnpj:v})} placeholder="00.000.000/0001-00" error={erros.cnpj} />
+        <FormField label="Cidade"               value={form.cidade}    onChange={v=>setForm({...form,cidade:v})} />
+        <FormField label="Estado (UF)"          value={form.estado}    onChange={v=>setForm({...form,estado:v})} placeholder="SP" />
       </div>
       <BlocoLGPD aceite={lgpdAceite} onChange={setLgpdAceite} erro={erros.lgpd} />
       <button style={{ ...s.btnPrimary, marginTop: 16 }} onClick={handleSubmit}>Criar Conta</button>

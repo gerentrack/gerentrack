@@ -178,7 +178,7 @@ function StatCard({ value, label }) {
 }
 
 function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultados, usuarioLogado, alterarStatusEvento, selecionarEvento, recordes, setRecordes, equipes, getClubeAtleta, editarEvento, pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes, RecordDetectionEngine, RankingExtractionEngine, ranking, setRanking, organizadores = [],
-  setCadEventoGoStep, funcionarios }) {
+  setCadEventoGoStep, funcionarios, selecionarOrganizador }) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const confirmar = useConfirm();
@@ -597,13 +597,29 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
     <div style={s.page}>
 
       {/* ══ CABEÇALHO ═══════════════════════════════════════════════════════ */}
+      {(() => {
+        const orgEvt = organizadores.find(o => o.id === eventoAtual.organizadorId);
+        if (!orgEvt) return null;
+        const corOrg = orgEvt.corPrimaria || t.accent;
+        return (
+          <div
+            style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "6px 14px", background: `${corOrg}08`, border: `1px solid ${corOrg}22`, borderRadius: 10, marginBottom: 16, cursor: orgEvt.slug ? "pointer" : "default", transition: "border-color 0.2s" }}
+            onClick={() => { if (orgEvt.slug && selecionarOrganizador) selecionarOrganizador(orgEvt.id); }}
+            onMouseEnter={e => { if (orgEvt.slug) e.currentTarget.style.borderColor = `${corOrg}66`; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = `${corOrg}22`; }}>
+            {orgEvt.logo && (
+              <img src={orgEvt.logo} alt="" style={{ width: 28, height: 28, borderRadius: 6, objectFit: "contain", background: "#fff", border: `1px solid ${corOrg}22` }} />
+            )}
+            <span style={{ fontSize: 13, fontWeight: 600, color: corOrg }}>{orgEvt.entidade || orgEvt.nome}</span>
+            {(orgEvt.cidade || orgEvt.estado) && (
+              <span style={{ fontSize: 11, color: t.textDimmed }}>· {[orgEvt.cidade, orgEvt.estado].filter(Boolean).join(", ")}</span>
+            )}
+          </div>
+        );
+      })()}
+
       <div style={s.painelHeader}>
         <div style={{ flex: 1 }}>
-          {eventoAtual.logoCompeticao && (
-            <div style={{ marginBottom: 14, padding: 16, background: "#fff", borderRadius: 12, border: `1px solid ${t.border}`, display: "inline-block" }}>
-              <img src={eventoAtual.logoCompeticao} alt="" style={{ maxWidth: 220, maxHeight: 140, objectFit: "contain", display: "block" }} />
-            </div>
-          )}
           <div style={{ color: t.textDimmed, fontSize: 13, marginBottom: 6 }}>
             📅 {new Date(eventoAtual.data + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
             {eventoAtual.horaInicio && <> · ⏰ {eventoAtual.horaInicio}h</>}
@@ -670,7 +686,14 @@ function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultad
             </div>
           )}
         </div>
-        <button style={s.btnGhost} onClick={() => setTela("home")}>← Competições</button>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 10, flexShrink: 0 }}>
+          <button style={s.btnGhost} onClick={() => setTela("home")}>← Competições</button>
+          {eventoAtual.logoCompeticao && (
+            <div style={{ padding: 12, background: "#fff", borderRadius: 12, border: `1px solid ${t.border}` }}>
+              <img src={eventoAtual.logoCompeticao} alt="" style={{ maxWidth: 180, maxHeight: 120, objectFit: "contain", display: "block" }} />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ══ STATS ════════════════════════════════════════════════════════════ */}

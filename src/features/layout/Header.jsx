@@ -28,11 +28,11 @@ function getStyles(t) { return {
   logoTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 24, fontWeight: 900, color: t.accent, letterSpacing: 3, lineHeight: 1 },
   logoTitleMobile: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 900, color: t.accent, letterSpacing: 2, lineHeight: 1 },
   logoSub: { fontSize: 11, color: t.textDimmed, letterSpacing: 1.5, marginTop: 3 },
-  nav: { display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" },
-  btnNav: { background: "transparent", border: `1px solid ${t.borderLight}`, color: t.textSecondary, padding: "10px 20px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", whiteSpace: "nowrap" },
+  nav: { display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" },
+  btnNav: { background: "transparent", border: `1px solid ${t.borderLight}`, color: t.textSecondary, padding: "7px 14px", borderRadius: 6, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", whiteSpace: "nowrap" },
   btnNavMobile: { background: "transparent", border: `1px solid ${t.borderLight}`, color: t.textSecondary, padding: "10px 16px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", whiteSpace: "nowrap", width: "100%" },
   btnNavActive: { background: t.bgHover, borderColor: t.accent, color: t.accent },
-  btnSair: { background: "transparent", border: `1px solid ${t.danger}33`, color: t.danger, padding: "10px 20px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow', sans-serif" },
+  btnSair: { background: "transparent", border: `1px solid ${t.danger}33`, color: t.danger, padding: "7px 14px", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 700, fontFamily: "'Barlow', sans-serif" },
   btnSairMobile: { background: "transparent", border: `1px solid ${t.danger}33`, color: t.danger, padding: "10px 16px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow', sans-serif", width: "100%" },
   eventoBar: { background: t.bgHeaderSolid, borderTop: `1px solid ${t.border}`, padding: "6px 24px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" },
   eventoBarMobile: { background: t.bgHeaderSolid, borderTop: `1px solid ${t.border}`, padding: "6px 12px", display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 4 },
@@ -94,29 +94,29 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
           {usuarioLogado.tipo === "treinador"    && <NavBtn styles={styles} onClick={() => navegar("painel-equipe")}       label="Painel" active mobile={mobile} />}
           {usuarioLogado.tipo === "organizador" && <NavBtn styles={styles} onClick={() => navegar("painel-organizador")}  label="Painel" active mobile={mobile} />}
           {usuarioLogado.tipo === "funcionario"  && <NavBtn styles={styles} onClick={() => navegar("painel-organizador")}  label="Painel" active mobile={mobile} />}
-          {usuarioLogado.tipo === "atleta"      && <NavBtn styles={styles} onClick={() => navegar("painel-atleta")}       label="Meu Painel" active mobile={mobile} />}
+          {usuarioLogado.tipo === "atleta"      && <NavBtn styles={styles} onClick={() => navegar("painel-atleta")}       label="Painel" active mobile={mobile} />}
           {usuarioLogado.tipo === "admin"       && <NavBtn styles={styles} onClick={() => navegar("admin")}               label="Admin" mobile={mobile} />}
 
           {usuarioLogado._temOutrosPerfis && perfisDisponiveis?.length > 1 && (
             <button
               onClick={() => navegar("selecionar-perfil")}
               title="Trocar perfil / organizador"
-              style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 10px", background: t.accentBg,
-                border: `1px solid ${t.accentBorder}`, borderRadius: 6, cursor: "pointer", fontSize: 11, color: t.accent,
+              style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 8px", background: t.accentBg,
+                border: `1px solid ${t.accentBorder}`, borderRadius: 6, cursor: "pointer", fontSize: 10, color: t.accent,
                 fontFamily: "'Barlow', sans-serif", fontWeight: 600, ...(mobile ? { width: "100%", padding: "10px 16px", fontSize: 13, justifyContent: "center" } : {}) }}
             >
-              Trocar Perfil
+              Trocar
             </button>
           )}
 
           <button
             onClick={() => navegar("configuracoes")}
-            style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 6, cursor: "pointer", ...(mobile ? { width: "100%", padding: "10px 16px" } : {}) }}
+            style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 8px", background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 6, cursor: "pointer", ...(mobile ? { width: "100%", padding: "10px 16px" } : {}) }}
             title="Configurações da conta"
           >
             <span style={{ fontSize: 11, color: t.textDimmed }}>👤</span>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-              <span style={{ fontSize: 12, color: t.textTertiary, maxWidth: mobile ? "none" : 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{usuarioLogado.nome}</span>
+              <span style={{ fontSize: 11, color: t.textTertiary, maxWidth: mobile ? "none" : 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{usuarioLogado.nome}</span>
               {usuarioLogado._organizadorNome && (
                 <span style={{ fontSize: 9, color: t.accent, maxWidth: mobile ? "none" : 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{usuarioLogado._organizadorNome}</span>
               )}
@@ -173,7 +173,7 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
     </div>
   );
 
-  const showEventoBar = eventoAtual && !["home","login","cadastro-equipe","cadastro-organizador","cadastro-atleta-login","recuperar-senha","trocar-senha","selecionar-perfil","configuracoes","recordes","ranking","painel","painel-organizador","gerenciar-equipes","funcionarios","cadastrar-atleta","editar-atleta","importar-atletas","treinadores","gerenciar-inscricoes","painel-atleta","admin"].includes(tela);
+  const showEventoBar = eventoAtual && !["home","login","cadastro-equipe","cadastro-organizador","cadastro-atleta-login","recuperar-senha","trocar-senha","selecionar-perfil","configuracoes","recordes","ranking","painel","painel-organizador","gerenciar-equipes","funcionarios","cadastrar-atleta","editar-atleta","importar-atletas","treinadores","gerenciar-inscricoes","painel-atleta","admin","organizador-perfil"].includes(tela);
 
   return (
     <>

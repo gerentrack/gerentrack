@@ -95,6 +95,8 @@ import TelaExportLynx              from "./features/utilidades/TelaExportLynx";
 import TelaGestaoInscricoes        from "./features/utilidades/TelaGestaoInscricoes";
 import TelaGerenciarMembros        from "./features/utilidades/TelaGerenciarMembros";
 import TelaAuditoria               from "./features/utilidades/TelaAuditoria";
+// Organizadores
+import TelaPerfilOrganizador       from "./features/organizadores/TelaPerfilOrganizador";
 
 // Firebase — apenas auth (Firestore é usado internamente pelos hooks de storage)
 import {
@@ -207,6 +209,7 @@ function App() {
   const [ranking, setRanking] = useLocalStorage("atl_ranking", []);
   const [historicoRanking, setHistoricoRanking] = useLocalStorage("atl_historico_ranking", []);
   const [eventoAtualId, setEventoAtualId] = useLocalOnly("atl_eventoAtualId", null);
+  const [organizadorPerfilId, setOrganizadorPerfilId] = React.useState(null);
   // Substitutos para window.__ globals
   const [atletaEditandoId, setAtletaEditandoId] = React.useState(null);
   const [cadEventoGoStep, setCadEventoGoStep]   = React.useState(null);
@@ -295,6 +298,10 @@ function App() {
   // ── Hash-based routing ──
   const eventoAtualIdRef = useRef(eventoAtualId);
   eventoAtualIdRef.current = eventoAtualId;
+  const organizadorPerfilIdRef = useRef(organizadorPerfilId);
+  organizadorPerfilIdRef.current = organizadorPerfilId;
+  const organizadoresRef = useRef(organizadores);
+  organizadoresRef.current = organizadores;
 
   const setTela = useCallback((novaTela, { replace = false } = {}) => {
     _setTela(novaTela);
@@ -308,12 +315,17 @@ function App() {
       const ev = eventosRef.current.find(e => e.id === evtId);
       path = `/competicao/${ev?.slug || evtId}/resultados`;
     }
+    else if (novaTela === "organizador-perfil") {
+      const orgId = organizadorPerfilIdRef.current;
+      const orgItem = organizadoresRef.current.find(o => o.id === orgId);
+      if (orgItem?.slug) path = `/${orgItem.slug}`;
+    }
     else if (novaTela === "recordes") path = "/recordes";
     else if (novaTela === "ranking") path = "/ranking";
     else if (novaTela === "login") path = "/entrar";
     else if (novaTela === "home") path = "/";
     if (path) {
-      const state = { tela: novaTela, eventoId: evtId || null };
+      const state = { tela: novaTela, eventoId: evtId || null, organizadorPerfilId: organizadorPerfilIdRef.current || null };
       if (replace) window.history.replaceState(state, "", path);
       else         window.history.pushState(state, "", path);
     }
@@ -337,8 +349,14 @@ function App() {
     if (path === "/recordes") return { tela: "recordes" };
     if (path === "/ranking") return { tela: "ranking" };
     if (path === "/entrar") return { tela: "login" };
+    // ── Slug do organizador (última checagem — ocupa raiz /{slug}) ──
+    const orgSlug = path.replace(/^\//, "").replace(/\/$/, "");
+    if (orgSlug && !orgSlug.includes("/")) {
+      const orgItem = organizadores.find(o => o.slug === orgSlug);
+      if (orgItem) return { tela: "organizador-perfil", organizadorPerfilId: orgItem.id };
+    }
     return null;
-  }, [eventos]);
+  }, [eventos, organizadores]);
 
   // Ler path na inicialização (apenas uma vez quando eventos carregam)
   const hashProcessado = useRef(false);
@@ -352,9 +370,13 @@ function App() {
         setEventoAtualId(resultado.eventoId);
         eventoAtualIdRef.current = resultado.eventoId;
       }
+      if (resultado.organizadorPerfilId) {
+        setOrganizadorPerfilId(resultado.organizadorPerfilId);
+        organizadorPerfilIdRef.current = resultado.organizadorPerfilId;
+      }
       _setTela(resultado.tela);
       // Setar state inicial no histórico para que popstate funcione
-      window.history.replaceState({ tela: resultado.tela, eventoId: resultado.eventoId || null }, "");
+      window.history.replaceState({ tela: resultado.tela, eventoId: resultado.eventoId || null, organizadorPerfilId: resultado.organizadorPerfilId || null }, "");
     }
   }, [eventos.length]);
 
@@ -367,6 +389,10 @@ function App() {
           setEventoAtualId(state.eventoId);
           eventoAtualIdRef.current = state.eventoId;
         }
+        if (state.organizadorPerfilId) {
+          setOrganizadorPerfilId(state.organizadorPerfilId);
+          organizadorPerfilIdRef.current = state.organizadorPerfilId;
+        }
         _setTela(state.tela);
       } else {
         // Fallback: resolver a partir da URL atual
@@ -375,6 +401,10 @@ function App() {
           if (resultado.eventoId) {
             setEventoAtualId(resultado.eventoId);
             eventoAtualIdRef.current = resultado.eventoId;
+          }
+          if (resultado.organizadorPerfilId) {
+            setOrganizadorPerfilId(resultado.organizadorPerfilId);
+            organizadorPerfilIdRef.current = resultado.organizadorPerfilId;
           }
           _setTela(resultado.tela);
         } else {
@@ -416,6 +446,30 @@ function App() {
     _atualizarEventosEmLote(atualizacoes.map(u => ({ ...eventos.find(e => e.id === u.id), slug: u.slug })));
     console.log(`[App] Slugs gerados para ${atualizacoes.length} evento(s) legado(s)`);
   }, [eventos.length]);
+
+  // ── Garantir que organizadores sempre tenham slug ─────────────────────
+  // Usa JSON dos IDs sem slug como dep para evitar loop infinito
+  const orgsSemSlugIds = organizadores.filter(o => !o.slug).map(o => o.id).join(",");
+  useEffect(() => {
+    if (!orgsSemSlugIds) return;
+    const semSlug = organizadores.filter(o => !o.slug);
+    const slugsUsados = new Set(organizadores.filter(o => o.slug).map(o => o.slug));
+    const atualizados = organizadores.map(o => {
+      if (o.slug) return o;
+      let base = (o.entidade || o.nome || "organizador")
+        .toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s-]/g, "")
+        .trim()
+        .replace(/\s+/g, "-")
+        .slice(0, 60);
+      if (slugsUsados.has(base)) base = `${base}-${o.id.slice(-4)}`;
+      slugsUsados.add(base);
+      return { ...o, slug: base };
+    });
+    setOrganizadores(atualizados);
+    console.log(`[App] Slugs gerados para ${semSlug.length} organizador(es)`);
+  }, [orgsSemSlugIds]);
 
   const login = (dados) => {
     const dadosComSessao = { ...dados, _loginEm: Date.now() };
@@ -756,7 +810,21 @@ function App() {
     } catch(e) { console.error("Erro ao atualizar senha no Firebase Auth:", e); }
   };
 
-  const adicionarOrganizador  = (o) => setOrganizadores((p) => [...p, o]);
+  const gerarSlugOrganizador = (nome, id) => {
+    const base = (nome || "organizador")
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9\s-]/g, "")
+      .trim()
+      .replace(/\s+/g, "-")
+      .slice(0, 60);
+    const jaExiste = organizadores.some(o => o.slug === base && o.id !== id);
+    return jaExiste ? `${base}-${id.slice(-4)}` : base;
+  };
+  const adicionarOrganizador  = (o) => {
+    const comSlug = { ...o, slug: o.slug || gerarSlugOrganizador(o.entidade || o.nome, o.id) };
+    setOrganizadores((p) => [...p, comSlug]);
+  };
   const editarOrganizadorAdmin = (o) => setOrganizadores((p) => p.map(x => x.id === o.id ? { ...x, ...o } : x));
   const editarEquipeAdmin      = (eq) => mergeEquipe(eq);
   const editarAtletaUsuarioAdmin = (au) => {
@@ -1523,6 +1591,16 @@ function App() {
     }
   };
 
+  const selecionarOrganizador = useCallback((orgId) => {
+    setOrganizadorPerfilId(orgId);
+    organizadorPerfilIdRef.current = orgId;
+    _setTela("organizador-perfil");
+    const orgItem = organizadoresRef.current.find(o => o.id === orgId);
+    if (orgItem?.slug) {
+      window.history.pushState({ tela: "organizador-perfil", organizadorPerfilId: orgId }, "", `/${orgItem.slug}`);
+    }
+  }, []);
+
   // Helper: resolve nome da equipe/clube para exibição (closure sobre equipes do componente)
   const getClubeAtleta = (atleta) => _getClubeAtleta(atleta, equipes);
 
@@ -1551,7 +1629,7 @@ function App() {
     aprovarEquipe, recusarEquipe, adicionarSolicitacaoEquipe,
     solicitacoesEquipe,
     adicionarAtletaUsuario, atualizarAtletaUsuario,
-    organizadores, atletasUsuarios,
+    organizadores, atletasUsuarios, organizadorPerfilId, setOrganizadorPerfilId, selecionarOrganizador,
     atualizarEquipePerfil: _atualizarEquipe,
     atualizarEquipe: _atualizarEquipe,
     // ⚠️ SEGURANÇA: setOrganizadores, setAtletasUsuarios, setFuncionarios, setTreinadores
@@ -1687,7 +1765,7 @@ function App() {
         {tela === "recuperar-senha"        && <TelaRecuperacaoSenha {...props} />}
         {tela === "trocar-senha"           && <TelaTrocarSenha {...props} />}
         {tela === "selecionar-perfil"      && <TelaSelecaoPerfil {...props} />}
-        {tela === "configuracoes"          && <TelaConfiguracoes {...props} adminConfig={adminConfig} setAdminConfig={setAdminConfig} setOrganizadores={setOrganizadores} setAtletasUsuarios={setAtletasUsuarios} setFuncionarios={setFuncionarios} setTreinadores={setTreinadores} siteBranding={siteBranding} setSiteBranding={setSiteBranding} exportarDados={exportarDados} importarDados={importarDados} limparTodosDados={limparTodosDados} atualizarAtleta={atualizarAtleta} solicitacoesPortabilidade={solicitacoesPortabilidade} adicionarSolicitacaoPortabilidade={adicionarSolicitacaoPortabilidade} />}
+        {tela === "configuracoes"          && <TelaConfiguracoes {...props} adminConfig={adminConfig} setAdminConfig={setAdminConfig} setOrganizadores={setOrganizadores} setAtletasUsuarios={setAtletasUsuarios} setFuncionarios={setFuncionarios} setTreinadores={setTreinadores} siteBranding={siteBranding} setSiteBranding={setSiteBranding} exportarDados={exportarDados} importarDados={importarDados} limparTodosDados={limparTodosDados} atualizarAtleta={atualizarAtleta} solicitacoesPortabilidade={solicitacoesPortabilidade} adicionarSolicitacaoPortabilidade={adicionarSolicitacaoPortabilidade} editarOrganizadorAdmin={editarOrganizadorAdmin} />}
         {tela === "painel"                && <TelaPainel {...props} />}
         {tela === "painel-organizador"    && <TelaPainelOrganizador {...props} />}
         {tela === "funcionarios"          && <TelaFuncionarios {...props} />}
@@ -1740,6 +1818,7 @@ function App() {
         {tela === "painel-equipe"     && <TelaPainelEquipe {...props} />}
         {tela === "gerenciar-membros" && <TelaGerenciarMembros {...props} />}
         {tela === "auditoria"         && <TelaAuditoria {...props} />}
+        {tela === "organizador-perfil" && <TelaPerfilOrganizador {...props} />}
       </main>
       <footer style={styles.footer}>
         <span style={{ opacity: 0.4 }}>Desenvolvido por: GERENTRACK</span>
