@@ -5,6 +5,9 @@ import FormField from "../ui/FormField";
 import { Th, Td } from "../ui/TableHelpers";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
 function getStyles(t) {
   return {
@@ -93,11 +96,12 @@ function getStyles(t) {
 };
 }
 
-function TelaEditarAtleta({ usuarioLogado, atletas, atualizarAtleta, excluirAtleta,
-  inscricoes, eventos, equipes, setTela, notificacoes, marcarNotifLida,
-  atletaEditandoId, setAtletaEditandoId }) {
+function TelaEditarAtleta() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
+  const { usuarioLogado } = useAuth();
+  const { atletas, atualizarAtleta, excluirAtleta, inscricoes, eventos, equipes } = useEvento();
+  const { setTela, notificacoes, marcarNotifLida, atletaEditandoId, setAtletaEditandoId } = useApp();
 
   const atletaId = usuarioLogado?.tipo === "atleta"
     ? atletas.find(a => a.cpf && usuarioLogado.cpf &&

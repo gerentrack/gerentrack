@@ -6,6 +6,9 @@ import { CATEGORIAS } from "../../shared/constants/categorias";
 import { Th, Td } from "../ui/TableHelpers";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
 function getStyles(t) {
   return {
@@ -138,10 +141,12 @@ function getStyles(t) {
 };
 }
 
-function TelaGerenciarInscricoes({ usuarioLogado, setTela, atletas, inscricoes,
-  eventos, eventoAtual, equipes, excluirInscricao, atualizarInscricao, organizadores = [] }) {
+function TelaGerenciarInscricoes() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
+  const { usuarioLogado } = useAuth();
+  const { atletas, inscricoes, eventos, eventoAtual, equipes, excluirInscricao, atualizarInscricao } = useEvento();
+  const { setTela, organizadores } = useApp();
   const confirmar = useConfirm();
 
   const isAdmin   = usuarioLogado?.tipo === "admin";

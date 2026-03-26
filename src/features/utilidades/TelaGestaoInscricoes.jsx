@@ -10,6 +10,9 @@ import { Th, Td } from "../ui/TableHelpers";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import { db, collection, doc, writeBatch } from "../../firebase";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 import { sanitize } from "../../lib/utils/sanitize";
 
 // Verifica em tempo real se as inscrições estão encerradas,
@@ -162,9 +165,12 @@ function getStyles(t) {
 };
 }
 
-function TelaGestaoInscricoes({ setTela, eventoAtual, editarEvento, inscricoes, atletas, equipes, excluirInscricao, adicionarInscricao, atualizarInscricao, usuarioLogado, registrarAcao, numeracaoPeito, organizadores, gtLogo }) {
+function TelaGestaoInscricoes() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
+  const { usuarioLogado } = useAuth();
+  const { eventoAtual, editarEvento, inscricoes, atletas, equipes, excluirInscricao, adicionarInscricao, atualizarInscricao, numeracaoPeito } = useEvento();
+  const { setTela, registrarAcao, organizadores, gtLogo } = useApp();
   const confirmar = useConfirm();
   if (!eventoAtual) return <div style={s.page}><div style={s.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
 

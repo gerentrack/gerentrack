@@ -7,6 +7,8 @@ const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
 
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 function getStyles(t) {
   return {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
@@ -138,9 +140,12 @@ function getStyles(t) {
 };
 }
 
-function TelaGerenciarUsuarios({ setTela, organizadores, equipes, atletasUsuarios, funcionarios, atletas, adicionarOrganizador, editarOrganizadorAdmin, adicionarEquipe, editarEquipeAdmin, adicionarAtletaUsuario, editarAtletaUsuarioAdmin, adicionarAtleta, excluirOrganizador, excluirEquipeUsuario, excluirAtletaUsuario, excluirAtletaPorUsuario }) {
+function TelaGerenciarUsuarios() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
+  const { equipes, atletas, adicionarAtleta } = useEvento();
+  const { setTela, organizadores, atletasUsuarios, funcionarios, adicionarOrganizador, editarOrganizadorAdmin, editarEquipeAdmin, adicionarAtletaUsuario, editarAtletaUsuarioAdmin, excluirOrganizador, excluirEquipeUsuario, excluirAtletaUsuario, excluirAtletaPorUsuario } = useApp();
+  const adicionarEquipe = useEvento().adicionarEquipe;
   const confirmar = useConfirm();
   const [tipoUsuario, setTipoUsuario] = useState("organizadores"); // organizadores | equipes | atletas
   const [modo, setModo] = useState("lista"); // lista | novo | editar

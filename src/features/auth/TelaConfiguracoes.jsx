@@ -5,6 +5,9 @@ import FormField from "../ui/FormField";
 import { storage, storageRef, uploadBytes, getDownloadURL } from "../../firebase";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
 function getS(t) {
   return {
@@ -107,21 +110,12 @@ function ExclusaoConfirmada({ titulo, descricao, corAccent, btnLabel, onConfirma
 }
 
 // ─── COMPONENTE PRINCIPAL ──────────────────────────────────────────────────────
-function TelaConfiguracoes({
-  usuarioLogado, setUsuarioLogado, setTela, logout, atualizarSenha,
-  equipes, atualizarEquipePerfil, organizadores, setOrganizadores,
-  atletasUsuarios, setAtletasUsuarios, funcionarios, setFuncionarios,
-  treinadores, setTreinadores, registrarAcao, adminConfig, setAdminConfig,
-  atletas, inscricoes, resultados, perfisDisponiveis,
-  excluirPerfilAtual, excluirTodosOsPerfis,
-  siteBranding, setSiteBranding,
-  exportarDados, importarDados, limparTodosDados,
-  atualizarAtleta,
-  solicitacoesPortabilidade, adicionarSolicitacaoPortabilidade,
-  editarOrganizadorAdmin, selecionarOrganizador,
-}) {
+function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setAtletasUsuarios, setFuncionarios, setTreinadores }) {
   const t = useTema();
   const s = useStylesResponsivos(getS(t));
+  const { usuarioLogado, setUsuarioLogado, logout, atualizarSenha, perfisDisponiveis } = useAuth();
+  const { equipes, atualizarEquipePerfil, atletas, inscricoes, resultados, atualizarAtleta } = useEvento();
+  const { setTela, registrarAcao, organizadores, atletasUsuarios, funcionarios, treinadores, siteBranding, setSiteBranding, exportarDados, importarDados, limparTodosDados, solicitacoesPortabilidade, adicionarSolicitacaoPortabilidade, editarOrganizadorAdmin, selecionarOrganizador } = useApp();
   const [aba, setAba]           = useState("dados");
   const [feedback, setFeedback] = useState("");
   const [erro, setErro]         = useState("");

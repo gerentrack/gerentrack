@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useApp } from "../../contexts/AppContext";
 
 function getStyles(t) {
   return {
@@ -89,9 +91,11 @@ function getStyles(t) {
 };
 }
 
-function TelaAuditoria({ usuarioLogado, setTela, historicoAcoes }) {
+function TelaAuditoria() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
+  const { usuarioLogado } = useAuth();
+  const { setTela, historicoAcoes } = useApp();
   const { equipe } = usuarioLogado;
   const [filtro, setFiltro] = useState('todos');
   const [busca, setBusca] = useState('');

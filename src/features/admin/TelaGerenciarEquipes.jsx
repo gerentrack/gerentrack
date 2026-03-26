@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { validarCNPJ } from "../../shared/formatters/utils";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
 const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
 
@@ -136,9 +139,12 @@ function getStyles(t) {
 };
 }
 
-function TelaGerenciarEquipes({ setTela, usuarioLogado, adicionarEquipeFiliada, editarEquipeFiliada, excluirEquipeFiliada, equipes, atletas, atualizarAtleta, inscricoes, atualizarInscricao, organizadores, gerarSenhaTemp }) {
+function TelaGerenciarEquipes() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
+  const { usuarioLogado, gerarSenhaTemp } = useAuth();
+  const { equipes, atletas, atualizarAtleta, inscricoes, atualizarInscricao, adicionarEquipeFiliada, editarEquipeFiliada, excluirEquipeFiliada } = useEvento();
+  const { setTela, organizadores } = useApp();
   const [modo, setModo] = useState("lista"); // lista | novo | editar | importar
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);

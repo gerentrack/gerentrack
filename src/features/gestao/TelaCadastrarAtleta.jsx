@@ -6,6 +6,9 @@ import { _getClubeAtleta, validarCPF } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 import { useTema } from "../../shared/TemaContext";
 const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
 
@@ -274,9 +277,12 @@ function getStyles(t) {
 };
 }
 
-function TelaCadastrarAtleta({ setTela, adicionarAtleta, atualizarAtleta, excluirAtleta, excluirAtletasEmMassa, usuarioLogado, equipes, eventoAtual, atletas, atletasUsuarios, solicitarVinculo, solicitacoesVinculo, organizadores, desvincularAtleta, setAtletaEditandoId }) {
+function TelaCadastrarAtleta() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
+  const { usuarioLogado } = useAuth();
+  const { adicionarAtleta, atualizarAtleta, excluirAtleta, excluirAtletasEmMassa, equipes, eventoAtual, atletas, solicitarVinculo, desvincularAtleta } = useEvento();
+  const { setTela, atletasUsuarios, solicitacoesVinculo, organizadores, setAtletaEditandoId } = useApp();
   const confirmar = useConfirm();
   const _equipeDoUsuario = usuarioLogado?.tipo === "equipe" ? equipes?.find(e => e.id === usuarioLogado.id) : null;
   // equipeId e clube são auto-preenchidos para tipo "equipe" — não requerem input do usuário

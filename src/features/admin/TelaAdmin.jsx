@@ -8,6 +8,9 @@ import { Th, Td } from "../ui/TableHelpers";
 import { auth, secondaryAuth, createUserWithEmailAndPassword, signOut as firebaseSignOut, sendPasswordResetEmail } from "../../firebase";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 const badgeStatus = (s, t) => ({
@@ -67,23 +70,12 @@ function getStyles(t) {
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
-function TelaAdmin({
-  equipes, atletas, inscricoes, setTela, eventos, selecionarEvento,
-  excluirEvento, limparTodosDados, organizadores, adicionarOrganizador,
-  aprovarOrganizador, recusarOrganizador, aprovarEvento, recusarEvento,
-  solicitacoesRecuperacao, resolverSolicitacaoRecuperacao, aplicarSenhaTemp,
-  exportarDados, importarDados, usuarioLogado, excluirAtleta,
-  siteBranding, setSiteBranding, gtIcon, gtLogo, historicoAcoes,
-  atletasUsuarios=[], funcionarios=[], treinadores=[],
-  setAtletaEditandoId,
-  solicitacoesEquipe=[], aprovarEquipe, recusarEquipe, atualizarAtleta,
-  solicitacoesPortabilidade=[], resolverSolicitacaoPortabilidade, excluirSolicitacaoPortabilidade,
-  resultados,
-  setHistoricoAcoes, setAuditoria, auditoria=[],
-  registrarAcao,
-}) {
+function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditoria, auditoria=[] }) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
+  const { usuarioLogado, solicitacoesRecuperacao, resolverSolicitacaoRecuperacao, aplicarSenhaTemp } = useAuth();
+  const { equipes, atletas, inscricoes, eventos, selecionarEvento, excluirEvento, resultados, atualizarAtleta, excluirAtleta } = useEvento();
+  const { setTela, limparTodosDados, organizadores, adicionarOrganizador, aprovarOrganizador, recusarOrganizador, aprovarEvento, recusarEvento, exportarDados, importarDados, siteBranding, setSiteBranding, gtIcon, gtLogo, historicoAcoes, atletasUsuarios, funcionarios, treinadores, setAtletaEditandoId, solicitacoesEquipe, aprovarEquipe, recusarEquipe, solicitacoesPortabilidade, resolverSolicitacaoPortabilidade, excluirSolicitacaoPortabilidade, registrarAcao } = useApp();
   const confirmar = useConfirm();
   const pendOrg = organizadores.filter(o => o.status === "pendente");
   const pendEv  = eventos.filter(e => e.statusAprovacao === "pendente");

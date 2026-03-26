@@ -2,6 +2,8 @@ import React, { useState, useMemo } from "react";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import { gerarEvt } from "../../shared/engines/lynxExportEngine";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
 function getStyles(t) {
   return {
@@ -18,9 +20,11 @@ function getStyles(t) {
   };
 }
 
-function TelaExportLynx({ setTela, eventoAtual, inscricoes, atletas, equipes, numeracaoPeito }) {
+function TelaExportLynx() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
+  const { eventoAtual, inscricoes, atletas, equipes, numeracaoPeito } = useEvento();
+  const { setTela } = useApp();
 
   const resultado = useMemo(() => {
     if (!eventoAtual) return { conteudo: "", avisos: ["Selecione uma competição."], totalEventos: 0, totalAtletas: 0 };

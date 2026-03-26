@@ -10,6 +10,9 @@ import { Th, Td } from "../ui/TableHelpers";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import { parsearLif } from "../../shared/engines/lynxImportEngine";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
 // Badge de chamada (Conf./DNS) ao lado do nome do atleta
 function ChamadaBadge({ atletaId, provaId, catId, sexo, getPresencaProva, t }) {
@@ -2419,9 +2422,12 @@ function ModalImportLif({ eventoAtual, inscricoes, atletas, equipes, numeracaoPe
 /* ════════════════════════════════════════════════════════════════════════════
    TelaDigitarResultados — componente principal (orquestrador de filtros)
    ════════════════════════════════════════════════════════════════════════════ */
-function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResultado, atualizarResultadosEmLote, limparResultado, limparTodosResultados, setTela, eventoAtual, editarEvento, usuarioLogado, registrarAcao, numeracaoPeito, getClubeAtleta, equipes, recordes, getPresencaProva }) {
+function TelaDigitarResultados({ getPresencaProva }) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
+  const { usuarioLogado } = useAuth();
+  const { inscricoes, atletas, resultados, atualizarResultado, atualizarResultadosEmLote, limparResultado, limparTodosResultados, eventoAtual, editarEvento, numeracaoPeito, getClubeAtleta, equipes, recordes } = useEvento();
+  const { setTela, registrarAcao } = useApp();
   // Guard: apenas admin, organizador ou funcionário com permissão
   const tipoUser = usuarioLogado?.tipo;
   const temAcessoDigitar = tipoUser === "admin" || tipoUser === "organizador" ||

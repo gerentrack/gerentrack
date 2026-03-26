@@ -6,6 +6,9 @@ import { storage, storageRef, uploadBytes, getDownloadURL } from "../../firebase
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import CortarImagem from "../../shared/CortarImagem";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
 // Faz upload da imagem para Firebase Storage e retorna a URL pública
 async function uploadLogo(file, eventoId, campo) {
@@ -275,10 +278,12 @@ function Acordeao({ keyName, titulo, icone, resumo, children, aberto, onToggle }
 }
 
 
-function TelaCadastroEvento({ setTela, adicionarEvento, editarEvento, eventoAtual, eventoAtualId, selecionarEvento, usuarioLogado, organizadores, recordes, equipes = [],
-  cadEventoGoStep, setCadEventoGoStep, inscricoes = [], atletas = [] }) {
+function TelaCadastroEvento() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
+  const { usuarioLogado } = useAuth();
+  const { adicionarEvento, editarEvento, eventoAtual, eventoAtualId, selecionarEvento, recordes, equipes, inscricoes, atletas } = useEvento();
+  const { setTela, organizadores, cadEventoGoStep, setCadEventoGoStep } = useApp();
   const editando = eventoAtual && eventoAtualId && true;
   const tipoEvt = usuarioLogado?.tipo;
   if (tipoEvt !== "admin" && tipoEvt !== "organizador" && tipoEvt !== "funcionario") return (

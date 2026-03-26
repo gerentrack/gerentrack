@@ -3,6 +3,8 @@ import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import { gerarEvt, listarProvasExportaveis } from "../../shared/engines/lynxExportEngine";
 import { FASE_NOME } from "../../shared/constants/fases";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
 function getStyles(t) {
   return {
@@ -30,9 +32,11 @@ function faseCor(faseSufixo, t) {
   return t.textMuted;
 }
 
-function TelaFinishLynx({ setTela, eventoAtual, inscricoes, atletas, equipes, numeracaoPeito }) {
+function TelaFinishLynx() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
+  const { eventoAtual, inscricoes, atletas, equipes, numeracaoPeito } = useEvento();
+  const { setTela } = useApp();
   const [selecionados, setSelecionados] = useState(null); // null = todas, Set<chave> = selecionadas
   const [mostrarAvisos, setMostrarAvisos] = useState(true);
 

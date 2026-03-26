@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
 function getStyles(t) {
   return {
@@ -89,9 +92,12 @@ function getStyles(t) {
 };
 }
 
-function TelaGerenciarMembros({ usuarioLogado, setTela, equipes, atualizarEquipe, registrarAcao }) {
+function TelaGerenciarMembros() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
+  const { usuarioLogado } = useAuth();
+  const { equipes, atualizarEquipe } = useEvento();
+  const { setTela, registrarAcao } = useApp();
   const { equipe } = usuarioLogado;
   const [modo, setModo] = useState('lista'); // lista | novo | editar
   const [equipeSelecionada, setEquipeSelecionada] = useState(null);

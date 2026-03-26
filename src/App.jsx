@@ -1674,16 +1674,16 @@ function App() {
         {tela === "recuperar-senha"        && <TelaRecuperacaoSenha {...props} />}
         {tela === "trocar-senha"           && <TelaTrocarSenha {...props} />}
         {tela === "selecionar-perfil"      && <TelaSelecaoPerfil {...props} />}
-        {tela === "configuracoes"          && <TelaConfiguracoes {...props} adminConfig={adminConfig} setAdminConfig={setAdminConfig} setOrganizadores={setOrganizadores} setAtletasUsuarios={setAtletasUsuarios} setFuncionarios={setFuncionarios} setTreinadores={setTreinadores} siteBranding={siteBranding} setSiteBranding={setSiteBranding} exportarDados={exportarDados} importarDados={importarDados} limparTodosDados={limparTodosDados} atualizarAtleta={atualizarAtleta} solicitacoesPortabilidade={solicitacoesPortabilidade} adicionarSolicitacaoPortabilidade={adicionarSolicitacaoPortabilidade} editarOrganizadorAdmin={editarOrganizadorAdmin} />}
+        {tela === "configuracoes"          && <TelaConfiguracoes adminConfig={adminConfig} setAdminConfig={setAdminConfig} setOrganizadores={setOrganizadores} setAtletasUsuarios={setAtletasUsuarios} setFuncionarios={setFuncionarios} setTreinadores={setTreinadores} />}
         {tela === "painel"                && <TelaPainel {...props} />}
         {tela === "painel-organizador"    && <TelaPainelOrganizador {...props} />}
-        {tela === "funcionarios"          && <TelaFuncionarios {...props} />}
-        {tela === "treinadores"           && <TelaTreinadores {...props} />}
-        {tela === "editar-atleta"         && <TelaEditarAtleta {...props} />}
-        {tela === "gerenciar-inscricoes"   && <TelaGerenciarInscricoes {...props} />}
+        {tela === "funcionarios"          && <TelaFuncionarios />}
+        {tela === "treinadores"           && <TelaTreinadores />}
+        {tela === "editar-atleta"         && <TelaEditarAtleta />}
+        {tela === "gerenciar-inscricoes"   && <TelaGerenciarInscricoes />}
         {tela === "painel-atleta"         && <TelaPainelAtleta {...props} />}
-        {tela === "cadastrar-atleta"  && <TelaCadastrarAtleta {...props} />}
-        {tela === "novo-evento"       && <TelaCadastroEvento key={eventoAtualId || "novo"} {...props} />}
+        {tela === "cadastrar-atleta"  && <TelaCadastrarAtleta />}
+        {tela === "novo-evento"       && <TelaCadastroEvento key={eventoAtualId || "novo"} />}
         {tela === "evento-detalhe"    && <TelaEventoDetalhe {...props} />}
         {tela === "preparar-offline"  && <PrepararOffline {...props} />}
 
@@ -1700,33 +1700,33 @@ function App() {
           </div></div>
         ) : (
           <>
-            {tela === "inscricao-avulsa"  && <TelaInscricaoAvulsa {...props} />}
-            {tela === "digitar-resultados"&& <TelaDigitarResultados {...props} getPresencaProva={getPresencaProva} />}
-            {tela === "numeracao-peito"  && <TelaNumericaPeito {...props} />}
-            {tela === "export-lynx"      && <TelaFinishLynx {...props} />}
-            {tela === "gestao-inscricoes"&& <TelaGestaoInscricoes {...props} />}
-            {tela === "inscricao-revezamento" && <TelaInscricaoRevezamento {...props} />}
-            {tela === "config-pontuacao-equipes" && <TelaConfigPontuacaoEquipes {...props} />}
+            {tela === "inscricao-avulsa"  && <TelaInscricaoAvulsa />}
+            {tela === "digitar-resultados"&& <TelaDigitarResultados getPresencaProva={getPresencaProva} />}
+            {tela === "numeracao-peito"  && <TelaNumericaPeito />}
+            {tela === "export-lynx"      && <TelaFinishLynx />}
+            {tela === "gestao-inscricoes"&& <TelaGestaoInscricoes />}
+            {tela === "inscricao-revezamento" && <TelaInscricaoRevezamento />}
+            {tela === "config-pontuacao-equipes" && <TelaConfigPontuacaoEquipes />}
             {tela === "secretaria" && (() => {
               const tpU = usuarioLogado?.tipo;
               const podeCamara = tpU === "admin" || tpU === "organizador" ||
                 (tpU === "funcionario" && (usuarioLogado?.permissoes || []).includes("camara_chamada"));
-              return podeCamara ? <TelaSecretaria {...props} /> : null;
+              return podeCamara ? <TelaSecretaria /> : null;
             })()}
           </>
         )}
 
-        {tela === "sumulas"           && usuarioLogado && <TelaSumulas {...props} chamada={chamada} getPresencaProva={getPresencaProva} />}
+        {tela === "sumulas"           && usuarioLogado && <TelaSumulas chamada={chamada} getPresencaProva={getPresencaProva} />}
         {tela === "resultados"        && <TelaResultados {...props} />}
         {tela === "recordes"          && <TelaRecordes {...props} />}
         {tela === "ranking"           && <TelaRanking {...props} />}
-        {tela === "admin"             && <TelaAdmin {...props} adminConfig={adminConfig} setAdminConfig={setAdminConfig} solicitacoesPortabilidade={solicitacoesPortabilidade} resolverSolicitacaoPortabilidade={resolverSolicitacaoPortabilidade} excluirSolicitacaoPortabilidade={excluirSolicitacaoPortabilidade} setHistoricoAcoes={setHistoricoAcoes} setAuditoria={setAuditoria} auditoria={auditoria} />}
-        {tela === "gerenciar-equipes" && <TelaGerenciarEquipes {...props} />}
-        {tela === "gerenciar-usuarios" && <TelaGerenciarUsuarios {...props} />}
-        {tela === "importar-atletas"  && <TelaImportarAtletas {...props} />}
+        {tela === "admin"             && <TelaAdmin adminConfig={adminConfig} setAdminConfig={setAdminConfig} setHistoricoAcoes={setHistoricoAcoes} setAuditoria={setAuditoria} auditoria={auditoria} />}
+        {tela === "gerenciar-equipes" && <TelaGerenciarEquipes />}
+        {tela === "gerenciar-usuarios" && <TelaGerenciarUsuarios />}
+        {tela === "importar-atletas"  && <TelaImportarAtletas />}
         {tela === "painel-equipe"     && <TelaPainelEquipe {...props} />}
-        {tela === "gerenciar-membros" && <TelaGerenciarMembros {...props} />}
-        {tela === "auditoria"         && <TelaAuditoria {...props} />}
+        {tela === "gerenciar-membros" && <TelaGerenciarMembros />}
+        {tela === "auditoria"         && <TelaAuditoria />}
         {tela === "organizador-perfil" && <TelaPerfilOrganizador {...props} />}
       </main>
       <footer style={styles.footer}>

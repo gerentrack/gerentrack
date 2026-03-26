@@ -8,6 +8,9 @@ import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import { gerarQrPublico, gerarQrSecretaria, parsearQrSecretaria } from "../../shared/qrcode/gerarQrCode";
 import QrScanner from "../../shared/qrcode/QrScanner";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 import { beepOk, beepInvalido, vibrarOk, vibrarInvalido } from "../../shared/qrcode/scannerSons";
 import ExcelJS from "exceljs";
 
@@ -98,9 +101,12 @@ function getStyles(t) {
 };
 }
 
-function TelaNumericaPeito({ setTela, eventoAtual, inscricoes, atletas, equipes, numeracaoPeito, setNumeracaoPeito, usuarioLogado, registrarAcao }) {
+function TelaNumericaPeito() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
+  const { usuarioLogado } = useAuth();
+  const { eventoAtual, inscricoes, atletas, equipes, numeracaoPeito, setNumeracaoPeito } = useEvento();
+  const { setTela, registrarAcao } = useApp();
   const confirmar = useConfirm();
   if (!eventoAtual) return <div style={s.page}><div style={s.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
 

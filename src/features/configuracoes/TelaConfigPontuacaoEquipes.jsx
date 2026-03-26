@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
 function getStyles(t) {
   return {
@@ -90,9 +93,12 @@ function getStyles(t) {
 };
 }
 
-function TelaConfigPontuacaoEquipes({ setTela, eventoAtual, editarEvento, equipes, inscricoes, atletas, recordes, usuarioLogado }) {
+function TelaConfigPontuacaoEquipes() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
+  const { usuarioLogado } = useAuth();
+  const { eventoAtual, editarEvento, equipes, inscricoes, atletas, recordes } = useEvento();
+  const { setTela } = useApp();
   if (!eventoAtual) return (
     <div style={s.page}><div style={s.emptyState}><p>Selecione uma competição.</p>
       <button style={s.btnPrimary} onClick={() => setTela("home")}>Voltar</button></div></div>

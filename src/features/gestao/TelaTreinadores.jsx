@@ -6,6 +6,9 @@ import { Th, Td } from "../ui/TableHelpers";
 import { secondaryAuth, createUserWithEmailAndPassword, signOut as firebaseSignOut, sendEmailVerification } from "../../firebase";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
 
 function getStyles(t) {
@@ -152,11 +155,12 @@ const painelDestino = (u) =>
   (u?.tipo === "equipe" || u?.tipo === "treinador") ? "painel-equipe" : "painel";
 
 
-function TelaTreinadores({ usuarioLogado, setTela, treinadores, adicionarTreinador,
-  atualizarTreinador, removerTreinador, registrarAcao, gerarSenhaTemp, historicoAcoes,
-  equipes, atletasUsuarios, funcionarios, organizadores }) {
+function TelaTreinadores() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
+  const { usuarioLogado, gerarSenhaTemp } = useAuth();
+  const { equipes } = useEvento();
+  const { setTela, treinadores, adicionarTreinador, atualizarTreinador, removerTreinador, registrarAcao, historicoAcoes, atletasUsuarios, funcionarios, organizadores } = useApp();
   const confirmar = useConfirm();
 
   const tipoUsr = usuarioLogado?.tipo;

@@ -8,6 +8,9 @@ import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { getLimiteCat, validarLimiteProvas, validarNorma12Sub14, getRestricoesNorma12, calcularPrecoInscricao, formatarPreco } from "../../shared/engines/inscricaoEngine";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
 // Verifica em tempo real se as inscrições estão encerradas,
 // levando em conta data+hora de encerramento além do flag salvo.
@@ -120,9 +123,12 @@ function getStyles(t) {
 };
 }
 
-function TelaInscricaoAvulsa({ adicionarInscricao, adicionarAtleta, atletas, equipes, inscricoes, usuarioLogado, setTela, eventoAtual, eventoAtualId, eventos, selecionarEvento, adicionarAtletaUsuario, atualizarAtletaUsuario, login, loginComSelecao, atletasUsuarios=[], organizadores=[] }) {
+function TelaInscricaoAvulsa() {
     const t = useTema();
     const s = useStylesResponsivos(getStyles(t));
+    const { usuarioLogado, login, loginComSelecao } = useAuth();
+    const { adicionarInscricao, adicionarAtleta, atletas, equipes, inscricoes, eventoAtual, eventoAtualId, eventos, selecionarEvento } = useEvento();
+    const { setTela, adicionarAtletaUsuario, atualizarAtletaUsuario, atletasUsuarios, organizadores } = useApp();
     const [modo, setModo] = useState("existente");
   const [atletaId, setAtletaId] = useState("");
   const [buscaAtleta, setBuscaAtleta] = useState("");

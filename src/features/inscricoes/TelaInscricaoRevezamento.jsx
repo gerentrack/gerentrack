@@ -5,6 +5,9 @@ import { CATEGORIAS } from "../../shared/constants/categorias";
 import { ProvaSelector } from "../ui/ProvaSelector";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
 // Verifica em tempo real se as inscrições estão encerradas,
 // levando em conta data+hora de encerramento além do flag salvo.
@@ -158,9 +161,12 @@ function getStyles(t) {
 };
 }
 
-function TelaInscricaoRevezamento({ setTela, eventoAtual, inscricoes, atletas, equipes, excluirInscricao, adicionarInscricao, atualizarInscricao, usuarioLogado, registrarAcao, numeracaoPeito }) {
+function TelaInscricaoRevezamento() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
+  const { usuarioLogado } = useAuth();
+  const { eventoAtual, inscricoes, atletas, equipes, excluirInscricao, adicionarInscricao, atualizarInscricao, numeracaoPeito } = useEvento();
+  const { setTela, registrarAcao } = useApp();
   const confirmar = useConfirm();
   if (!eventoAtual) return <div style={s.page}><div style={s.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
 

@@ -8,6 +8,9 @@ import { SeriacaoEngine } from "../../shared/engines/seriacaoEngine";
 import { _getNascDisplay, NomeProvaComImplemento, formatarTempo, resolverAtleta } from "../../shared/formatters/utils";
 import { Th, Td } from "../ui/TableHelpers";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 import { useTema } from "../../shared/TemaContext";
 function getStyles(t) {
   return {
@@ -39,9 +42,12 @@ const getExibicaoEquipe = (atleta, equipes) => {
   return atleta?.clube || "—";
 };
 
-function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual, resultados, registrarAcao, numeracaoPeito, getClubeAtleta, equipes, editarEvento, alterarStatusEvento, recordes, chamada, getPresencaProva }) {
+function TelaSumulas({ chamada, getPresencaProva }) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
+  const { usuarioLogado } = useAuth();
+  const { inscricoes, atletas, eventoAtual, resultados, numeracaoPeito, getClubeAtleta, equipes, editarEvento, alterarStatusEvento, recordes } = useEvento();
+  const { setTela, registrarAcao } = useApp();
   const isFinalizado = !!eventoAtual?.competicaoFinalizada;
   const [filtroProva, setFiltroProva] = useState("todas");
   const [filtroCat, setFiltroCat] = useState("todas");

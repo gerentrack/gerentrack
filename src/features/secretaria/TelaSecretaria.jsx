@@ -8,6 +8,9 @@ import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import QrScanner from "../../shared/qrcode/QrScanner";
 import { parsearQrSecretaria } from "../../shared/qrcode/gerarQrCode";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 import { beepOk, beepErro, beepAviso, beepDuplicado, beepInvalido, vibrarOk, vibrarErro, vibrarAviso, vibrarInvalido } from "../../shared/qrcode/scannerSons";
 
 // ── Constantes ────────────────────────────────────────────────────────────────
@@ -61,9 +64,12 @@ function getStyles(t) {
 }
 
 // ── Componente principal ──────────────────────────────────────────────────────
-function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados, usuarioLogado, numeracaoPeito, registrarAcao }) {
+function TelaSecretaria() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
+  const { usuarioLogado } = useAuth();
+  const { eventoAtual, inscricoes, atletas, resultados, numeracaoPeito } = useEvento();
+  const { setTela, registrarAcao } = useApp();
   const MEDALHA_CONFIG = getMedalhaConfig(t);
   // Modo de medalhas: retrocompatível com campo boolean antigo
   const modoMedalhas = eventoAtual?.modoMedalhas || (eventoAtual?.medalhasApenasParticipacao ? "apenas_participacao" : "classificacao_participacao");

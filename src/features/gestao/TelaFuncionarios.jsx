@@ -6,6 +6,9 @@ import { Th, Td } from "../ui/TableHelpers";
 import { secondaryAuth, createUserWithEmailAndPassword, signOut as firebaseSignOut, sendEmailVerification } from "../../firebase";
 const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 import { useTema } from "../../shared/TemaContext";
 
 function getStyles(t) {
@@ -150,11 +153,12 @@ const PERMISSOES = [
   { id:"funcionarios_ver",   grupo:"Funcionários", label:"Visualizar funcionários" },
 ];
 
-function TelaFuncionarios({ usuarioLogado, setTela, funcionarios, adicionarFuncionario,
-  atualizarFuncionario, removerFuncionario, registrarAcao, gerarSenhaTemp,
-  historicoAcoes, organizadores, equipes, atletasUsuarios, treinadores }) {
+function TelaFuncionarios() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
+  const { usuarioLogado, gerarSenhaTemp } = useAuth();
+  const { equipes } = useEvento();
+  const { setTela, funcionarios, adicionarFuncionario, atualizarFuncionario, removerFuncionario, registrarAcao, historicoAcoes, organizadores, atletasUsuarios, treinadores } = useApp();
   const confirmar = useConfirm();
 
   const tipoUsr = usuarioLogado?.tipo;

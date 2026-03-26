@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { validarCPF } from "../../shared/formatters/utils";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
 const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
 
@@ -140,9 +143,12 @@ const painelDestino = (u) =>
   (u?.tipo === "equipe" || u?.tipo === "treinador") ? "painel-equipe" : "painel";
 
 
-function TelaImportarAtletas({ setTela, atletas, adicionarAtleta, adicionarAtletasEmLote, equipes, usuarioLogado, organizadores }) {
+function TelaImportarAtletas() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
+  const { usuarioLogado } = useAuth();
+  const { atletas, adicionarAtleta, adicionarAtletasEmLote, equipes } = useEvento();
+  const { setTela, organizadores } = useApp();
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
