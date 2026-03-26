@@ -12,6 +12,9 @@ import { GT_DEFAULT_LOGO } from "../../shared/branding";
 import { Th, Td } from "../ui/TableHelpers";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
 function getStyles(t) {
   return {
@@ -160,7 +163,10 @@ const _nomeProvaMatch = (a, b) => {
   return strip(a) === strip(b);
 };
 
-function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogado, eventoAtual, numeracaoPeito, equipes, getClubeAtleta, editarEvento, recordes }) {
+function TelaResultados() {
+  const { usuarioLogado } = useAuth();
+  const { inscricoes, atletas, resultados, eventoAtual, numeracaoPeito, equipes, getClubeAtleta, editarEvento, recordes } = useEvento();
+  const { setTela } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const [filtroProva, setFiltroProva] = useState("todas");

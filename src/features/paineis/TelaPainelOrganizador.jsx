@@ -6,6 +6,9 @@ import { SinoNotificacoes } from "../ui/SinoNotificacoes";
 import { gerarHtmlRelatorioParticipacao } from "../impressao/gerarHtmlRelatorioParticipacao";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
 const PERMISSOES = [
   { id:"ver_competições",    grupo:"Competições",  label:"Visualizar competições" },
@@ -149,7 +152,10 @@ function getStyles(t) {
 };
 }
 
-function TelaPainelOrganizador({ usuarioLogado, setTela, eventos, inscricoes, atletas, selecionarEvento, adicionarEvento, editarEvento, excluirEvento, alterarStatusEvento, organizadores, funcionarios, solicitacoesVinculo, responderVinculo, equipes, solicitacoesEquipe=[], aprovarEquipe, recusarEquipe, atualizarAtleta, registrarAcao, setAtletaEditandoId, notificacoes, marcarNotifLida, resultados, solicitacoesRelatorio, resolverRelatorio, excluirRelatorio, sincronizarNomesEquipes, numeracaoPeito, historicoAcoes }) {
+function TelaPainelOrganizador() {
+  const { usuarioLogado } = useAuth();
+  const { eventos, inscricoes, atletas, selecionarEvento, adicionarEvento, editarEvento, excluirEvento, alterarStatusEvento, equipes, atualizarAtleta, responderVinculo, resultados, sincronizarNomesEquipes, numeracaoPeito } = useEvento();
+  const { setTela, organizadores, funcionarios, solicitacoesVinculo, solicitacoesEquipe, aprovarEquipe, recusarEquipe, registrarAcao, setAtletaEditandoId, notificacoes, marcarNotifLida, solicitacoesRelatorio, resolverRelatorio, excluirRelatorio, historicoAcoes } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const tipoOrg = usuarioLogado?.tipo;

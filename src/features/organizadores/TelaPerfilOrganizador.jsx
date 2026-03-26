@@ -3,6 +3,8 @@ import { getStatusEvento, labelStatusEvento } from "../eventos/eventoHelpers";
 import { _getLocalEventoDisplay } from "../../shared/formatters/utils";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
 function getStyles(t) {
   return {
@@ -45,7 +47,9 @@ function getStyles(t) {
   };
 }
 
-export default function TelaPerfilOrganizador({ organizadorPerfilId, organizadores, eventos, inscricoes, atletas, equipes, resultados, selecionarEvento, setTela }) {
+export default function TelaPerfilOrganizador() {
+  const { eventos, inscricoes, atletas, equipes, resultados, selecionarEvento } = useEvento();
+  const { setTela, organizadorPerfilId, organizadores } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
 

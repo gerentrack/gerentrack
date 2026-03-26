@@ -2,8 +2,12 @@ import { criarAuthStyles } from "./authStyles";
 import React from "react";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useApp } from "../../contexts/AppContext";
 
-function TelaSelecaoPerfil({ perfisDisponiveis, loginComSelecao, setTela, logout }) {
+function TelaSelecaoPerfil() {
+  const { perfisDisponiveis, loginComSelecao, logout } = useAuth();
+  const { setTela } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(criarAuthStyles(t));
   if (!perfisDisponiveis || perfisDisponiveis.length === 0) return (

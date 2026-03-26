@@ -6,6 +6,9 @@ import { StatCard } from "../ui/StatCard";
 import { Th, Td } from "../ui/TableHelpers";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
 function getStyles(t) {
   return {
@@ -205,7 +208,10 @@ function InscricaoProvaRow({ insc, prova, atleta, provasDisp, inscAberta, atuali
 }
 
 
-function TelaPainel({ usuarioLogado, setTela, atletas, inscricoes, eventos, solicitacoesVinculo, responderVinculo, equipes, excluirInscricao, atualizarInscricao, treinadores }) {
+function TelaPainel() {
+  const { usuarioLogado } = useAuth();
+  const { atletas, inscricoes, eventos, equipes, excluirInscricao, atualizarInscricao, responderVinculo } = useEvento();
+  const { setTela, solicitacoesVinculo, treinadores } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const confirmar = useConfirm();

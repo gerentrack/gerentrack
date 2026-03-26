@@ -7,6 +7,9 @@ import { Th, Td } from "../ui/TableHelpers";
 import { SinoNotificacoes } from "../ui/SinoNotificacoes";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 function getStyles(t) {
   return {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
@@ -88,7 +91,10 @@ function VinculoSolicitarForm({ atletaId, atletaNome, clubeInicial, equipes, sol
 
 
 
-function TelaPainelAtleta({ usuarioLogado, setTela, atletas, atletasUsuarios, inscricoes, eventos, equipes, eventoAtual, adicionarInscricao, atualizarAtletaUsuario, solicitarVinculo, solicitacoesVinculo, responderVinculo, notificacoes, marcarNotifLida, excluirInscricao, atualizarInscricao, resultados, organizadores, solicitarDesvinculo, perfisDisponiveis, solicitarRelatorio, setAtletaEditandoId }) {
+function TelaPainelAtleta() {
+  const { usuarioLogado, perfisDisponiveis } = useAuth();
+  const { atletas, inscricoes, eventos, equipes, eventoAtual, adicionarInscricao, excluirInscricao, atualizarInscricao, resultados, solicitarVinculo, responderVinculo, desvincularAtleta: solicitarDesvinculo } = useEvento();
+  const { setTela, atletasUsuarios, atualizarAtletaUsuario, solicitacoesVinculo, notificacoes, marcarNotifLida, organizadores, solicitacoesRelatorio, solicitarRelatorio, setAtletaEditandoId } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const confirmar = useConfirm();

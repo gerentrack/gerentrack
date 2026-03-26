@@ -7,6 +7,9 @@ import { todasAsProvas, getComposicaoCombinada } from "../../shared/athletics/pr
 import { CATEGORIAS } from "../../shared/constants/categorias";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
 function getStyles(t) {
   return {
@@ -177,8 +180,10 @@ function StatCard({ value, label }) {
   );
 }
 
-function TelaEventoDetalhe({ eventoAtual, setTela, inscricoes, atletas, resultados, usuarioLogado, alterarStatusEvento, selecionarEvento, recordes, setRecordes, equipes, getClubeAtleta, editarEvento, pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes, RecordDetectionEngine, RankingExtractionEngine, ranking, setRanking, organizadores = [],
-  setCadEventoGoStep, funcionarios, selecionarOrganizador }) {
+function TelaEventoDetalhe() {
+  const { usuarioLogado } = useAuth();
+  const { eventoAtual, inscricoes, atletas, resultados, alterarStatusEvento, selecionarEvento, recordes, setRecordes, equipes, getClubeAtleta, editarEvento, pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes, RecordDetectionEngine, RankingExtractionEngine, ranking, setRanking } = useEvento();
+  const { setTela, organizadores, setCadEventoGoStep, funcionarios, selecionarOrganizador } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const confirmar = useConfirm();

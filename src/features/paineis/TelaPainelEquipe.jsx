@@ -5,6 +5,9 @@ import { getStatusEvento, labelStatusEvento } from "../eventos/eventoHelpers";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { getFasesModo, resKey } from "../../shared/constants/fases";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
 function getS(t) {
   return {
@@ -61,16 +64,10 @@ function StatCard({ value, label, color }) {
 import { SinoNotificacoes } from "../ui/SinoNotificacoes";
 import { useTema } from "../../shared/TemaContext";
 
-export default function TelaPainelEquipe({
-  usuarioLogado, setTela, logout,
-  atletas, inscricoes, eventos, equipes, treinadores,
-  resultados,
-  solicitarRelatorio, solicitacoesRelatorio, cancelarRelatorio, excluirRelatorio,
-  solicitacoesVinculo, responderVinculo,
-  selecionarEvento,
-  desvincularAtleta, setAtletaEditandoId,
-  notificacoes, marcarNotifLida,
-}) {
+export default function TelaPainelEquipe() {
+  const { usuarioLogado, logout } = useAuth();
+  const { atletas, inscricoes, eventos, equipes, resultados, selecionarEvento, responderVinculo, desvincularAtleta } = useEvento();
+  const { setTela, treinadores, solicitarRelatorio, solicitacoesRelatorio, cancelarRelatorio, excluirRelatorio, solicitacoesVinculo, setAtletaEditandoId, notificacoes, marcarNotifLida } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(getS(t));
   const confirmar = useConfirm();
