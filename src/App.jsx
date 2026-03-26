@@ -21,7 +21,7 @@ import { GT_DEFAULT_ICON, GT_DEFAULT_LOGO } from "./shared/branding";
 import { ESTADOS_BR, CATEGORIAS, getCategoria,
          getPermissividade, podeCategoriaSuperior } from "./shared/constants/categorias";
 import { FASE_SUFIXOS, FASE_ORDEM, FASE_ANTERIOR, FASE_NOME,
-         faseToSufixo, serKey, resKey, getFasesProva,
+         faseToSufixo, serKey, resKey, getFasesProva, getFasesModo,
          temMultiFases, buscarSeriacao, buscarResultado } from "./shared/constants/fases";
 
 // ── Shared — Formatters — Etapa 3 ─────────────────────────────────
@@ -91,7 +91,7 @@ import TelaEditarAtleta            from "./features/gestao/TelaEditarAtleta";
 // Utilitários
 import TelaImportarAtletas         from "./features/utilidades/TelaImportarAtletas";
 import TelaNumericaPeito           from "./features/utilidades/TelaNumericaPeito";
-import TelaExportLynx              from "./features/utilidades/TelaExportLynx";
+import TelaFinishLynx              from "./features/utilidades/TelaFinishLynx";
 import TelaGestaoInscricoes        from "./features/utilidades/TelaGestaoInscricoes";
 import TelaGerenciarMembros        from "./features/utilidades/TelaGerenciarMembros";
 import TelaAuditoria               from "./features/utilidades/TelaAuditoria";
@@ -1261,7 +1261,7 @@ function App() {
     });
     Object.entries(grupos).forEach(([key, { provaId, catId, sexo, atletaIds }]) => {
       if (provasNotificadasRef.current.has(`${eid}_${key}`)) return;
-      const fases = getFasesProva(provaId, eventoAtual.programaHorario || {});
+      const fases = getFasesModo(provaId, eventoAtual.configSeriacao || {});
       const fasesCheck = fases.length > 1 ? fases : [null];
       const faseFinal = fasesCheck[fasesCheck.length - 1];
       const rKey = resKey(eid, provaId, catId, sexo, faseFinal);
@@ -1484,7 +1484,6 @@ function App() {
     const timer = setTimeout(() => {
     if (!eventoAtual) return;
     const todasP = todasAsProvas();
-    const progHorario = eventoAtual.programaHorario || {};
     const seriacaoSalva = eventoAtual.seriacao || {};
     const configSeriacaoEvt = eventoAtual.configSeriacao || {};
     let novasSer = null;
@@ -1493,7 +1492,7 @@ function App() {
       const p = todasP.find(pp => pp.id === provaId);
       if (!p || p.unidade !== "s" || p.tipo === "combinada" || p.tipo === "revezamento") return;
 
-      const fasesConf = getFasesProva(provaId, progHorario);
+      const fasesConf = getFasesModo(provaId, configSeriacaoEvt);
       if (fasesConf.length <= 1) return;
 
       CATEGORIAS.forEach(cat => {
@@ -1564,7 +1563,7 @@ function App() {
             novasSer[chaveSerProxima] = {
               series: result.series,
               ordemSeries: result.ordemSeries,
-              modo: cfgP.modo || "semifinal_final",
+              modo: cfgP.modo || "semi_final",
               regraAplicada: `${result.regraAplicada} · RT 20.3.2(a) · Classificados: ${nClassP}P + ${nClassT}T = ${classificados.length}`,
               autoGerada: true,
             };
@@ -1794,7 +1793,7 @@ function App() {
             {tela === "inscricao-avulsa"  && <TelaInscricaoAvulsa {...props} />}
             {tela === "digitar-resultados"&& <TelaDigitarResultados {...props} getPresencaProva={getPresencaProva} />}
             {tela === "numeracao-peito"  && <TelaNumericaPeito {...props} />}
-            {tela === "export-lynx"      && <TelaExportLynx {...props} />}
+            {tela === "export-lynx"      && <TelaFinishLynx {...props} />}
             {tela === "gestao-inscricoes"&& <TelaGestaoInscricoes {...props} />}
             {tela === "inscricao-revezamento" && <TelaInscricaoRevezamento {...props} />}
             {tela === "config-pontuacao-equipes" && <TelaConfigPontuacaoEquipes {...props} />}

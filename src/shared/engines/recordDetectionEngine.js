@@ -8,7 +8,7 @@
  */
 
 import { todasAsProvas }      from '../../domain/provas/todasAsProvas';
-import { getFasesProva }      from '../constants/fases';
+import { getFasesModo }       from '../constants/fases';
 import { RecordHelper }       from './recordHelper';
 import { _marcaParaMs }       from '../formatters/utils.jsx';
 import { _getClubeAtleta }    from '../formatters/utils.jsx';
@@ -86,7 +86,7 @@ const RecordDetectionEngine = {
     if (pool.length === 0) return [];
 
     const snapshot = evento.recordesSnapshot || {};
-    const progHorario = evento.programaHorario || {};
+    const configSeriacaoEvt = evento.configSeriacao || {};
     const pendencias = [];
     const chavesVistas = new Set();
 
@@ -117,7 +117,7 @@ const RecordDetectionEngine = {
       if (!prova) return;
 
       // Só considerar FINAL: se a prova tem múltiplas fases, ignorar não-FIN
-      const fasesConf = getFasesProva(provId, progHorario);
+      const fasesConf = getFasesModo(provId, configSeriacaoEvt);
       if (fasesConf.length > 1) {
         if (faseSufixo !== "FIN") return; // Ignorar ELI, SEM
       } else {

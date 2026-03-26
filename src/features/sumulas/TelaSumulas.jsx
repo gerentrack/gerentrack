@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { todasAsProvas, nPernasRevezamento } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/constants/categorias";
-import { getFasesProva, temMultiFases, buscarSeriacao, serKey, resKey, FASE_NOME, FASE_ANTERIOR } from "../../shared/constants/fases";
+import { getFasesProva, getFasesModo, temMultiFases, buscarSeriacao, serKey, resKey, FASE_NOME, FASE_ANTERIOR } from "../../shared/constants/fases";
 import { gerarHtmlImpressao } from "../impressao/gerarHtmlImpressao";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { SeriacaoEngine } from "../../shared/engines/seriacaoEngine";
@@ -145,7 +145,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
           .filter((a, idx, arr) => arr.findIndex(x => x.id === a.id) === idx);
 
         // Multi-fase: gerar uma entrada de súmula por fase que tenha seriação
-        const _fasesS = getFasesProva(prova.id, eventoAtual.programaHorario || {});
+        const _fasesS = getFasesModo(prova.id, eventoAtual.configSeriacao || {});
         if (_fasesS.length > 1) {
           const entries = [];
           _fasesS.forEach(fase => {
@@ -313,11 +313,17 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
         const _metrosFromId = (id) => { const m = id.match(/[_x]?(\d+)m/); return m ? parseInt(m[1]) : 0; };
 
         // Helper para extrair config por prova (suporta formato antigo string e novo objeto)
+        // Retrocompat: "final_tempo" → "final", "semifinal_final" → "semi_final"
+        const normalizarModo = (m) => {
+          if (m === "final_tempo") return "final";
+          if (m === "semifinal_final") return "semi_final";
+          return m || "final";
+        };
         const getConfigProva = (provaId) => {
           const cfg = configSeriacao[provaId];
-          if (!cfg) return { modo: "final_tempo", nRaias: 8, atlPorSerie: 12, porPosicao: 3, porTempo: 2 };
-          if (typeof cfg === "string") return { modo: cfg, nRaias: 8, atlPorSerie: 12, porPosicao: 3, porTempo: 2 };
-          return { modo: cfg.modo || "final_tempo", nRaias: cfg.nRaias || 8, atlPorSerie: cfg.atlPorSerie || 12, porPosicao: cfg.porPosicao ?? 3, porTempo: cfg.porTempo ?? 2 };
+          if (!cfg) return { modo: "final", nRaias: 8, atlPorSerie: 12, porPosicao: 3, porTempo: 2 };
+          if (typeof cfg === "string") return { modo: normalizarModo(cfg), nRaias: 8, atlPorSerie: 12, porPosicao: 3, porTempo: 2 };
+          return { modo: normalizarModo(cfg.modo), nRaias: cfg.nRaias || 8, atlPorSerie: cfg.atlPorSerie || 12, porPosicao: cfg.porPosicao ?? 3, porTempo: cfg.porTempo ?? 2 };
         };
 
         // Salvar config de uma prova no evento
@@ -334,8 +340,12 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
           editarEvento({ ...eventoAtual, configSeriacao: cfgAtual });
         };
 
-        // Provas de pista com inscritos — expandidas por fase quando há multi-fases
-        const progHorario = eventoAtual.programaHorario || {};
+        // Provas de pista com inscritos — expandidas por fase baseado no modo da seriação
+        const MODO_FASES = {
+          "final": [],
+          "semi_final": ["SEM", "FIN"],
+          "eli_semi_final": ["ELI", "SEM", "FIN"],
+        };
         const provasPista = [];
         (eventoAtual.provasPrograma || []).forEach(provaId => {
           const p = todasP.find(pp => pp.id === provaId);
@@ -344,7 +354,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
           if (metros === 0) return;
           const cfgP = getConfigProva(provaId);
           const isLonga = metros > 800;
-          const fasesConf = getFasesProva(provaId, progHorario); // ex: ["ELI","SEM","FIN"]
+          const fasesConf = MODO_FASES[cfgP.modo] || [];
           const multiFases = fasesConf.length > 1;
 
           CATEGORIAS.forEach(cat => {
@@ -355,7 +365,6 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
               if (inscs.length <= 0) return;
 
               if (multiFases) {
-                // Multi-fase: uma entrada por fase
                 fasesConf.forEach((faseSuf, faseIdx) => {
                   const chave = serKey(provaId, cat.id, sexo, faseSuf);
                   const jaSeriada = !!seriacaoSalva[chave];
@@ -365,14 +374,12 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                     provaId, prova: p, cat, sexo, inscs, chave,
                     modo: cfgP.modo, nRaias: cfgP.nRaias, atlPorSerie: cfgP.atlPorSerie,
                     isLonga, metros, jaSeriada, nInscritos: inscs.length, capacidade,
-                    // Campos de fase:
                     faseSufixo: faseSuf, faseNome: FASE_NOME[faseSuf] || faseSuf,
                     faseIdx, multiFases: true, faseAnterior,
-                    fasesConf, // todas as fases da prova
+                    fasesConf,
                   });
                 });
               } else {
-                // Fase única ou sem fase — compatibilidade
                 const chave = serKey(provaId, cat.id, sexo, "");
                 const jaSeriada = !!seriacaoSalva[chave];
                 const capacidade = isLonga ? cfgP.atlPorSerie : cfgP.nRaias;
@@ -472,9 +479,11 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
           const isGrupo = SeriacaoEngine._isLargadaEmGrupo(item.prova, { modo800: item.metros === 800 ? seriacao800m : "raias" });
           const capacidade = isGrupo ? item.atlPorSerie : item.nRaias;
 
+          // Fase derivada automaticamente do item ativo
+          const faseAutoEngine = item.faseSufixo === "ELI" ? "eliminatoria" : item.faseSufixo === "SEM" ? "semifinal" : "final";
           const configEngine = {
             nRaias: item.nRaias,
-            fase: seriacaoFase,
+            fase: faseAutoEngine,
             atlPorSerie: item.atlPorSerie,
             modo800: item.metros === 800 ? seriacao800m : "raias",
           };
@@ -686,21 +695,24 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                         )}
                       </div>
                       <div style={{ display:"flex", gap:3 }}>
-                        {[["semifinal_final","Semi + Final"],["final_tempo","Final/Tempo"]].map(([val,lbl]) => (
+                        {[["final","Final"],["semi_final","Semi + Final"],["eli_semi_final","Eli + Semi + Final"]].map(([val,lbl]) => {
+                          const corAtivo = val === "final" ? t.accent : val === "semi_final" ? t.success : t.warning;
+                          return (
                           <button key={val}
                             style={{
                               padding:"3px 9px", borderRadius:4, border:"1px solid",
                               fontSize:10, fontWeight:600, cursor:"pointer",
-                              background: cfgP.modo === val ? (val === "semifinal_final" ? `${t.success}22` : `${t.warning}22`) : t.bgHeaderSolid,
-                              color: cfgP.modo === val ? (val === "semifinal_final" ? t.success : t.accent) : t.textDimmed,
-                              borderColor: cfgP.modo === val ? (val === "semifinal_final" ? `${t.success}44` : `${t.accent}44`) : t.border,
+                              background: cfgP.modo === val ? `${corAtivo}22` : t.bgHeaderSolid,
+                              color: cfgP.modo === val ? corAtivo : t.textDimmed,
+                              borderColor: cfgP.modo === val ? `${corAtivo}44` : t.border,
                             }}
                             onClick={() => salvarConfigProva(provas[0].id, "modo", val)}
                           >{lbl}</button>
-                        ))}
+                          );
+                        })}
                       </div>
-                      {/* Progressão P+T: aparece quando prova tem multi-fases */}
-                      {temMultiFases(provas[0].id, progHorario) && (
+                      {/* Progressão P+T: aparece quando modo tem multi-fases */}
+                      {(cfgP.modo === "semi_final" || cfgP.modo === "eli_semi_final") && (
                         <div style={{ display:"flex", alignItems:"center", gap:4, borderLeft:`2px solid ${t.border}`, paddingLeft:6 }}>
                           <span style={{ fontSize:9, color: t.textMuted }}>Progressão:</span>
                           <span style={{ fontSize:9, color: t.success }}>P</span>
@@ -835,10 +847,10 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                     </span>
                     <span style={{
                       marginLeft:8, fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:600,
-                      background: itemAtivo.modo === "final_tempo" ? `${t.warning}22` : `${t.success}15`,
-                      color: itemAtivo.modo === "final_tempo" ? t.accent : t.success,
+                      background: itemAtivo.modo === "eli_semi_final" ? `${t.warning}22` : itemAtivo.modo === "semi_final" ? `${t.success}15` : `${t.accent}15`,
+                      color: itemAtivo.modo === "eli_semi_final" ? t.warning : itemAtivo.modo === "semi_final" ? t.success : t.accent,
                     }}>
-                      {itemAtivo.modo === "final_tempo" ? "Final por Tempo" : "Semifinal + Final"}
+                      {itemAtivo.modo === "eli_semi_final" ? "Eli + Semi + Final" : itemAtivo.modo === "semi_final" ? "Semi + Final" : "Final"}
                     </span>
                     <span style={{ marginLeft:6, fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:600, background: t.accentBg, color: t.accent }}>
                       {itemAtivo.isLonga ? `${itemAtivo.atlPorSerie} atl/série` : `${itemAtivo.nRaias} raias`}
@@ -868,35 +880,30 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                   ))}
                 </div>
 
-                {/* RT 20.4.1/20.4.2 — Seletor de Fase (afeta regra de raias) */}
-                {seriacaoModo !== "manual" && (
-                  <div style={{ display:"flex", gap:4, marginBottom:10, alignItems:"center" }}>
-                    <span style={{ fontSize:10, color: t.textMuted, marginRight:4 }}>Fase:</span>
-                    {[["eliminatoria","Eliminatória"],["semifinal","Semifinal"],["final","Final"]].map(([val,lbl]) => (
-                      <button key={val}
-                        style={{
-                          padding:"4px 10px", borderRadius:4, border:"1px solid", fontSize:10, fontWeight:600, cursor:"pointer",
-                          background: seriacaoFase === val ? (val === "eliminatoria" ? `${t.warning}15` : val === "semifinal" ? t.accentBg : `${t.success}15`) : t.bgHeaderSolid,
-                          color: seriacaoFase === val ? (val === "eliminatoria" ? t.warning : val === "semifinal" ? t.accent : t.success) : t.textDimmed,
-                          borderColor: seriacaoFase === val ? (val === "eliminatoria" ? `${t.warning}66` : val === "semifinal" ? `${t.accent}66` : `${t.success}44`) : t.border,
-                        }}
-                        onClick={() => { setSeriacaoFase(val); setSeriacaoPreview(null); }}
-                      >{lbl}</button>
-                    ))}
-                    <span style={{ fontSize:9, color: t.textDimmed, marginLeft:8, fontStyle:"italic" }}>
-                      {seriacaoFase === "eliminatoria"
-                        ? "RT 20.4.1 — Raias por sorteio livre"
-                        : itemAtivo.isLonga || (itemAtivo.metros === 800 && seriacao800m === "grupo")
-                          ? "RT 20.4.6 — Posições por sorteio"
-                          : itemAtivo.metros <= 110
-                            ? "RT 20.4.3 — Grupos: A(3-6) B(2,7) C(1,8)"
-                            : itemAtivo.metros === 200
-                              ? "RT 20.4.4 — Grupos: A(5-7) B(3,4,8) C(1,2)"
-                              : "RT 20.4.5 — Grupos: A(4-7) B(3,8) C(1,2)"
-                      }
-                    </span>
-                  </div>
-                )}
+                {/* RT 20.4.x — Regra de raias (derivada automaticamente da fase do item) */}
+                {seriacaoModo !== "manual" && (() => {
+                  const faseDerivada = itemAtivo.faseSufixo === "ELI" ? "eliminatoria" : itemAtivo.faseSufixo === "SEM" ? "semifinal" : "final";
+                  const faseLabel = faseDerivada === "eliminatoria" ? "Eliminatória" : faseDerivada === "semifinal" ? "Semifinal" : "Final";
+                  const faseCorBg = faseDerivada === "eliminatoria" ? `${t.warning}15` : faseDerivada === "semifinal" ? t.accentBg : `${t.success}15`;
+                  const faseCor = faseDerivada === "eliminatoria" ? t.warning : faseDerivada === "semifinal" ? t.accent : t.success;
+                  const regraTexto = faseDerivada === "eliminatoria"
+                    ? "RT 20.4.1 — Raias por sorteio livre"
+                    : itemAtivo.isLonga || (itemAtivo.metros === 800 && seriacao800m === "grupo")
+                      ? "RT 20.4.6 — Posições por sorteio"
+                      : itemAtivo.metros <= 110
+                        ? "RT 20.4.3 — Grupos: A(3-6) B(2,7) C(1,8)"
+                        : itemAtivo.metros === 200
+                          ? "RT 20.4.4 — Grupos: A(5-7) B(3,4,8) C(1,2)"
+                          : "RT 20.4.5 — Grupos: A(4-7) B(3,8) C(1,2)";
+                  return (
+                    <div style={{ display:"flex", gap:6, marginBottom:10, alignItems:"center" }}>
+                      <span style={{ fontSize:10, padding:"3px 10px", borderRadius:4, fontWeight:600, background: faseCorBg, color: faseCor, border:`1px solid ${faseCor}44` }}>
+                        {faseLabel}
+                      </span>
+                      <span style={{ fontSize:9, color: t.textDimmed, fontStyle:"italic" }}>{regraTexto}</span>
+                    </div>
+                  );
+                })()}
 
                 {/* RT 20.4.5/20.4.6 — Modo 800m (raias ou largada em grupo) */}
                 {itemAtivo.metros === 800 && seriacaoModo !== "manual" && (
@@ -1410,14 +1417,16 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                       const chaveSer = sum.faseSufixo ? serKey(sum.prova.id, sum.categoria.id, sum.sexo, sum.faseSufixo) : `${sum.prova.id}_${sum.categoria.id}_${sum.sexo}`;
                       let serSalva = eventoAtual.seriacao?.[chaveSer];
                       if (!serSalva) {
-                        const _fsBdg = getFasesProva(sum.prova.id, eventoAtual.programaHorario || {});
+                        const _fsBdg = getFasesModo(sum.prova.id, eventoAtual.configSeriacao || {});
                         for (const _fb of _fsBdg) { const _kb = serKey(sum.prova.id, sum.categoria.id, sum.sexo, _fb); if (eventoAtual.seriacao?.[_kb]?.series) { serSalva = eventoAtual.seriacao[_kb]; break; } }
                       }
                       const cfgBadge = eventoAtual.configSeriacao?.[sum.prova.id];
-                      const modo = (typeof cfgBadge === "string") ? cfgBadge : (cfgBadge?.modo || "semifinal_final");
+                      const modoRaw = (typeof cfgBadge === "string") ? cfgBadge : (cfgBadge?.modo || "final");
+                      const modoBdg = modoRaw === "final_tempo" ? "final" : modoRaw === "semifinal_final" ? "semi_final" : modoRaw;
+                      const modoLabel = modoBdg === "eli_semi_final" ? "Eli+Semi+Final" : modoBdg === "semi_final" ? "Semi+Final" : "Final";
                       if (serSalva) return (
                         <span style={{ fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:600, background:`${t.success}15`, color: t.success, border:`1px solid ${t.success}44` }}>
-                          ✓ Seriada ({serSalva.series?.length || 0} sér.) · {modo === "final_tempo" ? "Final/Tempo" : "Semi+Final"}
+                          ✓ Seriada ({serSalva.series?.length || 0} sér.) · {modoLabel}
                         </span>
                       );
                       if (sum.prova.unidade === "s" && !sum.prova.origemCombinada && !sum.isRevezamento) {
@@ -1502,7 +1511,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                     {(() => {
                       const _serH = sum.faseSufixo
                         ? buscarSeriacao(eventoAtual.seriacao, sum.prova.id, sum.categoria.id, sum.sexo, sum.faseSufixo)
-                        : (() => { let r = eventoAtual.seriacao?.[`${sum.prova.id}_${sum.categoria.id}_${sum.sexo}`]; if (!r) { const _fsH = getFasesProva(sum.prova.id, eventoAtual.programaHorario || {}); for (const _fh of _fsH) { const _kh = serKey(sum.prova.id, sum.categoria.id, sum.sexo, _fh); if (eventoAtual.seriacao?.[_kh]?.series) { r = eventoAtual.seriacao[_kh]; break; } } } return r; })();
+                        : (() => { let r = eventoAtual.seriacao?.[`${sum.prova.id}_${sum.categoria.id}_${sum.sexo}`]; if (!r) { const _fsH = getFasesModo(sum.prova.id, eventoAtual.configSeriacao || {}); for (const _fh of _fsH) { const _kh = serKey(sum.prova.id, sum.categoria.id, sum.sexo, _fh); if (eventoAtual.seriacao?.[_kh]?.series) { r = eventoAtual.seriacao[_kh]; break; } } } return r; })();
                       return _serH ? <><Th>Série</Th><Th>Raia</Th></> : null;
                     })()}
                     <Th>Cat. Oficial</Th><Th>Obs.</Th>
@@ -1512,7 +1521,7 @@ function TelaSumulas({ inscricoes, atletas, setTela, usuarioLogado, eventoAtual,
                   {(() => {
                     let serSalva = sum.faseSufixo
                       ? buscarSeriacao(eventoAtual.seriacao, sum.prova.id, sum.categoria.id, sum.sexo, sum.faseSufixo)
-                      : (() => { let r = eventoAtual.seriacao?.[`${sum.prova.id}_${sum.categoria.id}_${sum.sexo}`]; if (!r) { const _fsB = getFasesProva(sum.prova.id, eventoAtual.programaHorario || {}); for (const _fb of _fsB) { const _kb = serKey(sum.prova.id, sum.categoria.id, sum.sexo, _fb); if (eventoAtual.seriacao?.[_kb]?.series) { r = eventoAtual.seriacao[_kb]; break; } } } return r; })();
+                      : (() => { let r = eventoAtual.seriacao?.[`${sum.prova.id}_${sum.categoria.id}_${sum.sexo}`]; if (!r) { const _fsB = getFasesModo(sum.prova.id, eventoAtual.configSeriacao || {}); for (const _fb of _fsB) { const _kb = serKey(sum.prova.id, sum.categoria.id, sum.sexo, _fb); if (eventoAtual.seriacao?.[_kb]?.series) { r = eventoAtual.seriacao[_kb]; break; } } } return r; })();
 
                     // Se tem seriação, renderizar agrupado por série
                     if (serSalva && serSalva.series) {

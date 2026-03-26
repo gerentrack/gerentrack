@@ -6,7 +6,7 @@ import { RecordHelper } from "../../shared/engines/recordHelper";
 import { TeamScoringEngine } from "../../shared/engines/teamScoringEngine";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { CombinedScoringEngine } from "../../shared/engines/combinedScoringEngine";
-import { getFasesProva, buscarSeriacao, resKey, FASE_NOME, FASE_ORDEM } from "../../shared/constants/fases";
+import { getFasesModo, buscarSeriacao, resKey, FASE_NOME, FASE_ORDEM } from "../../shared/constants/fases";
 import { gerarHtmlImpressao } from "../impressao/gerarHtmlImpressao";
 import { GT_DEFAULT_LOGO } from "../../shared/branding";
 import { Th, Td } from "../ui/TableHelpers";
@@ -204,16 +204,13 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
     const isRevez = prova.tipo === "revezamento";
     return ["M", "F"].map((sexo) => {
       return CATEGORIAS.flatMap((cat) => {
-        // Determinar chaves de resultados a verificar (com fases ou legado)
-        // Nota: TelaDigitarResultados só usa fase quando _provaFases.length > 1,
-        // então com 1 fase o resultado é salvo sem sufixo. Precisamos verificar ambos.
-        const _fases = getFasesProva(prova.id, eventoAtual.programaHorario || {});
+        // Determinar chaves de resultados a verificar
+        const _fases = getFasesModo(prova.id, eventoAtual.configSeriacao || {});
         const _semFase = { key: `${eid}_${prova.id}_${cat.id}_${sexo}`, fase: "" };
-        const _keysToCheck = _fases.length > 1
+        const _keysToCheck = _fases.length > 0
           ? _fases.map(f => ({ key: resKey(eid, prova.id, cat.id, sexo, f), fase: f }))
           : [_semFase];
-        // Fallback: se multi-fase não encontrou nada, tentar sem sufixo (migração/legado)
-        if (_fases.length > 1) _keysToCheck.push(_semFase);
+
 
         return _keysToCheck.map(({ key, fase }) => {
         const res = resultados[key];
@@ -1200,9 +1197,20 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
               const isCombPistaBlk = isCorridaBlk && b.prova.origemCombinada === true;
               const isCombPistaSeriavel = isCombPistaBlk && metros > 0 && metros <= 400;
 
-              // Calcular série de cada atleta (para combinadas de pista ≤400m)
+              // Calcular série de cada atleta a partir da seriação salva
               const serieDoAtletaBlk = {};
-              if (isCombPistaSeriavel) {
+              const raiaDoAtletaBlk = {};
+              const _serBlk = buscarSeriacao(eventoAtual.seriacao, b.prova.id, b.categoria.id, b.sexo, b.faseSufixo || "");
+              if (_serBlk?.series && _serBlk.series.length > 0) {
+                _serBlk.series.forEach(ser => {
+                  ser.atletas.forEach(a => {
+                    const aid = a.id || a.atletaId;
+                    serieDoAtletaBlk[aid] = ser.numero;
+                    if (a.raia) raiaDoAtletaBlk[aid] = a.raia;
+                  });
+                });
+              } else if (isCombPistaSeriavel) {
+                // Fallback para combinadas: divisão simples se não tem seriação
                 const MAX_SERIE = 8;
                 const inscBlk = inscDoEvento.filter(ii =>
                   ii.provaId === b.prova.id && (ii.categoriaOficialId || ii.categoriaId) === b.categoria.id && ii.sexo === b.sexo
@@ -1217,6 +1225,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                   }
                 }
               }
+              const temSerieBlk = Object.keys(serieDoAtletaBlk).length > 0;
 
               // Pontuação por equipes — SÓ na final ou sem fase (legado). Eliminatória/semifinal NÃO pontuam.
               const isFaseFinal = !b.faseSufixo || b.faseSufixo === "FIN";
@@ -1292,7 +1301,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                 }
 
                 // Buscar seriação da PRÓXIMA fase para determinar Q/q
-                const fasesConf = getFasesProva(b.prova.id, eventoAtual.programaHorario || {});
+                const fasesConf = getFasesModo(b.prova.id, eventoAtual.configSeriacao || {});
                 const idxAtual = FASE_ORDEM.indexOf(b.faseSufixo);
                 const proximaFase = FASE_ORDEM[idxAtual + 1];
                 if (proximaFase && fasesConf.includes(proximaFase)) {
@@ -1314,9 +1323,6 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
               // Montar lista de séries para iteração (se agrupado) ou null (se unificado)
               const seriesParaRender = isFaseComSeries && seriacaoFaseBlk?.series
                 ? [...seriacaoFaseBlk.series].sort((a2, b2) => {
-                    if (seriacaoFaseBlk.ordemSeries) {
-                      return seriacaoFaseBlk.ordemSeries.indexOf(a2.numero) - seriacaoFaseBlk.ordemSeries.indexOf(b2.numero);
-                    }
                     return a2.numero - b2.numero;
                   })
                 : null;
@@ -1454,7 +1460,7 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                       <Th>Nº</Th>
                       <Th>Atleta</Th>
                       <Th>Clube/Equipe</Th>
-                      {isCombPistaSeriavel && Object.keys(serieDoAtletaBlk).length > 0 && <Th>Sér.</Th>}
+                      {temSerieBlk && <Th>Sér.</Th>}
                       {temRaiaBlk  && <Th>Raia</Th>}
                       {temVentoBlk && <Th>Vento</Th>}
                       {isCampoBlk && <>
@@ -1503,15 +1509,15 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                       })() : null;
 
                       return (
-                        <tr key={item.atleta.id} style={{ ...s.tr, ...(isSerieFinal && !item.isStatus ? (j===0?s.trOuro:j===1?s.trPrata:j===2?s.trBronze:{}) : {}) }}>
+                        <tr key={`${isSerieFinal ? "g" : "s"}_${item.atleta.id}`} style={{ ...s.tr, ...(isSerieFinal && !item.isStatus ? (j===0?s.trOuro:j===1?s.trPrata:j===2?s.trBronze:{}) : {}) }}>
                           <Td><strong style={{ color: item.isStatus ? t.textDimmed : (isSerieFinal && j<3?t.accent:t.textPrimary), fontSize:15 }}>
                             {item.isStatus ? "" : (isSerieFinal ? (j===0?"🥇":j===1?"🥈":j===2?"🥉":posLabel) : posLabel)}
                           </strong></Td>
                           <Td><strong style={{ color: t.textTertiary, fontSize:13 }}>{(numeracaoPeito?.[eventoAtual?.id]||{})[item.atleta.id]||""}</strong></Td>
                           <Td><strong style={{ color: isSerieFinal && j<3?t.accent:t.textPrimary }}>{item.atleta.contaExcluida ? <span style={{ color: t.textDimmed, fontStyle: "italic", fontWeight: 400 }} title="Conta excluída — histórico preservado de forma anônima">Atleta Excluído</span> : item.atleta.nome}</strong></Td>
                           <Td>{getExibicaoEquipe(item.atleta, equipes)||"—"}</Td>
-                          {isCombPistaSeriavel && Object.keys(serieDoAtletaBlk).length > 0 && <Td>{serieDoAtletaBlk[item.atleta.id] || "—"}</Td>}
-                          {temRaiaBlk  && <Td>{getTent(raw,"raia")||"—"}</Td>}
+                          {temSerieBlk && <Td>{serieDoAtletaBlk[item.atleta.id] || "—"}</Td>}
+                          {temRaiaBlk  && <Td>{getTent(raw,"raia") || raiaDoAtletaBlk[item.atleta.id] || "—"}</Td>}
                           {temVentoBlk && <Td>{getTent(raw,"vento")||"—"}</Td>}
                           {isCampoBlk && (() => {
                           const bestT = getBestTentIndex(raw);
@@ -1706,12 +1712,11 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
 
                       // ── Renderizar: agrupado por série (ELI/SEM) ou unificado (FIN/legado) ──
                       if (seriesParaRender) {
-                        const nCols = 4 + (isCombPistaSeriavel && Object.keys(serieDoAtletaBlk).length > 0 ? 1 : 0)
+                        const nCols = 4 + (temSerieBlk ? 1 : 0)
                           + (temRaiaBlk ? 1 : 0) + (temVentoBlk ? 1 : 0)
                           + (isCampoBlk ? 7 : 0) + (isAlturaVara ? 1 : 0) + 1
                           + (isFaseComSeries ? 1 : 0) + (pontuacaoAtiva ? 1 : 0);
                         return seriesParaRender.flatMap((serie, si) => {
-                          // Atletas desta série com resultado
                           const atletaIdsSerie = new Set(serie.atletas.map(a => a.id || a.atletaId));
                           const classifSerie = b.classificados
                             .filter(item => atletaIdsSerie.has(item.atleta?.id))
@@ -1734,8 +1739,42 @@ function TelaResultados({ inscricoes, atletas, resultados, setTela, usuarioLogad
                             )
                           ];
                         });
+                      } else if (temSerieBlk && _serBlk?.series?.length > 1) {
+                        // Final por Tempo: séries + classificação geral
+                        const nColsFt = 4 + (temSerieBlk ? 1 : 0)
+                          + (temRaiaBlk ? 1 : 0) + (temVentoBlk ? 1 : 0)
+                          + (isCampoBlk ? 7 : 0) + (isAlturaVara ? 1 : 0) + 1
+                          + (pontuacaoAtiva ? 1 : 0);
+                        const seriesOrdFt = [..._serBlk.series].sort((a2, b2) => a2.numero - b2.numero);
+                        const rows = [];
+                        for (const serie of seriesOrdFt) {
+                          const ids = new Set(serie.atletas.map(a => a.id || a.atletaId));
+                          const cs = b.classificados.filter(item => ids.has(item.atleta?.id)).sort((a2, b2) => {
+                            if (a2.isStatus && !b2.isStatus) return 1;
+                            if (!a2.isStatus && b2.isStatus) return -1;
+                            if (a2.marca != null && b2.marca != null) return b.prova.unidade === "s" ? a2.marca - b2.marca : b2.marca - a2.marca;
+                            return 0;
+                          });
+                          rows.push(
+                            <tr key={`fts-${b.prova.id}-${b.faseSufixo}-${serie.numero}`}>
+                              <td colSpan={nColsFt} style={{ padding:"8px 12px", background: t.bgCardAlt, borderBottom:`2px solid ${t.accentBorder}`, color: t.accent, fontWeight:700, fontSize:12 }}>
+                                Série {serie.numero}
+                              </td>
+                            </tr>
+                          );
+                          cs.forEach((item, j) => rows.push(renderRow(item, j, item.isStatus ? "" : `${j+1}º`, false)));
+                        }
+                        rows.push(
+                          <tr key={`cg-${b.prova.id}-${b.faseSufixo}`}>
+                            <td colSpan={nColsFt} style={{ padding:"10px 12px", background: `${t.success}12`, borderBottom:`2px solid ${t.success}44`, color: t.success, fontWeight:800, fontSize:13 }}>
+                              Classificação Geral
+                            </td>
+                          </tr>
+                        );
+                        b.classificados.forEach((item, j) => rows.push(renderRow(item, j, item.isStatus ? "" : (j===0?"🥇":j===1?"🥈":j===2?"🥉":`${j+1}º`), true)));
+                        return rows;
                       } else {
-                        // Renderização unificada (FIN ou legado)
+                        // Renderização unificada (série única ou legado)
                         return b.classificados.map((item, j) =>
                           renderRow(item, j, item.isStatus ? "" : (j===0?"🥇":j===1?"🥈":j===2?"🥉":`${j+1}º`), true)
                         );

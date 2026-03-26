@@ -3,7 +3,7 @@ import { useConfirm } from "../../features/ui/ConfirmContext";
 import { getCategoria } from "../../shared/constants/categorias";
 import { getStatusEvento, labelStatusEvento } from "../eventos/eventoHelpers";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
-import { getFasesProva, resKey } from "../../shared/constants/fases";
+import { getFasesModo, resKey } from "../../shared/constants/fases";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 
 function getS(t) {

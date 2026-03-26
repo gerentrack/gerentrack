@@ -9,7 +9,7 @@
 
 import { todasAsProvas }           from '../../domain/provas/todasAsProvas';
 import { CATEGORIAS }              from '../constants/categorias';
-import { getFasesProva }           from '../constants/fases';
+import { getFasesModo }             from '../constants/fases';
 import { getComposicaoCombinada }  from '../../domain/combinadas/composicao';
 import { CombinedEventEngine }     from './combinedEventEngine';
 import { CombinedScoringEngine }   from './combinedScoringEngine';
@@ -147,7 +147,7 @@ const TeamScoringEngine = {
     const todasProvasComComb = [...todasProvas, ...provasComponentes];
 
     // Calcular pontos de provas normais (não-combinadas, não-revezamentos e não-componentes)
-    const progHorario = eventoAtual.programaHorario || {};
+    const configSeriacaoEvt = eventoAtual.configSeriacao || {};
     provasPrograma.forEach(provaId => {
       const prova = todasProvas.find(p => p.id === provaId);
       if (!prova || prova.tipo === "combinada" || prova.tipo === "revezamento") return; // combinadas e revezamentos são tratados separadamente
@@ -157,7 +157,7 @@ const TeamScoringEngine = {
       ["M", "F"].forEach(sexo => {
         CATEGORIAS.forEach(cat => {
           // Buscar resultado: priorizar FIN de multi-fase, depois chave base (só se sem fases)
-          const fasesConf = getFasesProva(provaId, progHorario);
+          const fasesConf = getFasesModo(provaId, configSeriacaoEvt);
           let res = null;
           if (fasesConf.length > 1) {
             // Prova com fases: usar só resultado da FIN
@@ -253,7 +253,7 @@ const TeamScoringEngine = {
       ["M", "F"].forEach(sexo => {
         CATEGORIAS.forEach(cat => {
           // Buscar resultado: priorizar FIN de multi-fase, depois chave base (só se sem fases)
-          const fasesConfR = getFasesProva(prova.id, progHorario);
+          const fasesConfR = getFasesModo(prova.id, configSeriacaoEvt);
           let res = null;
           if (fasesConfR.length > 1) {
             if (fasesConfR.includes("FIN")) {
@@ -415,7 +415,7 @@ const TeamScoringEngine = {
 
           // Se chave sem fase mas prova tem fases configuradas → dados obsoletos, ignorar
           if (!temFaseSufixo) {
-            const fasesConf = getFasesProva(provId, progHorario);
+            const fasesConf = getFasesModo(provId, configSeriacaoEvt);
             if (fasesConf.length > 1) return;
           }
 

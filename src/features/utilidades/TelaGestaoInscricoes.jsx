@@ -9,6 +9,8 @@ import { calcularPrecoInscricao, formatarPreco, validarLimiteProvas, validarNorm
 import { Th, Td } from "../ui/TableHelpers";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { db, collection, doc, writeBatch } from "../../firebase";
+import { sanitize } from "../../lib/utils/sanitize";
 
 // Verifica em tempo real se as inscrições estão encerradas,
 // levando em conta data+hora além do flag salvo.
@@ -572,60 +574,78 @@ function TelaGestaoInscricoes({ setTela, eventoAtual, editarEvento, inscricoes, 
     if (w) { w.document.write(html); w.document.close(); }
   };
 
-  // ── Confirmar e gravar lote ──────────────────────────────────────────────
+  // ── Confirmar e gravar lote (writeBatch para evitar esgotar fila do Firestore) ──
   const handleConfirmar = async () => {
     if (confirmando) return;
     setConfirmando(true);
-    for (const item of carrinho) {
-      const atl = atletas.find(a => a.id === item.atletaId);
-      const prv = todasAsProvas().find(p => p.id === item.provaId);
-      if (!atl || !prv) continue;
-      const cat = getCategoria(atl.anoNasc, anoComp);
-      const precoInfoInsc = calcularPrecoInscricao(atl, cat?.id || null, eventoAtual);
-      const inscBase = {
-        id: genId(),
-        eventoId: eid,
-        atletaId: item.atletaId,
-        provaId: item.provaId,
-        provaNome: prv.nome,
-        categoria: cat?.nome || "—",
-        categoriaId: cat?.id || "",
-        categoriaOficial: cat?.nome || "—",
-        categoriaOficialId: cat?.id || "",
-        sexo: atl.sexo,
-        data: new Date().toISOString(),
-        inscritoPorId: usuarioLogado?.id,
-        inscritoPorNome: usuarioLogado?.nome || "Admin",
-        inscritoPorTipo: usuarioLogado?.tipo,
-        equipeCadastro: atl.clube || _getClubeAtleta(atl, equipes) || "",
-        equipeCadastroId: atl.equipeId || null,
-        precoInfo: precoInfoInsc,
-      };
-      await adicionarInscricao(inscBase);
-      if (prv.tipo === "combinada") {
-        const provasComp = CombinedEventEngine.gerarProvasComponentes(item.provaId, eid);
-        const inscricoesComp = CombinedEventEngine.inscreverAtletaNasComponentes(
-          item.atletaId, item.provaId, eid,
-          { categoria: cat?.nome || "—", categoriaId: cat?.id || "", categoriaOficial: cat?.nome || "—", categoriaOficialId: cat?.id || "", sexo: atl.sexo, inscritoPorId: usuarioLogado?.id, inscritoPorNome: usuarioLogado?.nome, inscritoPorTipo: usuarioLogado?.tipo, equipeCadastro: atl.clube || "", equipeCadastroId: atl.equipeId || null },
-          provasComp
-        );
-        for (const ic of inscricoesComp) await adicionarInscricao(ic);
+    try {
+      // 1. Preparar todos os documentos de inscrição
+      const todosInscDocs = [];
+      for (const item of carrinho) {
+        const atl = atletas.find(a => a.id === item.atletaId);
+        const prv = todasAsProvas().find(p => p.id === item.provaId);
+        if (!atl || !prv) continue;
+        const cat = getCategoria(atl.anoNasc, anoComp);
+        const precoInfoInsc = calcularPrecoInscricao(atl, cat?.id || null, eventoAtual);
+        const inscBase = {
+          id: genId(),
+          eventoId: eid,
+          atletaId: item.atletaId,
+          provaId: item.provaId,
+          provaNome: prv.nome,
+          categoria: cat?.nome || "—",
+          categoriaId: cat?.id || "",
+          categoriaOficial: cat?.nome || "—",
+          categoriaOficialId: cat?.id || "",
+          sexo: atl.sexo,
+          data: new Date().toISOString(),
+          inscritoPorId: usuarioLogado?.id,
+          inscritoPorNome: usuarioLogado?.nome || "Admin",
+          inscritoPorTipo: usuarioLogado?.tipo,
+          equipeCadastro: atl.clube || _getClubeAtleta(atl, equipes) || "",
+          equipeCadastroId: atl.equipeId || null,
+          precoInfo: precoInfoInsc,
+        };
+        todosInscDocs.push(inscBase);
+        if (prv.tipo === "combinada") {
+          const provasComp = CombinedEventEngine.gerarProvasComponentes(item.provaId, eid);
+          const inscricoesComp = CombinedEventEngine.inscreverAtletaNasComponentes(
+            item.atletaId, item.provaId, eid,
+            { categoria: cat?.nome || "—", categoriaId: cat?.id || "", categoriaOficial: cat?.nome || "—", categoriaOficialId: cat?.id || "", sexo: atl.sexo, inscritoPorId: usuarioLogado?.id, inscritoPorNome: usuarioLogado?.nome, inscritoPorTipo: usuarioLogado?.tipo, equipeCadastro: atl.clube || "", equipeCadastroId: atl.equipeId || null },
+            provasComp
+          );
+          todosInscDocs.push(...inscricoesComp);
+        }
       }
+
+      // 2. Gravar em lotes de até 500 (limite do writeBatch)
+      const LOTE = 500;
+      for (let i = 0; i < todosInscDocs.length; i += LOTE) {
+        const batch = writeBatch(db);
+        todosInscDocs.slice(i, i + LOTE).forEach(insc => {
+          batch.set(doc(db, "inscricoes", insc.id), sanitize(insc));
+        });
+        await batch.commit();
+      }
+
+      // 3. Remover pré-inscrições dos atletas que acabaram de receber provas
+      const atletasNoCarrinho = new Set(carrinho.map(c => c.atletaId));
+      const preInscAtual = eventoAtual.preInscricoes || [];
+      const preInscRestantes = preInscAtual.filter(p => !atletasNoCarrinho.has(p.atletaId));
+      if (preInscRestantes.length !== preInscAtual.length) {
+        editarEvento({ ...eventoAtual, preInscricoes: preInscRestantes });
+      }
+      if (registrarAcao) registrarAcao(
+        usuarioLogado?.id, usuarioLogado?.nome,
+        "Inscreveu atletas em lote", `${carrinho.length} inscrição(ões)`,
+        usuarioLogado?.organizadorId || usuarioLogado?.id, { modulo: "inscricoes" }
+      );
+      setEtapa("concluido");
+    } catch (err) {
+      console.error("[GestaoInscricoes] Erro ao confirmar lote:", err);
+      alert("Erro ao gravar inscrições. Tente novamente.");
     }
-    // Remover pré-inscrições dos atletas que acabaram de receber provas
-    const atletasNoCarrinho = new Set(carrinho.map(c => c.atletaId));
-    const preInscAtual = eventoAtual.preInscricoes || [];
-    const preInscRestantes = preInscAtual.filter(p => !atletasNoCarrinho.has(p.atletaId));
-    if (preInscRestantes.length !== preInscAtual.length) {
-      editarEvento({ ...eventoAtual, preInscricoes: preInscRestantes });
-    }
-    if (registrarAcao) registrarAcao(
-      usuarioLogado?.id, usuarioLogado?.nome,
-      "Inscreveu atletas em lote", `${carrinho.length} inscrição(ões)`,
-      usuarioLogado?.organizadorId || usuarioLogado?.id, { modulo: "inscricoes" }
-    );
     setConfirmando(false);
-    setEtapa("concluido");
   };
 
   const resetCarrinho = () => {

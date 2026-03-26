@@ -264,8 +264,9 @@ export function useResultados({ eventos = [], recordes = [], editarEvento } = {}
       const snap = await getDoc(docRef);
       const docAtual = snap.exists() ? { ...snap.data() } : {};
 
-      entradas.forEach(({ atletaId, marca, tentData, statusData }) => {
+      entradas.forEach(({ atletaId, marca, tentData, statusData, raia, vento }) => {
         const normMarca = marca != null ? String(marca).replace(",", ".") : marca;
+        const normVento = vento != null ? String(vento).replace(",", ".") : undefined;
         const normTent = tentData
           ? Object.fromEntries(
               Object.entries(tentData).map(([k, v]) => {
@@ -281,6 +282,8 @@ export function useResultados({ eventos = [], recordes = [], editarEvento } = {}
           marca: normMarca,
           ...normTent,
           ...(statusData || {}),
+          ...(raia !== undefined ? { raia } : {}),
+          ...(normVento !== undefined ? { vento: normVento } : {}),
         });
       });
 

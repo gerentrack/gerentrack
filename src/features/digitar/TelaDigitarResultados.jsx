@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas, getComposicaoCombinada, nPernasRevezamento } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/constants/categorias";
 import { NomeProvaComImplemento, abreviarProva, formatarMarca, normalizarMarca, exibirMarcaInput, formatarTempo, autoFormatTempo, parseTempoPista, resolverAtleta } from "../../shared/formatters/utils";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { CombinedScoringEngine, temDuasCronometragens } from "../../shared/engines/combinedScoringEngine";
-import { getFasesProva, buscarSeriacao, resKey, FASE_NOME } from "../../shared/constants/fases";
+import { getFasesModo, buscarSeriacao, resKey, FASE_NOME } from "../../shared/constants/fases";
 import { Th, Td } from "../ui/TableHelpers";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { parsearLif } from "../../shared/engines/lynxImportEngine";
 
 // Badge de chamada (Conf./DNS) ao lado do nome do atleta
 function ChamadaBadge({ atletaId, provaId, catId, sexo, getPresencaProva, t }) {
@@ -312,12 +313,12 @@ function BlocoDigitarCategoria({
     : [];
 
   // Detectar fases da prova selecionada
-  const _provaFases = getFasesProva(filtroProva, eventoAtual?.programaHorario || {});
+  const _provaFases = getFasesModo(filtroProva, eventoAtual?.configSeriacao || {});
   const _temFases = _provaFases.length > 1;
   const faseEfetiva = _temFases ? (filtroFase || _provaFases[0] || "") : "";
 
-  // ── Filtrar atletas pela seriação da fase selecionada ──
-  const _serDigitar = faseEfetiva ? buscarSeriacao(eventoAtual.seriacao, filtroProva, catId, filtroSexo, faseEfetiva) : null;
+  // ── Filtrar atletas pela seriação da fase selecionada (ou fase única) ──
+  const _serDigitar = buscarSeriacao(eventoAtual.seriacao, filtroProva, catId, filtroSexo, faseEfetiva);
   if (_serDigitar?.series && _serDigitar.series.length > 0 && !isRevezamento) {
     const idsNaSeriacao = _serDigitar.series.flatMap(serie => serie.atletas.map(a => a.id || a.atletaId));
     const filtrados = atletasNaProva.filter(a => idsNaSeriacao.includes(a.id));
@@ -2104,6 +2105,318 @@ function BlocoDigitarCategoria({
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
+   ModalImportLif — modal de importação de resultados do FinishLynx (.lif)
+   ════════════════════════════════════════════════════════════════════════════ */
+function ModalImportLif({ eventoAtual, inscricoes, atletas, equipes, numeracaoPeito, atualizarResultadosEmLote, onClose, t }) {
+  const [conteudoLif, setConteudoLif] = useState("");
+  const [nomeArquivo, setNomeArquivo] = useState("");
+  const [dragging, setDragging] = useState(false);
+  const [importando, setImportando] = useState(false);
+  const [importado, setImportado] = useState(false);
+  const [erroImport, setErroImport] = useState("");
+  const [edicoes, setEdicoes] = useState({});
+  const [grupoSelecionado, setGrupoSelecionado] = useState(null);
+  const fileRef = useRef(null);
+
+  const parseado = useMemo(() => {
+    if (!conteudoLif || !eventoAtual) return null;
+    return parsearLif(conteudoLif, eventoAtual, inscricoes, atletas, equipes, numeracaoPeito);
+  }, [conteudoLif, eventoAtual, inscricoes, atletas, equipes, numeracaoPeito]);
+
+  // Auto-selecionar se houver apenas 1 grupo
+  useEffect(() => {
+    if (parseado && parseado.resultados.length === 1 && !grupoSelecionado) {
+      setGrupoSelecionado(0);
+    }
+  }, [parseado, grupoSelecionado]);
+
+  const lerArquivo = useCallback((file) => {
+    if (!file) return;
+    setNomeArquivo(file.name);
+    setImportado(false);
+    setErroImport("");
+    setEdicoes({});
+    setGrupoSelecionado(null);
+    const reader = new FileReader();
+    reader.onload = (ev) => setConteudoLif(ev.target.result || "");
+    reader.readAsText(file);
+  }, []);
+
+  const handleDrop = useCallback((ev) => {
+    ev.preventDefault();
+    setDragging(false);
+    const file = ev.dataTransfer?.files?.[0];
+    if (file) lerArquivo(file);
+  }, [lerArquivo]);
+
+  const editarEntrada = (gIdx, eIdx, campo, valor) => {
+    const key = `${gIdx}_${eIdx}_${campo}`;
+    setEdicoes(prev => ({ ...prev, [key]: valor }));
+  };
+
+  const getValor = (gIdx, eIdx, campo, original) => {
+    const key = `${gIdx}_${eIdx}_${campo}`;
+    return key in edicoes ? edicoes[key] : original;
+  };
+
+  const handleImportar = useCallback(async () => {
+    if (!parseado || !atualizarResultadosEmLote) return;
+
+    const gruposAImportar = grupoSelecionado != null
+      ? [parseado.resultados[grupoSelecionado]]
+      : parseado.resultados;
+
+    if (gruposAImportar.length === 0) return;
+
+    setImportando(true);
+    setErroImport("");
+    try {
+      const eid = eventoAtual.id;
+      for (let gIdx = 0; gIdx < gruposAImportar.length; gIdx++) {
+        const grupo = gruposAImportar[gIdx];
+        const realGIdx = grupoSelecionado != null ? grupoSelecionado : gIdx;
+        const entradas = grupo.entradas.map((ent, eIdx) => {
+          const marcaEdit = getValor(realGIdx, eIdx, "marca", ent.marca);
+          const statusEdit = getValor(realGIdx, eIdx, "status", ent.status);
+          const raiaEdit = getValor(realGIdx, eIdx, "raia", ent.raia);
+          const ventoEdit = getValor(realGIdx, eIdx, "vento", ent.vento);
+
+          const marcaFinal = statusEdit || marcaEdit;
+          return {
+            atletaId: ent.atletaId,
+            marca: marcaFinal,
+            tentData: {},
+            statusData: statusEdit ? { status: statusEdit } : {},
+            ...(raiaEdit != null ? { raia: parseInt(raiaEdit, 10) || null } : {}),
+            ...(ventoEdit != null ? { vento: parseFloat(ventoEdit) || null } : {}),
+          };
+        });
+        await atualizarResultadosEmLote(eid, grupo.provaId, grupo.catId, grupo.sexo, grupo.faseSufixo, entradas);
+      }
+      setImportado(true);
+    } catch (err) {
+      console.error("Erro ao importar resultados Lynx:", err);
+      setErroImport("Erro ao salvar: " + (err.message || "erro desconhecido"));
+    } finally {
+      setImportando(false);
+    }
+  }, [parseado, eventoAtual, atualizarResultadosEmLote, grupoSelecionado, edicoes]);
+
+  const fmtTempo = (seg) => {
+    if (seg == null) return "—";
+    if (seg >= 60) {
+      const min = Math.floor(seg / 60);
+      const rest = (seg % 60).toFixed(2).padStart(5, "0");
+      return `${min}:${rest}`;
+    }
+    return seg.toFixed(2);
+  };
+
+  const STATUS_OPCOES = ["", "DNS", "DNF", "DQ"];
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}
+      onClick={(ev) => { if (ev.target === ev.currentTarget && !importando) onClose(); }}>
+      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }} />
+      <div style={{ position: "relative", background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 16, width: "min(95vw, 860px)", maxHeight: "90vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+        {/* Header */}
+        <div style={{ padding: "16px 20px", borderBottom: `1px solid ${t.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: t.textPrimary }}>Importar Resultados FinishLynx</div>
+            <div style={{ fontSize: 12, color: t.textDimmed }}>Arquivo .lif</div>
+          </div>
+          <button onClick={onClose} disabled={importando} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: t.textMuted, padding: "4px 8px" }}>✕</button>
+        </div>
+
+        {/* Body */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
+          {/* Dropzone */}
+          {!conteudoLif ? (
+            <div
+              style={{ border: `2px dashed ${dragging ? t.accent : t.border}`, borderRadius: 12, padding: "40px 20px", textAlign: "center", cursor: "pointer", transition: "all 0.2s", background: dragging ? `${t.accent}08` : "transparent" }}
+              onDragOver={(ev) => { ev.preventDefault(); setDragging(true); }}
+              onDragLeave={() => setDragging(false)}
+              onDrop={handleDrop}
+              onClick={() => fileRef.current?.click()}>
+              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 700, color: t.textPrimary, marginBottom: 6 }}>
+                Arraste o arquivo .lif aqui
+              </div>
+              <div style={{ fontSize: 12, color: t.textDimmed }}>ou clique para selecionar</div>
+              <input ref={fileRef} type="file" accept=".lif,.csv,.txt" style={{ display: "none" }} onChange={(ev) => lerArquivo(ev.target.files?.[0])} />
+            </div>
+          ) : (
+            <>
+              {/* Arquivo info + diagnóstico */}
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
+                <span style={{ padding: "3px 10px", borderRadius: 6, fontSize: 12, fontWeight: 700, background: `${t.accent}15`, color: t.accent, border: `1px solid ${t.accent}44` }}>{nomeArquivo}</span>
+                {parseado && <span style={{ fontSize: 12, color: t.textDimmed }}>{parseado.totalResultados} resultado(s) em {parseado.totalEventos} prova(s)</span>}
+                {parseado?.diagnostico && (
+                  <span style={{ fontSize: 10, color: t.textDimmed }}>
+                    · {parseado.diagnostico.bibsDisponiveis} peitos · {parseado.diagnostico.provasMapeadas} provas mapeadas · {parseado.diagnostico.blocosNoArquivo} bloco(s) no .lif
+                  </span>
+                )}
+                <button onClick={() => { setConteudoLif(""); setNomeArquivo(""); setImportado(false); setErroImport(""); setEdicoes({}); setGrupoSelecionado(null); }}
+                  style={{ padding: "3px 10px", borderRadius: 6, fontSize: 11, background: "transparent", border: `1px solid ${t.border}`, color: t.textMuted, cursor: "pointer" }}>
+                  Trocar
+                </button>
+              </div>
+
+              {/* Avisos */}
+              {parseado && parseado.avisos.length > 0 && (
+                <div style={{ marginBottom: 12, maxHeight: 120, overflowY: "auto" }}>
+                  {parseado.avisos.map((av, idx) => (
+                    <div key={idx} style={{ display: "flex", gap: 6, padding: "4px 8px", borderRadius: 6, fontSize: 11, background: `${t.warning}10`, border: `1px solid ${t.warning}22`, color: t.warning, marginBottom: 4 }}>
+                      <span>⚠</span><span>{av}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Erros */}
+              {parseado && parseado.erros.length > 0 && (
+                <div style={{ marginBottom: 12 }}>
+                  {parseado.erros.map((er, idx) => (
+                    <div key={idx} style={{ padding: "6px 10px", borderRadius: 6, fontSize: 12, background: `${t.danger}10`, border: `1px solid ${t.danger}33`, color: t.danger, marginBottom: 4 }}>
+                      ✕ {er}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Seletor de prova (se múltiplas) */}
+              {parseado && parseado.resultados.length > 1 && (
+                <div style={{ marginBottom: 12 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: t.textMuted, letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" }}>Selecionar prova para importar</div>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    <button
+                      onClick={() => setGrupoSelecionado(null)}
+                      style={{ padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer", border: `1px solid ${grupoSelecionado == null ? t.accent : t.border}`, background: grupoSelecionado == null ? `${t.accent}15` : "transparent", color: grupoSelecionado == null ? t.accent : t.textMuted }}>
+                      Todas ({parseado.totalResultados})
+                    </button>
+                    {parseado.resultados.map((grupo, gIdx) => (
+                      <button key={gIdx}
+                        onClick={() => setGrupoSelecionado(gIdx)}
+                        style={{ padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer", border: `1px solid ${grupoSelecionado === gIdx ? t.accent : t.border}`, background: grupoSelecionado === gIdx ? `${t.accent}15` : "transparent", color: grupoSelecionado === gIdx ? t.accent : t.textMuted }}>
+                        {grupo.provaNome} {grupo.sexo === "M" ? "M" : "F"} {grupo.catId} ({grupo.entradas.length})
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Tabela de resultados editável */}
+              {parseado && parseado.resultados.length > 0 && (
+                <div style={{ overflowX: "auto" }}>
+                  {parseado.resultados.map((grupo, gIdx) => {
+                    if (grupoSelecionado != null && grupoSelecionado !== gIdx) return null;
+                    return (
+                      <div key={gIdx} style={{ marginBottom: 16 }}>
+                        <div style={{ padding: "8px 12px", background: `${t.accent}08`, borderRadius: 8, marginBottom: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 14, color: t.textPrimary }}>
+                            {grupo.provaNome}
+                            <span style={{ fontSize: 12, color: t.textDimmed, fontWeight: 400, marginLeft: 8 }}>
+                              {grupo.sexo === "M" ? "Masc" : "Fem"} · {grupo.catId} · {grupo.faseSufixo || "FIN"}
+                              {grupo.vento != null && <> · Vento: {grupo.vento >= 0 ? "+" : ""}{grupo.vento.toFixed(1)}</>}
+                            </span>
+                          </span>
+                        </div>
+                        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                          <thead>
+                            <tr>
+                              <th style={{ textAlign: "left", padding: "6px 8px", borderBottom: `2px solid ${t.border}`, color: t.textMuted, fontSize: 10, fontWeight: 700, textTransform: "uppercase" }}>Pos</th>
+                              <th style={{ textAlign: "left", padding: "6px 8px", borderBottom: `2px solid ${t.border}`, color: t.textMuted, fontSize: 10, fontWeight: 700, textTransform: "uppercase" }}>Raia</th>
+                              <th style={{ textAlign: "left", padding: "6px 8px", borderBottom: `2px solid ${t.border}`, color: t.textMuted, fontSize: 10, fontWeight: 700, textTransform: "uppercase" }}>Peito</th>
+                              <th style={{ textAlign: "left", padding: "6px 8px", borderBottom: `2px solid ${t.border}`, color: t.textMuted, fontSize: 10, fontWeight: 700, textTransform: "uppercase" }}>Atleta</th>
+                              <th style={{ textAlign: "left", padding: "6px 8px", borderBottom: `2px solid ${t.border}`, color: t.textMuted, fontSize: 10, fontWeight: 700, textTransform: "uppercase" }}>Tempo</th>
+                              <th style={{ textAlign: "left", padding: "6px 8px", borderBottom: `2px solid ${t.border}`, color: t.textMuted, fontSize: 10, fontWeight: 700, textTransform: "uppercase" }}>Status</th>
+                              <th style={{ textAlign: "left", padding: "6px 8px", borderBottom: `2px solid ${t.border}`, color: t.textMuted, fontSize: 10, fontWeight: 700, textTransform: "uppercase" }}>Vento</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {grupo.entradas.map((ent, eIdx) => {
+                              const statusVal = getValor(gIdx, eIdx, "status", ent.status || "");
+                              return (
+                                <tr key={eIdx} style={{ background: eIdx % 2 === 0 ? "transparent" : `${t.bgHeaderSolid}` }}>
+                                  <td style={{ padding: "5px 8px", borderBottom: `1px solid ${t.border}`, color: t.textDimmed }}>{ent.posicaoLynx || "—"}</td>
+                                  <td style={{ padding: "5px 8px", borderBottom: `1px solid ${t.border}` }}>
+                                    <input type="text" value={getValor(gIdx, eIdx, "raia", ent.raia || "")} onChange={(ev) => editarEntrada(gIdx, eIdx, "raia", ev.target.value)}
+                                      style={{ width: 40, background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 4, padding: "3px 6px", fontSize: 12, color: t.textSecondary, textAlign: "center" }} />
+                                  </td>
+                                  <td style={{ padding: "5px 8px", borderBottom: `1px solid ${t.border}`, fontWeight: 600, color: t.textSecondary }}>{ent.bib}</td>
+                                  <td style={{ padding: "5px 8px", borderBottom: `1px solid ${t.border}`, fontWeight: 600, color: ent.nomeConflito ? t.danger : t.textPrimary }}>
+                                    {ent.nomeAtleta}
+                                    {ent.nomeConflito && (
+                                      <div style={{ fontSize: 10, fontWeight: 400, color: t.warning, marginTop: 2 }}>
+                                        .lif: {ent.nomeLif}
+                                      </div>
+                                    )}
+                                  </td>
+                                  <td style={{ padding: "5px 8px", borderBottom: `1px solid ${t.border}` }}>
+                                    {statusVal ? (
+                                      <span style={{ fontWeight: 700, color: statusVal === "DNS" ? t.textDimmed : t.danger }}>{statusVal}</span>
+                                    ) : (
+                                      <input type="text" value={getValor(gIdx, eIdx, "marca", ent.marca != null ? fmtTempo(ent.marca) : "")}
+                                        onChange={(ev) => editarEntrada(gIdx, eIdx, "marca", ev.target.value)}
+                                        style={{ width: 80, background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 4, padding: "3px 6px", fontSize: 12, color: t.textSecondary, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }} />
+                                    )}
+                                  </td>
+                                  <td style={{ padding: "5px 8px", borderBottom: `1px solid ${t.border}` }}>
+                                    <select value={statusVal} onChange={(ev) => editarEntrada(gIdx, eIdx, "status", ev.target.value)}
+                                      style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 4, padding: "3px 6px", fontSize: 11, color: statusVal ? t.danger : t.textMuted }}>
+                                      {STATUS_OPCOES.map(op => <option key={op} value={op}>{op || "—"}</option>)}
+                                    </select>
+                                  </td>
+                                  <td style={{ padding: "5px 8px", borderBottom: `1px solid ${t.border}` }}>
+                                    <input type="text" value={getValor(gIdx, eIdx, "vento", ent.vento != null ? ent.vento : "")}
+                                      onChange={(ev) => editarEntrada(gIdx, eIdx, "vento", ev.target.value)}
+                                      style={{ width: 50, background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 4, padding: "3px 6px", fontSize: 12, color: t.textSecondary, textAlign: "center" }} />
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Feedback */}
+              {importado && (
+                <div style={{ padding: "10px 14px", borderRadius: 8, background: `${t.success}10`, border: `1px solid ${t.success}33`, color: t.success, fontWeight: 700, marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 18 }}>✓</span>
+                  Resultados importados com sucesso!
+                </div>
+              )}
+              {erroImport && (
+                <div style={{ padding: "10px 14px", borderRadius: 8, background: `${t.danger}10`, border: `1px solid ${t.danger}33`, color: t.danger, marginBottom: 12 }}>
+                  ✕ {erroImport}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding: "12px 20px", borderTop: `1px solid ${t.border}`, display: "flex", justifyContent: "flex-end", gap: 10 }}>
+          <button onClick={onClose} disabled={importando}
+            style={{ padding: "8px 20px", borderRadius: 8, border: `1px solid ${t.border}`, background: "transparent", color: t.textSecondary, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>
+            {importado ? "Fechar" : "Cancelar"}
+          </button>
+          {conteudoLif && parseado && parseado.resultados.length > 0 && !importado && (
+            <button onClick={handleImportar} disabled={importando}
+              style={{ padding: "8px 20px", borderRadius: 8, border: "none", background: t.success, color: "#fff", cursor: importando ? "wait" : "pointer", fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, opacity: importando ? 0.6 : 1 }}>
+              {importando ? "Importando..." : `Confirmar Importação`}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
    TelaDigitarResultados — componente principal (orquestrador de filtros)
    ════════════════════════════════════════════════════════════════════════════ */
 function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResultado, atualizarResultadosEmLote, limparResultado, limparTodosResultados, setTela, eventoAtual, editarEvento, usuarioLogado, registrarAcao, numeracaoPeito, getClubeAtleta, equipes, recordes, getPresencaProva }) {
@@ -2118,6 +2431,7 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
   const [filtroCat,   setFiltroCat]   = useState("");
   const [filtroSexo,  setFiltroSexo]  = useState("M");
   const [filtroFase,  setFiltroFase]  = useState("");
+  const [mostrarImportLif, setMostrarImportLif] = useState(false);
 
   if (!eventoAtual) return (
     <div style={s.page}><div style={s.emptyState}><p>Selecione uma competição primeiro.</p>
@@ -2162,7 +2476,7 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
 
   // Detectar fases da prova selecionada (usar o primeiro provaId para o seletor de fases)
   const _primeiroProvaId = provaIdsDaSelecao[0]?.id || "";
-  const _provaFases = _primeiroProvaId ? getFasesProva(_primeiroProvaId, eventoAtual?.programaHorario || {}) : [];
+  const _provaFases = _primeiroProvaId ? getFasesModo(_primeiroProvaId, eventoAtual?.configSeriacao || {}) : [];
   const _temFases = _provaFases.length > 1;
   const faseEfetiva = _temFases ? (filtroFase || _provaFases[0] || "") : "";
 
@@ -2184,7 +2498,8 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
           <h1 style={s.pageTitle}>✏️ Digitar Resultados</h1>
           <div style={{ color: t.textDimmed, fontSize: 13 }}>{eventoAtual.nome}</div>
         </div>
-        <div style={{ display: "flex", gap: 10 }}>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <button style={s.btnSecondary} onClick={() => setMostrarImportLif(true)}>Importar .lif</button>
           <button style={s.btnGhost} onClick={() => setTela("resultados")}>Ver Publicados</button>
           <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Competição</button>
         </div>
@@ -2254,7 +2569,7 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
               <option value="F">Feminino</option>
             </select>
           </div>
-          {/* Seletor de Fase — aparece quando a prova tem multi-fases no programaHorario */}
+          {/* Seletor de Fase — aparece quando o modo da seriação tem multi-fases */}
           {_temFases && (
             <div>
               <label style={s.label}>Fase *</label>
@@ -2268,6 +2583,20 @@ function TelaDigitarResultados({ inscricoes, atletas, resultados, atualizarResul
           )}
         </div>
       </div>
+
+      {/* Modal Import .lif */}
+      {mostrarImportLif && (
+        <ModalImportLif
+          eventoAtual={eventoAtual}
+          inscricoes={inscricoes}
+          atletas={atletas}
+          equipes={equipes}
+          numeracaoPeito={numeracaoPeito}
+          atualizarResultadosEmLote={atualizarResultadosEmLote}
+          onClose={() => setMostrarImportLif(false)}
+          t={t}
+        />
+      )}
 
       {filtroProva && (() => {
         // Cada provaId no provasDef embute a categoria (ex: M_adulto_comp, M_sub16_comp).

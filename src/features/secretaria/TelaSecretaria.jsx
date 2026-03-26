@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { CATEGORIAS, getCategoria } from "../../shared/constants/categorias";
-import { resKey, getFasesProva, FASE_ORDEM } from "../../shared/constants/fases";
+import { resKey, getFasesModo, FASE_ORDEM } from "../../shared/constants/fases";
 import { abreviarProva } from "../../shared/formatters/utils";
 import { useMedalhasChamada } from "../../hooks/useMedalhasChamada";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
@@ -199,7 +199,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
   // ── Calcular classificação por prova para medalhas ────────────────────────
   const getClassificados = (prova, cat, sexo) => {
     // Busca a fase final (FIN) ou fase única
-    const fases = getFasesProva(prova.id, eventoAtual?.programaHorario || {});
+    const fases = getFasesModo(prova.id, eventoAtual?.configSeriacao || {});
     const fasesOrdenadas = fases.length > 1
       ? [...fases].sort((a, b) => (FASE_ORDEM[b] || 0) - (FASE_ORDEM[a] || 0))
       : [null];
@@ -277,7 +277,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
       const cat = getCategoria(atl.anoNasc, anoComp);
       if (!cat) return acc;
       // Verifica se tem resultado (qualquer fase)
-      const fases = getFasesProva(prova.id, eventoAtual?.programaHorario || {});
+      const fases = getFasesModo(prova.id, eventoAtual?.configSeriacao || {});
       const fasesCheck = fases.length > 1 ? fases : [null];
       const temRes = fasesCheck.some(fase => {
         const key = resKey(eid, prova.id, cat.id, insc.sexo || atl.sexo, fase);
@@ -311,7 +311,7 @@ function TelaSecretaria({ setTela, eventoAtual, inscricoes, atletas, resultados,
       if (!atl) continue;
       const cat = getCategoria(atl.anoNasc, anoComp);
       if (!cat) continue;
-      const fases = getFasesProva(prova.id, eventoAtual?.programaHorario || {});
+      const fases = getFasesModo(prova.id, eventoAtual?.configSeriacao || {});
       const fasesCheck = fases.length > 1 ? fases : [null];
       for (const fase of fasesCheck) {
         const key = resKey(eid, prova.id, cat.id, insc.sexo || atl.sexo, fase);

@@ -89,6 +89,30 @@ const getEntradasProva = (provaId, programaHorario) => {
 // Verifica se a prova tem múltiplas fases configuradas
 const temMultiFases = (provaId, programaHorario) => getFasesProva(provaId, programaHorario).length > 1;
 
+// ── Fases derivadas de configSeriacao.modo (fonte de verdade) ──────────────
+// Retrocompat: "final_tempo" → "final", "semifinal_final" → "semi_final"
+const _MODO_FASES = {
+  "final": [],
+  "semi_final": ["SEM", "FIN"],
+  "eli_semi_final": ["ELI", "SEM", "FIN"],
+  // Legados:
+  "final_tempo": [],
+  "semifinal_final": ["SEM", "FIN"],
+};
+
+/**
+ * Retorna fases de uma prova baseado em configSeriacao[provaId].modo.
+ * @param {string} provaId
+ * @param {object} configSeriacao — eventoAtual.configSeriacao
+ * @returns {string[]} ex: ["ELI","SEM","FIN"] ou ["SEM","FIN"] ou []
+ */
+const getFasesModo = (provaId, configSeriacao) => {
+  if (!configSeriacao) return [];
+  const cfg = configSeriacao[provaId];
+  const modo = !cfg ? "final" : (typeof cfg === "string") ? cfg : (cfg.modo || "final");
+  return _MODO_FASES[modo] || [];
+};
+
 // Busca seriação com fallback: primeiro tenta com sufixo, depois sem (migração)
 const buscarSeriacao = (seriacaoObj, provaId, catId, sexo, faseSufixo) => {
   if (!seriacaoObj) return null;
@@ -111,4 +135,4 @@ const buscarResultado = (resultadosObj, eventoId, provaId, catId, sexo, faseSufi
   return resultadosObj[resKey(eventoId, provaId, catId, sexo, "")] || null;
 };
 
-export { FASE_SUFIXOS, FASE_ORDEM, FASE_ANTERIOR, FASE_NOME, faseToSufixo, serKey, resKey, getGrupoKey, getFasesProva, getEntradasProva, temMultiFases, buscarSeriacao, buscarResultado };
+export { FASE_SUFIXOS, FASE_ORDEM, FASE_ANTERIOR, FASE_NOME, faseToSufixo, serKey, resKey, getGrupoKey, getFasesProva, getFasesModo, getEntradasProva, temMultiFases, buscarSeriacao, buscarResultado };

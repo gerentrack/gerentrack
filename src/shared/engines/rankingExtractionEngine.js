@@ -7,7 +7,7 @@
  */
 
 import { todasAsProvas } from '../../domain/provas/todasAsProvas';
-import { getFasesProva } from '../constants/fases';
+import { getFasesModo } from '../constants/fases';
 import { _getCbat, _getClubeAtleta } from '../formatters/utils.jsx';
 
 const RankingExtractionEngine = {
@@ -20,7 +20,7 @@ const RankingExtractionEngine = {
     if (!evento || !resultados || !atletas) return [];
     const eid = evento.id;
     const allProvas = todasAsProvas();
-    const progHorario = evento.programaHorario || {};
+    const configSeriacaoEvt = evento.configSeriacao || {};
     const entradas = [];
     const chavesVistas = new Set();
 
@@ -56,7 +56,7 @@ const RankingExtractionEngine = {
       if (prova.tipo === "revezamento") return;
 
       // Só considerar FINAL
-      const fasesConf = getFasesProva(provId, progHorario);
+      const fasesConf = getFasesModo(provId, configSeriacaoEvt);
       if (fasesConf.length > 1) {
         if (faseSufixo !== "FIN") return;
       } else {

@@ -1,6 +1,6 @@
 import { _getClubeAtleta, _getLocalEventoDisplay, _getNascDisplay, _getCbat, nomeProvaHtml, formatarMarca, formatarMarcaExibicaoHtml, _marcasComEmpateCentesimal, resolverAtleta } from "../../shared/formatters/utils";
 import { GT_DEFAULT_LOGO } from "../../shared/branding";
-import { getFasesProva, buscarSeriacao, serKey, FASE_ORDEM } from "../../shared/constants/fases";
+import { getFasesModo, buscarSeriacao, serKey, FASE_ORDEM } from "../../shared/constants/fases";
 import { RecordHelper } from "../../shared/engines/recordHelper";
 import { nPernasRevezamento } from "../../shared/athletics/provasDef";
 import { TeamScoringEngine } from "../../shared/engines/teamScoringEngine";
@@ -498,7 +498,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
     const _isFaseComSeriesPrint = (s.faseSufixo === "ELI" || s.faseSufixo === "SEM") && !s.isRevezamento;
     const _classifQqPrint = {};
     if (_isFaseComSeriesPrint) {
-      const fasesConf = getFasesProva(s.prova.id, evento.programaHorario || {});
+      const fasesConf = getFasesModo(s.prova.id, evento.configSeriacao || {});
       const idxAtual = FASE_ORDEM.indexOf(s.faseSufixo);
       const proximaFase = FASE_ORDEM[idxAtual + 1];
       if (proximaFase && fasesConf.includes(proximaFase)) {
@@ -596,7 +596,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
       // Mas 800m em raias mantém coluna de série/raia (RT 20.4.5)
       let _serSalvaCheck = evento.seriacao?.[`${s.prova.id}_${s.categoria.id}_${s.sexo}`];
       if (!_serSalvaCheck) {
-        const _fsC = getFasesProva(s.prova.id, evento.programaHorario || {});
+        const _fsC = getFasesModo(s.prova.id, evento.configSeriacao || {});
         for (const _f of _fsC) { const _k = serKey(s.prova.id, s.categoria.id, s.sexo, _f); if (evento.seriacao?.[_k]?.series) { _serSalvaCheck = evento.seriacao[_k]; break; } }
       }
       const _tipoLarg = _serSalvaCheck?.tipoLargada || (metros > 800 ? "grupo" : "raias");
@@ -699,11 +699,13 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
           : evento.seriacao?.[chaveSer];
         // Não usar seriação de outra fase como fallback — raias/séries diferem entre fases
         const cfgProva = evento.configSeriacao?.[s.prova.id];
-        const configModo = (typeof cfgProva === "string") ? cfgProva : (cfgProva?.modo || "final_tempo");
+        const configModoRaw = (typeof cfgProva === "string") ? cfgProva : (cfgProva?.modo || "final");
+        // Retrocompat: "final_tempo" → "final", "semifinal_final" → "semi_final"
+        const configModo = configModoRaw === "final_tempo" ? "final" : configModoRaw === "semifinal_final" ? "semi_final" : configModoRaw;
         const nRaiasProva = isProvaLonga
           ? ((typeof cfgProva === "object" && cfgProva?.atlPorSerie) ? cfgProva.atlPorSerie : 12)
           : ((typeof cfgProva === "object" && cfgProva?.nRaias) ? cfgProva.nRaias : 8);
-        const isFinalTempo = configModo === "final_tempo";
+        const isFinalTempo = configModo === "final";
 
         if (serSalva && serSalva.series && serSalva.series.length > 0) {
           // ── SERIAÇÃO SALVA: usar séries e raias definidas ──
@@ -748,7 +750,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
           }
 
           // Se não é final por tempo E tem múltiplas séries E não é já uma fase FIN/ELI E a prova tem fase FIN configurada → adicionar página de final em branco
-          const _fasesConf = getFasesProva(s.prova.id, evento.programaHorario || {});
+          const _fasesConf = getFasesModo(s.prova.id, evento.configSeriacao || {});
           if (!isFinalTempo && temMultiSeries && s.faseSufixo !== "FIN" && s.faseSufixo !== "ELI" && _fasesConf.includes("FIN")) {
             numPag++;
             const nRaias = nRaiasProva;
@@ -801,16 +803,17 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
       } else {
         const chaveSer2 = `${s.prova.id}_${s.categoria.id}_${s.sexo}`;
         const cfgProva2 = evento.configSeriacao?.[s.prova.id];
-        const configModo2 = (typeof cfgProva2 === "string") ? cfgProva2 : (cfgProva2?.modo || "final_tempo");
+        const configModo2Raw = (typeof cfgProva2 === "string") ? cfgProva2 : (cfgProva2?.modo || "final");
+        const configModo2 = configModo2Raw === "final_tempo" ? "final" : configModo2Raw === "semifinal_final" ? "semi_final" : configModo2Raw;
         const nRaiasProva2 = isProvaLonga
           ? ((typeof cfgProva2 === "object" && cfgProva2?.atlPorSerie) ? cfgProva2.atlPorSerie : 12)
           : ((typeof cfgProva2 === "object" && cfgProva2?.nRaias) ? cfgProva2.nRaias : 8);
-        const isFinalTempo2 = configModo2 === "final_tempo";
+        const isFinalTempo2 = configModo2 === "final";
         let serSalva2 = s.faseSufixo
           ? buscarSeriacao(evento.seriacao, s.prova.id, s.categoria.id, s.sexo, s.faseSufixo)
           : evento.seriacao?.[chaveSer2];
         if (!serSalva2) {
-          const _fasesP2 = getFasesProva(s.prova.id, evento.programaHorario || {});
+          const _fasesP2 = getFasesModo(s.prova.id, evento.configSeriacao || {});
           for (const _fs2 of _fasesP2) {
             const _ck2 = serKey(s.prova.id, s.categoria.id, s.sexo, _fs2);
             if (evento.seriacao?.[_ck2]?.series) { serSalva2 = evento.seriacao[_ck2]; break; }
@@ -849,10 +852,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
 
         // ── Fases ELI/SEM: agrupar por série com Q/q ──
         if (_isFaseComSeriesPrint && serSalva2?.series) {
-          const seriesOrd = [...serSalva2.series].sort((a2, b2) => {
-            if (serSalva2.ordemSeries) return serSalva2.ordemSeries.indexOf(a2.numero) - serSalva2.ordemSeries.indexOf(b2.numero);
-            return a2.numero - b2.numero;
-          });
+          const seriesOrd = [...serSalva2.series].sort((a2, b2) => a2.numero - b2.numero);
           const nSer = seriesOrd.length;
           const faseLabel = s.faseSufixo === "ELI" ? "ELIMINAT\u00d3RIA" : "SEMIFINAL";
           for (let si = 0; si < nSer; si++) {
@@ -889,19 +889,40 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
               </div>`);
           }
         } else if (isFinalTempo2) {
-          // Final por tempo com resultado → classificação geral unificada
-          if (classGeral.length > 0) {
-            // Mapear atletaId → série (da seriação salva ou sequencial)
-            const serDoAtl = {};
-            if (serSalva2 && serSalva2.series) {
-              serSalva2.series.forEach(ser => {
-                ser.atletas.forEach(sa => { serDoAtl[sa.id || sa.atletaId] = ser.numero; });
-              });
-            } else if (totalSeries > 1) {
-              for (let si = 0; si < totalSeries; si++) {
-                atl.slice(si*MAX_EFETIVO, (si+1)*MAX_EFETIVO).forEach(a => { serDoAtl[a.id] = si + 1; });
-              }
+          // Final por tempo com resultado → séries + classificação geral
+          const serDoAtl = {};
+          if (serSalva2 && serSalva2.series) {
+            serSalva2.series.forEach(ser => {
+              ser.atletas.forEach(sa => { serDoAtl[sa.id || sa.atletaId] = ser.numero; });
+            });
+          } else if (totalSeries > 1) {
+            for (let si = 0; si < totalSeries; si++) {
+              atl.slice(si*MAX_EFETIVO, (si+1)*MAX_EFETIVO).forEach(a => { serDoAtl[a.id] = si + 1; });
             }
+          }
+
+          // Páginas por série (quando há seriação com múltiplas séries)
+          if (serSalva2?.series?.length > 1) {
+            const seriesOrdFt = [...serSalva2.series].sort((a2, b2) => a2.numero - b2.numero);
+            for (const serie of seriesOrdFt) {
+              const atletaIdsSerie = new Set(serie.atletas.map(sa => sa.id || sa.atletaId));
+              const classifSerie = classGeral.filter(x => atletaIdsSerie.has(x.a.id));
+              const statusSerie = statusGeralPrint.filter(x => atletaIdsSerie.has(x.a.id));
+              if (classifSerie.length === 0 && statusSerie.length === 0) continue;
+              numPag++;
+              pags.push(`
+                <div class="${pgClass(s)}">
+                  ${cabPrv(s, numPag, null)}
+                  <div class="blk blk-semi">S\u00c9RIE ${serie.numero} / ${seriesOrdFt.length}<span class="blk-s">${classifSerie.length + statusSerie.length} atleta${(classifSerie.length + statusSerie.length) !== 1 ? "s" : ""}</span></div>
+                  ${infoBarreiras}
+                  <table><thead>${thCor}</thead><tbody>${classifSerie.map(({a,m},j) => linhaRes(a, j, m, false, res[a.id])).join("")}${statusSerie.map(({a,status},j) => linhaStatus(a, status, classifSerie.length+j)).join("")}</tbody></table>
+                  ${rodape(s)}
+                </div>`);
+            }
+          }
+
+          // Página de classificação geral
+          if (classGeral.length > 0) {
             const MAX_FT = 20;
             const totalPags = Math.ceil(classGeral.length / MAX_FT);
             for (let pi = 0; pi < totalPags; pi++) {
