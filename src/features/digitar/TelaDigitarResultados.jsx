@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas, getComposicaoCombinada, nPernasRevezamento } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/constants/categorias";
-import { NomeProvaComImplemento, abreviarProva, formatarMarca, normalizarMarca, exibirMarcaInput, formatarTempo, autoFormatTempo, aplicarMascaraTempo, getMascaraTempo, parseTempoPista, resolverAtleta } from "../../shared/formatters/utils";
+import { NomeProvaComImplemento, abreviarProva, formatarMarca, normalizarMarca, exibirMarcaInput, formatarTempo, autoFormatTempo, aplicarMascaraTempo, getMascaraTempo, parseTempoPista, msParaDigitos, resolverAtleta } from "../../shared/formatters/utils";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { CombinedScoringEngine, temDuasCronometragens } from "../../shared/engines/combinedScoringEngine";
 import { getFasesModo, buscarSeriacao, resKey, FASE_NOME } from "../../shared/constants/fases";
@@ -805,10 +805,10 @@ function BlocoDigitarCategoria({
                   if (typeof r === "object") {
                     loaded[a.id] = { ...r };
                     if (isCorridaEdit && loaded[a.id].marca != null) {
-                      loaded[a.id].marca = String(Math.round(parseFloat(loaded[a.id].marca)));
+                      loaded[a.id].marca = msParaDigitos(parseFloat(loaded[a.id].marca));
                     }
                   } else {
-                    loaded[a.id] = { marca: isCorridaEdit ? String(Math.round(parseFloat(r))) : r };
+                    loaded[a.id] = { marca: isCorridaEdit ? msParaDigitos(parseFloat(r)) : r };
                   }
                 }
               });
@@ -1546,7 +1546,7 @@ function BlocoDigitarCategoria({
             return rank;
           };
 
-          const inputStyle = { ...s.inputMarca, width: 72 };
+          const inputStyle = { ...s.inputMarca, width: 90 };
           const inputSmall = { ...s.inputMarca, width: 52 };
           const tdStyle    = { padding: "4px 3px", textAlign: "center", verticalAlign: "middle" };
 
@@ -1902,7 +1902,7 @@ function BlocoDigitarCategoria({
                         const statusVal = marcas[a.id]?.status ?? existStatus;
                         const dqRegraVal = marcas[a.id]?.dqRegra ?? existDqRegra;
                         const inputVal = rawDigits !== "" ? rawDigits
-                          : existMs !== "" && !existStatus ? String(Math.round(parseFloat(existMs))) : "";
+                          : existMs !== "" && !existStatus ? msParaDigitos(parseFloat(existMs)) : "";
                         const raiaVal  = marcas[a.id]?.raia  ?? (getExist(a,"raia","") || _getSerInfo(a.id, i).raia);
                         const ventoVal = marcas[a.id]?.vento ?? getExist(a,"vento","");
                         const mascaraDisplay = inputVal && !statusVal ? aplicarMascaraTempo(inputVal, metros) : "";
@@ -2237,15 +2237,7 @@ function ModalImportLif({ eventoAtual, inscricoes, atletas, equipes, numeracaoPe
     }
   }, [parseado, eventoAtual, atualizarResultadosEmLote, grupoSelecionado, edicoes]);
 
-  const fmtTempo = (seg) => {
-    if (seg == null) return "—";
-    if (seg >= 60) {
-      const min = Math.floor(seg / 60);
-      const rest = (seg % 60).toFixed(2).padStart(5, "0");
-      return `${min}:${rest}`;
-    }
-    return seg.toFixed(2);
-  };
+  const fmtTempo = (ms) => formatarTempo(ms, 2);
 
   const STATUS_OPCOES = ["", "DNS", "DNF", "DQ"];
 

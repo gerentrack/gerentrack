@@ -134,6 +134,25 @@ function _parseDigitsPuros(digits) {
   return (hh * 3600000) + (min * 60000) + (ss * 1000) + mmm;
 }
 
+// Converte milissegundos → string de dígitos puros (inverso de _parseDigitsPuros)
+// Ex: 4812350 ms → "12012350" (1h 20m 12s 350ms)
+function msParaDigitos(ms) {
+  if (ms == null || isNaN(ms)) return "";
+  const totalMs = Math.round(ms);
+  const h   = Math.floor(totalMs / 3600000);
+  const m   = Math.floor((totalMs % 3600000) / 60000);
+  const s   = Math.floor((totalMs % 60000) / 1000);
+  const mil = totalMs % 1000;
+  const milStr = String(mil).padStart(3, "0");
+  if (h > 0) {
+    return `${h}${String(m).padStart(2,"0")}${String(s).padStart(2,"0")}${milStr}`;
+  }
+  if (m > 0) {
+    return `${m}${String(s).padStart(2,"0")}${milStr}`;
+  }
+  return `${s}${milStr}`;
+}
+
 // Parseia "mm.ss.mmm" ou "ss.mmm" → milissegundos
 // Retrocompatível: aceita vírgula como separador decimal legado (mm.ss,mmm / ss,mmm)
 function _parseMinSeg(str) {
@@ -510,7 +529,7 @@ function aplicarMascaraTempo(digits, metros) {
 export {
   formatarTempo, formatarTempoMs, autoFormatTempo,
   getMascaraTempo, aplicarMascaraTempo,
-  parseTempoPista, _parseDigitsPuros, _parseMinSeg, _marcaParaMs,
+  parseTempoPista, _parseDigitsPuros, _parseMinSeg, _marcaParaMs, msParaDigitos,
   formatarMarca, _temEmpateCentesimal, _marcasComEmpateCentesimal,
   formatarMarcaExibicao, formatarMarcaExibicaoHtml,
   normalizarMarca, exibirMarcaInput,

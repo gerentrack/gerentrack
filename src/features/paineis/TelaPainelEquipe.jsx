@@ -654,7 +654,7 @@ export default function TelaPainelEquipe() {
                   Total: <strong style={{ color: t.textPrimary }}>{meuHistorico.length}</strong>
                 </span>
                 {modulosPresentes.map(mod => (
-                  <span key={mod} style={{ fontSize: 11, color: t.textTertiary, padding: "3px 8px", background: t.bgCardAlt, borderRadius: 5, border: `1px solid ${t.border}`, cursor: "pointer", fontWeight: filtroModulo === mod ? 700 : 400, borderColor: filtroModulo === mod ? t.accent : t.border, color: filtroModulo === mod ? t.accent : t.textTertiary }}
+                  <span key={mod} style={{ fontSize: 11, padding: "3px 8px", background: t.bgCardAlt, borderRadius: 5, border: `1px solid ${t.border}`, cursor: "pointer", fontWeight: filtroModulo === mod ? 700 : 400, borderColor: filtroModulo === mod ? t.accent : t.border, color: filtroModulo === mod ? t.accent : t.textTertiary }}
                     onClick={() => { setFiltroModulo(filtroModulo === mod ? "todos" : mod); setPaginaAudit(1); }}>
                     {MODULO_ICONS[mod] || "📌"} {MODULO_LABELS[mod] || mod}: <strong>{meuHistorico.filter(h => h.modulo === mod).length}</strong>
                   </span>
