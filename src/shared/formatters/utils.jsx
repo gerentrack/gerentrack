@@ -35,50 +35,52 @@ function formatarTempoMs(ms, casas) {
   const msStr   = c === 3 ? String(millis).padStart(3, "0") : String(millis).padStart(3, "0").slice(0, 2);
 
   if (h > 0) {
-    return `${h}:${String(m).padStart(2,"0")}.${String(s).padStart(2,"0")},${msStr}`;
+    return `${h}:${String(m).padStart(2,"0")}.${String(s).padStart(2,"0")}.${msStr}`;
   }
   if (m > 0) {
-    return `${m}.${String(s).padStart(2,"0")},${msStr}`;
+    return `${m}.${String(s).padStart(2,"0")}.${msStr}`;
   }
-  return `${s},${msStr}`;
+  return `${s}.${msStr}`;
 }
 
 // Auto-formata string de dígitos puros para o padrão de tempo
 // O usuário digita só números e o sistema enquadra:
-//  3 dígitos ou menos: 0,XXX (milésimos)
-//  4 dígitos: s,mmm        ex: 1850  → 1,850
-//  5 dígitos: ss,mmm       ex: 10850 → 10,850
-//  6 dígitos: mss,mmm      ex: 12345 → 1.23,450 (com pad)  /  123450 → 1.23,450
-//  7 dígitos: mmssmmm      ex: 1234567 → 12.34,567
-//  8 dígitos: hmmssmmm     ex: 10230500 → 1:02.30,500
-//  9 dígitos: hhmmssmmm    ex: 110230500 → 11:02.30,500
+//  3 dígitos ou menos: 0.XXX (milésimos)
+//  4 dígitos: s.mmm        ex: 1850  → 1.850
+//  5 dígitos: ss.mmm       ex: 10850 → 10.850
+//  6 dígitos: mss.mmm      ex: 12345 → 1.23.450 (com pad)  /  123450 → 1.23.450
+//  7 dígitos: mmssmmm      ex: 1234567 → 12.34.567
+//  8 dígitos: hmmssmmm     ex: 10230500 → 1:02.30.500
+//  9 dígitos: hhmmssmmm    ex: 110230500 → 11:02.30.500
 function autoFormatTempo(digits) {
   const d = digits.padStart(3, "0");
   const len = d.length;
 
   if (len <= 5) {
-    // ss,mmm — últimos 3 são milésimos, resto são segundos
+    // ss.mmm — últimos 3 são milésimos, resto são segundos
     const mmm = d.slice(-3);
     const ss  = d.slice(0, -3) || "0";
-    return `${parseInt(ss)},${mmm}`;
+    return `${parseInt(ss)}.${mmm}`;
   }
   if (len <= 7) {
     // mmssmmm — últimos 3 milésimos, 2 antes segundos, resto minutos
     const mmm = d.slice(-3);
     const ss  = d.slice(-5, -3);
     const mm  = d.slice(0, -5) || "0";
-    return `${parseInt(mm)}.${ss},${mmm}`;
+    return `${parseInt(mm)}.${ss}.${mmm}`;
   }
   // hhmmssmmm — últimos 3 milésimos, 2 antes segundos, 2 antes minutos, resto horas
   const mmm = d.slice(-3);
   const ss  = d.slice(-5, -3);
   const min = d.slice(-7, -5);
   const hh  = d.slice(0, -7) || "0";
-  return `${parseInt(hh)}:${min}.${ss},${mmm}`;
+  return `${parseInt(hh)}:${min}.${ss}.${mmm}`;
 }
 
 // Parseia entrada do usuário para milissegundos
-// Aceita dígitos puros (10850) ou formatado (10,850 / 1.23,450 / 1:02.30,500)
+// Aceita dígitos puros (10850) ou formatado (10.850 / 1.23.450 / 1:02.30.500)
+// Retrocompatível com vírgula: 10,850 / 1.23,450 / 1:02.30,500
+// Aceita também h:mm:ss.mmm (ex: 1:26:00.510)
 function parseTempoPista(str) {
   if (str == null || str === "") return null;
   const s = String(str).trim();
@@ -88,7 +90,17 @@ function parseTempoPista(str) {
     return _parseDigitsPuros(s);
   }
 
-  // Se tem formatação → parseia o formato hh:mm.ss,mmm
+  // Formato h:mm:ss.mmm ou h:mm:ss,mmm (dois pontos duplos)
+  const hmsMatch = s.match(/^(\d+):(\d{1,2}):(\d{1,2})(?:[.,](\d{1,3}))?$/);
+  if (hmsMatch) {
+    const h = parseInt(hmsMatch[1]) || 0;
+    const m = parseInt(hmsMatch[2]) || 0;
+    const sec = parseInt(hmsMatch[3]) || 0;
+    const frac = hmsMatch[4] ? parseInt(hmsMatch[4].padEnd(3, "0").slice(0, 3)) : 0;
+    return (h * 3600000) + (m * 60000) + (sec * 1000) + frac;
+  }
+
+  // Se tem ":" → h:mm.ss.mmm ou h:mm.ss,mmm
   if (s.includes(":")) {
     const [horaStr, resto] = s.split(":");
     const horas = parseInt(horaStr) || 0;
@@ -122,28 +134,44 @@ function _parseDigitsPuros(digits) {
   return (hh * 3600000) + (min * 60000) + (ss * 1000) + mmm;
 }
 
-// Parseia "mm.ss,mmm" ou "ss,mmm" → milissegundos
+// Parseia "mm.ss.mmm" ou "ss.mmm" → milissegundos
+// Retrocompatível: aceita vírgula como separador decimal legado (mm.ss,mmm / ss,mmm)
 function _parseMinSeg(str) {
   if (str == null || str === "") return null;
   let s = String(str).trim();
 
-  let milliStr = "0";
+  // Formato legado com vírgula: mm.ss,mmm ou ss,mmm
   if (s.includes(",")) {
+    let milliStr = "0";
     const idx = s.indexOf(",");
     milliStr = s.slice(idx + 1);
     s = s.slice(0, idx);
+    const millis = parseInt(milliStr.padEnd(3, "0").slice(0, 3)) || 0;
+    if (s.includes(".")) {
+      const [minPart, secPart] = s.split(".");
+      return (parseInt(minPart) || 0) * 60000 + (parseInt(secPart) || 0) * 1000 + millis;
+    }
+    return (parseInt(s) || 0) * 1000 + millis;
   }
-  const millis = parseInt(milliStr.padEnd(3, "0").slice(0, 3)) || 0;
 
-  if (s.includes(".")) {
-    const [minPart, secPart] = s.split(".");
-    const minutos  = parseInt(minPart) || 0;
-    const segundos = parseInt(secPart) || 0;
+  // Formato novo: mm.ss.mmm ou ss.mmm (tudo com ponto)
+  const parts = s.split(".");
+  if (parts.length === 3) {
+    // mm.ss.mmm
+    const minutos  = parseInt(parts[0]) || 0;
+    const segundos = parseInt(parts[1]) || 0;
+    const millis   = parseInt(parts[2].padEnd(3, "0").slice(0, 3)) || 0;
     return (minutos * 60000) + (segundos * 1000) + millis;
+  }
+  if (parts.length === 2) {
+    // ss.mmm
+    const segundos = parseInt(parts[0]) || 0;
+    const millis   = parseInt(parts[1].padEnd(3, "0").slice(0, 3)) || 0;
+    return (segundos * 1000) + millis;
   }
 
   const segundos = parseInt(s) || 0;
-  return (segundos * 1000) + millis;
+  return (segundos * 1000);
 }
 
 // Normaliza qualquer marca de tempo para milissegundos (para comparações)
@@ -452,8 +480,36 @@ function resolverAtleta(atletaId, atletas, evento) {
   return atl || null;
 }
 
+// Máscara fixa de tempo para digitação de resultados de pista
+// O template é determinado pela distância (metros) da prova:
+//   <= 400m:   ss.mmm       (5 slots)
+//   401–9999m: m.ss.mmm     (6 slots, até 7 para ≥3000m)
+//   >= 10000m: h:mm.ss.mmm  (8 slots)
+// Retorna a string com separadores fixos e dígitos preenchidos da direita para esquerda
+function getMascaraTempo(metros) {
+  if (metros >= 5000)  return { template: "_:__.__.___", slots: 8 };
+  if (metros > 400)    return { template: "_.__.___", slots: 6 };
+  return                       { template: "__.___", slots: 5 };
+}
+
+function aplicarMascaraTempo(digits, metros) {
+  const { template, slots } = getMascaraTempo(metros);
+  const d = digits.slice(0, slots).padStart(slots, "_");
+  let result = "";
+  let di = 0;
+  for (let ci = 0; ci < template.length; ci++) {
+    if (template[ci] === "_") {
+      result += d[di++];
+    } else {
+      result += template[ci];
+    }
+  }
+  return result;
+}
+
 export {
   formatarTempo, formatarTempoMs, autoFormatTempo,
+  getMascaraTempo, aplicarMascaraTempo,
   parseTempoPista, _parseDigitsPuros, _parseMinSeg, _marcaParaMs,
   formatarMarca, _temEmpateCentesimal, _marcasComEmpateCentesimal,
   formatarMarcaExibicao, formatarMarcaExibicaoHtml,

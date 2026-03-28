@@ -143,11 +143,11 @@ function getStyles(t) {
   modoBtnActive: { background: t.bgInput, color: t.accent },
   provaGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 },
   provaBtn: { background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", lineHeight: 1.4 },
-  provaBtnSel: { background: t.bgHover, borderColor: t.accent, color: t.accent },
+  provaBtnSel: { background: t.bgHover, border: `1px solid ${t.accent}`, color: t.accent },
   grupoProvasBox: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 10, marginBottom: 16, overflow: "hidden" },
   grupoProvasHeader: { background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`, padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" },
   provaCheckBtn: { background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", lineHeight: 1.4, userSelect: "none" },
-  provaCheckBtnSel: { background: t.bgHover, borderColor: t.accent, color: t.accent },
+  provaCheckBtnSel: { background: t.bgHover, border: `1px solid ${t.accent}`, color: t.accent },
 };
 }
 
@@ -183,11 +183,10 @@ function RichTextEditor({ value, onChange, placeholder }) {
   const handleSelect = () => forceUpdate(n => n + 1);
 
   const btnStyle = (active) => ({
-    padding: "4px 10px", border: "1px solid", cursor: "pointer",
+    padding: "4px 10px", border: `1px solid ${active ? t.accent : t.borderLight}`, cursor: "pointer",
     borderRadius: 4, fontSize: 13, fontFamily: "Inter, sans-serif", minWidth: 32,
     background: active ? t.accent : t.bgHeaderSolid,
     color: active ? "#000" : t.textTertiary,
-    borderColor: active ? t.accent : t.borderLight,
     fontWeight: active ? 700 : 400,
   });
 

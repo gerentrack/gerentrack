@@ -4,7 +4,7 @@ import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { CATEGORIAS, ESTADOS_BR } from "../../shared/constants/categorias";
 import { RecordHelper } from "../../shared/engines/recordHelper";
 import { RecordDetectionEngine } from "../../shared/engines/recordDetectionEngine";
-import { formatarMarca } from "../../shared/formatters/utils";
+import { formatarMarca, parseTempoPista } from "../../shared/formatters/utils";
 import { criarInscricaoStyles } from "../inscricoes/inscricaoStyles";
 import { useTema } from "../../shared/TemaContext";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
@@ -86,7 +86,16 @@ function TelaRecordes() {
       ano: ano || "", local: local || "", competicaoId: competicaoId || null, competicaoNome: competicaoNome || "",
       atletasRevezamento: atletasRevezamento || null };
     const detentores = _coDetentores ? [detentorPrincipal, ..._coDetentores] : [detentorPrincipal];
-    const regFinal = { ...base, detentores };
+    // Normalizar marca: converter para milissegundos (tempo) ou manter como número (distância/pts)
+    let marcaNorm = base.marca;
+    if (base.marca && base.unidade === "s") {
+      const ms = parseTempoPista(String(base.marca));
+      if (ms != null && ms > 0) marcaNorm = ms;
+    } else if (base.marca && base.unidade === "m") {
+      const num = parseFloat(String(base.marca).replace(",", "."));
+      if (!isNaN(num)) marcaNorm = num;
+    }
+    const regFinal = { ...base, marca: marcaNorm, detentores };
 
     setRecordes(recordes.map(tipo => {
       if (tipo.id !== tipoSel) return tipo;
@@ -210,65 +219,31 @@ function TelaRecordes() {
   };
 
   // Normalizar marca para o formato interno do sistema
-  // Tempo: armazena em segundos (ex: 10.45, 112.30)
-  // Distância: armazena em metros (ex: 7.30, 15.22)
+  // Tempo: armazena em milissegundos (ex: 10850, 5160510)
+  // Distância: armazena em metros como número (ex: 7.30, 15.22)
   const _normMarca = (marca, unidade) => {
     if (!marca) return "";
     let raw = String(marca).trim();
-    
+
     // Remover sufixos textuais (m, s, pts, pontos, etc)
     raw = raw.replace(/\s*(metros?|m|seg\.?|s|pts|pontos?|p)\s*$/i, "");
-    
-    // Substituir vírgula por ponto (padrão brasileiro → decimal)
-    // Cuidado: "1.52,30" é minuto.segundo,centésimos — tratar separado
-    // Se tem formato m.ss,cc ou m:ss,cc → é tempo brasileiro
-    const brTempo = raw.match(/^(\d+)[.:](\d{2}),(\d{1,3})$/);
-    if (brTempo && unidade === "s") {
-      const min = parseInt(brTempo[1]);
-      const sec = parseInt(brTempo[2]);
-      const frac = brTempo[3];
-      const total = min * 60 + sec + parseFloat("0." + frac);
-      return total.toFixed(frac.length);
+
+    if (unidade === "m") {
+      // Distância: "7,30" → 7.30
+      const num = parseFloat(raw.replace(",", "."));
+      return !isNaN(num) ? num : raw;
     }
-    
-    // Formato ss,cc ou ss,ccc (tempo curto brasileiro, ex: "10,45" ou "10,450")
-    const brCurto = raw.match(/^(\d{1,3}),(\d{1,3})$/);
-    if (brCurto) {
-      if (unidade === "m") {
-        // Distância: "7,30" → "7.30"
-        return brCurto[1] + "." + brCurto[2];
-      }
-      // Tempo: "10,45" → "10.45" (segundos)
-      return brCurto[1] + "." + brCurto[2];
+
+    if (unidade === "s") {
+      // Tempo: usar parseTempoPista que retorna milissegundos
+      // Suporta: dígitos puros, ss.mmm, m.ss.mmm, h:mm.ss.mmm, h:mm:ss.mmm, formatos com vírgula legados
+      const ms = parseTempoPista(raw);
+      if (ms != null && ms > 0) return ms;
     }
-    
-    // Substituir vírgula restante por ponto
-    let m = raw.replace(/,/g, ".").replace(/[^\d:.]/g, "");
-    
-    // Formato h:mm:ss.cc (ex: "1:23:45.67")
-    const hms = m.match(/^(\d+):(\d{2}):(\d{2})(?:\.(\d+))?$/);
-    if (hms && unidade === "s") {
-      const h = parseInt(hms[1]);
-      const mi = parseInt(hms[2]);
-      const se = parseInt(hms[3]);
-      const frac = hms[4] || "0";
-      const total = h * 3600 + mi * 60 + se + parseFloat("0." + frac);
-      return total.toFixed(frac.length > 0 ? frac.length : 0);
-    }
-    
-    // Formato m:ss.cc (ex: "1:52.30" ou "4:05.20")
-    const minSec = m.match(/^(\d+):(\d{1,2})(?:\.(\d+))?$/);
-    if (minSec && unidade === "s") {
-      const min = parseInt(minSec[1]);
-      const sec = parseInt(minSec[2]);
-      const frac = minSec[3] || "0";
-      const total = min * 60 + sec + parseFloat("0." + frac);
-      return total.toFixed(frac.length > 0 ? frac.length : 0);
-    }
-    
-    // Número simples
-    const num = parseFloat(m);
-    if (!isNaN(num)) return m;
+
+    // Pontos ou formato desconhecido: tentar número simples
+    const num = parseFloat(raw.replace(",", "."));
+    if (!isNaN(num)) return num;
     return raw;
   };
 
@@ -997,22 +972,64 @@ function TelaRecordes() {
             <div style={{ ...S.card, border:"2px solid #4a8aff" }}>
               <div style={{ color:t.accent, fontWeight:700, fontSize:13, marginBottom:10 }}>{editReg.id ? "Editar Registro" : "Novo Registro"}</div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+                {/* Prova (select) */}
+                <div>
+                  <label style={{ fontSize:10, color:t.textMuted, display:"block" }}>Prova</label>
+                  <select style={{ ...S.inputSm, width: 200 }}
+                    value={editReg.provaNome || ""}
+                    onChange={e => {
+                      const nome = e.target.value;
+                      const prv = _allProvas.find(pr => pr.nome === nome);
+                      setEditReg({ ...editReg, provaNome: nome, provaId: prv ? prv.id : "", unidade: prv ? (prv.unidade || "s") : "" });
+                    }}>
+                    <option value="">— Selecionar —</option>
+                    {[...new Set(_allProvas.map(pr => pr.nome))].sort().map(nome => (
+                      <option key={nome} value={nome}>{nome}</option>
+                    ))}
+                  </select>
+                </div>
+                {/* Categoria (select) */}
+                <div>
+                  <label style={{ fontSize:10, color:t.textMuted, display:"block" }}>Categoria</label>
+                  <select style={{ ...S.inputSm, width: 120 }}
+                    value={editReg.categoriaId || ""}
+                    onChange={e => setEditReg({ ...editReg, categoriaId: e.target.value })}>
+                    <option value="">— Sel. —</option>
+                    {CATEGORIAS.map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.nome}</option>
+                    ))}
+                  </select>
+                </div>
+                {/* Sexo */}
+                <div>
+                  <label style={{ fontSize:10, color:t.textMuted, display:"block" }}>Sexo</label>
+                  <select style={{ ...S.inputSm, width: 50 }} value={editReg.sexo} onChange={e => setEditReg({ ...editReg, sexo: e.target.value })}>
+                    <option value="M">M</option><option value="F">F</option>
+                  </select>
+                </div>
+                {/* Marca (com placeholder de formato) */}
+                <div>
+                  <label style={{ fontSize:10, color:t.textMuted, display:"block" }}>Marca</label>
+                  <input style={{ ...S.inputSm, width: 120, color: t.accent }}
+                    value={editReg.marca || ""}
+                    placeholder={editReg.unidade === "m" ? "Ex: 7,30" : "Ex: 10.850"}
+                    onChange={e => setEditReg({ ...editReg, marca: e.target.value })} />
+                  {editReg.unidade && (
+                    <span style={{ fontSize: 9, color: t.textDimmed, display: "block", marginTop: 2 }}>
+                      {editReg.unidade === "m" ? "metros (ex: 7,30)" : editReg.unidade === "pts" ? "pontos" : "ss.mmm · m.ss.mmm · h:mm.ss.mmm"}
+                    </span>
+                  )}
+                </div>
+                {/* Campos texto: atleta, equipe, ano, local */}
                 {[
-                  ["categoriaId", "Categoria", 120], ["sexo", "Sexo", 50], ["provaNome", "Prova", 150],
-                  ["marca", "Marca", 80], ["atleta", "Atleta/Equipe", 180], ["equipe", "Equipe", 160],
+                  ["atleta", "Atleta/Equipe", 180], ["equipe", "Equipe", 160],
                   ["ano", "Ano", 60], ["local", "Local", 160],
                 ].map(([campo, label, w]) => (
                   <div key={campo}>
                     <label style={{ fontSize:10, color:t.textMuted, display:"block" }}>{label}</label>
-                    {campo === "sexo" ? (
-                      <select style={{ ...S.inputSm, width: w }} value={editReg.sexo} onChange={e => setEditReg({ ...editReg, sexo: e.target.value })}>
-                        <option value="M">M</option><option value="F">F</option>
-                      </select>
-                    ) : (
-                      <input style={{ ...S.inputSm, width: w, color: campo === "marca" ? t.accent : t.textSecondary }}
-                        value={editReg[campo] || ""} placeholder={label}
-                        onChange={e => setEditReg({ ...editReg, [campo]: e.target.value })} />
-                    )}
+                    <input style={{ ...S.inputSm, width: w, color: t.textSecondary }}
+                      value={editReg[campo] || ""} placeholder={label}
+                      onChange={e => setEditReg({ ...editReg, [campo]: e.target.value })} />
                   </div>
                 ))}
               </div>

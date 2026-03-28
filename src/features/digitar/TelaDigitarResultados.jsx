@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas, getComposicaoCombinada, nPernasRevezamento } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/constants/categorias";
-import { NomeProvaComImplemento, abreviarProva, formatarMarca, normalizarMarca, exibirMarcaInput, formatarTempo, autoFormatTempo, parseTempoPista, resolverAtleta } from "../../shared/formatters/utils";
+import { NomeProvaComImplemento, abreviarProva, formatarMarca, normalizarMarca, exibirMarcaInput, formatarTempo, autoFormatTempo, aplicarMascaraTempo, getMascaraTempo, parseTempoPista, resolverAtleta } from "../../shared/formatters/utils";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { CombinedScoringEngine, temDuasCronometragens } from "../../shared/engines/combinedScoringEngine";
 import { getFasesModo, buscarSeriacao, resKey, FASE_NOME } from "../../shared/constants/fases";
@@ -856,7 +856,16 @@ function BlocoDigitarCategoria({
             <button style={{ ...s.btnGhost, marginTop: 10 }} onClick={() => setTela("inscricao-revezamento")}>Ir para Inscrição de Revezamento</button>
           </div>
         ) : (() => {
-          const metros = parseInt((provaSel?.nome || provaSel?.id || "").match(/(\d+)m/)?.[1]) || 0;
+          const metros = (() => {
+            const nome = provaSel?.nome || "";
+            const mNome = nome.match(/^([\d.]+)m/);
+            if (mNome) return parseInt(mNome[1].replace(/\./g, ""));
+            const id = provaSel?.id || "";
+            const mKm = id.match(/(\d+)km/i);
+            if (mKm) return parseInt(mKm[1]) * 1000;
+            const mId = id.match(/[_x]?(\d+)m/);
+            return mId ? parseInt(mId[1]) : 0;
+          })();
           const temRaia = metros <= 400;
           const temVento = metros <= 200;
           const nPernas = nPernasRevezamento(provaSel);
@@ -983,17 +992,23 @@ function BlocoDigitarCategoria({
                         )}
                         <Td>
                           <input
-                            type="text" inputMode="numeric" placeholder="ex: 42350"
+                            type="text" inputMode="numeric" placeholder={getMascaraTempo(metros).template.replace(/_/g, "0")}
                             style={{ ...s.input, width: 100, textAlign: "center", fontWeight: 700, fontSize: 14, padding: "8px 6px",
                               color: isStatusAtivo ? t.textDimmed : t.success,
                               background: isStatusAtivo ? t.bgCardAlt : t.bgHeaderSolid }}
                             disabled={isStatusAtivo}
-                            value={valMarca ? autoFormatTempo(String(valMarca)) : ""}
+                            value={valMarca || ""}
                             onChange={e => {
-                              const v = autoFormat(e.target.value);
-                              setMarcas(prev => ({ ...prev, [eq.equipeId]: { ...prev[eq.equipeId], marca: v, status: "" } }));
+                              const v = e.target.value.replace(/\D/g, "");
+                              const maxSlots = getMascaraTempo(metros).slots;
+                              setMarcas(prev => ({ ...prev, [eq.equipeId]: { ...prev[eq.equipeId], marca: v.slice(0, maxSlots), status: "" } }));
                             }}
                           />
+                          {valMarca && !isStatusAtivo && (
+                            <div style={{ fontSize: 11, color: t.success, fontWeight: 700, fontFamily: "'Barlow Condensed', monospace", marginTop: 2, textAlign: "center", letterSpacing: 1 }}>
+                              {aplicarMascaraTempo(String(valMarca), metros)}
+                            </div>
+                          )}
                         </Td>
                         <Td>
                           <select style={{ ...s.input, width: 65, fontSize: 11, padding: "6px 4px" }}
@@ -1424,8 +1439,16 @@ function BlocoDigitarCategoria({
         ════════════════════════════════════════════════════════════════ */
         (() => {
           const metros = (() => {
-            const m = provaSel?.id?.match(/[_x]?(\d+)m/);
-            return m ? parseInt(m[1]) : 0;
+            // Extrair metros do nome (ex: "800m", "1.500m", "20.000m Marcha") ou do ID
+            const nome = provaSel?.nome || "";
+            const mNome = nome.match(/^([\d.]+)m/);
+            if (mNome) return parseInt(mNome[1].replace(/\./g, ""));
+            // ID: "M_adulto_800m", "M_adulto_20kmM", "M_adulto_4x100m"
+            const id = provaSel?.id || "";
+            const mKm = id.match(/(\d+)km/i);
+            if (mKm) return parseInt(mKm[1]) * 1000;
+            const mId = id.match(/[_x]?(\d+)m/);
+            return mId ? parseInt(mId[1]) : 0;
           })();
           const isCorrida = provaSel?.unidade === "s";
           const isCampo   = !isCorrida && !isAltura;
@@ -1882,6 +1905,7 @@ function BlocoDigitarCategoria({
                           : existMs !== "" && !existStatus ? String(Math.round(parseFloat(existMs))) : "";
                         const raiaVal  = marcas[a.id]?.raia  ?? (getExist(a,"raia","") || _getSerInfo(a.id, i).raia);
                         const ventoVal = marcas[a.id]?.vento ?? getExist(a,"vento","");
+                        const mascaraDisplay = inputVal && !statusVal ? aplicarMascaraTempo(inputVal, metros) : "";
                         const previewFormatado = inputVal && !statusVal ? autoFormatTempo(inputVal) : "";
                         const _nCols = 9 + (temRaia?1:0) + (temVento?1:0) + (_serDigitar?.series?.length>0?1:0);
                         return (
@@ -1907,18 +1931,21 @@ function BlocoDigitarCategoria({
                                 value={exibirMarcaInput(ventoVal)} onChange={e => setDado(a,"vento",normalizarMarca(e.target.value))} /></Td>
                             )}
                             <Td>
-                              <input type="text" inputMode="numeric" style={{ ...inputStyle, opacity: statusVal ? 0.3 : 1 }} placeholder="10850"
+                              <input type="text" inputMode="numeric"
+                                style={{ ...inputStyle, opacity: statusVal ? 0.3 : 1 }}
+                                placeholder={getMascaraTempo(metros).template.replace(/_/g, "0")}
                                 disabled={!!statusVal}
                                 value={statusVal ? "" : inputVal}
                                 onChange={e => {
                                   const v = e.target.value.replace(/\D/g, "");
-                                  setDado(a, "marca", v);
+                                  const maxSlots = getMascaraTempo(metros).slots;
+                                  setDado(a, "marca", v.slice(0, maxSlots));
                                 }} />
                             </Td>
                             <Td>
-                              {previewFormatado ? (
-                                <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontWeight:700, fontSize:14, color: t.success }}>
-                                  {previewFormatado}
+                              {mascaraDisplay && !statusVal ? (
+                                <span style={{ fontFamily:"'Barlow Condensed', monospace", fontWeight:700, fontSize:15, color: t.success, letterSpacing: 1 }}>
+                                  {mascaraDisplay}
                                 </span>
                               ) : statusVal ? (
                                 <span style={{ fontWeight:700, fontSize:13, color: statusVal === "DQ" ? t.danger : t.warning }}>
