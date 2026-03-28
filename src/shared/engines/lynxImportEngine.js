@@ -39,6 +39,8 @@ const PLACE_STATUS = {
  * Aceita: "10.23", "10.01", "1:02.45", "1:21.12"
  * Retorna null para valores vazios ou inválidos.
  */
+// Converte tempo do LIF para milissegundos
+// Formatos: "10.22" (seg), "1:10.10" (min:seg), "1:30:10.10" (h:min:seg)
 function converterTempo(str) {
   if (!str) return null;
   const s = str.trim();
@@ -50,20 +52,21 @@ function converterTempo(str) {
       const min = parseFloat(partes[0]);
       const seg = parseFloat(partes[1]);
       if (isNaN(min) || isNaN(seg)) return null;
-      return +(min * 60 + seg).toFixed(3);
+      return Math.round((min * 60 + seg) * 1000);
     }
     if (partes.length === 3) {
       const h = parseFloat(partes[0]);
       const min = parseFloat(partes[1]);
       const seg = parseFloat(partes[2]);
       if (isNaN(h) || isNaN(min) || isNaN(seg)) return null;
-      return +(h * 3600 + min * 60 + seg).toFixed(3);
+      return Math.round((h * 3600 + min * 60 + seg) * 1000);
     }
     return null;
   }
 
+  // Segundos simples → converter para ms
   const num = parseFloat(s);
-  return isNaN(num) ? null : num;
+  return isNaN(num) ? null : Math.round(num * 1000);
 }
 
 /**
