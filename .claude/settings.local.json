@@ -54,7 +54,25 @@
       "WebFetch(domain:fcatletismo.org.br)",
       "WebFetch(domain:store.simplifaster.com)",
       "WebFetch(domain:www.pistaecampo.com.br)",
-      "Bash(grep -o 'setTela\\(\"\"\"\"[^\"\"\"\"]*\"\"\"\"\\)' /c/Users/pedro/gerentrack/src/features/**/*.jsx)"
+      "Bash(grep -o 'setTela\\(\"\"\"\"[^\"\"\"\"]*\"\"\"\"\\)' /c/Users/pedro/gerentrack/src/features/**/*.jsx)",
+      "Bash(npm search:*)",
+      "Bash(NODE_OPTIONS=\"--max-old-space-size=4096\" npx vite build)",
+      "Bash(export NODE_OPTIONS=\"--max-old-space-size=4096\")",
+      "Bash(grep -r \"fase\\\\|Fase\\\\|FASE\" /c/gerentrack/src/features/sumulas /c/gerentrack/src/features/resultados /c/gerentrack/src/features/impressao --include=*.jsx --include=*.js)",
+      "Bash(git config:*)",
+      "Bash(gh auth:*)",
+      "Bash(git fetch:*)",
+      "Bash(find /c/gerentrack/src -type f -name *lif* -o -name *import* -o -name *finish*)",
+      "Read(//c//**)",
+      "Read(//c/Users/pedro/AppData/Roaming/npm/**)",
+      "Bash(export PATH=\"$PATH:/c/Program Files/nodejs:/c/Users/pedro/AppData/Roaming/npm\")",
+      "Bash(npm --version)",
+      "Bash(cmd.exe /c \"npm --version\" 2>&1)",
+      "Bash(cmd.exe /c \"winget install OpenJS.NodeJS.LTS --accept-package-agreements --accept-source-agreements && echo DONE\" 2>&1)",
+      "Bash(powershell.exe -Command \"winget install OpenJS.NodeJS.LTS --accept-package-agreements --accept-source-agreements\" 2>&1)",
+      "Bash(powershell.exe -Command \"npm install -g vercel\" 2>&1)",
+      "Bash(npm list:*)",
+      "Bash(firebase:*)"
     ]
   }
 }

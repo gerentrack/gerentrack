@@ -518,12 +518,10 @@ export default function TelaRanking() {
           {/* Tabela */}
           {filtroAno === "todos" || filtroCat === "todas" || filtroSexo === "todos" || filtroProva === "todas" ? (
             <div style={s.emptyState}>
-              <span style={{ fontSize: 48 }}>📊</span>
               <p>Selecione <strong>Ano</strong>, <strong>Categoria</strong>, <strong>Sexo</strong> e <strong>Prova</strong> para exibir o ranking.</p>
             </div>
           ) : rankingFiltrado.length === 0 ? (
             <div style={s.emptyState}>
-              <span style={{ fontSize: 48 }}>📊</span>
               <p>Nenhuma entrada no ranking com os filtros selecionados.</p>
             </div>
           ) : (
