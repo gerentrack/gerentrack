@@ -280,8 +280,9 @@ function TelaEditarAtleta() {
           )}
           <button style={s.btnGhost} onClick={() => {
             if (isAtleta) setTela("painel-atleta");
+            else if (isEquipe || usuarioLogado?.tipo === "treinador") setTela("painel-equipe");
             else if (isOrg || (usuarioLogado?.tipo === "funcionario")) setTela("cadastrar-atleta");
-            else setModo("lista");
+            else setTela("admin");
           }}>← Voltar</button>
         </div>
       </div>

@@ -277,7 +277,7 @@ function getStyles(t) {
 };
 }
 
-function TelaCadastrarAtleta() {
+function TelaCadastrarAtleta({ modoInicial } = {}) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
@@ -297,7 +297,7 @@ function TelaCadastrarAtleta() {
   const [vinculoEnviado,  setVinculoEnviado]  = useState(false);
   // Etapa 4: atleta com conta ativa no MESMO organizador → bloqueio total
   const [atletaDuplicadoOrg, setAtletaDuplicadoOrg] = useState(null);
-  const [modo, setModo] = useState("lista"); // lista | novo
+  const [modo, setModo] = useState(modoInicial || "lista"); // lista | novo
   const [filtro, setFiltro] = useState("");
   const [filtroSexoAtl, setFiltroSexoAtl] = useState("todos");
   const [filtroCatAtl, setFiltroCatAtl] = useState("todas");
@@ -493,6 +493,10 @@ function TelaCadastrarAtleta() {
   };
 
   const handleCancelar = () => {
+    if (modoInicial === "novo") {
+      setTela(voltarTela);
+      return;
+    }
     setModo("lista");
     setForm(FORM_VAZIO);
     setErros({});
@@ -513,7 +517,7 @@ function TelaCadastrarAtleta() {
         <div style={s.heroBtns}>
           <button style={s.btnPrimary} onClick={async () => { setOk(false); setForm(FORM_VAZIO); setAtletaExistente(null); setVinculoEnviado(false); }}>Cadastrar outro</button>
           <button style={s.btnSecondary} onClick={() => setTela("inscricao-avulsa")}>Inscrever atleta</button>
-          <button style={s.btnGhost} onClick={handleCancelar}>← Voltar à lista</button>
+          <button style={s.btnGhost} onClick={handleCancelar}>{modoInicial === "novo" ? "← Voltar" : "← Voltar à lista"}</button>
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
-import { getCategoria } from "../../shared/constants/categorias";
+import { getCategoria, CATEGORIAS } from "../../shared/constants/categorias";
 import { getStatusEvento, labelStatusEvento } from "../eventos/eventoHelpers";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { getFasesModo, resKey } from "../../shared/constants/fases";
@@ -67,7 +67,7 @@ import { useTema } from "../../shared/TemaContext";
 export default function TelaPainelEquipe() {
   const { usuarioLogado, logout } = useAuth();
   const { atletas, inscricoes, eventos, equipes, resultados, selecionarEvento, responderVinculo, desvincularAtleta } = useEvento();
-  const { setTela, treinadores, solicitarRelatorio, solicitacoesRelatorio, cancelarRelatorio, excluirRelatorio, solicitacoesVinculo, setAtletaEditandoId, notificacoes, marcarNotifLida } = useApp();
+  const { setTela, treinadores, solicitarRelatorio, solicitacoesRelatorio, cancelarRelatorio, excluirRelatorio, solicitacoesVinculo, setAtletaEditandoId, notificacoes, marcarNotifLida, historicoAcoes } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(getS(t));
   const confirmar = useConfirm();
@@ -77,6 +77,14 @@ export default function TelaPainelEquipe() {
 
   const [abaAtiva, setAbaAtiva] = useState("visao-geral");
   const [buscaAtl, setBuscaAtl] = useState("");
+  const [paginaAtl, setPaginaAtl] = useState(1);
+  const [filtroSexoAtl, setFiltroSexoAtl] = useState("todos");
+  const [filtroCatAtl, setFiltroCatAtl] = useState("todas");
+  const atlPorPagina = 20;
+  const [buscaAudit, setBuscaAudit] = useState("");
+  const [filtroModulo, setFiltroModulo] = useState("todos");
+  const [paginaAudit, setPaginaAudit] = useState(1);
+  const auditPorPagina = 20;
   const [buscaRes, setBuscaRes] = useState("");
   const [relEvId, setRelEvId] = useState("");
   const [relEnviado, setRelEnviado] = useState(false);
@@ -210,6 +218,7 @@ export default function TelaPainelEquipe() {
     { id: "resultados",   label: `🏆 Resultados (${medalhas.total})` },
     { id: "treinadores",  label: `👨‍🏫 Treinadores (${meusTrein.length})` },
     ...(totalPendentes > 0 ? [{ id: "vinculos", label: `🔗 Vínculos (${totalPendentes})`, badge: true }] : []),
+    { id: "auditoria",   label: "📜 Auditoria" },
   ];
 
   return (
@@ -217,7 +226,7 @@ export default function TelaPainelEquipe() {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16, marginBottom: 28 }}>
         <div>
-          <h1 style={s.title}>🎽 {equipe?.nome || "Painel da Equipe"}</h1>
+          <h1 style={s.title}>{equipe?.nome || "Painel da Equipe"}</h1>
           <div style={{ color: t.textDimmed, fontSize: 13 }}>
             {equipe?.sigla && <span>{equipe.sigla} · </span>}
             {equipe?.cidade && <span>{equipe.cidade}{equipe.estado ? `, ${equipe.estado}` : ""} · </span>}
@@ -323,54 +332,125 @@ export default function TelaPainelEquipe() {
       {/* ── ABA: ATLETAS ── */}
       {abaAtiva === "atletas" && (
         <div style={s.card}>
+          {/* Header com título e botões */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
-            <div style={s.secTitle}>👥 Atletas da Equipe</div>
-            <button style={s.btn} onClick={() => setTela("cadastrar-atleta")}>+ Cadastrar</button>
+            <div style={s.secTitle}>Atletas da Equipe</div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button style={s.btn} onClick={() => setTela("cadastrar-atleta-novo")}>+ Cadastrar</button>
+              <button style={s.btnSec} onClick={() => setTela("importar-atletas")}>Importar Planilha</button>
+            </div>
           </div>
-          <input type="text" value={buscaAtl} onChange={e => setBuscaAtl(e.target.value)}
-            placeholder="🔍 Buscar nome, CPF..." style={s.input} />
+
+          {/* Contadores */}
+          {meusAtletas.length > 0 && (
+            <div style={{ display: "flex", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 12, color: t.textMuted, padding: "4px 10px", background: t.bgCardAlt, borderRadius: 6, border: `1px solid ${t.border}` }}>
+                Total: <strong style={{ color: t.textPrimary }}>{meusAtletas.length}</strong>
+              </span>
+              <span style={{ fontSize: 12, color: "#1a6ef5", padding: "4px 10px", background: "#1a6ef512", borderRadius: 6, border: "1px solid #1a6ef533" }}>
+                Masc: <strong>{meusAtletas.filter(a => a.sexo === "M").length}</strong>
+              </span>
+              <span style={{ fontSize: 12, color: "#e54f9b", padding: "4px 10px", background: "#e54f9b12", borderRadius: 6, border: "1px solid #e54f9b33" }}>
+                Fem: <strong>{meusAtletas.filter(a => a.sexo === "F").length}</strong>
+              </span>
+            </div>
+          )}
+
+          {/* Busca + Filtros */}
+          <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap", alignItems: "center" }}>
+            <input type="text" value={buscaAtl} onChange={e => { setBuscaAtl(e.target.value); setPaginaAtl(1); }}
+              placeholder="🔍 Buscar nome, CPF..." style={{ ...s.input, flex: 1, minWidth: 180, marginBottom: 0 }} />
+            <select value={filtroSexoAtl} onChange={e => { setFiltroSexoAtl(e.target.value); setPaginaAtl(1); }}
+              style={{ ...s.input, width: "auto", minWidth: 100, marginBottom: 0 }}>
+              <option value="todos">Todos</option>
+              <option value="M">Masculino</option>
+              <option value="F">Feminino</option>
+            </select>
+            <select value={filtroCatAtl} onChange={e => { setFiltroCatAtl(e.target.value); setPaginaAtl(1); }}
+              style={{ ...s.input, width: "auto", minWidth: 110, marginBottom: 0 }}>
+              <option value="todas">Todas categorias</option>
+              {CATEGORIAS.map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.nome}</option>
+              ))}
+            </select>
+          </div>
+
           {meusAtletas.length === 0 ? (
             <div style={s.emptyState}>
               <span style={{ fontSize: 40 }}>👤</span>
               <p>Nenhum atleta cadastrado</p>
-              <button style={s.btn} onClick={() => setTela("cadastrar-atleta")}>+ Cadastrar primeiro atleta</button>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
+                <button style={s.btn} onClick={() => setTela("cadastrar-atleta-novo")}>+ Cadastrar primeiro atleta</button>
+                <button style={s.btnSec} onClick={() => setTela("importar-atletas")}>Importar Planilha</button>
+              </div>
             </div>
-          ) : (
-            <div style={s.tableWrap}>
-              <table style={s.table}>
-                <thead><tr><Th>Nome</Th><Th>Sexo</Th><Th>Categoria</Th><Th>CPF</Th><Th></Th></tr></thead>
-                <tbody>
-                  {meusAtletas.filter(a => {
-                    if (!buscaAtl) return true;
-                    const b = buscaAtl.toLowerCase();
-                    return (a.nome||"").toLowerCase().includes(b) || (a.cpf||"").includes(buscaAtl.replace(/\D/g,""));
-                  }).map(a => {
-                    const cat = getCategoria(a.anoNasc, anoBase);
-                    return (
-                      <tr key={a.id} style={s.tr}>
-                        <Td><strong style={{ color: t.textPrimary }}>{a.nome}</strong></Td>
-                        <Td><span style={s.badge(a.sexo === "M" ? t.accent : "#ff88cc")}>{a.sexo === "M" ? "Masc." : "Fem."}</span></Td>
-                        <Td><span style={s.badge(t.accent)}>{cat?.nome || "—"}</span></Td>
-                        <Td style={{ fontSize: 11, color: t.textDimmed }}>{a.cpf || "—"}</Td>
-                        <Td>
-                          <div style={{ display: "flex", gap: 6 }}>
-                            <button style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.textTertiary, borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: 12 }}
-                              onClick={async () => { setAtletaEditandoId(a.id); setTela("editar-atleta"); }}>
-                              ✏️ Editar
-                            </button>
-                            <button style={{ background: `${t.danger}12`, border: `1px solid ${t.danger}44`, color: t.danger, borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: 12 }}
-                              onClick={() => desvincularAtleta(a.id)}>
-                              🔓 Desvincular
-                            </button>
-                          </div>
-                        </Td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+          ) : (() => {
+            const filtrados = meusAtletas.filter(a => {
+              if (filtroSexoAtl !== "todos" && a.sexo !== filtroSexoAtl) return false;
+              if (filtroCatAtl !== "todas") {
+                const cat = getCategoria(a.anoNasc, anoBase);
+                if (!cat || cat.id !== filtroCatAtl) return false;
+              }
+              if (!buscaAtl) return true;
+              const b = buscaAtl.toLowerCase();
+              return (a.nome||"").toLowerCase().includes(b) || (a.cpf||"").includes(buscaAtl.replace(/\D/g,""));
+            });
+            const totalPaginas = Math.ceil(filtrados.length / atlPorPagina);
+            const paginados = filtrados.slice((paginaAtl - 1) * atlPorPagina, paginaAtl * atlPorPagina);
+            return (
+              <>
+                <div style={s.tableWrap}>
+                  <table style={s.table}>
+                    <thead><tr><Th>Nome</Th><Th>Sexo</Th><Th>Categoria</Th><Th>CPF</Th><Th></Th></tr></thead>
+                    <tbody>
+                      {paginados.length === 0 ? (
+                        <tr><td colSpan={5} style={{ padding: 20, textAlign: "center", color: t.textDimmed, fontSize: 13 }}>Nenhum atleta encontrado com os filtros aplicados.</td></tr>
+                      ) : paginados.map(a => {
+                        const cat = getCategoria(a.anoNasc, anoBase);
+                        return (
+                          <tr key={a.id} style={s.tr}>
+                            <Td><strong style={{ color: t.textPrimary }}>{a.nome}</strong></Td>
+                            <Td><span style={s.badge(a.sexo === "M" ? t.accent : "#ff88cc")}>{a.sexo === "M" ? "Masc." : "Fem."}</span></Td>
+                            <Td><span style={s.badge(t.accent)}>{cat?.nome || "—"}</span></Td>
+                            <Td style={{ fontSize: 11, color: t.textDimmed }}>{a.cpf || "—"}</Td>
+                            <Td>
+                              <div style={{ display: "flex", gap: 6 }}>
+                                <button style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.textTertiary, borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: 12 }}
+                                  onClick={async () => { setAtletaEditandoId(a.id); setTela("editar-atleta"); }}>
+                                  Editar
+                                </button>
+                                <button style={{ background: `${t.danger}12`, border: `1px solid ${t.danger}44`, color: t.danger, borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: 12 }}
+                                  onClick={async () => {
+                                    if (await confirmar(`Desvincular ${a.nome || "este atleta"} da equipe?`)) desvincularAtleta(a.id);
+                                  }}>
+                                  Desvincular
+                                </button>
+                              </div>
+                            </Td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                {totalPaginas > 1 && (
+                  <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginTop: 12 }}>
+                    <button disabled={paginaAtl <= 1} onClick={() => setPaginaAtl(paginaAtl - 1)}
+                      style={{ background: t.bgInput, border: `1px solid ${t.border}`, color: t.textSecondary, borderRadius: 6, padding: "4px 12px", cursor: paginaAtl <= 1 ? "default" : "pointer", fontSize: 12, opacity: paginaAtl <= 1 ? 0.4 : 1 }}>
+                      Anterior
+                    </button>
+                    <span style={{ fontSize: 12, color: t.textMuted }}>
+                      {paginaAtl} / {totalPaginas} ({filtrados.length} atletas)
+                    </span>
+                    <button disabled={paginaAtl >= totalPaginas} onClick={() => setPaginaAtl(paginaAtl + 1)}
+                      style={{ background: t.bgInput, border: `1px solid ${t.border}`, color: t.textSecondary, borderRadius: 6, padding: "4px 12px", cursor: paginaAtl >= totalPaginas ? "default" : "pointer", fontSize: 12, opacity: paginaAtl >= totalPaginas ? 0.4 : 1 }}>
+                      Próxima
+                    </button>
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </div>
       )}
 
@@ -484,26 +564,50 @@ export default function TelaPainelEquipe() {
       {/* ── ABA: TREINADORES ── */}
       {abaAtiva === "treinadores" && (
         <div style={s.card}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-            <div style={s.secTitle}>👨‍🏫 Treinadores</div>
-            <button style={s.btn} onClick={() => setTela("treinadores")}>Gerenciar →</button>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
+            <div style={s.secTitle}>👨‍🏫 Treinadores ({meusTrein.length})</div>
+            {!isTreinador && (
+              <div style={{ display: "flex", gap: 8 }}>
+                <button style={s.btn} onClick={() => setTela("treinadores-novo")}>+ Adicionar</button>
+                {meusTrein.length > 0 && <button style={s.btnGhost} onClick={() => setTela("treinadores")}>Gerenciar</button>}
+              </div>
+            )}
           </div>
           {meusTrein.length === 0 ? (
             <div style={s.emptyState}>
               <span style={{ fontSize: 40 }}>👨‍🏫</span>
               <p>Nenhum treinador cadastrado</p>
-              <button style={s.btn} onClick={() => setTela("treinadores")}>+ Adicionar treinador</button>
+              {!isTreinador && <button style={s.btn} onClick={() => setTela("treinadores-novo")}>+ Adicionar treinador</button>}
             </div>
           ) : (
             <div style={s.tableWrap}>
               <table style={s.table}>
-                <thead><tr><Th>Nome</Th><Th>E-mail</Th><Th>Fone</Th></tr></thead>
+                <thead><tr><Th>Nome</Th><Th>E-mail</Th><Th>Cargo</Th><Th>Permissões</Th><Th>Status</Th></tr></thead>
                 <tbody>
                   {meusTrein.map(tr => (
-                    <tr key={tr.id} style={s.tr}>
+                    <tr key={tr.id} style={{ ...s.tr, opacity: tr.ativo === false ? 0.45 : 1 }}>
                       <Td><strong style={{ color: t.textPrimary }}>{tr.nome}</strong></Td>
                       <Td style={{ fontSize: 12 }}>{tr.email || "—"}</Td>
-                      <Td style={{ fontSize: 12 }}>{tr.fone || "—"}</Td>
+                      <Td style={{ fontSize: 12, color: t.textTertiary }}>{tr.cargo || "—"}</Td>
+                      <Td>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
+                          {(tr.permissoes || []).length === 0
+                            ? <span style={{ color: t.textDisabled, fontSize: 10 }}>Sem permissões</span>
+                            : (tr.permissoes || []).map(pid => (
+                              <span key={pid} style={{ background: `${t.success}18`, color: t.success, fontSize: 9, padding: "1px 6px", borderRadius: 3, fontWeight: 600 }}>
+                                {pid.replace(/_/g, " ")}
+                              </span>
+                            ))
+                          }
+                        </div>
+                      </Td>
+                      <Td>
+                        <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 4,
+                          background: tr.ativo === false ? `${t.danger}18` : `${t.success}10`,
+                          color: tr.ativo === false ? t.danger : t.success }}>
+                          {tr.ativo === false ? "Inativo" : "Ativo"}
+                        </span>
+                      </Td>
                     </tr>
                   ))}
                 </tbody>
@@ -512,6 +616,105 @@ export default function TelaPainelEquipe() {
           )}
         </div>
       )}
+
+      {/* ── ABA: AUDITORIA ── */}
+      {abaAtiva === "auditoria" && (() => {
+        const meuHistorico = (historicoAcoes || []).filter(h => h.equipeId === equipeId);
+        const modulosPresentes = [...new Set(meuHistorico.map(h => h.modulo).filter(Boolean))].sort();
+        const MODULO_LABELS = {
+          auth: "Acesso", atletas: "Atletas", equipes: "Equipe", treinadores: "Treinadores",
+          inscricoes: "Inscrições", resultados: "Resultados", relatorios: "Relatórios",
+          competicoes: "Competições", recordes: "Recordes", secretaria: "Secretaria", sistema: "Sistema",
+        };
+        const MODULO_ICONS = {
+          auth: "🔑", atletas: "🏃", equipes: "🏢", treinadores: "👨‍🏫",
+          inscricoes: "📋", resultados: "🏆", relatorios: "📄",
+          competicoes: "🏟️", recordes: "🥇", secretaria: "📎", sistema: "⚙️",
+        };
+        const filtrados = meuHistorico.filter(h => {
+          if (filtroModulo !== "todos" && h.modulo !== filtroModulo) return false;
+          if (!buscaAudit) return true;
+          const b = buscaAudit.toLowerCase();
+          return (h.nomeUsuario || "").toLowerCase().includes(b) || (h.acao || "").toLowerCase().includes(b) || (h.detalhe || "").toLowerCase().includes(b);
+        });
+        const totalPags = Math.ceil(filtrados.length / auditPorPagina);
+        const paginados = filtrados.slice((paginaAudit - 1) * auditPorPagina, paginaAudit * auditPorPagina);
+
+        return (
+          <div style={s.card}>
+            <div style={s.secTitle}>📜 Auditoria</div>
+            <p style={{ color: t.textDimmed, fontSize: 12, marginBottom: 14, lineHeight: 1.5 }}>
+              Registro de todas as ações realizadas na equipe — cadastros, edições, exclusões, inscrições, treinadores, relatórios e acessos.
+            </p>
+
+            {/* Contadores por módulo */}
+            {meuHistorico.length > 0 && (
+              <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
+                <span style={{ fontSize: 11, color: t.textMuted, padding: "3px 8px", background: t.bgCardAlt, borderRadius: 5, border: `1px solid ${t.border}` }}>
+                  Total: <strong style={{ color: t.textPrimary }}>{meuHistorico.length}</strong>
+                </span>
+                {modulosPresentes.map(mod => (
+                  <span key={mod} style={{ fontSize: 11, color: t.textTertiary, padding: "3px 8px", background: t.bgCardAlt, borderRadius: 5, border: `1px solid ${t.border}`, cursor: "pointer", fontWeight: filtroModulo === mod ? 700 : 400, borderColor: filtroModulo === mod ? t.accent : t.border, color: filtroModulo === mod ? t.accent : t.textTertiary }}
+                    onClick={() => { setFiltroModulo(filtroModulo === mod ? "todos" : mod); setPaginaAudit(1); }}>
+                    {MODULO_ICONS[mod] || "📌"} {MODULO_LABELS[mod] || mod}: <strong>{meuHistorico.filter(h => h.modulo === mod).length}</strong>
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Busca */}
+            <input type="text" value={buscaAudit} onChange={e => { setBuscaAudit(e.target.value); setPaginaAudit(1); }}
+              placeholder="🔍 Buscar ação, usuário, detalhe..." style={{ ...s.input, marginBottom: 12 }} />
+
+            {filtrados.length === 0 ? (
+              <div style={s.emptyState}>
+                <span style={{ fontSize: 40 }}>📜</span>
+                <p>Nenhuma ação registrada{filtroModulo !== "todos" || buscaAudit ? " com os filtros aplicados" : ""}.</p>
+              </div>
+            ) : (
+              <>
+                <div style={s.tableWrap}>
+                  <table style={s.table}>
+                    <thead><tr><Th>Data / Hora</Th><Th>Usuário</Th><Th>Módulo</Th><Th>Ação</Th><Th>Detalhe</Th></tr></thead>
+                    <tbody>
+                      {paginados.map(h => (
+                        <tr key={h.id} style={s.tr}>
+                          <Td style={{ fontSize: 11, color: t.textDimmed, whiteSpace: "nowrap" }}>
+                            {new Date(h.data).toLocaleString("pt-BR")}
+                          </Td>
+                          <Td><span style={{ color: t.accent, fontSize: 12, fontWeight: 600 }}>{h.nomeUsuario || "—"}</span></Td>
+                          <Td>
+                            <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 4, background: t.bgCardAlt, border: `1px solid ${t.border}`, color: t.textTertiary, fontWeight: 600 }}>
+                              {MODULO_ICONS[h.modulo] || "📌"} {MODULO_LABELS[h.modulo] || h.modulo || "—"}
+                            </span>
+                          </Td>
+                          <Td><strong style={{ color: t.textPrimary, fontSize: 12 }}>{h.acao}</strong></Td>
+                          <Td style={{ color: t.textMuted, fontSize: 12, maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis" }}>{h.detalhe || "—"}</Td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {totalPags > 1 && (
+                  <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginTop: 12 }}>
+                    <button disabled={paginaAudit <= 1} onClick={() => setPaginaAudit(paginaAudit - 1)}
+                      style={{ background: t.bgInput, border: `1px solid ${t.border}`, color: t.textSecondary, borderRadius: 6, padding: "4px 12px", cursor: paginaAudit <= 1 ? "default" : "pointer", fontSize: 12, opacity: paginaAudit <= 1 ? 0.4 : 1 }}>
+                      Anterior
+                    </button>
+                    <span style={{ fontSize: 12, color: t.textMuted }}>
+                      {paginaAudit} / {totalPags} ({filtrados.length} registros)
+                    </span>
+                    <button disabled={paginaAudit >= totalPags} onClick={() => setPaginaAudit(paginaAudit + 1)}
+                      style={{ background: t.bgInput, border: `1px solid ${t.border}`, color: t.textSecondary, borderRadius: 6, padding: "4px 12px", cursor: paginaAudit >= totalPags ? "default" : "pointer", fontSize: 12, opacity: paginaAudit >= totalPags ? 0.4 : 1 }}>
+                      Próxima
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ── ABA: RESULTADOS ── */}
       {abaAtiva === "resultados" && (

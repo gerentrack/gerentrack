@@ -155,7 +155,7 @@ const painelDestino = (u) =>
   (u?.tipo === "equipe" || u?.tipo === "treinador") ? "painel-equipe" : "painel";
 
 
-function TelaTreinadores() {
+function TelaTreinadores({ abaInicial } = {}) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado, gerarSenhaTemp } = useAuth();
@@ -180,10 +180,13 @@ function TelaTreinadores() {
   const [buscaTrein, setBuscaTrein] = useState("");
   const [buscaHistT, setBuscaHistT] = useState("");
 
-  const [aba, setAba]           = useState("lista");
+  const [aba, setAba]           = useState(abaInicial || "lista");
   const [editando, setEditando] = useState(null);
   const [senhaVis, setSenhaVis] = useState(null);
-  const [form, setForm]         = useState({ nome:"", email:"", cpf:"", cargo:"", permissoes:[], senha:"" });
+  const [form, setForm]         = useState(() => {
+    if (gerarSenhaTemp) return { nome:"", email:"", cpf:"", cargo:"", permissoes:[], senha: gerarSenhaTemp() };
+    return { nome:"", email:"", cpf:"", cargo:"", permissoes:[], senha:"" };
+  });
   const [erros, setErros]       = useState({});
   const [feedback, setFeedback] = useState("");
 
@@ -340,8 +343,7 @@ function TelaTreinadores() {
         ? "✅ Treinador vinculado! Credenciais anteriores mantidas."
         : "✅ Treinador cadastrado! Senha temporária definida.");
     }
-    setTimeout(() => setFeedback(""), 3000);
-    setAba("lista");
+    setTimeout(() => { setFeedback(""); setTela(painelDestino(usuarioLogado)); }, 2000);
   };
 
   const handleToggleAtivo = (tr) => {
@@ -377,22 +379,9 @@ function TelaTreinadores() {
     <div style={s.page}>
       <div style={s.painelHeader}>
         <div>
-          <h1 style={s.pageTitle}>👨‍🏫 Treinadores</h1>
-          <p style={{ color: t.textTertiary, margin:"4px 0 0" }}>
-            Gerencie os treinadores da sua equipe
-          </p>
+          <h1 style={s.pageTitle}>👨‍🏫 {editando ? "Editar Treinador" : "Novo Treinador"}</h1>
         </div>
-        <div style={s.painelBtns}>
-          {podeGerenciar && <button style={s.btnPrimary} onClick={abrirNovo}>+ Novo Treinador</button>}
-          <button style={s.btnGhost} onClick={() => setTela(painelDestino(usuarioLogado))}>← Voltar</button>
-        </div>
-      </div>
-
-      {/* Abas */}
-      <div style={{ display:"flex", gap:8, marginBottom:24 }}>
-        <button style={tabStyle("lista")} onClick={() => setAba("lista")}>📋 Treinadores</button>
-        <button style={tabStyle("historico")} onClick={() => setAba("historico")}>📜 Histórico</button>
-        {aba === "novo" && <button style={tabStyle("novo")}>{editando ? "✏️ Editar" : "➕ Novo"}</button>}
+        <button style={s.btnGhost} onClick={() => setTela(painelDestino(usuarioLogado))}>← Voltar</button>
       </div>
 
       {feedback && (
@@ -403,91 +392,9 @@ function TelaTreinadores() {
       )}
 
       {/* ── LISTA ─────────────────────────────────────────────────── */}
-      {aba === "lista" && (
-        meusTreinadores.length === 0 ? (
-          <div style={s.emptyState}>
-            <span style={{ fontSize:48 }}>👨‍🏫</span>
-            <p>Nenhum treinador cadastrado ainda.</p>
-            {podeGerenciar && <button style={s.btnPrimary} onClick={abrirNovo}>+ Adicionar Primeiro</button>}
-          </div>
-        ) : (
-          <div style={s.tableWrap}>
-            <input type="text" value={buscaTrein} onChange={e => setBuscaTrein(e.target.value)} placeholder="🔍 Buscar treinador..." style={{ ...s.input, padding:"6px 12px", fontSize:12, marginBottom:8, maxWidth:350 }} />
-            <div style={{ maxHeight:320, overflowY:"auto" }}>
-            <table style={s.table}>
-              <thead><tr>
-                <Th>Nome</Th><Th>E-mail</Th><Th>Cargo</Th><Th>Permissões</Th><Th>Status</Th><Th>Cadastro</Th>
-                {podeGerenciar && <Th>Ações</Th>}
-              </tr></thead>
-              <tbody>
-                {meusTreinadores.filter(tr => {
-                  if (!buscaTrein) return true;
-                  const b = buscaTrein.toLowerCase();
-                  return (tr.nome||"").toLowerCase().includes(b) || (tr.email||"").toLowerCase().includes(b) || (tr.cargo||"").toLowerCase().includes(b);
-                }).map(tr => (
-                  <tr key={tr.id} style={{ ...s.tr, opacity: tr.ativo===false ? 0.45 : 1 }}>
-                    <Td><strong style={{ color: t.textPrimary }}>{tr.nome}</strong></Td>
-                    <Td>{tr.email}</Td>
-                    <Td><span style={{ color: t.textTertiary, fontSize:12 }}>{tr.cargo||"—"}</span></Td>
-                    <Td>
-                      <div style={{ display:"flex", flexWrap:"wrap", gap:4 }}>
-                        {(tr.permissoes||[]).length === 0
-                          ? <span style={{ color: t.textDisabled, fontSize:11 }}>Sem permissões</span>
-                          : (tr.permissoes||[]).map(pid => {
-                            const p = PERMISSOES_TREINADOR.find(x => x.id === pid);
-                            return p ? (
-                              <span key={pid} style={{ background:`${t.success}18`, color:t.success,
-                                fontSize:10, padding:"2px 7px", borderRadius:3, fontWeight:600 }}>
-                                {p.label}
-                              </span>
-                            ) : null;
-                          })
-                        }
-                      </div>
-                    </Td>
-                    <Td>
-                      <span style={{ fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:4,
-                        background: tr.ativo===false ? `${t.danger}18` : `${t.success}10`,
-                        color: tr.ativo===false ? t.danger : t.success }}>
-                        {tr.ativo===false ? "Inativo" : "Ativo"}
-                      </span>
-                      {tr.senhaTemporaria && (
-                        <span style={{ fontSize:10, color: t.accent, display:"block", marginTop:2 }}>⚠️ Senha temp.</span>
-                      )}
-                    </Td>
-                    <Td style={{ fontSize:11, color: t.textDimmed }}>
-                      {tr.dataCadastro ? new Date(tr.dataCadastro).toLocaleDateString("pt-BR") : "—"}
-                    </Td>
-                    {podeGerenciar && (
-                      <Td>
-                        <div style={{ display:"flex", gap:5 }}>
-                          <button onClick={() => abrirEditar(tr)}
-                            style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px" }}>✏️</button>
-                          <button onClick={() => handleToggleAtivo(tr)}
-                            style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px",
-                              color: tr.ativo===false ? t.success : t.warning,
-                              borderColor: tr.ativo===false ? `${t.success}66` : `${t.warning}66` }}>
-                            {tr.ativo===false ? "Ativar" : "Desativar"}
-                          </button>
-                          <button onClick={() => handleRemover(tr)}
-                            style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px",
-                              color: t.danger, borderColor:`${t.danger}66` }}>🗑️</button>
-                        </div>
-                      </Td>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            </div>
-          </div>
-        )
-      )}
-
       {/* ── FORMULÁRIO NOVO / EDITAR ──────────────────────────────── */}
-      {aba === "novo" && (
+      {(aba === "novo" || aba === "lista") && (
         <div style={{ maxWidth:620 }}>
-          <h2 style={s.sectionTitle}>{editando ? "Editar Treinador" : "Novo Treinador"}</h2>
 
           {/* CPF primeiro — para verificar se já existe */}
           {!editando && (
@@ -578,52 +485,13 @@ function TelaTreinadores() {
               onClick={handleSalvar} disabled={!!treinDuplicadoOrg}>
               {editando ? "💾 Salvar Alterações" : docModo === "vincular" ? "🔗 Vincular Treinador" : "✅ Cadastrar Treinador"}
             </button>
-            <button style={s.btnGhost} onClick={async () => { setAba("lista"); setDocModo("novo"); setDocExistente(null); setLoginForm({email:"",senha:""}); }}>Cancelar</button>
+            <button style={s.btnGhost} onClick={() => setTela(painelDestino(usuarioLogado))}>Cancelar</button>
           </div>
             </>
           )}
         </div>
       )}
 
-      {/* ── HISTÓRICO ─────────────────────────────────────────────── */}
-      {aba === "historico" && (
-        <>
-          <h2 style={s.sectionTitle}>📜 Histórico de Ações</h2>
-          {meuHistorico.length === 0 ? (
-            <div style={s.emptyState}>
-              <span style={{ fontSize:40 }}>📜</span>
-              <p>Nenhuma ação registrada ainda.</p>
-            </div>
-          ) : (
-            <div style={s.tableWrap}>
-              <input type="text" value={buscaHistT} onChange={e => setBuscaHistT(e.target.value)} placeholder="🔍 Buscar ação..." style={{ ...s.input, padding:"6px 12px", fontSize:12, marginBottom:8, maxWidth:350 }} />
-              <div style={{ maxHeight:320, overflowY:"auto" }}>
-              <table style={s.table}>
-                <thead><tr>
-                  <Th>Data / Hora</Th><Th>Usuário</Th><Th>Ação</Th><Th>Detalhe</Th>
-                </tr></thead>
-                <tbody>
-                  {meuHistorico.filter(h => {
-                    if (!buscaHistT) return true;
-                    const b = buscaHistT.toLowerCase();
-                    return (h.nomeUsuario||"").toLowerCase().includes(b) || (h.acao||"").toLowerCase().includes(b) || (h.detalhe||"").toLowerCase().includes(b);
-                  }).map(h => (
-                    <tr key={h.id} style={s.tr}>
-                      <Td style={{ fontSize:11, color: t.textDimmed, whiteSpace:"nowrap" }}>
-                        {new Date(h.data).toLocaleString("pt-BR")}
-                      </Td>
-                      <Td><span style={{ color: t.accent, fontSize:12, fontWeight:600 }}>{h.nomeUsuario}</span></Td>
-                      <Td><strong style={{ color: t.textPrimary, fontSize:13 }}>{h.acao}</strong></Td>
-                      <Td style={{ color: t.textMuted, fontSize:12 }}>{h.detalhe||"—"}</Td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              </div>
-            </div>
-          )}
-        </>
-      )}
     </div>
   );
 }

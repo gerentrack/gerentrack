@@ -1685,10 +1685,12 @@ function App() {
         {tela === "painel-organizador"    && <TelaPainelOrganizador {...props} />}
         {tela === "funcionarios"          && <TelaFuncionarios />}
         {tela === "treinadores"           && <TelaTreinadores />}
+        {tela === "treinadores-novo"      && <TelaTreinadores abaInicial="novo" />}
         {tela === "editar-atleta"         && <TelaEditarAtleta />}
         {tela === "gerenciar-inscricoes"   && <TelaGerenciarInscricoes />}
         {tela === "painel-atleta"         && <TelaPainelAtleta {...props} />}
         {tela === "cadastrar-atleta"  && <TelaCadastrarAtleta />}
+        {tela === "cadastrar-atleta-novo" && <TelaCadastrarAtleta modoInicial="novo" />}
         {tela === "novo-evento"       && <TelaCadastroEvento key={eventoAtualId || "novo"} />}
         {tela === "evento-detalhe"    && <TelaEventoDetalhe {...props} />}
         {tela === "preparar-offline"  && <PrepararOffline {...props} />}
