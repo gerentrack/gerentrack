@@ -99,6 +99,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
   const [buscaComp, setBuscaComp] = useState("");
   const [buscaEq,   setBuscaEq]   = useState("");
   const [buscaAtl,  setBuscaAtl]  = useState("");
+  const [filtroAtl, setFiltroAtl] = useState("todos");
   const [orgSel,    setOrgSel]    = useState({});
   const [buscaHist, setBuscaHist] = useState("");
   const [modalTransf, setModalTransf] = useState(null); // { atleta }
@@ -148,6 +149,13 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
   // ── Render ─────────────────────────────────────────────────────────────────
   // ── Paginação ──────────────────────────────────────────────────────────────
   const _atletasFiltrados = atletas.filter(a => {
+    if (filtroAtl === "sem_equipe_usuario") {
+      const temEquipe = !!a.equipeId;
+      const temUsuario = !!a.atletaUsuarioId || atletasUsuarios.some(u => u.atletaId === a.id);
+      if (temEquipe || temUsuario) return false;
+    } else if (filtroAtl === "sem_equipe") {
+      if (a.equipeId) return false;
+    }
     if (!buscaAtl) return true;
     const b = buscaAtl.toLowerCase();
     const eq = equipes.find(eq2 => eq2.id === a.equipeId);
@@ -700,8 +708,16 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
             <div style={s.empty}>Nenhum atleta cadastrado.</div>
           ) : (
             <>
-              <input type="text" value={buscaAtl} onChange={e=>setBuscaAtl(e.target.value)}
-                placeholder="🔍 Buscar atleta..." style={si} />
+              <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
+                <input type="text" value={buscaAtl} onChange={e=>setBuscaAtl(e.target.value)}
+                  placeholder="🔍 Buscar atleta..." style={{ ...si, marginBottom: 0, flex: 1, minWidth: 200 }} />
+                <select value={filtroAtl} onChange={e => setFiltroAtl(e.target.value)}
+                  style={{ ...si, marginBottom: 0, width: "auto", minWidth: 180 }}>
+                  <option value="todos">Todos os atletas</option>
+                  <option value="sem_equipe">Sem equipe</option>
+                  <option value="sem_equipe_usuario">Sem equipe e sem usuário</option>
+                </select>
+              </div>
               <div style={s.tableWrap}>
                 <div style={{ maxHeight:480, overflowY:"auto" }}>
                   <table style={s.table}>

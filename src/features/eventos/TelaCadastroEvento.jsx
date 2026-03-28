@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { todasAsProvas, getComposicaoCombinada } from "../../shared/athletics/provasDef";
 import { CATEGORIAS, ESTADOS_BR, getCategoria } from "../../shared/constants/categorias";
+import { calcularEtapa, getEtapaLabel } from "../../shared/constants/etapas";
 import FormField from "../ui/FormField";
 import { storage, storageRef, uploadBytes, getDownloadURL } from "../../firebase";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
@@ -312,7 +313,7 @@ function TelaCadastroEvento() {
 
   const [form, setForm] = useState(() => {
     const base = editando ? { ...eventoAtual } : {
-      nome: "", data: "", local: "", cidade: "", uf: "", descricao: "", permissividadeNorma: false,
+      nome: "", data: "", dataFim: "", local: "", cidade: "", uf: "", descricao: "", permissividadeNorma: false,
       permiteSub16CategoriasSup: false, revezamentoInscAntecipada: true,
       inscricoesEncerradas: false, sumulaLiberada: false,
       dataAberturaInscricoes: "", horaAberturaInscricoes: "", dataEncerramentoInscricoes: "", horaEncerramentoInscricoes: "",
@@ -498,10 +499,15 @@ function TelaCadastroEvento() {
               <FormField label="Nome da Competição *" value={form.nome} onChange={(v) => setForm({ ...form, nome: v })} placeholder="Ex: Competição Estadual de Atletismo 2025" error={erros.nome} />
             </div>
 
-            {/* Data + Hora */}
-            <div style={s.grid2form}>
-              <FormField label="Data *" value={form.data} onChange={(v) => setForm({ ...form, data: v })} type="date" error={erros.data} />
-              <div style={{ width:130 }}>
+            {/* Data + DataFim + Hora */}
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
+              <div style={{ flex: 1, minWidth: 160 }}>
+                <FormField label="Data *" value={form.data} onChange={(v) => setForm({ ...form, data: v })} type="date" error={erros.data} />
+              </div>
+              <div style={{ flex: 1, minWidth: 160 }}>
+                <FormField label="Data Fim (2º dia)" value={form.dataFim || ""} onChange={(v) => setForm({ ...form, dataFim: v })} type="date" />
+              </div>
+              <div style={{ width: 130 }}>
                 <label style={s.label}>Hora de Início</label>
                 <input type="time" style={s.input} value={form.horaInicio || ""}
                   onChange={(e) => setForm({ ...form, horaInicio: e.target.value })} />
@@ -1583,6 +1589,14 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
     setForm(f => ({ ...f, programaHorario: { ...(f.programaHorario || {}), [chave]: entries } }));
   };
 
+  const setEntryDia = (chave, index, dia) => {
+    const entries = getEntries(chave).map(e => ({ ...e }));
+    if (entries[index]) entries[index].dia = dia;
+    setForm(f => ({ ...f, programaHorario: { ...(f.programaHorario || {}), [chave]: entries } }));
+  };
+
+  const temDoisDias = !!(form.dataFim && form.dataFim !== form.data);
+
   const toggleVariant = (chave, index) => {
     const entries = getEntries(chave).map(e => ({ ...e }));
     const fase = entries[index]?.fase;
@@ -1972,6 +1986,14 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
                             onChange={(e) => setEntryHorario(chave, 0, e.target.value)}
                             style={{ background: t.bgHeaderSolid, color: t.textPrimary, border: `1px solid ${t.border}`, borderRadius: 4, padding: "4px 8px", fontSize: 13, width: 100, fontFamily: "monospace" }}
                           />
+                          {temDoisDias && (
+                            <select value={entries[0]?.dia || 1}
+                              onChange={(e) => setEntryDia(chave, 0, Number(e.target.value))}
+                              style={{ background: t.bgHeaderSolid, color: t.accent, border: `1px solid ${t.border}`, borderRadius: 4, padding: "4px 6px", fontSize: 11, fontWeight: 700, width: 62, flexShrink: 0 }}>
+                              <option value={1}>Dia 1</option>
+                              <option value={2}>Dia 2</option>
+                            </select>
+                          )}
                           <span style={{ color: t.textSecondary, fontSize: 13, flexShrink: 0 }}>{p.nome}</span>
                           <span style={{ color: t.textDimmed, fontSize: 11, flexShrink: 0 }}>{p.sexoLabel}</span>
                           {/* Chips de categoria com contagem — Opção A */}
@@ -2031,6 +2053,14 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
                             onChange={(e) => setEntryHorario(p.id, 0, e.target.value)}
                             style={{ background: t.bgHeaderSolid, color: t.textPrimary, border: `1px solid ${t.border}`, borderRadius: 4, padding: "4px 8px", fontSize: 13, width: 100, fontFamily: "monospace" }}
                           />
+                          {temDoisDias && (
+                            <select value={entries[0]?.dia || 1}
+                              onChange={(e) => setEntryDia(p.id, 0, Number(e.target.value))}
+                              style={{ background: t.bgHeaderSolid, color: t.accent, border: `1px solid ${t.border}`, borderRadius: 4, padding: "4px 6px", fontSize: 11, fontWeight: 700, width: 62, flexShrink: 0 }}>
+                              <option value={1}>Dia 1</option>
+                              <option value={2}>Dia 2</option>
+                            </select>
+                          )}
                           <span style={{ flex: 1, color: t.textSecondary, fontSize: 13 }}>{p.nome}</span>
                           <span style={{ color: t.textDimmed, fontSize: 11 }}>{sexoLabel} · {catNome}</span>
                           {badgeInscricao(nInsc ?? 0, semInscricao)}
@@ -2094,7 +2124,7 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
       <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 8 }}>
         <div style={{ color: t.accent, fontWeight: 700, fontSize: 13, marginBottom: 10 }}>⏸️ Intervalo / Pausa</div>
         <p style={{ color: t.textMuted, fontSize: 12, marginBottom: 12, lineHeight: 1.5 }}>
-          Defina um intervalo entre os períodos da manhã e da tarde. As provas serão automaticamente divididas pelo horário da pausa.
+          Defina um intervalo entre os períodos da manhã e da tarde. As provas serão automaticamente divididas pelo horário da pausa em etapas{temDoisDias ? " (4 etapas: manhã/tarde × 2 dias)" : " (1ª Etapa — Manhã, 2ª Etapa — Tarde)"}.
         </p>
         <div style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
           <div>

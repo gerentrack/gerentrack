@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { todasAsProvas, nPernasRevezamento } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/constants/categorias";
-import { getFasesProva, getFasesModo, temMultiFases, buscarSeriacao, serKey, resKey, FASE_NOME, FASE_ANTERIOR } from "../../shared/constants/fases";
+import { getFasesProva, getFasesModo, temMultiFases, buscarSeriacao, serKey, resKey, FASE_NOME, FASE_ANTERIOR, getEntradasProva } from "../../shared/constants/fases";
+import { calcularEtapa, getEtapaLabel, ETAPA_LABELS } from "../../shared/constants/etapas";
 import { gerarHtmlImpressao } from "../impressao/gerarHtmlImpressao";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { SeriacaoEngine } from "../../shared/engines/seriacaoEngine";
@@ -52,6 +53,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
   const [filtroProva, setFiltroProva] = useState("todas");
   const [filtroCat, setFiltroCat] = useState("todas");
   const [filtroSexo, setFiltroSexo] = useState("todos");
+  const [filtroEtapa, setFiltroEtapa] = useState("todas");
   const [orientacoes, setOrientacoes] = useState({}); // { "sumulaKey": "portrait"|"landscape" }
   const [showOrientConfig, setShowOrientConfig] = useState(false);
   const [showSeriar, setShowSeriar] = useState(false);
@@ -93,6 +95,17 @@ function TelaSumulas({ chamada, getPresencaProva }) {
 
   const todasProvas = todasAsProvas();
   const inscDoEvento = inscricoes.filter((i) => i.eventoId === eventoAtual.id);
+
+  const pausaHorario = (eventoAtual.programaPausa || {}).horario || "";
+  const temEtapas = !!pausaHorario;
+  const qtdEtapas = (eventoAtual.dataFim && eventoAtual.dataFim !== eventoAtual.data) ? 4 : 2;
+
+  const getEtapaProva = (provaId) => {
+    const entries = getEntradasProva(provaId, eventoAtual.programaHorario || {});
+    const entry = entries[0];
+    if (!entry?.horario || !pausaHorario) return null;
+    return calcularEtapa(entry.horario, entry.dia || 1, pausaHorario);
+  };
 
   // Gerar provas componentes de combinadas a partir das provas do programa
   const provasComponentesArr = [];
@@ -201,15 +214,28 @@ function TelaSumulas({ chamada, getPresencaProva }) {
       if (filtroProva !== "todas" && sum.prova.nome !== filtroProva) return false;
       if (filtroCat !== "todas" && sum.categoria.id !== filtroCat) return false;
       if (filtroSexo !== "todos" && sum.sexo !== filtroSexo) return false;
+      if (filtroEtapa !== "todas") {
+        const etNum = getEtapaProva(sum.prova.id);
+        if (String(etNum) !== filtroEtapa) return false;
+      }
       return true;
     });
     // Deduplicar por chave única — protege contra provas geradas em duplicata
     const vistas = new Set();
-    return filtered.filter(sum => {
+    const dedup = filtered.filter(sum => {
       const k = `${sum.prova.id}_${sum.categoria.id}_${sum.sexo}${sum.faseSufixo ? "__" + sum.faseSufixo : ""}`;
       if (vistas.has(k)) return false;
       vistas.add(k);
       return true;
+    });
+    // Ordenar pelo programa horário (dia + horário)
+    return dedup.sort((a, b) => {
+      const ea = getEntradasProva(a.prova.id, eventoAtual.programaHorario || {})[0];
+      const eb = getEntradasProva(b.prova.id, eventoAtual.programaHorario || {})[0];
+      const da = (ea?.dia || 1), db = (eb?.dia || 1);
+      if (da !== db) return da - db;
+      const ha = ea?.horario || "99:99", hb = eb?.horario || "99:99";
+      return ha.localeCompare(hb);
     });
   })();
 
@@ -533,7 +559,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
               const j = Math.floor(Math.random() * (i + 1));
               [atletasList[i], atletasList[j]] = [atletasList[j], atletasList[i]];
             }
-            const result = SeriacaoEngine.seriarProva(atletasList, item.prova, { ...configEngine, fase: "eliminatoria" });
+            const result = SeriacaoEngine.seriarProva(atletasList, item.prova, { ...configEngine, fase: "eliminatoria", aleatorio: true });
             setSeriacaoPreview({ ...result, modo: item.modo, chave: item.chave });
           } else {
             // Por marca (padrão) — usa a fase selecionada
@@ -1167,9 +1193,6 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                   <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.success}44`, borderRadius:8, padding:"12px 14px" }}>
                     <div style={{ color: t.success, fontWeight:700, fontSize:13, marginBottom:4 }}>
                       ✅ Seriação gerada — {seriacaoPreview.series.length} série(s)
-                      <span style={{ color: t.textMuted, fontWeight:400, fontSize:11, marginLeft:8 }}>
-                        Ordem de realização: {seriacaoPreview.ordemSeries.join(" → ")}
-                      </span>
                     </div>
                     {seriacaoPreview.regraAplicada && (
                       <div style={{ fontSize:10, color: t.accent, marginBottom:4, padding:"3px 8px", background: t.accentBg, borderRadius:4, display:"inline-block" }}>
@@ -1187,7 +1210,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                       return seriacaoPreview.series.map((serie, si) => (
                       <div key={si} style={{ marginBottom:8 }}>
                         <div style={{ color: t.accent, fontWeight:700, fontSize:12, marginBottom:4 }}>
-                          Série {serie.numero} ({seriacaoPreview.ordemSeries.indexOf(serie.numero)+1}ª a correr)
+                          Série {serie.numero}
                           <span style={{ color: t.textDimmed, fontWeight:400, marginLeft:6 }}>({serie.atletas.length} atletas)</span>
                         </div>
                         <table style={{ width:"100%", borderCollapse:"collapse", fontSize:11, marginBottom:4 }}>
@@ -1332,14 +1355,11 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                   <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.success}44`, borderRadius:8, padding:"12px 14px" }}>
                     <div style={{ color: t.success, fontWeight:700, fontSize:13, marginBottom:8 }}>
                       ✅ Seriação gerada — {seriacaoPreview.series.length} série(s)
-                      <span style={{ color: t.textMuted, fontWeight:400, fontSize:11, marginLeft:8 }}>
-                        Ordem: {seriacaoPreview.ordemSeries.join(" → ")}
-                      </span>
                     </div>
                     {seriacaoPreview.series.map((serie, si) => (
                       <div key={si} style={{ marginBottom:8 }}>
                         <div style={{ color: t.accent, fontWeight:700, fontSize:12, marginBottom:4 }}>
-                          Série {serie.numero} ({seriacaoPreview.ordemSeries.indexOf(serie.numero)+1}ª a correr)
+                          Série {serie.numero}
                           <span style={{ color: t.textDimmed, fontWeight:400, marginLeft:6 }}>({serie.atletas.length} equipes)</span>
                         </div>
                         <table style={{ width:"100%", borderCollapse:"collapse", fontSize:11, marginBottom:4 }}>
@@ -1397,6 +1417,17 @@ function TelaSumulas({ chamada, getPresencaProva }) {
             <option value="F">Feminino</option>
           </select>
         </div>
+        {temEtapas && (
+          <div>
+            <label style={s.label}>Etapa</label>
+            <select style={s.select} value={filtroEtapa} onChange={(e) => setFiltroEtapa(e.target.value)}>
+              <option value="todas">Todas</option>
+              {Array.from({ length: qtdEtapas }, (_, idx) => idx + 1).map(n => (
+                <option key={n} value={String(n)}>{getEtapaLabel(n)}</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Configuração de orientação para impressão */}
@@ -1434,7 +1465,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                       <span style={{ flex: 1, fontSize: 12, color: t.textSecondary }}>
                         <NomeProvaComImplemento nome={sum.prova.nome} style={{ color: t.textSecondary }} />
                         <span style={{ color: t.textDimmed, marginLeft: 6, fontSize: 11 }}>
-                          {sum.categoria.nome} · {sum.sexo === "M" ? "Masc" : "Fem"}
+                          Categoria: {sum.categoria.nome} · {sum.sexo === "M" ? "Masc" : "Fem"}
                         </span>
                       </span>
                       <button
@@ -1485,7 +1516,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                     )}
                   </div>
                   <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap", marginTop:6 }}>
-                    <span style={s.badgeGold}>{sum.categoria.nome}</span>
+                    <span style={s.badgeGold}>Categoria: {sum.categoria.nome}</span>
                     <span style={s.badge(sum.sexo === "M" ? "#1a6ef5" : "#e54f9b")}>
                       {sum.sexo === "M" ? "Masculino" : "Feminino"}
                     </span>
@@ -1494,6 +1525,15 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                         ? `${(sum.equipesRevez||[]).length} equipe(s)`
                         : `${sum.atletas.length} atleta(s)`}
                     </span>
+                    {(() => {
+                      const etNum = getEtapaProva(sum.prova.id);
+                      if (!etNum) return null;
+                      return (
+                        <span style={{ fontSize: 11, background: `${t.accent}18`, color: t.accent, padding: "2px 8px", borderRadius: 4, fontWeight: 600 }}>
+                          {getEtapaLabel(etNum)}
+                        </span>
+                      );
+                    })()}
                     {/* Badge câmara de chamada */}
                     {!sum.isRevezamento && getPresencaProva && (() => {
                       const presenca = getPresencaProva(sum.prova.id, sum.categoria.id, sum.sexo);
@@ -1642,17 +1682,13 @@ function TelaSumulas({ chamada, getPresencaProva }) {
 
                     // Se tem seriação, renderizar agrupado por série
                     if (serSalva && serSalva.series) {
-                      const seriesOrdenadas = [...serSalva.series].sort((a, b) => {
-                        const oA = serSalva.ordemSeries ? serSalva.ordemSeries.indexOf(a.numero) : a.numero;
-                        const oB = serSalva.ordemSeries ? serSalva.ordemSeries.indexOf(b.numero) : b.numero;
-                        return oA - oB;
-                      });
+                      const seriesOrdenadas = [...serSalva.series].sort((a, b) => a.numero - b.numero);
                       let idx = 0;
                       return seriesOrdenadas.flatMap((serie, si) => {
                         const headerRow = seriesOrdenadas.length > 1 ? (
                           <tr key={`sh-${si}`} style={{ background: t.accentBg }}>
                             <td colSpan={9} style={{ padding:"6px 12px", fontWeight:700, color: t.accent, fontSize:12, borderBottom:`2px solid ${t.border}` }}>
-                              Série {serie.numero} {serSalva.ordemSeries ? `(${serSalva.ordemSeries.indexOf(serie.numero)+1}ª a correr)` : ""}
+                              Série {serie.numero}
                             </td>
                           </tr>
                         ) : null;

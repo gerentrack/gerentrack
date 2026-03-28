@@ -1,6 +1,7 @@
 import { _getClubeAtleta, _getLocalEventoDisplay, _getNascDisplay, _getCbat, nomeProvaHtml, formatarMarca, formatarMarcaExibicaoHtml, _marcasComEmpateCentesimal, resolverAtleta } from "../../shared/formatters/utils";
 import { GT_DEFAULT_LOGO } from "../../shared/branding";
-import { getFasesModo, buscarSeriacao, serKey, FASE_ORDEM } from "../../shared/constants/fases";
+import { getFasesModo, buscarSeriacao, serKey, FASE_ORDEM, getEntradasProva } from "../../shared/constants/fases";
+import { calcularEtapa, getEtapaLabel } from "../../shared/constants/etapas";
 import { RecordHelper } from "../../shared/engines/recordHelper";
 import { nPernasRevezamento } from "../../shared/athletics/provasDef";
 import { TeamScoringEngine } from "../../shared/engines/teamScoringEngine";
@@ -122,9 +123,9 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
     .cab-left{display:flex;align-items:center;min-width:20mm;}
     .cab-left img{max-height:9mm;max-width:20mm;object-fit:contain;}
     .cab-c{flex:1;text-align:center;}
-    .cab-ev{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;
+    .cab-ev{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;
       color:#111;text-transform:uppercase;letter-spacing:.5px;line-height:1.2;}
-    .cab-dt{font-size:8px;color:#555;margin-top:2px;}
+    .cab-dt{font-size:10px;color:#555;margin-top:3px;}
     .cab-n{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
       color:#888;text-align:right;white-space:nowrap;}
     .cab-nbig{font-size:14px;font-weight:900;color:#bbb;display:block;line-height:1.1;}
@@ -134,8 +135,8 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
       font-weight:900;letter-spacing:1px;color:#000;}
     .faixa-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
     .b-cat{background:rgba(0,0,0,.08);color:#000;border:1px solid rgba(0,0,0,.3);
-      border-radius:3px;padding:1px 8px;font-size:11px;font-weight:700;font-family:'Barlow Condensed',sans-serif;}
-    .b-sx{border-radius:3px;padding:1px 8px;font-size:11px;font-weight:700;font-family:'Barlow Condensed',sans-serif;}
+      border-radius:3px;padding:2px 10px;font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;}
+    .b-sx{border-radius:3px;padding:2px 10px;font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;}
     .b-info{background:rgba(0,0,0,.05);color:#333;border:1px solid rgba(0,0,0,.15);
       border-radius:3px;padding:1px 8px;font-size:10px;}
     .blk{padding:3px 13px;font-family:'Barlow Condensed',sans-serif;font-size:11px;
@@ -256,8 +257,18 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
     <div class="faixa">
       <div class="faixa-nome">${"`"}${nomeProvaHtml(s.prova.nome.toUpperCase())}${"`"}${s.prova.origemCombinada ? ` <span style="font-size:10px;background:#0a1a2a;color:#1976D2;padding:2px 8px;border-radius:4px;margin-left:8px;font-weight:600">🏅 ${s.prova.nomeCombinada} (${s.prova.ordem}/${s.prova.totalProvas})</span>` : ""}${s.faseNome ? ` <span style="font-size:10px;padding:2px 8px;border-radius:4px;margin-left:8px;font-weight:700;background:${s.faseSufixo==="ELI"?"#fff3e0":s.faseSufixo==="SEM"?"#e0f0ff":"#e0ffe0"};color:${s.faseSufixo==="ELI"?"#c66a00":s.faseSufixo==="SEM"?"#1a5aaa":"#1a7a1a"};border:1px solid ${s.faseSufixo==="ELI"?"#e0a050":s.faseSufixo==="SEM"?"#5a8ace":"#5aaa5a"}">${s.faseNome}</span>` : ""}</div>
       <div class="faixa-meta">
-        <span class="b-cat">${"`"}${s.categoria.nome}${"`"}</span>
+        <span class="b-cat">Categoria: ${"`"}${s.categoria.nome}${"`"}</span>
         <span class="b-sx" style="${"`"}background:${corSexo(s.sexo)}22;color:${corSexo(s.sexo)};border:1px solid ${corSexo(s.sexo)}44${"`"}">${"`"}${labelSexo(s.sexo)}${"`"}</span>
+        ${"`"}${(() => {
+          const pausaH = (evento.programaPausa || {}).horario || "";
+          if (!pausaH) return "";
+          const entries = getEntradasProva(s.prova.id, evento.programaHorario || {});
+          const entry = entries[0];
+          if (!entry?.horario) return "";
+          const etNum = calcularEtapa(entry.horario, entry.dia || 1, pausaH);
+          if (!etNum) return "";
+          return `<span style="font-size:9px;background:#e0f0ff;color:#1a5aaa;padding:2px 8px;border-radius:4px;font-weight:700;border:1px solid #b0d0f0">${getEtapaLabel(etNum)}</span>`;
+        })()}${"`"}
       </div>
     </div>
     ${(() => {
@@ -709,11 +720,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
 
         if (serSalva && serSalva.series && serSalva.series.length > 0) {
           // ── SERIAÇÃO SALVA: usar séries e raias definidas ──
-          const seriesOrdenadas = [...serSalva.series].sort((a, b) => {
-            const oA = serSalva.ordemSeries ? serSalva.ordemSeries.indexOf(a.numero) : a.numero;
-            const oB = serSalva.ordemSeries ? serSalva.ordemSeries.indexOf(b.numero) : b.numero;
-            return oA - oB;
-          });
+          const seriesOrdenadas = [...serSalva.series].sort((a, b) => a.numero - b.numero);
           const nSer = seriesOrdenadas.length;
           const temMultiSeries = nSer > 1;
           const lblTipo = s.faseSufixo === "ELI" ? "ELIMINATÓRIA" : s.faseSufixo === "SEM" ? "SEMIFINAL" : s.faseSufixo === "FIN" ? "FINAL" : (isFinalTempo ? "FINAL POR TEMPO" : "SEMIFINAL");

@@ -6,7 +6,8 @@ import { RecordHelper } from "../../shared/engines/recordHelper";
 import { TeamScoringEngine } from "../../shared/engines/teamScoringEngine";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { CombinedScoringEngine } from "../../shared/engines/combinedScoringEngine";
-import { getFasesModo, buscarSeriacao, resKey, FASE_NOME, FASE_ORDEM } from "../../shared/constants/fases";
+import { getFasesModo, buscarSeriacao, resKey, FASE_NOME, FASE_ORDEM, getEntradasProva } from "../../shared/constants/fases";
+import { calcularEtapa, getEtapaLabel } from "../../shared/constants/etapas";
 import { gerarHtmlImpressao } from "../impressao/gerarHtmlImpressao";
 import { GT_DEFAULT_LOGO } from "../../shared/branding";
 import { Th, Td } from "../ui/TableHelpers";
@@ -172,6 +173,7 @@ function TelaResultados() {
   const [filtroProva, setFiltroProva] = useState("todas");
   const [filtroCat, setFiltroCat] = useState("todas");
   const [filtroSexo, setFiltroSexo] = useState("todos");
+  const [filtroEtapa, setFiltroEtapa] = useState("todas");
 
   if (!eventoAtual) return (
     <div style={s.page}><div style={s.emptyState}><p>Selecione uma competição primeiro.</p>
@@ -181,6 +183,17 @@ function TelaResultados() {
   const eid = eventoAtual.id;
   const todasProvas = todasAsProvas();
   const inscDoEvento = inscricoes.filter(i => i.eventoId === eid);
+
+  const pausaHorario = (eventoAtual.programaPausa || {}).horario || "";
+  const temEtapas = !!pausaHorario;
+  const qtdEtapas = (eventoAtual.dataFim && eventoAtual.dataFim !== eventoAtual.data) ? 4 : 2;
+
+  const getEtapaProva = (provaId) => {
+    const entries = getEntradasProva(provaId, eventoAtual.programaHorario || {});
+    const entry = entries[0];
+    if (!entry?.horario || !pausaHorario) return null;
+    return calcularEtapa(entry.horario, entry.dia || 1, pausaHorario);
+  };
 
   // Gerar provas componentes de combinadas
   const provasComponentesArr = [];
@@ -361,7 +374,18 @@ function TelaResultados() {
     if (filtroProva !== "todas" && b.prova.nome !== filtroProva) return false;
     if (filtroCat !== "todas" && b.categoria.id !== filtroCat) return false;
     if (filtroSexo !== "todos" && b.sexo !== filtroSexo) return false;
+    if (filtroEtapa !== "todas") {
+      const etNum = getEtapaProva(b.prova.id);
+      if (String(etNum) !== filtroEtapa) return false;
+    }
     return true;
+  }).sort((a, b) => {
+    const ea = getEntradasProva(a.prova.id, eventoAtual.programaHorario || {})[0];
+    const eb = getEntradasProva(b.prova.id, eventoAtual.programaHorario || {})[0];
+    const da = (ea?.dia || 1), db = (eb?.dia || 1);
+    if (da !== db) return da - db;
+    const ha = ea?.horario || "99:99", hb = eb?.horario || "99:99";
+    return ha.localeCompare(hb);
   });
 
   // Gerar blocos de classificação de combinadas
@@ -684,6 +708,17 @@ function TelaResultados() {
             <option value="F">Feminino</option>
           </select>
         </div>
+        {temEtapas && (
+          <div>
+            <label style={s.label}>Etapa</label>
+            <select style={s.select} value={filtroEtapa} onChange={(e) => setFiltroEtapa(e.target.value)}>
+              <option value="todas">Todas</option>
+              {Array.from({ length: qtdEtapas }, (_, idx) => idx + 1).map(n => (
+                <option key={n} value={String(n)}>{getEtapaLabel(n)}</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Classificação por Equipes */}
@@ -913,7 +948,7 @@ function TelaResultados() {
                     </span>
                   </div>
                   <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap", marginTop:6 }}>
-                    <span style={s.badgeGold}>{bc.categoria.nome}</span>
+                    <span style={s.badgeGold}>Categoria: {bc.categoria.nome}</span>
                     <span style={s.badge(bc.sexo === "M" ? "#1a6ef5" : "#e54f9b")}>
                       {bc.sexo === "M" ? "Masculino" : "Feminino"}
                     </span>
@@ -1112,8 +1147,17 @@ function TelaResultados() {
                   )}
                 </div>
                 <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap", marginTop:6 }}>
-                  <span style={s.badgeGold}>{b.categoria.nome}</span>
+                  <span style={s.badgeGold}>Categoria: {b.categoria.nome}</span>
                   <span style={s.badge(b.sexo === "M" ? "#1a6ef5" : "#e54f9b")}>{b.sexo === "M" ? "Masculino" : "Feminino"}</span>
+                  {(() => {
+                    const etNum = getEtapaProva(b.prova.id);
+                    if (!etNum) return null;
+                    return (
+                      <span style={{ fontSize: 11, background: `${t.accent}18`, color: t.accent, padding: "2px 8px", borderRadius: 4, fontWeight: 600 }}>
+                        {getEtapaLabel(etNum)}
+                      </span>
+                    );
+                  })()}
                 </div>
                 {/* Recordes vinculados ao evento (recordesSumulas - independente de competicoesVinculadas) */}
                 {(() => {

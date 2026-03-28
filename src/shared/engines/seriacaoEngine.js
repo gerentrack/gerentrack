@@ -321,7 +321,7 @@ const SeriacaoEngine = {
   //   atlPorSerie: número de atletas por série para provas >800m
   // Saída: { series, ordemSeries, regraAplicada, tipoLargada }
   seriarProva(atletasComMarca, prova, config) {
-    const { nRaias = 8, fase = "eliminatoria", atlPorSerie = 12, modo800 = "raias" } = config;
+    const { nRaias = 8, fase = "eliminatoria", atlPorSerie = 12, modo800 = "raias", aleatorio = false } = config;
     const nAtletas = atletasComMarca.length;
 
     if (nAtletas === 0) return { series: [], ordemSeries: [], regraAplicada: "", tipoLargada: "raias" };
@@ -370,11 +370,15 @@ const SeriacaoEngine = {
       };
     });
 
-    // RT 20.3.4 — Ordem de realização das séries: sorteio aleatório
-    const ordemSeries = this._embaralhar(seriesComRaias.map((_, i) => i + 1));
+    // Modo aleatório: numera sequencialmente (sem inversão, pois não há ranking)
+    // Modo por marca: Série 1 = mais fraca (1ª a correr), última série = mais forte
+    const seriesFinal = aleatorio
+      ? seriesComRaias
+      : [...seriesComRaias].reverse().map((serie, idx) => ({ ...serie, numero: idx + 1 }));
+    const ordemSeries = seriesFinal.map((_, i) => i + 1);
 
     return {
-      series: seriesComRaias,
+      series: seriesFinal,
       ordemSeries,
       regraAplicada: this.descreverRegra(prova, fase, { modo800 }),
       tipoLargada: isGrupo ? "grupo" : "raias",

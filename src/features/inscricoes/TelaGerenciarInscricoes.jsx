@@ -386,7 +386,7 @@ function TelaGerenciarInscricoes() {
                         {podeAlt ? (
                           <button onClick={async () => { 
                             if (await confirmar(`Remover TODAS as ${inscs.length } inscrições de ${atleta?.nome || "atleta"}?`)) {
-                              inscs.forEach(i => excluirInscricao(i.id));
+                              inscs.forEach(i => excluirInscricao(i.id, { confirmado: true }));
                             }
                           }}
                             style={{...s.btnGhost,fontSize:11,padding:"3px 8px",color: t.danger,borderColor:`${t.danger}44`}}>
