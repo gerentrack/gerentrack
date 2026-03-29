@@ -32,6 +32,7 @@ export function useLocalStorage(key, initialValue) {
   const ref = useRef(storedValue);
   ref.current = storedValue;
   const firestoreLoaded = useRef(false);
+  const debounceTimer = useRef(null);
 
   // ── Sincronização Firestore em tempo real ──────────────────────────────────
   useEffect(() => {
@@ -56,7 +57,19 @@ export function useLocalStorage(key, initialValue) {
         firestoreLoaded.current = true;
       }
     );
-    return unsub;
+    return () => {
+      unsub();
+      // Flush: se houver escrita pendente no debounce, executa antes de desmontar
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+        if (auth.currentUser) {
+          const flushRef = doc(db, "state", key);
+          setDoc(flushRef, { value: sanitizeForFirestore(ref.current) }).catch(
+            (err) => console.error(`[useLocalStorage] Firestore flush error "${key}":`, err)
+          );
+        }
+      }
+    };
   }, [key]);
 
   // ── Setter com persistência dupla ──────────────────────────────────────────
@@ -74,13 +87,16 @@ export function useLocalStorage(key, initialValue) {
         console.warn(`[useLocalStorage] localStorage cheio ao gravar "${key}":`, quotaErr);
       }
 
-      // Firestore: só grava após carregamento inicial E com usuário autenticado
+      // Firestore: debounce de 2s para agrupar escritas rápidas consecutivas
       // (regras exigem request.auth != null para escrita em state/{id})
       if (firestoreLoaded.current && auth.currentUser) {
-        const docRef = doc(db, "state", key);
-        setDoc(docRef, { value: sanitizeForFirestore(valueToStore) }).catch(
-          (err) => console.error(`[useLocalStorage] Firestore write error "${key}":`, err)
-        );
+        if (debounceTimer.current) clearTimeout(debounceTimer.current);
+        debounceTimer.current = setTimeout(() => {
+          const docRef = doc(db, "state", key);
+          setDoc(docRef, { value: sanitizeForFirestore(ref.current) }).catch(
+            (err) => console.error(`[useLocalStorage] Firestore write error "${key}":`, err)
+          );
+        }, 2000);
       }
     },
     [key]
