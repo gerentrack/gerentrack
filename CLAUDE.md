@@ -9,11 +9,13 @@ GERENTRACK is a track & field (atletismo) competition management web application
 ## Tech Stack
 
 - **React 18** with **Vite 5** (ES modules, JSX)
+- **React Router DOM v7** — roteamento declarativo com URLs limpas (migração incremental do sistema baseado em estado)
 - **Firebase**: Firestore (database), Authentication (email/password), Storage (logos)
 - **DOMPurify** for XSS prevention
 - **ExcelJS** for XLSX export with embedded images
 - **qrcode** for QR code generation (client-side)
 - **html5-qrcode** for QR code scanning via camera
+- **@imgly/background-removal** for client-side image background removal
 - **Deployed on**: Vercel (frontend) + Firebase (backend)
 
 ## Commands
@@ -30,21 +32,57 @@ No test framework is configured.
 
 ### Entry Flow
 
-`index.html` → `src/main.jsx` → `src/App.jsx` (main orchestrator, ~1700 lines, manages all routing/navigation and state coordination)
+`index.html` → `src/main.jsx` → `src/App.jsx` (main orchestrator, ~2100 lines, manages state coordination and renderiza telas)
+
+### Routing & Contexts
+
+O app está em **migração incremental** do sistema de routing baseado em estado (`tela`/`setTela`) para **React Router DOM v7**:
+
+- **`src/router/`** — Definição centralizada de rotas:
+  - `routes.jsx` — Mapeamento `ROUTES` (path → URL), `TELA_TO_PATH` (tela → path), `buildPath()`, `telaToPath()`
+  - `ProtectedRoute.jsx` — Guarda de autenticação
+  - `EventoRoute.jsx` — Guarda de competição selecionada
+  - `useRouterBridge.js` — Bridge entre o sistema legado (`setTela`) e React Router (`navigate`)
+- **`src/layouts/`** — Layouts compartilhados:
+  - `MainLayout.jsx` — Header + main + footer (telas autenticadas)
+  - `EventoLayout.jsx` — Layout de competição (com slug dinâmico)
+  - `PublicLayout.jsx` — Layout para páginas públicas
+- **`src/contexts/`** — React Contexts extraídos do App.jsx para reduzir prop drilling:
+  - `AppContext.jsx` (`useApp()`) — navegação, notificações, auditoria, branding, organizadores, funcionários, treinadores, solicitações
+  - `AuthContext.jsx` (`useAuth()`) — usuarioLogado, login, logout, perfis, senhas
+  - `EventoContext.jsx` (`useEvento()`) — eventos, inscrições, resultados, atletas, equipes, recordes, ranking
+
+**NOTA**: O sistema `tela`/`setTela` ainda coexiste com React Router. Novas telas devem usar rotas; telas existentes serão migradas incrementalmente.
 
 ### Source Structure
 
 - **`src/domain/`** — Athletics domain definitions: event types (`provas/provasDef.json`), combined events, relay helpers
-- **`src/features/`** — Feature modules organized by domain area (auth, eventos, inscricoes, resultados, recordes, paineis, admin, gestao, digitar, impressao, secretaria, etc.)
-- **`src/hooks/`** — Custom hooks for Firestore-backed CRUD: `useEventos`, `useInscricoes`, `useResultados`, `useAtletas`, `useEquipes`, `useMedalhasChamada`
+- **`src/router/`** — React Router routes, guards, and bridge (ver seção acima)
+- **`src/contexts/`** — React Contexts: AppContext, AuthContext, EventoContext
+- **`src/layouts/`** — Layout components: MainLayout, EventoLayout, PublicLayout
+- **`src/features/`** — Feature modules organized by domain area:
+  - `auth`, `eventos`, `inscricoes`, `resultados`, `recordes`, `paineis`, `admin`, `gestao`, `digitar`, `impressao`, `secretaria`
+  - `cadastros` — Telas de cadastro público (atleta, equipe, organizador)
+  - `configuracoes` — Configurações de pontuação de equipes
+  - `layout` — Header.jsx
+  - `organizadores` — Perfil do organizador
+  - `ranking` — Sistema de ranking
+  - `sumulas` — Geração de súmulas
+  - `ui` — Componentes de UI reutilizáveis (ConfirmModal, FormField, BannerInstalar, AtualizacaoDisponivel)
+  - `utilidades` — Auditoria, FinishLynx (import/export), gestão de inscrições, gerenciamento de membros
+- **`src/hooks/`** — Custom hooks:
+  - Firestore-backed CRUD: `useEventos`, `useInscricoes`, `useResultados`, `useAtletas`, `useEquipes`, `useMedalhasChamada`
+  - UI/PWA: `useInstallPrompt`, `useOfflineStatus`, `useResponsivo`, `useStylesResponsivos`
 - **`src/lib/`** — Reusable infrastructure: dual-persistence storage (`useLocalStorage` with Firestore sync), Firestore sanitization, XSS prevention, pagination, data migration
 - **`src/shared/`** — Shared business logic and constants:
-  - **`engines/`** — Core computation: `seriacaoEngine`, `teamScoringEngine`, `combinedScoringEngine`, `recordDetectionEngine`, `inscricaoEngine`
+  - **`engines/`** — Core computation: `seriacaoEngine`, `teamScoringEngine`, `combinedScoringEngine`, `combinedEventEngine`, `recordDetectionEngine`, `rankingExtractionEngine`, `inscricaoEngine`, `lynxImportEngine`, `lynxExportEngine`, `recordHelper`
   - **`constants/`** — Age categories (Sub-14 through Adulto), race phases (Eliminatória, Semifinal, Final)
   - **`formatters/`** — Time, distance, and name formatting utilities
   - **`athletics/`** — Athletics-specific constants and event definitions
   - **`qrcode/`** — QR code generation (`gerarQrCode.js`), scanner component (`QrScanner.jsx`), sound feedback (`scannerSons.js`)
   - **`TemaContext.jsx`** + **`tema.js`** — Theme system (dark/light mode) with centralized tokens
+  - **`branding.js`** — Constantes de branding (GT_DEFAULT_ICON, GT_DEFAULT_LOGO)
+  - **`CortarImagem.jsx`** — Componente de recorte/remoção de fundo de imagem
 
 ### Theme System
 
@@ -85,6 +123,19 @@ No test framework is configured.
 - Scanner QR na aba Medalhas: escaneia atleta, mostra cards por prova com "Entregar" / "Entregar todas"
 - Bloqueios: DNS total, limite de participação, classificação bloqueia participação, provas pendentes
 - Modal de medalha recalcula automaticamente via `useEffect` quando `medalhas` muda (Firestore)
+
+### FinishLynx Integration
+
+- **Import** (`lynxImportEngine.js`): importa resultados de arquivos `.lif` (FinishLynx Image Format) — parser retorna tempos em milissegundos
+- **Export** (`lynxExportEngine.js`): exporta dados de competição para formato compatível com FinishLynx
+- Telas: `TelaFinishLynx.jsx` (import), `TelaExportLynx.jsx` (export) em `src/features/utilidades/`
+
+### PWA & Offline
+
+- `useInstallPrompt` — captura o evento `beforeinstallprompt` para prompt de instalação PWA
+- `useOfflineStatus` — monitora status online/offline do navegador
+- `BannerInstalar.jsx` e `AtualizacaoDisponivel.jsx` — UI para instalação e atualização do PWA
+- `useResponsivo` / `useStylesResponsivos` — hooks para layout responsivo
 
 ### Firebase Auth
 
@@ -127,11 +178,13 @@ Environment variables are prefixed with `VITE_FIREBASE_*` and loaded via `.env`.
 - **NUNCA usar `width: 100%` em btnPrimary**
 - **Imports case-sensitive** — Vercel roda Linux; usar caminho exato (ex: `../../shared/constants/categorias` e não `../../shared/athletics/constants`)
 - **useLocalStorage** = sincroniza com Firestore (cross-device) | **useLocalOnly** = apenas dispositivo — nunca trocar um pelo outro sem intenção deliberada e consciência do impacto
-- **App.jsx tem ~1700 linhas** e é o orquestrador central — mudanças aqui têm impacto global, requer atenção redobrada
+- **App.jsx tem ~2100 linhas** e é o orquestrador central — mudanças aqui têm impacto global, requer atenção redobrada
 - **Cores do tema** — NUNCA usar hex hardcoded em JSX. Usar tokens: `t.accent`, `t.bgCard`, `t.textPrimary`, `t.success`, `t.danger`, etc. Exceções: cores de impressão (HTML strings), cores de gênero, cores metálicas de medalha
 - **Variable shadowing** — NUNCA usar `t` como parâmetro de callback (`.map(t =>`, `.find(t =>`) — conflita com o tema `t` de `useTema()`. Usar nomes descritivos: `eq`, `tr`, `v`, `item`
 - **secondaryAuth** — SEMPRE usar para `createUserWithEmailAndPassword` quando criando conta para outro usuário (funcionário, treinador, equipe via admin)
 - **Filtro de provas na secretaria** — filtra por `prova.nome` (não `prova.id`), pois provas com variantes F_ têm IDs diferentes mas mesmo nome
+- **Contexts vs props** — features novas devem consumir dados via `useApp()`, `useAuth()`, `useEvento()` em vez de receber props diretamente do App.jsx. Os contexts são construídos via `buildAppValue()`, `buildAuthValue()`, `buildEventoValue()`
+- **Rotas novas** — ao criar telas novas, adicionar entrada em `src/router/routes.jsx` (ROUTES + TELA_TO_PATH) e usar `buildPath()` para navegação com parâmetros dinâmicos
 
 ## Regras de dados e segurança
 

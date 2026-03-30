@@ -1137,6 +1137,17 @@ function TelaEventoDetalhe() {
         );
       })()}
 
+      {/* ══ REGULAMENTO ════════════════════════════════════════════════════ */}
+      {eventoAtual.regulamentoUrl && (
+        <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:10, padding:"20px 24px", marginBottom:24, display:"flex", alignItems:"center", gap:12 }}>
+          <div style={{ color: t.accent, fontWeight:700, fontSize:14 }}>📄 Regulamento</div>
+          <a href={eventoAtual.regulamentoUrl} target="_blank" rel="noopener noreferrer"
+            style={{ fontSize:13, color: t.accent, textDecoration:"underline", cursor:"pointer" }}>
+            {eventoAtual.regulamentoNome || "regulamento.pdf"}
+          </a>
+        </div>
+      )}
+
       {/* ══ DESCRIÇÃO ═══════════════════════════════════════════════════════ */}
       {eventoAtual.descricao && (!eventoAtual.competicaoFinalizada || isAdmin || tpU === "organizador") && (
         <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:10, padding:"20px 24px", marginBottom:24 }}>

@@ -1212,8 +1212,8 @@ function TelaCadastroEvento() {
                           setUploadandoRegulamento(true);
                           try {
                             const id = eventoAtualId || form._uploadId || (form._uploadId = Date.now().toString());
-                            const ext = "pdf";
-                            const path = `regulamentos/${id}/regulamento.${ext}`;
+                            const nomeSlug = (form.nome || "regulamento").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase();
+                            const path = `regulamentos/${id}/${nomeSlug}.pdf`;
                             const ref = storageRef(storage, path);
                             await uploadBytes(ref, file);
                             const url = await getDownloadURL(ref);
