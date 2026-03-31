@@ -73,6 +73,7 @@ import TelaSumulas                 from "./features/sumulas/TelaSumulas";
 import TelaResultados              from "./features/resultados/TelaResultados";
 import TelaRecordes                from "./features/recordes/TelaRecordes";
 import TelaRanking                 from "./features/ranking/TelaRanking";
+import TelaFaq                     from "./features/utilidades/TelaFaq";
 import { gerarHtmlImpressao }      from "./features/impressao/gerarHtmlImpressao";
 import TelaDigitarResultados       from "./features/digitar/TelaDigitarResultados";
 import TelaConfigPontuacaoEquipes  from "./features/configuracoes/TelaConfigPontuacaoEquipes";
@@ -1772,6 +1773,7 @@ function App() {
         {tela === "resultados"        && <TelaResultados {...props} />}
         {tela === "recordes"          && <TelaRecordes {...props} />}
         {tela === "ranking"           && <TelaRanking {...props} />}
+        {tela === "faq"               && <TelaFaq />}
         {tela === "admin"             && <TelaAdmin adminConfig={adminConfig} setAdminConfig={setAdminConfig} setHistoricoAcoes={setHistoricoAcoes} setAuditoria={setAuditoria} auditoria={auditoria} />}
         {tela === "gerenciar-equipes" && <TelaGerenciarEquipes />}
         {tela === "gerenciar-usuarios" && <TelaGerenciarUsuarios />}
@@ -1782,7 +1784,18 @@ function App() {
         {tela === "organizador-perfil" && <TelaPerfilOrganizador {...props} />}
       </main>
       <footer style={styles.footer}>
-        <span style={{ opacity: 0.4 }}>Desenvolvido por: GERENTRACK</span>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
+          <span style={{ opacity: 0.4 }}>Desenvolvido por: GERENTRACK</span>
+          <span style={{ opacity: 0.3 }}>·</span>
+          <span style={{ opacity: 0.6, cursor: "pointer", textDecoration: "underline" }} onClick={() => setTela("faq")}>FAQ</span>
+          {(siteBranding.redesSociais || []).filter(r => r.ativo).sort((a, b) => (a.ordem || 0) - (b.ordem || 0)).map((rede, idx) => (
+            <a key={idx} href={rede.url} target="_blank" rel="noopener noreferrer" style={{ opacity: 0.7, textDecoration: "none", fontSize: 16, cursor: "pointer", display: "inline-flex", alignItems: "center" }} title={rede.label}>
+              {rede.iconeUrl
+                ? <img src={rede.iconeUrl} alt={rede.label} style={{ width: 18, height: 18, objectFit: "contain" }} />
+                : rede.emoji}
+            </a>
+          ))}
+        </div>
       </footer>
     </div>
     <Analytics />

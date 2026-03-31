@@ -21,6 +21,7 @@ export const ROUTES = {
   selecionarPerfil:        "/selecionar-perfil",
   recordes:                "/recordes",
   ranking:                 "/ranking",
+  faq:                     "/faq",
 
   // Configurações (auth)
   configuracoes:           "/configuracoes",
@@ -78,6 +79,7 @@ export const TELA_TO_PATH = {
   "selecionar-perfil":          ROUTES.selecionarPerfil,
   "recordes":                   ROUTES.recordes,
   "ranking":                    ROUTES.ranking,
+  "faq":                        ROUTES.faq,
   "configuracoes":              ROUTES.configuracoes,
   "admin":                      ROUTES.admin,
   "gerenciar-usuarios":         ROUTES.gerenciarUsuarios,

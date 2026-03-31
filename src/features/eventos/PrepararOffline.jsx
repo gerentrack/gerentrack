@@ -7,6 +7,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useTema } from "../../shared/TemaContext";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
+import { cacheGet, cacheSet } from "../../lib/cacheDB";
 
 function getStyles(t) {
   return {
@@ -32,37 +33,35 @@ function getStyles(t) {
   };
 }
 
-function estimarLocalStorageUsado() {
+async function verificarItemIDB(storeName) {
   try {
-    let total = 0;
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      total += (key.length + (localStorage.getItem(key) || "").length) * 2; // UTF-16
+    const data = await cacheGet(storeName);
+    if (Array.isArray(data)) return { ok: data.length > 0, count: data.length };
+    if (typeof data === "object" && data !== null) {
+      const n = Object.keys(data).length;
+      return { ok: n > 0, count: n };
     }
-    return total;
+    return { ok: false, count: 0 };
   } catch {
-    return 0;
+    return { ok: false, count: 0 };
   }
 }
 
-function verificarItem(cacheKey) {
+async function estimarStorageUsado() {
   try {
-    const raw = localStorage.getItem(cacheKey);
-    if (!raw) return { ok: false, count: 0 };
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) return { ok: parsed.length > 0, count: parsed.length };
-    if (typeof parsed === "object" && parsed !== null) return { ok: Object.keys(parsed).length > 0, count: Object.keys(parsed).length };
-    return { ok: false, count: 0 };
-  } catch {
-    return { ok: false, count: 0 };
-  }
+    if (navigator.storage && navigator.storage.estimate) {
+      const est = await navigator.storage.estimate();
+      return { usage: est.usage || 0, quota: est.quota || 0 };
+    }
+  } catch {}
+  return { usage: 0, quota: 0 };
 }
 
 function verificarSW() {
   return "serviceWorker" in navigator && navigator.serviceWorker.controller != null;
 }
 
-export default function PrepararOffline({ eventoAtual, atletas, inscricoes, resultados, equipes, setTela }) {
+export default function PrepararOffline({ eventoAtual, atletas, inscricoes, resultados, equipes, eventos, setTela }) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const [checks, setChecks] = useState(null);
@@ -71,15 +70,30 @@ export default function PrepararOffline({ eventoAtual, atletas, inscricoes, resu
 
   const eventoId = eventoAtual?.id;
 
-  const verificarTudo = useCallback(() => {
+  const verificarTudo = useCallback(async () => {
     const swAtivo = verificarSW();
-    const cacheEventos = verificarItem("cache_eventos");
-    const cacheAtletas = verificarItem("cache_atletas");
-    const cacheEquipes = verificarItem("cache_equipes");
-    const cacheInscricoes = verificarItem("cache_inscricoes");
-    const cacheResultados = verificarItem("cache_resultados");
-    const cacheChamada = verificarItem("mc_chamada");
-    const cacheMedalhas = verificarItem("mc_medalhas");
+
+    const [cacheEventos, cacheAtletas, cacheEquipes, cacheInscricoes, cacheResultados] = await Promise.all([
+      verificarItemIDB("cache_eventos"),
+      verificarItemIDB("cache_atletas"),
+      verificarItemIDB("cache_equipes"),
+      verificarItemIDB("cache_inscricoes"),
+      verificarItemIDB("cache_resultados"),
+    ]);
+
+    // Chamada e medalhas continuam em localStorage (useMedalhasChamada — fora do escopo)
+    const verificarItemLS = (key) => {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return { ok: false, count: 0 };
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return { ok: parsed.length > 0, count: parsed.length };
+        if (typeof parsed === "object" && parsed !== null) return { ok: Object.keys(parsed).length > 0, count: Object.keys(parsed).length };
+        return { ok: false, count: 0 };
+      } catch { return { ok: false, count: 0 }; }
+    };
+    const cacheChamada = verificarItemLS("mc_chamada");
+    const cacheMedalhas = verificarItemLS("mc_medalhas");
 
     // Contar dados do evento atual
     const inscsEvento = inscricoes ? inscricoes.filter(i => i.eventoId === eventoId).length : 0;
@@ -90,7 +104,7 @@ export default function PrepararOffline({ eventoAtual, atletas, inscricoes, resu
       ? Object.keys(resultados).filter(k => k.startsWith(eventoId + "_")).length
       : 0;
 
-    const storageUsado = estimarLocalStorageUsado();
+    const storage = await estimarStorageUsado();
 
     setChecks({
       sw: swAtivo,
@@ -101,29 +115,30 @@ export default function PrepararOffline({ eventoAtual, atletas, inscricoes, resu
       resultados: { ...cacheResultados, eventoCount: resEvento },
       chamada: cacheChamada,
       medalhas: cacheMedalhas,
-      storageUsado,
+      storageUsado: storage.usage,
+      storageQuota: storage.quota,
     });
   }, [eventoId, inscricoes, resultados]);
 
   useEffect(() => { verificarTudo(); }, [verificarTudo]);
 
-  const sincronizarAgora = useCallback(() => {
+  const sincronizarAgora = useCallback(async () => {
     setSincronizando(true);
-    // Força snapshot dos dados React atuais para localStorage
     try {
-      if (atletas) localStorage.setItem("cache_atletas", JSON.stringify(atletas));
-      if (equipes) localStorage.setItem("cache_equipes", JSON.stringify(equipes));
-      if (inscricoes) localStorage.setItem("cache_inscricoes", JSON.stringify(inscricoes));
-      if (resultados) localStorage.setItem("cache_resultados", JSON.stringify(resultados));
+      await Promise.all([
+        cacheSet("cache_atletas", atletas || []),
+        cacheSet("cache_equipes", equipes || []),
+        cacheSet("cache_inscricoes", inscricoes || []),
+        cacheSet("cache_resultados", resultados || {}),
+        cacheSet("cache_eventos", eventos || []),
+      ]);
     } catch (err) {
       console.warn("[PrepararOffline] Erro ao salvar cache:", err);
     }
-    setTimeout(() => {
-      verificarTudo();
-      setSincronizando(false);
-      setSincronizado(true);
-    }, 500);
-  }, [atletas, equipes, inscricoes, resultados, verificarTudo]);
+    await verificarTudo();
+    setSincronizando(false);
+    setSincronizado(true);
+  }, [atletas, equipes, inscricoes, resultados, eventos, verificarTudo]);
 
   if (!checks) return null;
 
@@ -140,7 +155,8 @@ export default function PrepararOffline({ eventoAtual, atletas, inscricoes, resu
 
   const todosOk = items.every(i => i.ok);
   const storageMB = (checks.storageUsado / (1024 * 1024)).toFixed(2);
-  const storagePct = Math.min((checks.storageUsado / (5 * 1024 * 1024)) * 100, 100);
+  const storageQuotaMB = checks.storageQuota ? (checks.storageQuota / (1024 * 1024)).toFixed(0) : "—";
+  const storagePct = checks.storageQuota ? Math.min((checks.storageUsado / checks.storageQuota) * 100, 100) : 0;
   const storageColor = storagePct > 80 ? t.danger : storagePct > 50 ? t.warning : t.success;
 
   return (
@@ -175,7 +191,7 @@ export default function PrepararOffline({ eventoAtual, atletas, inscricoes, resu
         <div style={s.storageBar}>
           <div style={{ ...s.storageBarFill, width: `${storagePct}%`, background: storageColor }} />
         </div>
-        <p style={s.storageText}>{storageMB} MB usado de ~5 MB disponivel ({storagePct.toFixed(0)}%)</p>
+        <p style={s.storageText}>{storageMB} MB usado de ~{storageQuotaMB} MB disponivel ({storagePct.toFixed(0)}%)</p>
       </div>
 
       {todosOk && sincronizado && (

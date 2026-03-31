@@ -146,7 +146,11 @@ O app está em **migração incremental** do sistema de routing baseado em estad
 
 ### Data Persistence
 
-Dual-persistence model: data is stored in both **localStorage** (offline/fast) and **Firestore** (cloud sync). The `src/lib/storage/` layer manages this with `useLocalStorage` and `useStorageSync`.
+Dual-persistence model: data is stored in both **IndexedDB/localStorage** (offline/fast) and **Firestore** (cloud sync).
+
+- **Coleções Firestore** (atletas, equipes, inscrições, resultados, eventos): cache offline via **IndexedDB** (`src/lib/cacheDB.js`). Sem limite de 5MB, suporta 30k+ atletas. Os hooks (`useAtletas`, `useEquipes`, `useInscricoes`, `useResultados`, `useEventos`) hidratam do IndexedDB no startup e atualizam via `onSnapshot`.
+- **Dados de estado do app** (ranking, recordes, notificações, branding, etc.): permanecem em **localStorage** via `useLocalStorage` (`src/lib/storage/`).
+- **Chamada e medalhas**: permanecem em **localStorage** via `useMedalhasChamada`.
 
 ### Notificações
 
@@ -214,3 +218,4 @@ Environment variables are prefixed with `VITE_FIREBASE_*` and loaded via `.env`.
 - Firebase Auth migration necessária em: `TelaConfiguracoes` (validação senha não-admin), `TelaGerenciarEquipes` (criação sem Auth), `TelaGerenciarUsuarios` (criação sem Auth), `TelaTreinadores` (handleLoginExistente usa plaintext)
 - Script de migração em massa para contas legadas (equipes importadas sem conta Auth)
 - Troca de email no Gerenciar Usuários não reflete no Firebase Auth
+- Páginas públicas de Política de Privacidade (`/privacidade`) e Termos de Uso (`/termos`) — documentos prontos em DOCX, falta implementar como rotas públicas no app com conteúdo renderizado

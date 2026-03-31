@@ -25,19 +25,27 @@ import {
   writeBatch,
 } from "../firebase";
 import { sanitize } from "../lib/utils/sanitize";
+import { cacheGet, cacheSet } from "../lib/cacheDB";
 
 const COLLECTION = "eventos";
+const STORE = "cache_eventos";
 
 
 export function useEventos() {
-  const [eventos, setEventosLocal] = useState(() => {
-    try { const c = localStorage.getItem("cache_eventos"); return c ? JSON.parse(c) : []; }
-    catch { return []; }
-  });
+  const [eventos, setEventosLocal] = useState([]);
   const [carregando, setCarregando] = useState(true);
 
   const eventosRef = useRef(eventos);
   eventosRef.current = eventos;
+
+  // ── Hidratar do IndexedDB (cache offline) ───────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    cacheGet(STORE).then((cached) => {
+      if (!cancelled && cached && cached.length > 0) setEventosLocal(cached);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   // ── Escuta em tempo real toda a coleção ──────────────────────────────────
   useEffect(() => {
@@ -46,14 +54,12 @@ export function useEventos() {
       (snap) => {
         const lista = [];
         snap.forEach((d) => lista.push({ id: d.id, ...d.data() }));
-        // Ordenar por data de criação para manter ordem consistente
         lista.sort((a, b) => {
-          // Eventos com data de competição são ordenados por ela
           if (a.data && b.data) return b.data.localeCompare(a.data);
           return 0;
         });
         setEventosLocal(lista);
-        try { localStorage.setItem("cache_eventos", JSON.stringify(lista)); } catch {}
+        cacheSet(STORE, lista).catch(() => {});
         setCarregando(false);
       },
       (err) => {

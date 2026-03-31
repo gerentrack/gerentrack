@@ -22,8 +22,10 @@ import {
   writeBatch,
 } from "../firebase";
 import { sanitize } from "../lib/utils/sanitize";
+import { cacheGet, cacheSet } from "../lib/cacheDB";
 
 const COLLECTION = "inscricoes";
+const STORE = "cache_inscricoes";
 const RES_COLLECTION = "resultados";
 
 // Mesma lógica de chave do useResultados
@@ -40,14 +42,20 @@ const _resKey = (eventoId, provaId, catId, sexo, faseSufixo) =>
  * @param {object}   opts.usuarioLogado  — usuário atual
  */
 export function useInscricoes({ atletas = [], registrarAcao, usuarioLogado } = {}) {
-  const [inscricoes, setInscricoesLocal] = useState(() => {
-    try { const c = localStorage.getItem("cache_inscricoes"); return c ? JSON.parse(c) : []; }
-    catch { return []; }
-  });
+  const [inscricoes, setInscricoesLocal] = useState([]);
   const [carregando, setCarregando] = useState(true);
 
   const inscricoesRef = useRef(inscricoes);
   inscricoesRef.current = inscricoes;
+
+  // ── Hidratar do IndexedDB (cache offline) ───────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    cacheGet(STORE).then((cached) => {
+      if (!cancelled && cached && cached.length > 0) setInscricoesLocal(cached);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   // ── Escuta em tempo real toda a coleção ──────────────────────────────────
   useEffect(() => {
@@ -59,7 +67,7 @@ export function useInscricoes({ atletas = [], registrarAcao, usuarioLogado } = {
         setInscricoesLocal(lista);
         // Compatibilidade: expõe no window para CombinedEventEngine
         if (typeof window !== "undefined") window.__atletismoInscricoes = lista;
-        try { localStorage.setItem("cache_inscricoes", JSON.stringify(lista)); } catch {}
+        cacheSet(STORE, lista).catch(() => {});
         setCarregando(false);
       },
       (err) => {

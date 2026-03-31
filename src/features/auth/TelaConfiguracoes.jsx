@@ -121,6 +121,11 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
   const [feedback, setFeedback] = useState("");
   const [erro, setErro]         = useState("");
 
+  // Redes sociais form
+  const [formRede, setFormRede] = useState({ rede: "instagram", label: "", url: "", emoji: "", ordem: 1, ativo: true });
+  const [editandoRedeIdx, setEditandoRedeIdx] = useState(null);
+  const [erroRede, setErroRede] = useState("");
+
   const stores = {
     equipe:      { data: equipes,         set: atualizarEquipePerfil },
     organizador: { data: organizadores,   set: setOrganizadores },
@@ -1361,6 +1366,169 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
               🗑 Limpar Todos os Dados do Sistema
             </button>
           </div>
+
+          {/* ── Redes Sociais ───────────────────────────────────────────── */}
+          {(() => {
+            const REDES_OPCOES = [
+              { id: "instagram", label: "Instagram", emoji: "📷", placeholder: "https://instagram.com/seu_perfil" },
+              { id: "facebook", label: "Facebook", emoji: "📘", placeholder: "https://facebook.com/sua_pagina" },
+              { id: "youtube", label: "YouTube", emoji: "🎬", placeholder: "https://youtube.com/@seu_canal" },
+              { id: "linkedin", label: "LinkedIn", emoji: "💼", placeholder: "https://linkedin.com/company/sua_empresa" },
+              { id: "x", label: "X (Twitter)", emoji: "🐦", placeholder: "https://x.com/seu_perfil" },
+              { id: "tiktok", label: "TikTok", emoji: "🎵", placeholder: "https://tiktok.com/@seu_perfil" },
+              { id: "whatsapp", label: "WhatsApp", emoji: "💬", placeholder: "https://wa.me/5531999999999" },
+              { id: "email", label: "E-mail", emoji: "✉️", placeholder: "mailto:contato@exemplo.com.br" },
+              { id: "site", label: "Site", emoji: "🌐", placeholder: "https://seu-site.com.br" },
+              { id: "outro", label: "Outro", emoji: "🔗", placeholder: "https://..." },
+            ];
+            const redesSociais = siteBranding.redesSociais || [];
+            const formVazio = { rede: "instagram", label: "", url: "", emoji: "", ordem: redesSociais.length + 1, ativo: true };
+            const redeOpcao = REDES_OPCOES.find(r => r.id === formRede.rede) || REDES_OPCOES[0];
+
+            const salvarRede = () => {
+              if (!formRede.url.trim()) { setErroRede("URL obrigatória"); return; }
+              const label = formRede.label.trim() || redeOpcao.label;
+              const emoji = formRede.emoji.trim() || redeOpcao.emoji;
+              const novaRede = { ...formRede, label, emoji };
+              let novaLista;
+              if (editandoRedeIdx !== null) {
+                novaLista = redesSociais.map((r, i) => i === editandoRedeIdx ? novaRede : r);
+              } else {
+                novaLista = [...redesSociais, novaRede];
+              }
+              novaLista.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+              setSiteBranding(prev => ({ ...prev, redesSociais: novaLista }));
+              setFormRede(formVazio);
+              setEditandoRedeIdx(null);
+              setErroRede("");
+            };
+
+            const editarRede = (idx) => { setFormRede(redesSociais[idx]); setEditandoRedeIdx(idx); setErroRede(""); };
+            const excluirRede = (idx) => {
+              setSiteBranding(prev => ({ ...prev, redesSociais: redesSociais.filter((_, i) => i !== idx) }));
+              if (editandoRedeIdx === idx) { setFormRede(formVazio); setEditandoRedeIdx(null); }
+            };
+            const toggleAtivo = (idx) => {
+              setSiteBranding(prev => ({ ...prev, redesSociais: redesSociais.map((r, i) => i === idx ? { ...r, ativo: !r.ativo } : r) }));
+            };
+
+            return (
+              <div style={s.card}>
+                <h3 style={s.sectionTitle}>🌐 Redes Sociais e Contato</h3>
+                <p style={{ color: t.textDimmed, fontSize: 13, marginBottom: 20, lineHeight: 1.6 }}>
+                  Configure os links que aparecem no rodapé do site.
+                </p>
+
+                {redesSociais.length > 0 && (
+                  <div style={{ marginBottom: 24 }}>
+                    {redesSociais.map((rede, idx) => (
+                      <div key={idx} style={{
+                        display: "flex", alignItems: "center", gap: 12, padding: "10px 14px",
+                        background: editandoRedeIdx === idx ? `${t.accent}15` : t.bgHeaderSolid,
+                        border: `1px solid ${editandoRedeIdx === idx ? t.accent : t.border}`,
+                        borderRadius: 8, marginBottom: 6, opacity: rede.ativo ? 1 : 0.5,
+                      }}>
+                        {rede.iconeUrl
+                          ? <img src={rede.iconeUrl} alt={rede.label} style={{ width: 24, height: 24, objectFit: "contain", borderRadius: 4 }} />
+                          : <span style={{ fontSize: 20 }}>{rede.emoji}</span>}
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 700, fontSize: 14, color: t.textPrimary }}>{rede.label}</div>
+                          <div style={{ fontSize: 12, color: t.textMuted, wordBreak: "break-all" }}>{rede.url}</div>
+                        </div>
+                        <span style={{ fontSize: 11, color: t.textDimmed, fontFamily: "'Barlow Condensed', sans-serif" }}>#{rede.ordem}</span>
+                        <button onClick={() => toggleAtivo(idx)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16 }} title={rede.ativo ? "Desativar" : "Ativar"}>
+                          {rede.ativo ? "✅" : "⬜"}
+                        </button>
+                        <button onClick={() => editarRede(idx)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: t.accent }}>✏️</button>
+                        <button onClick={() => excluirRede(idx)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: t.danger }}>🗑️</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 10, padding: 20 }}>
+                  <h4 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 700, color: t.textPrimary, marginBottom: 16 }}>
+                    {editandoRedeIdx !== null ? "Editar Rede Social" : "Nova Rede Social"}
+                  </h4>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+                    <div>
+                      <label style={s.label}>Rede Social</label>
+                      <select style={{ ...s.input, padding: "8px 12px" }} value={formRede.rede} onChange={ev => setFormRede(prev => ({ ...prev, rede: ev.target.value }))}>
+                        {REDES_OPCOES.map(op => <option key={op.id} value={op.id}>{op.emoji} {op.label}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={s.label}>Label (nome de exibição)</label>
+                      <input style={{ ...s.input, padding: "8px 12px" }} value={formRede.label} onChange={ev => setFormRede(prev => ({ ...prev, label: ev.target.value }))} placeholder={redeOpcao.label} />
+                    </div>
+                  </div>
+                  <div style={{ marginBottom: 12 }}>
+                    <label style={s.label}>URL *</label>
+                    <input style={{ ...s.input, padding: "8px 12px" }} value={formRede.url} onChange={ev => { setFormRede(prev => ({ ...prev, url: ev.target.value })); setErroRede(""); }} placeholder={redeOpcao.placeholder} />
+                    {erroRede && <span style={{ color: t.danger, fontSize: 12 }}>{erroRede}</span>}
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 12, marginBottom: 12 }}>
+                    <div>
+                      <label style={s.label}>Icone / Imagem</label>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        {formRede.iconeUrl && (
+                          <img src={formRede.iconeUrl} alt="" style={{ width: 32, height: 32, objectFit: "contain", borderRadius: 4, background: t.bgHover }} />
+                        )}
+                        <label style={{ ...s.btnGhost, fontSize: 12, padding: "6px 12px", cursor: "pointer", display: "inline-block" }}>
+                          📤 Upload
+                          <input type="file" accept="image/png,image/svg+xml,image/webp,image/jpeg" style={{ display: "none" }} onChange={async (ev) => {
+                            const file = ev.target.files?.[0];
+                            if (!file) return;
+                            if (file.size > 300 * 1024) { setErroRede("Imagem deve ter no maximo 300KB"); return; }
+                            try {
+                              const ext = file.name.split(".").pop();
+                              const ref = storageRef(storage, `branding/redes-sociais/${formRede.rede}-${Date.now()}.${ext}`);
+                              await uploadBytes(ref, file);
+                              const url = await getDownloadURL(ref);
+                              setFormRede(prev => ({ ...prev, iconeUrl: url }));
+                            } catch (err) {
+                              setErroRede("Erro ao enviar imagem");
+                              console.error("[RedesSociais] Upload error:", err);
+                            }
+                          }} />
+                        </label>
+                        {formRede.iconeUrl && (
+                          <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: t.danger }} onClick={() => setFormRede(prev => ({ ...prev, iconeUrl: "" }))}>
+                            Remover
+                          </button>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 11, color: t.textDimmed, marginTop: 4 }}>PNG, SVG ou WebP. Max 300KB.</div>
+                    </div>
+                    <div>
+                      <label style={s.label}>Ou usar emoji como icone</label>
+                      <input style={{ ...s.input, padding: "8px 12px" }} value={formRede.emoji} onChange={ev => setFormRede(prev => ({ ...prev, emoji: ev.target.value }))} placeholder={redeOpcao.emoji} />
+                      <div style={{ fontSize: 11, color: t.textDimmed, marginTop: 4 }}>Se nao enviar imagem, o emoji sera usado.</div>
+                    </div>
+                    <div>
+                      <label style={s.label}>Ordem</label>
+                      <input style={{ ...s.input, padding: "8px 12px", width: 60, textAlign: "center" }} type="number" min="1" value={formRede.ordem} onChange={ev => setFormRede(prev => ({ ...prev, ordem: parseInt(ev.target.value) || 1 }))} />
+                    </div>
+                  </div>
+                  <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: t.textSecondary, marginBottom: 16, cursor: "pointer" }}>
+                    <input type="checkbox" checked={formRede.ativo} onChange={ev => setFormRede(prev => ({ ...prev, ativo: ev.target.checked }))} />
+                    Ativo (exibir no site e rodapé)
+                  </label>
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <button style={{ ...s.btnPrimary, fontSize: 13, padding: "8px 20px" }} onClick={salvarRede}>
+                      {editandoRedeIdx !== null ? "Salvar" : "Criar"}
+                    </button>
+                    {editandoRedeIdx !== null && (
+                      <button style={{ ...s.btnGhost, fontSize: 13, padding: "8px 20px" }} onClick={() => { setFormRede(formVazio); setEditandoRedeIdx(null); setErroRede(""); }}>
+                        Cancelar
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
         </div>
       )}

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { usePagination, PaginaControles } from "../../lib/hooks/usePagination.jsx";
 import { validarCNPJ } from "../../shared/formatters/utils";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
@@ -156,6 +157,12 @@ function TelaGerenciarEquipes() {
   const [form, setForm] = useState({ nome: "", sigla: "", cidade: "", estado: "", cnpj: "", contato: "", email: "", senha: "", organizadorId: "", status: "ativa" });
   const [erros, setErros] = useState({});
   const [filtro, setFiltro] = useState("");
+  const [filtroDebounced, setFiltroDebounced] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => setFiltroDebounced(filtro), 300);
+    return () => clearTimeout(timer);
+  }, [filtro]);
 
   const isAdmin = usuarioLogado?.tipo === "admin";
   const isOrganizador = usuarioLogado?.tipo === "organizador";
@@ -286,12 +293,26 @@ function TelaGerenciarEquipes() {
       ? equipes.filter(eq => eq.organizadorId === meuOrgId || !eq.organizadorId || !orgIds.has(eq.organizadorId))
       : equipes;
 
-  const equipesFiltradas = minhasEquipes.filter(eq => 
-    filtro === "" || 
-    eq.nome.toLowerCase().includes(filtro.toLowerCase()) ||
-    eq.sigla.toLowerCase().includes(filtro.toLowerCase()) ||
-    eq.cidade.toLowerCase().includes(filtro.toLowerCase())
-  );
+  const equipesFiltradas = useMemo(() => {
+    const termo = filtroDebounced.trim().toLowerCase();
+    if (!termo) return minhasEquipes;
+    return minhasEquipes.filter(eq =>
+      (eq.nome || "").toLowerCase().includes(termo) ||
+      (eq.sigla || "").toLowerCase().includes(termo) ||
+      (eq.cidade || "").toLowerCase().includes(termo)
+    );
+  }, [minhasEquipes, filtroDebounced]);
+
+  const { paginado: equipesPag, infoPage: equipesInfo } = usePagination(equipesFiltradas, 20);
+
+  // Mapa clube → quantidade de atletas (O(n) uma vez, O(1) por equipe)
+  const atletasPorClube = useMemo(() => {
+    const mapa = {};
+    (atletas || []).forEach(a => {
+      if (a.clube) mapa[a.clube] = (mapa[a.clube] || 0) + 1;
+    });
+    return mapa;
+  }, [atletas]);
 
   // Stats (baseado nas equipes do organizador)
   const equipesAtivas = minhasEquipes.filter(e => e.status === "ativa").length;
@@ -779,11 +800,10 @@ function TelaGerenciarEquipes() {
             )}
           </div>
         ) : (
-          <div style={{ maxHeight: 500, overflowY: "auto", border: `1px solid ${t.border}`, borderRadius: 8, padding: 4 }}>
+          <div>
             <div style={{ display: "grid", gap: 12 }}>
-            {equipesFiltradas.map((equipe) => {
-              const nEquipes = equipes.filter(e => e.id === equipe.id).length;
-              const nAtletas = atletas.filter(a => a.clube === equipe.nome).length;
+            {equipesPag.map((equipe) => {
+              const nAtletas = atletasPorClube[equipe.nome] || 0;
 
               return (
                 <div key={equipe.id} style={{
@@ -845,7 +865,7 @@ function TelaGerenciarEquipes() {
                       );
                     })()}
                     <div style={{ color: t.textDimmed, fontSize: 12, marginTop: 6 }}>
-                      {nEquipes} equipe(s) • {nAtletas} atleta(s)
+                      {nAtletas} atleta(s)
                     </div>
                   </div>
 
@@ -880,6 +900,7 @@ function TelaGerenciarEquipes() {
               );
             })}
             </div>
+            <PaginaControles {...equipesInfo} />
           </div>
         )}
       </div>

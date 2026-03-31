@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { todasAsProvas, nPernasRevezamento, isRevezamentoMisto } from "../../shared/athletics/provasDef";
 import { CATEGORIAS, getCategoria, getPermissividade, podeCategoriaSuperior } from "../../shared/constants/categorias";
 import { _getClubeAtleta, _getLocalEventoDisplay, validarCPF } from "../../shared/formatters/utils";
@@ -132,6 +132,7 @@ function TelaInscricaoAvulsa() {
     const [modo, setModo] = useState("existente");
   const [atletaId, setAtletaId] = useState("");
   const [buscaAtleta, setBuscaAtleta] = useState("");
+  const [buscaAtletaDebounced, setBuscaAtletaDebounced] = useState("");
   const [mostrarLista, setMostrarLista] = useState(false);
   const [provasSel, setProvasSel] = useState([]);
   const [novoAtleta, setNovoAtleta] = useState({ nome: "", dataNasc: "", anoNasc: "", sexo: "M", cbat: "", clube: "", equipeId: "", cpf: "", email: "" });
@@ -145,6 +146,12 @@ function TelaInscricaoAvulsa() {
 
   const isAtleta = usuarioLogado?.tipo === "atleta";
   const [modalNovoOrg, setModalNovoOrg] = useState(null); // { eventoId, orgId, orgNome } aguardando confirmação
+
+  // ── Debounce da busca de atleta (300ms) ──
+  useEffect(() => {
+    const timer = setTimeout(() => setBuscaAtletaDebounced(buscaAtleta), 300);
+    return () => clearTimeout(timer);
+  }, [buscaAtleta]);
 
   // ── Verificar CPF do novo atleta ──
   const verificarCpfNovo = (cpf) => {
@@ -386,42 +393,39 @@ function TelaInscricaoAvulsa() {
 
   // ── Etapa 5: atletas de organizadores autorizados para participação cruzada ──
   const orgsAutorizadas = eventoParaInscricao?.orgsAutorizadas || [];
-  const atletasCruzados = orgsAutorizadas.length > 0
+  const atletasCruzados = useMemo(() => orgsAutorizadas.length > 0
     ? atletas.filter(a => a.organizadorId && orgsAutorizadas.includes(a.organizadorId))
-    : [];
+    : [], [atletas, orgsAutorizadas.join(",")]);
   const atletasCruzadosIds = new Set(atletasCruzados.map(a => a.id));
 
-  const atletasFiltrados =
-    usuarioLogado?.tipo === "equipe"
-      ? atletas.filter((a) => a.equipeId === usuarioLogado.id)
-      : usuarioLogado?.tipo === "treinador"
-      ? atletas.filter((a) => a.equipeId === usuarioLogado.equipeId)
-      : usuarioLogado?.tipo === "atleta"
-      ? atletas.filter((a) => {
-          if (a.atletaUsuarioId && a.atletaUsuarioId === usuarioLogado.id) return true;
-          if (a.cpf && usuarioLogado.cpf)
-            return a.cpf.replace(/\D/g,"") === usuarioLogado.cpf.replace(/\D/g,"");
-          return false;
-        })
-      : (() => {
-          // admin, organizador, funcionário: seus atletas + cruzados autorizados
-          const orgId = eventoParaInscricao?.organizadorId;
-          const meuOrgId = usuarioLogado?.organizadorId || (usuarioLogado?.tipo === "organizador" ? usuarioLogado?.id : null);
-          const base = meuOrgId
-            ? atletas.filter(a => a.organizadorId === meuOrgId)
-            : atletas.filter(a => !!a.organizadorId); // sem organizadorId = não participa
-          // Unir com atletas cruzados (sem duplicar)
-          const baseIds = new Set(base.map(a => a.id));
-          const extras = atletasCruzados.filter(a => !baseIds.has(a.id));
-          return [...base, ...extras];
-        })();
+  const atletasFiltrados = useMemo(() => {
+    const tipo = usuarioLogado?.tipo;
+    if (tipo === "equipe") return atletas.filter(a => a.equipeId === usuarioLogado.id);
+    if (tipo === "treinador") return atletas.filter(a => a.equipeId === usuarioLogado.equipeId);
+    if (tipo === "atleta") {
+      return atletas.filter(a => {
+        if (a.atletaUsuarioId && a.atletaUsuarioId === usuarioLogado.id) return true;
+        if (a.cpf && usuarioLogado.cpf)
+          return a.cpf.replace(/\D/g,"") === usuarioLogado.cpf.replace(/\D/g,"");
+        return false;
+      });
+    }
+    // admin, organizador, funcionário: seus atletas + cruzados autorizados
+    const meuOrgId = usuarioLogado?.organizadorId || (tipo === "organizador" ? usuarioLogado?.id : null);
+    const base = meuOrgId
+      ? atletas.filter(a => a.organizadorId === meuOrgId)
+      : atletas.filter(a => !!a.organizadorId);
+    const baseIds = new Set(base.map(a => a.id));
+    const extras = atletasCruzados.filter(a => !baseIds.has(a.id));
+    return [...base, ...extras];
+  }, [atletas, usuarioLogado, atletasCruzados]);
 
-  // Filtro de busca por nome
-  const atletasBusca = buscaAtleta.trim()
-    ? atletasFiltrados.filter(a => 
-        a.nome.toLowerCase().includes(buscaAtleta.toLowerCase().trim())
-      )
-    : atletasFiltrados;
+  // Filtro de busca por nome (memoizado + debounce)
+  const atletasBusca = useMemo(() => {
+    const termo = buscaAtletaDebounced.trim().toLowerCase();
+    if (!termo) return atletasFiltrados;
+    return atletasFiltrados.filter(a => (a.nome || "").toLowerCase().includes(termo));
+  }, [buscaAtletaDebounced, atletasFiltrados]);
 
   const atletaSel = atletas.find((a) => a.id === atletaId);
   const anoComp = new Date(eventoParaInscricao.data).getFullYear();

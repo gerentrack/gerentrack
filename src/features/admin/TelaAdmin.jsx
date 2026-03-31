@@ -1,5 +1,5 @@
 import { usePagination, PaginaControles } from "../../lib/hooks/usePagination.jsx";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { _getLocalEventoDisplay, _getNascDisplay, validarCNPJ, emailJaCadastrado } from "../../shared/formatters/utils";
 import { StatCard } from "../ui/StatCard";
@@ -83,6 +83,15 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
   const pendEq  = (solicitacoesEquipe || []).filter(sol => sol.status === "pendente");
   const pendPort = (solicitacoesPortabilidade || []).filter(sol => sol.status === "pendente");
   const totalPend = pendOrg.length + pendEv.length + pendRec.length + pendEq.length + pendPort.length;
+
+  // Mapa equipeId → quantidade de atletas (O(n) uma vez, O(1) por equipe)
+  const atletasPorEquipeId = useMemo(() => {
+    const mapa = {};
+    (atletas || []).forEach(a => {
+      if (a.equipeId) mapa[a.equipeId] = (mapa[a.equipeId] || 0) + 1;
+    });
+    return mapa;
+  }, [atletas]);
 
   // ── Guard ──────────────────────────────────────────────────────────────────
   if (usuarioLogado?.tipo !== "admin") return (
@@ -325,9 +334,9 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                         <Td style={{ fontSize:11, color: t.textDimmed, whiteSpace:"nowrap" }}>
                           {new Date(h.data).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"})}
                         </Td>
-                        <Td><span style={{ color: t.accent, fontSize:12 }}>{h.nomeUsuario||"—"}</span></Td>
-                        <Td><strong style={{ color: t.textPrimary, fontSize:12 }}>{h.acao}</strong></Td>
-                        <Td style={{ fontSize:12, color: t.textMuted }}>{h.detalhe||"—"}</Td>
+                        <Td><span style={{ color: t.accent, fontSize:12 }}>{typeof h.nomeUsuario === "object" ? JSON.stringify(h.nomeUsuario) : h.nomeUsuario||"—"}</span></Td>
+                        <Td><strong style={{ color: t.textPrimary, fontSize:12 }}>{typeof h.acao === "object" ? JSON.stringify(h.acao) : h.acao}</strong></Td>
+                        <Td style={{ fontSize:12, color: t.textMuted }}>{typeof h.detalhe === "object" ? JSON.stringify(h.detalhe) : h.detalhe||"—"}</Td>
                       </tr>
                     ))}
                   </tbody>
@@ -678,7 +687,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                             <Td style={{ fontSize:11 }}>{eq.cnpj||"—"}</Td>
                             <Td style={{ fontSize:12 }}>{eq.cidade ? `${eq.cidade}/${eq.estado||""}` : "—"}</Td>
                             <Td>{org ? <span style={{ color: t.accent, fontSize:12 }}>{org.entidade||org.nome}</span> : <span style={{ color: t.textDimmed, fontSize:12 }}>Sem vínculo</span>}</Td>
-                            <Td><span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:800, color: t.accent }}>{atletas.filter(a => a.equipeId===eq.id).length}</span></Td>
+                            <Td><span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:800, color: t.accent }}>{atletasPorEquipeId[eq.id] || 0}</span></Td>
                           </tr>
                         );
                       })}
@@ -847,9 +856,9 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                             <Td style={{ fontSize:11, color: t.textDimmed, whiteSpace:"nowrap" }}>
                               {new Date(h.data).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"})}
                             </Td>
-                            <Td><span style={{ color: t.accent, fontSize:12 }}>{h.nomeUsuario||"—"}</span></Td>
-                            <Td><strong style={{ color: t.textPrimary, fontSize:12 }}>{h.acao}</strong></Td>
-                            <Td style={{ fontSize:12, color: t.textMuted }}>{h.detalhe||"—"}</Td>
+                            <Td><span style={{ color: t.accent, fontSize:12 }}>{typeof h.nomeUsuario === "object" ? JSON.stringify(h.nomeUsuario) : h.nomeUsuario||"—"}</span></Td>
+                            <Td><strong style={{ color: t.textPrimary, fontSize:12 }}>{typeof h.acao === "object" ? JSON.stringify(h.acao) : h.acao}</strong></Td>
+                            <Td style={{ fontSize:12, color: t.textMuted }}>{typeof h.detalhe === "object" ? JSON.stringify(h.detalhe) : h.detalhe||"—"}</Td>
                             <Td><span style={{ color: t.textDimmed, fontSize:10 }}>{h.modulo||"—"}</span></Td>
                           </tr>
                         ))}

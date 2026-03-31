@@ -21,19 +21,27 @@ import {
   writeBatch,
 } from "../firebase";
 import { sanitize } from "../lib/utils/sanitize";
+import { cacheGet, cacheSet } from "../lib/cacheDB";
 
 const COLLECTION = "atletas";
+const STORE = "cache_atletas";
 
 
 export function useAtletas() {
-  const [atletas, setAtletasLocal] = useState(() => {
-    try { const c = localStorage.getItem("cache_atletas"); return c ? JSON.parse(c) : []; }
-    catch { return []; }
-  });
+  const [atletas, setAtletasLocal] = useState([]);
   const [carregando, setCarregando] = useState(true);
 
   const atletasRef = useRef(atletas);
   atletasRef.current = atletas;
+
+  // ── Hidratar do IndexedDB (cache offline) ───────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    cacheGet(STORE).then((cached) => {
+      if (!cancelled && cached && cached.length > 0) setAtletasLocal(cached);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   // ── Escuta em tempo real toda a coleção ──────────────────────────────────
   useEffect(() => {
@@ -43,7 +51,7 @@ export function useAtletas() {
         const lista = [];
         snap.forEach((d) => lista.push({ id: d.id, ...d.data() }));
         setAtletasLocal(lista);
-        try { localStorage.setItem("cache_atletas", JSON.stringify(lista)); } catch {}
+        cacheSet(STORE, lista).catch(() => {});
         setCarregando(false);
       },
       (err) => {

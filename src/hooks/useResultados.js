@@ -23,6 +23,9 @@ import {
 } from "../firebase";
 import { sanitize } from "../lib/utils/sanitize";
 import { todasAsProvas } from "../shared/athletics/provasDef";
+import { cacheGet, cacheSet } from "../lib/cacheDB";
+
+const STORE = "cache_resultados";
 
 const COLLECTION = "resultados";
 
@@ -144,15 +147,21 @@ function calcularPosicoes(docResultados, provaId) {
  * @param {Function} opts.editarEvento — salva evento com snapshot (para snapshot de recordes)
  */
 export function useResultados({ eventos = [], recordes = [], editarEvento } = {}) {
-  const [resultados, setResultadosLocal] = useState(() => {
-    try { const c = localStorage.getItem("cache_resultados"); return c ? JSON.parse(c) : {}; }
-    catch { return {}; }
-  });
+  const [resultados, setResultadosLocal] = useState({});
   const [carregando, setCarregando] = useState(true);
 
   // Ref para acesso síncrono no callback sem re-closure
   const resultadosRef = useRef(resultados);
   resultadosRef.current = resultados;
+
+  // ── Hidratar do IndexedDB (cache offline) ───────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    cacheGet(STORE).then((cached) => {
+      if (!cancelled && cached && Object.keys(cached).length > 0) setResultadosLocal(cached);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   // ── Escuta em tempo real toda a coleção ──────────────────────────────────
   useEffect(() => {
@@ -164,7 +173,7 @@ export function useResultados({ eventos = [], recordes = [], editarEvento } = {}
           dados[d.id] = d.data();
         });
         setResultadosLocal(dados);
-        try { localStorage.setItem("cache_resultados", JSON.stringify(dados)); } catch {}
+        cacheSet(STORE, dados).catch(() => {});
         setCarregando(false);
       },
       (err) => {

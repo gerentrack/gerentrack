@@ -382,7 +382,63 @@ Cobrada por atleta inscrito em cada competicao:
 
 ---
 
-## 7. FLUXO DE CONTRATACAO
+## 7. INFRAESTRUTURA E ESCALABILIDADE
+
+O GERENTRACK opera sobre infraestrutura cloud de classe mundial, projetada para escalar automaticamente conforme a demanda — sem servidores dedicados, sem limites artificiais e sem degradacao de desempenho com multiplas competicoes simultaneas.
+
+### 7.1 Arquitetura Serverless e Auto-Escalavel
+
+| Camada | Tecnologia | Capacidade |
+|---|---|---|
+| **Banco de dados** | Google Cloud Firestore | Escala automatica, ate 10.000 escritas/segundo por banco, sem configuracao manual |
+| **Frontend (CDN)** | Vercel Edge Network | Distribuicao global em 70+ pontos de presenca, sem limite de requisicoes |
+| **Autenticacao** | Firebase Authentication | Infraestrutura Google, milhoes de autenticacoes simultaneas |
+| **Armazenamento** | Firebase Storage (Google Cloud) | Escalavel sob demanda, sem limite de arquivos |
+
+### 7.2 Por que suporta multiplas competicoes simultaneas
+
+**Isolamento de dados** — Cada competicao e um documento independente no banco de dados. Cem competicoes simultaneas nao competem por recurso, nao geram fila e nao impactam umas as outras. Cada organizador acessa apenas seus dados.
+
+**Processamento no dispositivo** — A plataforma e um PWA (Progressive Web App) que executa a logica de negocio diretamente no navegador do usuario: seriacao, calculo de pontos, deteccao de recordes, formatacao de resultados. O servidor e utilizado apenas para persistencia e sincronizacao, reduzindo drasticamente a carga na nuvem.
+
+**Persistencia dual** — Os dados sao armazenados simultaneamente no dispositivo (localStorage) e na nuvem (Firestore). Leituras sao instantaneas (locais); apenas sincronizacoes geram trafego de rede. Isso permite funcionamento completo mesmo offline.
+
+**Sem servidor dedicado** — Nao existe um servidor que possa "cair" ou "sobrecarregar". A infraestrutura e gerenciada pelo Google Cloud e pela Vercel, com escalabilidade automatica e redundancia global.
+
+### 7.3 Garantias dos Provedores de Infraestrutura
+
+| Provedor | Garantia | Referencia |
+|---|---|---|
+| **Google Cloud Firestore** | SLA 99,999% de disponibilidade (multi-regiao) | cloud.google.com/firestore/sla |
+| **Google Cloud Firestore** | Escala automatica ate 1 milhao de conexoes simultaneas | cloud.google.com/firestore/quotas |
+| **Firebase Authentication** | SLA 99,95% de disponibilidade | firebase.google.com/terms |
+| **Firebase Storage** | SLA 99,95%, armazenamento ilimitado | firebase.google.com/terms |
+| **Vercel** | SLA 99,99% de uptime (plano Pro) | vercel.com/docs/agreements/sla |
+| **Vercel Edge Network** | 70+ pontos de presenca globais, latencia < 50ms | vercel.com/docs/edge-network |
+
+### 7.4 Cenarios de Capacidade
+
+| Cenario | Competicoes Simultaneas | Usuarios Simultaneos | Impacto no Desempenho |
+|---|---|---|---|
+| Federacao estadual (dia de competicao) | 3 a 5 | 50 a 100 | Nenhum |
+| Confederacao nacional (calendario cheio) | 10 a 20 | 200 a 500 | Nenhum |
+| Pico extremo (finais nacionais) | 20+ | 1.000+ | Nenhum — escalabilidade automatica |
+
+### 7.5 Seguranca da Informacao
+
+| Item | Descricao |
+|---|---|
+| **Criptografia em transito** | HTTPS/TLS em todas as conexoes (certificado automatico) |
+| **Autenticacao** | Firebase Authentication com criptografia de credenciais |
+| **Prevencao XSS** | Toda entrada de usuario sanitizada via DOMPurify |
+| **Auditoria** | Registro completo de acoes com usuario, data/hora e modulo |
+| **Backup** | Automatico, com retencao de 30 dias e recuperacao sob demanda |
+| **LGPD** | Conformidade com Lei 13.709/2018 (consentimento, portabilidade, exclusao) |
+| **Isolamento de dados** | Cada organizacao acessa exclusivamente seus dados |
+
+---
+
+## 8. FLUXO DE CONTRATACAO
 
 1. **Demonstracao** — Apresentacao online da plataforma (30-60 min, sem custo)
 2. **Proposta** — Envio de proposta personalizada conforme o perfil da federacao
@@ -392,7 +448,7 @@ Cobrada por atleta inscrito em cada competicao:
 
 ---
 
-## 8. CONTATO
+## 9. CONTATO
 
 **GERENTRACK — Plataforma de Competicoes de Atletismo**
 
