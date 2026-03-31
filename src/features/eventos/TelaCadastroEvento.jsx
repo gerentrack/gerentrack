@@ -1247,7 +1247,8 @@ function TelaCadastroEvento() {
             setCropModal(null);
             try {
               const id = eventoAtualId || form._uploadId || (form._uploadId = Date.now().toString());
-              const path = `logos/${id}/${campo}.png`;
+              const ext = blob.type === "image/webp" ? "webp" : "png";
+              const path = `logos/${id}/${campo}.${ext}`;
               const ref = storageRef(storage, path);
               await uploadBytes(ref, blob);
               const url = await getDownloadURL(ref);

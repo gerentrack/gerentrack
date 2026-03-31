@@ -198,7 +198,7 @@ function RegulamentoViewer({ eventoAtual, tema: _t }) {
             <span style={{ fontSize:14, color:_t.textDimmed }}>Carregando regulamento…</span>
           </div>
         )}
-        <iframe src={url} onLoad={() => setStatus("ok")} style={{ position:"relative", width:"100%", height:"100%", border:"none", zIndex:1, background:"transparent" }} title="Regulamento" />
+        <iframe src={url} loading="lazy" onLoad={() => setStatus("ok")} style={{ position:"relative", width:"100%", height:"100%", border:"none", zIndex:1, background:"transparent" }} title="Regulamento" />
       </div>
     </div>
   );

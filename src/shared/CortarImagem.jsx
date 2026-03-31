@@ -120,12 +120,23 @@ export default function CortarImagem({ imageSrc, aspecto, onConfirmar, onCancela
     const sw = (crop.w / 100) * img.naturalWidth;
     const sh = (crop.h / 100) * img.naturalHeight;
 
-    canvas.width = Math.round(sw);
-    canvas.height = Math.round(sh);
+    const MAX = 800;
+    let dw = Math.round(sw);
+    let dh = Math.round(sh);
+    if (dw > MAX || dh > MAX) {
+      const escala = MAX / Math.max(dw, dh);
+      dw = Math.round(dw * escala);
+      dh = Math.round(dh * escala);
+    }
+    canvas.width = dw;
+    canvas.height = dh;
     const ctx = canvas.getContext("2d");
-    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, dw, dh);
 
-    canvas.toBlob((blob) => { if (blob) onConfirmar(blob); }, "image/png", 0.92);
+    // WebP com fallback PNG (para transparência pós-remoção de fundo)
+    const formato = fundoRemovido ? "image/png" : "image/webp";
+    const qualidade = fundoRemovido ? 0.92 : 0.82;
+    canvas.toBlob((blob) => { if (blob) onConfirmar(blob); }, formato, qualidade);
   }, [crop, onConfirmar]);
 
   const handles = [
