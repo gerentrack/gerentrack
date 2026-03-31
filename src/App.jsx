@@ -1784,17 +1784,66 @@ function App() {
         {tela === "organizador-perfil" && <TelaPerfilOrganizador {...props} />}
       </main>
       <footer style={styles.footer}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
-          <span style={{ opacity: 0.4 }}>Desenvolvido por: GERENTRACK</span>
-          <span style={{ opacity: 0.3 }}>·</span>
-          <span style={{ opacity: 0.6, cursor: "pointer", textDecoration: "underline" }} onClick={() => setTela("faq")}>FAQ</span>
-          {(siteBranding.redesSociais || []).filter(r => r.ativo).sort((a, b) => (a.ordem || 0) - (b.ordem || 0)).map((rede, idx) => (
-            <a key={idx} href={rede.url} target="_blank" rel="noopener noreferrer" style={{ opacity: 0.7, textDecoration: "none", fontSize: 16, cursor: "pointer", display: "inline-flex", alignItems: "center" }} title={rede.label}>
-              {rede.iconeUrl
-                ? <img src={rede.iconeUrl} alt={rede.label} style={{ width: 18, height: 18, objectFit: "contain" }} />
-                : rede.emoji}
-            </a>
-          ))}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 48, textAlign: "left" }}>
+          {/* Coluna 1 — Marca */}
+          <div>
+            {siteBranding.logoFooter ? (
+              <div style={{ marginBottom: 16, textAlign: "center" }}>
+                <img src={siteBranding.logoFooter} alt={gtNome} style={{ maxHeight: 120, objectFit: "contain" }} />
+              </div>
+            ) : (
+              <>
+                <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
+                  {gtIcon && <img src={gtIcon} alt="" style={{ width: 44, height: 44, objectFit: "contain" }} />}
+                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 24, color: "#fff", letterSpacing: 2 }}>{gtNome}</span>
+                </div>
+                <div style={{ fontSize: 15, color: "#777", lineHeight: 1.7 }}>{gtSlogan}</div>
+              </>
+            )}
+            <div style={{ fontSize: 13, color: "#555", marginTop: 14, textAlign: "center" }}>© {new Date().getFullYear()} {gtNome}. Todos os direitos reservados.</div>
+          </div>
+
+          {/* Coluna 2 — Links */}
+          <div>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 16, color: "#aaa", letterSpacing: 2, marginBottom: 16, textTransform: "uppercase" }}>Links</div>
+            {[
+              { label: "FAQ", tela: "faq" },
+              { label: "Recordes", tela: "recordes" },
+              { label: "Ranking", tela: "ranking" },
+            ].map(link => (
+              <div key={link.tela} style={{ marginBottom: 12 }}>
+                <span onClick={() => setTela(link.tela)} style={{ color: "#888", fontSize: 15, cursor: "pointer", textDecoration: "none" }}
+                  onMouseEnter={ev => ev.target.style.color = "#1976D2"}
+                  onMouseLeave={ev => ev.target.style.color = "#888"}>
+                  {link.label}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Coluna 3 — Contato + Redes */}
+          <div>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 16, color: "#aaa", letterSpacing: 2, marginBottom: 16, textTransform: "uppercase" }}>Contato</div>
+            {(siteBranding.redesSociais || []).filter(r => r.ativo && (r.rede === "email" || r.rede === "whatsapp" || r.rede === "site")).sort((a, b) => (a.ordem || 0) - (b.ordem || 0)).map((rede, idx) => (
+              <div key={idx} style={{ marginBottom: 12 }}>
+                <a href={rede.url} target="_blank" rel="noopener noreferrer" style={{ color: "#888", fontSize: 15, textDecoration: "none", display: "flex", alignItems: "center", gap: 10 }}
+                  onMouseEnter={ev => ev.currentTarget.style.color = "#1976D2"}
+                  onMouseLeave={ev => ev.currentTarget.style.color = "#888"}>
+                  {rede.iconeUrl ? <img src={rede.iconeUrl} alt="" style={{ width: 20, height: 20, objectFit: "contain" }} /> : <span style={{ fontSize: 18 }}>{rede.emoji}</span>}
+                  {rede.label}
+                </a>
+              </div>
+            ))}
+            <div style={{ display: "flex", gap: 16, marginTop: 18 }}>
+              {(siteBranding.redesSociais || []).filter(r => r.ativo && r.rede !== "email" && r.rede !== "whatsapp" && r.rede !== "site").sort((a, b) => (a.ordem || 0) - (b.ordem || 0)).map((rede, idx) => (
+                <a key={idx} href={rede.url} target="_blank" rel="noopener noreferrer" title={rede.label} style={{ opacity: 0.6, textDecoration: "none", display: "inline-flex", alignItems: "center", transition: "opacity 0.2s" }}
+                  onMouseEnter={ev => ev.currentTarget.style.opacity = "1"}
+                  onMouseLeave={ev => ev.currentTarget.style.opacity = "0.6"}>
+                  {rede.iconeUrl ? <img src={rede.iconeUrl} alt={rede.label} style={{ width: 30, height: 30, objectFit: "contain" }} /> : <span style={{ fontSize: 28 }}>{rede.emoji}</span>}
+                </a>
+              ))}
+            </div>
+          </div>
         </div>
       </footer>
     </div>
@@ -2118,7 +2167,7 @@ const styles = {
   btnIconSm: { background: "#141720", border: "1px solid #252837", color: "#888", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
   btnIconSmDanger: { background: "#1a0a0a", border: "1px solid #3a1a1a", color: "#ff6b6b", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
 
-  footer: { textAlign: "center", padding: "20px", borderTop: "1px solid #1E2130", fontSize: 12, color: "#333" },
+  footer: { padding: "60px 48px 48px", borderTop: "1px solid #1E2130", fontSize: 12, color: "#333" },
 };
 
 

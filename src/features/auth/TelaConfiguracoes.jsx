@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import DOMPurify from "dompurify";
 import { validarCPF, validarCNPJ } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
-import { storage, storageRef, uploadBytes, getDownloadURL } from "../../firebase";
+import { storage, storageRef, uploadBytes, getDownloadURL, deleteObject } from "../../firebase";
 import CortarImagem from "../../shared/CortarImagem";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
@@ -170,6 +170,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
   const [perfilUploading, setPerfilUploading] = useState(false);
   const [perfilSalvo, setPerfilSalvo] = useState(false);
   const [bannerParaCortar, setBannerParaCortar] = useState(null);
+  const [logoFooterParaCortar, setLogoFooterParaCortar] = useState(null);
 
   const uploadImagemOrg = async (file, tipo) => {
     if (!meuOrgPerfil || !editarOrganizadorAdmin) return;
@@ -938,6 +939,39 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
               </div>
             </div>
 
+            {/* Logo do Rodapé */}
+            <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, padding:12, marginBottom:16 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
+                {siteBranding?.logoFooter
+                  ? <img src={siteBranding.logoFooter} alt="" style={{ height:36, objectFit:"contain", borderRadius:5, background:t.bgHover }} />
+                  : <div style={{ width:36, height:36, background:t.bgHover, borderRadius:5, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, color:t.textDisabled }}>—</div>}
+                <div>
+                  <div style={{ fontWeight:700, fontSize:12, color:t.textPrimary }}>Logo do Rodapé</div>
+                  <div style={{ fontSize:10, color:t.textDisabled }}>Exibida no footer do site · com corte</div>
+                </div>
+              </div>
+              <label style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 10px",
+                background:t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:5, cursor:"pointer", fontSize:11, color:t.accent }}>
+                📁 {siteBranding?.logoFooter ? "Trocar" : "Enviar"}
+                <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" style={{ display:"none" }}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0]; if (!f) return;
+                    if (f.size > 5*1024*1024) { setErro("Máx. 5MB para imagem de entrada."); return; }
+                    const reader = new FileReader();
+                    reader.onload = (ev) => setLogoFooterParaCortar(ev.target.result);
+                    reader.readAsDataURL(f);
+                    e.target.value = "";
+                  }} />
+              </label>
+              {siteBranding?.logoFooter && (
+                <button style={{ fontSize:10, color:t.textMuted, background:"transparent", border:"none", cursor:"pointer", marginLeft:6 }}
+                  onClick={async () => {
+                    try { await deleteObject(storageRef(storage, siteBranding.logoFooter)); } catch {}
+                    setSiteBranding(prev => ({ ...prev, logoFooter: "" }));
+                  }}>🗑 Remover</button>
+              )}
+            </div>
+
             {/* Nome + Slogan */}
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:14 }}>
               <div>
@@ -1404,7 +1438,11 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
             };
 
             const editarRede = (idx) => { setFormRede(redesSociais[idx]); setEditandoRedeIdx(idx); setErroRede(""); };
-            const excluirRede = (idx) => {
+            const excluirRede = async (idx) => {
+              const rede = redesSociais[idx];
+              if (rede?.iconeUrl) {
+                try { await deleteObject(storageRef(storage, rede.iconeUrl)); } catch {}
+              }
               setSiteBranding(prev => ({ ...prev, redesSociais: redesSociais.filter((_, i) => i !== idx) }));
               if (editandoRedeIdx === idx) { setFormRede(formVazio); setEditandoRedeIdx(null); }
             };
@@ -1482,9 +1520,15 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                             if (!file) return;
                             if (file.size > 300 * 1024) { setErroRede("Imagem deve ter no maximo 300KB"); return; }
                             try {
+                              // Excluir ícone anterior do Storage se existir
+                              if (formRede.iconeUrl) {
+                                try { await deleteObject(storageRef(storage, formRede.iconeUrl)); } catch {}
+                              }
                               const ext = file.name.split(".").pop();
+                              const buffer = await file.arrayBuffer();
+                              const blob = new Blob([buffer], { type: file.type });
                               const ref = storageRef(storage, `branding/redes-sociais/${formRede.rede}-${Date.now()}.${ext}`);
-                              await uploadBytes(ref, file);
+                              await uploadBytes(ref, blob);
                               const url = await getDownloadURL(ref);
                               setFormRede(prev => ({ ...prev, iconeUrl: url }));
                             } catch (err) {
@@ -1494,7 +1538,10 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                           }} />
                         </label>
                         {formRede.iconeUrl && (
-                          <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: t.danger }} onClick={() => setFormRede(prev => ({ ...prev, iconeUrl: "" }))}>
+                          <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: t.danger }} onClick={async () => {
+                            try { await deleteObject(storageRef(storage, formRede.iconeUrl)); } catch {}
+                            setFormRede(prev => ({ ...prev, iconeUrl: "" }));
+                          }}>
                             Remover
                           </button>
                         )}
@@ -1774,6 +1821,28 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(ts => `   • ${ts}`).joi
           imageSrc={bannerParaCortar}
           onConfirmar={(blob) => { setBannerParaCortar(null); uploadImagemOrg(blob, "banner"); }}
           onCancelar={() => setBannerParaCortar(null)}
+        />
+      )}
+
+      {logoFooterParaCortar && (
+        <CortarImagem
+          imageSrc={logoFooterParaCortar}
+          onConfirmar={async (blob) => {
+            setLogoFooterParaCortar(null);
+            try {
+              if (siteBranding?.logoFooter) {
+                try { await deleteObject(storageRef(storage, siteBranding.logoFooter)); } catch {}
+              }
+              const ref = storageRef(storage, `branding/logo-footer-${Date.now()}.webp`);
+              await uploadBytes(ref, blob);
+              const url = await getDownloadURL(ref);
+              setSiteBranding(prev => ({ ...prev, logoFooter: url }));
+            } catch (err) {
+              setErro("Erro ao enviar logo do rodapé.");
+              console.error("[LogoFooter] Upload error:", err);
+            }
+          }}
+          onCancelar={() => setLogoFooterParaCortar(null)}
         />
       )}
     </div>
