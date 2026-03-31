@@ -3,7 +3,7 @@ import { todasAsProvas, getComposicaoCombinada } from "../../shared/athletics/pr
 import { CATEGORIAS, ESTADOS_BR, getCategoria } from "../../shared/constants/categorias";
 import { calcularEtapa, getEtapaLabel } from "../../shared/constants/etapas";
 import FormField from "../ui/FormField";
-import { storage, storageRef, uploadBytes, getDownloadURL } from "../../firebase";
+import { storage, storageRef, uploadBytes, getDownloadURL, deleteObject } from "../../firebase";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import CortarImagem from "../../shared/CortarImagem";
@@ -1217,7 +1217,7 @@ function TelaCadastroEvento() {
                             const ref = storageRef(storage, path);
                             await uploadBytes(ref, file);
                             const url = await getDownloadURL(ref);
-                            setForm(prev => ({ ...prev, regulamentoUrl: url, regulamentoNome: file.name }));
+                            setForm(prev => ({ ...prev, regulamentoUrl: url, regulamentoNome: file.name, regulamentoPath: path }));
                           } catch { alert("Erro ao enviar PDF. Tente novamente."); }
                           finally { setUploadandoRegulamento(false); e.target.value = ""; }
                         }}
@@ -1230,7 +1230,14 @@ function TelaCadastroEvento() {
                           {form.regulamentoNome || "regulamento.pdf"}
                         </a>
                         <button style={{ fontSize:11, color: t.danger, background:"transparent", border:`1px solid ${t.danger}44`, borderRadius:4, padding:"4px 10px", cursor:"pointer" }}
-                          onClick={() => setForm(prev => ({ ...prev, regulamentoUrl: "", regulamentoNome: "" }))}>✕ Remover</button>
+                          onClick={async () => {
+                            if (form.regulamentoPath) {
+                              try {
+                                await deleteObject(storageRef(storage, form.regulamentoPath));
+                              } catch {}
+                            }
+                            setForm(prev => ({ ...prev, regulamentoUrl: "", regulamentoNome: "", regulamentoPath: "" }));
+                          }}>✕ Remover</button>
                       </>
                     )}
                   </div>

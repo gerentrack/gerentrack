@@ -59,6 +59,7 @@ export const ROUTES = {
   exportLynx:              "/competicao/:slug/finishlynx",
   gerenciarMembros:        "/competicao/:slug/membros",
   prepararOffline:         "/competicao/:slug/offline",
+  regulamento:             "/competicao/:slug/regulamento",
 
   // Organizador (catch-all — deve ser a última rota)
   organizadorPerfil:       "/:slug",
@@ -106,6 +107,7 @@ export const TELA_TO_PATH = {
   "export-lynx":                ROUTES.exportLynx,
   "gerenciar-membros":          ROUTES.gerenciarMembros,
   "preparar-offline":           ROUTES.prepararOffline,
+  "regulamento":                ROUTES.regulamento,
   "organizador-perfil":         ROUTES.organizadorPerfil,
 };
 

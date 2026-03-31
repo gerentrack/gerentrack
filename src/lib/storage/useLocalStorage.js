@@ -92,6 +92,7 @@ export function useLocalStorage(key, initialValue) {
       if (firestoreLoaded.current && auth.currentUser) {
         if (debounceTimer.current) clearTimeout(debounceTimer.current);
         debounceTimer.current = setTimeout(() => {
+          if (!auth.currentUser) return;
           const docRef = doc(db, "state", key);
           setDoc(docRef, { value: sanitizeForFirestore(ref.current) }).catch(
             (err) => console.error(`[useLocalStorage] Firestore write error "${key}":`, err)

@@ -1694,6 +1694,25 @@ function App() {
         {tela === "novo-evento"       && <TelaCadastroEvento key={eventoAtualId || "novo"} />}
         {tela === "evento-detalhe"    && <TelaEventoDetalhe {...props} />}
         {tela === "preparar-offline"  && <PrepararOffline {...props} />}
+        {tela === "regulamento"       && (() => {
+          const url = eventoAtual?.regulamentoUrl;
+          const _t = temaClaro ? temaLight : temaDark;
+          if (!url) return <div style={{ textAlign:"center", padding:60, color:"#888" }}>Nenhum regulamento disponível para esta competição.</div>;
+          return (
+            <div style={{ display:"flex", flexDirection:"column", height:"calc(100vh - 80px)", padding:"16px 24px 0" }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
+                <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:20, fontWeight:700, color:_t.textPrimary }}>
+                  📄 {eventoAtual.regulamentoNome || "Regulamento"}
+                </div>
+                <a href={url} download={eventoAtual.regulamentoNome || "regulamento.pdf"}
+                  style={{ background:`linear-gradient(135deg, ${_t.accent}, ${_t.accentDark})`, color:"#fff", border:"none", padding:"8px 20px", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:700, fontFamily:"'Barlow Condensed', sans-serif", letterSpacing:1, textDecoration:"none" }}>
+                  ⬇ Download
+                </a>
+              </div>
+              <iframe src={url} style={{ flex:1, border:`1px solid ${_t.border}`, borderRadius:10, background:_t.bgCard }} title="Regulamento" />
+            </div>
+          );
+        })()}
 
         {/* Bloqueio global: telas de edição bloqueadas se competição finalizada */}
         {eventoAtual?.competicaoFinalizada && ["inscricao-avulsa","digitar-resultados","inscricao-revezamento","config-pontuacao-equipes","numeracao-peito","secretaria"].includes(tela) ? (

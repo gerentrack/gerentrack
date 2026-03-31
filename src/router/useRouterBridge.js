@@ -84,6 +84,7 @@ export function resolverPathParaTela(pathname, eventos = [], organizadores = [])
     if (sub === "finishlynx") return { tela: "export-lynx", eventoId };
     if (sub === "membros") return { tela: "gerenciar-membros", eventoId };
     if (sub === "offline") return { tela: "preparar-offline", eventoId };
+    if (sub === "regulamento") return { tela: "regulamento", eventoId };
 
     // Sub-rota desconhecida → detalhe do evento
     return { tela: "evento-detalhe", eventoId };
@@ -121,6 +122,7 @@ function buildUrlForTela(tela, context = {}) {
     "export-lynx": "/finishlynx",
     "gerenciar-membros": "/membros",
     "preparar-offline": "/offline",
+    "regulamento": "/regulamento",
   };
 
   if (tela in telaCompRoutes && eventoSlug) {
