@@ -81,7 +81,6 @@ export default function TelaRanking() {
     if (filtroProva !== "todas") lista = lista.filter(r => r.provaNome === filtroProva);
     if (filtroUfAtleta !== "todos") lista = lista.filter(r => r.atletaUf?.toUpperCase() === filtroUfAtleta);
     if (filtroUfEvento !== "todos") lista = lista.filter(r => r.eventoUf?.toUpperCase() === filtroUfEvento);
-    if (filtroClube !== "todos") lista = lista.filter(r => r.atletaClube === filtroClube);
 
     // Melhor marca por atleta (por prova — agrupa por provaNome)
     const melhor = {};
@@ -101,6 +100,18 @@ export default function TelaRanking() {
       const isTempo = a.unidade === "s";
       return isTempo ? a.marcaNum - b.marcaNum : b.marcaNum - a.marcaNum;
     });
+
+    // Atribuir posição real (por prova) antes de filtrar por clube
+    let provaAtual = null;
+    let posAtual = 0;
+    lista = lista.map(r => {
+      if (r.provaNome !== provaAtual) { provaAtual = r.provaNome; posAtual = 0; }
+      posAtual++;
+      return { ...r, posReal: posAtual };
+    });
+
+    // Clube é filtro visual — preserva posição real do ranking
+    if (filtroClube !== "todos") lista = lista.filter(r => r.atletaClube === filtroClube);
 
     return lista;
   }, [ranking, filtroProva, filtroAno, filtroCat, filtroSexo, filtroUfAtleta, filtroUfEvento, filtroClube]);
@@ -556,7 +567,7 @@ export default function TelaRanking() {
                   </thead>
                   <tbody>
                     {paginaAtual.map((r, idx) => {
-                      const pos = pagina * POR_PAG + idx + 1;
+                      const pos = r.posReal;
                       const bgPodio = pos === 1 ? "#FFD70018" : pos === 2 ? "#C0C0C018" : pos === 3 ? "#CD7F3218" : null;
                       const corPos = pos === 1 ? "#FFD700" : pos === 2 ? "#C0C0C0" : pos === 3 ? "#CD7F32" : t.accent;
                       const medalha = pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : null;
@@ -609,7 +620,7 @@ export default function TelaRanking() {
                         const catNome = CATEGORIAS.find(c => c.id === filtroCat)?.nome || filtroCat;
                         const sexoLabel = filtroSexo === "M" ? "Masculino" : "Feminino";
                         const linhas = rankingFiltrado.map((r, idx) => {
-                          const pos = idx + 1;
+                          const pos = r.posReal;
                           const medal = pos <= 3 ? ["🥇","🥈","🥉"][pos-1] : "";
                           return `<tr style="border-bottom:1px solid #ddd;${pos <= 3 ? "background:#fffbe6" : idx % 2 === 0 ? "" : "background:#f8f8f8"}">
                             <td style="padding:5px 8px;text-align:center;font-weight:700;font-size:12px">${medal} ${pos}º</td>
