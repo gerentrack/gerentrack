@@ -1839,7 +1839,7 @@ function App() {
                 <a key={idx} href={rede.url} target="_blank" rel="noopener noreferrer" title={rede.label} style={{ opacity: 0.6, textDecoration: "none", display: "inline-flex", alignItems: "center", transition: "opacity 0.2s" }}
                   onMouseEnter={ev => ev.currentTarget.style.opacity = "1"}
                   onMouseLeave={ev => ev.currentTarget.style.opacity = "0.6"}>
-                  {rede.iconeUrl ? <img src={rede.iconeUrl} alt={rede.label} style={{ width: 30, height: 30, objectFit: "contain" }} /> : <span style={{ fontSize: 28 }}>{rede.emoji}</span>}
+                  {rede.iconeUrl ? <img src={rede.iconeUrl} alt={rede.label} style={{ width: 48, height: 48, objectFit: "contain" }} /> : <span style={{ fontSize: 40 }}>{rede.emoji}</span>}
                 </a>
               ))}
             </div>
