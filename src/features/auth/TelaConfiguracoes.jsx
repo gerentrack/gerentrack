@@ -251,20 +251,12 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
     if (formSenha.nova !== formSenha.confirmar)     { setErro("As senhas não coincidem."); return; }
     if (formSenha.nova === formSenha.atual)         { setErro("A nova senha deve ser diferente da atual."); return; }
 
-    // Admin: validar senha atual via Firebase Auth antes de trocar
-    if (isAdmin) {
-      try {
-        const { signInWithEmailAndPassword } = await import("../../firebase");
-        const { auth } = await import("../../firebase");
-        await signInWithEmailAndPassword(auth, usuarioLogado.email, formSenha.atual);
-      } catch (_) {
-        setErro("Senha atual incorreta."); return;
-      }
-    } else {
-      // Demais usuários: validar contra senha local
-      if (meuRegistro?.senha && formSenha.atual !== meuRegistro.senha) {
-        setErro("Senha atual incorreta."); return;
-      }
+    // Validar senha atual via Firebase Auth para todos os perfis
+    try {
+      const { signInWithEmailAndPassword, auth } = await import("../../firebase");
+      await signInWithEmailAndPassword(auth, usuarioLogado.email, formSenha.atual);
+    } catch (_) {
+      setErro("Senha atual incorreta."); return;
     }
     await atualizarSenha(usuarioLogado.tipo, usuarioLogado.id, formSenha.nova);
     if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Alterou senha", "",

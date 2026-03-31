@@ -9,6 +9,7 @@ import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import { useEvento } from "../../contexts/EventoContext";
 import { useApp } from "../../contexts/AppContext";
+import { secondaryAuth, createUserWithEmailAndPassword, signOut as firebaseSignOut } from "../../firebase";
 function getStyles(t) {
   return {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
@@ -215,11 +216,23 @@ function TelaGerenciarUsuarios() {
     return e;
   };
 
-  const handleSalvar = () => {
+  const handleSalvar = async () => {
     const e = validar();
     if (Object.keys(e).length) { setErros(e); return; }
 
     if (modo === "novo") {
+      // Criar conta Auth para novo usuário (se não reutilizando perfil existente)
+      if (!perfilExistente && form.email && form.senha) {
+        try {
+          await createUserWithEmailAndPassword(secondaryAuth, form.email.trim(), form.senha);
+          await firebaseSignOut(secondaryAuth).catch(() => {});
+        } catch (authErr) {
+          if (authErr.code !== "auth/email-already-in-use") {
+            alert("Erro ao criar conta de login: " + authErr.message); return;
+          }
+        }
+      }
+
       // Se há perfil existente: reutilizar ID, apenas adicionar novo vínculo/cargo. Sem campo senha.
       const baseUsuario = perfilExistente
         ? {
@@ -232,7 +245,6 @@ function TelaGerenciarUsuarios() {
         : {
             nome: form.nome,
             email: form.email,
-            // ⚠️ senha não é persistida — fica exclusivamente no Firebase Auth
             id: genId(),
             status: "aprovado",
             dataCadastro: new Date().toISOString(),

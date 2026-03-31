@@ -5,6 +5,7 @@ import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvento } from "../../contexts/EventoContext";
 import { useApp } from "../../contexts/AppContext";
+import { secondaryAuth, createUserWithEmailAndPassword, signOut as firebaseSignOut } from "../../firebase";
 
 const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
 
@@ -183,7 +184,7 @@ function TelaGerenciarEquipes() {
     return e;
   };
 
-  const handleSalvar = () => {
+  const handleSalvar = async () => {
     const e = validar();
     if (Object.keys(e).length) { setErros(e); return; }
 
@@ -191,8 +192,18 @@ function TelaGerenciarEquipes() {
     const orgId = isAdmin ? form.organizadorId : meuOrgId;
 
     if (modo === "novo") {
+      // Criar conta no Firebase Auth via secondaryAuth
+      try {
+        await createUserWithEmailAndPassword(secondaryAuth, form.email.trim(), form.senha);
+        await firebaseSignOut(secondaryAuth).catch(() => {});
+      } catch (authErr) {
+        if (authErr.code !== "auth/email-already-in-use") {
+          alert("Erro ao criar conta de login: " + authErr.message); return;
+        }
+      }
       const novaEquipe = {
         ...form,
+        senha: undefined,
         organizadorId: orgId,
         id: genId(),
         status: "ativa",

@@ -233,23 +233,40 @@ function TelaTreinadores({ abaInicial } = {}) {
     }
   };
 
-  const handleLoginExistente = () => {
+  const handleLoginExistente = async () => {
     setLoginErro("");
     if (!loginForm.email || !loginForm.senha) { setLoginErro("Preencha e-mail e senha."); return; }
     const identNorm = loginForm.email.trim().toLowerCase();
     const cpfLimpo = form.cpf.replace(/\D/g, '');
+
+    // Verificar se existe registro local com CPF + email
     const buscar = (arr) => arr.find(i =>
       i.cpf && i.cpf.replace(/\D/g, '') === cpfLimpo &&
-      i.email && i.email.toLowerCase() === identNorm &&
-      i.senha === loginForm.senha
+      i.email && i.email.toLowerCase() === identNorm
     );
     const match = buscar(treinadores) || buscar(equipes) || buscar(atletasUsuarios) || buscar(funcionarios);
-    if (!match) { setLoginErro("E-mail ou senha incorretos para este CPF."); return; }
+    if (!match) { setLoginErro("E-mail não encontrado para este CPF."); return; }
+
+    // Validar senha via Firebase Auth
+    try {
+      const { signInWithEmailAndPassword, auth } = await import("../../firebase");
+      await signInWithEmailAndPassword(auth, identNorm, loginForm.senha);
+    } catch (authErr) {
+      // Migração: se Auth falha mas senha local bate, criar conta Auth
+      if (match.senha === loginForm.senha) {
+        try {
+          await createUserWithEmailAndPassword(secondaryAuth, identNorm, loginForm.senha);
+          await firebaseSignOut(secondaryAuth).catch(() => {});
+        } catch {}
+      } else {
+        setLoginErro("E-mail ou senha incorretos para este CPF."); return;
+      }
+    }
+
     setForm(prev => ({
       ...prev,
       nome: match.nome || prev.nome,
       email: match.email || prev.email,
-      senha: match.senha || prev.senha,
     }));
     setDocModo("vincular");
   };
