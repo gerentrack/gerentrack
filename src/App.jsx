@@ -1789,7 +1789,7 @@ function App() {
           <div>
             {siteBranding.logoFooter ? (
               <div style={{ marginBottom: 16, textAlign: "center" }}>
-                <img src={siteBranding.logoFooter} alt={gtNome} style={{ maxHeight: 120, objectFit: "contain" }} />
+                <img src={siteBranding.logoFooter} alt={gtNome} style={{ maxHeight: 140, maxWidth: "100%", objectFit: "contain", display: "block", margin: "0 auto" }} />
               </div>
             ) : (
               <>
@@ -2167,7 +2167,7 @@ const styles = {
   btnIconSm: { background: "#141720", border: "1px solid #252837", color: "#888", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
   btnIconSmDanger: { background: "#1a0a0a", border: "1px solid #3a1a1a", color: "#ff6b6b", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
 
-  footer: { padding: "60px 48px 48px", borderTop: "1px solid #1E2130", fontSize: 12, color: "#333" },
+  footer: { padding: "60px 48px 48px", borderTop: "none", fontSize: 12, color: "#ccc", background: "#0a1628" },
 };
 
 
