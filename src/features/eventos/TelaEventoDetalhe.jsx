@@ -1142,8 +1142,8 @@ function TelaEventoDetalhe() {
         <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:10, padding:"20px 24px", marginBottom:24, display:"flex", alignItems:"center", gap:12 }}>
           <div style={{ color: t.accent, fontWeight:700, fontSize:14 }}>📄 Regulamento</div>
           <a href={`/competicao/${eventoAtual.slug || eventoAtual.id}/regulamento`} target="_blank" rel="noopener noreferrer"
-            style={{ fontSize:13, color: t.accent, textDecoration:"underline", cursor:"pointer" }}>
-            {eventoAtual.regulamentoNome || "regulamento.pdf"}
+            style={{ background:`linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color:"#fff", padding:"6px 18px", borderRadius:6, fontSize:12, fontWeight:700, fontFamily:"'Barlow Condensed', sans-serif", letterSpacing:1, textDecoration:"none", cursor:"pointer" }}>
+            Clique aqui
           </a>
         </div>
       )}
@@ -1153,7 +1153,7 @@ function TelaEventoDetalhe() {
         <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:10, padding:"20px 24px", marginBottom:24 }}>
           <div style={{ color: t.accent, fontWeight:700, fontSize:14, marginBottom:12 }}>📝 Informações</div>
           <div
-            style={{ color: t.textSecondary, fontFamily:"'Inter', sans-serif", fontSize:14, lineHeight:1.7, wordBreak:"break-word", whiteSpace:"pre-wrap", maxHeight: 400, overflowY: "auto" }}
+            style={{ color: t.textSecondary, fontFamily:"'Inter', sans-serif", fontSize:14, lineHeight:1.7, wordBreak:"break-word", whiteSpace:"pre-wrap", maxHeight: 400, overflowY: "auto", textAlign:"justify" }}
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(eventoAtual.descricao) }}
           />
         </div>

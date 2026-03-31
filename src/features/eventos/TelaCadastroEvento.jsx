@@ -227,6 +227,13 @@ function RichTextEditor({ value, onChange, placeholder }) {
         contentEditable
         suppressContentEditableWarning
         onInput={handleInput}
+        onPaste={(e) => {
+          e.preventDefault();
+          const texto = e.clipboardData.getData("text/plain").replace(/ {2,}/g, " ");
+          const paragrafos = texto.split(/\n+/).filter(p => p.trim());
+          const html = paragrafos.map(p => `<p style="margin:0 0 0.5em 0;text-align:justify">${p.trim()}</p>`).join("");
+          document.execCommand("insertHTML", false, html);
+        }}
         onSelect={handleSelect}
         onMouseUp={handleSelect}
         onKeyUp={handleSelect}
@@ -238,6 +245,7 @@ function RichTextEditor({ value, onChange, placeholder }) {
           borderRadius: "0 0 6px 6px", color: t.textSecondary,
           fontFamily: "'Inter', sans-serif", fontSize: 14, lineHeight: 1.7,
           outline: "none", whiteSpace: "pre-wrap", wordBreak: "break-word",
+          textAlign: "justify",
         }}
       />
 
