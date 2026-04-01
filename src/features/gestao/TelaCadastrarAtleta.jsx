@@ -447,7 +447,15 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
       if (!consentimentoParentalAceite) e.consentimentoParental = "É necessário confirmar a autorização do responsável legal.";
     }
 
-    if (Object.keys(e).length) { setErros(e); return; }
+    if (Object.keys(e).length) {
+      setErros(e);
+      // Scroll para o primeiro campo com erro
+      const campoIds = { nome: "campo-nome", dataNasc: "campo-datanasc", cpf: "campo-cpf", organizadorId: "campo-org", lgpd: "campo-lgpd", responsavelLegal: "campo-responsavel", consentimentoParental: "campo-consentimento" };
+      const primeiroErro = Object.keys(e)[0];
+      const el = document.getElementById(campoIds[primeiroErro]);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     const cpfLimpo = form.cpf.replace(/\D/g,"");
 
     // ── Etapa 4: bloquear duplicata no mesmo organizador ──
@@ -460,6 +468,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
         && (meuOrgIdFinal ? a.organizadorId === meuOrgIdFinal : true));
     if (jaExisteMesmoOrg) {
       setErros({ cpf: "CPF já cadastrado para este organizador. Use o botão de vínculo ou acesse pelo perfil existente." });
+      document.getElementById("campo-cpf")?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
 
@@ -467,7 +476,11 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
     if (form.cbat && form.cbat.trim()) {
       const cbatLimpo = form.cbat.trim();
       const cbatDup = atletas.find(a => a.cbat && a.cbat.trim() === cbatLimpo);
-      if (cbatDup) { setErros({ cbat: `Nº CBAt já cadastrado para ${cbatDup.nome}` }); return; }
+      if (cbatDup) {
+        setErros({ cbat: `Nº CBAt já cadastrado para ${cbatDup.nome}` });
+        document.getElementById("campo-cpf")?.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
     }
     adicionarAtleta({ 
       ...form, 
@@ -811,11 +824,11 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
 
       <div style={{ maxWidth: 700, margin: "0 auto", background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 12, padding: "28px 32px" }}>
         <div style={s.grid2form}>
-          <FormField label="Nome Completo *"      value={form.nome}    onChange={(v) => setForm({ ...form, nome: v })}    error={erros.nome} />
-          <FormField label="Data de Nascimento *"  value={form.dataNasc} onChange={handleDataNasc} type="date"           error={erros.dataNasc} />
+          <div id="campo-nome"><FormField label="Nome Completo *"      value={form.nome}    onChange={(v) => setForm({ ...form, nome: v })}    error={erros.nome} /></div>
+          <div id="campo-datanasc"><FormField label="Data de Nascimento *"  value={form.dataNasc} onChange={handleDataNasc} type="date"           error={erros.dataNasc} /></div>
           <div style={{ gridColumn:"1/-1" }}>
-            <FormField label="CPF *" value={form.cpf} onChange={handleCpfChange}
-              error={erros.cpf} placeholder="000.000.000-00" />
+            <div id="campo-cpf"><FormField label="CPF *" value={form.cpf} onChange={handleCpfChange}
+              error={erros.cpf} placeholder="000.000.000-00" /></div>
 
             {/* ── Etapa 4: Duplicata de perfil no mesmo organizador — BLOQUEIO ── */}
             {atletaDuplicadoOrg && (
@@ -1110,7 +1123,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
           if (!ehMenor) return null;
           const modoSimplificado = isEquipe || usuarioLogado?.tipo === "treinador";
           return (
-            <BlocoConsentimentoParental
+            <div id="campo-consentimento"><BlocoConsentimentoParental
               responsavel={responsavelLegal}
               onResponsavel={setResponsavelLegal}
               aceite={consentimentoParentalAceite}
@@ -1118,13 +1131,18 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
               erroResponsavel={erros.responsavelLegal}
               erroAceite={erros.consentimentoParental}
               modoSimplificado={modoSimplificado}
-            />
+            /></div>
           );
         })()}
 
         {/* ── LGPD: Consentimento geral ── */}
-        <BlocoLGPD aceite={lgpdAceite} onChange={setLgpdAceite} erro={erros.lgpd} />
+        <div id="campo-lgpd"><BlocoLGPD aceite={lgpdAceite} onChange={setLgpdAceite} erro={erros.lgpd} /></div>
 
+        {Object.keys(erros).length > 0 && (
+          <div style={{ background: `${t.danger}15`, border: `1px solid ${t.danger}44`, borderRadius: 8, padding: "10px 16px", marginTop: 16, fontSize: 13, fontWeight: 700, color: t.danger }}>
+            Corrija os campos destacados acima para continuar.
+          </div>
+        )}
         <button style={{ ...s.btnPrimary, marginTop: 16 }} onClick={handleSubmit}>✓ Cadastrar Atleta</button>
         <button style={{ ...s.btnGhost, marginTop: 8, width: "100%" }} onClick={handleCancelar}>← Cancelar</button>
       </div>
