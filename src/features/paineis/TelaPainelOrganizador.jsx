@@ -402,7 +402,7 @@ function TelaPainelOrganizador() {
             <div style={s.tableWrap}>
               <table style={s.table}>
                 <thead><tr>
-                  <Th>Atleta</Th><Th>Solicitante</Th><Th>Equipe Atual</Th><Th>Nova Equipe</Th><Th>Tipo</Th><Th>Data</Th><Th>Ação</Th>
+                  <Th>Atleta</Th><Th>Solicitante</Th><Th>Equipe de Origem</Th><Th>Equipe de Destino</Th><Th>Tipo</Th><Th>Data</Th><Th>Ação</Th>
                 </tr></thead>
                 <tbody>
                   {pendentes.map(sol => {
@@ -904,7 +904,7 @@ function TelaPainelOrganizador() {
             <div style={{ marginTop:12, overflowX:"auto" }}>
               <table style={s.table}>
                 <thead><tr>
-                  <Th>Atleta</Th><Th>Equipe Atual</Th><Th>Nova Equipe</Th><Th>Status</Th><Th>Resolvido por</Th><Th>Data</Th>
+                  <Th>Atleta</Th><Th>Equipe de Origem</Th><Th>Equipe de Destino</Th><Th>Status</Th><Th>Resolvido por</Th><Th>Data</Th>
                 </tr></thead>
                 <tbody>
                   {historico.map(sol => {
