@@ -30,7 +30,7 @@ export function useEvento() {
  * - atletas, adicionarAtleta, adicionarAtletasEmLote, atualizarAtleta, excluirAtleta, excluirAtletasEmMassa
  * - equipes, adicionarEquipe, atualizarEquipe, atualizarEquipePerfil
  * - adicionarEvento, editarEvento, excluirEvento, alterarStatusEvento
- * - numeracaoPeito, setNumeracaoPeito
+ * - numeracaoPeito, setNumeracaoEvento
  * - recordes, setRecordes, pendenciasRecorde, setPendenciasRecorde
  * - historicoRecordes, setHistoricoRecordes
  * - ranking, setRanking, historicoRanking, setHistoricoRanking
@@ -81,7 +81,7 @@ export function buildEventoValue(props) {
     alterarStatusEvento: props.alterarStatusEvento,
 
     numeracaoPeito: props.numeracaoPeito,
-    setNumeracaoPeito: props.setNumeracaoPeito,
+    setNumeracaoEvento: props.setNumeracaoEvento,
 
     recordes: props.recordes,
     setRecordes: props.setRecordes,

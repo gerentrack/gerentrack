@@ -126,6 +126,7 @@ import {
 import { useResultados } from "./hooks/useResultados";
 import { useInscricoes } from "./hooks/useInscricoes";
 import { useAtletas }    from "./hooks/useAtletas";
+import { useNumeracaoPeito } from "./hooks/useNumeracaoPeito";
 import { useEquipes }    from "./hooks/useEquipes";
 import { useEventos }    from "./hooks/useEventos";
 import { useMedalhasChamada } from "./hooks/useMedalhasChamada";
@@ -265,7 +266,7 @@ function App() {
   const [cadEventoGoStep, setCadEventoGoStep]   = React.useState(null);
 
   // Inscrições e resultados vinculados ao eventoId
-  const [numeracaoPeito, setNumeracaoPeito] = useLocalStorage("atl_numeracao_peito", {}); // { eventoId: { atletaId: numero } }
+  // atl_numeracao_peito migrado para coleção Firestore própria via useNumeracaoPeito (ver abaixo)
 
   // ── GERENTRACK Branding ──
   const [siteBranding, setSiteBranding] = useLocalStorage("gt_branding", {
@@ -1152,6 +1153,14 @@ function App() {
     importarAtletas,
   } = useAtletas();
 
+  const {
+    numeracaoPeito,
+    setNumeracaoEvento,
+    limparNumeracaoEvento,
+    resetNumeracao,
+    importarNumeracao,
+  } = useNumeracaoPeito();
+
   const atletasRef_app = React.useRef(atletas);
   React.useEffect(() => { atletasRef_app.current = atletas; }, [atletas]);
 
@@ -1264,7 +1273,7 @@ function App() {
     setEventoAtualId(null);
     resetInscricoes();
     resetResultados();
-    setNumeracaoPeito({});
+    await resetNumeracao();
     setRecordes([]);
     setPendenciasRecorde([]);
     setHistoricoRecordes([]);
@@ -1328,7 +1337,7 @@ function App() {
         if (dados.eventos)                 await importarEventos(dados.eventos);
         if (dados.inscricoes)              await importarInscricoes(dados.inscricoes);
         if (dados.resultados)              await importarResultados(dados.resultados);
-        if (dados.numeracaoPeito)          setNumeracaoPeito(dados.numeracaoPeito);
+        if (dados.numeracaoPeito)          await importarNumeracao(dados.numeracaoPeito);
         if (dados.solicitacoesRecuperacao) setSolicitacoesRecuperacao(dados.solicitacoesRecuperacao);
         if (dados.solicitacoesEquipe)    setSolicitacoesEquipe(dados.solicitacoesEquipe);
         if (dados.solicitacoesRelatorio) setSolicitacoesRelatorio(dados.solicitacoesRelatorio);
@@ -1422,6 +1431,7 @@ function App() {
 
     excluirEventoPorId(id);
     excluirInscricoesPorEvento(id);
+    limparNumeracaoEvento(id);
     if (eventoAtualId === id) setEventoAtualId(null);
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Excluiu competição", `${nomeEvento} (${nInscs} inscrições removidas)`, usuarioLogado.organizadorId || usuarioLogado.id, { equipeId: usuarioLogado.equipeId, modulo: "competicoes" });
   };
@@ -1588,7 +1598,7 @@ function App() {
     solicitacoesVinculo,
     adicionarInscricao, excluirInscricao, atualizarInscricao,
     atualizarResultado, atualizarResultadosEmLote, limparResultado, limparTodosResultados,
-    numeracaoPeito, setNumeracaoPeito,
+    numeracaoPeito, setNumeracaoEvento,
     adicionarEvento, editarEvento, excluirEvento, alterarStatusEvento, limparTodosDados,
     getClubeAtleta,
     recordes, setRecordes,

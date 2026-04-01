@@ -62,5 +62,12 @@ service cloud.firestore {
       allow write: if request.auth != null;
     }
 
+    // ── Numeração de Peito ──────────────────────────────────────────────────
+    // Leitura e escrita: qualquer usuário autenticado
+    match /numeracaoPeito/{docId} {
+      allow read:  if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
   }
 }

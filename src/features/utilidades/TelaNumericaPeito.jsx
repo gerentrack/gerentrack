@@ -105,7 +105,7 @@ function TelaNumericaPeito() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
-  const { eventoAtual, inscricoes, atletas, equipes, numeracaoPeito, setNumeracaoPeito } = useEvento();
+  const { eventoAtual, inscricoes, atletas, equipes, numeracaoPeito, setNumeracaoEvento } = useEvento();
   const { setTela, registrarAcao } = useApp();
   const confirmar = useConfirm();
   if (!eventoAtual) return <div style={s.page}><div style={s.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
@@ -188,7 +188,7 @@ function TelaNumericaPeito() {
     }
     const limpo = {};
     Object.entries(editNum).forEach(([k, v]) => { if (v !== "" && v != null) limpo[k] = Number(v); });
-    setNumeracaoPeito(prev => ({ ...prev, [eid]: limpo }));
+    setNumeracaoEvento(eid, limpo);
     if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, "Numeração de peito", `${Object.keys(limpo).length} atletas — ${eventoAtual.nome}`, usuarioLogado?.organizadorId || usuarioLogado?.id, { modulo: "numeracao" });
     setFeedback("✅ Numeração salva com sucesso!");
     setTimeout(() => setFeedback(""), 3000);

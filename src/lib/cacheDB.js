@@ -8,8 +8,9 @@
  */
 
 const DB_NAME = "gerentrack_cache";
-const DB_VERSION = 1;
-const STORES = ["cache_atletas", "cache_equipes", "cache_inscricoes", "cache_eventos", "cache_resultados"];
+const DB_VERSION = 2;
+const STORES = ["cache_atletas", "cache_equipes", "cache_inscricoes", "cache_eventos", "cache_resultados", "cache_numeracaoPeito"];
+const DICT_STORES = new Set(["cache_resultados", "cache_numeracaoPeito"]);
 
 let dbPromise = null;
 
@@ -26,7 +27,7 @@ function openCacheDB() {
       const database = event.target.result;
       STORES.forEach((storeName) => {
         if (!database.objectStoreNames.contains(storeName)) {
-          const keyPath = storeName === "cache_resultados" ? "key" : "id";
+          const keyPath = DICT_STORES.has(storeName) ? "key" : "id";
           database.createObjectStore(storeName, { keyPath });
         }
       });
@@ -53,8 +54,8 @@ async function migrateFromLocalStorage(database) {
       if (!raw) continue;
       const parsed = JSON.parse(raw);
 
-      if (storeName === "cache_resultados") {
-        // Resultados é dicionário — converter para records { key, data }
+      if (DICT_STORES.has(storeName)) {
+        // Dicionário — converter para records { key, data }
         if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
           const records = Object.entries(parsed).map(([k, v]) => ({ key: k, data: v }));
           if (records.length > 0) {
@@ -101,7 +102,7 @@ export async function cacheGet(storeName) {
       const request = store.getAll();
       request.onsuccess = () => {
         const items = request.result || [];
-        if (storeName === "cache_resultados") {
+        if (DICT_STORES.has(storeName)) {
           // Reconstruir dicionário { key: data }
           const dict = {};
           items.forEach((record) => { dict[record.key] = record.data; });
@@ -110,10 +111,10 @@ export async function cacheGet(storeName) {
           resolve(items);
         }
       };
-      request.onerror = () => resolve(storeName === "cache_resultados" ? {} : []);
+      request.onerror = () => resolve(DICT_STORES.has(storeName) ? {} : []);
     });
   } catch {
-    return storeName === "cache_resultados" ? {} : [];
+    return DICT_STORES.has(storeName) ? {} : [];
   }
 }
 
@@ -127,7 +128,7 @@ export async function cacheSet(storeName, data) {
   try {
     const database = await openCacheDB();
     let records;
-    if (storeName === "cache_resultados") {
+    if (DICT_STORES.has(storeName)) {
       records = Object.entries(data || {}).map(([k, v]) => ({ key: k, data: v }));
     } else {
       records = Array.isArray(data) ? data : [];
