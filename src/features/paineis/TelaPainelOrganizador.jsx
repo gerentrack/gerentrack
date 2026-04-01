@@ -410,7 +410,7 @@ function TelaPainelOrganizador() {
                     return (
                       <tr key={sol.id} style={s.tr}>
                         <Td><strong style={{ color: t.textPrimary }}>{sol.atletaNome}</strong></Td>
-                        <Td style={{ fontSize:12, color: t.textTertiary }}>{sol.solicitanteNome || "—"}</Td>
+                        <Td style={{ fontSize:12, color: t.textTertiary }}>{sol.solicitanteNome || equipeNova?.nome || sol.clube || "—"}</Td>
                         <Td style={{ fontSize:12, color:t.warning }}>{sol.equipeAtualNome || (sol.equipeAtualId ? (equipes?.find(eq => eq.id === sol.equipeAtualId)?.nome || "—") : "Sem equipe")}</Td>
                         <Td style={{ color:t.accent, fontSize:13 }}>{equipeNova?.nome || sol.clube || "—"}</Td>
                         <Td style={{ fontSize:11, color: t.textMuted }}>

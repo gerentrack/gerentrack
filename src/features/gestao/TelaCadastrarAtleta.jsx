@@ -411,7 +411,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
         equipeAtualNome: equipeAtualObj?.nome || atletaExistente.clube || null,
         organizadorId: meuOrgId,
         solicitanteId: usuarioLogado?.id,
-        solicitanteNome: usuarioLogado?.nome || _autoClube,
+        solicitanteNome: _autoClube || usuarioLogado?.nome || usuarioLogado?.clube || "Equipe",
       }
     );
     setVinculoEnviado(true);
@@ -869,7 +869,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
                           equipeAtualNome: equipeAtualObj?.nome || atletaBase.clube || null,
                           organizadorId: meuOrgId,
                           solicitanteId: usuarioLogado?.id,
-                          solicitanteNome: usuarioLogado?.nome || _autoClube,
+                          solicitanteNome: _autoClube || usuarioLogado?.nome || usuarioLogado?.clube || "Equipe",
                         });
                         setVinculoEnviado(true);
                       }}
