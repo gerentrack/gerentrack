@@ -180,7 +180,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
     .cond-unidade{font-size:7.5px;color:#666;}
     .cond-sep{width:1px;background:#ccc;align-self:stretch;margin:0 4px;}
     .rod-wrap{position:absolute;bottom:0;left:0;right:0;padding:0 15mm 8mm;}
-    .pg.landscape .rod-wrap{padding:0 12mm 8mm;}
+    .pg.landscape .rod-wrap{padding:0 12mm 4mm;}
     .rod{padding-top:4px;}
     .rod-assinaturas{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:6px;}
     .rod-ass{flex:1;max-width:185px;}
@@ -195,7 +195,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
       .conteudo{padding-top:0;}
       .pg{margin:0;border:none;box-shadow:none;width:100%;height:100vh;padding:12mm 15mm 38mm;overflow:hidden;}
       .pg:not(:last-child){page-break-after:always;}
-      .pg.landscape{page:landscape-page;padding:10mm 12mm 28mm;}
+      .pg.landscape{page:landscape-page;padding:10mm 12mm 22mm;}
     }
   `;
 
@@ -990,7 +990,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
       // Rows: 2 título+logo | 2 dados | 4 nomes juízes | 1 números | 2 sub-header | 2×atleta | check
       if (s.prova.tipo === "marcha" && !s.prova.origemCombinada && !s.isRevezamento) {
         numPag++;
-        const LINHAS_EXTRAS = 4;
+        const LINHAS_EXTRAS = 2;
         const atletasMarcha = atl.length > 0 ? atl : [];
 
         // Dados digitais de marcha (se disponíveis via opts.marchaData)
@@ -1102,7 +1102,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
           const td = (v) => `<td style="${bk}${bg}text-align:center;font-weight:700;font-size:7px;padding:1px;height:12px;">${v}</td>`;
           const sym = td("~") + td("&lt;") + td("DQ");
           const jt = temDadosMarcha ? _juizTotals() : null;
-          return `<tr><td colspan="36" style="height:4.5pt;border:none;"></td></tr>` +
+          return `<tr><td colspan="36" style="height:2pt;border:none;"></td></tr>` +
             `<tr style="height:12px;">` +
             `<td rowspan="2" colspan="3" style="${bk}${bg}font-size:6px;font-weight:800;padding:2px;text-align:center;vertical-align:middle;">CHECK<br>PAGE</td>` +
             sym.repeat(8) +
@@ -1121,7 +1121,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
           const td = (v) => `<td style="${bk}${bg}text-align:center;font-weight:700;font-size:7px;padding:1px;height:12px;">${v}</td>`;
           const sym = td("~") + td("&lt;") + td("DQ");
           const jt = temDadosMarcha ? _juizTotals() : null;
-          return `<tr><td colspan="36" style="height:4.5pt;border:none;"></td></tr>` +
+          return `<tr><td colspan="36" style="height:2pt;border:none;"></td></tr>` +
             `<tr style="height:12px;">` +
             `<td rowspan="2" colspan="3" style="${bk}${bg}font-size:6px;font-weight:800;padding:2px;text-align:center;vertical-align:middle;">CHECK<br>TOTAL</td>` +
             sym.repeat(8) +
