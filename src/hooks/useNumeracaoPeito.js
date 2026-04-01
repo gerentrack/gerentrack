@@ -21,6 +21,8 @@ import {
   deleteDoc,
   onSnapshot,
   writeBatch,
+  auth,
+  onAuthStateChanged,
 } from "../firebase";
 import { sanitize } from "../lib/utils/sanitize";
 import { cacheGet, cacheSet } from "../lib/cacheDB";
@@ -44,23 +46,28 @@ export function useNumeracaoPeito() {
     return () => { cancelled = true; };
   }, []);
 
-  // ── Escuta em tempo real toda a coleção ──────────────────────────────────
+  // ── Escuta em tempo real (só após auth) ──────────────────────────────────
   useEffect(() => {
-    const unsub = onSnapshot(
-      collection(db, COLLECTION),
-      (snap) => {
-        const dados = {};
-        snap.forEach((d) => { dados[d.id] = d.data(); });
-        setLocal(dados);
-        cacheSet(STORE, dados).catch(() => {});
-        setCarregando(false);
-      },
-      (err) => {
-        console.error("[useNumeracaoPeito] onSnapshot error:", err);
-        setCarregando(false);
-      }
-    );
-    return () => unsub();
+    let unsubSnap = null;
+    const unsubAuth = onAuthStateChanged(auth, (user) => {
+      if (unsubSnap) { unsubSnap(); unsubSnap = null; }
+      if (!user) { setCarregando(false); return; }
+      unsubSnap = onSnapshot(
+        collection(db, COLLECTION),
+        (snap) => {
+          const dados = {};
+          snap.forEach((d) => { dados[d.id] = d.data(); });
+          setLocal(dados);
+          cacheSet(STORE, dados).catch(() => {});
+          setCarregando(false);
+        },
+        (err) => {
+          console.error("[useNumeracaoPeito] onSnapshot error:", err);
+          setCarregando(false);
+        }
+      );
+    });
+    return () => { unsubAuth(); if (unsubSnap) unsubSnap(); };
   }, []);
 
   // ── Migração lazy: state/atl_numeracao_peito → coleção individual ───────
