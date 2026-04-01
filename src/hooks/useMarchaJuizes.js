@@ -71,6 +71,8 @@ export function useMarchaJuizes(eventoId) {
   });
   const [loading, setLoading] = useState(true);
   const unsubsRef = useRef([]);
+  // Rastreia writes em andamento para evitar que onSnapshot sobrescreva updates otimistas
+  const pendingFieldsRef = useRef({});
 
   // ── Persistir no localStorage quando estado muda ───────────────────────────
   useEffect(() => {
@@ -101,11 +103,17 @@ export function useMarchaJuizes(eventoId) {
         snap.docs.forEach(d => {
           if (d.id.startsWith(eventoId + "_")) data[d.id] = d.data();
         });
-        // Merge pendências locais (interpreta dot-notation)
+        // Merge pendências locais offline (interpreta dot-notation)
         const pendentes = lsRead(LS_PENDENTES, []);
         const pendMarcha = pendentes.filter(p => p.tipo === "marcha" && p.key.startsWith(eventoId + "_"));
         pendMarcha.forEach(p => {
           data[p.key] = applyDotFields(data[p.key], p.fields);
+        });
+        // Merge writes em andamento (evita snapshot sobrescrever updates otimistas)
+        Object.entries(pendingFieldsRef.current).forEach(([k, fields]) => {
+          if (k.startsWith(eventoId + "_")) {
+            data[k] = applyDotFields(data[k] || {}, fields);
+          }
         });
         setMarchaData(data);
         setLoading(false);
@@ -152,18 +160,37 @@ export function useMarchaJuizes(eventoId) {
 
   // ── Helper: escrever com fallback offline ──────────────────────────────────
   const escreverComFallback = useCallback(async (key, fields) => {
-    // 1. Atualiza state imediatamente (interpreta dot-notation)
+    // 1. Rastrear write em andamento (protege contra onSnapshot sobrescrever)
+    pendingFieldsRef.current = {
+      ...pendingFieldsRef.current,
+      [key]: { ...(pendingFieldsRef.current[key] || {}), ...fields },
+    };
+
+    // 2. Atualiza state imediatamente (interpreta dot-notation)
     setMarchaData(prev => ({
       ...prev,
       [key]: applyDotFields(prev[key], fields),
     }));
 
-    // 2. Tentar Firestore
+    // 3. Tentar Firestore
     try {
       const ref = doc(db, "marchaJuizes", key);
       await setDoc(ref, fields, { merge: true });
+      // Sucesso: remover fields confirmados do pending
+      const cur = pendingFieldsRef.current[key];
+      if (cur) {
+        const remaining = { ...cur };
+        Object.keys(fields).forEach(f => delete remaining[f]);
+        if (Object.keys(remaining).length === 0) {
+          const copy = { ...pendingFieldsRef.current };
+          delete copy[key];
+          pendingFieldsRef.current = copy;
+        } else {
+          pendingFieldsRef.current = { ...pendingFieldsRef.current, [key]: remaining };
+        }
+      }
     } catch {
-      // 3. Offline — fila de pendências
+      // 4. Offline — fila de pendências (pendingFieldsRef mantém proteção)
       const pendentes = lsRead(LS_PENDENTES, []);
       const idx = pendentes.findIndex(p => p.key === key && p.tipo === "marcha");
       const entrada = { tipo: "marcha", colecao: "marchaJuizes", key, fields, ts: Date.now() };

@@ -896,6 +896,10 @@ function App() {
         origem: opts.origem || "atleta",
         aprovadorTipo: opts.aprovadorTipo || "equipe",
         equipeAtualId: opts.equipeAtualId || null,
+        equipeAtualNome: opts.equipeAtualNome || null,
+        solicitanteId: opts.solicitanteId || null,
+        solicitanteNome: opts.solicitanteNome || null,
+        organizadorId: opts.organizadorId || null,
         status: "pendente", data: new Date().toISOString() }
     ]);
     // Notifica a equipe que um atleta solicitou vínculo
@@ -904,7 +908,7 @@ function App() {
   };
 
   const responderVinculo = (solId, aceitar, atletas_arr) => {
-    const sol = solicitacoesVinculo.find(s => s.id === solId);
+    const sol = solicitacoesVinculoRef.current.find(s => s.id === solId);
     if (!sol) return;
     setSolicitacoesVinculo(p => p.map(s => s.id === solId
       ? { ...s, status: aceitar ? "aceito" : "recusado" } : s));
@@ -1150,6 +1154,9 @@ function App() {
 
   const atletasRef_app = React.useRef(atletas);
   React.useEffect(() => { atletasRef_app.current = atletas; }, [atletas]);
+
+  const solicitacoesVinculoRef = React.useRef(solicitacoesVinculo);
+  React.useEffect(() => { solicitacoesVinculoRef.current = solicitacoesVinculo; }, [solicitacoesVinculo]);
 
   const excluirAtletaPorUsuario = (id, usuario) => {
     const paraRemover = atletasRef_app.current.filter(a => {
