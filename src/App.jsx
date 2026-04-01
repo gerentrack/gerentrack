@@ -908,11 +908,13 @@ function App() {
       `O atleta "${atletaNome}" solicitou vínculo com sua equipe. Acesse o painel para aprovar ou recusar.`);
   };
 
-  const responderVinculo = (solId, aceitar, atletas_arr) => {
+  const responderVinculo = (solId, aceitar) => {
     const sol = solicitacoesVinculoRef.current.find(s => s.id === solId);
     if (!sol) return;
+    const resolvidoPorNome = usuarioLogado?.nome || usuarioLogado?.id || "—";
+    const resolvidoPorTipo = usuarioLogado?.tipo || "";
     setSolicitacoesVinculo(p => p.map(s => s.id === solId
-      ? { ...s, status: aceitar ? "aceito" : "recusado" } : s));
+      ? { ...s, status: aceitar ? "aceito" : "recusado", resolvidoPorNome, resolvidoPorTipo, resolvidoEm: new Date().toISOString() } : s));
     if (aceitar) {
       const atv = atletasRef_app.current.find(a => a.id === sol.atletaId);
       if (atv) _atualizarAtleta({ ...atv, equipeId: sol.equipeId, clube: sol.clube });
@@ -1624,7 +1626,8 @@ function App() {
   const appValue = useMemo(() => buildAppValue(props), [
     props.tela, props.notificacoes, props.organizadores, props.funcionarios,
     props.treinadores, props.atletasUsuarios, props.historicoAcoes,
-    props.siteBranding, props.online,
+    props.siteBranding, props.online, props.solicitacoesVinculo,
+    props.solicitacoesEquipe, props.solicitacoesRelatorio,
   ]);
 
   return (
