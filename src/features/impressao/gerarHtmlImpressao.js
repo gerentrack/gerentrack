@@ -1098,14 +1098,15 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
 
         const checkPageBlock = () => {
           const bg = "background:#ddd;";
-          const td = (v) => `<td style="${_b}${bg}text-align:center;font-weight:700;font-size:7px;padding:1px;height:12px;">${v}</td>`;
+          const bk = "border:1pt solid #000;";
+          const td = (v) => `<td style="${bk}${bg}text-align:center;font-weight:700;font-size:7px;padding:1px;height:12px;">${v}</td>`;
           const sym = td("~") + td("&lt;") + td("DQ");
           const jt = temDadosMarcha ? _juizTotals() : null;
           return `<tr><td colspan="36" style="height:4.5pt;border:none;"></td></tr>` +
             `<tr style="height:12px;">` +
-            `<td rowspan="2" colspan="3" style="${_b}${bg}font-size:6px;font-weight:800;padding:2px;text-align:center;vertical-align:middle;">CHECK<br>PAGE</td>` +
+            `<td rowspan="2" colspan="3" style="${bk}${bg}font-size:6px;font-weight:800;padding:2px;text-align:center;vertical-align:middle;">CHECK<br>PAGE</td>` +
             sym.repeat(8) +
-            `<td rowspan="2" colspan="6" style="${_b}${bg}"></td>` +
+            `<td rowspan="2" colspan="6" style="${bk}${bg}"></td>` +
             sym +
           `</tr><tr style="height:12px;">` +
             (jt ? jt.totais.map(jj => td(jj.t||"") + td(jj.l||"") + td(jj.dq||"")).join("") : (td("")+td("")+td("")).repeat(8)) +
@@ -1116,15 +1117,16 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
         // ── CHECK TOTAL (separator + 2 rows) ──
         const checkTotalBlock = () => {
           const bg = "background:#bbb;";
-          const td = (v) => `<td style="${_b}${bg}text-align:center;font-weight:700;font-size:7px;padding:1px;height:12px;">${v}</td>`;
+          const bk = "border:1pt solid #000;";
+          const td = (v) => `<td style="${bk}${bg}text-align:center;font-weight:700;font-size:7px;padding:1px;height:12px;">${v}</td>`;
           const sym = td("~") + td("&lt;") + td("DQ");
           const jt = temDadosMarcha ? _juizTotals() : null;
           return `<tr><td colspan="36" style="height:4.5pt;border:none;"></td></tr>` +
             `<tr style="height:12px;">` +
-            `<td rowspan="2" colspan="3" style="${_b}${bg}font-size:6px;font-weight:800;padding:2px;text-align:center;vertical-align:middle;">CHECK<br>TOTAL</td>` +
+            `<td rowspan="2" colspan="3" style="${bk}${bg}font-size:6px;font-weight:800;padding:2px;text-align:center;vertical-align:middle;">CHECK<br>TOTAL</td>` +
             sym.repeat(8) +
             sym +
-            `<td rowspan="2" colspan="3" style="${_b}${bg}"></td>` +
+            `<td rowspan="2" colspan="3" style="${bk}${bg}"></td>` +
             sym +
           `</tr><tr style="height:12px;">` +
             (jt ? jt.totais.map(jj => td(jj.t||"") + td(jj.l||"") + td(jj.dq||"")).join("") : (td("")+td("")+td("")).repeat(8)) +
