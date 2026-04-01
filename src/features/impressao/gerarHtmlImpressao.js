@@ -990,7 +990,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
       // Rows: 2 título+logo | 2 dados | 4 nomes juízes | 1 números | 2 sub-header | 2×atleta | check
       if (s.prova.tipo === "marcha" && !s.prova.origemCombinada && !s.isRevezamento) {
         numPag++;
-        const LINHAS_EXTRAS = 2;
+        const LINHAS_EXTRAS = 0;
         const atletasMarcha = atl.length > 0 ? atl : [];
 
         // Dados digitais de marcha (se disponíveis via opts.marchaData)
@@ -1043,7 +1043,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
         const duasLinhasAtleta = (a, idx) => {
           const dorsal = a ? (numPeito[a.id] || "") : "";
           const bg = idx % 2 === 0 ? "#fff" : "#f6f6f6";
-          const sty = `${_b}height:11px;background:${bg};font-size:7px;text-align:center;`;
+          const sty = `${_b}height:9px;background:${bg};font-size:7px;text-align:center;`;
           const ad = a ? (marchaDados[a.id] || {}) : {};
           const totals = a ? _calcTotals(ad) : { tildes: 0, angles: 0, dqs: 0 };
           const tdV = (v) => `<td style="${sty}">${v || ""}</td>`;
@@ -1137,7 +1137,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
 
         // ── Build the full page ──
         pags.push(`
-          <div class="pg landscape" style="padding:4mm 5mm 4mm;">
+          <div class="pg landscape" style="padding:3mm 5mm 2mm;">
             <table style="border-collapse:collapse;width:100%;table-layout:fixed;font-size:7px;">
               ${colgroup}
               <thead>
