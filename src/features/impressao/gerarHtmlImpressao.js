@@ -1222,7 +1222,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
               </tbody>
             </table>
 
-            <div style="margin-top:8px;padding:0 12mm;">
+            <div style="margin-top:14px;padding:0 5mm;clear:both;">
               <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:4px;">
                 <div style="flex:1;max-width:185px;"><div style="border-bottom:1px solid #aaa;margin-bottom:3px;height:18px;"></div><div style="font-size:8px;color:#888;text-align:center;font-style:italic;">\u00c1rbitro Respons\u00e1vel</div></div>
                 <div style="flex:1;max-width:185px;"><div style="border-bottom:1px solid #aaa;margin-bottom:3px;height:18px;"></div><div style="font-size:8px;color:#888;text-align:center;font-style:italic;">SECRET\u00c1RIO(A): NOME E ASSINATURA</div></div>
