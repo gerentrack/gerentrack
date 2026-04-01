@@ -195,7 +195,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
       .conteudo{padding-top:0;}
       .pg{margin:0;border:none;box-shadow:none;width:100%;height:100vh;padding:12mm 15mm 38mm;overflow:hidden;}
       .pg:not(:last-child){page-break-after:always;}
-      .pg.landscape{page:landscape-page;padding:10mm 12mm 22mm;}
+      .pg.landscape{page:landscape-page;padding:8mm 12mm 5mm;}
     }
   `;
 
@@ -1222,21 +1222,19 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
               </tbody>
             </table>
 
-            <div class="rod-wrap">
-              <div class="rod">
-                <div class="rod-assinaturas" style="justify-content:space-between;">
-                  <div class="rod-ass"><div class="rod-ln"></div><div class="rod-lb">\u00c1rbitro Respons\u00e1vel</div></div>
-                  <div class="rod-ass"><div class="rod-ln" style="width:160px;"></div><div class="rod-lb">SECRET\u00c1RIO(A): NOME E ASSINATURA</div></div>
-                </div>
-                <div class="rod-info">
-                  <div>Gerado em: ${dataGeracao}</div>
-                  <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:0;margin-bottom:0;">
-                    <span>Plataforma de Competi\u00e7\u00f5es -</span>
-                    <img src="${_gtLogo}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7;vertical-align:middle;" />
-                  </div>
+            <div style="margin-top:8px;padding:0 12mm;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:4px;">
+                <div style="flex:1;max-width:185px;"><div style="border-bottom:1px solid #aaa;margin-bottom:3px;height:18px;"></div><div style="font-size:8px;color:#888;text-align:center;font-style:italic;">\u00c1rbitro Respons\u00e1vel</div></div>
+                <div style="flex:1;max-width:185px;"><div style="border-bottom:1px solid #aaa;margin-bottom:3px;height:18px;"></div><div style="font-size:8px;color:#888;text-align:center;font-style:italic;">SECRET\u00c1RIO(A): NOME E ASSINATURA</div></div>
+              </div>
+              <div style="font-size:8px;color:#aaa;text-align:center;line-height:1.4;">
+                <div>Gerado em: ${dataGeracao}</div>
+                <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
+                  <span>Plataforma de Competi\u00e7\u00f5es -</span>
+                  <img src="${_gtLogo}" alt="GERENTRACK" style="max-height:6mm;object-fit:contain;opacity:0.7;vertical-align:middle;" />
                 </div>
               </div>
-              ${evento.logoRodape ? `<div style="margin-top:1px;text-align:center;"><img src="${evento.logoRodape}" alt="" style="max-width:100%;max-height:18mm;object-fit:contain;"/></div>` : ""}
+              ${evento.logoRodape ? `<div style="margin-top:1px;text-align:center;"><img src="${evento.logoRodape}" alt="" style="max-width:100%;max-height:12mm;object-fit:contain;"/></div>` : ""}
             </div>
           </div>`);
       }
