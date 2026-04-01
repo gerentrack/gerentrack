@@ -1139,8 +1139,9 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
         <div id="campo-lgpd"><BlocoLGPD aceite={lgpdAceite} onChange={setLgpdAceite} erro={erros.lgpd} /></div>
 
         {Object.keys(erros).length > 0 && (
-          <div style={{ background: `${t.danger}15`, border: `1px solid ${t.danger}44`, borderRadius: 8, padding: "10px 16px", marginTop: 16, fontSize: 13, fontWeight: 700, color: t.danger }}>
-            Corrija os campos destacados acima para continuar.
+          <div style={{ background: `${t.danger}15`, border: `1px solid ${t.danger}44`, borderRadius: 8, padding: "10px 16px", marginTop: 16, fontSize: 13, color: t.danger }}>
+            <div style={{ fontWeight: 700, marginBottom: 4 }}>Corrija os erros para continuar:</div>
+            {Object.values(erros).map((msg, idx) => <div key={idx} style={{ fontSize: 12 }}>• {msg}</div>)}
           </div>
         )}
         <button style={{ ...s.btnPrimary, marginTop: 16 }} onClick={handleSubmit}>✓ Cadastrar Atleta</button>
