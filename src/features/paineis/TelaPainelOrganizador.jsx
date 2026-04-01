@@ -208,7 +208,7 @@ function TelaPainelOrganizador() {
       <div style={s.painelHeader}>
         <div>
           <h1 style={s.pageTitle}>
-            {isFuncionario ? "👥 Painel do Funcionário" : "🏟️ Painel do Organizador"}
+            {isFuncionario ? "Painel do Funcionário" : "Painel do Organizador"}
           </h1>
           <p style={{ color: t.textTertiary, margin:"4px 0 0" }}>
             {usuarioLogado?.nome}
@@ -238,11 +238,11 @@ function TelaPainelOrganizador() {
             marcarNotifLida={marcarNotifLida}
           />
           {(!isFuncionario || temPerm("funcionarios_ver")) &&
-            <button style={s.btnSecondary} onClick={() => setTela("funcionarios")}>👥 Funcionários</button>}
+            <button style={s.btnSecondary} onClick={() => setTela("funcionarios")}>Funcionários</button>}
           {(!isFuncionario || temPerm("inscricoes")) &&
-            <button style={s.btnSecondary} onClick={() => setTela("gerenciar-equipes")}>🏟️ Equipes</button>}
+            <button style={s.btnSecondary} onClick={() => setTela("gerenciar-equipes")}>Equipes</button>}
           {(!isFuncionario || temPerm("atletas")) &&
-            <button style={s.btnSecondary} onClick={() => setTela("cadastrar-atleta")}>🏃 Atletas</button>}
+            <button style={s.btnSecondary} onClick={() => setTela("cadastrar-atleta")}>Atletas</button>}
           {temPerm("editar_competições") &&
             <button style={s.btnPrimary} onClick={() => { selecionarEvento(null); setTela("novo-evento"); }}>+ Nova Competição</button>}
         </div>
@@ -268,7 +268,7 @@ function TelaPainelOrganizador() {
       {isFuncionario && (usuarioLogado?.permissoes||[]).length === 0 && (
         <div style={{ background:"#1a0a0a", border:`1px solid ${t.danger}66`, borderRadius:8,
           padding:"16px 20px", marginBottom:20, textAlign:"center" }}>
-          <div style={{ fontSize:40, marginBottom:8 }}>🔒</div>
+          <div style={{ fontSize:14, marginBottom:8, color: t.danger, fontWeight: 800 }}>ACESSO RESTRITO</div>
           <strong style={{ color: t.danger }}>Nenhuma permissão concedida</strong>
           <p style={{ color: t.textDimmed, fontSize:13, margin:"6px 0 0" }}>
             Solicite ao organizador que configure suas permissões de acesso.
@@ -291,7 +291,7 @@ function TelaPainelOrganizador() {
         return (
           <div style={{ background: `${t.accent}10`, border: `1px solid ${t.accent}44`, borderRadius: 12, padding: "16px 20px", marginBottom: 16 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-              <span style={{ fontSize: 20 }}>📄</span>
+              <span style={{ fontSize: 14, fontWeight: 800, color: t.accent }}>REL</span>
               <div style={{ fontWeight: 700, color: t.accent, fontSize: 14 }}>
                 {relPendentes.length} solicitação(ões) de relatório pendente(s)
               </div>
@@ -304,7 +304,7 @@ function TelaPainelOrganizador() {
                     <tr key={sol.id} style={s.tr}>
                       <Td><strong style={{ color: t.textPrimary }}>{sol.solicitanteNome}</strong></Td>
                       <Td><span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 4, background: sol.solicitanteTipo === "atleta" ? `${t.accent}18` : `${t.success}18`, color: sol.solicitanteTipo === "atleta" ? t.accent : t.success }}>
-                        {sol.solicitanteTipo === "atleta" ? "🏃 Atleta" : "🎽 Equipe"}
+                        {sol.solicitanteTipo === "atleta" ? "Atleta" : "Equipe"}
                       </span></Td>
                       <Td>{sol.eventoNome}</Td>
                       <Td style={{ fontSize: 11, color: t.textDimmed }}>
@@ -327,7 +327,7 @@ function TelaPainelOrganizador() {
                             gerarHtmlRelatorioParticipacao(evt, atletasFiltrados, inscricoes, resultados || {}, equipes, org, relAssinatura || sol.assinaturaEquipe, numeracaoPeito);
                             resolverRelatorio(sol.id, "gerado");
                           }} style={{ background: `${t.accent}18`, border: "1px solid #2a6a6a", color: t.accent, borderRadius: 6, padding: "4px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700, fontFamily: "'Barlow', sans-serif" }}>
-                            📄 Gerar e Enviar
+                            Gerar e Enviar
                           </button>
                           <button onClick={() => resolverRelatorio(sol.id, "recusado")}
                             style={{ background: `${t.danger}12`, border: `1px solid ${t.danger}66`, color: t.danger, borderRadius: 6, padding: "4px 12px", cursor: "pointer", fontSize: 12 }}>
@@ -397,7 +397,7 @@ function TelaPainelOrganizador() {
             )}
             {pendentes.length === 0 ? null : <>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
-              <span style={{ fontWeight:700, color:t.accent, fontSize:14 }}>🔗 {pendentes.length} vínculo(s) pendente(s)</span>
+              <span style={{ fontWeight:700, color:t.accent, fontSize:14 }}>{pendentes.length} vínculo(s) pendente(s)</span>
             </div>
             <div style={s.tableWrap}>
               <table style={s.table}>
@@ -414,7 +414,7 @@ function TelaPainelOrganizador() {
                         <Td style={{ fontSize:12, color:t.warning }}>{sol.equipeAtualNome || (sol.equipeAtualId ? (equipes?.find(eq => eq.id === sol.equipeAtualId)?.nome || "—") : "Sem equipe")}</Td>
                         <Td style={{ color:t.accent, fontSize:13 }}>{equipeNova?.nome || sol.clube || "—"}</Td>
                         <Td style={{ fontSize:11, color: t.textMuted }}>
-                          {sol.aprovadorTipo === "equipe_atual" ? "🔄 Transferência" : "🔗 Vínculo novo"}
+                          {sol.aprovadorTipo === "equipe_atual" ? "Transferência" : "Vínculo novo"}
                         </Td>
                         <Td style={{ fontSize:11, color: t.textDimmed }}>{new Date(sol.data).toLocaleString("pt-BR")}</Td>
                         <Td>
@@ -445,7 +445,7 @@ function TelaPainelOrganizador() {
       <h2 style={s.sectionTitle}>Competições</h2>
       {meusEventos.length === 0 ? (
         <div style={s.emptyState}>
-          <span style={{ fontSize:48 }}>🏟️</span>
+          <span style={{ fontSize:16, fontWeight:800, color: t.textDimmed }}>SEM COMPETIÇÕES</span>
           <p>Nenhum competição criado ainda.</p>
           {temPerm("editar_competições") &&
             <button style={s.btnPrimary} onClick={() => { selecionarEvento(null); setTela("novo-evento"); }}>Criar Competição</button>}
@@ -539,7 +539,7 @@ function TelaPainelOrganizador() {
                         {temPerm("sumulas") && (
                           <button style={{ ...s.btnGhost, fontSize:12, padding:"4px 10px", color: t.accent, borderColor:`${t.accent}66` }}
                             onClick={()=>alterarStatusEvento(ev.id,{sumulaLiberada:!ev.sumulaLiberada})}>
-                            {ev.sumulaLiberada ? "🔒 Restringir" : "🔓 Súmula"}
+                            {ev.sumulaLiberada ? "Restringir" : "Liberar Súmula"}
                           </button>
                         )}
                       </div>
@@ -564,7 +564,7 @@ function TelaPainelOrganizador() {
         return (
           <div style={{ marginTop: 40 }}>
             <h2 style={{ ...s.sectionTitle, marginBottom: 16, display:"flex", alignItems:"center", gap:10 }}>
-              🤝 Competições Cruzadas
+              Competições Cruzadas
               {eventosCruzados.length > 0 && (
                 <span style={{ background:`${t.accent}22`, color:t.accent, border:`1px solid ${t.accent}44`,
                   borderRadius:20, padding:"2px 10px", fontSize:12, fontWeight:700 }}>
@@ -580,7 +580,7 @@ function TelaPainelOrganizador() {
             {eventosCruzados.length === 0 ? (
               <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:10,
                 padding:"36px 20px", textAlign:"center" }}>
-                <div style={{ fontSize:36, marginBottom:10 }}>🤝</div>
+                <div style={{ fontSize:14, fontWeight:800, color:t.textDimmed, marginBottom:10 }}>NENHUMA</div>
                 <div style={{ color: t.textDimmed, fontSize:14, marginBottom:6 }}>Nenhuma competição cruzada disponível no momento.</div>
                 <div style={{ fontSize:12, color:t.textDisabled, lineHeight:1.7 }}>
                   Quando um administrador autorizar sua organização a participar de outra competição, ela aparecerá aqui.
@@ -658,7 +658,7 @@ function TelaPainelOrganizador() {
       {temPerm("inscricoes") && meusEventos.length > 0 && (
         <details style={{ background: t.bgCardAlt, border: `1px solid ${t.border}`, borderRadius: 12, padding: "16px 20px", marginBottom: 16 }}>
           <summary style={{ cursor: "pointer", fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 800, color: t.accent, letterSpacing: 1 }}>
-            📄 Relatório Oficial de Participação
+            Relatório Oficial de Participação
           </summary>
           <div style={{ marginTop: 14 }}>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 14, alignItems: "flex-end" }}>
@@ -773,7 +773,7 @@ function TelaPainelOrganizador() {
               const org = organizadores?.find(o => o.id === evt.organizadorId);
               gerarHtmlRelatorioParticipacao(evt, atletasFiltrados, inscricoes, resultados || {}, equipes, org, relAssinatura, numeracaoPeito);
             }} style={{ background: relEvento ? `linear-gradient(135deg, ${t.accent}, ${t.accentDark})` : "#222", color: relEvento ? "#fff" : "#555", border: "none", padding: "10px 24px", borderRadius: 8, cursor: relEvento ? "pointer" : "not-allowed", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 }}>
-              📄 Gerar Relatório
+              Gerar Relatório
             </button>
           </div>
         </details>
@@ -790,7 +790,7 @@ function TelaPainelOrganizador() {
         return (
           <details style={{ background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, padding: "12px 18px", marginBottom: 16 }}>
             <summary style={{ cursor: "pointer", color: t.textDimmed, fontSize: 13, fontWeight: 600 }}>
-              📂 Histórico de relatórios ({relHistorico.length})
+              Histórico de relatórios ({relHistorico.length})
             </summary>
             <div style={{ marginTop: 12, overflowX: "auto" }}>
               <table style={s.table}>
@@ -835,7 +835,7 @@ function TelaPainelOrganizador() {
         const totalPags = Math.ceil(auditoriaOrg.length / POR_PAG);
         const pag = Math.min(auditPagina, totalPags);
         const pagina = auditoriaOrg.slice((pag - 1) * POR_PAG, pag * POR_PAG);
-        const getModuloIcon = (mod) => ({ equipes:"🏢", atletas:"🏃", competicoes:"🏟️", inscricoes:"📝", resultados:"📊", sumulas:"📋", recordes:"🏆", numeracao:"🔢", membros:"👥", treinadores:"👨‍🏫", funcionarios:"👷", auth:"🔐", sistema:"⚙️", secretaria:"📋" }[mod] || "📋");
+        const getModuloIcon = (mod) => ({ equipes:"EQ", atletas:"AT", competicoes:"CP", inscricoes:"IN", resultados:"RS", sumulas:"SM", recordes:"RC", numeracao:"NR", membros:"MB", treinadores:"TR", funcionarios:"FN", auth:"AU", sistema:"SI", secretaria:"SC" }[mod] || mod?.toUpperCase()?.slice(0,2) || "—");
         const formatarDt = (ts) => {
           const d = new Date(ts);
           const hoje = new Date();
@@ -848,7 +848,7 @@ function TelaPainelOrganizador() {
         return (
           <details style={{ marginTop: 32 }}>
             <summary style={{ ...s.sectionTitle, cursor: "pointer", userSelect: "none" }}>
-              📊 Auditoria de Ações ({auditoriaOrg.length})
+              Auditoria de Ações ({auditoriaOrg.length})
             </summary>
             <p style={{ color: t.textDimmed, fontSize: 13, marginBottom: 16 }}>
               Ações realizadas por você e seus funcionários
@@ -899,7 +899,7 @@ function TelaPainelOrganizador() {
         return (
           <details style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:10, padding:"12px 18px", marginBottom:16 }}>
             <summary style={{ cursor:"pointer", color: t.textDimmed, fontSize:13, fontWeight:600 }}>
-              📂 Histórico de vínculos ({historico.length})
+              Histórico de vínculos ({historico.length})
             </summary>
             <div style={{ marginTop:12, overflowX:"auto" }}>
               <table style={s.table}>
