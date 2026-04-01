@@ -6,7 +6,7 @@ import { RecordHelper } from "../../shared/engines/recordHelper";
 import { TeamScoringEngine } from "../../shared/engines/teamScoringEngine";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { CombinedScoringEngine } from "../../shared/engines/combinedScoringEngine";
-import { getFasesModo, buscarSeriacao, resKey, FASE_NOME, FASE_ORDEM, getEntradasProva } from "../../shared/constants/fases";
+import { getFasesModo, buscarSeriacao, resKey, FASE_NOME, FASE_ORDEM, getEntradasProva, resolverCronometragem } from "../../shared/constants/fases";
 import { calcularEtapa, getEtapaLabel } from "../../shared/constants/etapas";
 import { gerarHtmlImpressao } from "../impressao/gerarHtmlImpressao";
 import { GT_DEFAULT_LOGO } from "../../shared/branding";
@@ -427,7 +427,8 @@ function TelaResultados() {
         const marca = res ? (typeof res === "object" ? res.marca : res) : null;
         const ptsManuais = res ? (typeof res === "object" ? res.pontosTabela : null) : null;
         const marcaNum = marca != null ? parseFloat(String(marca).replace(",", ".")) : null;
-        const ptsAuto = (marcaNum != null && !isNaN(marcaNum)) ? CombinedScoringEngine.calcularPontosProva(pc.provaOriginalSufixo, marcaNum, sexoProva, provaId, (eventoAtual.cronometragemProvas || {})[pc.id]) : 0;
+        const cronoAtl = resolverCronometragem(eventoAtual.cronometragemProvas, pc.id, eventoAtual.seriacao, catId, sexoProva, aId);
+        const ptsAuto = (marcaNum != null && !isNaN(marcaNum)) ? CombinedScoringEngine.calcularPontosProva(pc.provaOriginalSufixo, marcaNum, sexoProva, provaId, cronoAtl) : 0;
         const pts = ptsManuais != null ? Number(ptsManuais) : ptsAuto;
         const statusAtl = res ? (typeof res === "object" ? res.status : null) : null;
         if ((marca != null && marca !== "") || statusAtl) provasRealizadas++;
@@ -1145,6 +1146,18 @@ function TelaResultados() {
                       {b.faseNome}
                     </span>
                   )}
+                  {b.prova.unidade === "s" && (() => {
+                    const cp = eventoAtual.cronometragemProvas || {};
+                    const temPorSerie = Object.keys(cp).some(k => k.startsWith(`${b.prova.id}__S`));
+                    if (temPorSerie) return null;
+                    if (cp[b.prova.id] !== "MAN") return null;
+                    return (
+                      <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 4, marginLeft: 8, fontWeight: 700,
+                        background: `${t.warning}15`, color: t.warning }}>
+                        Cronometragem Manual
+                      </span>
+                    );
+                  })()}
                 </div>
                 <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap", marginTop:6 }}>
                   <span style={s.badgeGold}>Categoria: {b.categoria.nome}</span>
@@ -1787,6 +1800,10 @@ function TelaResultados() {
                             <tr key={`sh-${serie.numero}`}>
                               <td colSpan={nCols} style={{ padding:"8px 12px", background: t.bgCardAlt, borderBottom:`2px solid ${t.accentBorder}`, color: t.accent, fontWeight:700, fontSize:12 }}>
                                 Série {serie.numero}
+                                {b.prova.unidade === "s" && (eventoAtual.cronometragemProvas || {})[`${b.prova.id}__S${serie.numero}`] === "MAN" && (
+                                  <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, marginLeft: 8, fontWeight: 700,
+                                    background: `${t.warning}15`, color: t.warning }}>Manual</span>
+                                )}
                               </td>
                             </tr>,
                             ...classifSerie.map((item, j) =>
@@ -1814,6 +1831,10 @@ function TelaResultados() {
                             <tr key={`fts-${b.prova.id}-${b.faseSufixo}-${serie.numero}`}>
                               <td colSpan={nColsFt} style={{ padding:"8px 12px", background: t.bgCardAlt, borderBottom:`2px solid ${t.accentBorder}`, color: t.accent, fontWeight:700, fontSize:12 }}>
                                 Série {serie.numero}
+                                {b.prova.unidade === "s" && (eventoAtual.cronometragemProvas || {})[`${b.prova.id}__S${serie.numero}`] === "MAN" && (
+                                  <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, marginLeft: 8, fontWeight: 700,
+                                    background: `${t.warning}15`, color: t.warning }}>Manual</span>
+                                )}
                               </td>
                             </tr>
                           );

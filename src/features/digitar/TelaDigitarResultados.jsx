@@ -5,7 +5,7 @@ import { CATEGORIAS } from "../../shared/constants/categorias";
 import { NomeProvaComImplemento, abreviarProva, formatarMarca, normalizarMarca, exibirMarcaInput, formatarTempo, autoFormatTempo, aplicarMascaraTempo, getMascaraTempo, parseTempoPista, msParaDigitos, resolverAtleta } from "../../shared/formatters/utils";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { CombinedScoringEngine, temDuasCronometragens } from "../../shared/engines/combinedScoringEngine";
-import { getFasesModo, buscarSeriacao, resKey, FASE_NOME } from "../../shared/constants/fases";
+import { getFasesModo, buscarSeriacao, resKey, FASE_NOME, resolverCronometragem } from "../../shared/constants/fases";
 import { Th, Td } from "../ui/TableHelpers";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
@@ -291,6 +291,7 @@ function BlocoDigitarCategoria({
   const [alturas,       setAlturas]       = useState([""]);
   const [tentativas,    setTentativas]    = useState({});
   const [cronometragem, setCronometragem] = useState("ELE");
+  const [cronoSeries, setCronoSeries] = useState({}); // { [serieNum]: "ELE"|"MAN" }
 
   // ── derived values ────────────────────────────────────────────────────────
   const provaSel = todasProvasComCombinadas.find((p) => p.id === filtroProva);
@@ -387,25 +388,45 @@ function BlocoDigitarCategoria({
     return st === "DNS" || st === "DQ" || st === "DNF";
   };
 
-  // ── cronometragem: detectar se prova componente tem tabelas MAN+ELE ────────
-  const provaPossuiDuasCrono = provaSel?.origemCombinada && provaSel?.combinadaId && provaSel?.provaOriginalSufixo
+  // ── cronometragem: provas de pista avulsas ou componentes de combinada ──────
+  const provaPossuiDuasCronoCombinada = provaSel?.origemCombinada && provaSel?.combinadaId && provaSel?.provaOriginalSufixo
     ? temDuasCronometragens(provaSel.combinadaId, provaSel.provaOriginalSufixo) : false;
+  const isProvaDePista = provaSel && provaSel.unidade === "s" && !provaSel.origemCombinada;
+  const mostrarToggleCrono = provaPossuiDuasCronoCombinada || isProvaDePista;
+  const temSeriesParaCrono = _serDigitar?.series?.length > 1;
 
   // Sincronizar cronometragem ao trocar de prova (lê do eventoAtual)
   React.useEffect(() => {
-    if (filtroProva && eventoAtual?.cronometragemProvas?.[filtroProva]) {
-      setCronometragem(eventoAtual.cronometragemProvas[filtroProva]);
-    } else {
+    const cronoProvas = eventoAtual?.cronometragemProvas || {};
+    if (temSeriesParaCrono) {
+      const map = {};
+      for (const serie of _serDigitar.series) {
+        const chS = `${filtroProva}__S${serie.numero}`;
+        map[serie.numero] = cronoProvas[chS] || cronoProvas[filtroProva] || "ELE";
+      }
+      setCronoSeries(map);
       setCronometragem("ELE");
+    } else {
+      setCronoSeries({});
+      setCronometragem(cronoProvas[filtroProva] || "ELE");
     }
-  }, [filtroProva]);
+  }, [filtroProva, temSeriesParaCrono, _serDigitar?.series?.length, eventoAtual?.cronometragemProvas]);
 
-  // Salvar cronometragem no eventoAtual quando alternar
+  // Salvar cronometragem no eventoAtual quando alternar (sem série)
   const alternarCronometragem = (valor) => {
     setCronometragem(valor);
     const prev = eventoAtual.cronometragemProvas || {};
     editarEvento({ ...eventoAtual, cronometragemProvas: { ...prev, [filtroProva]: valor } });
   };
+
+  // Salvar cronometragem por série
+  const alternarCronoSerie = (serieNum, valor) => {
+    setCronoSeries(prev => ({ ...prev, [serieNum]: valor }));
+    const prev = eventoAtual.cronometragemProvas || {};
+    const chS = `${filtroProva}__S${serieNum}`;
+    editarEvento({ ...eventoAtual, cronometragemProvas: { ...prev, [chS]: valor } });
+  };
+
 
   // ── helpers para Altura/Vara ────────────────────────────────────────────────
   const OPCOES = ["", "O", "X", "-"];
@@ -755,7 +776,7 @@ function BlocoDigitarCategoria({
               🏅 {provaSel.nomeCombinada} ({provaSel.ordem}/{provaSel.totalProvas})
             </span>
           )}
-          {provaPossuiDuasCrono && (
+          {mostrarToggleCrono && !temSeriesParaCrono && (
             <span style={{ marginLeft: 12, display: "inline-flex", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 11, color: t.textMuted }}>⏱ Cronometragem:</span>
               <button
@@ -1332,7 +1353,8 @@ function BlocoDigitarCategoria({
                 const marca = res ? (typeof res === "object" ? res.marca : res) : null;
                 const ptsManuais = res ? (typeof res === "object" ? res.pontosTabela : null) : null;
                 const marcaNum = marca != null ? parseFloat(String(marca).replace(",", ".")) : null;
-                const ptsAuto = (marcaNum != null && !isNaN(marcaNum)) ? CombinedScoringEngine.calcularPontosProva(pc.provaOriginalSufixo, marcaNum, filtroSexo, combinadaId, (eventoAtual.cronometragemProvas || {})[pc.id]) : 0;
+                const cronoAtl = resolverCronometragem(eventoAtual.cronometragemProvas, pc.id, eventoAtual.seriacao, catId, filtroSexo, aId);
+                const ptsAuto = (marcaNum != null && !isNaN(marcaNum)) ? CombinedScoringEngine.calcularPontosProva(pc.provaOriginalSufixo, marcaNum, filtroSexo, combinadaId, cronoAtl) : 0;
                 const pts = ptsManuais != null ? Number(ptsManuais) : ptsAuto;
                 const statusAtl2 = res ? (typeof res === "object" ? res.status : null) : null;
                 if ((marca != null && marca !== "") || statusAtl2) provasRealizadas++;
@@ -1911,8 +1933,31 @@ function BlocoDigitarCategoria({
                         return (
                           <React.Fragment key={`${a.id}-${i}`}>
                           {showSerieHeader && (
-                            <tr><td colSpan={_nCols} style={{ padding:"8px 12px", background: t.accentBg, borderBottom:`2px solid ${t.accentBorder}`, color: t.accent, fontWeight:700, fontSize:12 }}>
-                              Série {_si.serie}
+                            <tr><td colSpan={_nCols} style={{ padding:"8px 12px", background: t.accentBg, borderBottom:`2px solid ${t.accentBorder}`, color: t.accent, fontWeight:700, fontSize:12, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                              <span>Série {_si.serie}</span>
+                              {mostrarToggleCrono && (
+                                <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                                  <span style={{ fontSize: 11, color: t.textMuted, fontWeight: 400 }}>⏱ Cronometragem:</span>
+                                  <button
+                                    onClick={() => alternarCronoSerie(_si.serie, "ELE")}
+                                    style={{
+                                      fontSize: 11, padding: "2px 8px", borderRadius: 4, cursor: "pointer",
+                                      border: (cronoSeries[_si.serie] || "ELE") === "ELE" ? `1px solid ${t.accentBorder}` : `1px solid ${t.border}`,
+                                      background: (cronoSeries[_si.serie] || "ELE") === "ELE" ? t.accentBg : "transparent",
+                                      color: (cronoSeries[_si.serie] || "ELE") === "ELE" ? t.accent : t.textDimmed,
+                                      fontWeight: (cronoSeries[_si.serie] || "ELE") === "ELE" ? 700 : 400,
+                                    }}>Eletrônica</button>
+                                  <button
+                                    onClick={() => alternarCronoSerie(_si.serie, "MAN")}
+                                    style={{
+                                      fontSize: 11, padding: "2px 8px", borderRadius: 4, cursor: "pointer",
+                                      border: (cronoSeries[_si.serie] || "ELE") === "MAN" ? `1px solid ${t.warning}` : `1px solid ${t.border}`,
+                                      background: (cronoSeries[_si.serie] || "ELE") === "MAN" ? `${t.warning}15` : "transparent",
+                                      color: (cronoSeries[_si.serie] || "ELE") === "MAN" ? t.warning : t.textDimmed,
+                                      fontWeight: (cronoSeries[_si.serie] || "ELE") === "MAN" ? 700 : 400,
+                                    }}>Manual</button>
+                                </span>
+                              )}
                             </td></tr>
                           )}
                           <tr style={{ ...s.tr, opacity: isStatusInativo(a) ? 0.4 : 1 }}>
@@ -2032,7 +2077,8 @@ function BlocoDigitarCategoria({
                     const marca = res ? (typeof res === "object" ? res.marca : res) : null;
                     const ptsManuais = res ? (typeof res === "object" ? res.pontosTabela : null) : null;
                     const marcaNum = marca != null ? parseFloat(String(marca).replace(",", ".")) : null;
-                    const ptsAuto = (marcaNum != null && !isNaN(marcaNum)) ? CombinedScoringEngine.calcularPontosProva(pc.provaOriginalSufixo, marcaNum, filtroSexo, combinadaId, (eventoAtual.cronometragemProvas || {})[pc.id]) : 0;
+                    const cronoAtl2 = resolverCronometragem(eventoAtual.cronometragemProvas, pc.id, eventoAtual.seriacao, catId, filtroSexo, aId);
+                    const ptsAuto = (marcaNum != null && !isNaN(marcaNum)) ? CombinedScoringEngine.calcularPontosProva(pc.provaOriginalSufixo, marcaNum, filtroSexo, combinadaId, cronoAtl2) : 0;
                     const pts = ptsManuais != null ? Number(ptsManuais) : ptsAuto;
                     const statusAtl2 = res ? (typeof res === "object" ? res.status : null) : null;
                     if ((marca != null && marca !== "") || statusAtl2) provasRealizadas++;

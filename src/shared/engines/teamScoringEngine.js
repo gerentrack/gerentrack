@@ -9,7 +9,7 @@
 
 import { todasAsProvas }           from '../../domain/provas/todasAsProvas';
 import { CATEGORIAS }              from '../constants/categorias';
-import { getFasesModo, buscarSeriacao } from '../constants/fases';
+import { getFasesModo, buscarSeriacao, resolverCronometragem } from '../constants/fases';
 import { getComposicaoCombinada }  from '../../domain/combinadas/composicao';
 import { CombinedEventEngine }     from './combinedEventEngine';
 import { CombinedScoringEngine }   from './combinedScoringEngine';
@@ -349,7 +349,8 @@ const TeamScoringEngine = {
           var marca = res ? (typeof res === "object" ? res.marca : res) : null;
           var ptsManuais = res ? (typeof res === "object" ? res.pontosTabela : null) : null;
           var marcaNum = marca != null ? parseFloat(String(marca).replace(",", ".")) : NaN;
-          var ptsAuto = (!isNaN(marcaNum)) ? CombinedScoringEngine.calcularPontosProva(pc.provaOriginalSufixo, marcaNum, sexoProva, prova.id, (eventoAtual.cronometragemProvas || {})[pc.id]) : 0;
+          var cronoAtl = resolverCronometragem(eventoAtual.cronometragemProvas, pc.id, eventoAtual.seriacao, catId, sexoProva, aId);
+          var ptsAuto = (!isNaN(marcaNum)) ? CombinedScoringEngine.calcularPontosProva(pc.provaOriginalSufixo, marcaNum, sexoProva, prova.id, cronoAtl) : 0;
           var pts = ptsManuais != null ? Number(ptsManuais) : ptsAuto;
           var statusAtl3 = res ? (typeof res === "object" ? res.status : null) : null;
           if ((marca != null && marca !== "") || statusAtl3) provasRealizadas++;

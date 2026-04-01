@@ -135,4 +135,23 @@ const buscarResultado = (resultadosObj, eventoId, provaId, catId, sexo, faseSufi
   return resultadosObj[resKey(eventoId, provaId, catId, sexo, "")] || null;
 };
 
-export { FASE_SUFIXOS, FASE_ORDEM, FASE_ANTERIOR, FASE_NOME, faseToSufixo, serKey, resKey, getGrupoKey, getFasesProva, getFasesModo, getEntradasProva, temMultiFases, buscarSeriacao, buscarResultado };
+// Resolve cronometragem (ELE/MAN) para um atleta numa prova, considerando série
+// Retorna "ELE" ou "MAN"
+const resolverCronometragem = (cronometragemProvas, provaId, seriacaoObj, catId, sexo, atletaId) => {
+  if (!cronometragemProvas) return "ELE";
+  // Buscar seriação da prova para identificar série do atleta
+  const ser = seriacaoObj ? (buscarSeriacao(seriacaoObj, provaId, catId, sexo, "") || buscarSeriacao(seriacaoObj, provaId, catId, sexo, "FIN") || buscarSeriacao(seriacaoObj, provaId, catId, sexo, "SEM") || buscarSeriacao(seriacaoObj, provaId, catId, sexo, "ELI")) : null;
+  if (ser?.series && atletaId) {
+    for (const serie of ser.series) {
+      const found = serie.atletas.find(a => (a.id || a.atletaId) === atletaId);
+      if (found) {
+        const chaveSerie = `${provaId}__S${serie.numero}`;
+        if (cronometragemProvas[chaveSerie]) return cronometragemProvas[chaveSerie];
+        break;
+      }
+    }
+  }
+  return cronometragemProvas[provaId] || "ELE";
+};
+
+export { FASE_SUFIXOS, FASE_ORDEM, FASE_ANTERIOR, FASE_NOME, faseToSufixo, serKey, resKey, getGrupoKey, getFasesProva, getFasesModo, getEntradasProva, temMultiFases, buscarSeriacao, buscarResultado, resolverCronometragem };

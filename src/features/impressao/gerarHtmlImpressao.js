@@ -255,7 +255,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
       </div>
     </div>
     <div class="faixa">
-      <div class="faixa-nome">${"`"}${nomeProvaHtml(s.prova.nome.toUpperCase())}${"`"}${s.prova.origemCombinada ? ` <span style="font-size:10px;background:#0a1a2a;color:#1976D2;padding:2px 8px;border-radius:4px;margin-left:8px;font-weight:600">🏅 ${s.prova.nomeCombinada} (${s.prova.ordem}/${s.prova.totalProvas})</span>` : ""}${s.faseNome ? ` <span style="font-size:10px;padding:2px 8px;border-radius:4px;margin-left:8px;font-weight:700;background:${s.faseSufixo==="ELI"?"#fff3e0":s.faseSufixo==="SEM"?"#e0f0ff":"#e0ffe0"};color:${s.faseSufixo==="ELI"?"#c66a00":s.faseSufixo==="SEM"?"#1a5aaa":"#1a7a1a"};border:1px solid ${s.faseSufixo==="ELI"?"#e0a050":s.faseSufixo==="SEM"?"#5a8ace":"#5aaa5a"}">${s.faseNome}</span>` : ""}</div>
+      <div class="faixa-nome">${"`"}${nomeProvaHtml(s.prova.nome.toUpperCase())}${"`"}${s.prova.origemCombinada ? ` <span style="font-size:10px;background:#0a1a2a;color:#1976D2;padding:2px 8px;border-radius:4px;margin-left:8px;font-weight:600">🏅 ${s.prova.nomeCombinada} (${s.prova.ordem}/${s.prova.totalProvas})</span>` : ""}${s.faseNome ? ` <span style="font-size:10px;padding:2px 8px;border-radius:4px;margin-left:8px;font-weight:700;background:${s.faseSufixo==="ELI"?"#fff3e0":s.faseSufixo==="SEM"?"#e0f0ff":"#e0ffe0"};color:${s.faseSufixo==="ELI"?"#c66a00":s.faseSufixo==="SEM"?"#1a5aaa":"#1a7a1a"};border:1px solid ${s.faseSufixo==="ELI"?"#e0a050":s.faseSufixo==="SEM"?"#5a8ace":"#5aaa5a"}">${s.faseNome}</span>` : ""}${s.prova.unidade === "s" && (evento.cronometragemProvas || {})[s.prova.id] === "MAN" ? ` <span style="font-size:10px;padding:2px 8px;border-radius:4px;margin-left:8px;font-weight:700;background:#fff3e0;color:#c66a00;border:1px solid #e0a050">Cronometragem Manual</span>` : ""}</div>
       <div class="faixa-meta">
         <span class="b-cat">Categoria: ${"`"}${s.categoria.nome}${"`"}</span>
         <span class="b-sx" style="${"`"}background:${corSexo(s.sexo)}22;color:${corSexo(s.sexo)};border:1px solid ${corSexo(s.sexo)}44${"`"}">${"`"}${labelSexo(s.sexo)}${"`"}</span>
@@ -737,11 +737,13 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
             const lbl = temMultiSeries
               ? `${lblTipo} \u2014 S\u00c9RIE ${serie.numero} / ${nSer}`
               : (s.faseSufixo ? lblTipo : (isFinalTempo ? "FINAL" : "S\u00c9RIE \u00daNICA"));
+            const _cronoSerie = s.prova.unidade === "s" && (evento.cronometragemProvas || {})[`${s.prova.id}__S${serie.numero}`] === "MAN"
+              ? ` <span style="font-size:10px;padding:2px 8px;border-radius:4px;margin-left:8px;font-weight:700;background:#fff3e0;color:#c66a00;border:1px solid #e0a050">Cronometragem Manual</span>` : "";
 
             pags.push(`
               <div class="${pgClass(s)}">
                 ${cabPrv(s, numPag, null)}
-                <div class="blk ${isFinalTempo ? "blk-final" : "blk-semi"}">${lbl}<span class="blk-s">${atletasSerie.length} atleta${atletasSerie.length!==1?"s":""} \u00b7 RT 20.3</span></div>
+                <div class="blk ${isFinalTempo ? "blk-final" : "blk-semi"}">${lbl}${_cronoSerie}<span class="blk-s">${atletasSerie.length} atleta${atletasSerie.length!==1?"s":""} \u00b7 RT 20.3</span></div>
                 ${infoBarreiras}
                 <table><thead>${thCor}</thead><tbody>${atletasSerie.map(({atleta:a, raia}, j) => `
                   <tr class="${j%2===0?"par":"imp"}">
@@ -875,10 +877,12 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
               return { a: a2, m: null, status };
             });
             const lbl = nSer > 1 ? `${faseLabel} \u2014 S\u00c9RIE ${serie.numero} / ${nSer}` : `${faseLabel} \u2014 S\u00c9RIE \u00daNICA`;
+            const _cronoSerieRes = s.prova.unidade === "s" && (evento.cronometragemProvas || {})[`${s.prova.id}__S${serie.numero}`] === "MAN"
+              ? ` <span style="font-size:10px;padding:2px 8px;border-radius:4px;margin-left:8px;font-weight:700;background:#fff3e0;color:#c66a00;border:1px solid #e0a050">Cronometragem Manual</span>` : "";
             pags.push(`
               <div class="${pgClass(s)}">
                 ${cabPrv(s, numPag, null)}
-                <div class="blk blk-semi">${lbl}<span class="blk-s">${serie.atletas.length} atleta${serie.atletas.length!==1?"s":""}</span></div>
+                <div class="blk blk-semi">${lbl}${_cronoSerieRes}<span class="blk-s">${serie.atletas.length} atleta${serie.atletas.length!==1?"s":""}</span></div>
                 ${infoBarreiras}
                 <table><thead>${thCor}</thead><tbody>${serieOrd.map(({a,m},j)=>linhaRes(a,j,m,false,res[a.id])).join("")}${statusLinhas.map(({a,status},j)=>{
                   const jj = serieOrd.length + j;
@@ -952,11 +956,13 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
             numPag++;
             const serie = atl.slice(si*MAX_EFETIVO, (si+1)*MAX_EFETIVO);
             const lbl = temSemi ? `SEMIFINAL \u2014 S\u00c9RIE ${si+1} / ${totalSeries} \u00b7 APURADA` : "S\u00c9RIE \u00daNICA \u00b7 APURADA";
+            const _cronoSerieSemi = s.prova.unidade === "s" && (evento.cronometragemProvas || {})[`${s.prova.id}__S${si+1}`] === "MAN"
+              ? ` <span style="font-size:10px;padding:2px 8px;border-radius:4px;margin-left:8px;font-weight:700;background:#fff3e0;color:#c66a00;border:1px solid #e0a050">Cronometragem Manual</span>` : "";
             const serieOrd = [...serie].map((a)=>({a, m:res[a.id]!=null?parseFloat(getMarca(res[a.id])):null})).filter(x=>x.m!=null && !isNaN(x.m)).sort((a,b)=>a.m-b.m);
             pags.push(`
               <div class="${pgClass(s)}">
                 ${cabPrv(s, numPag, null)}
-                <div class="blk blk-semi">${lbl}<span class="blk-s">${serie.length} atleta${serie.length!==1?"s":""}</span></div>
+                <div class="blk blk-semi">${lbl}${_cronoSerieSemi}<span class="blk-s">${serie.length} atleta${serie.length!==1?"s":""}</span></div>
                 ${infoBarreiras}
                 <table><thead>${thCor}</thead><tbody>${serieOrd.map(({a,m},j)=>linhaRes(a,j,m,false,res[a.id])).join("")}${statusGeralPrint.filter(({a:sa}) => serie.some(s2=>s2.id===sa.id)).map(({a,status},j) => linhaStatus(a, status, serieOrd.length+j)).join("")}</tbody></table>
                 ${rodape(s)}
@@ -977,6 +983,209 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
           }
         }
       }
+
+      // ── SÚMULA MANUAL DE MARCHA ATLÉTICA (modelo CBAt Excel aprovado) ─────
+      // 36 colunas: A(1)+B(1)+C(1)=3 dorsais | D-AD(27)=9 blocos×3 (8 juízes + AB-AD)
+      // AE-AF(2)=DQ notif time | AG(1)+AH(1)+AI(1)=CHECK OF | AJ não usado = 36 total
+      // Rows: 2 título+logo | 2 dados | 4 nomes juízes | 1 números | 2 sub-header | 2×atleta | check
+      if (s.prova.tipo === "marcha" && !s.prova.origemCombinada && !s.isRevezamento) {
+        numPag++;
+        const LINHAS_EXTRAS = 4;
+        const atletasMarcha = atl.length > 0 ? atl : [];
+
+        // Estilos base
+        const _b = "border:.5pt solid #000;";
+        const _bb = "border:1pt solid #000;";
+        const _vt = "writing-mode:vertical-rl;white-space:pre-line;font-size:9px;font-weight:700;padding:3px 2px;line-height:1.3;text-align:center;";
+
+        // Colgroup reduzido 1/3 para caber em A4 landscape: A(14px) B(9px) C(23px) D-AJ(22px×33cols)
+        const colgroup = `<colgroup>` +
+          `<col style="width:14px"/>` +
+          `<col style="width:9px"/>` +
+          `<col style="width:23px"/>` +
+          Array.from({length:33}, () => `<col style="width:22px"/>`).join("") +
+          `</colgroup>`;
+
+        // Date formatting
+        const dataFmt = evento.data ? (() => { const d = new Date(evento.data + "T12:00:00"); return [String(d.getDate()).padStart(2,"0"), String(d.getMonth()+1).padStart(2,"0"), String(d.getFullYear())]; })() : ["","",""];
+
+        // Vertical text cell helper
+        const vtCell = (txt, rs, cs, extra) => {
+          const csAttr = cs > 1 ? ` colspan="${cs}"` : "";
+          return `<td rowspan="${rs}"${csAttr} style="${_bb}${extra||""}padding:0;overflow:hidden;text-align:center;vertical-align:middle;"><div style="${_vt}min-height:50px;">${txt}</div></td>`;
+        };
+
+        // ── Athlete rows (2 <tr> per athlete, matching Excel layout) ──
+        // Row 1: dorsal(cs3,rs2) + 8×[~(rs2) <(rs2) DQ(no rs)] + PIT(cs2,rs2) + NotDQ(cs2, row1 only) + DQtime(cs2,rs2) + AH(rs2) AI(rs2) AJ(rs2)
+        // Row 2: 8×[DQ] + NotDQ(cs2, row2 only)
+        // Col count row1: 3 + 8×3=24 + 2 + 2 + 2 + 3 = 36  (with rowspans from row1 occupying row2)
+        // Col count row2: 8×1=8 + 2 = 10  (rest from rowspans)
+        const duasLinhasAtleta = (a, idx) => {
+          const dorsal = a ? (numPeito[a.id] || "") : "";
+          const bg = idx % 2 === 0 ? "#fff" : "#f6f6f6";
+          const sty = `${_b}height:11px;background:${bg};font-size:7px;text-align:center;`;
+          const td = `<td style="${sty}"></td>`;
+          const tdRs = `<td rowspan="2" style="${sty}"></td>`;
+          // Each judge: ~ (rs2) + < (rs2) + DQ (no rs, only in row 1)
+          const judgeRow1 = (tdRs + tdRs + td);
+          // Row 2 for each judge: just the DQ cell
+          const judgeRow2 = td;
+          return `<tr>` +
+            `<td rowspan="2" colspan="3" style="${_b}font-weight:800;font-size:9px;color:#000;background:${bg};padding:1px 2px;text-align:center;vertical-align:middle;">${dorsal}</td>` +
+            judgeRow1.repeat(8) +
+            `<td rowspan="2" colspan="2" style="${sty}"></td>` +
+            `<td colspan="2" style="${sty}"></td>` +
+            `<td rowspan="2" colspan="2" style="${sty}"></td>` +
+            `${tdRs}${tdRs}${tdRs}` +
+          `</tr><tr>` +
+            judgeRow2.repeat(8) +
+            `<td colspan="2" style="${sty}"></td>` +
+          `</tr>`;
+        };
+
+        // ── CHECK PAGE (separator + 2 rows) ──
+        // Row 1: CHECKPAGE(cs3,rs2) + 8×(~ < DQ) + empty(cs6,rs2) + ~ < DQ
+        // Row 2: 8×(val val val) + val val val
+        // Col count row1: 3 + 24 + 6 + 3 = 36
+        // Col count row2: 24 + 3 = 27 (rest from rowspans)
+        const checkPageBlock = () => {
+          const bg = "background:#ddd;";
+          const td = (v) => `<td style="${_b}${bg}text-align:center;font-weight:700;font-size:7px;padding:1px;height:12px;">${v}</td>`;
+          const sym = td("~") + td("&lt;") + td("DQ");
+          const emp = td("");
+          return `<tr><td colspan="36" style="height:4.5pt;border:none;"></td></tr>` +
+            `<tr style="height:12px;">` +
+            `<td rowspan="2" colspan="3" style="${_b}${bg}font-size:6px;font-weight:800;padding:2px;text-align:center;vertical-align:middle;">CHECK<br>PAGE</td>` +
+            sym.repeat(8) +
+            `<td rowspan="2" colspan="6" style="${_b}${bg}"></td>` +
+            sym +
+          `</tr><tr style="height:12px;">` +
+            (emp + emp + emp).repeat(8) +
+            emp + emp + emp +
+          `</tr>`;
+        };
+
+        // ── CHECK TOTAL (separator + 2 rows) ──
+        const checkTotalBlock = () => {
+          const bg = "background:#bbb;";
+          const td = (v) => `<td style="${_b}${bg}text-align:center;font-weight:700;font-size:7px;padding:1px;height:12px;">${v}</td>`;
+          const sym = td("~") + td("&lt;") + td("DQ");
+          const emp = td("");
+          return `<tr><td colspan="36" style="height:4.5pt;border:none;"></td></tr>` +
+            `<tr style="height:12px;">` +
+            `<td rowspan="2" colspan="3" style="${_b}${bg}font-size:6px;font-weight:800;padding:2px;text-align:center;vertical-align:middle;">CHECK<br>TOTAL</td>` +
+            sym.repeat(8) +
+            sym +
+            `<td rowspan="2" colspan="3" style="${_b}${bg}"></td>` +
+            sym +
+          `</tr><tr style="height:12px;">` +
+            (emp + emp + emp).repeat(8) +
+            emp + emp + emp +
+            emp + emp + emp +
+          `</tr>`;
+        };
+
+        // ── Build the full page ──
+        pags.push(`
+          <div class="pg landscape" style="padding:5mm 5mm 16mm;">
+            <table style="border-collapse:collapse;width:100%;table-layout:fixed;font-size:7px;">
+              ${colgroup}
+              <thead>
+                <!-- Rows 1-2: Logo left (cs8,rs2) + Title (cs20,rs2) + Logo right (cs8,rs2) -->
+                <tr style="height:15pt;">
+                  <td colspan="8" rowspan="2" style="border:none;text-align:center;vertical-align:middle;padding:2px;">
+                    ${evento.logoCabecalho ? `<img src="${evento.logoCabecalho}" alt="" style="max-height:28px;max-width:80px;object-fit:contain;"/>` : ""}
+                  </td>
+                  <td colspan="20" rowspan="2" style="border:none;text-align:center;vertical-align:middle;font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:2px;">
+                    REGISTRO E CONTROLE DAS INFORMA\u00c7\u00d5ES DOS JU\u00cdZES DE MARCHA
+                  </td>
+                  <td colspan="8" rowspan="2" style="border:none;text-align:center;vertical-align:middle;padding:2px;">
+                    ${evento.logoCabecalhoDireito ? `<img src="${evento.logoCabecalhoDireito}" alt="" style="max-height:28px;max-width:80px;object-fit:contain;"/>` : ""}
+                  </td>
+                </tr>
+                <tr style="height:15pt;"></tr>
+
+                <!-- Row 3: DATA(cs4) + empty(cs5) + HORA(cs2) + empty(1) + EVENTO+PROVA(cs12,rs2) + JUIZ-CHEFE(cs12,rs2) -->
+                <tr style="height:15pt;">
+                  <td colspan="4" style="${_b}font-weight:800;font-size:7px;text-align:center;vertical-align:middle;background:#e8e8e8;padding:1px;">DATA</td>
+                  <td colspan="5" style="border:none;border-top:.5pt solid #000;background:#e8e8e8;padding:1px;"></td>
+                  <td colspan="3" style="${_b}font-weight:800;font-size:7px;text-align:center;vertical-align:middle;background:#e8e8e8;padding:1px;">HORA</td>
+                  <td colspan="12" rowspan="2" style="${_b}font-weight:800;font-size:7px;background:#e8e8e8;padding:2px 4px;text-align:center;vertical-align:middle;">EVENTO: ${evento.nome}<br>PROVA: ${nomeProvaHtml(s.prova.nome)} ${s.sexo === "M" ? "Masculino" : "Feminino"} - ${s.categoria.nome}</td>
+                  <td colspan="12" rowspan="2" style="${_b}font-weight:800;font-size:7px;background:#e8e8e8;padding:2px 4px;text-align:left;vertical-align:top;">JUIZ-CHEFE: NOME E ASSINATURA</td>
+                </tr>
+                <!-- Row 4: day(cs2) + month + year + 5 empty + time(cs2) + empty -->
+                <tr style="height:15pt;">
+                  <td colspan="2" style="${_b}padding:1px 3px;font-weight:700;font-size:9px;text-align:center;">${dataFmt[0]}</td>
+                  <td style="${_b}padding:1px 3px;font-weight:700;font-size:9px;text-align:center;">${dataFmt[1]}</td>
+                  <td style="${_b}padding:1px 3px;font-weight:700;font-size:9px;text-align:center;">${dataFmt[2]}</td>
+                  <td colspan="5" style="border:none;padding:1px;"></td>
+                  <td colspan="3" style="${_b}padding:1px;font-size:9px;font-weight:700;text-align:center;">${evento.hora || ""}</td>
+                </tr>
+
+                <!-- Rows 5-8: Nome do Juiz (cs3,rs4) + 8× judge name (cs3,rs4,vertical) + PIT Line(cs2,rs5,vert) + Juiz-Chefe(cs2,rs5,vert) + DQ notif(cs2,rs5,vert) + CHECK OF(cs3,rs5,vert) -->
+                <tr style="height:15pt;">
+                  <td colspan="3" rowspan="4" style="${_bb}background:#e8e8e8;padding:0;overflow:hidden;text-align:center;vertical-align:middle;"><div style="${_vt}min-height:45px;">Nome do Juiz</div></td>
+                  ${[1,2,3,4,5,6,7,8].map(() => `<td colspan="3" rowspan="4" style="${_bb}padding:0;overflow:hidden;text-align:center;vertical-align:middle;"><div style="${_vt}min-height:45px;font-weight:400;color:#999;">Nome<br>Registro</div></td>`).join("")}
+                  ${vtCell("PIT Line", 5, 2, "")}
+                  ${vtCell("Juiz-Chefe", 5, 2, "")}
+                  ${vtCell("DQ notifica\u00e7\u00e3o", 5, 2, "")}
+                  ${vtCell("CHECK OF ADVERT\u00caNCIAS E<br>DESCLASSIFICA\u00c7\u00d5ES", 5, 3, "")}
+                </tr>
+                <tr style="height:15pt;"></tr>
+                <tr style="height:15pt;"></tr>
+                <tr style="height:15pt;"></tr>
+
+                <!-- Row 9: Número(cs3) + 8× judge number (cs3, values 1-8) -->
+                <!-- PIT/Juiz-Chefe/DQ/CHECK still spanning from rows 5-8 -->
+                <tr>
+                  <td colspan="3" style="${_b}font-size:7px;padding:1px;font-weight:700;text-align:center;">N\u00famero</td>
+                  ${[1,2,3,4,5,6,7,8].map(n => `<td colspan="3" style="${_b}font-size:7px;padding:1px;font-weight:700;text-align:center;">${n}</td>`).join("")}
+                </tr>
+
+                <!-- Row 10: Atletas(cs3,rs2) + 8×[Advertência(cs2) + DQ(rs2)] + Time(cs2,rs2) + Not.DQ(cs2) + Time(cs2,rs2) + ~(rs2) + <(rs2) + DQ(rs2) -->
+                <tr>
+                  <td rowspan="2" colspan="3" style="${_b}font-size:7px;padding:1px;font-weight:700;text-align:center;">Atletas</td>
+                  ${Array.from({length:8}, () => `<td colspan="2" style="${_b}font-size:6px;padding:1px;font-weight:700;text-align:center;">Advert\u00eancia</td><td rowspan="2" style="${_b}font-size:6px;padding:1px;font-weight:700;text-align:center;">DQ</td>`).join("")}
+                  <td rowspan="2" colspan="2" style="${_b}font-size:6px;padding:1px;font-weight:700;text-align:center;">Time</td>
+                  <td colspan="2" style="${_b}font-size:6px;padding:1px;font-weight:700;text-align:center;">Not. DQ</td>
+                  <td rowspan="2" colspan="2" style="${_b}font-size:6px;padding:1px;font-weight:700;text-align:center;">Time</td>
+                  <td rowspan="2" style="${_b}font-size:10px;padding:1px;font-weight:800;text-align:center;">~</td>
+                  <td rowspan="2" style="${_b}font-size:10px;padding:1px;font-weight:800;text-align:center;">&lt;</td>
+                  <td rowspan="2" style="${_b}font-size:6px;padding:1px;font-weight:700;text-align:center;">DQ</td>
+                </tr>
+                <!-- Row 11: 8×[~ <] + Hora(cs2) -->
+                <tr>
+                  ${Array.from({length:8}, () => `<td style="${_b}font-size:10px;padding:1px;font-weight:800;text-align:center;">~</td><td style="${_b}font-size:10px;padding:1px;font-weight:800;text-align:center;">&lt;</td>`).join("")}
+                  <td colspan="2" style="${_b}font-size:6px;padding:1px;font-weight:700;text-align:center;">Hora</td>
+                </tr>
+              </thead>
+              <tbody>
+                ${atletasMarcha.map((a, idx) => duasLinhasAtleta(a, idx)).join("")}
+                ${Array.from({ length: LINHAS_EXTRAS }, (_, idx) => duasLinhasAtleta(null, atletasMarcha.length + idx)).join("")}
+                ${checkPageBlock()}
+                ${checkTotalBlock()}
+              </tbody>
+            </table>
+
+            <div class="rod-wrap">
+              <div class="rod">
+                <div class="rod-assinaturas" style="justify-content:space-between;">
+                  <div class="rod-ass"><div class="rod-ln"></div><div class="rod-lb">\u00c1rbitro Respons\u00e1vel</div></div>
+                  <div class="rod-ass"><div class="rod-ln" style="width:160px;"></div><div class="rod-lb">SECRET\u00c1RIO(A): NOME E ASSINATURA</div></div>
+                </div>
+                <div class="rod-info">
+                  <div>Gerado em: ${dataGeracao}</div>
+                  <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:0;margin-bottom:0;">
+                    <span>Plataforma de Competi\u00e7\u00f5es -</span>
+                    <img src="${_gtLogo}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7;vertical-align:middle;" />
+                  </div>
+                </div>
+              </div>
+              ${evento.logoRodape ? `<div style="margin-top:1px;text-align:center;"><img src="${evento.logoRodape}" alt="" style="max-width:100%;max-height:18mm;object-fit:contain;"/></div>` : ""}
+            </div>
+          </div>`);
+      }
+
     } else {
       // ── CAMPO ──────────────────────────────────────────────────────────────────
       // Identifica se é Salto em Altura ou com Vara (layout de barras progressivas)
