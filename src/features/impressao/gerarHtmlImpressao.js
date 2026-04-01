@@ -1173,28 +1173,28 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
                 </tr>
 
                 <!-- Rows 5-8: Nome do Juiz (cs3,rs4) + 8× judge name (cs3,rs4,vertical) + PIT Line(cs2,rs5,vert) + Juiz-Chefe(cs2,rs5,vert) + DQ notif(cs2,rs5,vert) + CHECK OF(cs3,rs5,vert) -->
-                <tr style="height:12pt;">
-                  <td colspan="3" rowspan="4" style="${_bb}background:#e8e8e8;padding:0;overflow:hidden;text-align:center;vertical-align:middle;"><div style="${_vt}min-height:36px;">Nome do Juiz</div></td>
+                <tr style="height:14pt;">
+                  <td colspan="3" rowspan="4" style="${_bb}background:#e8e8e8;padding:0;overflow:hidden;text-align:center;vertical-align:middle;"><div style="${_vt}min-height:44px;">Nome do Juiz</div></td>
                   ${[0,1,2,3,4,5,6,7].map(idx => {
                     const jz = marchaJuizes[idx] || {};
                     const txt = jz.nome ? `${jz.nome}${jz.registro ? "<br>" + jz.registro : ""}` : "Nome<br>Registro";
                     const cor = jz.nome ? "color:#000;font-weight:700;" : "font-weight:400;color:#999;";
-                    return `<td colspan="3" rowspan="4" style="${_bb}padding:0;overflow:hidden;text-align:center;vertical-align:middle;"><div style="writing-mode:vertical-rl;white-space:pre-line;font-size:7px;font-weight:700;padding:2px 1px;line-height:1.2;text-align:center;word-break:break-word;min-height:36px;${cor}">${txt}</div></td>`;
+                    return `<td colspan="3" rowspan="4" style="${_bb}padding:0;overflow:hidden;text-align:center;vertical-align:middle;"><div style="writing-mode:vertical-rl;white-space:pre-line;font-size:7px;font-weight:700;padding:2px 1px;line-height:1.2;text-align:center;word-break:break-word;min-height:44px;${cor}">${txt}</div></td>`;
                   }).join("")}
                   ${vtCell("PIT Line", 5, 2, "")}
                   ${vtCell("Juiz-Chefe", 5, 2, "")}
                   ${vtCell("DQ notifica\u00e7\u00e3o", 5, 2, "")}
                   ${vtCell("CHECK OF ADVERT\u00caNCIAS E<br>DESCLASSIFICA\u00c7\u00d5ES", 5, 3, "")}
                 </tr>
-                <tr style="height:12pt;"></tr>
-                <tr style="height:12pt;"></tr>
-                <tr style="height:12pt;"></tr>
+                <tr style="height:14pt;"></tr>
+                <tr style="height:14pt;"></tr>
+                <tr style="height:14pt;"></tr>
 
                 <!-- Row 9: Número(cs3) + 8× judge number (cs3, values 1-8) -->
                 <!-- PIT/Juiz-Chefe/DQ/CHECK still spanning from rows 5-8 -->
-                <tr>
-                  <td colspan="3" style="${_b}font-size:7px;padding:1px;font-weight:700;text-align:center;">N\u00famero</td>
-                  ${[1,2,3,4,5,6,7,8].map(n => `<td colspan="3" style="${_b}font-size:7px;padding:1px;font-weight:700;text-align:center;">${n}</td>`).join("")}
+                <tr style="height:10px;">
+                  <td colspan="3" style="${_b}font-size:6px;padding:0 1px;font-weight:700;text-align:center;height:10px;">N\u00famero</td>
+                  ${[1,2,3,4,5,6,7,8].map(n => `<td colspan="3" style="${_b}font-size:7px;padding:0 1px;font-weight:700;text-align:center;height:10px;">${n}</td>`).join("")}
                 </tr>
 
                 <!-- Row 10: Atletas(cs3,rs2) + 8×[Advertência(cs2) + DQ(rs2)] + Time(cs2,rs2) + Not.DQ(cs2) + Time(cs2,rs2) + ~(rs2) + <(rs2) + DQ(rs2) -->
