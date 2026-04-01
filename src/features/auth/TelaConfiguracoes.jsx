@@ -1630,7 +1630,7 @@ O QUE VOCÊ PODE FAZER:
 • Você pode exercer seus direitos de titular previstos no Art. 18 da LGPD.
 
 CONTATO DO ENCARREGADO (DPO):
-E-mail: gerentrack@gmail.com
+E-mail: atendimento@gerentrack.com.br
 
 Lamentamos o ocorrido e reafirmamos nosso compromisso com a proteção dos seus dados.
 
@@ -1646,7 +1646,7 @@ DATA DO INCIDENTE: ${incDataDesc || "A confirmar"}
 
 1. IDENTIFICAÇÃO DO CONTROLADOR
    Nome/Razão Social: GerenTrack
-   E-mail: gerentrack@gmail.com
+   E-mail: atendimento@gerentrack.com.br
 
 2. NATUREZA DO INCIDENTE
 ${tiposSelecionados.length > 0 ? tiposSelecionados.map(ts => `   • ${ts}`).join("\n") : "   • A ser detalhado"}

@@ -309,7 +309,7 @@ function App() {
   // ⚠️ SEGURANÇA: senha do admin gerenciada pelo Firebase Auth.
   // adminConfig guarda apenas email/nome — sem senha local.
   const [adminConfig, setAdminConfig] = useLocalOnly("gt_admin_config", {
-    email: "gerentrack@gmail.com",
+    email: "atendimento@gerentrack.com.br",
     nome: "Administrador",
     configurado: true, // Firebase Auth é a fonte de verdade
   });

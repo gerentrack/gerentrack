@@ -42,7 +42,7 @@ function BlocoLGPD({ aceite, onChange, erro }) {
               <p style={{ marginBottom:10 }}><strong style={{ color: t.textPrimary }}>8. Segurança</strong><br/>
               Utilizamos autenticação via Firebase Auth e armazenamento seguro no Firestore. Dados sensíveis (senhas) nunca são armazenados localmente.</p>
               <p style={{ marginBottom:0 }}><strong style={{ color: t.textPrimary }}>9. Contato</strong><br/>
-              Para exercer seus direitos ou tirar dúvidas: <span style={{ color: t.accent }}>gerentrack@gmail.com</span></p>
+              Para exercer seus direitos ou tirar dúvidas: <span style={{ color: t.accent }}>atendimento@gerentrack.com.br</span></p>
             </div>
             <button style={{ marginTop:20, background:t.accent, color:"#fff", border:"none",
               borderRadius:8, padding:"10px 24px", cursor:"pointer", fontSize:13, fontWeight:700,
