@@ -926,8 +926,9 @@ function TelaPainelOrganizador() {
                         <Td style={{ fontSize:11, color: t.textMuted }}>
                           {sol.resolvidoPorNome || "—"} {sol.resolvidoPorTipo ? `(${sol.resolvidoPorTipo})` : ""}
                         </Td>
-                        <Td style={{ fontSize:11, color: t.textDimmed }}>
-                          {sol.resolvidoEm ? new Date(sol.resolvidoEm).toLocaleString("pt-BR") : new Date(sol.data).toLocaleString("pt-BR")}
+                        <Td style={{ fontSize:10, color: t.textDimmed, lineHeight: 1.6 }}>
+                          <div>Solicitado: {new Date(sol.data).toLocaleString("pt-BR")}</div>
+                          {sol.resolvidoEm && <div>Resolvido: {new Date(sol.resolvidoEm).toLocaleString("pt-BR")}</div>}
                         </Td>
                       </tr>
                     );
