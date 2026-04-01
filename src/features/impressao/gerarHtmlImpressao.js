@@ -1137,26 +1137,26 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
 
         // ── Build the full page ──
         pags.push(`
-          <div class="pg landscape" style="padding:5mm 5mm 16mm;">
+          <div class="pg landscape" style="padding:4mm 5mm 4mm;">
             <table style="border-collapse:collapse;width:100%;table-layout:fixed;font-size:7px;">
               ${colgroup}
               <thead>
                 <!-- Rows 1-2: Logo left (cs8,rs2) + Title (cs20,rs2) + Logo right (cs8,rs2) -->
-                <tr style="height:15pt;">
-                  <td colspan="8" rowspan="2" style="border:none;text-align:center;vertical-align:middle;padding:2px;">
-                    ${evento.logoCabecalho ? `<img src="${evento.logoCabecalho}" alt="" style="max-height:28px;max-width:80px;object-fit:contain;"/>` : ""}
+                <tr style="height:12pt;">
+                  <td colspan="8" rowspan="2" style="border:none;text-align:center;vertical-align:middle;padding:1px;">
+                    ${evento.logoCabecalho ? `<img src="${evento.logoCabecalho}" alt="" style="max-height:22px;max-width:70px;object-fit:contain;"/>` : ""}
                   </td>
-                  <td colspan="20" rowspan="2" style="border:none;text-align:center;vertical-align:middle;font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:2px;">
+                  <td colspan="20" rowspan="2" style="border:none;text-align:center;vertical-align:middle;font-size:8px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:1px;">
                     REGISTRO E CONTROLE DAS INFORMA\u00c7\u00d5ES DOS JU\u00cdZES DE MARCHA
                   </td>
-                  <td colspan="8" rowspan="2" style="border:none;text-align:center;vertical-align:middle;padding:2px;">
-                    ${evento.logoCabecalhoDireito ? `<img src="${evento.logoCabecalhoDireito}" alt="" style="max-height:28px;max-width:80px;object-fit:contain;"/>` : ""}
+                  <td colspan="8" rowspan="2" style="border:none;text-align:center;vertical-align:middle;padding:1px;">
+                    ${evento.logoCabecalhoDireito ? `<img src="${evento.logoCabecalhoDireito}" alt="" style="max-height:22px;max-width:70px;object-fit:contain;"/>` : ""}
                   </td>
                 </tr>
-                <tr style="height:15pt;"></tr>
+                <tr style="height:12pt;"></tr>
 
                 <!-- Row 3: DATA(cs4) + empty(cs5) + HORA(cs2) + empty(1) + EVENTO+PROVA(cs12,rs2) + JUIZ-CHEFE(cs12,rs2) -->
-                <tr style="height:15pt;">
+                <tr style="height:12pt;">
                   <td colspan="4" style="${_b}font-weight:800;font-size:7px;text-align:center;vertical-align:middle;background:#e8e8e8;padding:1px;">DATA</td>
                   <td colspan="5" style="border:none;border-top:.5pt solid #000;background:#e8e8e8;padding:1px;"></td>
                   <td colspan="3" style="${_b}font-weight:800;font-size:7px;text-align:center;vertical-align:middle;background:#e8e8e8;padding:1px;">HORA</td>
@@ -1164,7 +1164,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
                   <td colspan="12" rowspan="2" style="${_b}font-weight:800;font-size:7px;background:#e8e8e8;padding:2px 4px;text-align:left;vertical-align:top;">JUIZ-CHEFE: NOME E ASSINATURA${marchaDoc.juizChefe?.nome ? "<br>" + marchaDoc.juizChefe.nome : ""}</td>
                 </tr>
                 <!-- Row 4: day(cs2) + month + year + 5 empty + time(cs2) + empty -->
-                <tr style="height:15pt;">
+                <tr style="height:12pt;">
                   <td colspan="2" style="${_b}padding:1px 3px;font-weight:700;font-size:9px;text-align:center;">${dataFmt[0]}</td>
                   <td style="${_b}padding:1px 3px;font-weight:700;font-size:9px;text-align:center;">${dataFmt[1]}</td>
                   <td style="${_b}padding:1px 3px;font-weight:700;font-size:9px;text-align:center;">${dataFmt[2]}</td>
@@ -1173,22 +1173,22 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
                 </tr>
 
                 <!-- Rows 5-8: Nome do Juiz (cs3,rs4) + 8× judge name (cs3,rs4,vertical) + PIT Line(cs2,rs5,vert) + Juiz-Chefe(cs2,rs5,vert) + DQ notif(cs2,rs5,vert) + CHECK OF(cs3,rs5,vert) -->
-                <tr style="height:15pt;">
-                  <td colspan="3" rowspan="4" style="${_bb}background:#e8e8e8;padding:0;overflow:hidden;text-align:center;vertical-align:middle;"><div style="${_vt}min-height:45px;">Nome do Juiz</div></td>
+                <tr style="height:12pt;">
+                  <td colspan="3" rowspan="4" style="${_bb}background:#e8e8e8;padding:0;overflow:hidden;text-align:center;vertical-align:middle;"><div style="${_vt}min-height:36px;">Nome do Juiz</div></td>
                   ${[0,1,2,3,4,5,6,7].map(idx => {
                     const jz = marchaJuizes[idx] || {};
                     const txt = jz.nome ? `${jz.nome}${jz.registro ? "<br>" + jz.registro : ""}` : "Nome<br>Registro";
                     const cor = jz.nome ? "color:#000;font-weight:700;" : "font-weight:400;color:#999;";
-                    return `<td colspan="3" rowspan="4" style="${_bb}padding:0;overflow:hidden;text-align:center;vertical-align:middle;"><div style="writing-mode:vertical-rl;white-space:pre-line;font-size:7px;font-weight:700;padding:2px 1px;line-height:1.2;text-align:center;word-break:break-word;min-height:45px;${cor}">${txt}</div></td>`;
+                    return `<td colspan="3" rowspan="4" style="${_bb}padding:0;overflow:hidden;text-align:center;vertical-align:middle;"><div style="writing-mode:vertical-rl;white-space:pre-line;font-size:7px;font-weight:700;padding:2px 1px;line-height:1.2;text-align:center;word-break:break-word;min-height:36px;${cor}">${txt}</div></td>`;
                   }).join("")}
                   ${vtCell("PIT Line", 5, 2, "")}
                   ${vtCell("Juiz-Chefe", 5, 2, "")}
                   ${vtCell("DQ notifica\u00e7\u00e3o", 5, 2, "")}
                   ${vtCell("CHECK OF ADVERT\u00caNCIAS E<br>DESCLASSIFICA\u00c7\u00d5ES", 5, 3, "")}
                 </tr>
-                <tr style="height:15pt;"></tr>
-                <tr style="height:15pt;"></tr>
-                <tr style="height:15pt;"></tr>
+                <tr style="height:12pt;"></tr>
+                <tr style="height:12pt;"></tr>
+                <tr style="height:12pt;"></tr>
 
                 <!-- Row 9: Número(cs3) + 8× judge number (cs3, values 1-8) -->
                 <!-- PIT/Juiz-Chefe/DQ/CHECK still spanning from rows 5-8 -->
