@@ -2072,6 +2072,7 @@ function BlocoDigitarCategoria({
                   numeracaoPeito={numeracaoPeito}
                   equipes={equipes}
                   getMarchaProva={marchaHook.getMarchaProva}
+                  salvarDocCompleto={marchaHook.salvarDocCompleto}
                   salvarCampoAtleta={marchaHook.salvarCampoAtleta}
                   salvarJuizes={marchaHook.salvarJuizes}
                   uploadAnexo={marchaHook.uploadAnexo}

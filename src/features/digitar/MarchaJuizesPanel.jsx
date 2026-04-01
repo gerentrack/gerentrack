@@ -3,8 +3,7 @@
  * Painel colapsável para preenchimento digital da súmula de juízes de marcha atlética.
  * Renderizado dentro de TelaDigitarResultados quando prova.tipo === "marcha".
  *
- * Estrutura fiel ao modelo CBAt: 8 juízes, 2 linhas por atleta, ~/</DQ,
- * PIT Lane, Juiz-Chefe, DQ notificação, CHECK OF com totais automáticos.
+ * Salva manualmente via botão "Salvar" (documento completo de uma vez).
  */
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
@@ -14,16 +13,84 @@ import { calcMarchaTotals } from "../../hooks/useMarchaJuizes";
 export default function MarchaJuizesPanel({
   eid, filtroProva, catId, filtroSexo,
   atletasNaProva, numeracaoPeito, equipes,
-  getMarchaProva, salvarCampoAtleta, salvarJuizes, uploadAnexo, removerAnexo,
+  getMarchaProva, salvarDocCompleto, salvarCampoAtleta, salvarJuizes, uploadAnexo, removerAnexo,
   atualizarResultadosEmLote, resultados, faseEfetiva,
 }) {
   const t = useTema();
   const [aberto, setAberto] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [salvo, setSalvo] = useState(false);
+  const [salvando, setSalvando] = useState(false);
 
   const marchaDoc = getMarchaProva(filtroProva, catId, filtroSexo);
-  const juizes = marchaDoc.juizes || Array.from({ length: 8 }, () => ({ nome: "", registro: "" }));
-  const dados = marchaDoc.dados || {};
+
+  // ── Estado local (edição livre, salva só no botão) ──
+  const [localJuizes, setLocalJuizes] = useState(marchaDoc.juizes || Array.from({ length: 8 }, () => ({ nome: "", registro: "" })));
+  const [localChefe, setLocalChefe] = useState(marchaDoc.juizChefe?.nome || "");
+  const [localSecretario, setLocalSecretario] = useState(marchaDoc.secretario?.nome || "");
+  const [localDados, setLocalDados] = useState(marchaDoc.dados || {});
+  const [dirty, setDirty] = useState(false);
+
+  // Sincronizar estado local quando a prova/cat/sexo mudar ou dados do Firestore chegarem
+  const chaveRef = useRef(`${filtroProva}_${catId}_${filtroSexo}`);
+  useEffect(() => {
+    const novaChave = `${filtroProva}_${catId}_${filtroSexo}`;
+    if (novaChave !== chaveRef.current || !dirty) {
+      chaveRef.current = novaChave;
+      const doc = getMarchaProva(filtroProva, catId, filtroSexo);
+      setLocalJuizes(doc.juizes || Array.from({ length: 8 }, () => ({ nome: "", registro: "" })));
+      setLocalChefe(doc.juizChefe?.nome || "");
+      setLocalSecretario(doc.secretario?.nome || "");
+      setLocalDados(doc.dados || {});
+      setDirty(false);
+      setSalvo(false);
+    }
+  }, [filtroProva, catId, filtroSexo, getMarchaProva, dirty]);
+
+  // ── Helpers de edição local ──
+  const editarCampoAtleta = useCallback((atletaId, campo, valor) => {
+    setLocalDados(prev => {
+      const ad = { ...(prev[atletaId] || {}) };
+      const parts = campo.split(".");
+      if (parts.length === 2) {
+        const jKey = parts[0];
+        const fKey = parts[1];
+        ad[jKey] = { ...(ad[jKey] || {}), [fKey]: valor };
+      } else {
+        ad[campo] = valor;
+      }
+      return { ...prev, [atletaId]: ad };
+    });
+    setDirty(true);
+    setSalvo(false);
+  }, []);
+
+  const editarJuiz = useCallback((idx, campo, valor) => {
+    setLocalJuizes(prev => {
+      const novos = [...prev];
+      while (novos.length < 8) novos.push({ nome: "", registro: "" });
+      novos[idx] = { ...novos[idx], [campo]: valor };
+      return novos;
+    });
+    setDirty(true);
+    setSalvo(false);
+  }, []);
+
+  // ── Salvar tudo ──
+  const handleSalvar = useCallback(async () => {
+    setSalvando(true);
+    const docCompleto = {
+      juizes: localJuizes,
+      juizChefe: { nome: localChefe },
+      secretario: { nome: localSecretario },
+      dados: localDados,
+    };
+    await salvarDocCompleto(filtroProva, catId, filtroSexo, docCompleto);
+    setDirty(false);
+    setSalvo(true);
+    setSalvando(false);
+    setTimeout(() => setSalvo(false), 4000);
+  }, [localJuizes, localChefe, localSecretario, localDados, filtroProva, catId, filtroSexo, salvarDocCompleto]);
 
   // ── Estilos ──
   const panelSt = { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, marginTop: 16, overflow: "hidden" };
@@ -38,35 +105,19 @@ export default function MarchaJuizesPanel({
 
   // ── Contagem de atletas com alertas ──
   const alertCount = atletasNaProva.filter(a => {
-    const totals = calcMarchaTotals(dados[a.id]);
+    const totals = calcMarchaTotals(localDados[a.id]);
     return totals.dqs >= 3;
   }).length;
 
-  // ── Handler para salvar campo individual no blur ──
-  const handleBlur = useCallback((atletaId, campo, valor) => {
-    salvarCampoAtleta(filtroProva, catId, filtroSexo, atletaId, campo, valor);
-  }, [filtroProva, catId, filtroSexo, salvarCampoAtleta]);
-
   // ── Handler para aplicar DQ no resultado ──
   const handleAplicarDq = useCallback(async (atletaId) => {
-    const chave = faseEfetiva
-      ? `${eid}_${filtroProva}_${catId}_${filtroSexo}__${faseEfetiva}`
-      : `${eid}_${filtroProva}_${catId}_${filtroSexo}`;
     await atualizarResultadosEmLote(eid, filtroProva, catId, filtroSexo, faseEfetiva, [{
       atletaId,
       marca: "DQ",
       tentData: {},
-      statusData: { status: "DQ", dqRegra: "TR 54.7 (3 cart\u00f5es vermelhos)" },
+      statusData: { status: "DQ", dqRegra: "TR 54.7 (3 cartões vermelhos)" },
     }]);
   }, [eid, filtroProva, catId, filtroSexo, faseEfetiva, atualizarResultadosEmLote]);
-
-  // ── Handler para salvar nomes dos juízes ──
-  const handleSalvarJuiz = useCallback((idx, campo, valor) => {
-    const novos = [...juizes];
-    while (novos.length < 8) novos.push({ nome: "", registro: "" });
-    novos[idx] = { ...novos[idx], [campo]: valor };
-    salvarJuizes(filtroProva, catId, filtroSexo, { juizes: novos });
-  }, [juizes, filtroProva, catId, filtroSexo, salvarJuizes]);
 
   // ── Handler para upload ──
   const handleUpload = useCallback(async (e) => {
@@ -86,12 +137,13 @@ export default function MarchaJuizesPanel({
       <div style={panelSt}>
         <div style={headerSt} onClick={() => setAberto(true)}>
           <span style={titleSt}>
-            📋 S\u00famula de Ju\u00edzes de Marcha
+            📋 Súmula de Juízes de Marcha
             {alertCount > 0 && (
               <span style={{ marginLeft: 8, fontSize: 11, padding: "2px 8px", borderRadius: 4, fontWeight: 700, background: `${t.danger}15`, color: t.danger }}>
                 {alertCount} DQ
               </span>
             )}
+            {dirty && <span style={{ marginLeft: 8, fontSize: 11, color: t.warning, fontWeight: 700 }}>● não salvo</span>}
           </span>
           <span style={{ fontSize: 12, color: t.textMuted }}>▼ Expandir</span>
         </div>
@@ -108,37 +160,58 @@ export default function MarchaJuizesPanel({
     <div style={panelSt}>
       <div style={headerSt} onClick={() => setAberto(false)}>
         <span style={titleSt}>
-          📋 S\u00famula de Ju\u00edzes de Marcha
+          📋 Súmula de Juízes de Marcha
           {alertCount > 0 && (
             <span style={{ marginLeft: 8, fontSize: 11, padding: "2px 8px", borderRadius: 4, fontWeight: 700, background: `${t.danger}15`, color: t.danger }}>
               {alertCount} DQ
             </span>
           )}
+          {dirty && <span style={{ marginLeft: 8, fontSize: 11, color: t.warning, fontWeight: 700 }}>● não salvo</span>}
         </span>
         <span style={{ fontSize: 12, color: t.textMuted }}>▲ Recolher</span>
       </div>
 
       <div style={{ padding: "14px 16px" }}>
+        {/* ═══ BOTÃO SALVAR (topo) ═══ */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+          <button
+            onClick={handleSalvar}
+            disabled={salvando || !dirty}
+            style={{
+              background: dirty ? `linear-gradient(135deg, ${t.accent}, ${t.accentDark || t.accent})` : t.bgHeaderSolid,
+              color: dirty ? "#fff" : t.textDisabled,
+              border: dirty ? "none" : `1px solid ${t.border}`,
+              borderRadius: 8, padding: "10px 28px", fontSize: 14, fontWeight: 700,
+              cursor: dirty ? "pointer" : "default", opacity: salvando ? 0.6 : 1,
+              fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5,
+            }}
+          >
+            {salvando ? "Salvando..." : "💾 Salvar Súmula"}
+          </button>
+          {salvo && <span style={{ color: t.success, fontSize: 13, fontWeight: 700 }}>✅ Salvo com sucesso!</span>}
+          {dirty && !salvo && <span style={{ color: t.warning, fontSize: 12 }}>Alterações não salvas</span>}
+        </div>
+
         {/* ═══ SEÇÃO 1: Nomes dos Juízes ═══ */}
         <div style={{ marginBottom: 16 }}>
-          <div style={{ ...lblSm, marginBottom: 8, fontSize: 11 }}>Ju\u00edzes de Marcha</div>
+          <div style={{ ...lblSm, marginBottom: 8, fontSize: 11 }}>Juízes de Marcha</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
             {[0,1,2,3,4,5,6,7].map(idx => (
               <div key={idx} style={{ background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 6, padding: "6px 8px" }}>
                 <div style={{ fontSize: 9, color: t.textMuted, fontWeight: 700, marginBottom: 3 }}>Juiz {idx + 1}</div>
-                <input style={{ ...inputNome, marginBottom: 3 }} placeholder="Nome" defaultValue={juizes[idx]?.nome || ""} onBlur={ev => handleSalvarJuiz(idx, "nome", ev.target.value)} />
-                <input style={{ ...inputNome, fontSize: 10, color: t.textTertiary }} placeholder="Registro CBAt" defaultValue={juizes[idx]?.registro || ""} onBlur={ev => handleSalvarJuiz(idx, "registro", ev.target.value)} />
+                <input style={{ ...inputNome, marginBottom: 3 }} placeholder="Nome" value={localJuizes[idx]?.nome || ""} onChange={ev => editarJuiz(idx, "nome", ev.target.value)} />
+                <input style={{ ...inputNome, fontSize: 10, color: t.textTertiary }} placeholder="Registro CBAt" value={localJuizes[idx]?.registro || ""} onChange={ev => editarJuiz(idx, "registro", ev.target.value)} />
               </div>
             ))}
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
             <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 6, padding: "6px 8px" }}>
               <div style={{ fontSize: 9, color: t.textMuted, fontWeight: 700, marginBottom: 3 }}>Juiz-Chefe</div>
-              <input style={inputNome} placeholder="Nome e Registro" defaultValue={marchaDoc.juizChefe?.nome || ""} onBlur={ev => salvarJuizes(filtroProva, catId, filtroSexo, { juizChefe: { nome: ev.target.value } })} />
+              <input style={inputNome} placeholder="Nome e Registro" value={localChefe} onChange={ev => { setLocalChefe(ev.target.value); setDirty(true); setSalvo(false); }} />
             </div>
             <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 6, padding: "6px 8px" }}>
-              <div style={{ fontSize: 9, color: t.textMuted, fontWeight: 700, marginBottom: 3 }}>Secret\u00e1rio(a)</div>
-              <input style={inputNome} placeholder="Nome e Registro" defaultValue={marchaDoc.secretario?.nome || ""} onBlur={ev => salvarJuizes(filtroProva, catId, filtroSexo, { secretario: { nome: ev.target.value } })} />
+              <div style={{ fontSize: 9, color: t.textMuted, fontWeight: 700, marginBottom: 3 }}>Secretário(a)</div>
+              <input style={inputNome} placeholder="Nome e Registro" value={localSecretario} onChange={ev => { setLocalSecretario(ev.target.value); setDirty(true); setSalvo(false); }} />
             </div>
           </div>
         </div>
@@ -152,7 +225,7 @@ export default function MarchaJuizesPanel({
                 <th style={{ ...thSt, width: 40, position: "sticky", left: 0, zIndex: 2, background: t.bgHeaderSolid }} rowSpan={2}>N.°<br/>Peito</th>
                 {[0,1,2,3,4,5,6,7].map(idx => (
                   <th key={idx} style={{ ...thSt, borderLeft: `2px solid ${t.accent}22` }} colSpan={3}>
-                    {juizes[idx]?.nome ? juizes[idx].nome.split(" ")[0] : `Juiz ${idx+1}`}
+                    {localJuizes[idx]?.nome ? localJuizes[idx].nome.split(" ")[0] : `Juiz ${idx+1}`}
                   </th>
                 ))}
                 <th style={{ ...thSt, borderLeft: `2px solid ${t.accent}22` }}>PIT</th>
@@ -179,7 +252,7 @@ export default function MarchaJuizesPanel({
             <tbody>
               {atletasNaProva.map((a, aIdx) => {
                 const dorsal = (numeracaoPeito?.[eid] || {})[a.id] || "";
-                const ad = dados[a.id] || {};
+                const ad = localDados[a.id] || {};
                 const totals = calcMarchaTotals(ad);
                 const isDq = totals.dqs >= 3;
                 const jaTemDqResult = resProva[a.id] && (typeof resProva[a.id] === "object" ? resProva[a.id].status === "DQ" : String(resProva[a.id]).toUpperCase() === "DQ");
@@ -206,25 +279,32 @@ export default function MarchaJuizesPanel({
                         return (
                           <React.Fragment key={jIdx}>
                             <td rowSpan={2} style={{ ...tdSt, background: bgDq, borderLeft: `2px solid ${t.accent}22` }}>
-                              <CampoHora atletaId={a.id} campo={`j${jIdx}.r1t`} valor={jd.r1t || ""} onBlur={handleBlur} style={inputSm} />
+                              <input type="text" inputMode="numeric" style={inputSm} placeholder="—"
+                                value={jd.r1t || ""} onChange={ev => editarCampoAtleta(a.id, `j${jIdx}.r1t`, ev.target.value)} />
                             </td>
                             <td rowSpan={2} style={{ ...tdSt, background: bgDq }}>
-                              <CampoHora atletaId={a.id} campo={`j${jIdx}.r1l`} valor={jd.r1l || ""} onBlur={handleBlur} style={inputSm} />
+                              <input type="text" inputMode="numeric" style={inputSm} placeholder="—"
+                                value={jd.r1l || ""} onChange={ev => editarCampoAtleta(a.id, `j${jIdx}.r1l`, ev.target.value)} />
                             </td>
                             <td style={{ ...tdSt, background: jd.r1dq ? `${t.danger}12` : bgDq }}>
-                              <CampoHora atletaId={a.id} campo={`j${jIdx}.r1dq`} valor={jd.r1dq || ""} onBlur={handleBlur} style={{ ...inputSm, width: 34, background: jd.r1dq ? `${t.danger}15` : t.bgInput, color: jd.r1dq ? t.danger : t.textPrimary, fontWeight: jd.r1dq ? 700 : 400 }} />
+                              <input type="text" inputMode="numeric" placeholder="—"
+                                style={{ ...inputSm, width: 34, background: jd.r1dq ? `${t.danger}15` : t.bgInput, color: jd.r1dq ? t.danger : t.textPrimary, fontWeight: jd.r1dq ? 700 : 400 }}
+                                value={jd.r1dq || ""} onChange={ev => editarCampoAtleta(a.id, `j${jIdx}.r1dq`, ev.target.value)} />
                             </td>
                           </React.Fragment>
                         );
                       })}
                       <td style={{ ...tdSt, background: bgDq, borderLeft: `2px solid ${t.accent}22` }}>
-                        <CampoHora atletaId={a.id} campo="pitTime" valor={ad.pitTime || ""} onBlur={handleBlur} style={inputSm} />
+                        <input type="text" inputMode="numeric" style={inputSm} placeholder="—"
+                          value={ad.pitTime || ""} onChange={ev => editarCampoAtleta(a.id, "pitTime", ev.target.value)} />
                       </td>
                       <td style={{ ...tdSt, background: bgDq }}>
-                        <CampoHora atletaId={a.id} campo="notDqHora" valor={ad.notDqHora || ""} onBlur={handleBlur} style={inputSm} />
+                        <input type="text" inputMode="numeric" style={inputSm} placeholder="—"
+                          value={ad.notDqHora || ""} onChange={ev => editarCampoAtleta(a.id, "notDqHora", ev.target.value)} />
                       </td>
                       <td style={{ ...tdSt, background: bgDq }}>
-                        <CampoHora atletaId={a.id} campo="dqTime" valor={ad.dqTime || ""} onBlur={handleBlur} style={inputSm} />
+                        <input type="text" inputMode="numeric" style={inputSm} placeholder="—"
+                          value={ad.dqTime || ""} onChange={ev => editarCampoAtleta(a.id, "dqTime", ev.target.value)} />
                       </td>
                       {/* CHECK OF totals */}
                       <td rowSpan={2} style={{ ...tdSt, borderLeft: `2px solid ${t.accent}22`, fontWeight: 800, fontSize: 12, color: t.textPrimary, background: bgDq }}>{totals.tildes || ""}</td>
@@ -241,7 +321,7 @@ export default function MarchaJuizesPanel({
                             <td style={{ ...tdSt, background: jd.r2dq ? `${t.danger}12` : bgDq }}>
                               <select
                                 value={jd.r2dq || ""}
-                                onChange={ev => handleBlur(a.id, `j${jIdx}.r2dq`, ev.target.value)}
+                                onChange={ev => editarCampoAtleta(a.id, `j${jIdx}.r2dq`, ev.target.value)}
                                 style={{ ...inputSm, width: 34, fontSize: 9, fontWeight: 700, padding: "1px 2px", color: jd.r2dq ? t.danger : t.textDisabled, background: jd.r2dq ? `${t.danger}15` : t.bgInput }}
                               >
                                 <option value="">—</option>
@@ -261,7 +341,7 @@ export default function MarchaJuizesPanel({
                     {isDq && !jaTemDqResult && (
                       <tr>
                         <td colSpan={30} style={{ background: `${t.danger}10`, padding: "4px 12px", fontSize: 11, color: t.danger, fontWeight: 700, borderBottom: `2px solid ${t.danger}44` }}>
-                          ⚠ {a.nome} — {totals.dqs} cart\u00f5es vermelhos de ju\u00edzes diferentes (TR 54.7)
+                          ⚠ {a.nome} — {totals.dqs} cartões vermelhos de juízes diferentes (TR 54.7)
                           <button onClick={() => handleAplicarDq(a.id)} style={{ marginLeft: 12, background: t.danger, color: "#fff", border: "none", borderRadius: 4, fontSize: 11, padding: "2px 10px", cursor: "pointer", fontWeight: 700 }}>
                             Aplicar DQ no Resultado
                           </button>
@@ -275,9 +355,29 @@ export default function MarchaJuizesPanel({
           </table>
         </div>
 
+        {/* ═══ BOTÃO SALVAR (inferior) ═══ */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+          <button
+            onClick={handleSalvar}
+            disabled={salvando || !dirty}
+            style={{
+              background: dirty ? `linear-gradient(135deg, ${t.accent}, ${t.accentDark || t.accent})` : t.bgHeaderSolid,
+              color: dirty ? "#fff" : t.textDisabled,
+              border: dirty ? "none" : `1px solid ${t.border}`,
+              borderRadius: 8, padding: "10px 28px", fontSize: 14, fontWeight: 700,
+              cursor: dirty ? "pointer" : "default", opacity: salvando ? 0.6 : 1,
+              fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5,
+            }}
+          >
+            {salvando ? "Salvando..." : "💾 Salvar Súmula"}
+          </button>
+          {salvo && <span style={{ color: t.success, fontSize: 13, fontWeight: 700 }}>✅ Salvo com sucesso!</span>}
+          {dirty && !salvo && <span style={{ color: t.warning, fontSize: 12 }}>Alterações não salvas</span>}
+        </div>
+
         {/* ═══ SEÇÃO 3: Upload de Anexo ═══ */}
         <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 8, padding: "12px 16px" }}>
-          <div style={{ ...lblSm, marginBottom: 8, fontSize: 11 }}>Anexar S\u00famula Manual (foto ou PDF)</div>
+          <div style={{ ...lblSm, marginBottom: 8, fontSize: 11 }}>Anexar Súmula Manual (foto ou PDF)</div>
           <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
             <label style={{ background: t.accent, color: "#fff", border: "none", padding: "6px 16px", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 700, opacity: uploading ? 0.5 : 1 }}>
               {uploading ? "Enviando..." : (marchaDoc.anexoUrl ? "Substituir" : "📎 Anexar arquivo")}
@@ -297,37 +397,5 @@ export default function MarchaJuizesPanel({
         </div>
       </div>
     </div>
-  );
-}
-
-/* ════════════════════════════════════════════════════════════════════════════
-   CampoHora — input de horário com estado local (salva no blur)
-   ════════════════════════════════════════════════════════════════════════════ */
-function CampoHora({ atletaId, campo, valor, onBlur, style }) {
-  const [local, setLocal] = useState(valor);
-  const prevRef = useRef(valor);
-
-  useEffect(() => {
-    if (valor !== prevRef.current) {
-      prevRef.current = valor;
-      setLocal(valor);
-    }
-  }, [valor]);
-
-  return (
-    <input
-      type="text"
-      inputMode="numeric"
-      style={style}
-      placeholder="—"
-      value={local}
-      onChange={ev => setLocal(ev.target.value)}
-      onBlur={() => {
-        if (local !== valor) {
-          onBlur(atletaId, campo, local);
-          prevRef.current = local;
-        }
-      }}
-    />
   );
 }

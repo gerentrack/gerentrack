@@ -14,6 +14,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { db, doc, setDoc, onSnapshot, collection, auth, onAuthStateChanged, storage, storageRef, uploadBytes, getDownloadURL, deleteObject } from "../firebase";
+import { sanitizeForFirestore as sanitize } from "../lib/firestore/sanitize";
 
 // ── Helpers de chave ─────────────────────────────────────────────────────────
 export const marchaKey = (eId, pId, cId, sx) => `${eId}_${pId}_${cId}_${sx}`;
@@ -103,24 +104,46 @@ export function useMarchaJuizes(eventoId) {
         snap.docs.forEach(d => {
           if (d.id.startsWith(eventoId + "_")) data[d.id] = d.data();
         });
-        // Merge pendências locais offline (interpreta dot-notation)
+        // Reconciliar pendências (localStorage + in-memory) com snapshot
         const pendentes = lsRead(LS_PENDENTES, []);
-        const pendMarcha = pendentes.filter(p => p.tipo === "marcha" && p.key.startsWith(eventoId + "_"));
-        pendMarcha.forEach(p => {
-          data[p.key] = applyDotFields(data[p.key], p.fields);
+        let pendentesAlterado = false;
+
+        // Processar pendências do localStorage (sobrevivem page reload)
+        pendentes.forEach(p => {
+          if (p.tipo !== "marcha" || !p.key.startsWith(eventoId + "_")) return;
+          const snapDoc = data[p.key] || {};
+          const stillPending = {};
+          Object.entries(p.fields).forEach(([field, value]) => {
+            const parts = field.split(".");
+            let cur = snapDoc;
+            for (const pt of parts) cur = cur?.[pt];
+            if (cur === value) return; // confirmado pelo snapshot
+            stillPending[field] = value;
+          });
+          if (Object.keys(stillPending).length > 0) {
+            p.fields = stillPending;
+            data[p.key] = applyDotFields(snapDoc, stillPending);
+          } else {
+            p._remover = true;
+            pendentesAlterado = true;
+          }
         });
-        // Reconciliar writes em andamento com dados do snapshot
+        // Limpar pendências confirmadas do localStorage
+        if (pendentesAlterado) {
+          lsWrite(LS_PENDENTES, pendentes.filter(p => !p._remover));
+        }
+
+        // Processar pendências in-memory (protegem dentro da mesma sessão)
         Object.keys(pendingFieldsRef.current).forEach(k => {
           if (!k.startsWith(eventoId + "_")) return;
           const fields = pendingFieldsRef.current[k];
           const snapDoc = data[k] || {};
           const stillPending = {};
           Object.entries(fields).forEach(([field, value]) => {
-            // Verificar se o snapshot já confirmou este valor
             const parts = field.split(".");
             let cur = snapDoc;
-            for (const p of parts) cur = cur?.[p];
-            if (cur === value) return; // confirmado — não precisa mais
+            for (const pt of parts) cur = cur?.[pt];
+            if (cur === value) return;
             stillPending[field] = value;
           });
           if (Object.keys(stillPending).length > 0) {
@@ -181,27 +204,29 @@ export function useMarchaJuizes(eventoId) {
       [key]: { ...(pendingFieldsRef.current[key] || {}), ...fields },
     };
 
-    // 2. Atualiza state imediatamente (interpreta dot-notation)
+    // 2. Salvar no LS_PENDENTES ANTES do write (sobrevive a page reload)
+    const pendentes = lsRead(LS_PENDENTES, []);
+    const idx = pendentes.findIndex(p => p.key === key && p.tipo === "marcha");
+    const entrada = { tipo: "marcha", colecao: "marchaJuizes", key, fields, ts: Date.now() };
+    if (idx >= 0) {
+      pendentes[idx] = { ...pendentes[idx], fields: { ...pendentes[idx].fields, ...fields }, ts: Date.now() };
+    } else {
+      pendentes.push(entrada);
+    }
+    lsWrite(LS_PENDENTES, pendentes);
+
+    // 3. Atualiza state imediatamente (interpreta dot-notation)
     setMarchaData(prev => ({
       ...prev,
       [key]: applyDotFields(prev[key], fields),
     }));
 
-    // 3. Tentar Firestore (pending é limpo pelo onSnapshot quando confirmar o valor)
+    // 4. Tentar Firestore (pending é limpo pelo onSnapshot quando confirmar o valor)
     try {
       const ref = doc(db, "marchaJuizes", key);
       await setDoc(ref, fields, { merge: true });
     } catch {
-      // 4. Offline — fila de pendências (pendingFieldsRef mantém proteção)
-      const pendentes = lsRead(LS_PENDENTES, []);
-      const idx = pendentes.findIndex(p => p.key === key && p.tipo === "marcha");
-      const entrada = { tipo: "marcha", colecao: "marchaJuizes", key, fields, ts: Date.now() };
-      if (idx >= 0) {
-        pendentes[idx] = { ...pendentes[idx], fields: { ...pendentes[idx].fields, ...fields }, ts: Date.now() };
-      } else {
-        pendentes.push(entrada);
-      }
-      lsWrite(LS_PENDENTES, pendentes);
+      // Offline — pendência já salva no passo 2, nada mais a fazer
     }
   }, []);
 
@@ -263,6 +288,36 @@ export function useMarchaJuizes(eventoId) {
     await escreverComFallback(key, { anexoUrl: "", anexoNome: "", anexoPath: "" });
   }, [eventoId, marchaData, escreverComFallback]);
 
+  // ── Salvar documento completo (botão Salvar) ───────────────────────────────
+  const salvarDocCompleto = useCallback(async (provaId, catId, sexo, docCompleto) => {
+    if (!eventoId) return;
+    const key = marchaKey(eventoId, provaId, catId, sexo);
+    // Preservar campos de anexo existentes
+    const atual = marchaData[key] || {};
+    const doc_ = {
+      ...docCompleto,
+      anexoUrl: atual.anexoUrl || "",
+      anexoNome: atual.anexoNome || "",
+      anexoPath: atual.anexoPath || "",
+    };
+    // Gravar otimisticamente + Firestore
+    setMarchaData(prev => ({ ...prev, [key]: doc_ }));
+    try {
+      const ref = doc(db, "marchaJuizes", key);
+      await setDoc(ref, sanitize(doc_));
+    } catch {
+      // Offline — salvar pendência completa
+      const pendentes = lsRead(LS_PENDENTES, []);
+      const idx = pendentes.findIndex(p => p.key === key && p.tipo === "marcha");
+      if (idx >= 0) {
+        pendentes[idx] = { tipo: "marcha", colecao: "marchaJuizes", key, fields: doc_, ts: Date.now() };
+      } else {
+        pendentes.push({ tipo: "marcha", colecao: "marchaJuizes", key, fields: doc_, ts: Date.now() });
+      }
+      lsWrite(LS_PENDENTES, pendentes);
+    }
+  }, [eventoId, marchaData]);
+
   // ── Getter por prova ───────────────────────────────────────────────────────
   const getMarchaProva = useCallback((provaId, catId, sexo) => {
     const key = marchaKey(eventoId, provaId, catId, sexo);
@@ -275,6 +330,7 @@ export function useMarchaJuizes(eventoId) {
     salvarDadosAtleta,
     salvarJuizes,
     salvarCampoAtleta,
+    salvarDocCompleto,
     uploadAnexo,
     removerAnexo,
     getMarchaProva,
