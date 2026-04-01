@@ -1179,7 +1179,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
                     const jz = marchaJuizes[idx] || {};
                     const txt = jz.nome ? `${jz.nome}${jz.registro ? "<br>" + jz.registro : ""}` : "Nome<br>Registro";
                     const cor = jz.nome ? "color:#000;font-weight:700;" : "font-weight:400;color:#999;";
-                    return `<td colspan="3" rowspan="4" style="${_bb}padding:0;overflow:hidden;text-align:center;vertical-align:middle;"><div style="${_vt}min-height:45px;${cor}">${txt}</div></td>`;
+                    return `<td colspan="3" rowspan="4" style="${_bb}padding:0;overflow:hidden;text-align:center;vertical-align:middle;"><div style="writing-mode:vertical-rl;white-space:pre-line;font-size:7px;font-weight:700;padding:2px 1px;line-height:1.2;text-align:center;word-break:break-word;min-height:45px;${cor}">${txt}</div></td>`;
                   }).join("")}
                   ${vtCell("PIT Line", 5, 2, "")}
                   ${vtCell("Juiz-Chefe", 5, 2, "")}
