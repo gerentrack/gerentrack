@@ -13,6 +13,8 @@ import { parsearLif } from "../../shared/engines/lynxImportEngine";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvento } from "../../contexts/EventoContext";
 import { useApp } from "../../contexts/AppContext";
+import { useMarchaJuizes } from "../../hooks/useMarchaJuizes";
+import MarchaJuizesPanel from "./MarchaJuizesPanel";
 
 // Badge de chamada (Conf./DNS) ao lado do nome do atleta
 function ChamadaBadge({ atletaId, provaId, catId, sexo, getPresencaProva, t }) {
@@ -278,6 +280,7 @@ function BlocoDigitarCategoria({
   editarEvento, numeracaoPeito, getClubeAtleta, recordes,
   usuarioLogado, registrarAcao, setTela,
   todasProvasComCombinadas, inscDoEvento, getPresencaProva,
+  marchaHook,
 }) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
@@ -2058,6 +2061,27 @@ function BlocoDigitarCategoria({
                 {salvo && <span style={s.savedBadge} className="saved-pulse">✅ Resultados publicados!</span>}
               </div>
 
+              {/* ── Painel Súmula de Juízes de Marcha ── */}
+              {provaSel && provaSel.tipo === "marcha" && !provaSel.origemCombinada && marchaHook && (
+                <MarchaJuizesPanel
+                  eid={eid}
+                  filtroProva={filtroProva}
+                  catId={catId}
+                  filtroSexo={filtroSexo}
+                  atletasNaProva={atletasNaProva}
+                  numeracaoPeito={numeracaoPeito}
+                  equipes={equipes}
+                  getMarchaProva={marchaHook.getMarchaProva}
+                  salvarCampoAtleta={marchaHook.salvarCampoAtleta}
+                  salvarJuizes={marchaHook.salvarJuizes}
+                  uploadAnexo={marchaHook.uploadAnexo}
+                  removerAnexo={marchaHook.removerAnexo}
+                  atualizarResultadosEmLote={atualizarResultadosEmLote}
+                  resultados={resultados}
+                  faseEfetiva={faseEfetiva}
+                />
+              )}
+
               {/* ── Painel Pontuação Acumulada da Combinada ── */}
               {provaSel && provaSel.origemCombinada && (() => {
                 const combinadaId = provaSel.combinadaId;
@@ -2498,6 +2522,7 @@ function TelaDigitarResultados({ getPresencaProva }) {
   const { usuarioLogado } = useAuth();
   const { inscricoes, atletas, resultados, atualizarResultado, atualizarResultadosEmLote, limparResultado, limparTodosResultados, eventoAtual, editarEvento, numeracaoPeito, getClubeAtleta, equipes, recordes } = useEvento();
   const { setTela, registrarAcao } = useApp();
+  const marchaHook = useMarchaJuizes(eventoAtual?.id);
   // Guard: apenas admin, organizador ou funcionário com permissão
   const tipoUser = usuarioLogado?.tipo;
   const temAcessoDigitar = tipoUser === "admin" || tipoUser === "organizador" ||
@@ -2722,6 +2747,7 @@ function TelaDigitarResultados({ getPresencaProva }) {
             todasProvasComCombinadas={todasProvasComCombinadas}
             inscDoEvento={inscDoEvento}
             getPresencaProva={getPresencaProva}
+            marchaHook={marchaHook}
           />
         ));
       })()}

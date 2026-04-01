@@ -16,6 +16,7 @@ import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvento } from "../../contexts/EventoContext";
 import { useApp } from "../../contexts/AppContext";
+import { useMarchaJuizes } from "../../hooks/useMarchaJuizes";
 
 function getStyles(t) {
   return {
@@ -168,6 +169,7 @@ function TelaResultados() {
   const { usuarioLogado } = useAuth();
   const { inscricoes, atletas, resultados, eventoAtual, numeracaoPeito, equipes, getClubeAtleta, editarEvento, recordes } = useEvento();
   const { setTela } = useApp();
+  const { marchaData } = useMarchaJuizes(eventoAtual?.id);
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const [filtroProva, setFiltroProva] = useState("todas");
@@ -523,7 +525,7 @@ function TelaResultados() {
     if (sumuFiltradas.length === 0 && blocosCombinadas.length === 0 && classifEquipes.classificacao.length === 0) {
       alert("Nenhum resultado para imprimir."); return;
     }
-    const html = gerarHtmlImpressao(sumuFiltradas, eventoAtual, atletas, resultados, {}, numeracaoPeito[eventoAtual?.id] || {}, equipes, recordes, { modo: "resultados" });
+    const html = gerarHtmlImpressao(sumuFiltradas, eventoAtual, atletas, resultados, {}, numeracaoPeito[eventoAtual?.id] || {}, equipes, recordes, { modo: "resultados", marchaData });
 
     // Gerar HTML extra para classificação final das combinadas e pontuação por equipes
     let htmlExtra = "";
@@ -1238,7 +1240,7 @@ function TelaResultados() {
                       (b.classificados || []).forEach(c => { if (c.raw != null && c.atleta) resProva[c.atleta.id] = c.raw; });
                       sumu = { prova: b.prova, sexo: b.sexo, categoria: b.categoria, atletas: atletasInsc, inscs, resultados: resProva, faseSufixo: b.faseSufixo || "", faseNome: b.faseNome || "" };
                     }
-                    const htmlInd = gerarHtmlImpressao([sumu], eventoAtual, atletas, resultados, {}, numeracaoPeito[eventoAtual?.id] || {}, equipes, recordes, { modo: "resultados" });
+                    const htmlInd = gerarHtmlImpressao([sumu], eventoAtual, atletas, resultados, {}, numeracaoPeito[eventoAtual?.id] || {}, equipes, recordes, { modo: "resultados", marchaData });
                     const win = window.open("", "_blank", "width=900,height=700");
                     if (!win) { alert("Permita pop-ups para gerar a impressão."); return; }
                     win.document.open(); win.document.write(htmlInd); win.document.close();

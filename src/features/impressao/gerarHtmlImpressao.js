@@ -993,6 +993,26 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
         const LINHAS_EXTRAS = 4;
         const atletasMarcha = atl.length > 0 ? atl : [];
 
+        // Dados digitais de marcha (se disponíveis via opts.marchaData)
+        const marchaDocKey = `${evento.id}_${s.prova.id}_${s.categoria.id}_${s.sexo}`;
+        const marchaDoc = (opts.marchaData || {})[marchaDocKey] || {};
+        const marchaJuizes = marchaDoc.juizes || [];
+        const marchaDados = marchaDoc.dados || {};
+        const temDadosMarcha = Object.keys(marchaDados).length > 0 || marchaJuizes.some(j => j?.nome);
+
+        // Cálculo de totais de marcha (mesma lógica do hook)
+        const _calcTotals = (dadosAtl) => {
+          let tildes = 0, angles = 0;
+          const judgesWithDq = new Set();
+          for (let j = 0; j < 8; j++) {
+            const jd = dadosAtl?.[`j${j}`] || {};
+            if (jd.r1t) tildes++;
+            if (jd.r1l) angles++;
+            if (jd.r1dq) judgesWithDq.add(j);
+          }
+          return { tildes, angles, dqs: judgesWithDq.size };
+        };
+
         // Estilos base
         const _b = "border:.5pt solid #000;";
         const _bb = "border:1pt solid #000;";
@@ -1024,21 +1044,31 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
           const dorsal = a ? (numPeito[a.id] || "") : "";
           const bg = idx % 2 === 0 ? "#fff" : "#f6f6f6";
           const sty = `${_b}height:11px;background:${bg};font-size:7px;text-align:center;`;
-          const td = `<td style="${sty}"></td>`;
-          const tdRs = `<td rowspan="2" style="${sty}"></td>`;
-          // Each judge: ~ (rs2) + < (rs2) + DQ (no rs, only in row 1)
-          const judgeRow1 = (tdRs + tdRs + td);
-          // Row 2 for each judge: just the DQ cell
-          const judgeRow2 = td;
+          const ad = a ? (marchaDados[a.id] || {}) : {};
+          const totals = a ? _calcTotals(ad) : { tildes: 0, angles: 0, dqs: 0 };
+          const tdV = (v) => `<td style="${sty}">${v || ""}</td>`;
+          const tdRsV = (v) => `<td rowspan="2" style="${sty}">${v || ""}</td>`;
+          const tdDqHora = (v) => `<td style="${sty}${v ? "background:#fdd;font-weight:700;color:#c00;" : ""}">${v || ""}</td>`;
+          const tdDqTipo = (v) => `<td style="${sty}${v ? "background:#fdd;font-weight:700;color:#c00;" : ""}">${v || ""}</td>`;
+          // Row 1: per judge: ~time(rs2) + <time(rs2) + DQ hora (no rs)
+          // Row 2: per judge: DQ tipo ~/< (no rs)
+          let r1j = "", r2j = "";
+          for (let j = 0; j < 8; j++) {
+            const jd = ad[`j${j}`] || {};
+            r1j += tdRsV(jd.r1t) + tdRsV(jd.r1l) + tdDqHora(jd.r1dq);
+            r2j += tdDqTipo(jd.r2dq);
+          }
           return `<tr>` +
             `<td rowspan="2" colspan="3" style="${_b}font-weight:800;font-size:9px;color:#000;background:${bg};padding:1px 2px;text-align:center;vertical-align:middle;">${dorsal}</td>` +
-            judgeRow1.repeat(8) +
-            `<td rowspan="2" colspan="2" style="${sty}"></td>` +
-            `<td colspan="2" style="${sty}"></td>` +
-            `<td rowspan="2" colspan="2" style="${sty}"></td>` +
-            `${tdRs}${tdRs}${tdRs}` +
+            r1j +
+            `<td rowspan="2" colspan="2" style="${sty}">${ad.pitTime || ""}</td>` +
+            `<td colspan="2" style="${sty}">${ad.notDqHora || ""}</td>` +
+            `<td rowspan="2" colspan="2" style="${sty}">${ad.dqTime || ""}</td>` +
+            `<td rowspan="2" style="${sty}font-weight:700;">${totals.tildes || ""}</td>` +
+            `<td rowspan="2" style="${sty}font-weight:700;">${totals.angles || ""}</td>` +
+            `<td rowspan="2" style="${sty}font-weight:700;${totals.dqs >= 3 ? "color:#c00;" : ""}">${totals.dqs || ""}</td>` +
           `</tr><tr>` +
-            judgeRow2.repeat(8) +
+            r2j +
             `<td colspan="2" style="${sty}"></td>` +
           `</tr>`;
         };
@@ -1048,11 +1078,29 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
         // Row 2: 8×(val val val) + val val val
         // Col count row1: 3 + 24 + 6 + 3 = 36
         // Col count row2: 24 + 3 = 27 (rest from rowspans)
+        // Calcular totais por juiz (para CHECK PAGE/TOTAL)
+        const _juizTotals = () => {
+          const totais = Array.from({ length: 8 }, () => ({ t: 0, l: 0, dq: 0 }));
+          let grandT = 0, grandL = 0, grandDq = 0;
+          atletasMarcha.forEach(a => {
+            const ad = marchaDados[a.id] || {};
+            for (let j = 0; j < 8; j++) {
+              const jd = ad[`j${j}`] || {};
+              if (jd.r1t) totais[j].t++;
+              if (jd.r1l) totais[j].l++;
+              if (jd.r1dq) totais[j].dq++;
+            }
+            const at = _calcTotals(ad);
+            grandT += at.tildes; grandL += at.angles; grandDq += at.dqs;
+          });
+          return { totais, grandT, grandL, grandDq };
+        };
+
         const checkPageBlock = () => {
           const bg = "background:#ddd;";
           const td = (v) => `<td style="${_b}${bg}text-align:center;font-weight:700;font-size:7px;padding:1px;height:12px;">${v}</td>`;
           const sym = td("~") + td("&lt;") + td("DQ");
-          const emp = td("");
+          const jt = temDadosMarcha ? _juizTotals() : null;
           return `<tr><td colspan="36" style="height:4.5pt;border:none;"></td></tr>` +
             `<tr style="height:12px;">` +
             `<td rowspan="2" colspan="3" style="${_b}${bg}font-size:6px;font-weight:800;padding:2px;text-align:center;vertical-align:middle;">CHECK<br>PAGE</td>` +
@@ -1060,8 +1108,8 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
             `<td rowspan="2" colspan="6" style="${_b}${bg}"></td>` +
             sym +
           `</tr><tr style="height:12px;">` +
-            (emp + emp + emp).repeat(8) +
-            emp + emp + emp +
+            (jt ? jt.totais.map(jj => td(jj.t||"") + td(jj.l||"") + td(jj.dq||"")).join("") : (td("")+td("")+td("")).repeat(8)) +
+            (jt ? td(jt.grandT||"") + td(jt.grandL||"") + td(jt.grandDq||"") : td("")+td("")+td("")) +
           `</tr>`;
         };
 
@@ -1070,7 +1118,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
           const bg = "background:#bbb;";
           const td = (v) => `<td style="${_b}${bg}text-align:center;font-weight:700;font-size:7px;padding:1px;height:12px;">${v}</td>`;
           const sym = td("~") + td("&lt;") + td("DQ");
-          const emp = td("");
+          const jt = temDadosMarcha ? _juizTotals() : null;
           return `<tr><td colspan="36" style="height:4.5pt;border:none;"></td></tr>` +
             `<tr style="height:12px;">` +
             `<td rowspan="2" colspan="3" style="${_b}${bg}font-size:6px;font-weight:800;padding:2px;text-align:center;vertical-align:middle;">CHECK<br>TOTAL</td>` +
@@ -1079,9 +1127,9 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
             `<td rowspan="2" colspan="3" style="${_b}${bg}"></td>` +
             sym +
           `</tr><tr style="height:12px;">` +
-            (emp + emp + emp).repeat(8) +
-            emp + emp + emp +
-            emp + emp + emp +
+            (jt ? jt.totais.map(jj => td(jj.t||"") + td(jj.l||"") + td(jj.dq||"")).join("") : (td("")+td("")+td("")).repeat(8)) +
+            (jt ? td("")+td("")+td("") : td("")+td("")+td("")) +
+            (jt ? td(jt.grandT||"") + td(jt.grandL||"") + td(jt.grandDq||"") : td("")+td("")+td("")) +
           `</tr>`;
         };
 
@@ -1111,7 +1159,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
                   <td colspan="5" style="border:none;border-top:.5pt solid #000;background:#e8e8e8;padding:1px;"></td>
                   <td colspan="3" style="${_b}font-weight:800;font-size:7px;text-align:center;vertical-align:middle;background:#e8e8e8;padding:1px;">HORA</td>
                   <td colspan="12" rowspan="2" style="${_b}font-weight:800;font-size:7px;background:#e8e8e8;padding:2px 4px;text-align:center;vertical-align:middle;">EVENTO: ${evento.nome}<br>PROVA: ${nomeProvaHtml(s.prova.nome)} ${s.sexo === "M" ? "Masculino" : "Feminino"} - ${s.categoria.nome}</td>
-                  <td colspan="12" rowspan="2" style="${_b}font-weight:800;font-size:7px;background:#e8e8e8;padding:2px 4px;text-align:left;vertical-align:top;">JUIZ-CHEFE: NOME E ASSINATURA</td>
+                  <td colspan="12" rowspan="2" style="${_b}font-weight:800;font-size:7px;background:#e8e8e8;padding:2px 4px;text-align:left;vertical-align:top;">JUIZ-CHEFE: NOME E ASSINATURA${marchaDoc.juizChefe?.nome ? "<br>" + marchaDoc.juizChefe.nome : ""}</td>
                 </tr>
                 <!-- Row 4: day(cs2) + month + year + 5 empty + time(cs2) + empty -->
                 <tr style="height:15pt;">
@@ -1125,7 +1173,12 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
                 <!-- Rows 5-8: Nome do Juiz (cs3,rs4) + 8× judge name (cs3,rs4,vertical) + PIT Line(cs2,rs5,vert) + Juiz-Chefe(cs2,rs5,vert) + DQ notif(cs2,rs5,vert) + CHECK OF(cs3,rs5,vert) -->
                 <tr style="height:15pt;">
                   <td colspan="3" rowspan="4" style="${_bb}background:#e8e8e8;padding:0;overflow:hidden;text-align:center;vertical-align:middle;"><div style="${_vt}min-height:45px;">Nome do Juiz</div></td>
-                  ${[1,2,3,4,5,6,7,8].map(() => `<td colspan="3" rowspan="4" style="${_bb}padding:0;overflow:hidden;text-align:center;vertical-align:middle;"><div style="${_vt}min-height:45px;font-weight:400;color:#999;">Nome<br>Registro</div></td>`).join("")}
+                  ${[0,1,2,3,4,5,6,7].map(idx => {
+                    const jz = marchaJuizes[idx] || {};
+                    const txt = jz.nome ? `${jz.nome}${jz.registro ? "<br>" + jz.registro : ""}` : "Nome<br>Registro";
+                    const cor = jz.nome ? "color:#000;font-weight:700;" : "font-weight:400;color:#999;";
+                    return `<td colspan="3" rowspan="4" style="${_bb}padding:0;overflow:hidden;text-align:center;vertical-align:middle;"><div style="${_vt}min-height:45px;${cor}">${txt}</div></td>`;
+                  }).join("")}
                   ${vtCell("PIT Line", 5, 2, "")}
                   ${vtCell("Juiz-Chefe", 5, 2, "")}
                   ${vtCell("DQ notifica\u00e7\u00e3o", 5, 2, "")}
