@@ -75,7 +75,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado, solicitacoesRecuperacao, resolverSolicitacaoRecuperacao, aplicarSenhaTemp } = useAuth();
   const { equipes, atletas, inscricoes, eventos, selecionarEvento, excluirEvento, resultados, atualizarAtleta, excluirAtleta } = useEvento();
-  const { setTela, limparTodosDados, organizadores, adicionarOrganizador, aprovarOrganizador, recusarOrganizador, aprovarEvento, recusarEvento, exportarDados, importarDados, siteBranding, setSiteBranding, gtIcon, gtLogo, historicoAcoes, atletasUsuarios, funcionarios, treinadores, setAtletaEditandoId, solicitacoesEquipe, aprovarEquipe, recusarEquipe, solicitacoesPortabilidade, resolverSolicitacaoPortabilidade, excluirSolicitacaoPortabilidade, registrarAcao } = useApp();
+  const { setTela, organizadores, adicionarOrganizador, aprovarOrganizador, recusarOrganizador, aprovarEvento, recusarEvento, exportarDados, importarDados, siteBranding, setSiteBranding, gtIcon, gtLogo, historicoAcoes, atletasUsuarios, funcionarios, treinadores, setAtletaEditandoId, solicitacoesEquipe, aprovarEquipe, recusarEquipe, solicitacoesPortabilidade, resolverSolicitacaoPortabilidade, excluirSolicitacaoPortabilidade, registrarAcao } = useApp();
   const confirmar = useConfirm();
   const pendOrg = organizadores.filter(o => o.status === "pendente");
   const pendEv  = eventos.filter(e => e.statusAprovacao === "pendente");

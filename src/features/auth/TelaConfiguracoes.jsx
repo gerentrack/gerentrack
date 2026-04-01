@@ -116,7 +116,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
   const s = useStylesResponsivos(getS(t));
   const { usuarioLogado, setUsuarioLogado, logout, atualizarSenha, perfisDisponiveis } = useAuth();
   const { equipes, atualizarEquipePerfil, atletas, inscricoes, resultados, atualizarAtleta } = useEvento();
-  const { setTela, registrarAcao, organizadores, atletasUsuarios, funcionarios, treinadores, siteBranding, setSiteBranding, exportarDados, importarDados, limparTodosDados, solicitacoesPortabilidade, adicionarSolicitacaoPortabilidade, editarOrganizadorAdmin, selecionarOrganizador } = useApp();
+  const { setTela, registrarAcao, organizadores, atletasUsuarios, funcionarios, treinadores, siteBranding, setSiteBranding, exportarDados, importarDados, solicitacoesPortabilidade, adicionarSolicitacaoPortabilidade, editarOrganizadorAdmin, selecionarOrganizador } = useApp();
   const [aba, setAba]           = useState("dados");
   const [feedback, setFeedback] = useState("");
   const [erro, setErro]         = useState("");
@@ -1392,13 +1392,6 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
 
           {/* ── Zona de Perigo ───────────────────────────────────────────────── */}
           <div style={{ ...s.card, borderColor:`${t.danger}33`, background:`${t.danger}08` }}>
-            <h3 style={{ ...s.sectionTitle, color:t.danger }}>⚠️ Zona de Perigo</h3>
-            <p style={{ color:t.textDimmed, fontSize:13, marginBottom:16, lineHeight:1.6 }}>
-              Estas ações são <strong style={{ color:t.danger }}>irreversíveis</strong>. Use com extrema cautela.
-            </p>
-            <button style={{ ...s.btnGhost, color:t.danger, borderColor:`${t.danger}55` }} onClick={limparTodosDados}>
-              🗑 Limpar Todos os Dados do Sistema
-            </button>
           </div>
 
           {/* ── Redes Sociais ───────────────────────────────────────────── */}
