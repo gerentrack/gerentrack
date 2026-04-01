@@ -46,7 +46,15 @@ function VinculoSolicitarForm({ atletaId, atletaNome, clubeInicial, equipes, sol
   const handleEnviar = () => {
     if (!equipeId) return;
     const equipeSel = equipes.find(e => e.id === equipeId);
-    solicitarVinculo(atletaId, atletaNome, equipeId, equipeSel?.clube || "");
+    solicitarVinculo(atletaId, atletaNome, equipeId, equipeSel?.clube || "", {
+      origem: "atleta",
+      aprovadorTipo: "equipe",
+      equipeAtualId: null,
+      equipeAtualNome: null,
+      organizadorId: equipeSel?.organizadorId || null,
+      solicitanteId: atletaId,
+      solicitanteNome: atletaNome,
+    });
     setEnviado(true);
   };
 

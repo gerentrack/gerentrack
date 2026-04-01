@@ -179,6 +179,18 @@ function TelaPainelOrganizador() {
       })
     : _todosEventosOrg;
   const isPendente    = meuOrg?.status === "pendente";
+  const [vinculoFeedback, setVinculoFeedback] = useState(null);
+
+  const handleResponderVinculo = (solId, aceitar) => {
+    const sol = (solicitacoesVinculo || []).find(sv => sv.id === solId);
+    responderVinculo(solId, aceitar);
+    const nome = sol?.atletaNome || "Atleta";
+    const msg = aceitar
+      ? `✅ Vínculo de ${nome} aceito com sucesso!`
+      : `❌ Vínculo de ${nome} recusado.`;
+    setVinculoFeedback(msg);
+    setTimeout(() => setVinculoFeedback(null), 4000);
+  };
 
   const perms = isFuncionario ? (usuarioLogado?.permissoes || []) : null;
   const temPerm = (p) => perms === null || perms.includes(p);
@@ -375,9 +387,15 @@ function TelaPainelOrganizador() {
         const pendentes = (solicitacoesVinculo||[]).filter(sol =>
           sol.status === "pendente" && pertenceAoOrg(sol)
         );
-        if (pendentes.length === 0) return null;
+        if (pendentes.length === 0 && !vinculoFeedback) return null;
         return (
           <div style={{ background:`${t.accent}10`, border:`1px solid ${t.accent}44`, borderRadius:12, padding:"16px 20px", marginBottom:16 }}>
+            {vinculoFeedback && (
+              <div style={{ background: vinculoFeedback.startsWith("✅") ? `${t.success}15` : `${t.danger}15`, border: `1px solid ${vinculoFeedback.startsWith("✅") ? t.success : t.danger}44`, borderRadius: 8, padding: "10px 16px", marginBottom: 12, fontSize: 13, fontWeight: 700, color: vinculoFeedback.startsWith("✅") ? t.success : t.danger }}>
+                {vinculoFeedback}
+              </div>
+            )}
+            {pendentes.length === 0 ? null : <>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
               <span style={{ fontWeight:700, color:t.accent, fontSize:14 }}>🔗 {pendentes.length} vínculo(s) pendente(s)</span>
             </div>
@@ -401,10 +419,10 @@ function TelaPainelOrganizador() {
                         <Td style={{ fontSize:11, color: t.textDimmed }}>{new Date(sol.data).toLocaleString("pt-BR")}</Td>
                         <Td>
                           <div style={{ display:"flex", gap:6 }}>
-                            <button onClick={() => responderVinculo(sol.id, true)}
+                            <button onClick={() => handleResponderVinculo(sol.id, true)}
                               style={{ ...s.btnGhost, fontSize:12, padding:"4px 14px",
                                 color:t.success, borderColor:`${t.success}66` }}>✓ Aceitar</button>
-                            <button onClick={() => responderVinculo(sol.id, false)}
+                            <button onClick={() => handleResponderVinculo(sol.id, false)}
                               style={{ ...s.btnGhost, fontSize:12, padding:"4px 12px",
                                 color: t.danger, borderColor:`${t.danger}66` }}>✗ Recusar</button>
                           </div>
@@ -415,6 +433,7 @@ function TelaPainelOrganizador() {
                 </tbody>
               </table>
             </div>
+            </>}
           </div>
         );
       })()}

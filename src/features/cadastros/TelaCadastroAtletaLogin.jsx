@@ -362,7 +362,17 @@ function TelaCadastroAtletaLogin() {
     if (form.equipeId) {
       const atletaIdVinc = atletaCpfEncontrado ? atletaCpfEncontrado.id : id;
       const eqSel = equipes.find(function(e) { return e.id === form.equipeId; });
-      solicitarVinculo(atletaIdVinc, form.nome, form.equipeId, eqSel?.clube || eqSel?.nome || form.clube || "");
+      const atletaBase = atletaCpfEncontrado || {};
+      const equipeAtualObj = atletaBase.equipeId ? equipes.find(function(e2) { return e2.id === atletaBase.equipeId; }) : null;
+      solicitarVinculo(atletaIdVinc, form.nome, form.equipeId, eqSel?.clube || eqSel?.nome || form.clube || "", {
+        origem: "atleta",
+        aprovadorTipo: atletaBase.equipeId ? "equipe_atual" : "equipe",
+        equipeAtualId: atletaBase.equipeId || null,
+        equipeAtualNome: equipeAtualObj?.nome || atletaBase.clube || null,
+        organizadorId: eqSel?.organizadorId || null,
+        solicitanteId: atletaIdVinc,
+        solicitanteNome: form.nome,
+      });
     }
     login({ tipo:"atleta", ...usuario });
     setOk(true);
