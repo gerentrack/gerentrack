@@ -109,10 +109,25 @@ export function useMarchaJuizes(eventoId) {
         pendMarcha.forEach(p => {
           data[p.key] = applyDotFields(data[p.key], p.fields);
         });
-        // Merge writes em andamento (evita snapshot sobrescrever updates otimistas)
-        Object.entries(pendingFieldsRef.current).forEach(([k, fields]) => {
-          if (k.startsWith(eventoId + "_")) {
-            data[k] = applyDotFields(data[k] || {}, fields);
+        // Reconciliar writes em andamento com dados do snapshot
+        Object.keys(pendingFieldsRef.current).forEach(k => {
+          if (!k.startsWith(eventoId + "_")) return;
+          const fields = pendingFieldsRef.current[k];
+          const snapDoc = data[k] || {};
+          const stillPending = {};
+          Object.entries(fields).forEach(([field, value]) => {
+            // Verificar se o snapshot já confirmou este valor
+            const parts = field.split(".");
+            let cur = snapDoc;
+            for (const p of parts) cur = cur?.[p];
+            if (cur === value) return; // confirmado — não precisa mais
+            stillPending[field] = value;
+          });
+          if (Object.keys(stillPending).length > 0) {
+            pendingFieldsRef.current[k] = stillPending;
+            data[k] = applyDotFields(snapDoc, stillPending);
+          } else {
+            delete pendingFieldsRef.current[k];
           }
         });
         setMarchaData(data);
@@ -172,23 +187,10 @@ export function useMarchaJuizes(eventoId) {
       [key]: applyDotFields(prev[key], fields),
     }));
 
-    // 3. Tentar Firestore
+    // 3. Tentar Firestore (pending é limpo pelo onSnapshot quando confirmar o valor)
     try {
       const ref = doc(db, "marchaJuizes", key);
       await setDoc(ref, fields, { merge: true });
-      // Sucesso: remover fields confirmados do pending
-      const cur = pendingFieldsRef.current[key];
-      if (cur) {
-        const remaining = { ...cur };
-        Object.keys(fields).forEach(f => delete remaining[f]);
-        if (Object.keys(remaining).length === 0) {
-          const copy = { ...pendingFieldsRef.current };
-          delete copy[key];
-          pendingFieldsRef.current = copy;
-        } else {
-          pendingFieldsRef.current = { ...pendingFieldsRef.current, [key]: remaining };
-        }
-      }
     } catch {
       // 4. Offline — fila de pendências (pendingFieldsRef mantém proteção)
       const pendentes = lsRead(LS_PENDENTES, []);
