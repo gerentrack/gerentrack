@@ -542,35 +542,49 @@ function App() {
     setTela("login");
   };
 
-  // ── Expiração de sessão ────────────────────────────────────────────────────
-  const SESSAO_DURACAO_MS  = usuarioLogado?.tipo === "admin" ? 30 * 60 * 1000 : 24 * 60 * 60 * 1000; // admin: 30min, demais: 24h
-  const AVISO_ANTECEDENCIA = usuarioLogado?.tipo === "admin" ? 5 * 60 * 1000 : 2 * 60 * 1000;      // admin: aviso 5min antes, demais: 2min
-  const [sessaoAvisoContagem, setSessaoAvisoContagem] = React.useState(null); // null | segundos restantes
+  // ── Expiração de sessão por inatividade ──────────────────────────────────
+  const INATIVIDADE_MS     = usuarioLogado?.tipo === "admin" ? 30 * 60 * 1000 : 24 * 60 * 60 * 1000; // admin: 30min, demais: 24h
+  const AVISO_ANTECEDENCIA = usuarioLogado?.tipo === "admin" ? 5 * 60 * 1000 : 5 * 60 * 1000;        // aviso 5min antes para todos
+  const [sessaoAvisoContagem, setSessaoAvisoContagem] = React.useState(null);
+  const ultimaAtividadeRef = React.useRef(Date.now());
+
+  // Rastrear atividade do usuário (clique, tecla, scroll, toque)
+  React.useEffect(() => {
+    if (!usuarioLogado) return;
+    const atualizarAtividade = () => { ultimaAtividadeRef.current = Date.now(); };
+    const eventos = ["mousedown", "keydown", "scroll", "touchstart"];
+    eventos.forEach(ev => window.addEventListener(ev, atualizarAtividade, { passive: true }));
+    return () => eventos.forEach(ev => window.removeEventListener(ev, atualizarAtividade));
+  }, [!!usuarioLogado]);
 
   React.useEffect(() => {
-    if (!usuarioLogado?._loginEm) return;
+    if (!usuarioLogado) return;
     const intervalo = setInterval(() => {
+      // Não expira enquanto offline — dados locais precisam ser preservados
+      if (!navigator.onLine) { ultimaAtividadeRef.current = Date.now(); setSessaoAvisoContagem(null); return; }
       const agora = Date.now();
-      const expiraEm = usuarioLogado._loginEm + SESSAO_DURACAO_MS;
-      const restante = expiraEm - agora;
+      const inativo = agora - ultimaAtividadeRef.current;
+      const restante = INATIVIDADE_MS - inativo;
       if (restante <= 0) {
         clearInterval(intervalo);
         setSessaoAvisoContagem(null);
-        if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Sessão expirada", "Logout automático por timeout", usuarioLogado.organizadorId || null, { modulo: "auth" });
+        if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Sessão expirada", "Logout automático por inatividade", usuarioLogado.organizadorId || null, { modulo: "auth" });
         setTimeout(() => firebaseSignOut(auth).catch(() => {}), 300);
         setUsuarioLogado(null);
         setPerfisDisponiveis([]);
         setTela("home");
       } else if (restante <= AVISO_ANTECEDENCIA) {
         setSessaoAvisoContagem(Math.ceil(restante / 1000));
+      } else {
+        setSessaoAvisoContagem(null);
       }
     }, 1000);
     return () => clearInterval(intervalo);
-  }, [usuarioLogado?._loginEm]);
+  }, [!!usuarioLogado, INATIVIDADE_MS]);
 
   const renovarSessao = () => {
     if (!usuarioLogado) return;
-    setUsuarioLogado(u => ({ ...u, _loginEm: Date.now() }));
+    ultimaAtividadeRef.current = Date.now();
     setSessaoAvisoContagem(null);
   };
 

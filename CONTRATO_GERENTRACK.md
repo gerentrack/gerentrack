@@ -51,7 +51,17 @@ Licença de utilização da **Plataforma de Gestão de Competições de Atletism
 
 **C.2.** A plataforma opera integralmente via navegador web, sem necessidade de instalação de software local, podendo ser instalada como aplicativo (PWA) em dispositivos móveis e desktops.
 
-**C.3.** Os serviços de suporte, manutenção e hospedagem serão realizados remotamente, na sede da CONTRATADA e/ou em sua infraestrutura em nuvem (Data Center de provedores com certificações internacionais de segurança).
+**C.3.** A plataforma possui funcionamento offline (PWA), permitindo a operação de módulos essenciais (digitação de resultados, câmara de chamada, inscrições) mesmo sem conexão com a internet. A CONTRATANTE declara ciência de que:
+
+(i) Os dados gerados durante o uso offline são armazenados localmente no navegador do dispositivo (IndexedDB e localStorage) e sincronizados automaticamente com o servidor ao restabelecer a conexão com a internet;
+
+(ii) A limpeza do cache, dados de navegação ou reinstalação do navegador antes da sincronização resultará na **perda irreversível** dos dados gerados offline, sendo de exclusiva responsabilidade da CONTRATANTE a preservação do cache do navegador até que a sincronização seja concluída;
+
+(iii) A CONTRATADA não se responsabiliza por perda de dados decorrente de limpeza de cache, formatação de dispositivo, falha de hardware ou qualquer ação que comprometa o armazenamento local antes da sincronização;
+
+(iv) Ao reconectar, a plataforma exibirá relatório de sincronização informando o número de ações sincronizadas e eventuais pendências.
+
+**C.4.** Os serviços de suporte, manutenção e hospedagem serão realizados remotamente, na sede da CONTRATADA e/ou em sua infraestrutura em nuvem (Data Center de provedores com certificações internacionais de segurança).
 
 ---
 
