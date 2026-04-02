@@ -10,6 +10,7 @@ const CAMPOS_NOME = new Set([
   "nome", "nomeUsuario", "nomeEquipe", "atletaNome", "equipeNome",
   "organizadorNome", "responsavelLegal", "nomeAtleta", "nomeCombinada",
   "inscritoPorNome", "equipeSelecionadaNome", "clubeNome",
+  "cidade", "local", "clube", "entidade",
 ]);
 
 // Palavras que não devem ser capitalizadas (preposições/artigos comuns)
