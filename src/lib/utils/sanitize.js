@@ -20,7 +20,7 @@ const MINUSCULAS = new Set([
   "um", "uma", "uns", "umas",
 ]);
 
-function capitalizarNome(str) {
+export function capitalizarNome(str) {
   if (!str || typeof str !== "string") return str;
   return str
     .trim()

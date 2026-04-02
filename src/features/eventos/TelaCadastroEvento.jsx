@@ -751,11 +751,23 @@ function TelaCadastroEvento() {
               <div style={{ fontSize:11, color: t.accent, fontWeight:700, marginBottom:8 }}>
                 🏢 Equipes federadas — {(form.equipeIdsFederados || []).length} selecionada(s)
               </div>
-              {equipes.length === 0 ? (
+              {(() => {
+                const _evOrg = form.organizadorId || usuarioLogado?.id;
+                return equipes.filter(eq => {
+                  if (!_evOrg || usuarioLogado?.tipo === "admin") return true;
+                  if (eq.organizadorId === _evOrg) return true;
+                  return (form.orgsAutorizadas || []).includes(eq.organizadorId);
+                });
+              })().length === 0 ? (
                 <div style={{ fontSize:11, color: t.textDimmed, fontStyle:"italic" }}>Nenhuma equipe cadastrada no sistema ainda.</div>
               ) : (
                 <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
-                  {equipes.map(eq => {
+                  {equipes.filter(eq => {
+                    const _evOrg = form.organizadorId || usuarioLogado?.id;
+                    if (!_evOrg || usuarioLogado?.tipo === "admin") return true;
+                    if (eq.organizadorId === _evOrg) return true;
+                    return (form.orgsAutorizadas || []).includes(eq.organizadorId);
+                  }).map(eq => {
                     const sel = (form.equipeIdsFederados || []).includes(eq.id);
                     return (
                       <button key={eq.id}

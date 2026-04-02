@@ -377,7 +377,11 @@ function TelaPainelAtleta() {
                 <VinculoSolicitarForm
                   atletaId={meuAtleta.id} atletaNome={meuAtleta.nome}
                   clubeInicial={meuAtleta.clubeSolicitado}
-                  equipes={equipes} solicitarVinculo={solicitarVinculo} />
+                  equipes={equipes.filter(eq => {
+                    const orgId = meuAtleta?.organizadorId;
+                    if (!orgId) return true;
+                    return eq.organizadorId === orgId;
+                  })} solicitarVinculo={solicitarVinculo} />
               </div>
             )}
 
@@ -393,7 +397,11 @@ function TelaPainelAtleta() {
                     <VinculoSolicitarForm
                       atletaId={meuAtleta.id} atletaNome={meuAtleta.nome}
                       clubeInicial=""
-                      equipes={equipes} solicitarVinculo={solicitarVinculo} />
+                      equipes={equipes.filter(eq => {
+                    const orgId = meuAtleta?.organizadorId;
+                    if (!orgId) return true;
+                    return eq.organizadorId === orgId;
+                  })} solicitarVinculo={solicitarVinculo} />
                   </div>
                 </details>
               </div>

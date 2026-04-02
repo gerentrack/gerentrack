@@ -147,7 +147,7 @@ function TelaCadastroAtletaLogin() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const [form, setForm] = useState({
-    nome:"", email:"", senha:"", dataNasc:"", anoNasc:"", sexo:"M", clube:"", cpf:"", cbat:"", equipeId:""
+    nome:"", email:"", senha:"", dataNasc:"", anoNasc:"", sexo:"M", clube:"", cpf:"", cbat:"", equipeId:"", organizadorId:""
   });
   const [erros, setErros] = useState({});
   const [ok, setOk] = useState(false);
@@ -164,6 +164,7 @@ function TelaCadastroAtletaLogin() {
   const validar = () => {
     const e = {};
     if (!form.nome)            e.nome    = "Nome obrigatório";
+    if (!form.organizadorId)   e.organizadorId = "Selecione o organizador";
     if (!form.email)           e.email   = "E-mail obrigatório";
     else if (docModo === "novo" && emailJaCadastrado(form.email, { organizadores, equipes, atletasUsuarios, funcionarios, treinadores }))
       e.email = "E-mail já cadastrado em outra conta.";
@@ -185,20 +186,18 @@ function TelaCadastroAtletaLogin() {
     if (!validarCPF(limpo)) { setCpfStatus("invalido"); setAtletaCpfEncontrado(null); setDocExistente(null); setDocModo("novo"); setAtletaDuplicadoOrg(null); return; }
 
     // ── Etapa 4: duplicata de perfil de atleta no mesmo organizador ──
-    if (eqId) {
-      const orgIdEq = equipes.find(e => e.id === eqId)?.organizadorId;
-      if (orgIdEq) {
-        const dupOrg = atletasUsuarios.find(a =>
-          a.cpf && a.cpf.replace(/\D/g,"") === limpo && a.organizadorId === orgIdEq
-        );
-        if (dupOrg) {
-          setCpfStatus("duplicado_org");
-          setAtletaDuplicadoOrg(dupOrg);
-          setAtletaCpfEncontrado(null);
-          setDocExistente(null);
-          setDocModo("novo");
-          return;
-        }
+    const orgIdCheck = form.organizadorId || (eqId ? equipes.find(e => e.id === eqId)?.organizadorId : null);
+    if (orgIdCheck) {
+      const dupOrg = atletasUsuarios.find(a =>
+        a.cpf && a.cpf.replace(/\D/g,"") === limpo && a.organizadorId === orgIdCheck
+      );
+      if (dupOrg) {
+        setCpfStatus("duplicado_org");
+        setAtletaDuplicadoOrg(dupOrg);
+        setAtletaCpfEncontrado(null);
+        setDocExistente(null);
+        setDocModo("novo");
+        return;
       }
     }
     setAtletaDuplicadoOrg(null);
@@ -293,19 +292,16 @@ function TelaCadastroAtletaLogin() {
     }
 
     // ── Etapa 4: bloquear duplicata de perfil no mesmo organizador ──
-    if (form.equipeId && form.cpf) {
-      const orgIdEq = equipes.find(e => e.id === form.equipeId)?.organizadorId;
-      if (orgIdEq) {
-        const cpfLimpo = form.cpf.replace(/\D/g,"");
-        const dupOrg = atletasUsuarios.find(a =>
-          a.cpf && a.cpf.replace(/\D/g,"") === cpfLimpo && a.organizadorId === orgIdEq
-        );
-        if (dupOrg) {
-          setAtletaDuplicadoOrg(dupOrg);
-          setCpfStatus("duplicado_org");
-          setErros({ cpf: "Já existe um perfil de atleta seu neste organizador." });
-          return;
-        }
+    if (form.organizadorId && form.cpf) {
+      const cpfLimpo = form.cpf.replace(/\D/g,"");
+      const dupOrg = atletasUsuarios.find(a =>
+        a.cpf && a.cpf.replace(/\D/g,"") === cpfLimpo && a.organizadorId === form.organizadorId
+      );
+      if (dupOrg) {
+        setAtletaDuplicadoOrg(dupOrg);
+        setCpfStatus("duplicado_org");
+        setErros({ cpf: "Já existe um perfil de atleta seu neste organizador." });
+        return;
       }
     }
     const senhaFinal = docModo === "vincular" ? (docExistente?.senha || form.senha) : form.senha;
@@ -346,7 +342,7 @@ function TelaCadastroAtletaLogin() {
         id, nome:form.nome, email:form.email,
         dataNasc:form.dataNasc, anoNasc:form.dataNasc ? form.dataNasc.split("-")[0] : "",
         sexo:form.sexo, clube:form.clube, cpf:form.cpf, cbat:form.cbat,
-        equipeId:null, atletaUsuarioId:id,
+        equipeId:null, atletaUsuarioId:id, organizadorId:form.organizadorId,
         dataCadastro: new Date().toISOString(),
         cadastradoPor: "atleta",
         lgpdConsentimento: true,
@@ -542,8 +538,23 @@ function TelaCadastroAtletaLogin() {
             )}
             <FormField label="Nº CBAt"          value={form.cbat}    onChange={v=>setForm({...form,cbat:v})} />
             <div style={{ gridColumn:"1/-1" }}>
+              <label style={s.label}>Organizador *</label>
+              <select style={{ ...s.select, borderColor: erros.organizadorId ? t.danger : undefined }}
+                value={form.organizadorId} onChange={e=>{
+                setForm({...form, organizadorId: e.target.value, equipeId:"", clube:""});
+              }}>
+                <option value="">— Selecione o organizador —</option>
+                {(organizadores || []).filter(o => o.status === "aprovado").map(o=>(
+                  <option key={o.id} value={o.id}>{o.entidade || o.nome}</option>
+                ))}
+              </select>
+              {erros.organizadorId && <div style={{ color: t.danger, fontSize:12, marginTop:4 }}>⚠️ {erros.organizadorId}</div>}
+            </div>
+            <div style={{ gridColumn:"1/-1" }}>
               <label style={s.label}>Vinculado a uma Equipe? (opcional)</label>
-              <select style={s.select} value={form.equipeId} onChange={e=>{
+              <select style={s.select} value={form.equipeId}
+                disabled={!form.organizadorId}
+                onChange={e=>{
                 const novoEqId = e.target.value;
                 const eqSel = equipes.find(eq => eq.id === novoEqId);
                 setForm({...form, equipeId: novoEqId, clube: eqSel?.nome || ""});
@@ -553,7 +564,7 @@ function TelaCadastroAtletaLogin() {
                 }
               }}>
                 <option value="">— Sem equipe —</option>
-                {equipes.filter(eq => eq.status === "ativa" || eq.status === "aprovado").map(eq=>(
+                {equipes.filter(eq => (eq.status === "ativa" || eq.status === "aprovado") && eq.organizadorId === form.organizadorId).map(eq=>(
                   <option key={eq.id} value={eq.id}>{eq.nome} {eq.sigla ? `(${eq.sigla})` : ""}</option>
                 ))}
               </select>

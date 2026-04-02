@@ -438,7 +438,6 @@ function TelaImportarAtletas() {
 
   // Get unique clubs and trainers for filters
   // Resolve o orgId efetivo (organizador ou funcionário)
-  const _orgIdsConhecidos = new Set((organizadores || []).map(o => o.id));
   const _meuOrgId = usuarioLogado?.tipo === "organizador"
     ? usuarioLogado.id
     : usuarioLogado?.tipo === "funcionario"
@@ -446,13 +445,10 @@ function TelaImportarAtletas() {
       : null;
 
   const equipesDisponiveis = equipes.filter(eq => {
-    if (t.status !== "aprovado" && t.status !== "ativa") return false;
+    if (eq.status !== "aprovado" && eq.status !== "ativa") return false;
     if (usuarioLogado?.tipo === "admin") return true;
     if (!_meuOrgId) return false;
-    // Incluir: equipes do organizador + equipes sem organizadorId (legado) + equipes órfãs
-    return t.organizadorId === _meuOrgId
-      || !t.organizadorId
-      || !_orgIdsConhecidos.has(t.organizadorId);
+    return eq.organizadorId === _meuOrgId;
   });
 
   return (

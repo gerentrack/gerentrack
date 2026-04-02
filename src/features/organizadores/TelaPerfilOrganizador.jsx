@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { getStatusEvento, labelStatusEvento } from "../eventos/eventoHelpers";
 import { _getLocalEventoDisplay } from "../../shared/formatters/utils";
+import { capitalizarNome } from "../../lib/utils/sanitize";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import { useEvento } from "../../contexts/EventoContext";
@@ -176,7 +177,7 @@ export default function TelaPerfilOrganizador() {
         )}
         {(org.cidade || org.estado) && (
           <div style={s.orgLocal}>
-            📍 {[org.cidade, org.estado].filter(Boolean).join(", ")}
+            📍 {[capitalizarNome(org.cidade), org.estado ? org.estado.toUpperCase() : null].filter(Boolean).join(", ")}
           </div>
         )}
 
