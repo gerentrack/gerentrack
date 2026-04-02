@@ -233,7 +233,6 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
     if (!usaCnpj && !isAdmin && formDados.cpf.trim() && !validarCPF(formDados.cpf)) { setErro("CPF inválido."); return; }
     if (isAdmin) {
       setAdminConfig(prev => ({ ...prev, nome: formDados.nome.trim(), email: formDados.email.trim() }));
-      setUsuarioLogado(u => u ? { ...u, nome: formDados.nome.trim(), email: formDados.email.trim() } : u);
     } else if (store) {
       if (isEquipe) {
         atualizarEquipePerfil({ ...meuRegistro, nome: formDados.nome.trim(), email: formDados.email.trim(), cnpj: formDados.cnpj.trim(), fone: formDados.fone.trim() });
@@ -243,7 +242,9 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
           : u));
       }
     }
-    if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Editou dados pessoais",
+    // Atualizar sessão para refletir o novo nome em toda a aplicação (auditoria, header, etc.)
+    setUsuarioLogado(u => u ? { ...u, nome: formDados.nome.trim(), email: formDados.email.trim() } : u);
+    if (registrarAcao) registrarAcao(usuarioLogado.id, formDados.nome.trim(), "Editou dados pessoais",
       `Nome: ${formDados.nome}`,
       usuarioLogado.organizadorId || (isOrg ? usuarioLogado.id : null),
       { equipeId: usuarioLogado.equipeId });

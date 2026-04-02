@@ -3,6 +3,7 @@ import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useApp } from "../../contexts/AppContext";
+import { usePagination, PaginaControles } from "../../lib/hooks/usePagination";
 
 function getStyles(t) {
   return {
@@ -129,6 +130,8 @@ function TelaAuditoria() {
     return `${data.toLocaleDateString("pt-BR")} às ${horaStr}`;
   };
 
+  const { paginado, infoPage } = usePagination(auditoriaFiltrada, 20);
+
   const getModuloIcon = (mod) => ({ equipes:"🏢", atletas:"🏃", competicoes:"🏟️", inscricoes:"📝", resultados:"📊", sumulas:"📋", recordes:"🏆", numeracao:"🔢", membros:"👥", treinadores:"👨‍🏫", funcionarios:"👷", auth:"🔐", sistema:"⚙️" }[mod] || "📋");
 
   return (
@@ -167,7 +170,7 @@ function TelaAuditoria() {
             <div style={{ fontSize:64, marginBottom:16 }}>📊</div>
             <div style={{ color: t.textTertiary, fontSize:16 }}>Nenhum registro encontrado</div>
           </div>
-        ) : auditoriaFiltrada.map(reg => (
+        ) : paginado.map(reg => (
           <div key={reg.id} style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, padding:"12px 16px", display:"flex", gap:12, alignItems:"center" }}>
             <span style={{ fontSize:20, flexShrink:0 }}>{getModuloIcon(reg.modulo)}</span>
             <div style={{ flex:1, minWidth:0 }}>
@@ -182,9 +185,10 @@ function TelaAuditoria() {
           </div>
         ))}
       </div>
+      <PaginaControles {...infoPage} style={{ marginTop: 16, borderRadius: 8 }} />
       {auditoriaFiltrada.length > 0 && (
-        <div style={{ marginTop:24, padding:16, background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, textAlign:"center", color: t.textDimmed, fontSize:12 }}>
-          Mostrando {auditoriaFiltrada.length} de {auditoriaEquipe.length} registro(s) · Máximo 500 registros mantidos
+        <div style={{ marginTop:12, padding:16, background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, textAlign:"center", color: t.textDimmed, fontSize:12 }}>
+          {auditoriaFiltrada.length} de {auditoriaEquipe.length} registro(s) · Máximo 500 registros mantidos
         </div>
       )}
     </div>

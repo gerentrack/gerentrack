@@ -199,6 +199,13 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
     .sort((a, b) => (a.nome||"").localeCompare(b.nome||"", "pt-BR"));
   const { paginado: compPag, infoPage: compInfo } = usePagination(_compFiltradas, 10);
 
+  const _histFiltradas = (historicoAcoes || []).filter(h => {
+    if (!buscaHist) return true;
+    const b = buscaHist.toLowerCase();
+    return (h.nomeUsuario||"").toLowerCase().includes(b)||(h.acao||"").toLowerCase().includes(b)||(h.detalhe||"").toLowerCase().includes(b);
+  });
+  const { paginado: histPag, infoPage: histInfo } = usePagination(_histFiltradas, 20);
+
   return (
     <div style={s.page}>
 
@@ -775,17 +782,12 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
       ══════════════════════════════════════════════════════════════════════ */}
       {aba === "historico" && (() => {
         const todas = historicoAcoes || [];
-        const filtradas = todas.filter(h => {
-          if (!buscaHist) return true;
-          const b = buscaHist.toLowerCase();
-          return (h.nomeUsuario||"").toLowerCase().includes(b)||(h.acao||"").toLowerCase().includes(b)||(h.detalhe||"").toLowerCase().includes(b);
-        });
         return (
           <div style={s.card}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:14 }}>
               <div style={s.sectionHd}>📊 Histórico de Ações</div>
               <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
-                <span style={{ fontSize:12, color: t.textDimmed }}>{filtradas.length} de {todas.length} · máx. 500</span>
+                <span style={{ fontSize:12, color: t.textDimmed }}>{_histFiltradas.length} de {todas.length} · máx. 500</span>
                 {todas.length > 0 && setHistoricoAcoes && (
                   <>
                     <button
@@ -847,24 +849,23 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                 <input type="text" value={buscaHist} onChange={e=>setBuscaHist(e.target.value)}
                   placeholder="🔍 Buscar ação, usuário, módulo..." style={si} />
                 <div style={s.tableWrap}>
-                  <div style={{ maxHeight:540, overflowY:"auto" }}>
-                    <table style={s.table}>
-                      <thead><tr><Th>Data/Hora</Th><Th>Usuário</Th><Th>Ação</Th><Th>Detalhe</Th><Th>Módulo</Th></tr></thead>
-                      <tbody>
-                        {filtradas.map((h, idx) => (
-                          <tr key={`h_${h.id}_${idx}`} style={s.tr}>
-                            <Td style={{ fontSize:11, color: t.textDimmed, whiteSpace:"nowrap" }}>
-                              {new Date(h.data).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"})}
-                            </Td>
-                            <Td><span style={{ color: t.accent, fontSize:12 }}>{typeof h.nomeUsuario === "object" ? JSON.stringify(h.nomeUsuario) : h.nomeUsuario||"—"}</span></Td>
-                            <Td><strong style={{ color: t.textPrimary, fontSize:12 }}>{typeof h.acao === "object" ? JSON.stringify(h.acao) : h.acao}</strong></Td>
-                            <Td style={{ fontSize:12, color: t.textMuted }}>{typeof h.detalhe === "object" ? JSON.stringify(h.detalhe) : h.detalhe||"—"}</Td>
-                            <Td><span style={{ color: t.textDimmed, fontSize:10 }}>{h.modulo||"—"}</span></Td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <table style={s.table}>
+                    <thead><tr><Th>Data/Hora</Th><Th>Usuário</Th><Th>Ação</Th><Th>Detalhe</Th><Th>Módulo</Th></tr></thead>
+                    <tbody>
+                      {histPag.map((h, idx) => (
+                        <tr key={`h_${h.id}_${idx}`} style={s.tr}>
+                          <Td style={{ fontSize:11, color: t.textDimmed, whiteSpace:"nowrap" }}>
+                            {new Date(h.data).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"})}
+                          </Td>
+                          <Td><span style={{ color: t.accent, fontSize:12 }}>{typeof h.nomeUsuario === "object" ? JSON.stringify(h.nomeUsuario) : h.nomeUsuario||"—"}</span></Td>
+                          <Td><strong style={{ color: t.textPrimary, fontSize:12 }}>{typeof h.acao === "object" ? JSON.stringify(h.acao) : h.acao}</strong></Td>
+                          <Td style={{ fontSize:12, color: t.textMuted }}>{typeof h.detalhe === "object" ? JSON.stringify(h.detalhe) : h.detalhe||"—"}</Td>
+                          <Td><span style={{ color: t.textDimmed, fontSize:10 }}>{h.modulo||"—"}</span></Td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <PaginaControles {...histInfo} />
                 </div>
               </>
             )}

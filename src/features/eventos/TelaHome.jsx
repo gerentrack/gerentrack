@@ -359,6 +359,23 @@ export default function TelaHome() {
         </div>
       </div>
 
+      {/* ── CTA PLANOS (visitantes) ── */}
+      {!usuarioLogado && (
+        <div style={{ background: `linear-gradient(135deg, ${t.accent}15, ${t.accentDark}10)`, border: `1px solid ${t.accentBorder}`, borderRadius: 14, padding: "24px 28px", marginBottom: 40, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+          <div>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: t.textPrimary, letterSpacing: 0.5 }}>
+              Gerencie suas competições de atletismo
+            </div>
+            <div style={{ fontSize: 13, color: t.textMuted, marginTop: 4 }}>
+              Planos a partir de R$ 400,00 por competição. Todos os módulos inclusos.
+            </div>
+          </div>
+          <button onClick={() => setTela("planos")} style={{ background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, whiteSpace: "nowrap" }}>
+            Conheça os Nossos Planos
+          </button>
+        </div>
+      )}
+
       {/* ── ORGANIZADORES ── */}
       {(() => {
         const orgsAtivos = (organizadores || []).filter(o => o.status === "aprovado");
