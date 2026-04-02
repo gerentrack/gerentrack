@@ -222,9 +222,6 @@ Environment variables are prefixed with `VITE_FIREBASE_*` and loaded via `.env`.
 - Firebase Auth migration necessária em: `TelaConfiguracoes` (validação senha não-admin), `TelaGerenciarEquipes` (criação sem Auth), `TelaGerenciarUsuarios` (criação sem Auth), `TelaTreinadores` (handleLoginExistente usa plaintext)
 - Script de migração em massa para contas legadas (equipes importadas sem conta Auth)
 - Troca de email no Gerenciar Usuários não reflete no Firebase Auth
-- Páginas públicas de Política de Privacidade (`/privacidade`) e Termos de Uso (`/termos`) — HTMLs prontos em `docs/`, falta:
-  - Criar rotas públicas `/privacidade` e `/termos` no React Router
-  - Substituir modais LGPD inline por link para `/privacidade` em: `TelaLogin`, `TelaCadastroOrganizador`, `TelaCadastroEquipe`, `TelaCadastroAtletaLogin`, `TelaCadastrarAtleta`
-  - Atualizar `TelaImportarAtletas` (declaração LGPD) e `TelaConfiguracoes` (templates de incidente) para referenciar as rotas
-  - Adicionar link de Termos de Uso nas telas de cadastro (junto ao aceite da Política)
-  - Adicionar links de Política de Privacidade e Termos de Uso no footer do site
+- Sistema de chamados com severidade e SLA (cláusulas G.3, G.4, G.5) — abertura pelo org, gestão pelo admin, timer de SLA
+- Notificação de incidente LGPD por email automático (cláusula I.3(iii)) — atualmente manual via aba Incidente no admin
+- Monitoramento de disponibilidade: UptimeRobot configurado em uptimerobot.com para controle interno de SLA (G.2) — acesso restrito ao admin
