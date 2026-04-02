@@ -285,12 +285,10 @@ function TelaGerenciarEquipes() {
   };
 
   // Filtrar equipes do organizador (se não for admin)
-  // Mostrar equipes do organizador logado + equipes órfãs (organizadorId não encontrado)
-  const orgIds = new Set(organizadores.map(o => o.id));
   const minhasEquipes = isAdmin
     ? equipes
     : meuOrgId
-      ? equipes.filter(eq => eq.organizadorId === meuOrgId || !eq.organizadorId || !orgIds.has(eq.organizadorId))
+      ? equipes.filter(eq => eq.organizadorId === meuOrgId)
       : equipes;
 
   const equipesFiltradas = useMemo(() => {

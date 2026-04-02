@@ -877,7 +877,13 @@ function TelaInscricaoAvulsa() {
                   setNovoAtleta({ ...novoAtleta, equipeId: eqId, clube: eq ? (eq.clube || eq.nome || "") : "" });
                 }}>
                 <option value="">— Sem equipe —</option>
-                {equipes.map(eq => (
+                {equipes.filter(eq => {
+                  const evOrg = eventoParaInscricao?.organizadorId;
+                  if (!evOrg) return true;
+                  if (eq.organizadorId === evOrg) return true;
+                  const cruzadas = eventoParaInscricao?.orgsAutorizadas || [];
+                  return cruzadas.includes(eq.organizadorId);
+                }).map(eq => (
                   <option key={eq.id} value={eq.id}>
                     {eq.nome}{eq.clube ? ` — ${eq.clube}` : ""}
                   </option>

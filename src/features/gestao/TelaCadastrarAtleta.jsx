@@ -1083,8 +1083,9 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
                         if (isAdmin) return true;
                         const _meuOrgId = usuarioLogado?.tipo === "organizador" ? usuarioLogado.id : usuarioLogado?.organizadorId || null;
                         if (!_meuOrgId) return true;
-                        const _orgIdsConhecidos = new Set((organizadores || []).map(o => o.id));
-                        return eq.organizadorId === _meuOrgId || !eq.organizadorId || !_orgIdsConhecidos.has(eq.organizadorId);
+                        if (eq.organizadorId === _meuOrgId) return true;
+                        const cruzadas = eventoAtual?.orgsAutorizadas || [];
+                        return cruzadas.includes(eq.organizadorId);
                       }).map(eq => (
                         <option key={eq.id} value={eq.id}>{eq.nome} ({eq.sigla})</option>
                       ))}
@@ -1103,7 +1104,12 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
               <label style={s.label}>Equipe (opcional)</label>
               <select style={s.select} value={form.equipeId} onChange={(e) => setForm({ ...form, equipeId: e.target.value })}>
                 <option value="">Sem equipe</option>
-                {equipes.map((t) => <option key={t.id} value={t.id}>{t.nome} — {t.clube}</option>)}
+                {equipes.filter(eq => {
+                  const evOrg = eventoAtual?.organizadorId;
+                  if (!evOrg) return true;
+                  if (eq.organizadorId === evOrg) return true;
+                  return Array.isArray(eventoAtual?.orgsAutorizadas) && eventoAtual.orgsAutorizadas.includes(eq.organizadorId);
+                }).map(eq => <option key={eq.id} value={eq.id}>{eq.nome} — {eq.clube}</option>)}
               </select>
             </div>
           )}

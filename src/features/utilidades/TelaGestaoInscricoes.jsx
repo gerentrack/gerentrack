@@ -1624,7 +1624,12 @@ function TelaGestaoInscricoes() {
                       style={{ ...s.input, marginBottom: 0, width: "auto", minWidth: 160 }}>
                       <option value="todas">Todas as equipes</option>
                       {[...new Set([
-                        ...equipes.map(eq => eq.nome),
+                        ...equipes.filter(eq => {
+                          const evOrg = eventoAtual?.organizadorId;
+                          if (!evOrg) return true;
+                          if (eq.organizadorId === evOrg) return true;
+                          return Array.isArray(eventoAtual?.orgsAutorizadas) && eventoAtual.orgsAutorizadas.includes(eq.organizadorId);
+                        }).map(eq => eq.nome),
                         ...atletas.map(a => a.clube).filter(Boolean),
                       ])].sort((a, b) => a.localeCompare(b, "pt-BR")).map(eq => <option key={eq} value={eq}>{eq}</option>)}
                     </select>
