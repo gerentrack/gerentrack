@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { auth, createUserWithEmailAndPassword, signOut as firebaseSignOut, sendEmailVerification } from "../../firebase";
+import { auth, db, doc, setDoc, createUserWithEmailAndPassword, signOut as firebaseSignOut, sendEmailVerification } from "../../firebase";
+import { sanitizeForFirestore } from "../../lib/firestore/sanitize";
 import { validarCNPJ, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { criarInscricaoStyles } from "../inscricoes/inscricaoStyles";
@@ -112,7 +113,7 @@ function TelaCadastroOrganizador() {
         setErros({ email: "Erro ao criar conta. Tente novamente." }); return;
       }
     }
-    await firebaseSignOut(auth).catch(() => {}); // Não logar automaticamente
+    // Montar objeto ANTES do signOut — Firestore exige auth.currentUser para escrita
     const { senha: _senha, ...formSemSenha } = form;
     const o = {
       ...formSemSenha,
@@ -124,6 +125,16 @@ function TelaCadastroOrganizador() {
       lgpdVersao: "1.0",
     };
     adicionarOrganizador(o);
+    // Flush direto no Firestore enquanto auth ainda está ativo (bypass debounce de 2s)
+    try {
+      const key = "atl_organizadores";
+      const docRef = doc(db, "state", key);
+      const current = JSON.parse(window.localStorage.getItem(key) || "[]");
+      await setDoc(docRef, { value: sanitizeForFirestore(current) });
+    } catch (err) {
+      console.error("[CadastroOrganizador] Firestore flush error:", err);
+    }
+    await firebaseSignOut(auth).catch(() => {}); // Só desloga após persistir
     setOk(true);
   };
 

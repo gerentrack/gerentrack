@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { auth, signOut as firebaseSignOut, createUserWithEmailAndPassword, sendEmailVerification } from "../../firebase";
+import { auth, db, doc, setDoc, signOut as firebaseSignOut, createUserWithEmailAndPassword, sendEmailVerification } from "../../firebase";
+import { sanitizeForFirestore } from "../../lib/firestore/sanitize";
 import { validarCPF, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
@@ -317,7 +318,7 @@ function TelaCadastroAtletaLogin() {
         if (err.code === "auth/weak-password") { setErros({ senha: "Senha fraca. Use pelo menos 6 caracteres." }); return; }
       }
     }
-    await firebaseSignOut(auth).catch(() => {}); // Não logar automaticamente
+    // NÃO fazer signOut aqui — precisa de auth.currentUser para Firestore writes
     // Verificar duplicata de Nº CBAt
     if (form.cbat && form.cbat.trim()) {
       const cbatLimpo = form.cbat.trim();
@@ -341,7 +342,7 @@ function TelaCadastroAtletaLogin() {
     if (atletaCpfEncontrado) {
       atualizarAtleta({ ...atletaCpfEncontrado, atletaUsuarioId: id, email: form.email });
     } else {
-      adicionarAtleta({
+      await adicionarAtleta({
         id, nome:form.nome, email:form.email,
         dataNasc:form.dataNasc, anoNasc:form.dataNasc ? form.dataNasc.split("-")[0] : "",
         sexo:form.sexo, clube:form.clube, cpf:form.cpf, cbat:form.cbat,
@@ -358,6 +359,17 @@ function TelaCadastroAtletaLogin() {
         } : {}),
       });
     }
+    // Flush atl_atletas_usuarios no Firestore enquanto auth ainda está ativo
+    try {
+      const key = "atl_atletas_usuarios";
+      const docRef = doc(db, "state", key);
+      const current = JSON.parse(window.localStorage.getItem(key) || "[]");
+      await setDoc(docRef, { value: sanitizeForFirestore(current) });
+    } catch (err) {
+      console.error("[CadastroAtleta] Firestore flush error:", err);
+    }
+    // SignOut antes do login para garantir sessão limpa
+    await firebaseSignOut(auth).catch(() => {});
     // Se selecionou equipe, enviar solicitação de vínculo (aguarda aprovação)
     if (form.equipeId) {
       const atletaIdVinc = atletaCpfEncontrado ? atletaCpfEncontrado.id : id;

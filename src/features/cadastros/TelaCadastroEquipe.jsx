@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { auth, createUserWithEmailAndPassword, sendEmailVerification } from "../../firebase";
+import { auth, db, doc, setDoc, createUserWithEmailAndPassword, sendEmailVerification, signOut as firebaseSignOut } from "../../firebase";
+import { sanitizeForFirestore } from "../../lib/firestore/sanitize";
 import { validarCNPJ, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { criarInscricaoStyles } from "../inscricoes/inscricaoStyles";
@@ -210,7 +211,7 @@ function TelaCadastroEquipe() {
       lgpdVersao: "1.0",
       id: Date.now().toString()
     };
-    adicionarEquipe(equipeObj);
+    await adicionarEquipe(equipeObj);
 
     // Cria solicitação de aprovação
     const org = organizadores?.find(o => o.id === orgIdFinal);
@@ -228,6 +229,17 @@ function TelaCadastroEquipe() {
       status: "pendente",
       data: new Date().toISOString(),
     });
+
+    // Flush solicitação no Firestore enquanto auth está ativo, depois signOut
+    try {
+      const key = "atl_sol_equipe";
+      const docRef = doc(db, "state", key);
+      const current = JSON.parse(window.localStorage.getItem(key) || "[]");
+      await setDoc(docRef, { value: sanitizeForFirestore(current) });
+    } catch (err) {
+      console.error("[CadastroEquipe] Firestore flush error:", err);
+    }
+    await firebaseSignOut(auth).catch(() => {}); // Não deixar logado após cadastro
 
     setOk(true);
   };

@@ -402,7 +402,7 @@ export default function TelaHome() {
                       {org.entidade || org.nome}
                     </div>
                     <div style={{ fontSize: 11, color: t.textDimmed }}>
-                      {nComp} competição{nComp !== 1 ? "ões" : ""}
+                      {nComp} {nComp !== 1 ? "competições" : "competição"}
                     </div>
                   </div>
                 );
