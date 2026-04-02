@@ -44,6 +44,9 @@ export function getCreditosDisponiveis(org) {
  */
 export function canCreateEvent(org, eventos = []) {
   if (org?.suspenso) return { allowed: false, reason: "Conta suspensa. Entre em contato com o administrador.", source: null };
+  const enc = getEncerramento(org);
+  if (enc.faseEncerramento === 2) return { allowed: false, reason: "Contrato encerrado. Dados indisponíveis. Entre em contato para reestabelecer.", source: null };
+  if (enc.faseEncerramento === 3) return { allowed: false, reason: "Contrato encerrado e dados excluídos.", source: null };
 
   const status = getStatus(org);
   const plan = getPlanById(org?.plano);
@@ -123,5 +126,21 @@ export function getUsage(org, eventos = [], now = new Date()) {
     planoFim: org?.planoFim || null,
     renovacao: plan?.renovacao ?? false,
     suspenso: org?.suspenso || false,
+    ...getEncerramento(org, now),
   };
+}
+
+/**
+ * Calcula a fase de encerramento do contrato.
+ * @returns { encerrado, faseEncerramento, diasDesdeEncerramento, diasParaExclusao }
+ */
+export function getEncerramento(org, now = new Date()) {
+  if (!org?.contratoEncerradoEm) return { encerrado: false, faseEncerramento: null, diasDesdeEncerramento: null, diasParaExclusao: null };
+  const encerradoEm = new Date(org.contratoEncerradoEm + "T00:00:00");
+  const dias = Math.floor((now - encerradoEm) / (1000 * 60 * 60 * 24));
+
+  if (dias < 0) return { encerrado: false, faseEncerramento: null, diasDesdeEncerramento: 0, diasParaExclusao: null };
+  if (dias <= 7) return { encerrado: true, faseEncerramento: 1, diasDesdeEncerramento: dias, diasParaExclusao: 30 - dias };
+  if (dias <= 30) return { encerrado: true, faseEncerramento: 2, diasDesdeEncerramento: dias, diasParaExclusao: 30 - dias };
+  return { encerrado: true, faseEncerramento: 3, diasDesdeEncerramento: dias, diasParaExclusao: 0 };
 }

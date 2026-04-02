@@ -102,7 +102,7 @@ function TelaTermos({ embedded } = {}) {
         <li style={s.li}>Uso indevido ou fraudulento da plataforma;</li>
         <li style={s.li}>Determinação judicial.</li>
       </ol>
-      <p style={s.p}><strong style={s.strong}>9.2.</strong> Em caso de cancelamento, os dados do usuário serão preservados pelo prazo de 7 dias, durante o qual poderão ser exportados.</p>
+      <p style={s.p}><strong style={s.strong}>9.2.</strong> Em caso de cancelamento, o usuário terá acesso integral aos seus dados por 7 (sete) dias para exportação. Após esse prazo, os dados ficarão indisponíveis por mais 23 (vinte e três) dias, podendo ser recuperados mediante taxa. Após 30 (trinta) dias do encerramento, os dados serão permanentemente excluídos. Condições detalhadas no contrato de licença.</p>
 
       <h2 style={s.h2}>10. Das Alterações</h2>
       <p style={s.p}><strong style={s.strong}>10.1.</strong> A GERENTRACK reserva-se o direito de alterar estes Termos de Uso a qualquer tempo, mediante comunicação prévia aos usuários contratantes.</p>

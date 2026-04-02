@@ -1,5 +1,5 @@
 import { usePagination, PaginaControles } from "../../lib/hooks/usePagination.jsx";
-import { getStatus, getUsage, getCreditosDisponiveis } from "../../shared/engines/planEngine";
+import { getStatus, getUsage, getCreditosDisponiveis, getEncerramento } from "../../shared/engines/planEngine";
 import { PLANS } from "../../shared/constants/plans";
 import { exportarDadosOrg, downloadCSVs } from "../../shared/engines/exportEngine";
 import React, { useState, useMemo } from "react";
@@ -849,10 +849,16 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                         )}
                       </Td>
                       <Td>
-                        <span style={{ fontSize:11, fontWeight:600,
-                          color: usage.status === "ativo" ? t.success : usage.status === "expirado" ? t.danger : t.textDimmed }}>
-                          {usage.status === "ativo" ? "Ativo" : usage.status === "expirado" ? "Expirado" : "Sem plano"}
-                        </span>
+                        {usage.encerrado ? (
+                          <span style={{ fontSize:11, fontWeight:600, color: t.danger }}>
+                            {usage.faseEncerramento === 1 ? `Encerrando (${7 - usage.diasDesdeEncerramento}d)` : usage.faseEncerramento === 2 ? `Indisponível (${usage.diasParaExclusao}d)` : "Pendente exclusão"}
+                          </span>
+                        ) : (
+                          <span style={{ fontSize:11, fontWeight:600,
+                            color: usage.status === "ativo" ? t.success : usage.status === "expirado" ? t.danger : t.textDimmed }}>
+                            {usage.status === "ativo" ? "Ativo" : usage.status === "expirado" ? "Expirado" : "Sem plano"}
+                          </span>
+                        )}
                       </Td>
                       <Td style={{ fontSize:11 }}>
                         {usage.maxCompeticoes === Infinity
@@ -924,6 +930,24 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                                 registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Exportou dados do org",
                                   `${org.entidade}: ${arqs.length} arquivo(s)`, null, { modulo: "licencas" });
                               }} style={{ ...s.btnGhost, fontSize:10, padding:"3px 8px" }}>Exportar</button>
+                              {(() => {
+                                const enc = getEncerramento(org);
+                                if (!enc.encerrado) return (
+                                  <button onClick={async () => {
+                                    if (!window.confirm(`Encerrar contrato de "${org.entidade}"?\n\nFase 1: 7 dias de acesso para exportação\nFase 2: dados indisponíveis (8-30 dias)\nFase 3: exclusão permanente após 30 dias`)) return;
+                                    editarOrganizadorAdmin({ ...org, contratoEncerradoEm: new Date().toISOString().slice(0, 10), plano: null, planoInicio: null, planoFim: null });
+                                    registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Encerrou contrato", org.entidade || org.nome, null, { modulo: "licencas" });
+                                  }} style={{ ...s.btnGhost, fontSize:10, padding:"3px 8px", color: t.danger, border:`1px solid ${t.danger}44` }}>Encerrar</button>
+                                );
+                                if (enc.faseEncerramento <= 2) return (
+                                  <button onClick={() => {
+                                    if (!window.confirm(`Reestabelecer dados de "${org.entidade}"?\n\nIsso remove o encerramento e restaura o acesso.`)) return;
+                                    editarOrganizadorAdmin({ ...org, contratoEncerradoEm: null });
+                                    registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Reestabeleceu dados", org.entidade || org.nome, null, { modulo: "licencas" });
+                                  }} style={{ ...s.btnGhost, fontSize:10, padding:"3px 8px", color: t.success, border:`1px solid ${t.success}44` }}>Reestabelecer</button>
+                                );
+                                return <span style={{ fontSize:9, color: t.danger }}>Excluir dados</span>;
+                              })()}
                             </>
                           )}
                         </div>

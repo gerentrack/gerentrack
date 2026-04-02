@@ -121,7 +121,7 @@ function TelaPrivacidade({ embedded } = {}) {
       <h2 style={s.h2}>7. Retenção de Dados</h2>
       <p style={s.p}><strong style={s.strong}>7.1.</strong> Os dados pessoais são mantidos enquanto durar a relação contratual com a entidade contratante.</p>
       <p style={s.p}><strong style={s.strong}>7.2.</strong> Notificações lidas expiram após 48 horas. Notificações não lidas expiram após 7 dias.</p>
-      <p style={s.p}><strong style={s.strong}>7.3.</strong> Ao término do contrato, os dados serão disponibilizados ao contratante em formato CSV no prazo de 7 dias, e eliminados dos servidores após confirmação de recebimento, salvo obrigação legal de conservação.</p>
+      <p style={s.p}><strong style={s.strong}>7.3.</strong> Ao término do contrato, o contratante terá 7 (sete) dias com acesso integral para exportação dos dados em formato CSV. Após esse prazo, os dados ficarão retidos por mais 23 (vinte e três) dias (totalizando 30 dias), podendo ser recuperados mediante taxa. Decorridos 30 (trinta) dias, os dados serão permanentemente eliminados, salvo obrigação legal de conservação.</p>
 
       <h2 style={s.h2}>8. Direitos do Titular (Art. 18 da LGPD)</h2>
       <p style={s.p}>O titular dos dados pessoais tem direito a:</p>

@@ -427,7 +427,7 @@ function App() {
     if (!orgsSemPlanoIds) return;
     const atualizados = organizadores.map(o => {
       if (o.plano !== undefined) return o;
-      return { ...o, plano: null, planoInicio: null, planoFim: null, creditosAvulso: [], suspenso: false, suspensoMotivo: null, suspensoEm: null };
+      return { ...o, plano: null, planoInicio: null, planoFim: null, creditosAvulso: [], suspenso: false, suspensoMotivo: null, suspensoEm: null, contratoEncerradoEm: null };
     });
     setOrganizadores(atualizados);
   }, [orgsSemPlanoIds]);

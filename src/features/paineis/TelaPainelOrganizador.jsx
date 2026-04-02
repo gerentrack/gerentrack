@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { _getLocalEventoDisplay } from "../../shared/formatters/utils";
 import { StatCard } from "../ui/StatCard";
-import { getUsage } from "../../shared/engines/planEngine";
+import { getUsage, getEncerramento } from "../../shared/engines/planEngine";
 import { Th, Td } from "../ui/TableHelpers";
 import { SinoNotificacoes } from "../ui/SinoNotificacoes";
 import { gerarHtmlRelatorioParticipacao } from "../impressao/gerarHtmlRelatorioParticipacao";
@@ -258,6 +258,27 @@ function TelaPainelOrganizador() {
           </p>
         </div>
       )}
+
+      {/* ── Banner de encerramento (Fase 1) ── */}
+      {meuOrg && (() => {
+        const enc = getEncerramento(meuOrg);
+        if (!enc.encerrado || enc.faseEncerramento !== 1) return null;
+        const diasRestantes = 7 - enc.diasDesdeEncerramento;
+        return (
+          <div style={{ background: `${t.danger}10`, border: `2px solid ${t.danger}`, borderRadius: 12, padding: "16px 20px", marginBottom: 24 }}>
+            <div style={{ fontWeight: 800, color: t.danger, fontSize: 16, fontFamily: "'Barlow Condensed', sans-serif", marginBottom: 6 }}>
+              Contrato encerrado
+            </div>
+            <div style={{ fontSize: 13, color: t.textSecondary, lineHeight: 1.7 }}>
+              Seu contrato foi encerrado. Você tem <strong style={{ color: t.danger }}>{diasRestantes} dia(s)</strong> para exportar seus dados.
+              Após esse prazo, o acesso será bloqueado e os dados ficarão indisponíveis.
+            </div>
+            <div style={{ fontSize: 12, color: t.textMuted, marginTop: 8 }}>
+              Para renovar: <span style={{ color: t.accent }}>atendimento@gerentrack.com.br</span>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── Card de Plano ── */}
       {meuOrg && (() => {

@@ -63,9 +63,21 @@ O prazo de vigência do Contrato será de __ (______) meses, a contar da data de
 
 **D.2.** Os contratos nos planos Trimestral e Anual serão renovados automaticamente por períodos iguais ao inicialmente contratado, salvo manifestação expressa de qualquer das Partes com antecedência mínima de 30 (trinta) dias do término da vigência. A contratação no plano Avulso encerra-se automaticamente ao término da vigência, sem renovação automática.
 
-**D.3.** Após o encerramento do contrato, por qualquer motivo, a CONTRATADA manterá os dados da CONTRATANTE na plataforma pelo prazo de 7 (sete) dias corridos, contados a partir da data de encerramento. Decorrido esse prazo, todos os dados serão permanentemente excluídos, incluindo competições, atletas, equipes, inscrições, resultados, recordes, rankings e demais informações armazenadas. A CONTRATANTE deverá realizar a exportação de seus dados antes do encerramento do prazo de retenção.
+**D.3.** Após o encerramento do contrato, por qualquer motivo, aplicam-se as seguintes fases de retenção e disponibilidade dos dados:
 
-**D.4.** Em conformidade com a LGPD (Lei n. 13.709/2018), os dados pessoais de atletas, treinadores e demais titulares serão excluídos ou anonimizados após o prazo previsto em D.3. Resultados esportivos já publicados em páginas públicas poderão ser mantidos de forma anonimizada para preservação da integridade do histórico esportivo, nos termos do Art. 7, II da LGPD (cumprimento de obrigação legal e interesse público).
+**D.3.1. Fase 1 — Acesso integral (1º ao 7º dia):** A CONTRATANTE manterá acesso à plataforma e a todos os seus dados pelo prazo de 7 (sete) dias corridos, contados a partir da data de encerramento. Neste período, a CONTRATANTE deverá realizar a exportação de seus dados.
+
+**D.3.2. Fase 2 — Indisponibilidade com retenção (8º ao 30º dia):** A partir do 8º (oitavo) dia, o acesso da CONTRATANTE à plataforma será bloqueado e os dados ficarão indisponíveis. Os dados permanecerão armazenados nos servidores da CONTRATADA pelo prazo adicional de 23 (vinte e três) dias corridos (totalizando 30 dias desde o encerramento). Durante esta fase:
+
+(i) Caso a CONTRATANTE celebre novo contrato com a CONTRATADA, os dados poderão ser reestabelecidos em sua conta mediante pagamento da **Taxa de Reestabelecimento de Dados**, no valor de R$ 1.000,00 (mil reais);
+
+(ii) Caso a CONTRATANTE celebre novo contrato sem pagamento da Taxa de Reestabelecimento, sua conta será disponibilizada como um primeiro acesso, sem os dados anteriores.
+
+**D.3.3. Fase 3 — Exclusão permanente (após o 30º dia):** Decorridos 30 (trinta) dias corridos desde o encerramento, todos os dados serão permanentemente excluídos dos servidores da plataforma, incluindo competições, atletas, equipes, inscrições, resultados, recordes, rankings e demais informações armazenadas.
+
+**D.3.4. Reimplantação de dados exportados:** Após a exclusão permanente (Fase 3), a CONTRATANTE que deseje reimplantar os dados previamente exportados poderá solicitar o serviço de **Reimplantação de Dados**, mediante pagamento de R$ 2.000,00 (dois mil reais). Para esta finalidade, a CONTRATADA manterá uma cópia da exportação dos dados pelo prazo de 6 (seis) meses contados a partir da data de encerramento do contrato. Decorrido este prazo, a cópia da exportação será definitivamente eliminada.
+
+**D.4.** Em conformidade com a LGPD (Lei n. 13.709/2018), os dados pessoais de atletas, treinadores e demais titulares serão excluídos ou anonimizados após o prazo previsto em D.3.3. Resultados esportivos já publicados em páginas públicas poderão ser mantidos de forma anonimizada para preservação da integridade do histórico esportivo, nos termos do Art. 7, II da LGPD (cumprimento de obrigação legal e interesse público).
 
 **D.5.** Todos os dados inseridos pela CONTRATANTE na plataforma são e permanecerão de propriedade exclusiva da CONTRATANTE. A CONTRATADA atua exclusivamente como operadora dos dados, nos termos da LGPD, não podendo utilizá-los para finalidades distintas das previstas neste Contrato.
 
@@ -116,6 +128,8 @@ A contratação de competição adicional será formalizada por e-mail entre as 
 |---|---|---|
 | Treinamento online | R$ 500,00/sessão (2h) | Capacitação remota para equipe de secretaria e organização |
 | Suporte a competição (remoto) | R$ 300,00/dia | Acompanhamento em tempo real durante o evento |
+| Taxa de Reestabelecimento de Dados | R$ 1.000,00 | Recuperação dos dados na plataforma após indisponibilidade contratual (cláusula D.3.2) |
+| Reimplantação de Dados | R$ 2.000,00 | Reimplantação de dados exportados após exclusão permanente, disponível até 6 meses após o encerramento (cláusula D.3.4) |
 
 ### E.3. Reajuste
 
@@ -167,7 +181,7 @@ A disponibilidade é calculada mensalmente, excluindo-se períodos de manutenç�
 
 **H.2.** Caberá à CONTRATADA a propriedade intelectual e o direito de exploração econômica da plataforma GERENTRACK, incluindo o desenvolvimento e comercialização de programas similares ou derivados. A plataforma possui Registro de Programa de Computador junto ao INPI (Instituto Nacional da Propriedade Industrial), nos termos da Lei n. 9.609/98.
 
-**H.3.** Os conteúdos e dados inseridos pela CONTRATANTE são de sua propriedade. Ao término do contrato, não havendo mais interesse de ambas as Partes na sua renovação, a CONTRATADA fornecerá, no prazo de 30 (trinta) dias, em arquivo(s) CSV ou formato equivalente, todos os dados inseridos e armazenados pela CONTRATANTE, incluindo, mas não se limitando a:
+**H.3.** Os conteúdos e dados inseridos pela CONTRATANTE são de sua propriedade. Ao término do contrato, a CONTRATANTE poderá exportar seus dados durante a Fase 1 de retenção (cláusula D.3.1). A CONTRATADA disponibilizará ferramentas de exportação em formato CSV ou equivalente, abrangendo, mas não se limitando a:
 
 - Cadastro de atletas, equipes e treinadores;
 - Inscrições e resultados de competições;
@@ -307,7 +321,7 @@ Sem prejuízo das demais obrigações assumidas, a CONTRATANTE obriga-se a:
 
 **O.3.** Em caso de término antecipado, os pagamentos serão efetuados proporcionalmente aos serviços prestados pela CONTRATADA e aceitos pela CONTRATANTE.
 
-**O.4.** Independentemente da forma de extinção, a CONTRATADA disponibilizará os dados da CONTRATANTE conforme item H.3, no prazo de 30 (trinta) dias após a efetiva extinção.
+**O.4.** Independentemente da forma de extinção, aplicam-se os prazos e condições de retenção de dados previstos na cláusula D.3, incluindo as fases de acesso integral, indisponibilidade com retenção e exclusão permanente.
 
 ---
 

@@ -9,6 +9,7 @@ import { useEvento } from "../../contexts/EventoContext";
 import { useApp } from "../../contexts/AppContext";
 import TelaPrivacidade from "../legal/TelaPrivacidade";
 import TelaTermos from "../legal/TelaTermos";
+import { getEncerramento } from "../../shared/engines/planEngine";
 
 function getStyles(t) {
   return {
@@ -188,13 +189,16 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
   };
 
   const finalizarLogin = (perfisEncontrados) => {
-    // Check de suspensão: marcar perfis de orgs suspensos, não remover
+    // Check de suspensão e encerramento: marcar perfis bloqueados
     const perfisComSuspensao = perfisEncontrados.map(p => {
       const orgId = p.organizadorId || (p.tipo === "organizador" ? p.dados?.id : null);
       if (!orgId) return p;
       const org = organizadores.find(o => o.id === orgId);
-      if (!org?.suspenso) return p;
-      return { ...p, _suspenso: true, _suspensoMotivo: org.suspensoMotivo };
+      if (org?.suspenso) return { ...p, _suspenso: true, _suspensoMotivo: org.suspensoMotivo };
+      const enc = getEncerramento(org);
+      if (enc.faseEncerramento >= 2) return { ...p, _suspenso: true, _suspensoMotivo: "encerrado" };
+      if (enc.faseEncerramento === 1) return { ...p, _encerrandoEm: 7 - enc.diasDesdeEncerramento };
+      return p;
     });
     const perfisAtivos = perfisComSuspensao.filter(p => !p._suspenso);
 
@@ -202,14 +206,20 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
     if (perfisComSuspensao.length > 0 && perfisAtivos.length === 0) {
       const perfilOrg = perfisComSuspensao.find(p => p.tipo === "organizador");
       if (perfilOrg) {
-        const motivo = perfilOrg._suspensoMotivo === "inadimplencia"
-          ? "Conta suspensa por inadimplência. Entre em contato com atendimento@gerentrack.com.br."
-          : perfilOrg._suspensoMotivo === "mau_uso"
-            ? "Conta suspensa por violação dos Termos de Uso. Entre em contato com atendimento@gerentrack.com.br."
-            : "Conta suspensa. Entre em contato com atendimento@gerentrack.com.br.";
+        const mot = perfilOrg._suspensoMotivo;
+        const motivo = mot === "encerrado"
+          ? "Contrato encerrado. Seus dados estão indisponíveis. Para reestabelecer, entre em contato com atendimento@gerentrack.com.br."
+          : mot === "inadimplencia"
+            ? "Conta suspensa por inadimplência. Entre em contato com atendimento@gerentrack.com.br."
+            : mot === "mau_uso"
+              ? "Conta suspensa por violação dos Termos de Uso. Entre em contato com atendimento@gerentrack.com.br."
+              : "Conta suspensa. Entre em contato com atendimento@gerentrack.com.br.";
         setErro(motivo);
       } else {
-        setErro("O acesso à plataforma está temporariamente indisponível para sua organização. Entre em contato com o organizador responsável.");
+        const temEncerrado = perfisComSuspensao.some(p => p._suspensoMotivo === "encerrado");
+        setErro(temEncerrado
+          ? "O acesso à plataforma está encerrado para sua organização. Entre em contato com o organizador responsável."
+          : "O acesso à plataforma está temporariamente indisponível para sua organização. Entre em contato com o organizador responsável.");
       }
       return;
     }

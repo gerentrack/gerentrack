@@ -56,13 +56,17 @@ function TelaSelecaoPerfil() {
                     <div style={{ flex:1 }}>
                       <div style={{ color: suspenso ? t.textDisabled : t.textPrimary, fontSize:15, fontWeight:700 }}>
                         {perfil.label}
-                        {suspenso && <span style={{ fontSize:10, color: t.danger, fontWeight:700, marginLeft:8, padding:"2px 6px", background:`${t.danger}15`, border:`1px solid ${t.danger}33`, borderRadius:4 }}>SUSPENSO</span>}
+                        {suspenso && <span style={{ fontSize:10, color: t.danger, fontWeight:700, marginLeft:8, padding:"2px 6px", background:`${t.danger}15`, border:`1px solid ${t.danger}33`, borderRadius:4 }}>{perfil._suspensoMotivo === "encerrado" ? "ENCERRADO" : "SUSPENSO"}</span>}
                       </div>
                       <div style={{ color:t.textDimmed, fontSize:12, marginTop:2 }}>
                         {suspenso
-                          ? (perfil.tipo === "organizador"
-                            ? "Conta suspensa. Entre em contato com atendimento@gerentrack.com.br."
-                            : "Acesso indisponível. Entre em contato com o organizador.")
+                          ? (perfil._suspensoMotivo === "encerrado"
+                            ? (perfil.tipo === "organizador"
+                              ? "Contrato encerrado. Entre em contato com atendimento@gerentrack.com.br."
+                              : "Acesso encerrado. Entre em contato com o organizador.")
+                            : (perfil.tipo === "organizador"
+                              ? "Conta suspensa. Entre em contato com atendimento@gerentrack.com.br."
+                              : "Acesso indisponível. Entre em contato com o organizador."))
                           : perfil.sublabel}
                       </div>
                     </div>
