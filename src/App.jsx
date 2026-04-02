@@ -1853,6 +1853,13 @@ function App() {
           {/* Coluna 3 — Contato + Redes */}
           <div>
             <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 16, color: "#aaa", letterSpacing: 2, marginBottom: 16, textTransform: "uppercase" }}>Contato</div>
+            <div style={{ marginBottom: 12 }}>
+              <a href="mailto:atendimento@gerentrack.com.br" style={{ color: "#888", fontSize: 15, textDecoration: "none", display: "flex", alignItems: "center", gap: 10 }}
+                onMouseEnter={ev => ev.currentTarget.style.color = "#1976D2"}
+                onMouseLeave={ev => ev.currentTarget.style.color = "#888"}>
+                atendimento@gerentrack.com.br
+              </a>
+            </div>
             {(siteBranding.redesSociais || []).filter(r => r.ativo && (r.rede === "email" || r.rede === "whatsapp" || r.rede === "site")).sort((a, b) => (a.ordem || 0) - (b.ordem || 0)).map((rede, idx) => (
               <div key={idx} style={{ marginBottom: 12 }}>
                 <a href={rede.url} target="_blank" rel="noopener noreferrer" style={{ color: "#888", fontSize: 15, textDecoration: "none", display: "flex", alignItems: "center", gap: 10 }}
@@ -1872,6 +1879,7 @@ function App() {
                 </a>
               ))}
             </div>
+            <div style={{ marginTop: 16, fontSize: 13, color: "#666" }}>CNPJ: 65.454.409/0001-23</div>
           </div>
         </div>
       </footer>

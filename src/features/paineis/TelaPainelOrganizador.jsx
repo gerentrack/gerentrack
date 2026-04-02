@@ -219,7 +219,7 @@ function TelaPainelOrganizador() {
           {isFuncionario && (
             <div style={{ marginTop:6, display:"flex", flexWrap:"wrap", gap:4 }}>
               {(usuarioLogado.permissoes||[]).length === 0
-                ? <span style={{ fontSize:11, color: t.danger }}>⚠️ Nenhuma permissão concedida</span>
+                ? <span style={{ fontSize:11, color: t.danger }}>Nenhuma permissão concedida</span>
                 : (usuarioLogado.permissoes||[]).map(pid => {
                     const p = PERMISSOES.find(x => x.id === pid);
                     return p ? (
@@ -251,7 +251,7 @@ function TelaPainelOrganizador() {
       {/* Banner de conta pendente (não deveria acontecer — login bloqueia — mas por segurança) */}
       {isPendente && (
         <div style={{ background:`${t.accent}12`, border:`1px solid ${t.accent}`, borderRadius:8, padding:"14px 20px", marginBottom:20 }}>
-          <strong style={{ color: t.accent }}>⏳ Conta aguardando aprovação</strong>
+          <strong style={{ color: t.accent }}>Conta aguardando aprovação</strong>
           <p style={{ color: t.textTertiary, fontSize:13, margin:"6px 0 0" }}>
             Seu cadastro está sendo analisado pelo administrador. Você pode configurar seus competições, mas eles só ficarão visíveis ao público após aprovação.
           </p>
@@ -352,7 +352,7 @@ function TelaPainelOrganizador() {
         return (
           <div style={{ background:`${t.accent}08`, border:`1px solid ${t.accent}33`, borderRadius:12, padding:"16px 20px", marginBottom:16 }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
-              <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:16, fontWeight:800, color: t.textPrimary }}>⏳ {pendentes.length} equipe(s) aguardando aprovação</span>
+              <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:16, fontWeight:800, color: t.textPrimary }}>{pendentes.length} equipe(s) aguardando aprovação</span>
             </div>
             {pendentes.map(sol => (
               <div key={sol.id} style={{ background:t.bgCardAlt, border:`1px solid ${t.borderInput}`, borderRadius:8, padding:14, marginBottom:10 }}>
@@ -452,7 +452,7 @@ function TelaPainelOrganizador() {
         </div>
       ) : (
         <div style={s.tableWrap}>
-          <input type="text" value={buscaComp} onChange={e => setBuscaComp(e.target.value)} placeholder="🔍 Buscar competição..." style={{ ...s.input, padding:"6px 12px", fontSize:12, marginBottom:8, maxWidth:350 }} />
+          <input type="text" value={buscaComp} onChange={e => setBuscaComp(e.target.value)} placeholder="Buscar competição..." style={{ ...s.input, padding:"6px 12px", fontSize:12, marginBottom:8, maxWidth:350 }} />
           <div style={{ maxHeight:320, overflowY:"auto" }}>
           <table style={s.table}>
             <thead><tr><Th>Competição</Th><Th>Data</Th><Th>Local</Th><Th>Inscrições</Th><Th>Status</Th><Th>Ações</Th></tr></thead>
@@ -471,7 +471,7 @@ function TelaPainelOrganizador() {
                     <Td><span style={s.marca}>{nInsc}</span></Td>
                     <Td>
                       {ev.statusAprovacao === "pendente" && (
-                        <span style={{ color: t.accent, fontSize:11, fontWeight:700, display:"block" }}>⏳ Aguard. aprovação</span>
+                        <span style={{ color: t.accent, fontSize:11, fontWeight:700, display:"block" }}>Aguard. aprovação</span>
                       )}
                       {ev.statusAprovacao === "recusado" && (
                         <span style={{ color: t.danger, fontSize:11, fontWeight:700, display:"block" }}>✗ Recusado pelo admin</span>
@@ -505,7 +505,7 @@ function TelaPainelOrganizador() {
                         {temPerm("editar_competições") && (
                           <button style={{ ...s.btnGhost, fontSize:12, padding:"4px 10px", color:t.accent, borderColor:`${t.accent}66` }}
                             onClick={()=>{ selecionarEvento(ev.id); setTela("novo-evento"); }}>
-                            ⚙️ Editar
+                            Editar
                           </button>
                         )}
                         {temPerm("inscrições") && (() => {
@@ -574,7 +574,7 @@ function TelaPainelOrganizador() {
             </h2>
             <div style={{ background:`${t.accent}08`, border:`1px solid ${t.accent}33`, borderRadius:10,
               padding:"12px 18px", marginBottom:16, fontSize:13, color:t.accent, lineHeight:1.6 }}>
-              ℹ️ Competições de <strong>outros organizadores</strong> que autorizaram a participação dos seus atletas.
+              Competições de <strong>outros organizadores</strong> que autorizaram a participação dos seus atletas.
               Você pode visualizar resultados e inscrever atletas nessas competições.
             </div>
             {eventosCruzados.length === 0 ? (
@@ -732,7 +732,7 @@ function TelaPainelOrganizador() {
             )}
             {/* Upload de assinatura */}
             <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "12px 16px", marginBottom: 14 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: t.textMuted, marginBottom: 8 }}>✍️ ASSINATURA DO ORGANIZADOR (opcional)</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: t.textMuted, marginBottom: 8 }}>ASSINATURA DO ORGANIZADOR (opcional)</div>
               <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
                 <label style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 6, padding: "6px 14px", cursor: "pointer", fontSize: 12, color: t.textTertiary }}>
                   📁 Selecionar imagem

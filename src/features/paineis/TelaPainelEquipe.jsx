@@ -211,14 +211,14 @@ export default function TelaPainelEquipe() {
   };
 
   const abas = [
-    { id: "visao-geral",  label: "🏠 Visão Geral" },
-    { id: "atletas",      label: `👥 Atletas (${meusAtletas.length})` },
-    { id: "inscricoes",   label: `📋 Inscrições (${minhasInscs.length})` },
-    { id: "eventos",      label: `🏟️ Competições (${eventosAbertos.length} abertas)` },
-    { id: "resultados",   label: `🏆 Resultados (${medalhas.total})` },
-    { id: "treinadores",  label: `👨‍🏫 Treinadores (${meusTrein.length})` },
-    ...(totalPendentes > 0 ? [{ id: "vinculos", label: `🔗 Vínculos (${totalPendentes})`, badge: true }] : []),
-    { id: "auditoria",   label: "📜 Auditoria" },
+    { id: "visao-geral",  label: "Visão Geral" },
+    { id: "atletas",      label: `Atletas (${meusAtletas.length})` },
+    { id: "inscricoes",   label: `Inscrições (${minhasInscs.length})` },
+    { id: "eventos",      label: `Competições (${eventosAbertos.length} abertas)` },
+    { id: "resultados",   label: `Resultados (${medalhas.total})` },
+    { id: "treinadores",  label: `Treinadores (${meusTrein.length})` },
+    ...(totalPendentes > 0 ? [{ id: "vinculos", label: `Vínculos (${totalPendentes})`, badge: true }] : []),
+    { id: "auditoria",   label: "Auditoria" },
   ];
 
   return (
@@ -280,7 +280,7 @@ export default function TelaPainelEquipe() {
           {eventosComInsc.length > 0 && (
             <div style={s.card}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                <div style={s.secTitle}>📋 Competições com inscrições</div>
+                <div style={s.secTitle}>Competições com inscrições</div>
                 <button onClick={() => setAbaAtiva("inscricoes")} style={{ ...s.btnGhost, fontSize: 12, padding: "5px 14px" }}>Ver tudo →</button>
               </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
@@ -306,7 +306,7 @@ export default function TelaPainelEquipe() {
           {eventosAbertos.length > 0 && (
             <div style={s.card}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                <div style={s.secTitle}>🏟️ Competições com inscrições abertas</div>
+                <div style={s.secTitle}>Competições com inscrições abertas</div>
                 <button onClick={() => setAbaAtiva("eventos")} style={{ ...s.btnGhost, fontSize: 12, padding: "5px 14px" }}>Ver todas →</button>
               </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
@@ -515,7 +515,7 @@ export default function TelaPainelEquipe() {
           <div style={s.secTitle}>🏟️ Competições com inscrições abertas</div>
           {eventosAbertos.length === 0 ? (
             <div style={s.emptyState}>
-              <span style={{ fontSize: 40 }}>🏟️</span>
+              <span style={{ fontSize: 16, color: t.textDisabled }}>—</span>
               <p>Nenhuma competição com inscrições abertas no momento.</p>
             </div>
           ) : (
@@ -535,12 +535,12 @@ export default function TelaPainelEquipe() {
                     </div>
                     {ev.dataEncerramentoInscricoes && (
                       <div style={{ color: t.warning, fontSize: 11, marginBottom: 10 }}>
-                        ⚠️ Inscrições até {new Date(ev.dataEncerramentoInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}
+                        Inscrições até {new Date(ev.dataEncerramentoInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}
                       </div>
                     )}
                     {nInscsNosso > 0 && (
                       <div style={{ color: t.success, fontSize: 11, marginBottom: 10 }}>
-                        ✓ {nInscsNosso} inscrição(ões) da equipe
+                        {nInscsNosso} inscrição(ões) da equipe
                       </div>
                     )}
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -565,7 +565,7 @@ export default function TelaPainelEquipe() {
       {abaAtiva === "treinadores" && (
         <div style={s.card}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
-            <div style={s.secTitle}>👨‍🏫 Treinadores ({meusTrein.length})</div>
+            <div style={s.secTitle}>Treinadores ({meusTrein.length})</div>
             {!isTreinador && (
               <div style={{ display: "flex", gap: 8 }}>
                 <button style={s.btn} onClick={() => setTela("treinadores-novo")}>+ Adicionar</button>
@@ -575,7 +575,7 @@ export default function TelaPainelEquipe() {
           </div>
           {meusTrein.length === 0 ? (
             <div style={s.emptyState}>
-              <span style={{ fontSize: 40 }}>👨‍🏫</span>
+              <span style={{ fontSize: 16, color: t.textDisabled }}>—</span>
               <p>Nenhum treinador cadastrado</p>
               {!isTreinador && <button style={s.btn} onClick={() => setTela("treinadores-novo")}>+ Adicionar treinador</button>}
             </div>
@@ -626,11 +626,7 @@ export default function TelaPainelEquipe() {
           inscricoes: "Inscrições", resultados: "Resultados", relatorios: "Relatórios",
           competicoes: "Competições", recordes: "Recordes", secretaria: "Secretaria", sistema: "Sistema",
         };
-        const MODULO_ICONS = {
-          auth: "🔑", atletas: "🏃", equipes: "🏢", treinadores: "👨‍🏫",
-          inscricoes: "📋", resultados: "🏆", relatorios: "📄",
-          competicoes: "🏟️", recordes: "🥇", secretaria: "📎", sistema: "⚙️",
-        };
+        const MODULO_ICONS = {};
         const filtrados = meuHistorico.filter(h => {
           if (filtroModulo !== "todos" && h.modulo !== filtroModulo) return false;
           if (!buscaAudit) return true;
@@ -721,7 +717,7 @@ export default function TelaPainelEquipe() {
         <div>
           {/* Nota informativa */}
           <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 12, color: t.textDimmed, lineHeight: 1.6 }}>
-            ℹ️ Esta exibição é meramente informativa e não constitui relatório oficial de participação. O relatório oficial é de responsabilidade do organizador da competição.
+            Esta exibição é meramente informativa e não constitui relatório oficial de participação. O relatório oficial é de responsabilidade do organizador da competição.
           </div>
 
           {/* Solicitar relatório */}
@@ -950,7 +946,7 @@ export default function TelaPainelEquipe() {
           {vincPendentes.length > 0 && (
             <div style={{ background: `${t.accent}10`, border: `1px solid ${t.accent}44`, borderRadius: 12, padding: "16px 20px", marginBottom: 20 }}>
               <div style={{ fontWeight: 700, color: t.accent, fontSize: 14, marginBottom: 12 }}>
-                🔗 Solicitações de Vínculo — atletas pedindo para entrar
+                Solicitações de Vínculo — atletas pedindo para entrar
               </div>
               <div style={s.tableWrap}>
                 <table style={s.table}>

@@ -298,26 +298,25 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
 
           {/* Ações rápidas */}
           <div style={s.card}>
-            <div style={s.sectionHd}>🚀 Ações Rápidas</div>
+            <div style={s.sectionHd}>Ações Rápidas</div>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))", gap:10 }}>
               {[
-                { icon:"🏟",  label:"Criar Competição",   action:() => { selecionarEvento(null); setTela("novo-evento"); }, primary:true },
-                { icon:"🏃",  label:"Cadastrar Atleta",   action:() => setTela("cadastrar-atleta") },
-                { icon:"🏅",  label:"Gerenciar Equipes",  action:() => setTela("gerenciar-equipes") },
-                { icon:"👥",  label:"Gerenciar Usuários", action:() => setTela("gerenciar-usuarios") },
-                { icon:"📋",  label:"Ver Inscrições",     action:() => setTela("gerenciar-inscricoes") },
+                { label:"Criar Competição",   action:() => { selecionarEvento(null); setTela("novo-evento"); }, primary:true },
+                { label:"Cadastrar Atleta",   action:() => setTela("cadastrar-atleta") },
+                { label:"Gerenciar Equipes",  action:() => setTela("gerenciar-equipes") },
+                { label:"Gerenciar Usuários", action:() => setTela("gerenciar-usuarios") },
+                { label:"Ver Inscrições",     action:() => setTela("gerenciar-inscricoes") },
               ].map(a => (
                 <button key={a.label} onClick={a.action} style={{
                   background: a.primary ? `linear-gradient(135deg, ${t.accent}, ${t.accentDark})` : t.bgHeaderSolid,
                   border: a.primary ? "none" : `1px solid ${t.border}`,
                   borderRadius:10, padding:"16px 10px",
                   cursor:"pointer", color: a.primary ? "#fff" : t.textTertiary,
-                  fontFamily:"'Barlow',sans-serif", fontSize:12,
-                  display:"flex", flexDirection:"column", alignItems:"center", gap:7, textAlign:"center",
-                  transition:"all 0.15s",
+                  fontFamily:"'Barlow',sans-serif", fontSize:13, fontWeight:600,
+                  display:"flex", alignItems:"center", justifyContent:"center", textAlign:"center",
+                  transition:"all 0.15s", minHeight:50,
                 }}>
-                  <span style={{ fontSize:22 }}>{a.icon}</span>
-                  <span style={{ fontWeight:600, lineHeight:1.3 }}>{a.label}</span>
+                  {a.label}
                 </button>
               ))}
             </div>
