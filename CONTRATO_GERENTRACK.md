@@ -61,7 +61,7 @@ O prazo de vigência do Contrato será de __ (______) meses, a contar da data de
 
 **D.1.** A CONTRATADA não tem direito subjetivo à prorrogação contratual.
 
-**D.2.** O contrato será renovado automaticamente por períodos iguais ao inicialmente contratado, salvo manifestação expressa de qualquer das Partes com antecedência mínima de 30 (trinta) dias do término da vigência.
+**D.2.** Os contratos nos planos Trimestral e Anual serão renovados automaticamente por períodos iguais ao inicialmente contratado, salvo manifestação expressa de qualquer das Partes com antecedência mínima de 30 (trinta) dias do término da vigência. A contratação no plano Avulso encerra-se automaticamente ao término da vigência, sem renovação automática.
 
 **D.3.** Após o encerramento do contrato, por qualquer motivo, a CONTRATADA manterá os dados da CONTRATANTE na plataforma pelo prazo de 7 (sete) dias corridos, contados a partir da data de encerramento. Decorrido esse prazo, todos os dados serão permanentemente excluídos, incluindo competições, atletas, equipes, inscrições, resultados, recordes, rankings e demais informações armazenadas. A CONTRATANTE deverá realizar a exportação de seus dados antes do encerramento do prazo de retenção.
 
@@ -84,6 +84,8 @@ A CONTRATANTE opta pelo período de contratação assinalado abaixo:
 | ( ) **Anual** | R$ 449,90 | Ilimitadas | Ilimitados | Prioritário (até 24h úteis) |
 
 Todos os planos incluem acesso a todos os módulos da plataforma descritos no Anexo I, sem restrição de funcionalidades. Inscrições ilimitadas em todas as competições, sem custo adicional.
+
+A vigência do plano Avulso inicia-se na data de liberação do acesso e encerra-se 7 (sete) dias corridos após a data de realização da competição contratada.
 
 **E.1.a. Detalhamento do Suporte**
 
