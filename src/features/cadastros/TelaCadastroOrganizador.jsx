@@ -59,7 +59,7 @@ function TelaCadastroOrganizador() {
       dataCadastro: new Date().toISOString(),
       lgpdConsentimento: true,
       lgpdConsentimentoData: new Date().toISOString(),
-      lgpdVersao: "1.0",
+      lgpdVersao: "2.0",
     };
     adicionarOrganizador(o);
     // Flush direto no Firestore enquanto auth ainda está ativo (bypass debounce de 2s)

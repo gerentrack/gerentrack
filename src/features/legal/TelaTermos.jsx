@@ -20,14 +20,14 @@ function getStyles(t) {
   };
 }
 
-function TelaTermos() {
+function TelaTermos({ embedded } = {}) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { setTela } = useApp();
 
   return (
-    <div style={s.page}>
-      <button style={s.btnVoltar} onClick={() => setTela("home")}>← Voltar</button>
+    <div style={embedded ? { padding: 0 } : s.page}>
+      {!embedded && <button style={s.btnVoltar} onClick={() => setTela("home")}>← Voltar</button>}
       <h1 style={s.title}>Termos de Uso</h1>
       <p style={s.subtitle}>GERENTRACK LTDA - CNPJ: 65.454.409/0001-23 — Última atualização: abril de 2026</p>
 

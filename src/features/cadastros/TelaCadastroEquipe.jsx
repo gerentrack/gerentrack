@@ -145,7 +145,7 @@ function TelaCadastroEquipe() {
       dataCadastro: new Date().toISOString(),
       lgpdConsentimento: true,
       lgpdConsentimentoData: new Date().toISOString(),
-      lgpdVersao: "1.0",
+      lgpdVersao: "2.0",
       id: Date.now().toString()
     };
     await adicionarEquipe(equipeObj);

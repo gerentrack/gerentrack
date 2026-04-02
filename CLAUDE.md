@@ -52,7 +52,11 @@ O app está em **migração incremental** do sistema de routing baseado em estad
   - `AuthContext.jsx` (`useAuth()`) — usuarioLogado, login, logout, perfis, senhas
   - `EventoContext.jsx` (`useEvento()`) — eventos, inscrições, resultados, atletas, equipes, recordes, ranking
 
-**NOTA**: O sistema `tela`/`setTela` ainda coexiste com React Router. Novas telas devem usar rotas; telas existentes serão migradas incrementalmente.
+**NOTA**: O sistema `tela`/`setTela` coexiste com React Router via `useRouterBridge`. **TODAS as telas DEVEM ter rota registrada** — ao criar uma tela nova:
+1. Adicionar path em `ROUTES` e `TELA_TO_PATH` em `routes.jsx`
+2. Adicionar resolução URL→tela em `resolverPathParaTela()` do `useRouterBridge.js`
+3. Adicionar resolução tela→URL no `staticMap` do `buildUrlForTela()` do `useRouterBridge.js`
+4. **NUNCA** criar tela que funcione apenas via `setTela` sem rota — todas as telas devem ter URL acessível diretamente pelo browser.
 
 ### Source Structure
 
@@ -188,7 +192,7 @@ Environment variables are prefixed with `VITE_FIREBASE_*` and loaded via `.env`.
 - **secondaryAuth** — SEMPRE usar para `createUserWithEmailAndPassword` quando criando conta para outro usuário (funcionário, treinador, equipe via admin)
 - **Filtro de provas na secretaria** — filtra por `prova.nome` (não `prova.id`), pois provas com variantes F_ têm IDs diferentes mas mesmo nome
 - **Contexts vs props** — features novas devem consumir dados via `useApp()`, `useAuth()`, `useEvento()` em vez de receber props diretamente do App.jsx. Os contexts são construídos via `buildAppValue()`, `buildAuthValue()`, `buildEventoValue()`
-- **Rotas novas** — ao criar telas novas, adicionar entrada em `src/router/routes.jsx` (ROUTES + TELA_TO_PATH) e usar `buildPath()` para navegação com parâmetros dinâmicos
+- **Rotas novas** — ao criar telas novas, OBRIGATÓRIO registrar em 3 lugares: (1) `routes.jsx` (ROUTES + TELA_TO_PATH), (2) `useRouterBridge.js` em `resolverPathParaTela()`, (3) `useRouterBridge.js` em `buildUrlForTela()` staticMap. NUNCA criar tela sem rota — toda tela deve ter URL acessível diretamente pelo browser
 
 ## Regras de dados e segurança
 
@@ -218,4 +222,9 @@ Environment variables are prefixed with `VITE_FIREBASE_*` and loaded via `.env`.
 - Firebase Auth migration necessária em: `TelaConfiguracoes` (validação senha não-admin), `TelaGerenciarEquipes` (criação sem Auth), `TelaGerenciarUsuarios` (criação sem Auth), `TelaTreinadores` (handleLoginExistente usa plaintext)
 - Script de migração em massa para contas legadas (equipes importadas sem conta Auth)
 - Troca de email no Gerenciar Usuários não reflete no Firebase Auth
-- Páginas públicas de Política de Privacidade (`/privacidade`) e Termos de Uso (`/termos`) — documentos prontos em DOCX, falta implementar como rotas públicas no app com conteúdo renderizado
+- Páginas públicas de Política de Privacidade (`/privacidade`) e Termos de Uso (`/termos`) — HTMLs prontos em `docs/`, falta:
+  - Criar rotas públicas `/privacidade` e `/termos` no React Router
+  - Substituir modais LGPD inline por link para `/privacidade` em: `TelaLogin`, `TelaCadastroOrganizador`, `TelaCadastroEquipe`, `TelaCadastroAtletaLogin`, `TelaCadastrarAtleta`
+  - Atualizar `TelaImportarAtletas` (declaração LGPD) e `TelaConfiguracoes` (templates de incidente) para referenciar as rotas
+  - Adicionar link de Termos de Uso nas telas de cadastro (junto ao aceite da Política)
+  - Adicionar links de Política de Privacidade e Termos de Uso no footer do site

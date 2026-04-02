@@ -428,7 +428,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
       equipeAvulsa: form.equipeAvulsa,
       lgpdConsentimento: true,
       lgpdConsentimentoData: new Date().toISOString(),
-      lgpdVersao: "1.0",
+      lgpdVersao: "2.0",
       ...(ehMenor ? {
         consentimentoParental: true,
         consentimentoParentalData: new Date().toISOString(),

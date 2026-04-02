@@ -264,7 +264,7 @@ function TelaCadastroAtletaLogin() {
       ...formSemSenha, id, tipo:"atleta",
       lgpdConsentimento: true,
       lgpdConsentimentoData: new Date().toISOString(),
-      lgpdVersao: "1.0",
+      lgpdVersao: "2.0",
       ...(ehMenor ? {
         responsavelLegal: responsavelLegal.trim(),
         consentimentoParental: true,
@@ -284,7 +284,7 @@ function TelaCadastroAtletaLogin() {
         cadastradoPor: "atleta",
         lgpdConsentimento: true,
         lgpdConsentimentoData: new Date().toISOString(),
-        lgpdVersao: "1.0",
+        lgpdVersao: "2.0",
         ...(ehMenor ? {
           responsavelLegal: responsavelLegal.trim(),
           consentimentoParental: true,

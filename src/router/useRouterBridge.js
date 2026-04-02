@@ -37,6 +37,10 @@ export function resolverPathParaTela(pathname, eventos = [], organizadores = [])
   if (path === "/recordes") return { tela: "recordes" };
   if (path === "/ranking") return { tela: "ranking" };
   if (path === "/configuracoes") return { tela: "configuracoes" };
+  if (path === "/faq") return { tela: "faq" };
+  if (path === "/planos") return { tela: "planos" };
+  if (path === "/privacidade") return { tela: "privacidade" };
+  if (path === "/termos") return { tela: "termos" };
 
   // Admin
   if (path === "/admin") return { tela: "admin" };
@@ -45,6 +49,8 @@ export function resolverPathParaTela(pathname, eventos = [], organizadores = [])
   if (path === "/admin/funcionarios") return { tela: "funcionarios" };
   if (path === "/admin/treinadores") return { tela: "treinadores" };
   if (path === "/admin/atleta/novo") return { tela: "cadastrar-atleta" };
+  if (path === "/admin/atleta/cadastrar") return { tela: "cadastrar-atleta-novo" };
+  if (path === "/admin/treinadores/novo") return { tela: "treinadores-novo" };
   if (path === "/admin/importar-atletas") return { tela: "importar-atletas" };
   if (path === "/admin/auditoria") return { tela: "auditoria" };
 
@@ -157,8 +163,14 @@ function buildUrlForTela(tela, context = {}) {
     "funcionarios": "/admin/funcionarios",
     "treinadores": "/admin/treinadores",
     "cadastrar-atleta": "/admin/atleta/novo",
+    "cadastrar-atleta-novo": "/admin/atleta/cadastrar",
+    "treinadores-novo": "/admin/treinadores/novo",
     "importar-atletas": "/admin/importar-atletas",
     "auditoria": "/admin/auditoria",
+    "faq": "/faq",
+    "planos": "/planos",
+    "privacidade": "/privacidade",
+    "termos": "/termos",
     "painel": "/painel",
     "painel-organizador": "/painel/organizador",
     "painel-atleta": "/painel/atleta",

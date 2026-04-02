@@ -712,11 +712,11 @@ function TelaImportarAtletas() {
                       Declaro que possuo o consentimento dos titulares{temMenor ? " e dos responsáveis legais pelos atletas menores de 18 anos " : " "}
                       para o tratamento dos dados pessoais contidos nesta planilha pelo GerenTrack,
                       para fins de gestão de competições de atletismo, conforme a{" "}
-                      <a href="/privacidade" target="_blank" rel="noopener noreferrer"
-                        style={{ color: t.accent, textDecoration: "underline" }}>Política de Privacidade</a>
+                      <button type="button" onClick={() => setTela("privacidade")}
+                        style={{ background:"none", border:"none", color: t.accent, cursor:"pointer", fontSize:"inherit", padding:0, textDecoration: "underline" }}>Política de Privacidade</button>
                       {" "}e os{" "}
-                      <a href="/termos" target="_blank" rel="noopener noreferrer"
-                        style={{ color: t.accent, textDecoration: "underline" }}>Termos de Uso</a>,
+                      <button type="button" onClick={() => setTela("termos")}
+                        style={{ background:"none", border:"none", color: t.accent, cursor:"pointer", fontSize:"inherit", padding:0, textDecoration: "underline" }}>Termos de Uso</button>,
                       assumindo total responsabilidade por esta declaração conforme a <strong style={{ color: t.accent }}>LGPD (Art. 7º{temMenor ? " e Art. 14" : ""})</strong>.
                       Os atletas serão solicitados a confirmar individualmente no primeiro acesso ao sistema.
                     </span>

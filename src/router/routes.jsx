@@ -36,8 +36,10 @@ export const ROUTES = {
   funcionarios:            "/admin/funcionarios",
   treinadores:             "/admin/treinadores",
   cadastrarAtleta:         "/admin/atleta/novo",
+  cadastrarAtletaNovo:     "/admin/atleta/cadastrar",
   editarAtleta:            "/admin/atleta/:id/editar",
   importarAtletas:         "/admin/importar-atletas",
+  treinadoresNovo:         "/admin/treinadores/novo",
   auditoria:               "/admin/auditoria",
 
   // Painéis
@@ -95,6 +97,8 @@ export const TELA_TO_PATH = {
   "cadastrar-atleta":           ROUTES.cadastrarAtleta,
   "editar-atleta":              ROUTES.editarAtleta,
   "importar-atletas":           ROUTES.importarAtletas,
+  "cadastrar-atleta-novo":      ROUTES.cadastrarAtletaNovo,
+  "treinadores-novo":           ROUTES.treinadoresNovo,
   "auditoria":                  ROUTES.auditoria,
   "painel":                     ROUTES.painel,
   "painel-organizador":         ROUTES.painelOrganizador,

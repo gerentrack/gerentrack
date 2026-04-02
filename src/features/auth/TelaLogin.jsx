@@ -7,6 +7,8 @@ import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvento } from "../../contexts/EventoContext";
 import { useApp } from "../../contexts/AppContext";
+import TelaPrivacidade from "../legal/TelaPrivacidade";
+import TelaTermos from "../legal/TelaTermos";
 
 function getStyles(t) {
   return {
@@ -51,7 +53,7 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
   const [modoConsentimento, setModoConsentimento] = useState(false);
   const [consentimentoPerfis, setConsentimentoPerfis] = useState([]); // perfis encontrados aguardando consentimento
   const [consentimentoAceite, setConsentimentoAceite] = useState(false);
-  const [modalPolitica, setModalPolitica] = useState(false);
+  const [modalLegal, setModalLegal] = useState(null); // null | "privacidade" | "termos"
 
   const matchIdent = (u) => {
     if (!u) return false;
@@ -105,7 +107,8 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
   // ── Grava consentimento retroativo em todos os perfis encontrados ─────────
   const gravarConsentimento = (perfis) => {
     const agora = new Date().toISOString();
-    const campos = { lgpdConsentimento: true, lgpdConsentimentoData: agora, lgpdVersao: "1.0" };
+    const LGPD_VERSAO_ATUAL = "2.0";
+    const campos = { lgpdConsentimento: true, lgpdConsentimentoData: agora, lgpdVersao: LGPD_VERSAO_ATUAL };
 
     perfis.forEach(p => {
       const id = p.dados?.id;
@@ -151,15 +154,16 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
       treinador:   "atl_treinadores",
     };
 
+    const LGPD_VERSAO_ATUAL = "2.0";
     let precisaConsentimento = false;
 
     for (const p of perfis) {
       // Equipes ficam na coleção própria "equipes/"
       if (p.tipo === "equipe") {
-        if (!p.dados?.lgpdConsentimento) {
+        if (!p.dados?.lgpdConsentimento || p.dados?.lgpdVersao !== LGPD_VERSAO_ATUAL) {
           try {
             const snap = await getDoc(doc(db, "equipes", p.dados?.id));
-            if (snap.exists() && snap.data()?.lgpdConsentimento) continue;
+            if (snap.exists() && snap.data()?.lgpdConsentimento && snap.data()?.lgpdVersao === LGPD_VERSAO_ATUAL) continue;
           } catch (_) {}
           precisaConsentimento = true;
           break;
@@ -167,7 +171,7 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
         continue;
       }
       // Demais tipos ficam em state/{chave} via useLocalStorage
-      if (!p.dados?.lgpdConsentimento) {
+      if (!p.dados?.lgpdConsentimento || p.dados?.lgpdVersao !== LGPD_VERSAO_ATUAL) {
         precisaConsentimento = true;
         break;
       }
@@ -291,6 +295,39 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
     <div style={s.formPage}>
       <LoginStyle />
 
+      {/* Modal Política / Termos inline */}
+      {modalLegal && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.85)", zIndex:2000,
+          display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}
+          onClick={() => setModalLegal(null)}>
+          <div style={{ background:t.bgCard, border:`1px solid ${t.accent}`, borderRadius:14,
+            padding:"24px 28px", maxWidth:640, width:"100%", maxHeight:"85vh", overflowY:"auto" }}
+            onClick={ev => ev.stopPropagation()}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
+              <div style={{ display:"flex", gap:8 }}>
+                <button onClick={() => setModalLegal("privacidade")}
+                  style={{ padding:"6px 14px", borderRadius:6, fontSize:12, fontWeight:600, cursor:"pointer",
+                    background: modalLegal === "privacidade" ? t.accent : t.bgInput,
+                    color: modalLegal === "privacidade" ? "#fff" : t.textMuted,
+                    border:`1px solid ${modalLegal === "privacidade" ? t.accent : t.border}` }}>
+                  Política de Privacidade
+                </button>
+                <button onClick={() => setModalLegal("termos")}
+                  style={{ padding:"6px 14px", borderRadius:6, fontSize:12, fontWeight:600, cursor:"pointer",
+                    background: modalLegal === "termos" ? t.accent : t.bgInput,
+                    color: modalLegal === "termos" ? "#fff" : t.textMuted,
+                    border:`1px solid ${modalLegal === "termos" ? t.accent : t.border}` }}>
+                  Termos de Uso
+                </button>
+              </div>
+              <button onClick={() => setModalLegal(null)} style={{ background:"none", border:"none",
+                color:t.textMuted, cursor:"pointer", fontSize:20, padding:"4px 8px" }}>✕</button>
+            </div>
+            {modalLegal === "privacidade" ? <TelaPrivacidade embedded /> : <TelaTermos embedded />}
+          </div>
+        </div>
+      )}
+
       <div style={{ ...s.formCard, maxWidth:500 }}>
         <div style={{ fontSize:48, textAlign:"center", marginBottom:12 }}>🔒</div>
         <h2 style={s.formTitle}>Atualização da Política de Privacidade</h2>
@@ -327,15 +364,17 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
               style={{ marginTop:2, width:16, height:16, cursor:"pointer", flexShrink:0 }} />
             <span style={{ fontSize:13, color:t.textSecondary, lineHeight:1.7 }}>
               Li e concordo com a{" "}
-              <a href="/privacidade" target="_blank" rel="noopener noreferrer"
-                style={{ color:t.accent, fontSize:13, textDecoration:"underline" }}>
+              <button type="button" onClick={() => setModalLegal("privacidade")}
+                style={{ background:"none", border:"none", color:t.accent, cursor:"pointer",
+                  fontSize:13, padding:0, textDecoration:"underline" }}>
                 Política de Privacidade
-              </a>
+              </button>
               {" "}e os{" "}
-              <a href="/termos" target="_blank" rel="noopener noreferrer"
-                style={{ color:t.accent, fontSize:13, textDecoration:"underline" }}>
+              <button type="button" onClick={() => setModalLegal("termos")}
+                style={{ background:"none", border:"none", color:t.accent, cursor:"pointer",
+                  fontSize:13, padding:0, textDecoration:"underline" }}>
                 Termos de Uso
-              </a>
+              </button>
               {" "}e autorizo o tratamento dos meus dados pessoais pelo GerenTrack para fins de
               gestão de competições de atletismo.
             </span>
