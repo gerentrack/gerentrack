@@ -163,7 +163,7 @@ A disponibilidade é calculada mensalmente, excluindo-se períodos de manutenç�
 
 **H.1.** A CONTRATADA não disponibilizará à CONTRATANTE acesso aos códigos-fonte da plataforma.
 
-**H.2.** Caberá à CONTRATADA a propriedade intelectual e o direito de exploração econômica da plataforma GERENTRACK, incluindo o desenvolvimento e comercialização de programas similares ou derivados.
+**H.2.** Caberá à CONTRATADA a propriedade intelectual e o direito de exploração econômica da plataforma GERENTRACK, incluindo o desenvolvimento e comercialização de programas similares ou derivados. A plataforma possui Registro de Programa de Computador junto ao INPI (Instituto Nacional da Propriedade Industrial), nos termos da Lei n. 9.609/98.
 
 **H.3.** Os conteúdos e dados inseridos pela CONTRATANTE são de sua propriedade. Ao término do contrato, não havendo mais interesse de ambas as Partes na sua renovação, a CONTRATADA fornecerá, no prazo de 30 (trinta) dias, em arquivo(s) CSV ou formato equivalente, todos os dados inseridos e armazenados pela CONTRATANTE, incluindo, mas não se limitando a:
 
