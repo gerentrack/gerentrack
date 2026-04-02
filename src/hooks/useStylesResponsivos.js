@@ -59,7 +59,12 @@ function aplicarMobile(styles) {
     const origTabBtn = s.tabBtn;
     s.tabBtn = (ativo) => ({ ...origTabBtn(ativo), padding: "9px 16px", fontSize: 12 });
   }
-  if (s.tab) s.tab = { ...s.tab, padding: "8px 14px", fontSize: 12 };
+  if (typeof s.tab === "function") {
+    const origTab = s.tab;
+    s.tab = (ativo) => ({ ...origTab(ativo), padding: "8px 14px", fontSize: 12 });
+  } else if (s.tab) {
+    s.tab = { ...s.tab, padding: "8px 14px", fontSize: 12 };
+  }
 
   // Step bar
   if (s.stepBar) s.stepBar = { ...s.stepBar, flexWrap: "wrap", maxWidth: "100%" };
