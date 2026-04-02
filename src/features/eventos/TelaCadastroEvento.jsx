@@ -11,6 +11,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useEvento } from "../../contexts/EventoContext";
 import { useApp } from "../../contexts/AppContext";
 import RichTextEditor from "../ui/RichTextEditor";
+import { canCreateEvent } from "../../shared/engines/planEngine";
 
 // Extrai o path do Storage a partir de uma download URL do Firebase
 function extrairPathDoUrl(url) {
@@ -190,7 +191,7 @@ function TelaCadastroEvento() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
-  const { adicionarEvento, editarEvento, eventoAtual, eventoAtualId, selecionarEvento, recordes, equipes, inscricoes, atletas } = useEvento();
+  const { adicionarEvento, editarEvento, eventoAtual, eventoAtualId, selecionarEvento, recordes, equipes, inscricoes, atletas, eventos } = useEvento();
   const { setTela, organizadores, cadEventoGoStep, setCadEventoGoStep } = useApp();
   const editando = eventoAtual && eventoAtualId && true;
   const tipoEvt = usuarioLogado?.tipo;
@@ -201,6 +202,25 @@ function TelaCadastroEvento() {
       <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
     </div></div>
   );
+
+  // Bloqueio de criação se sem plano/créditos (admin bypassa)
+  if (!editando && tipoEvt !== "admin") {
+    const orgId = tipoEvt === "organizador" ? usuarioLogado?.id : usuarioLogado?.organizadorId;
+    const org = organizadores?.find(o => o.id === orgId);
+    if (org) {
+      const check = canCreateEvent(org, eventos);
+      if (!check.allowed) return (
+        <div style={s.page}>
+          <div style={{ background: `${t.danger}10`, border: `2px solid ${t.danger}`, borderRadius: 12, padding: "28px 24px", maxWidth: 500, margin: "60px auto", textAlign: "center" }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: t.danger, fontFamily: "'Barlow Condensed', sans-serif", marginBottom: 8 }}>Limite de competições</div>
+            <div style={{ fontSize: 14, color: t.textSecondary, lineHeight: 1.7, marginBottom: 16 }}>{check.reason}</div>
+            <div style={{ fontSize: 12, color: t.textMuted, marginBottom: 16 }}>Entre em contato: <span style={{ color: t.accent }}>atendimento@gerentrack.com.br</span></div>
+            <button style={s.btnGhost} onClick={() => setTela("painel-organizador")}>← Voltar ao Painel</button>
+          </div>
+        </div>
+      );
+    }
+  }
 
   // Bloqueio de edição se competição finalizada
   if (editando && eventoAtual.competicaoFinalizada) return (
