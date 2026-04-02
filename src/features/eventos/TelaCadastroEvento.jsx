@@ -329,6 +329,10 @@ function TelaCadastroEvento() {
       selecionarEvento(dadosParaSalvar.id);
     } else {
       const novo = adicionarEvento(dadosParaSalvar, usuarioLogado);
+      if (novo?.blocked) {
+        setErros({ _plano: novo.reason });
+        return;
+      }
       selecionarEvento(novo.id);
     }
   };
@@ -369,6 +373,13 @@ function TelaCadastroEvento() {
 
   return (
     <div style={s.page}>
+      {erros._plano && (
+        <div style={{ background: `${t.danger}10`, border: `2px solid ${t.danger}`, borderRadius: 10, padding: "16px 20px", marginBottom: 20 }}>
+          <div style={{ fontWeight: 700, color: t.danger, fontSize: 14, marginBottom: 4 }}>Limite de competições atingido</div>
+          <div style={{ fontSize: 13, color: t.textSecondary, lineHeight: 1.6 }}>{erros._plano}</div>
+          <div style={{ fontSize: 12, color: t.textMuted, marginTop: 8 }}>Entre em contato: <span style={{ color: t.accent }}>atendimento@gerentrack.com.br</span></div>
+        </div>
+      )}
       <div style={s.painelHeader}>
         <div>
           <h1 style={s.pageTitle}>{editando ? "✏️ Editar Competição" : "🏟 Nova Competição"}</h1>

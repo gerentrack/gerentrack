@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { _getLocalEventoDisplay } from "../../shared/formatters/utils";
 import { StatCard } from "../ui/StatCard";
+import { getUsage } from "../../shared/engines/planEngine";
 import { Th, Td } from "../ui/TableHelpers";
 import { SinoNotificacoes } from "../ui/SinoNotificacoes";
 import { gerarHtmlRelatorioParticipacao } from "../impressao/gerarHtmlRelatorioParticipacao";
@@ -257,6 +258,64 @@ function TelaPainelOrganizador() {
           </p>
         </div>
       )}
+
+      {/* ── Card de Plano ── */}
+      {meuOrg && (() => {
+        const usage = getUsage(meuOrg, _todosEventosOrg);
+        const ativo = usage.status === "ativo";
+        const expirado = usage.status === "expirado";
+        const semPlano = usage.status === "sem_plano";
+        return (
+          <div style={{ background: t.bgCardAlt, border: `1px solid ${ativo ? t.accentBorder : expirado ? `${t.danger}44` : t.border}`, borderRadius: 12, padding: "16px 20px", marginBottom: 24 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: t.textMuted, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Plano</div>
+                <div style={{ fontSize: 20, fontWeight: 800, fontFamily: "'Barlow Condensed', sans-serif", color: ativo ? t.accent : expirado ? t.danger : t.textDisabled }}>
+                  {usage.planoNome}
+                  <span style={{ fontSize: 11, fontWeight: 600, marginLeft: 8, padding: "2px 8px", borderRadius: 4,
+                    background: ativo ? `${t.success}15` : expirado ? `${t.danger}15` : t.bgInput,
+                    color: ativo ? t.success : expirado ? t.danger : t.textDimmed,
+                    border: `1px solid ${ativo ? `${t.success}33` : expirado ? `${t.danger}33` : t.border}` }}>
+                    {ativo ? "Ativo" : expirado ? "Expirado" : "Sem plano"}
+                  </span>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+                {usage.maxCompeticoes !== Infinity && usage.maxCompeticoes > 0 && (
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: t.accent }}>{usage.eventosNoPeriodo} / {usage.maxCompeticoes}</div>
+                    <div style={{ fontSize: 10, color: t.textMuted }}>Competições</div>
+                  </div>
+                )}
+                {usage.maxCompeticoes === Infinity && (
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: t.accent }}>{usage.eventosNoPeriodo}</div>
+                    <div style={{ fontSize: 10, color: t.textMuted }}>Competições (ilimitado)</div>
+                  </div>
+                )}
+                {usage.creditosDisponiveis > 0 && (
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: t.accent }}>{usage.creditosDisponiveis}</div>
+                    <div style={{ fontSize: 10, color: t.textMuted }}>Crédito(s) avulso</div>
+                  </div>
+                )}
+                {usage.diasRestantes !== null && (
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: usage.diasRestantes <= 7 ? t.danger : t.textPrimary }}>{usage.diasRestantes}</div>
+                    <div style={{ fontSize: 10, color: t.textMuted }}>Dia(s) restante(s)</div>
+                  </div>
+                )}
+              </div>
+            </div>
+            {(semPlano || expirado) && (
+              <div style={{ marginTop: 12, fontSize: 12, color: expirado ? t.danger : t.textMuted, lineHeight: 1.6 }}>
+                {expirado ? "Seu plano expirou. Renove para criar novas competições." : "Nenhum plano ativo. Entre em contato para contratar."}
+                {" "}<span style={{ color: t.accent }}>atendimento@gerentrack.com.br</span>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       <div style={s.statsRow}>
         <StatCard value={meusEventos.length}  label="Competições" />

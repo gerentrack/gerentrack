@@ -1,6 +1,7 @@
 import { usePagination, PaginaControles } from "../../lib/hooks/usePagination.jsx";
 import { getStatus, getUsage, getCreditosDisponiveis } from "../../shared/engines/planEngine";
 import { PLANS } from "../../shared/constants/plans";
+import { exportarDadosOrg, downloadCSVs } from "../../shared/engines/exportEngine";
 import React, { useState, useMemo } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { _getLocalEventoDisplay, _getNascDisplay, validarCNPJ, emailJaCadastrado } from "../../shared/formatters/utils";
@@ -915,6 +916,14 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                                   registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Reativou conta", org.entidade || org.nome, null, { modulo: "licencas" });
                                 }} style={{ ...s.btnGhost, fontSize:10, padding:"3px 8px", color: t.success, border:`1px solid ${t.success}44` }}>Reativar</button>
                               )}
+                              <button onClick={() => {
+                                const arqs = exportarDadosOrg(org.id, { atletas, equipes, inscricoes, resultados, eventos, historicoAcoes });
+                                if (arqs.length === 0) { alert("Nenhum dado para exportar."); return; }
+                                const slug = (org.entidade || org.nome || "org").toLowerCase().replace(/\s+/g, "-").slice(0, 30);
+                                downloadCSVs(arqs, slug);
+                                registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Exportou dados do org",
+                                  `${org.entidade}: ${arqs.length} arquivo(s)`, null, { modulo: "licencas" });
+                              }} style={{ ...s.btnGhost, fontSize:10, padding:"3px 8px" }}>Exportar</button>
                             </>
                           )}
                         </div>
