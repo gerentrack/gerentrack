@@ -43,20 +43,33 @@ function TelaSelecaoPerfil() {
           {Object.entries(perfisAgrupados).map(([orgNome, perfis]) => (
             <div key={orgNome}>
               <div style={{ color:t.textMuted, fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:1, marginBottom:8, paddingLeft:4 }}>🏟️ {orgNome}</div>
-              {perfis.map((perfil, idx) => (
-                <button key={idx} onClick={() => handleSelecionar(perfil)}
-                  style={{ width:"100%", background:t.bgHeaderSolid, border:`2px solid ${t.border}`, borderRadius:10, padding:"16px 20px", cursor:"pointer", display:"flex", alignItems:"center", gap:16, marginBottom:8, textAlign:"left" }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor=t.accent; e.currentTarget.style.background=t.bgCard; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor=t.border; e.currentTarget.style.background=t.bgHeaderSolid; }}
-                >
-                  <div style={{ width:48, height:48, borderRadius:10, background:t.bgInput, border:`2px solid ${t.borderInput}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, flexShrink:0 }}>{perfil.icon}</div>
-                  <div style={{ flex:1 }}>
-                    <div style={{ color:t.textPrimary, fontSize:15, fontWeight:700 }}>{perfil.label}</div>
-                    <div style={{ color:t.textDimmed, fontSize:12, marginTop:2 }}>{perfil.sublabel}</div>
-                  </div>
-                  <div style={{ color:t.accent, fontSize:18 }}>→</div>
-                </button>
-              ))}
+              {perfis.map((perfil, idx) => {
+                const suspenso = perfil._suspenso;
+                return (
+                  <button key={idx} onClick={() => !suspenso && handleSelecionar(perfil)}
+                    disabled={suspenso}
+                    style={{ width:"100%", background: suspenso ? `${t.danger}08` : t.bgHeaderSolid, border:`2px solid ${suspenso ? `${t.danger}33` : t.border}`, borderRadius:10, padding:"16px 20px", cursor: suspenso ? "not-allowed" : "pointer", display:"flex", alignItems:"center", gap:16, marginBottom:8, textAlign:"left", opacity: suspenso ? 0.6 : 1 }}
+                    onMouseEnter={e => { if (!suspenso) { e.currentTarget.style.borderColor=t.accent; e.currentTarget.style.background=t.bgCard; } }}
+                    onMouseLeave={e => { if (!suspenso) { e.currentTarget.style.borderColor=t.border; e.currentTarget.style.background=t.bgHeaderSolid; } }}
+                  >
+                    <div style={{ width:48, height:48, borderRadius:10, background:t.bgInput, border:`2px solid ${t.borderInput}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, flexShrink:0 }}>{perfil.icon}</div>
+                    <div style={{ flex:1 }}>
+                      <div style={{ color: suspenso ? t.textDisabled : t.textPrimary, fontSize:15, fontWeight:700 }}>
+                        {perfil.label}
+                        {suspenso && <span style={{ fontSize:10, color: t.danger, fontWeight:700, marginLeft:8, padding:"2px 6px", background:`${t.danger}15`, border:`1px solid ${t.danger}33`, borderRadius:4 }}>SUSPENSO</span>}
+                      </div>
+                      <div style={{ color:t.textDimmed, fontSize:12, marginTop:2 }}>
+                        {suspenso
+                          ? (perfil.tipo === "organizador"
+                            ? "Conta suspensa. Entre em contato com atendimento@gerentrack.com.br."
+                            : "Acesso indisponível. Entre em contato com o organizador.")
+                          : perfil.sublabel}
+                      </div>
+                    </div>
+                    {!suspenso && <div style={{ color:t.accent, fontSize:18 }}>→</div>}
+                  </button>
+                );
+              })}
             </div>
           ))}
         </div>

@@ -188,6 +188,33 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
   };
 
   const finalizarLogin = (perfisEncontrados) => {
+    // Check de suspensão: marcar perfis de orgs suspensos, não remover
+    const perfisComSuspensao = perfisEncontrados.map(p => {
+      const orgId = p.organizadorId || (p.tipo === "organizador" ? p.dados?.id : null);
+      if (!orgId) return p;
+      const org = organizadores.find(o => o.id === orgId);
+      if (!org?.suspenso) return p;
+      return { ...p, _suspenso: true, _suspensoMotivo: org.suspensoMotivo };
+    });
+    const perfisAtivos = perfisComSuspensao.filter(p => !p._suspenso);
+
+    // Se todos suspensos, mostrar mensagem
+    if (perfisComSuspensao.length > 0 && perfisAtivos.length === 0) {
+      const perfilOrg = perfisComSuspensao.find(p => p.tipo === "organizador");
+      if (perfilOrg) {
+        const motivo = perfilOrg._suspensoMotivo === "inadimplencia"
+          ? "Conta suspensa por inadimplência. Entre em contato com atendimento@gerentrack.com.br."
+          : perfilOrg._suspensoMotivo === "mau_uso"
+            ? "Conta suspensa por violação dos Termos de Uso. Entre em contato com atendimento@gerentrack.com.br."
+            : "Conta suspensa. Entre em contato com atendimento@gerentrack.com.br.";
+        setErro(motivo);
+      } else {
+        setErro("O acesso à plataforma está temporariamente indisponível para sua organização. Entre em contato com o organizador responsável.");
+      }
+      return;
+    }
+    // Se tem mix de suspensos e ativos, passar todos (suspensos marcados) para seleção de perfil
+    perfisEncontrados = perfisComSuspensao;
     if (perfisEncontrados.length === 0) {
       const pendentes = [...organizadores.filter(o => matchIdent(o) && o.status === "pendente"), ...equipes.filter(eq => matchIdent(eq) && eq.status === "pendente"), ...atletasUsuarios.filter(a => matchIdent(a) && a.status === "pendente")];
       const recusados = [...organizadores.filter(o => matchIdent(o) && o.status === "recusado"), ...equipes.filter(eq => matchIdent(eq) && eq.status === "recusado"), ...atletasUsuarios.filter(a => matchIdent(a) && a.status === "recusado")];
@@ -204,11 +231,13 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
       setErro("E-mail, CPF ou senha incorretos.");
       return;
     }
-    if (perfisEncontrados.length === 1) {
+    // Se só 1 perfil e não suspenso, login direto
+    if (perfisAtivos.length === 1 && perfisEncontrados.length === 1) {
       const p = perfisEncontrados[0];
       loginComSelecao({ ...p.dados, _organizadorNome:p.organizadorNome, _temOutrosPerfis:false }, perfisEncontrados);
       return;
     }
+    // Múltiplos perfis ou mix com suspensos → tela de seleção
     setPerfisDisponiveis(perfisEncontrados);
     setTela("selecionar-perfil");
   };

@@ -21,6 +21,7 @@ import { TeamScoringEngine }               from "./shared/engines/teamScoringEng
 import { SeriacaoEngine }                  from "./shared/engines/seriacaoEngine";
 import { RecordDetectionEngine }           from "./shared/engines/recordDetectionEngine";
 import RankingExtractionEngine             from "./shared/engines/rankingExtractionEngine";
+import { canCreateEvent, consumirCredito, getUsage } from "./shared/engines/planEngine";
 import { GT_DEFAULT_ICON, GT_DEFAULT_LOGO } from "./shared/branding";
 
 // ── Shared — Constants — Etapa 3 ──────────────────────────────────
@@ -419,6 +420,17 @@ function App() {
     setOrganizadores(atualizados);
     console.log(`[App] Slugs gerados para ${semSlug.length} organizador(es)`);
   }, [orgsSemSlugIds]);
+
+  // ── Migração: garantir campos de plano em organizadores ──────────────
+  const orgsSemPlanoIds = organizadores.filter(o => o.plano === undefined).map(o => o.id).join(",");
+  useEffect(() => {
+    if (!orgsSemPlanoIds) return;
+    const atualizados = organizadores.map(o => {
+      if (o.plano !== undefined) return o;
+      return { ...o, plano: null, planoInicio: null, planoFim: null, creditosAvulso: [], suspenso: false, suspensoMotivo: null, suspensoEm: null };
+    });
+    setOrganizadores(atualizados);
+  }, [orgsSemPlanoIds]);
 
   const login = (dados) => {
     const dadosComSessao = { ...dados, _loginEm: Date.now() };
@@ -1078,6 +1090,18 @@ function App() {
     const temAberturaFutura = ev.dataAberturaInscricoes && ev.dataAberturaInscricoes > hoje;
     const orgPendente = usuarioLogadoParam?.tipo === "organizador";
 
+    // ── Enforcement de plano (admin bypassa) ──
+    const _usr = usuarioLogadoParam || usuarioLogado;
+    let _planCheck = null;
+    if (_usr?.tipo !== "admin") {
+      const orgId = ev.organizadorId || (_usr?.tipo === "organizador" ? _usr?.id : _usr?.organizadorId);
+      const org = organizadores.find(o => o.id === orgId);
+      if (org) {
+        _planCheck = canCreateEvent(org, eventos);
+        if (!_planCheck.allowed) return { blocked: true, reason: _planCheck.reason };
+      }
+    }
+
     // Gera slug único a partir do nome
     const gerarSlug = (nome, id) => {
       const base = (nome || "competicao")
@@ -1104,6 +1128,17 @@ function App() {
       inscricoesEncerradas: orgPendente || temAberturaFutura ? true : (ev.inscricoesEncerradas ?? false),
     };
     _adicionarEvento(novo);
+
+    // Consumir crédito avulso se foi a fonte permitida
+    if (_planCheck?.source === "avulso") {
+      const orgId = novo.organizadorId;
+      const org = organizadores.find(o => o.id === orgId);
+      if (org) {
+        const novosCreditos = consumirCredito(org.creditosAvulso, novo.id);
+        setOrganizadores(prev => prev.map(o => o.id === orgId ? { ...o, creditosAvulso: novosCreditos } : o));
+      }
+    }
+
     const usr = usuarioLogadoParam || usuarioLogado;
     if (usr) registrarAcao(usr.id, usr.nome, "Criou competição", ev.nome || "", orgPendente ? usr.id : null, { equipeId: usr.equipeId, modulo: "competicoes" });
     return novo;

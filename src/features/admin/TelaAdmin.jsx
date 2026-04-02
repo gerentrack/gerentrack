@@ -1,4 +1,6 @@
 import { usePagination, PaginaControles } from "../../lib/hooks/usePagination.jsx";
+import { getStatus, getUsage, getCreditosDisponiveis } from "../../shared/engines/planEngine";
+import { PLANS } from "../../shared/constants/plans";
 import React, { useState, useMemo } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { _getLocalEventoDisplay, _getNascDisplay, validarCNPJ, emailJaCadastrado } from "../../shared/formatters/utils";
@@ -75,7 +77,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado, solicitacoesRecuperacao, resolverSolicitacaoRecuperacao, aplicarSenhaTemp } = useAuth();
   const { equipes, atletas, inscricoes, eventos, selecionarEvento, excluirEvento, resultados, atualizarAtleta, excluirAtleta } = useEvento();
-  const { setTela, organizadores, adicionarOrganizador, aprovarOrganizador, recusarOrganizador, aprovarEvento, recusarEvento, exportarDados, importarDados, siteBranding, setSiteBranding, gtIcon, gtLogo, historicoAcoes, atletasUsuarios, funcionarios, treinadores, setAtletaEditandoId, solicitacoesEquipe, aprovarEquipe, recusarEquipe, solicitacoesPortabilidade, resolverSolicitacaoPortabilidade, excluirSolicitacaoPortabilidade, registrarAcao } = useApp();
+  const { setTela, organizadores, adicionarOrganizador, aprovarOrganizador, recusarOrganizador, editarOrganizadorAdmin, aprovarEvento, recusarEvento, exportarDados, importarDados, siteBranding, setSiteBranding, gtIcon, gtLogo, historicoAcoes, atletasUsuarios, funcionarios, treinadores, setAtletaEditandoId, solicitacoesEquipe, aprovarEquipe, recusarEquipe, solicitacoesPortabilidade, resolverSolicitacaoPortabilidade, excluirSolicitacaoPortabilidade, registrarAcao } = useApp();
   const confirmar = useConfirm();
   const pendOrg = organizadores.filter(o => o.status === "pendente");
   const pendEv  = eventos.filter(e => e.statusAprovacao === "pendente");
@@ -111,6 +113,10 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
   const [filtroAtl, setFiltroAtl] = useState("todos");
   const [orgSel,    setOrgSel]    = useState({});
   const [buscaHist, setBuscaHist] = useState("");
+  const [licencaEditId, setLicencaEditId] = useState(null);
+  const [licencaForm, setLicencaForm] = useState({ plano: "", planoInicio: "", planoFim: "" });
+  const [creditoForm, setCreditoForm] = useState({ orgId: null, descricao: "", eventoId: "" });
+  const [suspenderForm, setSuspenderForm] = useState({ orgId: null, motivo: "inadimplencia" });
   const [modalTransf, setModalTransf] = useState(null); // { atleta }
   const [transfEquipeId, setTransfEquipeId] = useState("");
 
@@ -144,13 +150,14 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
 
   // ── Tabs definition ────────────────────────────────────────────────────────
   const TABS = [
-    { id:"visao-geral",   label:"📊 Visão Geral",   badge: totalPend },
-    { id:"organizadores", label:"🏟️ Organizadores",  badge: pendOrg.length + pendRec.length, sub: organizadores.length },
-    { id:"competicoes",   label:"📋 Competições",    badge: pendEv.length, sub: eventos.length },
-    { id:"equipes",       label:"🏅 Equipes",        badge: pendEq.length, sub: equipes.length },
-    { id:"atletas",       label:"🏃 Atletas",        sub: atletas.length },
-    { id:"historico",     label:"📊 Histórico" },
-    { id:"portabilidade", label:"📦 Portabilidade", badge: pendPort.length },
+    { id:"visao-geral",   label:"Visão Geral",   badge: totalPend },
+    { id:"organizadores", label:"Organizadores",  badge: pendOrg.length + pendRec.length, sub: organizadores.length },
+    { id:"competicoes",   label:"Competições",    badge: pendEv.length, sub: eventos.length },
+    { id:"equipes",       label:"Equipes",        badge: pendEq.length, sub: equipes.length },
+    { id:"atletas",       label:"Atletas",        sub: atletas.length },
+    { id:"licencas",      label:"Licenças", sub: organizadores.filter(o => o.plano).length },
+    { id:"historico",     label:"Histórico" },
+    { id:"portabilidade", label:"Portabilidade", badge: pendPort.length },
   ];
 
   const si = { ...s.input, padding:"6px 12px", fontSize:12, marginBottom:10, maxWidth:400 };
@@ -793,6 +800,240 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                 <PaginaControles {...atletasInfo} />
               </div>
             </>
+          )}
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          ABA: LICENÇAS
+      ══════════════════════════════════════════════════════════════════════ */}
+      {aba === "licencas" && (
+        <div style={s.card}>
+          <div style={s.sectionHd}>Gestão de Licenças</div>
+
+          {/* Resumo */}
+          <div style={{ display:"flex", gap:14, flexWrap:"wrap", marginBottom:20 }}>
+            <StatCard value={organizadores.filter(o => o.plano).length} label="Planos ativos" />
+            <StatCard value={organizadores.reduce((acc, o) => acc + getCreditosDisponiveis(o).length, 0)} label="Créditos disponíveis" />
+            <StatCard value={organizadores.filter(o => o.suspenso).length} label="Suspensos" />
+          </div>
+
+          {/* Tabela de organizadores */}
+          <div style={s.tableWrap}>
+            <table style={s.table}>
+              <thead><tr>
+                <Th>Organizador</Th><Th>Plano</Th><Th>Status</Th><Th>Competições</Th><Th>Créditos</Th><Th>Validade</Th><Th>Ações</Th>
+              </tr></thead>
+              <tbody>
+                {organizadores.filter(o => o.status === "aprovado").map(org => {
+                  const usage = getUsage(org, eventos);
+                  const editando = licencaEditId === org.id;
+                  return (
+                    <tr key={org.id} style={s.tr}>
+                      <Td>
+                        <strong style={{ color: t.textPrimary, fontSize:12 }}>{org.entidade || org.nome}</strong>
+                        {org.suspenso && <span style={{ color: t.danger, fontSize:10, marginLeft:6 }}>SUSPENSO</span>}
+                      </Td>
+                      <Td>
+                        {editando ? (
+                          <select value={licencaForm.plano} onChange={ev => setLicencaForm(f => ({ ...f, plano: ev.target.value }))}
+                            style={{ ...s.input, marginBottom:0, padding:"4px 8px", fontSize:11, width:120 }}>
+                            <option value="">Sem plano</option>
+                            {Object.values(PLANS).map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
+                          </select>
+                        ) : (
+                          <span style={{ fontSize:12, color: usage.planoId ? t.accent : t.textDimmed }}>
+                            {usage.planoNome}
+                          </span>
+                        )}
+                      </Td>
+                      <Td>
+                        <span style={{ fontSize:11, fontWeight:600,
+                          color: usage.status === "ativo" ? t.success : usage.status === "expirado" ? t.danger : t.textDimmed }}>
+                          {usage.status === "ativo" ? "Ativo" : usage.status === "expirado" ? "Expirado" : "Sem plano"}
+                        </span>
+                      </Td>
+                      <Td style={{ fontSize:11 }}>
+                        {usage.maxCompeticoes === Infinity
+                          ? `${usage.eventosNoPeriodo} (ilimitado)`
+                          : usage.maxCompeticoes > 0
+                            ? `${usage.eventosNoPeriodo} / ${usage.maxCompeticoes}`
+                            : "—"}
+                      </Td>
+                      <Td style={{ fontSize:11 }}>
+                        {usage.creditosDisponiveis > 0
+                          ? <span style={{ color: t.accent }}>{usage.creditosDisponiveis} disponível(is)</span>
+                          : <span style={{ color: t.textDimmed }}>0</span>}
+                      </Td>
+                      <Td style={{ fontSize:11 }}>
+                        {editando ? (
+                          <div style={{ display:"flex", gap:4 }}>
+                            <input type="date" value={licencaForm.planoInicio} onChange={ev => setLicencaForm(f => ({ ...f, planoInicio: ev.target.value }))}
+                              style={{ ...s.input, marginBottom:0, padding:"3px 6px", fontSize:10, width:110 }} />
+                            <input type="date" value={licencaForm.planoFim} onChange={ev => setLicencaForm(f => ({ ...f, planoFim: ev.target.value }))}
+                              style={{ ...s.input, marginBottom:0, padding:"3px 6px", fontSize:10, width:110 }} />
+                          </div>
+                        ) : (
+                          usage.diasRestantes !== null
+                            ? `${usage.diasRestantes} dia(s)`
+                            : "—"
+                        )}
+                      </Td>
+                      <Td>
+                        <div style={{ display:"flex", gap:4, flexWrap:"wrap" }}>
+                          {editando ? (
+                            <>
+                              <button onClick={() => {
+                                const campos = {
+                                  plano: licencaForm.plano || null,
+                                  planoInicio: licencaForm.planoInicio || null,
+                                  planoFim: licencaForm.planoFim || null,
+                                };
+                                editarOrganizadorAdmin({ ...org, ...campos });
+                                registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Atribuiu plano",
+                                  `${org.entidade}: ${campos.plano || "removido"} (${campos.planoInicio || "—"} a ${campos.planoFim || "—"})`,
+                                  null, { modulo: "licencas" });
+                                setLicencaEditId(null);
+                              }} style={{ ...s.btnGhost, fontSize:10, padding:"3px 8px", color: t.success, border:`1px solid ${t.success}44` }}>Salvar</button>
+                              <button onClick={() => setLicencaEditId(null)}
+                                style={{ ...s.btnGhost, fontSize:10, padding:"3px 8px" }}>Cancelar</button>
+                            </>
+                          ) : (
+                            <>
+                              <button onClick={() => {
+                                setLicencaEditId(org.id);
+                                setLicencaForm({ plano: org.plano || "", planoInicio: org.planoInicio || "", planoFim: org.planoFim || "" });
+                              }} style={{ ...s.btnGhost, fontSize:10, padding:"3px 8px" }}>Plano</button>
+                              <button onClick={() => setCreditoForm({ orgId: org.id, descricao: "", eventoId: "" })}
+                                style={{ ...s.btnGhost, fontSize:10, padding:"3px 8px", color: t.accent, border:`1px solid ${t.accent}44` }}>+ Crédito</button>
+                              {!org.suspenso ? (
+                                <button onClick={() => setSuspenderForm({ orgId: org.id, motivo: "inadimplencia" })}
+                                  style={{ ...s.btnGhost, fontSize:10, padding:"3px 8px", color: t.danger, border:`1px solid ${t.danger}44` }}>Suspender</button>
+                              ) : (
+                                <button onClick={() => {
+                                  editarOrganizadorAdmin({ ...org, suspenso: false, suspensoMotivo: null, suspensoEm: null });
+                                  registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Reativou conta", org.entidade || org.nome, null, { modulo: "licencas" });
+                                }} style={{ ...s.btnGhost, fontSize:10, padding:"3px 8px", color: t.success, border:`1px solid ${t.success}44` }}>Reativar</button>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </Td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Modal: Adicionar Crédito */}
+          {creditoForm.orgId && (() => {
+            const org = organizadores.find(o => o.id === creditoForm.orgId);
+            return (
+              <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", zIndex:2000, display:"flex", alignItems:"center", justifyContent:"center" }}
+                onClick={() => setCreditoForm({ orgId: null, descricao: "" })}>
+                <div style={{ background: t.bgCard, border:`1px solid ${t.accent}`, borderRadius:12, padding:24, maxWidth:400, width:"90%" }}
+                  onClick={ev => ev.stopPropagation()}>
+                  <div style={{ fontWeight:700, color: t.textPrimary, marginBottom:12 }}>Adicionar crédito avulso — {org?.entidade}</div>
+                  <input type="text" value={creditoForm.descricao}
+                    onChange={ev => setCreditoForm(f => ({ ...f, descricao: ev.target.value }))}
+                    placeholder="Descrição (ex: Torneio Regional Sub-18)"
+                    style={{ ...s.input, marginBottom:8 }} />
+                  <div style={{ fontSize:11, color: t.textMuted, marginBottom:4 }}>Vincular a evento existente (opcional):</div>
+                  <select value={creditoForm.eventoId}
+                    onChange={ev => {
+                      const evId = ev.target.value;
+                      const evSel = eventos.find(e => e.id === evId);
+                      setCreditoForm(f => ({ ...f, eventoId: evId, descricao: f.descricao || evSel?.nome || "" }));
+                    }}
+                    style={{ ...s.input, marginBottom:12 }}>
+                    <option value="">— Crédito livre (sem evento) —</option>
+                    {eventos.filter(ev => ev.organizadorId === org?.id).map(ev => (
+                      <option key={ev.id} value={ev.id}>{ev.nome} {ev.data ? `(${new Date(ev.data+"T12:00:00").toLocaleDateString("pt-BR")})` : ""}</option>
+                    ))}
+                  </select>
+                  <div style={{ display:"flex", gap:8 }}>
+                    <button onClick={() => {
+                      const evVinculado = creditoForm.eventoId || null;
+                      const novoCredito = {
+                        id: Date.now().toString(),
+                        descricao: creditoForm.descricao.trim(),
+                        eventoId: evVinculado,
+                        consumidoEm: evVinculado ? new Date().toISOString() : null,
+                        criadoEm: new Date().toISOString(),
+                        criadoPor: usuarioLogado?.nome || "admin",
+                      };
+                      const creditos = [...(org.creditosAvulso || []), novoCredito];
+                      editarOrganizadorAdmin({ ...org, creditosAvulso: creditos });
+                      const evNome = evVinculado ? eventos.find(e => e.id === evVinculado)?.nome : null;
+                      registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Adicionou crédito avulso",
+                        `${org.entidade}: ${creditoForm.descricao || "sem descrição"}${evNome ? ` → ${evNome}` : ""}`, null, { modulo: "licencas" });
+                      setCreditoForm({ orgId: null, descricao: "", eventoId: "" });
+                    }} style={{ ...s.btnPrimary, fontSize:12, padding:"8px 16px" }}>Adicionar</button>
+                    <button onClick={() => setCreditoForm({ orgId: null, descricao: "", eventoId: "" })}
+                      style={{ ...s.btnGhost, fontSize:12, padding:"8px 16px" }}>Cancelar</button>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Modal: Suspender */}
+          {suspenderForm.orgId && (() => {
+            const org = organizadores.find(o => o.id === suspenderForm.orgId);
+            return (
+              <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", zIndex:2000, display:"flex", alignItems:"center", justifyContent:"center" }}
+                onClick={() => setSuspenderForm({ orgId: null, motivo: "inadimplencia" })}>
+                <div style={{ background: t.bgCard, border:`1px solid ${t.danger}`, borderRadius:12, padding:24, maxWidth:400, width:"90%" }}
+                  onClick={ev => ev.stopPropagation()}>
+                  <div style={{ fontWeight:700, color: t.danger, marginBottom:12 }}>Suspender conta — {org?.entidade}</div>
+                  <select value={suspenderForm.motivo}
+                    onChange={ev => setSuspenderForm(f => ({ ...f, motivo: ev.target.value }))}
+                    style={{ ...s.input, marginBottom:12 }}>
+                    <option value="inadimplencia">Inadimplência</option>
+                    <option value="mau_uso">Mau uso</option>
+                    <option value="outro">Outro</option>
+                  </select>
+                  <div style={{ display:"flex", gap:8 }}>
+                    <button onClick={() => {
+                      editarOrganizadorAdmin({ ...org, suspenso: true, suspensoMotivo: suspenderForm.motivo, suspensoEm: new Date().toISOString() });
+                      registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Suspendeu conta",
+                        `${org.entidade}: ${suspenderForm.motivo}`, null, { modulo: "licencas" });
+                      setSuspenderForm({ orgId: null, motivo: "inadimplencia" });
+                    }} style={{ background: t.danger, color:"#fff", border:"none", borderRadius:8, padding:"8px 16px", fontSize:12, fontWeight:700, cursor:"pointer" }}>Confirmar Suspensão</button>
+                    <button onClick={() => setSuspenderForm({ orgId: null, motivo: "inadimplencia" })}
+                      style={{ ...s.btnGhost, fontSize:12, padding:"8px 16px" }}>Cancelar</button>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Detalhes dos créditos */}
+          {organizadores.filter(o => (o.creditosAvulso || []).length > 0).length > 0 && (
+            <div style={{ marginTop:20 }}>
+              <div style={{ fontSize:13, fontWeight:700, color: t.textPrimary, marginBottom:10 }}>Detalhes dos Créditos Avulso</div>
+              {organizadores.filter(o => (o.creditosAvulso || []).length > 0).map(org => (
+                <div key={org.id} style={{ marginBottom:12, background: t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, padding:"10px 14px" }}>
+                  <div style={{ fontSize:12, fontWeight:700, color: t.accent, marginBottom:6 }}>{org.entidade || org.nome}</div>
+                  {(org.creditosAvulso || []).map(c => {
+                    const ev = c.eventoId ? eventos.find(e => e.id === c.eventoId) : null;
+                    return (
+                      <div key={c.id} style={{ display:"flex", gap:8, alignItems:"center", fontSize:11, padding:"3px 0", borderBottom:`1px solid ${t.border}22` }}>
+                        <span style={{ color: c.eventoId ? t.success : t.accent, fontWeight:600, width:60 }}>
+                          {c.eventoId ? "Usado" : "Disponível"}
+                        </span>
+                        <span style={{ color: t.textSecondary, flex:1 }}>{c.descricao || "—"}</span>
+                        {ev && <span style={{ color: t.textMuted }}>→ {ev.nome}</span>}
+                        <span style={{ color: t.textDimmed, fontSize:10 }}>
+                          {c.eventoId ? new Date(c.consumidoEm).toLocaleDateString("pt-BR") : new Date(c.criadoEm).toLocaleDateString("pt-BR")}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
           )}
         </div>
       )}
