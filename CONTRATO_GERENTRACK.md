@@ -8,7 +8,7 @@
 
 **Quadro Resumo**
 
-**LICENCIANTE e CONTRATADA:** GERENTRACK, [razão social], estabelecida na [endereço completo], inscrita no CNPJ sob n. [CNPJ], neste ato representada por seu representante legal, [NOME], [nacionalidade], [estado civil], [profissão], portador(a) da carteira de identidade n. [RG], inscrito(a) no CPF sob n. [CPF], com endereço profissional a [endereço];
+**LICENCIANTE e CONTRATADA:** GERENTRACK LTDA, sociedade empresária limitada, estabelecida na Rua Costa, n. 427, bairro Pirajá, Belo Horizonte/MG, CEP 31.910-730, inscrita no CNPJ sob n. 65.454.409/0001-23, neste ato representada por sua administradora, STEPHANIE SABRINA CARVALHO DE OLIVEIRA, brasileira, solteira, empresária, inscrita no CPF sob n. 113.730.196-11, com endereço profissional no mesmo da sede;
 
 **LICENCIADA e CONTRATANTE:** [NOME DA ENTIDADE], [natureza jurídica], com sede na [endereço completo], inscrita no CNPJ/MF sob o n. [CNPJ], neste ato representada na forma de seu Estatuto, por seu(sua) [cargo], [NOME DO REPRESENTANTE], portador(a) do RG sob o n. [RG], inscrito(a) no CPF/MF [CPF].
 
@@ -51,11 +51,7 @@ Licença de utilização da **Plataforma de Gestão de Competições de Atletism
 
 **C.2.** A plataforma opera integralmente via navegador web, sem necessidade de instalação de software local, podendo ser instalada como aplicativo (PWA) em dispositivos móveis e desktops.
 
----
-
-## C) DO LOCAL DA PRESTAÇÃO DE SERVIÇOS
-
-Os serviços de suporte, manutenção e hospedagem serão realizados remotamente, na sede da CONTRATADA e/ou em sua infraestrutura em Data Center (Firebase/Google Cloud + Vercel).
+**C.3.** Os serviços de suporte, manutenção e hospedagem serão realizados remotamente, na sede da CONTRATADA e/ou em sua infraestrutura em nuvem (Data Center de provedores com certificações internacionais de segurança).
 
 ---
 
@@ -157,7 +153,7 @@ A disponibilidade é calculada mensalmente, excluindo-se períodos de manutenç�
 | Urgente | Funcionalidade essencial comprometida | Até 8 horas úteis |
 | Normal | Dúvidas operacionais, solicitações de ajuste | Até 24 horas úteis |
 
-**G.4.** Horário de suporte: dias úteis, das 09:00 às 18:00 (horário de Brasília). Atendimentos fora desse horário poderão ser contratados como serviço adicional.
+**G.4.** Horário de suporte: dias úteis, das 09:00 às 18:00 (horário de Brasília). Atendimentos fora desse horário poderão ser contratados ao valor de R$ 80,00 (oitenta reais) por hora, com mínimo de 1 (uma) hora.
 
 **G.5.** Havendo inconsistência ou disfunção operacional, a CONTRATANTE deverá proceder à abertura de chamado através do canal de suporte designado pela CONTRATADA (e-mail, chat ou sistema de chamados), onde a CONTRATADA deverá, no prazo correspondente à severidade do chamado, designar técnico responsável para o atendimento.
 
@@ -191,7 +187,7 @@ A disponibilidade é calculada mensalmente, excluindo-se períodos de manutenç�
 (i) Tratar os dados pessoais apenas conforme as instruções da CONTRATANTE e para as finalidades previstas neste Contrato;
 
 (ii) Implementar medidas técnicas e organizacionais adequadas para proteger os dados pessoais contra acesso não autorizado, destruição, perda, alteração ou divulgação, incluindo:
-- Autenticação segura via Firebase Authentication;
+- Autenticação segura com senhas criptografadas;
 - Sanitização de entradas contra XSS (DOMPurify);
 - Comunicação exclusivamente via HTTPS;
 - Trilha de auditoria com registro de ações;
@@ -283,7 +279,7 @@ Sem prejuízo das demais obrigações assumidas, a CONTRATANTE obriga-se a:
 
 **N.2.** Por reprodução não autorizada do software: perda da garantia pactuada no item "G", além das penalidades previstas na Lei n. 9.609/98 (Lei do Software).
 
-**N.3.** Por infração contratual por qualquer uma das Partes: multa de 10% (dez por cento) calculados sobre o valor total pago nos últimos 12 (doze) meses de vigência do Contrato.
+**N.3.** Por infração contratual por qualquer uma das Partes: multa de 10% (dez por cento) sobre o valor total do Contrato, calculado pela multiplicação do valor mensal pelo número de meses da vigência contratada.
 
 **N.4.** Havendo inadimplência da CONTRATANTE após 30 (trinta) dias do vencimento, poderá a CONTRATADA realizar protesto, cobrança judicial ou extrajudicial e incluir o CNPJ da CONTRATANTE nos cadastros de proteção ao crédito.
 
@@ -297,7 +293,7 @@ Sem prejuízo das demais obrigações assumidas, a CONTRATANTE obriga-se a:
 
 ## O) DA EXTINÇÃO
 
-**O.1.** Qualquer das Partes poderá resilir unilateralmente este instrumento mediante comunicação formal à outra Parte com 30 (trinta) dias de antecedência, sem que lhe seja aplicável qualquer penalidade, desde que adimplente com todas as obrigações até a data da rescisão.
+**O.1.** Qualquer das Partes poderá resilir unilateralmente este instrumento mediante comunicação formal à outra Parte com 30 (trinta) dias de antecedência, mediante pagamento de multa rescisória de 10% (dez por cento) sobre o valor das parcelas restantes até o término da vigência contratada, desde que adimplente com todas as obrigações até a data da rescisão.
 
 **O.2.** Qualquer das Partes poderá, por justa causa, resolver este instrumento imediatamente, sem necessidade de aviso prévio, mediante comunicação por escrito, nas seguintes hipóteses:
 
@@ -337,7 +333,7 @@ Sem prejuízo das demais obrigações assumidas, a CONTRATANTE obriga-se a:
 
 ## Q) DO FORO
 
-**Q.1.** As Partes elegem o foro da Comarca de [CIDADE/UF] como o competente para dirimir qualquer dúvida ou litígio que possa advir desta contratação, com renúncia de qualquer outro, por mais privilegiado que seja.
+**Q.1.** As Partes elegem o foro da Comarca de Belo Horizonte/MG como o competente para dirimir qualquer dúvida ou litígio que possa advir desta contratação, com renúncia de qualquer outro, por mais privilegiado que seja.
 
 ---
 
@@ -348,9 +344,9 @@ E por estarem assim, justas e acertadas, e após terem tomado ciência de todo t
 &nbsp;
 
 ___________________________________________
-**[NOME DA CONTRATADA]**
-GERENTRACK
-CNPJ: [CNPJ]
+**STEPHANIE SABRINA CARVALHO DE OLIVEIRA**
+GERENTRACK LTDA
+CNPJ: 65.454.409/0001-23
 
 &nbsp;
 
@@ -393,7 +389,7 @@ CPF:
 16. **Perfis e Painéis** — Administrador, Organizador, Funcionário, Equipe, Treinador, Atleta
 17. **PWA e Offline** — Instalação como app, funcionamento offline, sincronização automática, cache inteligente
 18. **Páginas Públicas** — Resultados, regulamento, recordes, ranking, cadastro de equipe/atleta/organizador (sem login)
-19. **Segurança** — Firebase Authentication, sanitização XSS, LGPD, trilha de auditoria, HTTPS
+19. **Segurança** — Autenticação segura, sanitização XSS, LGPD, trilha de auditoria, HTTPS
 20. **Integração FinishLynx** — Importação e exportação de dados para cronometragem eletrônica (incluso)
 21. **Backup e Recuperação** — Backup automático na nuvem com recuperação sob demanda (incluso)
 
