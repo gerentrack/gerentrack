@@ -74,6 +74,9 @@ import TelaResultados              from "./features/resultados/TelaResultados";
 import TelaRecordes                from "./features/recordes/TelaRecordes";
 import TelaRanking                 from "./features/ranking/TelaRanking";
 import TelaFaq                     from "./features/utilidades/TelaFaq";
+import TelaPlanos                  from "./features/comercial/TelaPlanos";
+import TelaPrivacidade             from "./features/legal/TelaPrivacidade";
+import TelaTermos                  from "./features/legal/TelaTermos";
 import { gerarHtmlImpressao }      from "./features/impressao/gerarHtmlImpressao";
 import TelaDigitarResultados       from "./features/digitar/TelaDigitarResultados";
 import TelaConfigPontuacaoEquipes  from "./features/configuracoes/TelaConfigPontuacaoEquipes";
@@ -1794,6 +1797,9 @@ function App() {
         {tela === "recordes"          && <TelaRecordes {...props} />}
         {tela === "ranking"           && <TelaRanking {...props} />}
         {tela === "faq"               && <TelaFaq />}
+        {tela === "planos"            && <TelaPlanos />}
+        {tela === "privacidade"       && <TelaPrivacidade />}
+        {tela === "termos"            && <TelaTermos />}
         {tela === "admin"             && <TelaAdmin adminConfig={adminConfig} setAdminConfig={setAdminConfig} setHistoricoAcoes={setHistoricoAcoes} setAuditoria={setAuditoria} auditoria={auditoria} />}
         {tela === "gerenciar-equipes" && <TelaGerenciarEquipes />}
         {tela === "gerenciar-usuarios" && <TelaGerenciarUsuarios />}
@@ -1827,7 +1833,10 @@ function App() {
           <div>
             <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 16, color: "#aaa", letterSpacing: 2, marginBottom: 16, textTransform: "uppercase" }}>Links</div>
             {[
+              { label: "Planos", tela: "planos" },
               { label: "FAQ", tela: "faq" },
+              { label: "Privacidade", tela: "privacidade" },
+              { label: "Termos de Uso", tela: "termos" },
               { label: "Recordes", tela: "recordes" },
               { label: "Ranking", tela: "ranking" },
             ].map(link => (

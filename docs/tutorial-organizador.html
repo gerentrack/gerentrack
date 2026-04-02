@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GERENTRACK - Tutorial Completo para Organizadores</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', 'Barlow', Arial, sans-serif; background: #0a1628; color: #e0e6ed; line-height: 1.7; }
+    a { color: #4ecdc4; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .header { background: linear-gradient(135deg, #0a1628 0%, #142a4a 100%); padding: 40px 0 30px; text-align: center; border-bottom: 3px solid #4ecdc4; }
+    .header h1 { font-family: 'Barlow Condensed', sans-serif; font-size: 42px; font-weight: 800; color: #fff; letter-spacing: 2px; }
+    .header p { color: #8899aa; font-size: 16px; margin-top: 8px; }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 30px 24px 80px; }
+
+    .sumario { background: #111e33; border: 1px solid #1e3a5f; border-radius: 12px; padding: 28px 32px; margin-bottom: 40px; }
+    .sumario h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 24px; color: #4ecdc4; margin-bottom: 16px; letter-spacing: 1px; }
+    .sumario ol { padding-left: 20px; }
+    .sumario li { margin-bottom: 6px; font-size: 15px; }
+    .sumario a { color: #7bb8d4; }
+
+    .secao { margin-bottom: 48px; }
+    .secao-header { background: linear-gradient(90deg, #4ecdc4 0%, #2a7a74 100%); padding: 14px 24px; border-radius: 10px 10px 0 0; }
+    .secao-header h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 800; color: #0a1628; letter-spacing: 1px; }
+    .secao-body { background: #111e33; border: 1px solid #1e3a5f; border-top: none; border-radius: 0 0 10px 10px; padding: 24px 28px; }
+
+    h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 19px; color: #4ecdc4; margin: 20px 0 10px; letter-spacing: 0.5px; }
+    h3:first-child { margin-top: 0; }
+
+    p { margin-bottom: 10px; color: #b0bec5; font-size: 15px; }
+
+    ul, ol { padding-left: 22px; margin-bottom: 14px; }
+    li { margin-bottom: 5px; color: #b0bec5; font-size: 15px; }
+
+    strong { color: #e0e6ed; }
+
+    .destaque { background: #0d2440; border-left: 4px solid #4ecdc4; padding: 12px 18px; border-radius: 0 8px 8px 0; margin: 14px 0; font-size: 14px; color: #8899aa; }
+    .destaque strong { color: #4ecdc4; }
+
+    .passo { background: #0d1f35; border: 1px solid #1e3a5f; border-radius: 8px; padding: 16px 20px; margin: 12px 0; }
+    .passo-num { display: inline-block; background: #4ecdc4; color: #0a1628; font-weight: 800; font-size: 13px; width: 26px; height: 26px; line-height: 26px; text-align: center; border-radius: 50%; margin-right: 10px; }
+
+    .dica { background: #1a2a10; border: 1px solid #3a5a20; border-radius: 8px; padding: 14px 18px; margin: 14px 0; }
+    .dica-titulo { color: #7acc4c; font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+    .dica p, .dica li { color: #9ab87a; font-size: 14px; }
+
+    .tabela-cat { width: 100%; border-collapse: collapse; margin: 12px 0; }
+    .tabela-cat th { background: #1e3a5f; color: #4ecdc4; padding: 8px 14px; text-align: left; font-size: 13px; font-weight: 700; }
+    .tabela-cat td { padding: 7px 14px; border-bottom: 1px solid #1e3a5f; font-size: 14px; color: #b0bec5; }
+    .tabela-cat tr:nth-child(even) td { background: #0d1f35; }
+
+    .status-badge { display: inline-block; padding: 2px 10px; border-radius: 4px; font-size: 12px; font-weight: 700; }
+    .status-dns { background: #5a1a1a; color: #ff6b6b; border: 1px solid #ff6b6b44; }
+    .status-conf { background: #1a3a1a; color: #6bff6b; border: 1px solid #6bff6b44; }
+    .status-dq { background: #5a1a1a; color: #ff6b6b; border: 1px solid #ff6b6b44; }
+
+    .separador { height: 1px; background: #1e3a5f; margin: 20px 0; }
+
+    @media (max-width: 700px) {
+      .container { padding: 16px 12px 60px; }
+      .secao-body { padding: 16px 14px; }
+      .header h1 { font-size: 28px; }
+      .sumario { padding: 18px 16px; }
+    }
+
+    @media print {
+      body { background: #fff; color: #222; }
+      .header { background: #fff; border-bottom: 2px solid #222; }
+      .header h1 { color: #222; }
+      .header p { color: #666; }
+      .secao-header { background: #eee; }
+      .secao-header h2 { color: #222; }
+      .secao-body { background: #fff; border-color: #ccc; }
+      h3 { color: #333; }
+      p, li { color: #444; }
+      strong { color: #222; }
+      .sumario { background: #f5f5f5; border-color: #ccc; }
+      .sumario h2 { color: #333; }
+      .sumario a { color: #333; }
+      .destaque { background: #f0f0f0; border-left-color: #333; }
+      .dica { background: #f5fff0; border-color: #9c9; }
+      .tabela-cat th { background: #eee; color: #333; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>GERENTRACK</h1>
+  <p>Tutorial Completo para Organizadores</p>
+</div>
+
+<div class="container">
+
+  <!-- SUMARIO -->
+  <div class="sumario" id="sumario">
+    <h2>Sumario</h2>
+    <ol>
+      <li><a href="#s1">Primeiro Acesso e Painel</a></li>
+      <li><a href="#s2">Cadastrar Funcionarios</a></li>
+      <li><a href="#s3">Gerenciar Equipes</a></li>
+      <li><a href="#s4">Cadastrar Atletas</a></li>
+      <li><a href="#s5">Criar Competicao</a></li>
+      <li><a href="#s6">Gerenciar Inscricoes</a></li>
+      <li><a href="#s7">Numeracao de Peito</a></li>
+      <li><a href="#s8">Seriacao (Baterias)</a></li>
+      <li><a href="#s9">Sumulas</a></li>
+      <li><a href="#s10">Digitar Resultados</a></li>
+      <li><a href="#s11">Camera de Chamada</a></li>
+      <li><a href="#s12">Medalhas</a></li>
+      <li><a href="#s13">Recordes</a></li>
+      <li><a href="#s14">Ranking</a></li>
+      <li><a href="#s15">Relatorio de Participacao</a></li>
+      <li><a href="#s16">Auditoria</a></li>
+      <li><a href="#s17">Configuracoes da Conta</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. PRIMEIRO ACESSO -->
+  <div class="secao" id="s1">
+    <div class="secao-header"><h2>1. Primeiro Acesso e Painel</h2></div>
+    <div class="secao-body">
+      <h3>O que e o Painel do Organizador?</h3>
+      <p>E a tela principal apos o login. Mostra um resumo de tudo: competicoes, inscricoes, equipes pendentes, transferencias de atletas e acoes rapidas.</p>
+
+      <h3>O que voce ve no painel</h3>
+      <ul>
+        <li><strong>Estatisticas:</strong> total de competicoes, inscricoes abertas, total de inscricoes e funcionarios</li>
+        <li><strong>Notificacoes (sino):</strong> solicitacoes de vinculo, aprovacoes pendentes</li>
+        <li><strong>Botoes de acesso rapido:</strong> Funcionarios, Equipes, Atletas, + Nova Competicao</li>
+        <li><strong>Lista de competicoes:</strong> todas as suas competicoes com status e acoes</li>
+      </ul>
+
+      <h3>Acoes disponiveis nas competicoes</h3>
+      <ul>
+        <li><strong>Editar:</strong> abre o cadastro da competicao para alterar dados</li>
+        <li><strong>Sumulas:</strong> gera as sumulas oficiais</li>
+        <li><strong>Resultados:</strong> abre a tela de digitacao de resultados</li>
+        <li><strong>Encerrar/Reabrir:</strong> muda o status da competicao</li>
+        <li><strong>Liberar/Restringir Sumula:</strong> controla se equipes podem ver sumulas</li>
+        <li><strong>Excluir:</strong> remove a competicao (irreversivel)</li>
+      </ul>
+
+      <h3>Secoes especiais do painel</h3>
+      <ul>
+        <li><strong>Equipes aguardando aprovacao:</strong> quando uma equipe se cadastra no sistema, aparece aqui para voce aprovar ou recusar</li>
+        <li><strong>Vinculos pendentes:</strong> quando uma equipe solicita transferencia de atleta, voce aprova/recusa aqui</li>
+        <li><strong>Solicitacoes de relatorio:</strong> quando atleta ou equipe pede relatorio oficial de participacao</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 2. FUNCIONARIOS -->
+  <div class="secao" id="s2">
+    <div class="secao-header"><h2>2. Cadastrar Funcionarios</h2></div>
+    <div class="secao-body">
+      <h3>O que sao funcionarios?</h3>
+      <p>Sao pessoas da sua equipe de trabalho que precisam acessar o sistema com permissoes limitadas. Exemplo: fiscal de prova, secretario, digitador de resultados.</p>
+
+      <h3>Passo a passo</h3>
+      <div class="passo"><span class="passo-num">1</span> No painel, clique em <strong>Funcionarios</strong></div>
+      <div class="passo"><span class="passo-num">2</span> Clique em <strong>+ Novo Funcionario</strong></div>
+      <div class="passo"><span class="passo-num">3</span> Preencha: <strong>Nome</strong> (obrigatorio), <strong>Email</strong> (obrigatorio - sera o login), <strong>Cargo</strong> (ex: Fiscal, Secretario), <strong>CPF</strong> e <strong>Telefone</strong> (opcionais)</div>
+      <div class="passo"><span class="passo-num">4</span> Selecione as <strong>permissoes</strong> (veja tabela abaixo)</div>
+      <div class="passo"><span class="passo-num">5</span> Clique em <strong>Salvar</strong></div>
+      <div class="passo"><span class="passo-num">6</span> O sistema gera uma <strong>senha automatica</strong> - anote e passe para o funcionario</div>
+
+      <h3>Permissoes disponiveis</h3>
+      <table class="tabela-cat">
+        <tr><th>Permissao</th><th>O que permite</th></tr>
+        <tr><td>Visualizar competicoes</td><td>Ver as competicoes no painel</td></tr>
+        <tr><td>Criar/editar competicoes</td><td>Criar e modificar competicoes</td></tr>
+        <tr><td>Gerenciar inscricoes</td><td>Inscrever e remover atletas</td></tr>
+        <tr><td>Digitar resultados</td><td>Entrar com resultados das provas</td></tr>
+        <tr><td>Gerenciar sumulas</td><td>Gerar e imprimir sumulas</td></tr>
+        <tr><td>Camera de chamada/Medalhas</td><td>Fazer chamada e entregar medalhas</td></tr>
+        <tr><td>Gerenciar atletas</td><td>Cadastrar e editar atletas</td></tr>
+        <tr><td>Visualizar funcionarios</td><td>Ver a lista de funcionarios</td></tr>
+      </table>
+
+      <div class="dica">
+        <div class="dica-titulo">Dicas</div>
+        <ul>
+          <li>Voce pode <strong>ativar/desativar</strong> um funcionario sem excluir</li>
+          <li>Cada funcionario so ve as competicoes que voce <strong>liberar</strong> para ele</li>
+          <li>O <strong>historico de acoes</strong> registra tudo que cada funcionario faz</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. EQUIPES -->
+  <div class="secao" id="s3">
+    <div class="secao-header"><h2>3. Gerenciar Equipes</h2></div>
+    <div class="secao-body">
+      <h3>Cadastrar equipe</h3>
+      <div class="passo"><span class="passo-num">1</span> No painel, clique em <strong>Equipes</strong></div>
+      <div class="passo"><span class="passo-num">2</span> Clique em <strong>+ Nova Equipe</strong></div>
+      <div class="passo"><span class="passo-num">3</span> Preencha: <strong>Nome</strong>, <strong>Sigla</strong>, <strong>Cidade</strong>, <strong>Estado</strong>, <strong>CNPJ</strong>, <strong>Email</strong> (todos obrigatorios), <strong>Telefone</strong> (opcional)</div>
+      <div class="passo"><span class="passo-num">4</span> Clique em <strong>Salvar</strong> - o sistema gera login e senha para a equipe</div>
+
+      <h3>Importar equipes em lote</h3>
+      <div class="passo"><span class="passo-num">1</span> Clique em <strong>Importar</strong></div>
+      <div class="passo"><span class="passo-num">2</span> Selecione o arquivo Excel (.xlsx) com as colunas: Nome, Sigla, Cidade, Estado, CNPJ, Email</div>
+      <div class="passo"><span class="passo-num">3</span> O sistema valida duplicatas e campos obrigatorios - revise e confirme</div>
+
+      <h3>Aprovar equipes que se cadastraram</h3>
+      <p>Quando uma equipe se cadastra pelo site, aparece no seu painel como "aguardando aprovacao". Clique em <strong>Aprovar</strong> ou <strong>Recusar</strong>.</p>
+    </div>
+  </div>
+
+  <!-- 4. ATLETAS -->
+  <div class="secao" id="s4">
+    <div class="secao-header"><h2>4. Cadastrar Atletas</h2></div>
+    <div class="secao-body">
+      <h3>Passo a passo</h3>
+      <div class="passo"><span class="passo-num">1</span> No painel, clique em <strong>Atletas</strong></div>
+      <div class="passo"><span class="passo-num">2</span> Clique em <strong>+ Novo Atleta</strong></div>
+      <div class="passo"><span class="passo-num">3</span> Preencha: <strong>Nome Completo</strong>, <strong>Data de Nascimento</strong>, <strong>Sexo</strong>, <strong>CPF</strong> (obrigatorios) e <strong>N CBAt</strong>, <strong>Telefone</strong>, <strong>Email</strong> (opcionais)</div>
+      <div class="passo"><span class="passo-num">4</span> Na secao <strong>Vinculacao</strong>: se voce e equipe, o atleta e vinculado automaticamente. Se e organizador, o atleta fica avulso ou voce seleciona uma equipe</div>
+      <div class="passo"><span class="passo-num">5</span> Aceite a <strong>Politica de Privacidade</strong> (LGPD)</div>
+      <div class="passo"><span class="passo-num">6</span> Se o atleta for <strong>menor de 18 anos</strong>: preencha o nome do responsavel legal e aceite o consentimento parental</div>
+      <div class="passo"><span class="passo-num">7</span> Clique em <strong>Cadastrar Atleta</strong></div>
+
+      <h3>Deteccao automatica de categoria</h3>
+      <table class="tabela-cat">
+        <tr><th>Categoria</th><th>Idade</th></tr>
+        <tr><td>Sub-14</td><td>12-13 anos</td></tr>
+        <tr><td>Sub-16</td><td>14-15 anos</td></tr>
+        <tr><td>Sub-18</td><td>16-17 anos</td></tr>
+        <tr><td>Sub-20</td><td>18-19 anos</td></tr>
+        <tr><td>Sub-23</td><td>20-22 anos</td></tr>
+        <tr><td>Adulto</td><td>23+ anos</td></tr>
+      </table>
+
+      <div class="destaque">
+        <strong>Atleta ja cadastrado?</strong> Se o CPF ja existe no sistema, o sistema sugere <strong>vincular</strong> o atleta em vez de criar duplicata. Isso envia uma solicitacao para a equipe atual aprovar a transferencia.
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. CRIAR COMPETICAO -->
+  <div class="secao" id="s5">
+    <div class="secao-header"><h2>5. Criar Competicao</h2></div>
+    <div class="secao-body">
+      <h3>Passo 1 - Informacoes Basicas</h3>
+      <div class="passo"><span class="passo-num">1</span> No painel, clique em <strong>+ Nova Competicao</strong></div>
+      <div class="passo"><span class="passo-num">2</span> Preencha: <strong>Nome do Evento</strong>, <strong>Data</strong>, <strong>Data Final</strong> (multi-dia), <strong>Abertura/Encerramento das Inscricoes</strong>, <strong>Descricao</strong>, <strong>Observacoes</strong></div>
+      <div class="passo"><span class="passo-num">3</span> Clique em <strong>Proximo</strong></div>
+
+      <h3>Passo 2 - Configuracoes</h3>
+      <p><strong>Modo de Medalhas:</strong></p>
+      <ul>
+        <li><strong>Classificacao + Participacao:</strong> 1o/2o/3o recebem medalha de classificacao, demais recebem participacao</li>
+        <li><strong>Apenas Participacao:</strong> todos recebem medalha de participacao</li>
+        <li><strong>Apenas Classificacao:</strong> so 1o/2o/3o recebem medalha</li>
+      </ul>
+      <p><strong>Pontuacao de Equipes:</strong> configure a tabela de pontos (1o lugar = X pontos, 2o = Y, etc.)</p>
+
+      <h3>Passo 3 - Logos/Branding</h3>
+      <ul>
+        <li><strong>Logo da Competicao:</strong> aparece na pagina publica</li>
+        <li><strong>Logo Cabecalho Esquerdo:</strong> aparece nas sumulas impressas (lado esquerdo)</li>
+        <li><strong>Logo Cabecalho Direito:</strong> aparece nas sumulas impressas (lado direito)</li>
+        <li><strong>Logo Rodape:</strong> aparece no rodape das impressoes</li>
+      </ul>
+      <p>Para cada logo: clique para fazer upload, recorte a imagem e salve.</p>
+
+      <h3>Passo 4 - Selecao de Provas</h3>
+      <div class="passo"><span class="passo-num">1</span> Use os filtros de <strong>Sexo</strong> e <strong>Categoria</strong> para facilitar</div>
+      <div class="passo"><span class="passo-num">2</span> Marque as provas desejadas (100m, 200m, salto em distancia, etc.)</div>
+      <div class="passo"><span class="passo-num">3</span> Use <strong>Selecionar Todos</strong> para marcar todas as provas visiveis</div>
+      <p>Provas disponiveis: pista (100m a 10000m), campo (saltos, lancamentos), marcha atletica, revezamentos, provas combinadas.</p>
+
+      <h3>Passo 5 - Programa Horario</h3>
+      <ul>
+        <li>Configure os horarios de cada prova</li>
+        <li>Defina intervalos/pausas</li>
+        <li>Configure o modo de cronometragem: <strong>Eletronico</strong> ou <strong>Manual</strong></li>
+      </ul>
+      <div class="passo"><span class="passo-num">!</span> Clique em <strong>Salvar Competicao</strong></div>
+    </div>
+  </div>
+
+  <!-- 6. INSCRICOES -->
+  <div class="secao" id="s6">
+    <div class="secao-header"><h2>6. Gerenciar Inscricoes</h2></div>
+    <div class="secao-body">
+      <h3>Inscrever atletas na competicao</h3>
+      <div class="passo"><span class="passo-num">1</span> Selecione a competicao no painel</div>
+      <div class="passo"><span class="passo-num">2</span> Acesse <strong>Inscricoes</strong></div>
+      <div class="passo"><span class="passo-num">3</span> Clique em <strong>+ Inscrever Atleta</strong>, busque por nome, marque as provas e confirme</div>
+
+      <h3>Inscricao em lote (carrinho)</h3>
+      <div class="passo"><span class="passo-num">1</span> Acesse <strong>Inscricoes</strong> &gt; <strong>Adicionar</strong></div>
+      <div class="passo"><span class="passo-num">2</span> Filtre atletas por sexo, categoria, equipe</div>
+      <div class="passo"><span class="passo-num">3</span> Selecione multiplos atletas e provas</div>
+      <div class="passo"><span class="passo-num">4</span> Revise no carrinho e confirme todas de uma vez</div>
+
+      <h3>Gerenciar inscricoes existentes</h3>
+      <ul>
+        <li><strong>Filtrar</strong> por prova, categoria, sexo, equipe, status de pagamento</li>
+        <li><strong>Editar</strong> provas de um atleta ja inscrito</li>
+        <li><strong>Remover</strong> inscricao</li>
+        <li><strong>Marcar como pago/pendente</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 7. NUMERACAO DE PEITO -->
+  <div class="secao" id="s7">
+    <div class="secao-header"><h2>7. Numeracao de Peito</h2></div>
+    <div class="secao-body">
+      <h3>Para que serve?</h3>
+      <p>Atribui um numero unico (dorsal) para cada atleta na competicao. Aparece nas sumulas, resultados e pode ser impresso com QR Code.</p>
+
+      <h3>Passo a passo</h3>
+      <div class="passo"><span class="passo-num">1</span> Selecione a competicao e acesse <strong>Numeracao de Peito</strong></div>
+      <div class="passo"><span class="passo-num">2</span> <strong>Manual:</strong> digite o numero para cada atleta. <strong>Automatico:</strong> defina o numero inicial e o sistema numera sequencialmente</div>
+      <div class="passo"><span class="passo-num">3</span> Clique em <strong>Salvar</strong></div>
+
+      <h3>Exportar com QR Code</h3>
+      <div class="passo"><span class="passo-num">1</span> Apos salvar, clique em <strong>Exportar QR</strong></div>
+      <div class="passo"><span class="passo-num">2</span> O sistema gera um Excel com: nome, numero de peito, QR individual (chamada) e QR publico (resultados)</div>
+      <div class="passo"><span class="passo-num">3</span> Imprima e recorte os dorsais</div>
+    </div>
+  </div>
+
+  <!-- 8. SERIACAO -->
+  <div class="secao" id="s8">
+    <div class="secao-header"><h2>8. Seriacao (Baterias)</h2></div>
+    <div class="secao-body">
+      <h3>O que e?</h3>
+      <p>Distribui os atletas em baterias/series para provas de pista. Exemplo: 24 atletas nos 100m = 3 series de 8.</p>
+
+      <h3>Passo a passo</h3>
+      <div class="passo"><span class="passo-num">1</span> Acesse <strong>Sumulas</strong> e selecione a prova e categoria</div>
+      <div class="passo"><span class="passo-num">2</span> Clique em <strong>Gerar Seriacao</strong></div>
+      <div class="passo"><span class="passo-num">3</span> Escolha o modo:
+        <ul>
+          <li><strong>Por marca:</strong> distribui pelos melhores tempos</li>
+          <li><strong>Aleatorio:</strong> distribui aleatoriamente</li>
+          <li><strong>Manual:</strong> voce define quem vai em cada serie</li>
+        </ul>
+      </div>
+      <div class="passo"><span class="passo-num">4</span> Selecione a <strong>fase</strong> (Eliminatoria, Semifinal ou Final), revise e confirme</div>
+
+      <div class="destaque">
+        <strong>Provas de 800m:</strong> modo especial - pode ser por <strong>raias</strong> (cada atleta em sua raia) ou <strong>grupo</strong> (saida em grupo).
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. SUMULAS -->
+  <div class="secao" id="s9">
+    <div class="secao-header"><h2>9. Sumulas</h2></div>
+    <div class="secao-body">
+      <h3>O que sao?</h3>
+      <p>Documentos oficiais de cada prova. Listam atletas inscritos, raias, ordens de chamada e espacos para registrar resultados.</p>
+
+      <h3>Gerar sumulas</h3>
+      <div class="passo"><span class="passo-num">1</span> Acesse <strong>Sumulas</strong> e filtre por prova, categoria, sexo</div>
+      <div class="passo"><span class="passo-num">2</span> Cada sumula mostra: nome da prova, lista de atletas com numero de peito, equipe/clube, raia/ordem</div>
+      <div class="passo"><span class="passo-num">3</span> Escolha a <strong>orientacao</strong> (retrato ou paisagem) e clique em <strong>Imprimir</strong></div>
+
+      <h3>Sumula em branco</h3>
+      <p>Gere uma sumula em branco (sem atletas) para preencher manualmente.</p>
+
+      <h3>Sumula de Marcha Atletica</h3>
+      <p>Sumula especial com:</p>
+      <ul>
+        <li>8 juizes com nome e registro</li>
+        <li>Tabela de advertencias (~) e angulo (&lt;)</li>
+        <li>Cartoes vermelhos (DQ)</li>
+        <li>PIT Lane, Notificacao DQ</li>
+        <li>CHECK PAGE e CHECK TOTAL automaticos</li>
+        <li>Botao <strong>Salvar Sumula</strong> para gravar os dados digitais</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 10. RESULTADOS -->
+  <div class="secao" id="s10">
+    <div class="secao-header"><h2>10. Digitar Resultados</h2></div>
+    <div class="secao-body">
+      <h3>Passo a passo</h3>
+      <div class="passo"><span class="passo-num">1</span> Selecione a competicao e acesse <strong>Resultados</strong></div>
+      <div class="passo"><span class="passo-num">2</span> Filtre por prova, categoria, sexo e fase</div>
+      <div class="passo"><span class="passo-num">3</span> Para cada atleta, digite o resultado:
+        <ul>
+          <li><strong>Provas de pista:</strong> tempo (formato MM:SS.cc)</li>
+          <li><strong>Provas de campo:</strong> distancia/altura em metros</li>
+          <li><strong>Salto em altura/vara:</strong> tentativas por altura (O = valido, X = falha, - = passou)</li>
+        </ul>
+      </div>
+      <div class="passo"><span class="passo-num">4</span> Status especiais: <span class="status-badge status-dns">DNS</span> nao largou, <span class="status-badge status-dns">DNF</span> nao completou, <span class="status-badge status-dq">DQ</span> desqualificado, <span class="status-badge status-dns">NM</span> sem marca</div>
+      <div class="passo"><span class="passo-num">5</span> Clique em <strong>Salvar</strong></div>
+
+      <h3>Cronometragem ELE/MAN</h3>
+      <p>Para cada serie, alterne entre <strong>ELE</strong> (eletronico - centesimos) e <strong>MAN</strong> (manual - decimos).</p>
+
+      <h3>Importar resultados FinishLynx</h3>
+      <div class="passo"><span class="passo-num">1</span> Clique em <strong>Importar .lif</strong></div>
+      <div class="passo"><span class="passo-num">2</span> Selecione o arquivo, revise no preview e confirme</div>
+
+      <div class="destaque">
+        <strong>Classificacao automatica:</strong> o sistema calcula posicoes (1o, 2o, 3o...) baseado nos tempos/distancias. Empates seguem regras do atletismo.
+      </div>
+    </div>
+  </div>
+
+  <!-- 11. CHAMADA -->
+  <div class="secao" id="s11">
+    <div class="secao-header"><h2>11. Camera de Chamada</h2></div>
+    <div class="secao-body">
+      <h3>O que e?</h3>
+      <p>Confirmacao da presenca dos atletas antes de cada prova (roll call).</p>
+
+      <h3>Passo a passo</h3>
+      <div class="passo"><span class="passo-num">1</span> Selecione a competicao e acesse <strong>Secretaria</strong> &gt; aba <strong>Chamada</strong></div>
+      <div class="passo"><span class="passo-num">2</span> Selecione a prova no filtro</div>
+      <div class="passo"><span class="passo-num">3</span> Para cada atleta: <span class="status-badge status-conf">Confirmado</span> se presente ou <span class="status-badge status-dns">DNS</span> se ausente</div>
+      <div class="passo"><span class="passo-num">4</span> Opcao: use o <strong>Scanner QR</strong> para confirmar escaneando o dorsal</div>
+
+      <div class="destaque">
+        Apos a chamada, os badges <span class="status-badge status-conf">Conf.</span> e <span class="status-badge status-dns">DNS</span> aparecem nas sumulas e na tela de resultados.
+      </div>
+    </div>
+  </div>
+
+  <!-- 12. MEDALHAS -->
+  <div class="secao" id="s12">
+    <div class="secao-header"><h2>12. Medalhas</h2></div>
+    <div class="secao-body">
+      <h3>Configuracao</h3>
+      <p>O modo de medalhas e definido no cadastro da competicao (Passo 2):</p>
+      <ul>
+        <li><strong>Classificacao + Participacao:</strong> 1o/2o/3o + participacao para os demais</li>
+        <li><strong>Apenas Participacao:</strong> todos recebem</li>
+        <li><strong>Apenas Classificacao:</strong> so 1o/2o/3o</li>
+      </ul>
+
+      <h3>Entregar medalhas</h3>
+      <div class="passo"><span class="passo-num">1</span> Acesse <strong>Secretaria</strong> &gt; aba <strong>Medalhas</strong></div>
+      <div class="passo"><span class="passo-num">2</span> Escaneie o QR Code do atleta ou busque pelo nome</div>
+      <div class="passo"><span class="passo-num">3</span> O sistema mostra todas as provas com tipo de medalha (Ouro, Prata, Bronze, Participacao) e status de entrega</div>
+      <div class="passo"><span class="passo-num">4</span> Clique em <strong>Entregar</strong> para cada prova ou <strong>Entregar Todas</strong></div>
+
+      <h3>Regras</h3>
+      <ul>
+        <li>Atleta com <strong>DNS em todas as provas</strong> nao recebe medalha</li>
+        <li><strong>DQ, NM, DNF</strong> contam como participacao (recebe medalha)</li>
+        <li><strong>Revezamento:</strong> cada atleta da equipe recebe medalha individual</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 13. RECORDES -->
+  <div class="secao" id="s13">
+    <div class="secao-header"><h2>13. Recordes</h2></div>
+    <div class="secao-body">
+      <h3>Cadastrar tipo de recorde</h3>
+      <div class="passo"><span class="passo-num">1</span> Acesse <strong>Recordes</strong> e clique em <strong>+ Novo Tipo de Recorde</strong></div>
+      <div class="passo"><span class="passo-num">2</span> Preencha: <strong>Nome</strong> (ex: "Recorde Estadual de MG"), <strong>Sigla</strong> (ex: "RE-MG"), <strong>Escopo</strong> (Pais, Estado ou Municipio)</div>
+      <div class="passo"><span class="passo-num">3</span> Salve</div>
+
+      <h3>Cadastrar recorde</h3>
+      <div class="passo"><span class="passo-num">1</span> Selecione o tipo de recorde e clique em <strong>+ Novo Recorde</strong></div>
+      <div class="passo"><span class="passo-num">2</span> Preencha: prova, categoria, sexo, marca, data, atleta, competicao, local</div>
+
+      <div class="destaque">
+        <strong>Deteccao automatica:</strong> quando voce digita um resultado que supera um recorde existente, o sistema detecta e cria uma pendencia para voce homologar.
+      </div>
+
+      <h3>Importar recordes</h3>
+      <p>Importe de arquivo Excel com: Prova, Categoria, Sexo, Marca, Atleta, CBAt, Local, Competicao, Data.</p>
+    </div>
+  </div>
+
+  <!-- 14. RANKING -->
+  <div class="secao" id="s14">
+    <div class="secao-header"><h2>14. Ranking</h2></div>
+    <div class="secao-body">
+      <h3>O que e?</h3>
+      <p>Compila as melhores marcas dos atletas ao longo de varias competicoes.</p>
+
+      <h3>Visualizar</h3>
+      <div class="passo"><span class="passo-num">1</span> Acesse <strong>Ranking</strong></div>
+      <div class="passo"><span class="passo-num">2</span> Filtre por: prova, ano, categoria, sexo, estado</div>
+      <div class="passo"><span class="passo-num">3</span> Veja as melhores marcas ordenadas</div>
+
+      <h3>Aprovar entradas</h3>
+      <p>Resultados digitados geram entradas de ranking <strong>pendentes</strong>. Revise e aprove/rejeite.</p>
+
+      <h3>Entrada manual e importacao</h3>
+      <p>Adicione manualmente ou importe de Excel com: Atleta, CBAt, Prova, Marca, Vento, Data, Competicao.</p>
+    </div>
+  </div>
+
+  <!-- 15. RELATORIO -->
+  <div class="secao" id="s15">
+    <div class="secao-header"><h2>15. Relatorio de Participacao</h2></div>
+    <div class="secao-body">
+      <h3>O que e?</h3>
+      <p>Documento oficial que comprova a participacao de um atleta ou equipe numa competicao.</p>
+
+      <h3>Gerar relatorio</h3>
+      <div class="passo"><span class="passo-num">1</span> No painel, na secao <strong>Relatorio Oficial de Participacao</strong></div>
+      <div class="passo"><span class="passo-num">2</span> Selecione a <strong>competicao</strong> e filtre os atletas</div>
+      <div class="passo"><span class="passo-num">3</span> Opcionalmente, adicione uma <strong>assinatura</strong> (imagem)</div>
+      <div class="passo"><span class="passo-num">4</span> Clique em <strong>Gerar Relatorio</strong></div>
+
+      <div class="destaque">
+        <strong>Solicitacoes:</strong> atletas e equipes podem solicitar relatorios pelo sistema. As solicitacoes aparecem no seu painel.
+      </div>
+    </div>
+  </div>
+
+  <!-- 16. AUDITORIA -->
+  <div class="secao" id="s16">
+    <div class="secao-header"><h2>16. Auditoria</h2></div>
+    <div class="secao-body">
+      <h3>O que e?</h3>
+      <p>Registro de todas as acoes realizadas no sistema. Mostra quem fez o que e quando.</p>
+
+      <h3>Acessar</h3>
+      <div class="passo"><span class="passo-num">1</span> No painel, na secao <strong>Auditoria de Acoes</strong></div>
+      <div class="passo"><span class="passo-num">2</span> Veja: data/hora, usuario, tipo de acao, detalhes</div>
+      <div class="passo"><span class="passo-num">3</span> Use a busca para filtrar por usuario, acao ou detalhe</div>
+
+      <h3>Modulos rastreados</h3>
+      <p>Equipes, Atletas, Competicoes, Inscricoes, Resultados, Sumulas, Recordes, Numeracao, Membros, Treinadores, Funcionarios, Autenticacao, Sistema, Secretaria.</p>
+    </div>
+  </div>
+
+  <!-- 17. CONFIGURACOES -->
+  <div class="secao" id="s17">
+    <div class="secao-header"><h2>17. Configuracoes da Conta</h2></div>
+    <div class="secao-body">
+      <h3>Dados pessoais</h3>
+      <p>Acesse <strong>Configuracoes</strong> &gt; aba <strong>Dados Pessoais</strong>: edite nome, email, CPF/CNPJ, telefone.</p>
+
+      <h3>Alterar senha</h3>
+      <p>Aba <strong>Alterar Senha</strong>: digite a senha atual, a nova (minimo 6 caracteres) e confirme.</p>
+
+      <h3>Perfil publico (organizadores)</h3>
+      <p>Aba <strong>Perfil Publico</strong>: configure banner/logo, adicione links de redes sociais, ative/desative visibilidade.</p>
+
+      <h3>Backup de dados</h3>
+      <ul>
+        <li><strong>Exportar dados:</strong> gera arquivo com todos os seus dados</li>
+        <li><strong>Importar dados:</strong> restaura de um backup anterior</li>
+        <li><strong>Limpar todos os dados:</strong> remove tudo (irreversivel!)</li>
+      </ul>
+
+      <h3>LGPD</h3>
+      <ul>
+        <li><strong>Portabilidade:</strong> solicite seus dados em formato legivel</li>
+        <li><strong>Revogar consentimento:</strong> cancela o uso dos seus dados</li>
+        <li><strong>Anonimizacao:</strong> solicita remocao dos dados pessoais</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- DICAS GERAIS -->
+  <div class="secao" id="dicas">
+    <div class="secao-header"><h2>Dicas Gerais</h2></div>
+    <div class="secao-body">
+      <div class="dica">
+        <div class="dica-titulo">Boas praticas</div>
+        <ol>
+          <li><strong>Sempre salve</strong> antes de sair de uma tela de edicao</li>
+          <li><strong>Inscricoes</strong> so podem ser feitas com a competicao ativa (nao encerrada)</li>
+          <li><strong>Resultados</strong> podem ser digitados a qualquer momento, mesmo durante a competicao</li>
+          <li><strong>QR Codes</strong> facilitam muito a camera de chamada e entrega de medalhas - imprima os dorsais com QR</li>
+          <li><strong>Funcionarios</strong> com permissoes limitadas sao ideais para fiscais de prova</li>
+          <li>O sistema funciona <strong>offline</strong> - se a internet cair, os dados sao salvos localmente e sincronizados quando voltar</li>
+          <li><strong>Nunca compartilhe</strong> sua senha de organizador - crie funcionarios com permissoes especificas</li>
+          <li><strong>Backup regular:</strong> exporte seus dados periodicamente pela tela de Configuracoes</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

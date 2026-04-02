@@ -1,4 +1,4 @@
-# CONTRATO DE LICENCA DE USO DE SOFTWARE E PRESTACAO DE SERVICOS
+# CONTRATO DE LICENÇA DE USO DE SOFTWARE E PRESTAÇÃO DE SERVIÇOS
 
 ## CONTRATO GERENTRACK N. ___/____
 
@@ -8,328 +8,340 @@
 
 **Quadro Resumo**
 
-**LICENCIANTE e CONTRATADA:** GERENTRACK, [razao social], estabelecida na [endereco completo], inscrita no CNPJ sob n. [CNPJ], neste ato representada por seu representante legal, [NOME], [nacionalidade], [estado civil], [profissao], portador(a) da carteira de identidade n. [RG], inscrito(a) no CPF sob n. [CPF], com endereco profissional a [endereco];
+**LICENCIANTE e CONTRATADA:** GERENTRACK, [razão social], estabelecida na [endereço completo], inscrita no CNPJ sob n. [CNPJ], neste ato representada por seu representante legal, [NOME], [nacionalidade], [estado civil], [profissão], portador(a) da carteira de identidade n. [RG], inscrito(a) no CPF sob n. [CPF], com endereço profissional a [endereço];
 
-**LICENCIADA e CONTRATANTE:** [NOME DA ENTIDADE], [natureza juridica], com sede na [endereco completo], inscrita no CNPJ/MF sob o n. [CNPJ], neste ato representada na forma de seu Estatuto, por seu(sua) [cargo], [NOME DO REPRESENTANTE], portador(a) do RG sob o n. [RG], inscrito(a) no CPF/MF [CPF].
+**LICENCIADA e CONTRATANTE:** [NOME DA ENTIDADE], [natureza jurídica], com sede na [endereço completo], inscrita no CNPJ/MF sob o n. [CNPJ], neste ato representada na forma de seu Estatuto, por seu(sua) [cargo], [NOME DO REPRESENTANTE], portador(a) do RG sob o n. [RG], inscrito(a) no CPF/MF [CPF].
 
 ---
 
-## B) DAS DECLARACOES
+## B) DAS DECLARAÇÕES
 
 **B.1.** Para todos os fins e efeitos, a CONTRATADA declara que:
 
-(i) Seus funcionarios, subcontratados, prepostos e quaisquer terceiros nao terao qualquer subordinacao direta com a CONTRATANTE, reconhecendo que nao existiu, existe e nem existira durante a vigencia deste Contrato qualquer vinculo empregaticio ou trabalhista entre seu pessoal e a CONTRATANTE;
+(i) Seus funcionários, subcontratados, prepostos e quaisquer terceiros não terão qualquer subordinação direta com a CONTRATANTE, reconhecendo que não existiu, existe e nem existirá durante a vigência deste Contrato qualquer vínculo empregatício ou trabalhista entre seu pessoal e a CONTRATANTE;
 
-(ii) Participou do processo de negociacao junto a CONTRATANTE, no qual constava a completa especificacao do objeto contratado;
+(ii) Participou do processo de negociação junto à CONTRATANTE, no qual constava a completa especificação do objeto contratado;
 
-(iii) Teve previo conhecimento de todas as clausulas e condicoes que norteiam a presente contratacao, sendo que todas as duvidas porventura existentes foram previamente esclarecidas;
+(iii) Teve prévio conhecimento de todas as cláusulas e condições que norteiam a presente contratação, sendo que todas as dúvidas porventura existentes foram previamente esclarecidas;
 
-(iv) Reune todas as condicoes tecnicas, operacionais e economicas para a execucao do Contrato e esta ciente dos riscos, expectativas e conveniencias delas decorrentes;
+(iv) Reúne todas as condições técnicas, operacionais e econômicas para a execução do Contrato e está ciente dos riscos, expectativas e conveniências delas decorrentes;
 
-(v) Os procuradores e/ou representantes legais abaixo subscritos encontram-se devidamente constituidos, com poderes para assumir as obrigacoes ora contraidas.
+(v) Os procuradores e/ou representantes legais abaixo subscritos encontram-se devidamente constituídos, com poderes para assumir as obrigações ora contraídas.
 
 **B.2.** Para todos os fins e efeitos, a CONTRATANTE declara que:
 
-(i) Os procuradores e/ou representantes legais abaixo subscritos encontram-se devidamente constituidos na forma dos respectivos Estatutos/Contratos Sociais, com poderes para assumir as obrigacoes ora contraidas;
+(i) Os procuradores e/ou representantes legais abaixo subscritos encontram-se devidamente constituídos na forma dos respectivos Estatutos/Contratos Sociais, com poderes para assumir as obrigações ora contraídas;
 
-(ii) Participou do processo de negociacao junto a CONTRATADA, no qual constava a completa especificacao do objeto contratado;
+(ii) Participou do processo de negociação junto à CONTRATADA, no qual constava a completa especificação do objeto contratado;
 
-(iii) Teve previo conhecimento de todas as clausulas e condicoes que norteiam a presente contratacao, sendo que todas as duvidas porventura existentes foram previamente esclarecidas.
+(iii) Teve prévio conhecimento de todas as cláusulas e condições que norteiam a presente contratação, sendo que todas as dúvidas porventura existentes foram previamente esclarecidas.
 
 ---
 
 ## C) DO OBJETO
 
-Licenca de utilizacao da **Plataforma de Gestao de Competicoes de Atletismo denominada GERENTRACK**, desenvolvida e mantida pela CONTRATADA, acessivel em **gerentrack.com.br**, incluindo:
+Licença de utilização da **Plataforma de Gestão de Competições de Atletismo denominada GERENTRACK**, desenvolvida e mantida pela CONTRATADA, acessível em **gerentrack.com.br**, incluindo:
 
-- Aplicacao web responsiva com funcionamento offline (PWA);
-- Todos os modulos descritos no Anexo I (Descritivo Funcional);
+- Aplicação web responsiva com funcionamento offline (PWA);
+- Todos os módulos descritos no Anexo I (Descritivo Funcional);
 - Hospedagem em infraestrutura cloud gerenciada pela CONTRATADA;
-- Suporte tecnico conforme nivel de servico contratado.
+- Suporte técnico conforme nível de serviço contratado.
 
-**B.1.** A CONTRATADA disponibiliza equipe de suporte tecnico habilitada a esclarecer eventuais duvidas sobre a utilizacao da plataforma, conforme horarios e canais definidos no plano contratado (item E).
+**C.1.** A CONTRATADA disponibiliza equipe de suporte técnico habilitada a esclarecer eventuais dúvidas sobre a utilização da plataforma, conforme horários e canais definidos no plano contratado (item E).
 
-**B.2.** A plataforma opera integralmente via navegador web, sem necessidade de instalacao de software local, podendo ser instalada como aplicativo (PWA) em dispositivos moveis e desktops.
-
----
-
-## C) DO LOCAL DA PRESTACAO DE SERVICOS
-
-Os servicos de suporte, manutencao e hospedagem serao realizados remotamente, na sede da CONTRATADA e/ou em sua infraestrutura em Data Center (Firebase/Google Cloud + Vercel).
+**C.2.** A plataforma opera integralmente via navegador web, sem necessidade de instalação de software local, podendo ser instalada como aplicativo (PWA) em dispositivos móveis e desktops.
 
 ---
 
-## D) DA VIGENCIA OU PRAZO
+## C) DO LOCAL DA PRESTAÇÃO DE SERVIÇOS
 
-O prazo de vigencia do Contrato sera de __ (______) meses, a contar da data de sua assinatura, podendo ser prorrogado por periodos iguais e sucessivos mediante Termo Aditivo assinado pelas Partes.
-
-**D.1.** A CONTRATADA nao tem direito subjetivo a prorrogacao contratual.
-
-**D.2.** O contrato sera renovado automaticamente por periodos iguais ao inicialmente contratado, salvo manifestacao expressa de qualquer das Partes com antecedencia minima de 30 (trinta) dias do termino da vigencia.
+Os serviços de suporte, manutenção e hospedagem serão realizados remotamente, na sede da CONTRATADA e/ou em sua infraestrutura em Data Center (Firebase/Google Cloud + Vercel).
 
 ---
 
-## E) DO PLANO CONTRATADO, PRECO E CONDICOES DE PAGAMENTO
+## D) DA VIGÊNCIA OU PRAZO
 
-### E.1. Plano de Licenca
+O prazo de vigência do Contrato será de __ (______) meses, a contar da data de sua assinatura, podendo ser prorrogado por períodos iguais e sucessivos mediante Termo Aditivo assinado pelas Partes.
 
-A CONTRATANTE opta pelo plano assinalado abaixo:
+**D.1.** A CONTRATADA não tem direito subjetivo à prorrogação contratual.
 
-| Plano | Valor Mensal | Competicoes | Organizadores | Suporte |
+**D.2.** O contrato será renovado automaticamente por períodos iguais ao inicialmente contratado, salvo manifestação expressa de qualquer das Partes com antecedência mínima de 30 (trinta) dias do término da vigência.
+
+**D.3.** Após o encerramento do contrato, por qualquer motivo, a CONTRATADA manterá os dados da CONTRATANTE na plataforma pelo prazo de 7 (sete) dias corridos, contados a partir da data de encerramento. Decorrido esse prazo, todos os dados serão permanentemente excluídos, incluindo competições, atletas, equipes, inscrições, resultados, recordes, rankings e demais informações armazenadas. A CONTRATANTE deverá realizar a exportação de seus dados antes do encerramento do prazo de retenção.
+
+**D.4.** Em conformidade com a LGPD (Lei n. 13.709/2018), os dados pessoais de atletas, treinadores e demais titulares serão excluídos ou anonimizados após o prazo previsto em D.3. Resultados esportivos já publicados em páginas públicas poderão ser mantidos de forma anonimizada para preservação da integridade do histórico esportivo, nos termos do Art. 7, II da LGPD (cumprimento de obrigação legal e interesse público).
+
+**D.5.** Todos os dados inseridos pela CONTRATANTE na plataforma são e permanecerão de propriedade exclusiva da CONTRATANTE. A CONTRATADA atua exclusivamente como operadora dos dados, nos termos da LGPD, não podendo utilizá-los para finalidades distintas das previstas neste Contrato.
+
+---
+
+## E) DO PLANO CONTRATADO, PREÇO E CONDIÇÕES DE PAGAMENTO
+
+### E.1. Plano de Licença
+
+A CONTRATANTE opta pelo período de contratação assinalado abaixo:
+
+| Período | Valor Mensal | Competições | Usuários | Suporte |
 |---|---|---|---|---|
-| ( ) **Essencial** | R$ 490,00 | Ate 1 por mes | 2 usuarios | E-mail |
-| ( ) **Profissional** | R$ 890,00 | Ate 3 por mes | 5 usuarios | Prioritario |
-| ( ) **Federacao** | R$ 1.390,00 | Ilimitadas | Ilimitados | Dedicado, SLA 99,5% |
+| ( ) **Avulso** | R$ 400,00 | 1 competição | Ilimitados | E-mail (até 48h úteis) |
+| ( ) **Trimestral** | R$ 474,90 | 3 por período | Ilimitados | E-mail (até 48h úteis) |
+| ( ) **Anual** | R$ 449,90 | Ilimitadas | Ilimitados | Prioritário (até 24h úteis) |
 
-Todos os planos incluem acesso a todos os modulos da plataforma descritos no Anexo I, sem restricao de funcionalidades.
+Todos os planos incluem acesso a todos os módulos da plataforma descritos no Anexo I, sem restrição de funcionalidades. Inscrições ilimitadas em todas as competições, sem custo adicional.
 
-Desconto de 15% (quinze por cento) para contratacao com vigencia anual (12 meses), aplicavel sobre o valor mensal da licenca.
+**E.1.a. Detalhamento do Suporte**
 
-### E.2. Taxa por Inscricao
+**Suporte por E-mail (Avulso e Trimestral):**
+- Atendimento por e-mail
+- Prazo de resposta: até 48 (quarenta e oito) horas úteis
 
-Cobrada por atleta inscrito em cada competicao, independentemente do numero de provas:
+**Suporte Prioritário (Anual):**
+- Atendimento por e-mail e WhatsApp
+- Prazo de resposta: até 24 (vinte e quatro) horas úteis
+- Canal direto com a equipe técnica
 
-| Faixa de Inscritos por Competicao | Valor por Inscricao |
+### E.1.1. Competição Adicional
+
+A CONTRATANTE que tenha atingido o limite de competições previsto em seu plano, ou que deseje contratar nova competição após a realização da competição avulsa, poderá contratar competições adicionais mediante negociação prévia com a CONTRATADA.
+
+| Item | Condição |
 |---|---|
-| Ate 200 inscritos | R$ 2,50 |
-| De 201 a 500 inscritos | R$ 2,00 |
-| De 501 a 1.000 inscritos | R$ 1,50 |
-| Acima de 1.000 inscritos | R$ 1,00 |
+| Preço por competição adicional | Objeto de negociação entre as Partes |
+| Módulos disponíveis | Todos os módulos da plataforma, sem restrição |
+| Suporte | Conforme o plano ativo da CONTRATANTE |
 
-A apuracao da taxa sera mensal, com cobranca no mes subsequente ao da realizacao da competicao.
+A contratação de competição adicional será formalizada por e-mail entre as Partes, com indicação do evento, data e valor acordado. Os créditos de competição adicional são válidos apenas para o período vigente em que foram contratados, não sendo cumulativos.
 
-### E.3. Servicos Adicionais (opcionais)
+### E.2. Serviços Adicionais (opcionais)
 
-| Servico | Valor | Descricao |
+| Serviço | Valor | Descrição |
 |---|---|---|
-| Implantacao e onboarding | R$ 2.500,00 (unico) | Configuracao inicial, importacao de dados, treinamento remoto (4h) |
-| Treinamento presencial | R$ 3.500,00/dia + deslocamento | Capacitacao in loco para equipe de secretaria e organizacao |
-| Suporte a competicao (remoto) | R$ 800,00/dia | Acompanhamento em tempo real durante o evento |
-| Suporte a competicao (presencial) | R$ 1.500,00/dia + deslocamento | Tecnico presente no local do evento |
-| Manutencao de resultados | R$ 15,00/prova | Digitacao e conferencia pela equipe GERENTRACK |
-| Importacao de historico | R$ 1.200,00 (unico) | Importacao de recordes, rankings e dados de planilhas |
-| Gestao de ranking | R$ 350,00/mes | Manutencao e atualizacao continua do ranking |
-| Gestao de recordes | R$ 250,00/mes | Homologacao, atualizacao e publicacao de recordes |
-| Personalizacao de marca | R$ 800,00 (unico) | Configuracao de logos e identidade visual |
-| Relatorio pos-competicao | R$ 500,00/evento | Relatorio completo com estatisticas e pontuacao |
+| Treinamento online | R$ 500,00/sessão (2h) | Capacitação remota para equipe de secretaria e organização |
+| Suporte a competição (remoto) | R$ 300,00/dia | Acompanhamento em tempo real durante o evento |
 
-### E.4. Reajuste
+### E.3. Reajuste
 
-O valor sera reajustado anualmente, tendo como base o indice IPCA (Indice Nacional de Precos ao Consumidor Amplo) acumulado no periodo, ou indice similar que venha a substitui-lo.
-
-### E.5. Despesas de Deslocamento
-
-A CONTRATANTE devera restituir a CONTRATADA todos os gastos com deslocamento, hospedagem e alimentacao da equipe que realizar servicos presenciais, mediante apresentacao de comprovantes.
+O valor será reajustado anualmente, tendo como base o índice IPCA (Índice Nacional de Preços ao Consumidor Amplo) acumulado no período, ou índice similar que venha a substituí-lo.
 
 ---
 
 ## F) DA FORMA DE PAGAMENTO
 
-**F.1.** O pagamento sera realizado atraves de boleto bancario, PIX ou transferencia bancaria a favor da CONTRATADA, com vencimento todo dia 15 (quinze) de cada mes, sendo o documento para pagamento enviado ate o dia 10 (dez) de cada mes.
+**F.1.** O pagamento será realizado através de boleto bancário, PIX ou transferência bancária a favor da CONTRATADA, com vencimento todo dia 15 (quinze) de cada mês, sendo o documento para pagamento enviado até o dia 10 (dez) de cada mês.
 
-**F.2.** O pagamento da licenca mensal e previo a prestacao do servico do mes correspondente.
+**F.2.** O pagamento da licença é prévio à prestação do serviço do período correspondente.
 
-**F.3.** A taxa por inscricao sera cobrada no mes subsequente ao da realizacao da competicao, em documento de cobranca separado, acompanhado de relatorio detalhado com a apuracao das inscricoes.
+**F.3.** Serviços adicionais contratados serão cobrados em documento de cobrança separado, no mês subsequente à sua realização.
 
 ---
 
-## G) DA GARANTIA E NIVEL DE SERVICO (SLA)
+## G) DA GARANTIA E NÍVEL DE SERVIÇO (SLA)
 
-**G.1.** A CONTRATADA garante a funcionalidade da plataforma pelo periodo constante no item "D", obrigando-se a realizar manutencao corretiva diante de eventuais desvios das especificacoes.
+**G.1.** A CONTRATADA garante a funcionalidade da plataforma pelo período constante no item "D", obrigando-se a realizar manutenção corretiva diante de eventuais desvios das especificações.
 
 **G.2.** Disponibilidade da plataforma:
 
 | Plano | Disponibilidade Garantida |
 |---|---|
-| Essencial | 99,0% |
-| Profissional | 99,0% |
-| Federacao | 99,5% |
+| Avulso | 99,0% |
+| Trimestral | 99,0% |
+| Anual | 99,5% |
 
-A disponibilidade e calculada mensalmente, excluindo-se periodos de manutencao programada (comunicada com antecedencia minima de 48 horas) e eventos de forca maior.
+A disponibilidade é calculada mensalmente, excluindo-se períodos de manutenção programada (comunicada com antecedência mínima de 48 horas) e eventos de força maior.
 
-**G.3.** Niveis de severidade para atendimento de suporte:
+**G.3.** Níveis de severidade para atendimento de suporte:
 
-| Severidade | Descricao | Tempo de Resposta |
+| Severidade | Descrição | Tempo de Resposta |
 |---|---|---|
-| Critico | Plataforma indisponivel, impacto total na operacao | Ate 2 horas uteis |
-| Urgente | Funcionalidade essencial comprometida | Ate 8 horas uteis |
-| Normal | Duvidas operacionais, solicitacoes de ajuste | Ate 24 horas uteis |
+| Crítico | Plataforma indisponível, impacto total na operação | Até 2 horas úteis |
+| Urgente | Funcionalidade essencial comprometida | Até 8 horas úteis |
+| Normal | Dúvidas operacionais, solicitações de ajuste | Até 24 horas úteis |
 
-**G.4.** Horario de suporte: dias uteis, das 09:00 as 18:00 (horario de Brasilia). Atendimentos fora desse horario poderao ser contratados como servico adicional.
+**G.4.** Horário de suporte: dias úteis, das 09:00 às 18:00 (horário de Brasília). Atendimentos fora desse horário poderão ser contratados como serviço adicional.
 
-**G.5.** Havendo inconsistencia ou disfuncao operacional, a CONTRATANTE devera proceder a abertura de chamado atraves do canal de suporte designado pela CONTRATADA (e-mail, chat ou sistema de chamados), onde a CONTRATADA devera, no prazo correspondente a severidade do chamado, designar tecnico responsavel para o atendimento.
+**G.5.** Havendo inconsistência ou disfunção operacional, a CONTRATANTE deverá proceder à abertura de chamado através do canal de suporte designado pela CONTRATADA (e-mail, chat ou sistema de chamados), onde a CONTRATADA deverá, no prazo correspondente à severidade do chamado, designar técnico responsável para o atendimento.
 
 ---
 
-## H) DO CODIGO FONTE, PROPRIEDADE INTELECTUAL E DADOS
+## H) DO CÓDIGO FONTE, PROPRIEDADE INTELECTUAL E DADOS
 
-**H.1.** A CONTRATADA nao disponibilizara a CONTRATANTE acesso aos codigos-fonte da plataforma.
+**H.1.** A CONTRATADA não disponibilizará à CONTRATANTE acesso aos códigos-fonte da plataforma.
 
-**H.2.** Cabera a CONTRATADA a propriedade intelectual e o direito de exploracao economica da plataforma GERENTRACK, incluindo o desenvolvimento e comercializacao de programas similares ou derivados.
+**H.2.** Caberá à CONTRATADA a propriedade intelectual e o direito de exploração econômica da plataforma GERENTRACK, incluindo o desenvolvimento e comercialização de programas similares ou derivados.
 
-**H.3.** Os conteudos e dados inseridos pela CONTRATANTE sao de sua propriedade. Ao termino do contrato, nao havendo mais interesse de ambas as Partes na sua renovacao, a CONTRATADA fornecera, no prazo de 30 (trinta) dias, em arquivo(s) CSV ou formato equivalente, todos os dados inseridos e armazenados pela CONTRATANTE, incluindo, mas nao se limitando a:
+**H.3.** Os conteúdos e dados inseridos pela CONTRATANTE são de sua propriedade. Ao término do contrato, não havendo mais interesse de ambas as Partes na sua renovação, a CONTRATADA fornecerá, no prazo de 30 (trinta) dias, em arquivo(s) CSV ou formato equivalente, todos os dados inseridos e armazenados pela CONTRATANTE, incluindo, mas não se limitando a:
 
 - Cadastro de atletas, equipes e treinadores;
-- Inscricoes e resultados de competicoes;
+- Inscrições e resultados de competições;
 - Recordes e ranking;
-- Historico de auditoria.
+- Histórico de auditoria.
 
-**H.4.** A CONTRATANTE nao possui nem adquirira quaisquer direitos de propriedade intelectual, marcas, nomes, patentes, simbolos ou logotipos da GERENTRACK pelo simples fato de utilizar a plataforma.
+**H.4.** A CONTRATANTE não possui nem adquirirá quaisquer direitos de propriedade intelectual, marcas, nomes, patentes, símbolos ou logotipos da GERENTRACK pelo simples fato de utilizar a plataforma.
 
 ---
 
-## I) DA PROTECAO DE DADOS (LGPD)
+## I) DA PROTEÇÃO DE DADOS (LGPD)
 
-**I.1.** As Partes comprometem-se a observar as disposicoes da Lei n. 13.709/2018 (Lei Geral de Protecao de Dados Pessoais — LGPD) no tratamento de dados pessoais decorrentes deste Contrato.
+**I.1.** As Partes comprometem-se a observar as disposições da Lei n. 13.709/2018 (Lei Geral de Proteção de Dados Pessoais — LGPD) no tratamento de dados pessoais decorrentes deste Contrato.
 
-**I.2.** A CONTRATANTE e controladora dos dados pessoais inseridos na plataforma (dados de atletas, treinadores, equipes e demais usuarios). A CONTRATADA atua como operadora, tratando os dados exclusivamente para a prestacao dos servicos contratados.
+**I.2.** A CONTRATANTE é controladora dos dados pessoais inseridos na plataforma (dados de atletas, treinadores, equipes e demais usuários). A CONTRATADA atua como operadora, tratando os dados exclusivamente para a prestação dos serviços contratados.
 
 **I.3.** A CONTRATADA compromete-se a:
 
-(i) Tratar os dados pessoais apenas conforme as instrucoes da CONTRATANTE e para as finalidades previstas neste Contrato;
+(i) Tratar os dados pessoais apenas conforme as instruções da CONTRATANTE e para as finalidades previstas neste Contrato;
 
-(ii) Implementar medidas tecnicas e organizacionais adequadas para proteger os dados pessoais contra acesso nao autorizado, destruicao, perda, alteracao ou divulgacao, incluindo:
-- Autenticacao segura via Firebase Authentication;
-- Sanitizacao de entradas contra XSS (DOMPurify);
-- Comunicacao exclusivamente via HTTPS;
-- Trilha de auditoria com registro de acoes;
-- Backup automatico com retencao adequada.
+(ii) Implementar medidas técnicas e organizacionais adequadas para proteger os dados pessoais contra acesso não autorizado, destruição, perda, alteração ou divulgação, incluindo:
+- Autenticação segura via Firebase Authentication;
+- Sanitização de entradas contra XSS (DOMPurify);
+- Comunicação exclusivamente via HTTPS;
+- Trilha de auditoria com registro de ações;
+- Backup automático com retenção adequada.
 
-(iii) Notificar a CONTRATANTE, no prazo de 72 (setenta e duas) horas, sobre qualquer incidente de seguranca que envolva dados pessoais;
+(iii) Notificar a CONTRATANTE, no prazo de 72 (setenta e duas) horas, sobre qualquer incidente de segurança que envolva dados pessoais;
 
-(iv) Auxiliar a CONTRATANTE no atendimento de solicitacoes de titulares de dados (acesso, correcao, exclusao, portabilidade), nos termos dos artigos 8 e 18 da LGPD;
+(iv) Auxiliar a CONTRATANTE no atendimento de solicitações de titulares de dados (acesso, correção, exclusão, portabilidade), nos termos dos artigos 8 e 18 da LGPD;
 
-(v) Ao termino do contrato, eliminar ou devolver os dados pessoais tratados, conforme instrucao da CONTRATANTE, salvo obrigacao legal de conservacao.
+(v) Ao término do contrato, eliminar ou devolver os dados pessoais tratados, conforme instrução da CONTRATANTE, salvo obrigação legal de conservação.
 
-**I.4.** A CONTRATANTE compromete-se a obter o consentimento dos titulares dos dados para o tratamento na plataforma, quando aplicavel, e a informar os titulares sobre as finalidades do tratamento.
+**I.4.** A CONTRATANTE compromete-se a obter o consentimento dos titulares dos dados para o tratamento na plataforma, quando aplicável, e a informar os titulares sobre as finalidades do tratamento.
 
----
+**I.5.** Integram o presente Contrato, para todos os efeitos legais, os seguintes documentos publicados pela CONTRATADA e disponíveis no endereço https://gerentrack.com.br:
 
-## J) DAS OBRIGACOES DA CONTRATADA
+(i) **Política de Privacidade** — descreve os dados coletados, finalidades do tratamento, direitos dos titulares e medidas de segurança adotadas pela plataforma;
 
-Sem prejuizo das demais obrigacoes assumidas, a CONTRATADA obriga-se a:
+(ii) **Termos de Uso** — estabelece as regras de utilização da plataforma por todos os usuários (organizadores, funcionários, equipes, treinadores e atletas).
 
-**J.1.** Manter a plataforma disponivel e funcional conforme os niveis de servico estabelecidos no item "G".
+**I.6.** A CONTRATANTE declara ter lido e estar de acordo com a Política de Privacidade e os Termos de Uso vigentes na data de assinatura deste Contrato. Eventuais atualizações desses documentos serão comunicadas à CONTRATANTE com antecedência mínima de 15 (quinze) dias. Em caso de conflito entre este Contrato e os documentos referidos, prevalecerão as disposições deste Contrato.
 
-**J.2.** Realizar atualizacoes e melhorias continuas na plataforma, sem custo adicional para a CONTRATANTE, desde que nao constituam desenvolvimento de funcionalidades exclusivas.
-
-**J.3.** Manter backup automatico dos dados da CONTRATANTE, com retencao minima de 30 (trinta) dias.
-
-**J.4.** Fornecer suporte tecnico nos horarios e canais definidos, com equipe habilitada para esclarecer duvidas sobre a utilizacao da plataforma.
-
-**J.5.** Comunicar a CONTRATANTE, com antecedencia minima de 48 (quarenta e oito) horas, sobre manutencoes programadas que possam afetar a disponibilidade da plataforma.
-
-**J.6.** Garantir a seguranca e integridade dos dados armazenados, empregando tecnologias adequadas e recursos avancados para tal protecao.
+**I.7.** A CONTRATANTE é responsável por garantir que seus usuários (funcionários, treinadores, equipes e atletas) aceitem os Termos de Uso e a Política de Privacidade ao utilizarem a plataforma.
 
 ---
 
-## K) DAS OBRIGACOES DA CONTRATANTE
+## J) DAS OBRIGAÇÕES DA CONTRATADA
 
-Sem prejuizo das demais obrigacoes assumidas, a CONTRATANTE obriga-se a:
+Sem prejuízo das demais obrigações assumidas, a CONTRATADA obriga-se a:
 
-**K.1.** Informar imediatamente a CONTRATADA qualquer irregularidade constatada na utilizacao da plataforma, atraves de abertura de chamado no canal de suporte designado.
+**J.1.** Manter a plataforma disponível e funcional conforme os níveis de serviço estabelecidos no item "G".
 
-**K.2.** Fornecer a CONTRATADA as informacoes, dados tecnicos e documentos indispensaveis a configuracao e operacao da plataforma.
+**J.2.** Realizar atualizações e melhorias contínuas na plataforma, sem custo adicional para a CONTRATANTE, desde que não constituam desenvolvimento de funcionalidades exclusivas.
 
-**K.3.** Pagar a CONTRATADA pela licenca e servicos prestados, nos prazos e condicoes previstos neste Contrato.
+**J.3.** Manter backup automático dos dados da CONTRATANTE, com retenção mínima de 30 (trinta) dias.
 
-**K.4.** Responsabilizar-se pela gestao das credenciais de acesso de seus usuarios, garantindo que nao sejam utilizadas indevidamente.
+**J.4.** Fornecer suporte técnico nos horários e canais definidos, com equipe habilitada para esclarecer dúvidas sobre a utilização da plataforma.
 
-**K.5.** Responsabilizar-se pelos atos de todos os usuarios que possuirem acesso a conta da CONTRATANTE na plataforma.
+**J.5.** Comunicar à CONTRATANTE, com antecedência mínima de 48 (quarenta e oito) horas, sobre manutenções programadas que possam afetar a disponibilidade da plataforma.
 
-**K.6.** Nao reproduzir, copiar, modificar, descompilar ou realizar engenharia reversa do software da plataforma.
+**J.6.** Garantir a segurança e integridade dos dados armazenados, empregando tecnologias adequadas e recursos avançados para tal proteção.
 
-**K.7.** Garantir que a utilizacao da plataforma esteja em conformidade com a legislacao vigente, incluindo a LGPD, no que diz respeito ao tratamento de dados pessoais de atletas, treinadores e demais envolvidos.
+---
+
+## K) DAS OBRIGAÇÕES DA CONTRATANTE
+
+Sem prejuízo das demais obrigações assumidas, a CONTRATANTE obriga-se a:
+
+**K.1.** Informar imediatamente à CONTRATADA qualquer irregularidade constatada na utilização da plataforma, através de abertura de chamado no canal de suporte designado.
+
+**K.2.** Fornecer à CONTRATADA as informações, dados técnicos e documentos indispensáveis à configuração e operação da plataforma.
+
+**K.3.** Pagar à CONTRATADA pela licença e serviços prestados, nos prazos e condições previstos neste Contrato.
+
+**K.4.** Responsabilizar-se pela gestão das credenciais de acesso de seus usuários, garantindo que não sejam utilizadas indevidamente.
+
+**K.5.** Responsabilizar-se pelos atos de todos os usuários que possuírem acesso à conta da CONTRATANTE na plataforma.
+
+**K.6.** Não reproduzir, copiar, modificar, descompilar ou realizar engenharia reversa do software da plataforma.
+
+**K.7.** Garantir que a utilização da plataforma esteja em conformidade com a legislação vigente, incluindo a LGPD, no que diz respeito ao tratamento de dados pessoais de atletas, treinadores e demais envolvidos.
 
 ---
 
 ## L) DA CONFIDENCIALIDADE
 
-**L.1.** E vedada a divulgacao pelas Partes, a qualquer tempo e sob qualquer forma, de dados, criacoes e informacoes confidenciais obtidos em virtude deste Contrato, salvo com o expresso consentimento da outra Parte. Nao sao consideradas informacoes confidenciais: (i) que sejam de dominio publico; ou (ii) que ja estejam em poder da outra Parte e tenham sido obtidas de forma licita.
+**L.1.** É vedada a divulgação pelas Partes, a qualquer tempo e sob qualquer forma, de dados, criações e informações confidenciais obtidos em virtude deste Contrato, salvo com o expresso consentimento da outra Parte. Não são consideradas informações confidenciais: (i) que sejam de domínio público; ou (ii) que já estejam em poder da outra Parte e tenham sido obtidas de forma lícita.
 
-**L.2.** E permitido o fornecimento de informacoes confidenciais em razao de ordem administrativa ou judicial emitida por autoridade competente, contanto que a Parte que a recebeu notifique a outra Parte previamente ao fornecimento, por escrito. A presente disposicao perdurara durante a vigencia deste Contrato e pelo prazo de 5 (cinco) anos a contar do seu termino.
+**L.2.** É permitido o fornecimento de informações confidenciais em razão de ordem administrativa ou judicial emitida por autoridade competente, contanto que a Parte que a recebeu notifique a outra Parte previamente ao fornecimento, por escrito. A presente disposição perdurará durante a vigência deste Contrato e pelo prazo de 5 (cinco) anos a contar do seu término.
 
 ---
 
-## M) DA ANTICORRUPCAO
+## M) DA ANTICORRUPÇÃO
 
-**M.1.** Na execucao do presente Contrato e vedado a CONTRATANTE e a CONTRATADA e/ou a empregado, preposto ou gestor de qualquer das Partes:
+**M.1.** Na execução do presente Contrato é vedado à CONTRATANTE e à CONTRATADA e/ou a empregado, preposto ou gestor de qualquer das Partes:
 
-(i) Prometer, oferecer ou dar, direta ou indiretamente, vantagem indevida a agente publico ou a quem quer que seja;
+(i) Prometer, oferecer ou dar, direta ou indiretamente, vantagem indevida a agente público ou a quem quer que seja;
 
-(ii) Criar, de modo fraudulento ou irregular, pessoa juridica para celebrar o presente Contrato;
+(ii) Criar, de modo fraudulento ou irregular, pessoa jurídica para celebrar o presente Contrato;
 
-(iii) Manipular ou fraudar o equilibrio economico-financeiro do presente Contrato;
+(iii) Manipular ou fraudar o equilíbrio econômico-financeiro do presente Contrato;
 
-(iv) De qualquer maneira fraudar o presente Contrato ou realizar quaisquer acoes que constituam pratica ilegal ou de corrupcao, nos termos da Lei n. 12.846/2013.
+(iv) De qualquer maneira fraudar o presente Contrato ou realizar quaisquer ações que constituam prática ilegal ou de corrupção, nos termos da Lei n. 12.846/2013.
 
 ---
 
 ## N) DAS PENALIDADES
 
-**N.1.** Pelo atraso no pagamento: multa de 2% (dois por cento) sobre o valor da parcela em atraso, mais juros de 1% (um por cento) ao mes e correcao monetaria pelo IPCA.
+**N.1.** Pelo atraso no pagamento: multa de 2% (dois por cento) sobre o valor da parcela em atraso, mais juros de 1% (um por cento) ao mês e correção monetária pelo IPCA.
 
-**N.2.** Por reproducao nao autorizada do software: perda da garantia pactuada no item "G", alem das penalidades previstas na Lei n. 9.609/98 (Lei do Software).
+**N.2.** Por reprodução não autorizada do software: perda da garantia pactuada no item "G", além das penalidades previstas na Lei n. 9.609/98 (Lei do Software).
 
-**N.3.** Por infracao contratual por qualquer uma das Partes: multa de 10% (dez por cento) calculados sobre o valor total pago nos ultimos 12 (doze) meses de vigencia do Contrato.
+**N.3.** Por infração contratual por qualquer uma das Partes: multa de 10% (dez por cento) calculados sobre o valor total pago nos últimos 12 (doze) meses de vigência do Contrato.
 
-**N.4.** Havendo inadimplencia da CONTRATANTE apos 30 (trinta) dias do vencimento, podera a CONTRATADA realizar protesto, cobranca judicial ou extrajudicial e incluir o CNPJ da CONTRATANTE nos cadastros de protecao ao credito.
+**N.4.** Havendo inadimplência da CONTRATANTE após 30 (trinta) dias do vencimento, poderá a CONTRATADA realizar protesto, cobrança judicial ou extrajudicial e incluir o CNPJ da CONTRATANTE nos cadastros de proteção ao crédito.
 
-**N.5.** Havendo inadimplencia por 45 (quarenta e cinco) dias, podera a CONTRATADA proceder a suspensao do acesso a plataforma enquanto nao houver o adimplemento contratual, sem prejuizo da preservacao dos dados da CONTRATANTE.
+**N.5.** Havendo inadimplência por 45 (quarenta e cinco) dias, poderá a CONTRATADA proceder à suspensão do acesso à plataforma enquanto não houver o adimplemento contratual, sem prejuízo da preservação dos dados da CONTRATANTE. Durante o período de suspensão, os dados serão mantidos integralmente. Caso a inadimplência perdure por mais de 90 (noventa) dias, a CONTRATADA poderá rescindir o contrato unilateralmente, aplicando-se o prazo de retenção de dados previsto na cláusula D.3.
 
-**N.6.** A CONTRATADA tem o direito de suspender a conta da CONTRATANTE e o acesso a plataforma caso sejam levantadas suspeitas de mau uso, incluindo, mas nao se limitando a: utilizacao para finalidades diversas das previstas, tentativa de acesso nao autorizado, ou qualquer acao que possa comprometer a seguranca ou estabilidade da plataforma.
+**N.6.** A CONTRATADA tem o direito de suspender a conta da CONTRATANTE e o acesso à plataforma caso sejam levantadas suspeitas de mau uso, incluindo, mas não se limitando a: utilização para finalidades diversas das previstas, tentativa de acesso não autorizado, ou qualquer ação que possa comprometer a segurança ou estabilidade da plataforma.
 
-**N.7.** O simples pagamento da multa nao exime a Parte infratora do cumprimento das demais obrigacoes do Contrato.
-
----
-
-## O) DA EXTINCAO
-
-**O.1.** Qualquer das Partes podera resilir unilateralmente este instrumento mediante comunicacao formal a outra Parte com 30 (trinta) dias de antecedencia, sem que lhe seja aplicavel qualquer penalidade, desde que adimplente com todas as obrigacoes ate a data da rescisao.
-
-**O.2.** Qualquer das Partes podera, por justa causa, resolver este instrumento imediatamente, sem necessidade de aviso previo, mediante comunicacao por escrito, nas seguintes hipoteses:
-
-(i) Descumprimento das obrigacoes assumidas por forca deste instrumento;
-
-(ii) Falencia, recuperacao judicial, insolvencia, liquidacao judicial ou extrajudicial de qualquer das Partes;
-
-(iii) Demais hipoteses previstas neste Contrato ou na Lei.
-
-**O.3.** Em caso de termino antecipado, os pagamentos serao efetuados proporcionalmente aos servicos prestados pela CONTRATADA e aceitos pela CONTRATANTE.
-
-**O.4.** Independentemente da forma de extincao, a CONTRATADA disponibilizara os dados da CONTRATANTE conforme item H.3, no prazo de 30 (trinta) dias apos a efetiva extincao.
+**N.7.** O simples pagamento da multa não exime a Parte infratora do cumprimento das demais obrigações do Contrato.
 
 ---
 
-## P) DAS DISPOSICOES GERAIS
+## O) DA EXTINÇÃO
 
-**P.1.** As Partes agirao como contratantes independentes. Nenhuma das Partes possui autoridade para assumir ou criar obrigacoes em nome da outra. Este Contrato nao constitui sociedade, joint venture, relacao de parceria ou representacao comercial.
+**O.1.** Qualquer das Partes poderá resilir unilateralmente este instrumento mediante comunicação formal à outra Parte com 30 (trinta) dias de antecedência, sem que lhe seja aplicável qualquer penalidade, desde que adimplente com todas as obrigações até a data da rescisão.
 
-**P.2.** Este Contrato nao constituira qualquer vinculo de natureza trabalhista entre as Partes e seus respectivos prepostos, administradores, empregados ou terceiros.
+**O.2.** Qualquer das Partes poderá, por justa causa, resolver este instrumento imediatamente, sem necessidade de aviso prévio, mediante comunicação por escrito, nas seguintes hipóteses:
 
-**P.3.** Se qualquer clausula deste Contrato for declarada nula, as demais permanecerao validas e deverao ser interpretadas de forma a preservar os propositos das Partes.
+(i) Descumprimento das obrigações assumidas por força deste instrumento;
 
-**P.4.** A tolerancia com o atraso ou descumprimento de obrigacoes nao importara em novacao contratual ou renuncia a direitos.
+(ii) Falência, recuperação judicial, insolvência, liquidação judicial ou extrajudicial de qualquer das Partes;
 
-**P.5.** A CONTRATADA nao sera responsavel por descontinuidade dos servicos decorrentes de forca maior ou caso fortuito, nos termos do art. 393 do Codigo Civil, incluindo falhas de rede, problemas de compatibilidade de terceiros, contaminacao por virus por ma utilizacao da CONTRATANTE, ou quaisquer eventos fora do controle razoavel da CONTRATADA. Caso o evento perdure por mais de 60 (sessenta) dias, qualquer das Partes podera rescindir este Contrato sem onus.
+(iii) Demais hipóteses previstas neste Contrato ou na Lei.
 
-**P.6.** Em nenhuma hipotese qualquer das Partes sera responsavel por lucros cessantes, perdas de receita e/ou danos indiretos causados a outra Parte ou a terceiros.
+**O.3.** Em caso de término antecipado, os pagamentos serão efetuados proporcionalmente aos serviços prestados pela CONTRATADA e aceitos pela CONTRATANTE.
 
-**P.7.** Nenhuma modificacao a este Contrato sera valida, a menos que formalizada por escrito mediante Aditivo Contratual assinado pelos representantes legais das Partes.
+**O.4.** Independentemente da forma de extinção, a CONTRATADA disponibilizará os dados da CONTRATANTE conforme item H.3, no prazo de 30 (trinta) dias após a efetiva extinção.
 
-**P.8.** Este Contrato suplanta qualquer acordo previo, escrito ou verbal, e constitui o acordo integral entre as Partes relativamente ao seu objeto.
+---
 
-**P.9.** O presente Contrato obriga, alem das Partes, seus sucessores, em todos os direitos e obrigacoes assumidos.
+## P) DAS DISPOSIÇÕES GERAIS
+
+**P.1.** As Partes agirão como contratantes independentes. Nenhuma das Partes possui autoridade para assumir ou criar obrigações em nome da outra. Este Contrato não constitui sociedade, joint venture, relação de parceria ou representação comercial.
+
+**P.2.** Este Contrato não constituirá qualquer vínculo de natureza trabalhista entre as Partes e seus respectivos prepostos, administradores, empregados ou terceiros.
+
+**P.3.** Se qualquer cláusula deste Contrato for declarada nula, as demais permanecerão válidas e deverão ser interpretadas de forma a preservar os propósitos das Partes.
+
+**P.4.** A tolerância com o atraso ou descumprimento de obrigações não importará em novação contratual ou renúncia a direitos.
+
+**P.5.** A CONTRATADA não será responsável por descontinuidade dos serviços decorrentes de força maior ou caso fortuito, nos termos do art. 393 do Código Civil, incluindo falhas de rede, problemas de compatibilidade de terceiros, contaminação por vírus por má utilização da CONTRATANTE, ou quaisquer eventos fora do controle razoável da CONTRATADA. Caso o evento perdure por mais de 60 (sessenta) dias, qualquer das Partes poderá rescindir este Contrato sem ônus.
+
+**P.6.** Em nenhuma hipótese qualquer das Partes será responsável por lucros cessantes, perdas de receita e/ou danos indiretos causados à outra Parte ou a terceiros.
+
+**P.7.** Nenhuma modificação a este Contrato será válida, a menos que formalizada por escrito mediante Aditivo Contratual assinado pelos representantes legais das Partes.
+
+**P.8.** Este Contrato suplanta qualquer acordo prévio, escrito ou verbal, e constitui o acordo integral entre as Partes relativamente ao seu objeto.
+
+**P.9.** O presente Contrato obriga, além das Partes, seus sucessores, em todos os direitos e obrigações assumidos.
 
 ---
 
 ## Q) DO FORO
 
-**Q.1.** As Partes elegem o foro da Comarca de [CIDADE/UF] como o competente para dirimir qualquer duvida ou litigio que possa advir desta contratacao, com renuncia de qualquer outro, por mais privilegiado que seja.
+**Q.1.** As Partes elegem o foro da Comarca de [CIDADE/UF] como o competente para dirimir qualquer dúvida ou litígio que possa advir desta contratação, com renúncia de qualquer outro, por mais privilegiado que seja.
 
 ---
 
-E por estarem assim, justas e acertadas, e apos terem tomado ciencia de todo teor deste, com o qual concordam, assinam as Partes este instrumento em 02 (duas) vias de igual teor e forma, juntamente com 02 (duas) testemunhas.
+E por estarem assim, justas e acertadas, e após terem tomado ciência de todo teor deste, com o qual concordam, assinam as Partes este instrumento em 02 (duas) vias de igual teor e forma, juntamente com 02 (duas) testemunhas.
 
 [LOCAL], __ de ____________ de ______.
 
@@ -361,30 +373,30 @@ CPF:
 
 ## ANEXO I — DESCRITIVO FUNCIONAL DA PLATAFORMA GERENTRACK
 
-### Modulos inclusos em todos os planos:
+### Módulos inclusos em todos os planos:
 
-1. **Gestao de Competicoes** — Criacao de eventos, multi-etapa, regulamento PDF, programa horario, sessoes, inscricoes automaticas, finalizacao com bloqueio
-2. **Provas** — 80+ modalidades (corridas rasas, barreiras, obstaculos, marcha, revezamentos, saltos, arremessos/lancamentos, eventos combinados)
+1. **Gestão de Competições** — Criação de eventos, multi-etapa, regulamento PDF, programa horário, sessões, inscrições automáticas, finalização com bloqueio
+2. **Provas** — 80+ modalidades (corridas rasas, barreiras, obstáculos, marcha, revezamentos, saltos, arremessos/lançamentos, eventos combinados)
 3. **Categorias** — Sub-14, Sub-16, Sub-18, Sub-20, Sub-23, Adulto, com suporte a provas mistas
-4. **Inscricoes** — Individual, revezamento, validacao Norma 12 CBAt, limites por categoria, importacao em massa, tabela de precos
-5. **Seriacao** — Distribuicao automatica conforme regras RT 20.3-20.8 da World Athletics
-6. **Digitacao de Resultados** — Tempo, distancia, pontos, vento, tentativas, fases, status especiais (DNS/DNF/DQ/NM), leitor QR, integracao FinishLynx
-7. **Camara de Chamada** — Confirmacao de presenca, scanner QR, badges, funcionamento offline
-8. **Medalhas** — 3 modos configuraveis, entrega individual, revezamento expandido, scanner QR, bloqueios automaticos
-9. **Recordes** — Deteccao automatica, escopos (estadual/nacional/mundial/especiais), validacao de vento, homologacao, pagina publica
-10. **Ranking** — Extracao automatica, filtros, importacao em massa, aprovacao, pagina publica, exportacao Excel
-11. **Pontuacao de Equipes** — Tabela configuravel, limite por equipe, classificacao geral, bonus por recorde
-12. **Eventos Combinados** — Geracao automatica, tabela de pontos WA, totalizacao
-13. **Impressao e Exportacao** — Sumulas, programa horario, resultados Excel, FinishLynx (.evt/.lif), relatorios de auditoria
-14. **QR Code** — Publico (URL resultados), secretaria (offline), nivel H, exportacao XLSX, scanner via camera
-15. **Branding** — 4 logos por evento, compressao automatica, recorte, remocao de fundo por IA
-16. **Perfis e Paineis** — Administrador, Organizador, Funcionario, Equipe, Treinador, Atleta
-17. **PWA e Offline** — Instalacao como app, funcionamento offline, sincronizacao automatica, cache inteligente
-18. **Paginas Publicas** — Resultados, regulamento, recordes, ranking, cadastro de equipe/atleta/organizador (sem login)
-19. **Seguranca** — Firebase Authentication, sanitizacao XSS, LGPD, trilha de auditoria, HTTPS
-20. **Integracao FinishLynx** — Importacao e exportacao de dados para cronometragem eletronica (incluso)
-21. **Backup e Recuperacao** — Backup automatico na nuvem com recuperacao sob demanda (incluso)
+4. **Inscrições** — Individual, revezamento, validação Norma 12 CBAt, limites por categoria, importação em massa, tabela de preços
+5. **Seriação** — Distribuição automática conforme regras RT 20.3-20.8 da World Athletics
+6. **Digitação de Resultados** — Tempo, distância, pontos, vento, tentativas, fases, status especiais (DNS/DNF/DQ/NM), leitor QR, integração FinishLynx
+7. **Câmara de Chamada** — Confirmação de presença, scanner QR, badges, funcionamento offline
+8. **Medalhas** — 3 modos configuráveis, entrega individual, revezamento expandido, scanner QR, bloqueios automáticos
+9. **Recordes** — Detecção automática, escopos (estadual/nacional/mundial/especiais), validação de vento, homologação, página pública
+10. **Ranking** — Extração automática, filtros, importação em massa, aprovação, página pública, exportação Excel
+11. **Pontuação de Equipes** — Tabela configurável, limite por equipe, classificação geral, bônus por recorde
+12. **Eventos Combinados** — Geração automática, tabela de pontos WA, totalização
+13. **Impressão e Exportação** — Súmulas, programa horário, resultados Excel, FinishLynx (.evt/.lif), relatórios de auditoria
+14. **QR Code** — Público (URL resultados), secretaria (offline), nível H, exportação XLSX, scanner via câmera
+15. **Branding** — 4 logos por evento, compressão automática, recorte, remoção de fundo por IA
+16. **Perfis e Painéis** — Administrador, Organizador, Funcionário, Equipe, Treinador, Atleta
+17. **PWA e Offline** — Instalação como app, funcionamento offline, sincronização automática, cache inteligente
+18. **Páginas Públicas** — Resultados, regulamento, recordes, ranking, cadastro de equipe/atleta/organizador (sem login)
+19. **Segurança** — Firebase Authentication, sanitização XSS, LGPD, trilha de auditoria, HTTPS
+20. **Integração FinishLynx** — Importação e exportação de dados para cronometragem eletrônica (incluso)
+21. **Backup e Recuperação** — Backup automático na nuvem com recuperação sob demanda (incluso)
 
 ---
 
-*Documento sujeito a revisao juridica antes da formalizacao.*
+*Documento sujeito a revisão jurídica antes da formalização.*

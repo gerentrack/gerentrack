@@ -22,6 +22,9 @@ export const ROUTES = {
   recordes:                "/recordes",
   ranking:                 "/ranking",
   faq:                     "/faq",
+  planos:                  "/planos",
+  privacidade:             "/privacidade",
+  termos:                  "/termos",
 
   // Configurações (auth)
   configuracoes:           "/configuracoes",
@@ -80,6 +83,9 @@ export const TELA_TO_PATH = {
   "recordes":                   ROUTES.recordes,
   "ranking":                    ROUTES.ranking,
   "faq":                        ROUTES.faq,
+  "planos":                     ROUTES.planos,
+  "privacidade":                ROUTES.privacidade,
+  "termos":                     ROUTES.termos,
   "configuracoes":              ROUTES.configuracoes,
   "admin":                      ROUTES.admin,
   "gerenciar-usuarios":         ROUTES.gerenciarUsuarios,

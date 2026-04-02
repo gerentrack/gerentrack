@@ -186,7 +186,8 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
     </div>
   );
 
-  const showEventoBar = eventoAtual && !["home","login","cadastro-equipe","cadastro-organizador","cadastro-atleta-login","recuperar-senha","trocar-senha","selecionar-perfil","configuracoes","recordes","ranking","painel","painel-equipe","painel-organizador","gerenciar-equipes","funcionarios","cadastrar-atleta","cadastrar-atleta-novo","editar-atleta","importar-atletas","treinadores","treinadores-novo","gerenciar-inscricoes","painel-atleta","admin","organizador-perfil"].includes(tela);
+  const telasDeCompeticao = ["novo-evento","evento-detalhe","preparar-offline","regulamento","inscricao-avulsa","numeracao-peito","export-lynx","inscricao-revezamento","config-pontuacao-equipes","secretaria","sumulas","resultados","digitar-resultados","gerenciar-inscricoes"];
+  const showEventoBar = eventoAtual && telasDeCompeticao.includes(tela);
 
   return (
     <>

@@ -291,44 +291,6 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
     <div style={s.formPage}>
       <LoginStyle />
 
-      {/* Modal Política de Privacidade */}
-      {modalPolitica && (
-        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.85)", zIndex:2000,
-          display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}
-          onClick={() => setModalPolitica(false)}>
-          <div style={{ background:t.bgCard, border:`1px solid ${t.accent}`, borderRadius:14,
-            padding:28, maxWidth:560, width:"100%", maxHeight:"80vh", overflowY:"auto" }}
-            onClick={e => e.stopPropagation()}>
-            <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:22, fontWeight:800,
-              color:t.textPrimary, marginBottom:16 }}>📄 Política de Privacidade — GerenTrack</h3>
-            <div style={{ fontSize:13, color:t.textTertiary, lineHeight:1.8 }}>
-              <p style={{ marginBottom:10 }}><strong style={{ color:t.textPrimary }}>1. Controlador dos dados</strong><br/>
-              O GerenTrack é o responsável pelo tratamento dos seus dados pessoais, nos termos da Lei nº 13.709/2018 (LGPD).</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:t.textPrimary }}>2. Dados coletados</strong><br/>
-              Coletamos: nome completo, e-mail, telefone, CNPJ, cidade, estado e dados de acesso (login). Para atletas: também CPF, data de nascimento e sexo.</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:t.textPrimary }}>3. Finalidade do tratamento</strong><br/>
-              Os dados são usados exclusivamente para: gestão de competições de atletismo, inscrições em provas, emissão de súmulas e resultados, e comunicação relacionada às competições.</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:t.textPrimary }}>4. Base legal</strong><br/>
-              O tratamento é realizado com base no consentimento do titular (Art. 7º, I), na execução de contrato (Art. 7º, V) e no legítimo interesse (Art. 7º, IX) da organização esportiva.</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:t.textPrimary }}>5. Compartilhamento</strong><br/>
-              Seus dados podem ser compartilhados com organizadores de competições nas quais você participa. Não vendemos dados a terceiros.</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:t.textPrimary }}>6. Retenção</strong><br/>
-              Resultados esportivos são mantidos permanentemente por integridade do histórico. Dados pessoais de contas excluídas são anonimizados.</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:t.textPrimary }}>7. Seus direitos (Art. 18º LGPD)</strong><br/>
-              Você tem direito a: confirmar a existência do tratamento, acessar, corrigir, anonimizar, bloquear, eliminar seus dados e revogar o consentimento a qualquer momento nas Configurações da conta.</p>
-              <p style={{ marginBottom:10 }}><strong style={{ color:t.textPrimary }}>8. Segurança</strong><br/>
-              Utilizamos autenticação via Firebase Auth e armazenamento seguro no Firestore. Dados sensíveis (senhas) nunca são armazenados localmente.</p>
-              <p style={{ marginBottom:0 }}><strong style={{ color:t.textPrimary }}>9. Contato</strong><br/>
-              Para exercer seus direitos ou tirar dúvidas: <span style={{ color:t.accent }}>atendimento@gerentrack.com.br</span></p>
-            </div>
-            <button style={{ marginTop:20, background:t.accent, color:"#fff", border:"none",
-              borderRadius:8, padding:"10px 24px", cursor:"pointer", fontSize:13, fontWeight:700,
-              fontFamily:"'Barlow Condensed',sans-serif" }}
-              onClick={() => setModalPolitica(false)}>✓ Fechar</button>
-          </div>
-        </div>
-      )}
-
       <div style={{ ...s.formCard, maxWidth:500 }}>
         <div style={{ fontSize:48, textAlign:"center", marginBottom:12 }}>🔒</div>
         <h2 style={s.formTitle}>Atualização da Política de Privacidade</h2>
@@ -365,11 +327,15 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
               style={{ marginTop:2, width:16, height:16, cursor:"pointer", flexShrink:0 }} />
             <span style={{ fontSize:13, color:t.textSecondary, lineHeight:1.7 }}>
               Li e concordo com a{" "}
-              <button type="button" onClick={() => setModalPolitica(true)}
-                style={{ background:"none", border:"none", color:t.accent, cursor:"pointer",
-                  fontSize:13, padding:0, textDecoration:"underline" }}>
+              <a href="/privacidade" target="_blank" rel="noopener noreferrer"
+                style={{ color:t.accent, fontSize:13, textDecoration:"underline" }}>
                 Política de Privacidade
-              </button>
+              </a>
+              {" "}e os{" "}
+              <a href="/termos" target="_blank" rel="noopener noreferrer"
+                style={{ color:t.accent, fontSize:13, textDecoration:"underline" }}>
+                Termos de Uso
+              </a>
               {" "}e autorizo o tratamento dos meus dados pessoais pelo GerenTrack para fins de
               gestão de competições de atletismo.
             </span>
