@@ -985,9 +985,11 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                                 );
                                 return (
                                   <button onClick={async () => {
-                                    if (!window.confirm(`EXCLUSÃO PERMANENTE de todos os dados de "${org.entidade}"?\n\nEsta ação é IRREVERSÍVEL!\n\nSerão excluídos: competições, equipes, atletas, inscrições, resultados.\nUma cópia será gerada antes da exclusão.`)) return;
-                                    const arqs = await excluirDadosOrganizador(org.id);
-                                    if (arqs && arqs.length > 0) downloadCSVs(arqs, `backup-${(org.entidade || "org").toLowerCase().replace(/\s+/g, "-")}`);
+                                    if (!window.confirm(`EXCLUSÃO PERMANENTE de todos os dados de "${org.entidade}"?\n\nEsta ação é IRREVERSÍVEL!\n\nSerão excluídos: competições, equipes, atletas, inscrições, resultados.\nUm backup será salvo no servidor antes da exclusão.`)) return;
+                                    const resultado = await excluirDadosOrganizador(org.id);
+                                    if (resultado?.erro) { alert(`Exclusão abortada:\n\n${resultado.erro}`); return; }
+                                    if (resultado?.arqs?.length > 0) downloadCSVs(resultado.arqs, `backup-${(org.entidade || "org").toLowerCase().replace(/\s+/g, "-")}`);
+                                    alert(`Dados excluídos com sucesso.\n\nBackup salvo no servidor e disponível para download na seção "Backups para Reimplantação".`);
                                   }} style={{ ...s.btnGhost, fontSize:10, padding:"3px 8px", color: t.danger, border:`1px solid ${t.danger}44` }}>Excluir dados</button>
                                 );
                               })()}
@@ -1109,6 +1111,22 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                   })}
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Backups de orgs excluídos (D.3.4 — reimplantação) */}
+          {organizadores.filter(o => o.exportacaoUrl).length > 0 && (
+            <div style={{ marginTop:20 }}>
+              <div style={{ fontSize:13, fontWeight:700, color: t.textPrimary, marginBottom:10 }}>Backups para Reimplantação (D.3.4)</div>
+              {organizadores.filter(o => o.exportacaoUrl).map(org => (
+                <div key={org.id} style={{ display:"flex", alignItems:"center", gap:12, fontSize:12, padding:"8px 14px", background: t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, marginBottom:6 }}>
+                  <strong style={{ color: t.textPrimary }}>{org.entidade || org.nome}</strong>
+                  <span style={{ color: t.textDimmed }}>Excluído em {new Date(org.dadosExcluidosEm).toLocaleDateString("pt-BR")}</span>
+                  <a href={org.exportacaoUrl} target="_blank" rel="noopener noreferrer"
+                    style={{ color: t.accent, textDecoration:"underline", marginLeft:"auto" }}>Baixar backup</a>
+                </div>
+              ))}
+              <div style={{ fontSize:10, color: t.textDimmed, marginTop:4 }}>Cópias mantidas por 6 meses após o encerramento.</div>
             </div>
           )}
         </div>
