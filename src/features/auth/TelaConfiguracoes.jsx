@@ -254,7 +254,12 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
   const salvarSenha = async () => {
     setErro("");
     if (!formSenha.atual)                          { setErro("Informe a senha atual."); return; }
-    if (formSenha.nova.length < 6)                 { setErro("A nova senha deve ter pelo menos 6 caracteres."); return; }
+    if (isAdmin) {
+      if (formSenha.nova.length < 12) { setErro("A senha do administrador deve ter pelo menos 12 caracteres."); return; }
+      if (!/[A-Z]/.test(formSenha.nova)) { setErro("A senha deve conter pelo menos uma letra maiúscula."); return; }
+      if (!/[a-z]/.test(formSenha.nova)) { setErro("A senha deve conter pelo menos uma letra minúscula."); return; }
+      if (!/[0-9]/.test(formSenha.nova)) { setErro("A senha deve conter pelo menos um número."); return; }
+    } else if (formSenha.nova.length < 6) { setErro("A nova senha deve ter pelo menos 6 caracteres."); return; }
     if (formSenha.nova !== formSenha.confirmar)     { setErro("As senhas não coincidem."); return; }
     if (formSenha.nova === formSenha.atual)         { setErro("A nova senha deve ser diferente da atual."); return; }
 
@@ -414,7 +419,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
         <div style={{ ...s.card, maxWidth: 520 }}>
           <h3 style={s.sectionTitle}>Alterar Senha</h3>
           <FormField label="Senha Atual *"          value={formSenha.atual}     onChange={v => setFormSenha({ ...formSenha, atual: v })}     type="password" placeholder="Digite sua senha atual" />
-          <FormField label="Nova Senha *"           value={formSenha.nova}      onChange={v => setFormSenha({ ...formSenha, nova: v })}      type="password" placeholder="Mínimo 6 caracteres" />
+          <FormField label="Nova Senha *"           value={formSenha.nova}      onChange={v => setFormSenha({ ...formSenha, nova: v })}      type="password" placeholder={isAdmin ? "Mínimo 12 caracteres (maiúscula, minúscula e número)" : "Mínimo 6 caracteres"} />
           <FormField label="Confirmar Nova Senha *" value={formSenha.confirmar} onChange={v => setFormSenha({ ...formSenha, confirmar: v })} type="password" placeholder="Repita a nova senha" />
           <button style={{ ...s.btnPrimary, marginTop: 12 }} onClick={salvarSenha}>🔒 Alterar Senha</button>
         </div>

@@ -423,7 +423,10 @@ function App() {
   const login = (dados) => {
     const dadosComSessao = { ...dados, _loginEm: Date.now() };
     setUsuarioLogado(dadosComSessao);
-    registrarAcao(dados.id, dados.nome, "Login", `${dados.tipo}`, dados.organizadorId || null, { equipeId: dados.equipeId, modulo: "auth" });
+    registrarAcao(dados.id, dados.nome, "Login", `${dados.tipo}`, dados.organizadorId || null, {
+      equipeId: dados.equipeId, modulo: "auth",
+      ...(dados.tipo === "admin" ? { userAgent: navigator.userAgent, plataforma: navigator.platform, tela: `${screen.width}x${screen.height}` } : {}),
+    });
     if (dados.tipo === "admin") setTela("admin");
     else if (dados.tipo === "atleta")       { setEventoAtualId(null); setTela("painel-atleta"); }
     else if (dados.tipo === "organizador")  setTela("painel-organizador");
@@ -524,8 +527,8 @@ function App() {
   };
 
   // ── Expiração de sessão ────────────────────────────────────────────────────
-  const SESSAO_DURACAO_MS  = 24 * 60 * 60 * 1000; // 24 horas
-  const AVISO_ANTECEDENCIA = 2 * 60 * 1000;        // aviso 2 minutos antes
+  const SESSAO_DURACAO_MS  = usuarioLogado?.tipo === "admin" ? 30 * 60 * 1000 : 24 * 60 * 60 * 1000; // admin: 30min, demais: 24h
+  const AVISO_ANTECEDENCIA = usuarioLogado?.tipo === "admin" ? 5 * 60 * 1000 : 2 * 60 * 1000;      // admin: aviso 5min antes, demais: 2min
   const [sessaoAvisoContagem, setSessaoAvisoContagem] = React.useState(null); // null | segundos restantes
 
   React.useEffect(() => {

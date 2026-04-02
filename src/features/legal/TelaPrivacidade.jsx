@@ -53,7 +53,7 @@ function TelaPrivacidade({ embedded } = {}) {
       <h3 style={s.h3}>2.1. Dados de cadastro de usuários</h3>
       <p style={s.p}>Nome completo, e-mail, senha (armazenada com criptografia), tipo de perfil (organizador, funcionário, treinador, equipe, atleta).</p>
       <h3 style={s.h3}>2.2. Dados de atletas</h3>
-      <p style={s.p}>Nome, data de nascimento, sexo, número de registro CBAt, UF, clube/equipe, número de peito.</p>
+      <p style={s.p}>Nome, data de nascimento, sexo, número de registro CBAt, UF, clube/equipe, número de peito. No cadastro, o atleta seleciona obrigatoriamente o organizador ao qual deseja se vincular.</p>
       <h3 style={s.h3}>2.3. Dados de competições</h3>
       <p style={s.p}>Inscrições, resultados, tempos, distâncias, classificações, recordes, ranking, medalhas, presença (câmara de chamada).</p>
       <h3 style={s.h3}>2.4. Dados de uso</h3>
@@ -114,7 +114,8 @@ function TelaPrivacidade({ embedded } = {}) {
         <li style={s.li}>Trilha de auditoria com registro de todas as ações (limite de 500 registros com rotação);</li>
         <li style={s.li}>Backup automático com retenção de 30 dias;</li>
         <li style={s.li}>Isolamento de dados por organização (cada contratante acessa apenas seus dados);</li>
-        <li style={s.li}>Sem armazenamento de senhas em texto puro.</li>
+        <li style={s.li}>Sem armazenamento de senhas em texto puro;</li>
+        <li style={s.li}>Formatação automática de dados cadastrais (capitalização de nomes, cidades e entidades) para padronização e qualidade dos dados.</li>
       </ul>
 
       <h2 style={s.h2}>7. Retenção de Dados</h2>

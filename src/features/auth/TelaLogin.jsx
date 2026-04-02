@@ -138,8 +138,10 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
 
     if (registrarAcao && perfis[0]) {
       const p = perfis[0];
-      registrarAcao(p.dados?.id, p.dados?.nome || p.sublabel, "Consentimento LGPD — primeiro login",
-        "Política de Privacidade v1.0 aceita retroativamente", p.organizadorId || null, { modulo: "lgpd" });
+      const jaAceitouAntes = p.dados?.lgpdConsentimento && p.dados?.lgpdVersao;
+      registrarAcao(p.dados?.id, p.dados?.nome || p.sublabel,
+        jaAceitouAntes ? "Consentimento LGPD — atualização" : "Consentimento LGPD — primeiro aceite",
+        `Política de Privacidade v2.0 ${jaAceitouAntes ? "atualizada" : "aceita"}`, p.organizadorId || null, { modulo: "lgpd" });
     }
   };
 

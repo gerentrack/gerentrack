@@ -236,6 +236,27 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
       ══════════════════════════════════════════════════════════════════════ */}
       {aba === "visao-geral" && (
         <>
+          {/* Último login admin */}
+          {(() => {
+            const ultimoLogin = (historicoAcoes || []).find(h => h.acao === "Login" && h.detalhe === "admin");
+            const penultimoLogin = (historicoAcoes || []).filter(h => h.acao === "Login" && h.detalhe === "admin")[1];
+            return penultimoLogin ? (
+              <div style={{ ...s.card, borderColor: `${t.accent}33`, marginBottom: 16, padding: "12px 18px" }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: t.textMuted, marginBottom: 6 }}>ÚLTIMO ACESSO ANTERIOR</div>
+                <div style={{ fontSize: 13, color: t.textSecondary }}>
+                  {new Date(penultimoLogin.data).toLocaleString("pt-BR", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" })}
+                  {penultimoLogin.userAgent && (
+                    <span style={{ color: t.textDimmed, fontSize: 11, marginLeft: 12 }}>
+                      {penultimoLogin.userAgent.includes("Mobile") ? "Dispositivo móvel" : "Desktop"}
+                      {penultimoLogin.plataforma && ` · ${penultimoLogin.plataforma}`}
+                      {penultimoLogin.tela && ` · ${penultimoLogin.tela}`}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ) : null;
+          })()}
+
           {/* Stats */}
           <div style={{ display:"flex", gap:14, flexWrap:"wrap", marginBottom:24 }}>
             <StatCard value={eventos.length}       label="Competições" />
