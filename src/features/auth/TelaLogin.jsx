@@ -196,7 +196,7 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
       const org = organizadores.find(o => o.id === orgId);
       if (org?.suspenso) return { ...p, _suspenso: true, _suspensoMotivo: org.suspensoMotivo };
       const enc = getEncerramento(org);
-      if (enc.faseEncerramento >= 2) return { ...p, _suspenso: true, _suspensoMotivo: "encerrado" };
+      if (enc.faseEncerramento && enc.faseEncerramento >= 2) return { ...p, _suspenso: true, _suspensoMotivo: "encerrado" };
       if (enc.faseEncerramento === 1) return { ...p, _encerrandoEm: 7 - enc.diasDesdeEncerramento };
       return p;
     });

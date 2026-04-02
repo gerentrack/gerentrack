@@ -67,6 +67,7 @@ export function buildAppValue(props) {
     adicionarOrganizador: props.adicionarOrganizador,
     editarOrganizadorAdmin: props.editarOrganizadorAdmin,
     excluirOrganizador: props.excluirOrganizador,
+    excluirDadosOrganizador: props.excluirDadosOrganizador,
     aprovarOrganizador: props.aprovarOrganizador,
     recusarOrganizador: props.recusarOrganizador,
     aprovarEvento: props.aprovarEvento,

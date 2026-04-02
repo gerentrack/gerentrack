@@ -879,6 +879,33 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
       {aba === "aparencia" && isAdmin && (
         <div style={{ maxWidth: 700 }}>
 
+          {/* ── Manutenção Programada ──────────────────────────────────────── */}
+          <div style={s.card}>
+            <h3 style={s.sectionTitle}>Manutenção Programada</h3>
+            <p style={{ color:t.textDimmed, fontSize:13, marginBottom:12, lineHeight:1.6 }}>
+              Agende uma manutenção para exibir um aviso a todos os usuários (aparece 48h antes).
+            </p>
+            <div style={{ display:"flex", gap:12, flexWrap:"wrap", alignItems:"flex-end" }}>
+              <div>
+                <label style={{ display:"block", fontSize:11, color: t.textMuted, marginBottom:4 }}>Data e Hora</label>
+                <input type="datetime-local" value={siteBranding.manutencao?.dataHora || ""}
+                  onChange={ev => setSiteBranding(prev => ({ ...prev, manutencao: { ...prev.manutencao, dataHora: ev.target.value } }))}
+                  style={{ ...s.input, width:220, marginBottom:0 }} />
+              </div>
+              <div style={{ flex:1, minWidth:200 }}>
+                <label style={{ display:"block", fontSize:11, color: t.textMuted, marginBottom:4 }}>Mensagem (opcional)</label>
+                <input type="text" value={siteBranding.manutencao?.mensagem || ""}
+                  onChange={ev => setSiteBranding(prev => ({ ...prev, manutencao: { ...prev.manutencao, mensagem: ev.target.value } }))}
+                  placeholder="Ex: Atualização do sistema, duração estimada 30min"
+                  style={{ ...s.input, marginBottom:0 }} />
+              </div>
+              {siteBranding.manutencao?.dataHora && (
+                <button onClick={() => setSiteBranding(prev => ({ ...prev, manutencao: null }))}
+                  style={{ ...s.btnGhost, fontSize:12, padding:"8px 14px", color: t.danger }}>Cancelar</button>
+              )}
+            </div>
+          </div>
+
           {/* ── Identidade Visual ────────────────────────────────────────────── */}
           <div style={s.card}>
             <h3 style={s.sectionTitle}>🎨 Identidade Visual</h3>

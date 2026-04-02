@@ -1481,6 +1481,49 @@ function App() {
 
 
 
+  // ── EXCLUSÃO COMPLETA DE DADOS DE UM ORGANIZADOR (Fase 3 — D.3.3) ────────
+  const excluirDadosOrganizador = async (orgId) => {
+    const org = organizadores.find(o => o.id === orgId);
+    if (!org) return;
+
+    // Exportar antes de excluir (cópia de segurança para reimplantação)
+    const { exportarDadosOrg } = await import("./shared/engines/exportEngine");
+    const arqs = exportarDadosOrg(orgId, { atletas, equipes, inscricoes, resultados, eventos, historicoAcoes });
+
+    // Excluir eventos do org e inscrições/resultados vinculados
+    const eventosOrg = eventos.filter(ev => ev.organizadorId === orgId);
+    for (const ev of eventosOrg) {
+      excluirEventoPorId(ev.id);
+      excluirInscricoesPorEvento(ev.id);
+      limparNumeracaoEvento(ev.id);
+    }
+
+    // Excluir equipes e atletas vinculados
+    const equipesOrg = equipes.filter(eq => eq.organizadorId === orgId);
+    for (const eq of equipesOrg) excluirEquipePorId(eq.id);
+
+    const atletasOrg = atletas.filter(a => a.organizadorId === orgId);
+    if (atletasOrg.length > 0) {
+      excluirAtletasPorIds(new Set(atletasOrg.map(a => a.id)));
+    }
+
+    // Remover atletas-usuários vinculados
+    setAtletasUsuarios(prev => prev.filter(a => a.organizadorId !== orgId));
+
+    // Remover funcionários e treinadores
+    setFuncionarios(prev => prev.filter(f => f.organizadorId !== orgId));
+    setTreinadores(prev => prev.filter(tr => tr.organizadorId !== orgId));
+
+    // Marcar org como excluído (manter registro mínimo)
+    editarOrganizadorAdmin({ ...org, dadosExcluidosEm: new Date().toISOString(), plano: null, creditosAvulso: [] });
+
+    registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Excluiu dados do organizador (Fase 3)",
+      `${org.entidade}: ${eventosOrg.length} evento(s), ${equipesOrg.length} equipe(s), ${atletasOrg.length} atleta(s)`,
+      null, { modulo: "licencas" });
+
+    return arqs; // retorna exportação para download
+  };
+
   // ── AUTO-GERAÇÃO DA SERIAÇÃO DA PRÓXIMA FASE ──────────────────────────────
   // Quando todos os resultados de uma fase (Eliminatória/Semifinal) são preenchidos,
   // gera automaticamente a seriação da próxima fase (Semifinal/Final) usando
@@ -1624,7 +1667,7 @@ function App() {
     historicoAcoes, registrarAcao,
     exportarDados, importarDados,
     adicionarEquipeFiliada, editarEquipeFiliada, excluirEquipeFiliada,
-    excluirOrganizador, excluirEquipeUsuario, excluirAtletaUsuario,
+    excluirOrganizador, excluirEquipeUsuario, excluirAtletaUsuario, excluirDadosOrganizador,
     editarOrganizadorAdmin, editarEquipeAdmin, editarAtletaUsuarioAdmin,
     adicionarEquipe, adicionarOrganizador, aprovarOrganizador, recusarOrganizador,
     aprovarEvento, recusarEvento,
@@ -1683,6 +1726,20 @@ function App() {
     <RelatorioSync acabouDeReconectar={acabouDeReconectar} pendentesAntesSync={pendentesAntesSync} pendentesAtual={pendentesOffline} fecharRelatorio={fecharRelatorio} />
     <div style={{ ...styles.root, background: temaClaro ? temaLight.bgPage : temaDark.bgPage, color: temaClaro ? temaLight.textPrimary : temaDark.textPrimary }} className={temaClaro ? "tema-claro" : ""}>
       <style>{cssGlobal}</style>
+
+      {/* ── Banner de manutenção programada (J.5) ── */}
+      {siteBranding.manutencao?.dataHora && (() => {
+        const dt = new Date(siteBranding.manutencao.dataHora);
+        const agora = new Date();
+        const diffH = (dt - agora) / (1000 * 60 * 60);
+        if (diffH < 0 || diffH > 48) return null;
+        return (
+          <div style={{ position:"fixed", bottom:0, left:0, right:0, zIndex:8000, background:"#e67e22", padding:"10px 20px", textAlign:"center", fontSize:13, color:"#fff", fontWeight:600 }}>
+            Manutenção programada para {dt.toLocaleDateString("pt-BR")} às {dt.toLocaleTimeString("pt-BR", { hour:"2-digit", minute:"2-digit" })}h
+            {siteBranding.manutencao.mensagem && ` — ${siteBranding.manutencao.mensagem}`}
+          </div>
+        );
+      })()}
 
       {/* ── Modal aviso de expiração de sessão ── */}
       {sessaoAvisoContagem !== null && (

@@ -139,7 +139,7 @@ export function getEncerramento(org, now = new Date()) {
   const encerradoEm = new Date(org.contratoEncerradoEm + "T00:00:00");
   const dias = Math.floor((now - encerradoEm) / (1000 * 60 * 60 * 24));
 
-  if (dias < 0) return { encerrado: false, faseEncerramento: null, diasDesdeEncerramento: 0, diasParaExclusao: null };
+  if (dias < 0) return { encerrado: false, faseEncerramento: null, diasDesdeEncerramento: 0, diasParaExclusao: 30 };
   if (dias <= 7) return { encerrado: true, faseEncerramento: 1, diasDesdeEncerramento: dias, diasParaExclusao: 30 - dias };
   if (dias <= 30) return { encerrado: true, faseEncerramento: 2, diasDesdeEncerramento: dias, diasParaExclusao: 30 - dias };
   return { encerrado: true, faseEncerramento: 3, diasDesdeEncerramento: dias, diasParaExclusao: 0 };

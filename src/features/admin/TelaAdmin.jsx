@@ -78,7 +78,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado, solicitacoesRecuperacao, resolverSolicitacaoRecuperacao, aplicarSenhaTemp } = useAuth();
   const { equipes, atletas, inscricoes, eventos, selecionarEvento, excluirEvento, resultados, atualizarAtleta, excluirAtleta } = useEvento();
-  const { setTela, organizadores, adicionarOrganizador, aprovarOrganizador, recusarOrganizador, editarOrganizadorAdmin, aprovarEvento, recusarEvento, exportarDados, importarDados, siteBranding, setSiteBranding, gtIcon, gtLogo, historicoAcoes, atletasUsuarios, funcionarios, treinadores, setAtletaEditandoId, solicitacoesEquipe, aprovarEquipe, recusarEquipe, solicitacoesPortabilidade, resolverSolicitacaoPortabilidade, excluirSolicitacaoPortabilidade, registrarAcao } = useApp();
+  const { setTela, organizadores, adicionarOrganizador, aprovarOrganizador, recusarOrganizador, editarOrganizadorAdmin, excluirDadosOrganizador, aprovarEvento, recusarEvento, exportarDados, importarDados, siteBranding, setSiteBranding, gtIcon, gtLogo, historicoAcoes, atletasUsuarios, funcionarios, treinadores, setAtletaEditandoId, solicitacoesEquipe, aprovarEquipe, recusarEquipe, solicitacoesPortabilidade, resolverSolicitacaoPortabilidade, excluirSolicitacaoPortabilidade, registrarAcao } = useApp();
   const confirmar = useConfirm();
   const pendOrg = organizadores.filter(o => o.status === "pendente");
   const pendEv  = eventos.filter(e => e.statusAprovacao === "pendente");
@@ -324,6 +324,43 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
               </div>
             </div>
           )}
+
+          {/* Alertas de licença */}
+          {(() => {
+            const hoje = new Date();
+            const vencendo = organizadores.filter(o => {
+              if (!o.planoFim || !o.plano) return false;
+              const fim = new Date(o.planoFim + "T23:59:59");
+              const dias = Math.ceil((fim - hoje) / (1000 * 60 * 60 * 24));
+              return dias >= 0 && dias <= 30;
+            });
+            const encerradosFase3 = organizadores.filter(o => {
+              const enc = getEncerramento(o);
+              return enc.faseEncerramento === 3;
+            });
+            if (vencendo.length === 0 && encerradosFase3.length === 0) return null;
+            return (
+              <div style={{ ...s.card, borderColor: `${t.warning}44`, marginBottom: 20 }}>
+                <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:14, fontWeight:800, color: t.warning, marginBottom:10 }}>ALERTAS DE LICENÇA</div>
+                {vencendo.map(o => {
+                  const dias = Math.ceil((new Date(o.planoFim + "T23:59:59") - hoje) / (1000 * 60 * 60 * 24));
+                  return (
+                    <div key={o.id} style={{ fontSize:12, color: t.textSecondary, marginBottom:4 }}>
+                      <strong style={{ color: dias <= 7 ? t.danger : t.warning }}>{o.entidade || o.nome}</strong> — plano {o.plano} vence em <strong>{dias} dia(s)</strong>
+                    </div>
+                  );
+                })}
+                {encerradosFase3.map(o => (
+                  <div key={o.id} style={{ fontSize:12, color: t.danger, marginBottom:4 }}>
+                    <strong>{o.entidade || o.nome}</strong> — dados pendentes de exclusão permanente
+                  </div>
+                ))}
+                {(vencendo.length > 0 || encerradosFase3.length > 0) && (
+                  <button onClick={() => setAba("licencas")} style={{ ...s.btnGhost, fontSize:11, padding:"4px 12px", marginTop:8 }}>Ver Licenças →</button>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Ações rápidas */}
           <div style={s.card}>
@@ -946,7 +983,13 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                                     registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Reestabeleceu dados", org.entidade || org.nome, null, { modulo: "licencas" });
                                   }} style={{ ...s.btnGhost, fontSize:10, padding:"3px 8px", color: t.success, border:`1px solid ${t.success}44` }}>Reestabelecer</button>
                                 );
-                                return <span style={{ fontSize:9, color: t.danger }}>Excluir dados</span>;
+                                return (
+                                  <button onClick={async () => {
+                                    if (!window.confirm(`EXCLUSÃO PERMANENTE de todos os dados de "${org.entidade}"?\n\nEsta ação é IRREVERSÍVEL!\n\nSerão excluídos: competições, equipes, atletas, inscrições, resultados.\nUma cópia será gerada antes da exclusão.`)) return;
+                                    const arqs = await excluirDadosOrganizador(org.id);
+                                    if (arqs && arqs.length > 0) downloadCSVs(arqs, `backup-${(org.entidade || "org").toLowerCase().replace(/\s+/g, "-")}`);
+                                  }} style={{ ...s.btnGhost, fontSize:10, padding:"3px 8px", color: t.danger, border:`1px solid ${t.danger}44` }}>Excluir dados</button>
+                                );
                               })()}
                             </>
                           )}
