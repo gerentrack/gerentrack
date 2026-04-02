@@ -1347,7 +1347,7 @@ function App() {
 
   const exportarDados = () => {
     const dados = {
-      versao: "1.1",
+      versao: "1.2",
       exportadoEm: new Date().toISOString(),
       equipes, organizadores, atletasUsuarios, funcionarios, treinadores,
       atletas, eventos, inscricoes, resultados, numeracaoPeito,
