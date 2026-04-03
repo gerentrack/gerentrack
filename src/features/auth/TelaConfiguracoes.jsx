@@ -702,11 +702,10 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                 corAccent="#ff6b6b"
                 btnLabel="🗑️ Excluir este Perfil..."
                 confirmWord="EXCLUIR"
-                onConfirmar={excluirPerfilAtual || (() => {
-                  // fallback se prop não chegou
+                onConfirmar={() => {
                   if (store) store.set(arr => arr.filter(u => u.id !== usuarioLogado.id));
                   logout();
-                })}
+                }}
               />
             </div>
 
