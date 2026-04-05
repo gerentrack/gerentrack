@@ -51,7 +51,7 @@ function TelaPrivacidade({ embedded } = {}) {
 
       <h2 style={s.h2}>2. Dados que Coletamos</h2>
       <h3 style={s.h3}>2.1. Dados de cadastro de usuários</h3>
-      <p style={s.p}>Nome completo, e-mail, senha (armazenada com criptografia), tipo de perfil (organizador, funcionário, treinador, equipe, atleta).</p>
+      <p style={s.p}>Nome completo, e-mail, CPF (quando informado), senha (armazenada com criptografia), tipo de perfil (organizador, funcionário, treinador, equipe, atleta).</p>
       <h3 style={s.h3}>2.2. Dados de atletas</h3>
       <p style={s.p}>Nome, data de nascimento, sexo, número de registro CBAt, UF, clube/equipe, número de peito. No cadastro, o atleta seleciona obrigatoriamente o organizador ao qual deseja se vincular.</p>
       <h3 style={s.h3}>2.3. Dados de competições</h3>
@@ -143,10 +143,19 @@ function TelaPrivacidade({ embedded } = {}) {
       <h2 style={s.h2}>10. Alterações nesta Política</h2>
       <p style={s.p}>Esta Política de Privacidade poderá ser atualizada periodicamente. Alterações significativas serão comunicadas aos usuários contratantes. A versão mais recente estará sempre disponível na plataforma.</p>
 
+      <h2 style={s.h2}>11. Encarregado pelo Tratamento de Dados Pessoais (DPO)</h2>
+      <p style={s.p}>Nos termos do Art. 41 da LGPD, a GERENTRACK indica como encarregado pelo tratamento de dados pessoais:</p>
+      <div style={{ ...s.contato, marginTop: 12 }}>
+        <p style={s.p}><strong style={s.accent}>Pedro Henrique Oliveira Campos</strong></p>
+        <p style={s.p}>E-mail: <strong style={s.accent}>dpo@gerentrack.com.br</strong></p>
+        <p style={s.p}>O encarregado é responsável por aceitar reclamações e comunicações dos titulares, prestar esclarecimentos, receber comunicações da Autoridade Nacional de Proteção de Dados (ANPD) e orientar a equipe sobre as práticas de proteção de dados pessoais.</p>
+      </div>
+
       <div style={s.contato}>
-        <h2 style={{ ...s.h2, marginTop: 0 }}>11. Contato</h2>
+        <h2 style={{ ...s.h2, marginTop: 0 }}>12. Contato</h2>
         <p style={s.p}><strong style={s.accent}>GERENTRACK LTDA</strong></p>
-        <p style={s.p}>E-mail: <strong style={s.accent}>atendimento@gerentrack.com.br</strong></p>
+        <p style={s.p}>E-mail geral: <strong style={s.accent}>atendimento@gerentrack.com.br</strong></p>
+        <p style={s.p}>E-mail do encarregado (DPO): <strong style={s.accent}>dpo@gerentrack.com.br</strong></p>
         <p style={s.p}>Site: <strong style={s.accent}>gerentrack.com.br</strong></p>
         <p style={s.p}>CNPJ: 65.454.409/0001-23</p>
       </div>

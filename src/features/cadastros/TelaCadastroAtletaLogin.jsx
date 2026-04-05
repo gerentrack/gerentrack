@@ -40,7 +40,7 @@ const calcularIdade = (dataNasc) => {
 import BlocoLGPD from "../ui/BlocoLGPD";
 
 // ── Bloco de Consentimento Parental (Art. 14 LGPD) ───────────────────────────
-function BlocoConsentimentoParental({ responsavel, onResponsavel, aceite, onChange, erroResponsavel, erroAceite }) {
+function BlocoConsentimentoParental({ responsavel, onResponsavel, cpfResp, onCpfResp, emailResp, onEmailResp, aceite, onChange, erroResponsavel, erroCpfResp, erroEmailResp, erroAceite }) {
   const t = useTema();
   const styles = getStyles(t);
   return (
@@ -62,6 +62,29 @@ function BlocoConsentimentoParental({ responsavel, onResponsavel, aceite, onChan
           placeholder="Nome completo do pai, mãe ou responsável legal"
         />
         {erroResponsavel && <div style={{ color: t.danger, fontSize:12, marginTop:2 }}>⚠️ {erroResponsavel}</div>}
+      </div>
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:0, marginBottom:12 }}>
+        <div>
+          <label style={styles.label}>CPF do Responsável *</label>
+          <input
+            style={{ ...styles.input, border:`1px solid ${erroCpfResp ? t.danger : t.borderInput}` }}
+            value={cpfResp}
+            onChange={e => onCpfResp(e.target.value)}
+            placeholder="000.000.000-00"
+          />
+          {erroCpfResp && <div style={{ color: t.danger, fontSize:12, marginTop:2 }}>⚠️ {erroCpfResp}</div>}
+        </div>
+        <div>
+          <label style={styles.label}>E-mail do Responsável *</label>
+          <input
+            style={{ ...styles.input, border:`1px solid ${erroEmailResp ? t.danger : t.borderInput}` }}
+            value={emailResp}
+            onChange={e => onEmailResp(e.target.value)}
+            type="email"
+            placeholder="responsavel@email.com"
+          />
+          {erroEmailResp && <div style={{ color: t.danger, fontSize:12, marginTop:2 }}>⚠️ {erroEmailResp}</div>}
+        </div>
       </div>
       <label style={{ display:"flex", alignItems:"flex-start", gap:12, cursor:"pointer" }}>
         <input type="checkbox" checked={aceite} onChange={e => onChange(e.target.checked)}
@@ -91,6 +114,8 @@ function TelaCadastroAtletaLogin() {
   const [lgpdAceite, setLgpdAceite] = useState(false);
   const [consentimentoParentalAceite, setConsentimentoParentalAceite] = useState(false);
   const [responsavelLegal, setResponsavelLegal] = useState("");
+  const [responsavelCpf, setResponsavelCpf] = useState("");
+  const [responsavelEmail, setResponsavelEmail] = useState("");
 
   // ── Fluxo doc existente: CPF encontrado → pedir login ──
   const [docExistente, setDocExistente] = useState(null);
@@ -220,6 +245,8 @@ function TelaCadastroAtletaLogin() {
     if (!lgpdAceite) e.lgpd = "É necessário aceitar a Política de Privacidade para continuar.";
     if (ehMenor) {
       if (!responsavelLegal.trim()) e.responsavelLegal = "Informe o nome do responsável legal.";
+      if (!responsavelCpf.trim() || (responsavelCpf.replace(/\D/g,"").length >= 11 && !validarCPF(responsavelCpf))) e.cpfResp = !responsavelCpf.trim() ? "Informe o CPF do responsável." : "CPF do responsável inválido.";
+      if (!responsavelEmail.trim() || !responsavelEmail.includes("@")) e.emailResp = !responsavelEmail.trim() ? "Informe o e-mail do responsável." : "E-mail do responsável inválido.";
       if (!consentimentoParentalAceite) e.consentimentoParental = "O responsável legal deve autorizar o cadastro do menor.";
     }
 
@@ -267,6 +294,8 @@ function TelaCadastroAtletaLogin() {
       lgpdVersao: "2.0",
       ...(ehMenor ? {
         responsavelLegal: responsavelLegal.trim(),
+        responsavelCpf: responsavelCpf.trim(),
+        responsavelEmail: responsavelEmail.trim(),
         consentimentoParental: true,
         consentimentoParentalData: new Date().toISOString(),
       } : {}),
@@ -287,6 +316,8 @@ function TelaCadastroAtletaLogin() {
         lgpdVersao: "2.0",
         ...(ehMenor ? {
           responsavelLegal: responsavelLegal.trim(),
+          responsavelCpf: responsavelCpf.trim(),
+          responsavelEmail: responsavelEmail.trim(),
           consentimentoParental: true,
           consentimentoParentalData: new Date().toISOString(),
         } : {}),
@@ -517,9 +548,15 @@ function TelaCadastroAtletaLogin() {
               <BlocoConsentimentoParental
                 responsavel={responsavelLegal}
                 onResponsavel={setResponsavelLegal}
+                cpfResp={responsavelCpf}
+                onCpfResp={setResponsavelCpf}
+                emailResp={responsavelEmail}
+                onEmailResp={setResponsavelEmail}
                 aceite={consentimentoParentalAceite}
                 onChange={setConsentimentoParentalAceite}
                 erroResponsavel={erros.responsavelLegal}
+                erroCpfResp={erros.cpfResp}
+                erroEmailResp={erros.emailResp}
                 erroAceite={erros.consentimentoParental}
               />
             );

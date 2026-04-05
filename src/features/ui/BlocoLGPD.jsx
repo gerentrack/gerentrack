@@ -26,6 +26,9 @@ function BlocoLGPD({ aceite, onChange, erro }) {
           {" "}e autorizo o tratamento dos meus dados pessoais pelo GerenTrack para fins de gestão de competições de atletismo.
         </span>
       </label>
+      <p style={{ fontSize: 11, color: t.textDimmed, marginTop: 8, lineHeight: 1.6, paddingLeft: 28 }}>
+        Sem o consentimento, não será possível criar sua conta nem utilizar a plataforma (Art. 18, VIII da LGPD).
+      </p>
       {erro && <div style={{ color: t.danger, fontSize: 12, marginTop: 8 }}>⚠️ {erro}</div>}
     </div>
   );

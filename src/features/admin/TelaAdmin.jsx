@@ -1338,12 +1338,19 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                         const isPendente = sol.status === "pendente";
                         const isPronto   = sol.status === "pronto";
                         const tipoLabel  = { atleta:"🏃 Atleta", equipe:"🎽 Equipe", organizador:"🏟️ Org.", funcionario:"👥 Func.", treinador:"👨‍🏫 Trein." };
+                        const diasDesde = isPendente ? Math.floor((Date.now() - new Date(sol.data).getTime()) / 86400000) : 0;
+                        const prazoVencido = diasDesde > 15;
+                        const prazoUrgente = diasDesde > 12 && !prazoVencido;
                         return (
-                          <tr key={sol.id} style={s.tr}>
+                          <tr key={sol.id} style={{ ...s.tr, ...(prazoVencido ? { background:"#ef444415" } : prazoUrgente ? { background:"#f59e0b12" } : {}) }}>
                             <Td><strong style={{ color: t.textPrimary }}>{sol.usuarioNome || "—"}</strong></Td>
                             <Td style={{ fontSize:12 }}>{tipoLabel[sol.usuarioTipo] || sol.usuarioTipo}</Td>
                             <Td style={{ fontSize:12 }}>{sol.email || "—"}</Td>
-                            <Td style={{ fontSize:11, color: t.textDimmed }}>{new Date(sol.data).toLocaleString("pt-BR")}</Td>
+                            <Td>
+                              <div style={{ fontSize:11, color: t.textDimmed }}>{new Date(sol.data).toLocaleString("pt-BR")}</div>
+                              {isPendente && prazoVencido && <div style={{ fontSize:10, color:"#ef4444", fontWeight:700, marginTop:2 }}>⛔ Prazo expirado ({diasDesde} dias)</div>}
+                              {isPendente && prazoUrgente && <div style={{ fontSize:10, color:"#f59e0b", fontWeight:700, marginTop:2 }}>⚠️ Prazo expira em {15 - diasDesde} dia(s)</div>}
+                            </Td>
                             <Td>
                               <span style={{
                                 background: isPendente ? "#a855f715" : isPronto ? `${t.success}15` : t.bgCardAlt,

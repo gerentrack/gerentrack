@@ -26,8 +26,10 @@ const calcularIdade = (dataNasc) => {
 import BlocoLGPD from "../ui/BlocoLGPD";
 
 // ── Bloco de Consentimento Parental (Art. 14 LGPD) ───────────────────────────
-function BlocoConsentimentoParental({ responsavel, onResponsavel, aceite, onChange, erroResponsavel, erroAceite, modoSimplificado }) {
+function BlocoConsentimentoParental({ responsavel, onResponsavel, cpfResp, onCpfResp, emailResp, onEmailResp, aceite, onChange, erroResponsavel, erroCpfResp, erroEmailResp, erroAceite, modoSimplificado, nomeLogado, cpfLogado, emailLogado }) {
   const t = useTema();
+  const inputStyle = { width:"100%", background:t.bgInput, border:`1px solid ${t.borderInput}`, borderRadius:8, padding:"10px 14px", color: t.textSecondary, fontSize:14, fontFamily:"'Barlow',sans-serif", outline:"none", marginBottom:4 };
+  const labelStyle = { display:"block", fontSize:11, fontWeight:700, color: t.textDimmed, letterSpacing:1, marginBottom:5, textTransform:"uppercase" };
   return (
     <div style={{ background:`${t.success}08`, border:`1px solid ${t.success}44`, borderRadius:10,
       padding:"16px 18px", marginTop:16 }}>
@@ -39,32 +41,59 @@ function BlocoConsentimentoParental({ responsavel, onResponsavel, aceite, onChan
       </p>
 
       {modoSimplificado ? (
-        // Modo equipe/treinador: declaração de responsabilidade
-        <label style={{ display:"flex", alignItems:"flex-start", gap:12, cursor:"pointer" }}>
-          <input type="checkbox" checked={aceite} onChange={e => onChange(e.target.checked)}
-            style={{ marginTop:2, width:16, height:16, cursor:"pointer", flexShrink:0 }} />
-          <span style={{ fontSize:13, color: t.textSecondary, lineHeight:1.7 }}>
-            Declaro que sou o responsável legal por este atleta <strong style={{ color: t.textPrimary }}>ou</strong> que
-            possuo autorização expressa do responsável legal para representá-lo nos assuntos relacionados
-            a competições de atletismo gerenciados pelo GerenTrack, assumindo total responsabilidade
-            por esta declaração, conforme a <strong style={{ color: t.success }}>Lei nº 13.709/2018 (LGPD), Art. 14</strong>.
-          </span>
-        </label>
+        // Modo equipe/treinador: declaração de responsabilidade + dados do logado
+        <>
+          <div style={{ background:t.bgCardAlt, border:`1px solid ${t.border}`, borderRadius:8, padding:"10px 14px", marginBottom:12, fontSize:12, color:t.textMuted, lineHeight:1.6 }}>
+            <strong style={{ color:t.textSecondary }}>Responsável:</strong> {nomeLogado || "—"}
+            {cpfLogado ? <span> &nbsp;|&nbsp; CPF: {cpfLogado}</span> : null}
+            {emailLogado ? <span> &nbsp;|&nbsp; {emailLogado}</span> : null}
+          </div>
+          <label style={{ display:"flex", alignItems:"flex-start", gap:12, cursor:"pointer" }}>
+            <input type="checkbox" checked={aceite} onChange={e => onChange(e.target.checked)}
+              style={{ marginTop:2, width:16, height:16, cursor:"pointer", flexShrink:0 }} />
+            <span style={{ fontSize:13, color: t.textSecondary, lineHeight:1.7 }}>
+              Declaro que sou o responsável legal por este atleta <strong style={{ color: t.textPrimary }}>ou</strong> que
+              possuo autorização expressa do responsável legal para representá-lo nos assuntos relacionados
+              a competições de atletismo gerenciados pelo GerenTrack, assumindo total responsabilidade
+              por esta declaração, conforme a <strong style={{ color: t.success }}>Lei nº 13.709/2018 (LGPD), Art. 14</strong>.
+            </span>
+          </label>
+        </>
       ) : (
-        // Modo admin/org: campo de nome do responsável
+        // Modo admin/org: campos do responsável
         <>
           <div style={{ marginBottom:12 }}>
-            <label style={{ display:"block", fontSize:11, fontWeight:700, color: t.textDimmed, letterSpacing:1,
-              marginBottom:5, textTransform:"uppercase" }}>Nome do Responsável Legal *</label>
+            <label style={labelStyle}>Nome do Responsável Legal *</label>
             <input
-              style={{ width:"100%", background:t.bgInput, border:`1px solid ${erroResponsavel ? t.danger : t.borderInput}`,
-                borderRadius:8, padding:"10px 14px", color: t.textSecondary, fontSize:14,
-                fontFamily:"'Barlow',sans-serif", outline:"none", marginBottom:4 }}
+              style={{ ...inputStyle, borderColor: erroResponsavel ? t.danger : t.borderInput }}
               value={responsavel}
               onChange={e => onResponsavel(e.target.value)}
               placeholder="Nome completo do pai, mãe ou responsável legal"
             />
             {erroResponsavel && <div style={{ color: t.danger, fontSize:12, marginTop:2 }}>⚠️ {erroResponsavel}</div>}
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:0, marginBottom:12 }}>
+            <div>
+              <label style={labelStyle}>CPF do Responsável *</label>
+              <input
+                style={{ ...inputStyle, borderColor: erroCpfResp ? t.danger : t.borderInput }}
+                value={cpfResp}
+                onChange={e => onCpfResp(e.target.value)}
+                placeholder="000.000.000-00"
+              />
+              {erroCpfResp && <div style={{ color: t.danger, fontSize:12, marginTop:2 }}>⚠️ {erroCpfResp}</div>}
+            </div>
+            <div>
+              <label style={labelStyle}>E-mail do Responsável *</label>
+              <input
+                style={{ ...inputStyle, borderColor: erroEmailResp ? t.danger : t.borderInput }}
+                value={emailResp}
+                onChange={e => onEmailResp(e.target.value)}
+                type="email"
+                placeholder="responsavel@email.com"
+              />
+              {erroEmailResp && <div style={{ color: t.danger, fontSize:12, marginTop:2 }}>⚠️ {erroEmailResp}</div>}
+            </div>
           </div>
           <label style={{ display:"flex", alignItems:"flex-start", gap:12, cursor:"pointer" }}>
             <input type="checkbox" checked={aceite} onChange={e => onChange(e.target.checked)}
@@ -245,6 +274,8 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
   const [lgpdAceite, setLgpdAceite] = useState(false);
   const [consentimentoParentalAceite, setConsentimentoParentalAceite] = useState(false);
   const [responsavelLegal, setResponsavelLegal] = useState("");
+  const [responsavelCpf, setResponsavelCpf] = useState("");
+  const [responsavelEmail, setResponsavelEmail] = useState("");
   const anoBase = eventoAtual ? new Date(eventoAtual.data).getFullYear() : new Date().getFullYear();
 
   const isOrg = usuarioLogado?.tipo === "organizador" || usuarioLogado?.tipo === "funcionario";
@@ -380,7 +411,11 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
     const modoSimplificado = isEquipe || usuarioLogado?.tipo === "treinador";
     if (!lgpdAceite) e.lgpd = "É necessário aceitar a Política de Privacidade para continuar.";
     if (ehMenor) {
-      if (!modoSimplificado && !responsavelLegal.trim()) e.responsavelLegal = "Informe o nome do responsável legal.";
+      if (!modoSimplificado) {
+        if (!responsavelLegal.trim()) e.responsavelLegal = "Informe o nome do responsável legal.";
+        if (!responsavelCpf.trim() || (responsavelCpf.replace(/\D/g,"").length >= 11 && !validarCPF(responsavelCpf))) e.cpfResp = !responsavelCpf.trim() ? "Informe o CPF do responsável." : "CPF do responsável inválido.";
+        if (!responsavelEmail.trim() || !responsavelEmail.includes("@")) e.emailResp = !responsavelEmail.trim() ? "Informe o e-mail do responsável." : "E-mail do responsável inválido.";
+      }
       if (!consentimentoParentalAceite) e.consentimentoParental = "É necessário confirmar a autorização do responsável legal.";
     }
 
@@ -434,8 +469,8 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
         consentimentoParentalData: new Date().toISOString(),
         consentimentoParentalPor: modoSimplificado ? "responsavel_equipe" : "responsavel_legal",
         ...(modoSimplificado
-          ? { responsavelEquipeId: usuarioLogado?.id, responsavelEquipeNome: usuarioLogado?.nome }
-          : { responsavelLegal: responsavelLegal.trim() }
+          ? { responsavelEquipeId: usuarioLogado?.id, responsavelEquipeNome: usuarioLogado?.nome, responsavelCpf: usuarioLogado?.cpf || "", responsavelEmail: usuarioLogado?.email || "" }
+          : { responsavelLegal: responsavelLegal.trim(), responsavelCpf: responsavelCpf.trim(), responsavelEmail: responsavelEmail.trim() }
         ),
       } : {}),
     });
@@ -456,6 +491,8 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
     setLgpdAceite(false);
     setConsentimentoParentalAceite(false);
     setResponsavelLegal("");
+    setResponsavelCpf("");
+    setResponsavelEmail("");
   };
 
   // ── Sucesso ao cadastrar ──
@@ -1069,10 +1106,19 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
             <div id="campo-consentimento"><BlocoConsentimentoParental
               responsavel={responsavelLegal}
               onResponsavel={setResponsavelLegal}
+              cpfResp={responsavelCpf}
+              onCpfResp={setResponsavelCpf}
+              emailResp={responsavelEmail}
+              onEmailResp={setResponsavelEmail}
               aceite={consentimentoParentalAceite}
               onChange={setConsentimentoParentalAceite}
               erroResponsavel={erros.responsavelLegal}
+              erroCpfResp={erros.cpfResp}
+              erroEmailResp={erros.emailResp}
               erroAceite={erros.consentimentoParental}
+              nomeLogado={usuarioLogado?.nome}
+              cpfLogado={usuarioLogado?.cpf || usuarioLogado?.cnpj}
+              emailLogado={usuarioLogado?.email}
               modoSimplificado={modoSimplificado}
             /></div>
           );

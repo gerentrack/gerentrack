@@ -396,6 +396,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
         {!isAdmin && <button style={tabStyle("conta")} onClick={() => { setAba("conta"); setErro(""); }}>ℹ️ Minha Conta</button>}
         {isOrg    && <button style={tabStyle("perfil")} onClick={() => { setAba("perfil"); setErro(""); }}>🏢 Perfil Público</button>}
         {isAdmin  && <button style={tabStyle("aparencia")} onClick={() => { setAba("aparencia"); setErro(""); }}>⚙️ Configurações Avançadas</button>}
+        {isAdmin  && <button style={tabStyle("ropa")} onClick={() => { setAba("ropa"); setErro(""); }}>📋 ROPA</button>}
         {isAdmin  && <button style={tabStyle("incidente")} onClick={() => { setAba("incidente"); setErro(""); }}>🚨 Incidente LGPD</button>}
       </div>
 
@@ -1604,6 +1605,79 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
 
         </div>
       )}
+
+      {/* ── ABA: ROPA — Registro de Operações de Tratamento (Art. 37 LGPD) ── */}
+      {aba === "ropa" && isAdmin && (() => {
+        const ropaData = [
+          { dado: "Nome completo", titular: "Todos os perfis", finalidade: "Identificação do usuário na plataforma", base: "Execução de contrato (Art. 7, V)", retencao: "Duração do contrato + 30 dias", compartilhado: "Controlador (organização contratante)" },
+          { dado: "E-mail", titular: "Todos os perfis", finalidade: "Autenticação, comunicação e recuperação de conta", base: "Execução de contrato (Art. 7, V)", retencao: "Duração do contrato + 30 dias", compartilhado: "Controlador; Firebase Auth (Google)" },
+          { dado: "CPF", titular: "Atletas, treinadores, equipes", finalidade: "Identificação única, prevenção de duplicatas", base: "Execução de contrato (Art. 7, V)", retencao: "Duração do contrato + 30 dias", compartilhado: "Controlador" },
+          { dado: "CNPJ", titular: "Organizadores, equipes", finalidade: "Identificação da pessoa jurídica contratante", base: "Execução de contrato (Art. 7, V)", retencao: "Duração do contrato + 30 dias", compartilhado: "Controlador" },
+          { dado: "Telefone", titular: "Todos (opcional)", finalidade: "Contato para suporte", base: "Consentimento (Art. 7, I)", retencao: "Duração do contrato + 30 dias", compartilhado: "Controlador" },
+          { dado: "Data de nascimento", titular: "Atletas", finalidade: "Classificação por categoria etária", base: "Execução de contrato (Art. 7, V)", retencao: "Duração do contrato + 30 dias", compartilhado: "Controlador" },
+          { dado: "Sexo", titular: "Atletas", finalidade: "Classificação em provas por sexo", base: "Execução de contrato (Art. 7, V)", retencao: "Duração do contrato + 30 dias; preservado após anonimização para integridade histórica", compartilhado: "Controlador; exibido em resultados públicos" },
+          { dado: "Senha (hash)", titular: "Todos os perfis", finalidade: "Autenticação segura", base: "Execução de contrato (Art. 7, V)", retencao: "Duração do contrato", compartilhado: "Firebase Auth (Google) — nunca armazenada em texto puro" },
+          { dado: "Resultados esportivos", titular: "Atletas", finalidade: "Registro de tempos, distâncias, classificações, recordes", base: "Execução de contrato (Art. 7, V)", retencao: "Duração do contrato + 30 dias", compartilhado: "Controlador; exibidos em páginas públicas (sem dados sensíveis)" },
+          { dado: "Histórico de ações (auditoria)", titular: "Todos os perfis", finalidade: "Rastreabilidade, segurança, conformidade", base: "Interesse legítimo (Art. 7, IX)", retencao: "500 registros mais recentes (rotação automática)", compartilhado: "Somente admin" },
+          { dado: "Logos e imagens", titular: "Organizadores", finalidade: "Personalização visual de competições", base: "Execução de contrato (Art. 7, V)", retencao: "Duração do contrato + 30 dias", compartilhado: "Firebase Storage (Google); exibidos publicamente" },
+          { dado: "Dados de navegação (analytics)", titular: "Todos os visitantes", finalidade: "Métricas de uso da plataforma", base: "Consentimento (Art. 7, I)", retencao: "Conforme política Vercel", compartilhado: "Vercel Inc. (EUA) — somente com consentimento do cookie" },
+          { dado: "Dados do responsável legal", titular: "Responsável por atleta menor", finalidade: "Consentimento parental (Art. 14 LGPD)", base: "Obrigação legal (Art. 7, II)", retencao: "Duração do contrato + 30 dias", compartilhado: "Controlador" },
+        ];
+        const rowStyle = (i) => ({ background: i % 2 === 0 ? "transparent" : t.bgCardAlt });
+        return (
+          <div style={{ maxWidth: 1100 }}>
+            <div style={s.card}>
+              <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:800, color:t.accent, marginBottom:4, letterSpacing:1 }}>
+                📋 Registro de Operações de Tratamento de Dados Pessoais (ROPA)
+              </div>
+              <p style={{ color: t.textDimmed, fontSize:13, marginBottom:4, lineHeight:1.6 }}>
+                Art. 37 da Lei nº 13.709/2018 (LGPD) — O controlador e o operador devem manter registro das operações de tratamento de dados pessoais.
+              </p>
+              <p style={{ color: t.textMuted, fontSize:12, marginBottom:16, lineHeight:1.6 }}>
+                <strong style={{ color: t.textSecondary }}>Controlador:</strong> Entidade contratante (federação, confederação, clube ou organizador) &nbsp;|&nbsp;
+                <strong style={{ color: t.textSecondary }}>Operador:</strong> GERENTRACK LTDA — CNPJ: 65.454.409/0001-23 &nbsp;|&nbsp;
+                <strong style={{ color: t.textSecondary }}>Encarregado (DPO):</strong> Pedro Henrique Oliveira Campos — dpo@gerentrack.com.br
+              </p>
+
+              <div style={{ overflowX: "auto", borderRadius: 8, border: `1px solid ${t.border}` }}>
+                <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
+                  <thead>
+                    <tr style={{ background: t.bgHeaderSolid }}>
+                      {["Dado Pessoal", "Categoria de Titular", "Finalidade", "Base Legal", "Retenção", "Compartilhamento"].map(col => (
+                        <th key={col} style={{ color:t.accent, padding:"8px 10px", textAlign:"left", fontSize:11, fontWeight:700, whiteSpace:"nowrap" }}>{col}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ropaData.map((row, i) => (
+                      <tr key={i} style={rowStyle(i)}>
+                        <td style={{ padding:"7px 10px", borderBottom:`1px solid ${t.border}`, color:t.textPrimary, fontWeight:600, whiteSpace:"nowrap" }}>{row.dado}</td>
+                        <td style={{ padding:"7px 10px", borderBottom:`1px solid ${t.border}`, color:t.textSecondary }}>{row.titular}</td>
+                        <td style={{ padding:"7px 10px", borderBottom:`1px solid ${t.border}`, color:t.textSecondary }}>{row.finalidade}</td>
+                        <td style={{ padding:"7px 10px", borderBottom:`1px solid ${t.border}`, color:t.textSecondary, fontSize:11 }}>{row.base}</td>
+                        <td style={{ padding:"7px 10px", borderBottom:`1px solid ${t.border}`, color:t.textMuted, fontSize:11 }}>{row.retencao}</td>
+                        <td style={{ padding:"7px 10px", borderBottom:`1px solid ${t.border}`, color:t.textMuted, fontSize:11 }}>{row.compartilhado}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div style={{ marginTop:16, padding:"12px 16px", background:t.bgCardAlt, borderRadius:8, border:`1px solid ${t.border}` }}>
+                <div style={{ fontSize:13, fontWeight:700, color:t.textPrimary, marginBottom:6 }}>Transferência Internacional de Dados (Art. 33 LGPD)</div>
+                <ul style={{ paddingLeft:18, margin:0 }}>
+                  <li style={{ fontSize:12, color:t.textSecondary, lineHeight:1.8 }}><strong style={{ color:t.textPrimary }}>Google LLC</strong> (Firebase Auth, Firestore, Storage) — EUA — Certificações ISO 27001, 27017, 27018 e SOC 1/2/3. Cláusulas contratuais padrão (SCCs).</li>
+                  <li style={{ fontSize:12, color:t.textSecondary, lineHeight:1.8 }}><strong style={{ color:t.textPrimary }}>Vercel Inc.</strong> (Hospedagem frontend, Analytics) — EUA — Somente dados de navegação, com consentimento do titular.</li>
+                </ul>
+              </div>
+
+              <div style={{ marginTop:12, fontSize:11, color: t.textDimmed, lineHeight:1.6 }}>
+                📅 Última atualização deste registro: abril de 2026
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── ABA: INCIDENTE LGPD (admin only) ───────────────────────────────── */}
       {aba === "incidente" && isAdmin && (() => {

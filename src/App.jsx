@@ -152,6 +152,7 @@ import { TemaProvider } from "./shared/TemaContext";
 import { temaDark, temaLight } from "./shared/tema";
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
+import BannerCookies, { useCookieConsent } from "./features/ui/BannerCookies";
 import AtualizacaoDisponivel from "./features/ui/AtualizacaoDisponivel";
 import RelatorioSync from "./features/ui/RelatorioSync";
 import BannerInstalar from "./features/ui/BannerInstalar";
@@ -216,6 +217,7 @@ function RegulamentoViewer({ eventoAtual, tema: _t }) {
 
 function App() {
   const [tela, _setTela] = useState("home");
+  const cookieConsent = useCookieConsent();
 
   // Rastreia se Firebase Auth tem sessão ativa (necessário para listeners que exigem auth)
   const [firebaseAuthed, setFirebaseAuthed] = useState(!!auth.currentUser);
@@ -2018,8 +2020,9 @@ function App() {
         </div>
       </footer>
     </div>
-    <Analytics />
-    <SpeedInsights />
+    {cookieConsent.aceito && <Analytics />}
+    {cookieConsent.aceito && <SpeedInsights />}
+    <BannerCookies onAceitar={cookieConsent.aceitar} onRecusar={cookieConsent.recusar} />
     </ConfirmProvider>
     </TemaProvider>
     </AppProvider>
