@@ -22,7 +22,7 @@ function getStyles(t) {
     orgEntidade: { fontSize: 15, color: t.textMuted, textAlign: "center", marginTop: 4 },
     orgLocal: { fontSize: 13, color: t.textDimmed, textAlign: "center", marginTop: 4 },
     socialRow: { display: "flex", gap: 10, justifyContent: "center", marginTop: 12, flexWrap: "wrap" },
-    socialLink: { fontSize: 13, color: t.accent, background: `${t.accent}12`, border: `1px solid ${t.accent}33`, borderRadius: 20, padding: "5px 14px", textDecoration: "none", fontWeight: 600, cursor: "pointer" },
+    socialLink: { fontSize: 13, color: t.accent, background: `${t.accent}12`, borderWidth: 1, borderStyle: "solid", borderColor: `${t.accent}33`, borderRadius: 20, padding: "5px 14px", textDecoration: "none", fontWeight: 600, cursor: "pointer" },
     descBox: { maxWidth: 700, margin: "24px auto 0", padding: "0 24px", textAlign: "center", color: t.textTertiary, fontSize: 14, lineHeight: 1.7 },
     statsRow: { display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap", margin: "28px 24px 0" },
     statCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "16px 24px", textAlign: "center", minWidth: 100 },
@@ -44,7 +44,7 @@ function getStyles(t) {
     emptyState: { textAlign: "center", padding: "60px 20px", color: t.textDisabled },
     backBtn: { background: "transparent", color: t.textMuted, border: `1px solid ${t.borderLight}`, padding: "8px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", margin: "20px 24px 0" },
     finalizadoRow: { display: "flex", flexDirection: "column", gap: 6, padding: "0 24px" },
-    finalizadoItem: { display: "flex", flexDirection: "column", gap: 2, padding: "10px 14px", background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 10, cursor: "pointer", transition: "border-color 0.15s" },
+    finalizadoItem: { display: "flex", flexDirection: "column", gap: 2, padding: "10px 14px", background: t.bgCard, borderWidth: 1, borderStyle: "solid", borderColor: t.border, borderRadius: 10, cursor: "pointer", transition: "border-color 0.15s" },
   };
 }
 
