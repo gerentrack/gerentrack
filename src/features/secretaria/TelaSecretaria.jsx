@@ -301,6 +301,7 @@ function TelaSecretaria() {
 
   // Verifica se atleta tem DNS em TODAS as provas (não recebe medalha de participação)
   // DQ, NM, DNF contam como participação efetiva
+  // Participação em revezamento também conta como participação
   const atletaSomenteDns = (atletaId) => {
     if (!inscricoes || !resultados) return false;
     const todas = todasAsProvas();
@@ -308,6 +309,12 @@ function TelaSecretaria() {
       i.atletaId === atletaId && i.eventoId === eid &&
       i.tipo !== "revezamento" && !i.combinadaId
     );
+    // Se atleta participa de algum revezamento, conta como participação
+    const temRevezamento = inscricoes.some(i =>
+      i.eventoId === eid && i.tipo === "revezamento" &&
+      (i.atletasIds || []).includes(atletaId)
+    );
+    if (temRevezamento) return false;
     if (inscsAtleta.length === 0) return false;
     let temAlgumaParticipacao = false;
     for (const insc of inscsAtleta) {
@@ -458,7 +465,7 @@ function TelaSecretaria() {
       const provasAtualizadas = calcularMedalhasAtleta(medalhaAtletaInfo.atl.id);
       setMedalhaAtletaInfo(prev => prev ? { ...prev, provas: provasAtualizadas } : null);
     }
-  }, [medalhas]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [medalhas, calcularMedalhasAtleta]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Scanner QR — medalhas ──────────────────────────────────────────────────
   const handleScanMedalha = useCallback((raw) => {
@@ -733,10 +740,10 @@ function TelaSecretaria() {
             </div>
 
             {/* Cards por prova */}
-            {medalhaAtletaInfo.provas.map((p, i) => {
+            {medalhaAtletaInfo.provas.map((p) => {
               const corCard = p.bloqueio ? t.danger : p.medalha.entregue ? t.success : p.conf ? p.conf.cor : t.textMuted;
               return (
-                <div key={i} style={{
+                <div key={`${p.prova.id}_${p.cat.id}_${p.sexo}`} style={{
                   background: `${corCard}08`, border: `1px solid ${corCard}33`,
                   borderRadius: 10, padding: "12px 16px", marginBottom: 8,
                 }}>

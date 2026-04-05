@@ -364,7 +364,7 @@ function TelaEventoDetalhe() {
                 <span style={{ color: t.textDimmed, fontSize: 13 }}>Novas inscrições não são permitidas</span>
               </div>
             )}
-            {provasRevez.length > 0 && (
+            {provasRevez.length > 0 && eventoAtual.revezamentoInscAntecipada && (
               <button style={{ ...s.eventoAcaoBtn, borderColor: t.accent + "66" }} onClick={() => setTela("inscricao-revezamento")}>
                 <span style={{ fontSize: 36 }}>🏃‍♂️</span>
                 <strong>Inscrição de Revezamento</strong>

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { useState, useEffect, useRef, useCallback } from "react";
 // ── Contexts (Etapa 2 — migração React Router) ──────────────────
 import { AuthProvider, buildAuthValue } from "./contexts/AuthContext";
@@ -369,7 +369,7 @@ function App() {
     eventos, organizadores,
     eventoAtualId, setEventoAtualId,
     organizadorPerfilId, setOrganizadorPerfilId,
-    setAtletaEditandoId,
+    atletaEditandoId, setAtletaEditandoId,
   });
 
   // ── Migração: gerar slugs para eventos legados que não têm ─────────────────
@@ -1740,20 +1740,13 @@ function App() {
   };
 
   // ── Context values (coexistem com props durante migração) ─────────
-  const authValue = useMemo(() => buildAuthValue(props), [
-    props.usuarioLogado, props.perfisDisponiveis,
-  ]);
-  const eventoValue = useMemo(() => buildEventoValue(props), [
-    props.eventos, props.eventoAtual, props.inscricoes, props.resultados,
-    props.atletas, props.equipes, props.numeracaoPeito,
-    props.recordes, props.ranking,
-  ]);
-  const appValue = useMemo(() => buildAppValue(props), [
-    props.tela, props.notificacoes, props.organizadores, props.funcionarios,
-    props.treinadores, props.atletasUsuarios, props.historicoAcoes,
-    props.siteBranding, props.online, props.solicitacoesVinculo,
-    props.solicitacoesEquipe, props.solicitacoesRelatorio,
-  ]);
+  // Nota: useMemo removido intencionalmente — cada build*Value acessa dezenas
+  // de handlers (closures) que são recriados a cada render, tornando deps
+  // parciais causa de stale closures sem benefício real de memoização.
+  // Para otimizar no futuro: envolver handlers em useCallback individualmente.
+  const authValue = buildAuthValue(props);
+  const eventoValue = buildEventoValue(props);
+  const appValue = buildAppValue(props);
 
   return (
     <AuthProvider value={authValue}>

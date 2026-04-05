@@ -73,7 +73,7 @@ export default function TelaPerfilOrganizador() {
   const eventosOrg = useMemo(() =>
     eventos
       .filter(ev => ev.organizadorId === org.id && (!ev.statusAprovacao || ev.statusAprovacao === "aprovado"))
-      .sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0)),
+      .sort((a, b) => new Date(a.data || 0) - new Date(b.data || 0)),
     [eventos, org.id]
   );
 

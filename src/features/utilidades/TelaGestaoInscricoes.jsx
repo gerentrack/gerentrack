@@ -1571,7 +1571,7 @@ function TelaGestaoInscricoes() {
           )}
 
           {/* Revezamento — sem custo */}
-          {provasRevez.length > 0 && (
+          {provasRevez.length > 0 && (isPrivileg || eventoAtual.revezamentoInscAntecipada) && (
             <div style={{ marginTop: 28, padding: 16, background: t.bgHeaderSolid, border: `1px solid ${t.accentBorder}`, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
               <div>
                 <h2 style={{ color: t.accent, fontSize: 17, margin: 0, fontFamily: "'Barlow Condensed', sans-serif" }}>🏃‍♂️ Revezamentos</h2>

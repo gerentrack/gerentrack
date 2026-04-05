@@ -210,7 +210,7 @@ function TelaInscricaoAvulsa() {
       setEventoSelecionadoAtleta(eventoAtualId);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAtleta]);
+  }, [isAtleta, eventoAtualId]);
 
   // Fechar dropdown ao clicar fora
   useEffect(() => {
@@ -531,9 +531,13 @@ function TelaInscricaoAvulsa() {
     // ── Etapa 2: snapshot do preço no momento da inscrição ──
     const precoInfoInscricao = calcularPrecoInscricao(atleta, catOficial?.id || null, eventoParaInscricao);
     provasSel.forEach((provaId, idx) => {
+      // Verificar duplicata: atleta já inscrito nesta prova/evento
+      if (inscricoes.some(i => i.eventoId === eventoParaInscricao.id && i.atletaId === aId && i.provaId === provaId)) {
+        return; // pular — já inscrito
+      }
       // Extrai categoria da prova pelo ID (M_sub14_100m → sub14)
       const catProvaId = provaId.split("_")[1] || "";
-      
+
       // Valida se atleta pode se inscrever nesta categoria
       const mesmaCat = catProvaId === catOficial.id;
       const permissividade = eventoParaInscricao.permissividadeNorma

@@ -249,7 +249,7 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
               &nbsp;·&nbsp;📍 {_getLocalEventoDisplay(eventoAtual)}
             </span>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              <span style={styles.statusDotInline(getStatusInscricoes(eventoAtual) === "abertas" ? "#22c55e" : getStatusInscricoes(eventoAtual) === "em_breve" ? t.accent : "#ef4444")}>
+              <span style={styles.statusDotInline(getStatusInscricoes(eventoAtual) === "abertas" ? t.success : getStatusInscricoes(eventoAtual) === "em_breve" ? t.accent : t.danger)}>
                 {getStatusInscricoes(eventoAtual) === "em_breve"
                   ? `Em breve — abre em ${new Date(eventoAtual.dataAberturaInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}`
                   : getStatusInscricoes(eventoAtual) === "abertas"
@@ -262,10 +262,10 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
                 </span>
               )}
               {["admin","organizador","funcionario"].includes(usuarioLogado?.tipo) && !eventoAtual.sumulaLiberada && (
-                <span style={styles.statusDotInline("#4a5568")}>Súmulas restritas</span>
+                <span style={styles.statusDotInline(t.textMuted)}>Súmulas restritas</span>
               )}
               {eventoAtual.sumulaLiberada && (
-                <span style={styles.statusDotInline("#22c55e")}>Súmulas liberadas</span>
+                <span style={styles.statusDotInline(t.success)}>Súmulas liberadas</span>
               )}
             </div>
           </div>

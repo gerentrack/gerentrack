@@ -194,6 +194,7 @@ function buildUrlForTela(tela, context = {}) {
  * @param {Function} params.setEventoAtualId
  * @param {string|null} params.organizadorPerfilId
  * @param {Function} params.setOrganizadorPerfilId
+ * @param {string|null} params.atletaEditandoId — ID do atleta sendo editado
  * @param {Function} params.setAtletaEditandoId
  */
 export function useRouterBridge({
@@ -201,7 +202,7 @@ export function useRouterBridge({
   eventos, organizadores,
   eventoAtualId, setEventoAtualId,
   organizadorPerfilId, setOrganizadorPerfilId,
-  setAtletaEditandoId,
+  atletaEditandoId, setAtletaEditandoId,
 }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -248,7 +249,7 @@ export function useRouterBridge({
       eventoSlug: eventoAtual?.slug || eventoAtualId,
       eventoId: eventoAtualId,
       slug: orgItem?.slug,
-      id: novaTela === "editar-atleta" ? undefined : undefined, // atletaEditandoId não está acessível aqui diretamente
+      id: atletaEditandoId || undefined,
     });
 
     if (url) {
@@ -258,7 +259,7 @@ export function useRouterBridge({
         navigate(url);
       }
     }
-  }, [_setTela, navigate, eventos, eventoAtualId, organizadores, organizadorPerfilId]);
+  }, [_setTela, navigate, eventos, eventoAtualId, organizadores, organizadorPerfilId, atletaEditandoId]);
 
   return { setTela };
 }

@@ -22,12 +22,12 @@ import {
 } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDbmIwAsRcT57XJgGj_mDyht5OuZ1Trk98",
-  authDomain: "gerentrack-b88b5.firebaseapp.com",
-  projectId: "gerentrack-b88b5",
-  storageBucket: "gerentrack-b88b5.firebasestorage.app",
-  messagingSenderId: "124815557463",
-  appId: "1:124815557463:web:853c0be469ce9a112e3412",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
