@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import DOMPurify from "dompurify";
 import { validarCPF, validarCNPJ } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
-import { storage, storageRef, uploadBytes, getDownloadURL, deleteObject } from "../../firebase";
+import { storage, storageRef, uploadBytes, getDownloadURL, deleteObject, getBlob } from "../../firebase";
 import CortarImagem from "../../shared/CortarImagem";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
@@ -115,7 +115,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
   const t = useTema();
   const s = useStylesResponsivos(getS(t));
   const { usuarioLogado, setUsuarioLogado, logout, atualizarSenha, perfisDisponiveis } = useAuth();
-  const { equipes, atualizarEquipePerfil, atletas, inscricoes, resultados, atualizarAtleta } = useEvento();
+  const { equipes, atualizarEquipePerfil, atletas, inscricoes, resultados, atualizarAtleta, eventos, editarEvento } = useEvento();
   const { setTela, registrarAcao, organizadores, atletasUsuarios, funcionarios, treinadores, siteBranding, setSiteBranding, exportarDados, importarDados, solicitacoesPortabilidade, adicionarSolicitacaoPortabilidade, editarOrganizadorAdmin, selecionarOrganizador } = useApp();
   const [aba, setAba]           = useState("dados");
   const [feedback, setFeedback] = useState("");
@@ -172,10 +172,247 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
   const [bannerParaCortar, setBannerParaCortar] = useState(null);
   const [logoFooterParaCortar, setLogoFooterParaCortar] = useState(null);
 
+  // ── Diagnóstico Firebase ────────────────────────────────────────────────────
+  const [diagAba, setDiagAba] = useState("storage");
+  const [diagRodando, setDiagRodando] = useState(false);
+  const [diagStorage, setDiagStorage] = useState(null);
+  const [diagFirestore, setDiagFirestore] = useState(null);
+  const [diagAuth, setDiagAuth] = useState(null);
+  const [migracaoLog, setMigracaoLog] = useState([]);
+  const [migrandoStorage, setMigrandoStorage] = useState(false);
+
+  const extrairStoragePath = (url) => {
+    if (!url || typeof url !== "string") return null;
+    const match = url.match(/\/o\/(.+?)(\?|$)/);
+    return match ? decodeURIComponent(match[1]) : null;
+  };
+
+  const testarUrl = async (url) => {
+    try {
+      const path = extrairStoragePath(url);
+      if (!path) return { ok: false, motivo: "URL inválida" };
+      await getDownloadURL(storageRef(storage, path));
+      return { ok: true };
+    } catch (err) {
+      if (err?.code === "storage/object-not-found") return { ok: false, motivo: "Arquivo não encontrado" };
+      if (err?.code === "storage/unauthorized") return { ok: true };
+      return { ok: false, motivo: err?.message || "Erro desconhecido" };
+    }
+  };
+
+  const diagnosticarStorage = useCallback(async () => {
+    setDiagRodando(true);
+    setDiagStorage(null);
+    const itens = [];
+    for (const ev of (eventos || [])) {
+      for (const campo of ["logoCompeticao", "logoCabecalho", "logoCabecalhoDireito", "logoRodape", "logoPortalSecao", "regulamentoUrl"]) {
+        if (ev[campo] && typeof ev[campo] === "string" && ev[campo].startsWith("http")) {
+          const res = await testarUrl(ev[campo]);
+          itens.push({ tipo: "Evento", nome: ev.nome || ev.id, campo, url: ev[campo], ...res });
+        }
+      }
+    }
+    for (const org of (organizadores || [])) {
+      for (const campo of ["logo", "banner", "favicon"]) {
+        if (org[campo] && typeof org[campo] === "string" && org[campo].startsWith("http")) {
+          const res = await testarUrl(org[campo]);
+          itens.push({ tipo: "Organizador", nome: org.nome || org.id, campo, url: org[campo], ...res });
+        }
+      }
+    }
+    if (siteBranding) {
+      for (const campo of ["logoFooter", "heroBg"]) {
+        if (siteBranding[campo] && typeof siteBranding[campo] === "string" && siteBranding[campo].startsWith("http")) {
+          const res = await testarUrl(siteBranding[campo]);
+          itens.push({ tipo: "Branding", nome: "Site", campo, url: siteBranding[campo], ...res });
+        }
+      }
+      if (Array.isArray(siteBranding.redesSociais)) {
+        for (const rede of siteBranding.redesSociais) {
+          if (rede.iconeUrl && typeof rede.iconeUrl === "string" && rede.iconeUrl.startsWith("http")) {
+            const res = await testarUrl(rede.iconeUrl);
+            itens.push({ tipo: "Branding", nome: `Rede: ${rede.nome || "?"}`, campo: "iconeUrl", url: rede.iconeUrl, ...res });
+          }
+        }
+      }
+      if (siteBranding.assinaturasFederacao && typeof siteBranding.assinaturasFederacao === "object") {
+        for (const [uf, url] of Object.entries(siteBranding.assinaturasFederacao)) {
+          if (url && typeof url === "string" && url.startsWith("http")) {
+            const res = await testarUrl(url);
+            itens.push({ tipo: "Branding", nome: `Assinatura ${uf}`, campo: "assinaturaFederacao", url, ...res });
+          }
+        }
+      }
+    }
+    for (const eq of (equipes || [])) {
+      for (const campo of ["logo", "escudo"]) {
+        if (eq[campo] && typeof eq[campo] === "string" && eq[campo].startsWith("http")) {
+          const res = await testarUrl(eq[campo]);
+          itens.push({ tipo: "Equipe", nome: eq.nome || eq.id, campo, url: eq[campo], ...res });
+        }
+      }
+    }
+    setDiagStorage(itens);
+    setDiagRodando(false);
+  }, [eventos, organizadores, siteBranding, equipes]);
+
+  const diagnosticarFirestore = useCallback(async () => {
+    setDiagRodando(true);
+    setDiagFirestore(null);
+    const problemas = [];
+    const atletaIds = new Set((atletas || []).map(a => a.id));
+    const equipeIds = new Set((equipes || []).map(eq => eq.id));
+    const eventoIds = new Set((eventos || []).map(ev => ev.id));
+    for (const ins of (inscricoes || [])) {
+      if (ins.atletaId && !atletaIds.has(ins.atletaId)) problemas.push({ colecao: "inscricoes", docId: ins.id, campo: "atletaId", valor: ins.atletaId, problema: "Atleta inexistente" });
+      if (ins.eventoId && !eventoIds.has(ins.eventoId)) problemas.push({ colecao: "inscricoes", docId: ins.id, campo: "eventoId", valor: ins.eventoId, problema: "Evento inexistente" });
+      if (ins.equipeId && !equipeIds.has(ins.equipeId)) problemas.push({ colecao: "inscricoes", docId: ins.id, campo: "equipeId", valor: ins.equipeId, problema: "Equipe inexistente" });
+    }
+    for (const atl of (atletas || [])) {
+      if (atl.equipeId && !equipeIds.has(atl.equipeId)) problemas.push({ colecao: "atletas", docId: atl.id, campo: "equipeId", valor: atl.equipeId, problema: "Equipe inexistente", extra: atl.nome });
+    }
+    for (const [docId, doc] of Object.entries(resultados || {})) {
+      const partes = docId.split("_");
+      const evId = partes[0];
+      if (evId && !eventoIds.has(evId)) problemas.push({ colecao: "resultados", docId, campo: "eventoId", valor: evId, problema: "Evento inexistente" });
+    }
+    const chaves = new Map();
+    for (const ins of (inscricoes || [])) {
+      if (ins.tipo === "revezamento") continue;
+      const chave = `${ins.atletaId}_${ins.provaId}_${ins.eventoId}_${ins.categoriaId}_${ins.sexo}`;
+      if (chaves.has(chave)) problemas.push({ colecao: "inscricoes", docId: ins.id, campo: "duplicata", valor: chave, problema: `Duplicata de ${chaves.get(chave)}` });
+      else chaves.set(chave, ins.id);
+    }
+    setDiagFirestore(problemas);
+    setDiagRodando(false);
+  }, [atletas, equipes, eventos, inscricoes, resultados]);
+
+  const diagnosticarAuth = useCallback(async () => {
+    setDiagRodando(true);
+    setDiagAuth(null);
+    const problemas = [];
+    for (const org of (organizadores || [])) {
+      if (!org.email) problemas.push({ tipo: "Organizador", nome: org.nome || org.id, problema: "Sem email cadastrado" });
+      if (org.dadosExcluidosEm) problemas.push({ tipo: "Organizador", nome: org.nome || org.id, problema: `Dados excluídos em ${new Date(org.dadosExcluidosEm).toLocaleDateString("pt-BR")} — conta Auth pode estar ativa` });
+    }
+    const emailsOrg = {};
+    for (const org of (organizadores || [])) {
+      if (!org.email) continue;
+      const email = org.email.toLowerCase().trim();
+      if (emailsOrg[email]) problemas.push({ tipo: "Organizador", nome: org.nome, problema: `Email duplicado: ${email} (também usado por ${emailsOrg[email]})` });
+      else emailsOrg[email] = org.nome || org.id;
+    }
+    const emailsAtl = {};
+    for (const atl of (atletas || [])) {
+      if (!atl.email) continue;
+      const email = atl.email.toLowerCase().trim();
+      if (emailsAtl[email]) problemas.push({ tipo: "Atleta", nome: atl.nome, problema: `Email duplicado: ${email} (também usado por ${emailsAtl[email]})` });
+      else emailsAtl[email] = atl.nome || atl.id;
+    }
+    for (const eq of (equipes || [])) {
+      if (!eq.email && !eq.representanteEmail) problemas.push({ tipo: "Equipe", nome: eq.nome || eq.id, problema: "Sem email — possível conta Auth órfã se importada" });
+    }
+    setDiagAuth(problemas);
+    setDiagRodando(false);
+  }, [organizadores, atletas, equipes]);
+
+  // ── Migração de paths do Storage ──────────────────────────────────────────
+  const slugifyPath = (str) =>
+    (str || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-").slice(0, 60) || "sem-nome";
+
+  const migrarStoragePaths = useCallback(async () => {
+    setMigrandoStorage(true);
+    setMigracaoLog([]);
+    const log = (msg) => setMigracaoLog(prev => [...prev, msg]);
+    const camposLogo = ["logoCompeticao", "logoCabecalho", "logoCabecalhoDireito", "logoRodape", "logoPortalSecao"];
+
+    let migrados = 0, erros = 0, pulados = 0;
+
+    for (const ev of (eventos || [])) {
+      const orgNome = organizadores?.find(o => o.id === ev.organizadorId)?.nome;
+      if (!orgNome) { log(`⏭ ${ev.nome || ev.id}: organizador não encontrado, pulando`); pulados++; continue; }
+      const pastaNova = `${slugifyPath(orgNome)}/${slugifyPath(ev.nome)}`;
+      const updates = {};
+      let temMudanca = false;
+
+      // Logos
+      for (const campo of camposLogo) {
+        const url = ev[campo];
+        if (!url || typeof url !== "string" || !url.startsWith("http")) continue;
+        const pathAtual = extrairStoragePath(url);
+        if (!pathAtual) continue;
+        // Já no formato novo?
+        if (pathAtual.startsWith(`logos/${pastaNova}/`)) { pulados++; continue; }
+
+        try {
+          // Baixar arquivo via SDK (evita CORS)
+          const blob = await getBlob(storageRef(storage, pathAtual));
+          const ext = pathAtual.split(".").pop() || "png";
+          const novoPath = `logos/${pastaNova}/${campo}.${ext}`;
+          const novoRef = storageRef(storage, novoPath);
+          await uploadBytes(novoRef, blob);
+          const novaUrl = await getDownloadURL(novoRef);
+          updates[campo] = novaUrl;
+          temMudanca = true;
+          // Deletar antigo
+          try { await deleteObject(storageRef(storage, pathAtual)); } catch {}
+          log(`✓ ${ev.nome} [${campo}]: migrado`);
+          migrados++;
+        } catch (err) {
+          log(`✗ ${ev.nome} [${campo}]: erro — ${err.message}`);
+          erros++;
+        }
+      }
+
+      // Regulamento
+      if (ev.regulamentoUrl && typeof ev.regulamentoUrl === "string" && ev.regulamentoUrl.startsWith("http")) {
+        const pathAtual = ev.regulamentoPath || extrairStoragePath(ev.regulamentoUrl);
+        if (pathAtual && !pathAtual.startsWith(`regulamentos/${pastaNova}/`)) {
+          try {
+            const blob = await getBlob(storageRef(storage, pathAtual));
+            const novoPath = `regulamentos/${pastaNova}/regulamento.pdf`;
+            const novoRef = storageRef(storage, novoPath);
+            await uploadBytes(novoRef, blob);
+            const novaUrl = await getDownloadURL(novoRef);
+            updates.regulamentoUrl = novaUrl;
+            updates.regulamentoPath = novoPath;
+            temMudanca = true;
+            try { await deleteObject(storageRef(storage, pathAtual)); } catch {}
+            log(`✓ ${ev.nome} [regulamento]: migrado`);
+            migrados++;
+          } catch (err) {
+            log(`✗ ${ev.nome} [regulamento]: erro — ${err.message}`);
+            erros++;
+          }
+        }
+      }
+
+      // Atualizar evento no Firestore
+      if (temMudanca) {
+        try { editarEvento({ ...ev, ...updates }); } catch (err) {
+          log(`✗ ${ev.nome}: erro ao atualizar Firestore — ${err.message}`);
+          erros++;
+        }
+      }
+    }
+
+    log(`\n— Concluído: ${migrados} migrados, ${pulados} já no formato novo, ${erros} erros —`);
+    setMigrandoStorage(false);
+  }, [eventos, organizadores, editarEvento]);
+
   const uploadImagemOrg = async (file, tipo) => {
     if (!meuOrgPerfil || !editarOrganizadorAdmin) return;
     setPerfilUploading(true);
     try {
+      // Deletar arquivo anterior se existir (evita órfãos ao trocar extensão)
+      if (meuOrgPerfil[tipo]) {
+        try {
+          const urlAntiga = meuOrgPerfil[tipo];
+          const pathAntigo = decodeURIComponent(urlAntiga.split("/o/")[1]?.split("?")[0] || "");
+          if (pathAntigo) await deleteObject(storageRef(storage, pathAntigo));
+        } catch {}
+      }
       const ext = file.name ? file.name.split(".").pop() : "png";
       const ref = storageRef(storage, `organizadores/${meuOrgPerfil.id}/${tipo}.${ext}`);
       await uploadBytes(ref, file);
@@ -398,6 +635,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
         {isAdmin  && <button style={tabStyle("aparencia")} onClick={() => { setAba("aparencia"); setErro(""); }}>⚙️ Configurações Avançadas</button>}
         {isAdmin  && <button style={tabStyle("ropa")} onClick={() => { setAba("ropa"); setErro(""); }}>📋 ROPA</button>}
         {isAdmin  && <button style={tabStyle("incidente")} onClick={() => { setAba("incidente"); setErro(""); }}>🚨 Incidente LGPD</button>}
+        {isAdmin  && <button style={tabStyle("diagnostico")} onClick={() => { setAba("diagnostico"); setErro(""); }}>🔍 Diagnóstico Firebase</button>}
       </div>
 
       {/* ── ABA: DADOS PESSOAIS ─────────────────────────────────────────── */}
@@ -1911,6 +2149,184 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(ts => `   • ${ts}`).joi
               </button>
             </div>
 
+          </div>
+        );
+      })()}
+
+      {/* ── ABA: DIAGNÓSTICO FIREBASE (admin only) ─────────────────────── */}
+      {aba === "diagnostico" && isAdmin && (() => {
+        const diagTabStyle = (tab) => ({
+          padding:"8px 16px", cursor:"pointer", fontSize:12, fontWeight: diagAba === tab ? 700 : 400,
+          background: diagAba === tab ? t.accent : t.bgHover, color: diagAba === tab ? "#fff" : t.textMuted,
+          borderRadius:6, border:"none", fontFamily:"'Barlow',sans-serif", transition:"all 0.15s",
+        });
+        const statItem = (color) => ({ background:`${color}10`, border:`1px solid ${color}30`, borderRadius:10, padding:"14px 20px", flex:"1 1 140px", textAlign:"center" });
+        const statNum = (color) => ({ fontSize:28, fontWeight:800, color, fontFamily:"'Barlow Condensed',sans-serif" });
+        const statLabel = { fontSize:11, color:t.textMuted, marginTop:4, textTransform:"uppercase", letterSpacing:1, fontFamily:"'Barlow Condensed',sans-serif" };
+        const badge = (color) => ({ display:"inline-block", padding:"2px 10px", borderRadius:20, fontSize:11, fontWeight:700, color, background:`${color}15` });
+        const th = { textAlign:"left", padding:"10px 14px", fontSize:11, fontWeight:700, color:t.textDimmed, textTransform:"uppercase", letterSpacing:1, borderBottom:`1px solid ${t.border}`, fontFamily:"'Barlow Condensed',sans-serif" };
+        const td = { padding:"10px 14px", fontSize:13, color:t.textSecondary, borderBottom:`1px solid ${t.borderLight}`, fontFamily:"'Barlow',sans-serif" };
+
+        const executarDiag = () => {
+          if (diagAba === "storage") diagnosticarStorage();
+          else if (diagAba === "firestore") diagnosticarFirestore();
+          else if (diagAba === "auth") diagnosticarAuth();
+        };
+
+        return (
+          <div style={s.card}>
+            <h3 style={s.sectionTitle}>Diagnóstico Firebase</h3>
+            <p style={{ fontSize:13, color:t.textMuted, marginBottom:16 }}>Identificar arquivos órfãos, referências quebradas e inconsistências.</p>
+
+            <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:16 }}>
+              <button style={diagTabStyle("storage")} onClick={() => setDiagAba("storage")}>Storage</button>
+              <button style={diagTabStyle("firestore")} onClick={() => setDiagAba("firestore")}>Firestore</button>
+              <button style={diagTabStyle("auth")} onClick={() => setDiagAba("auth")}>Auth</button>
+            </div>
+
+            <div style={{ marginBottom:16 }}>
+              <button style={s.btnPrimary} onClick={executarDiag} disabled={diagRodando}>
+                {diagRodando ? "Analisando..." : "Executar Diagnóstico"}
+              </button>
+            </div>
+
+            {diagRodando && <div style={{ textAlign:"center", padding:20, color:t.textMuted, fontSize:14 }}>Analisando... isso pode levar alguns segundos.</div>}
+
+            {/* Storage */}
+            {!diagRodando && diagAba === "storage" && (() => {
+              if (!diagStorage) return <div style={{ textAlign:"center", padding:20, color:t.textDisabled, fontSize:13 }}>Clique em "Executar Diagnóstico" para verificar arquivos no Storage.</div>;
+              const ok = diagStorage.filter(r => r.ok);
+              const falhas = diagStorage.filter(r => !r.ok);
+              return (
+                <>
+                  <div style={{ display:"flex", gap:16, flexWrap:"wrap", marginBottom:16 }}>
+                    <div style={statItem(t.success)}><div style={statNum(t.success)}>{ok.length}</div><div style={statLabel}>Arquivos OK</div></div>
+                    <div style={statItem(t.danger)}><div style={statNum(t.danger)}>{falhas.length}</div><div style={statLabel}>Com problema</div></div>
+                    <div style={statItem(t.accent)}><div style={statNum(t.accent)}>{diagStorage.length}</div><div style={statLabel}>Total</div></div>
+                  </div>
+                  {falhas.length > 0 && (
+                    <div style={{ overflowX:"auto", borderRadius:10, border:`1px solid ${t.border}` }}>
+                      <table style={{ width:"100%", borderCollapse:"collapse" }}>
+                        <thead><tr><th style={th}>Tipo</th><th style={th}>Nome</th><th style={th}>Campo</th><th style={th}>Motivo</th><th style={th}>Path</th></tr></thead>
+                        <tbody>
+                          {falhas.map((item, i) => (
+                            <tr key={i} style={{ background: i % 2 === 0 ? "transparent" : t.bgHover }}>
+                              <td style={td}>{item.tipo}</td>
+                              <td style={td}>{item.nome}</td>
+                              <td style={td}><code style={{ fontSize:11 }}>{item.campo}</code></td>
+                              <td style={td}><span style={badge(t.danger)}>{item.motivo}</span></td>
+                              <td style={{ ...td, maxWidth:250, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", fontSize:11 }}>{extrairStoragePath(item.url) || "—"}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                  {falhas.length === 0 && <div style={{ textAlign:"center", padding:20, color:t.success, fontSize:13 }}>Todos os arquivos referenciados estão acessíveis.</div>}
+                </>
+              );
+            })()}
+
+            {/* Migração de paths */}
+            {!diagRodando && diagAba === "storage" && (
+              <div style={{ marginTop:20, padding:16, background:t.bgHover, borderRadius:10, border:`1px solid ${t.border}` }}>
+                <div style={{ fontSize:14, fontWeight:700, color:t.textPrimary, marginBottom:8, fontFamily:"'Barlow Condensed',sans-serif" }}>Migrar paths do Storage</div>
+                <div style={{ fontSize:12, color:t.textMuted, marginBottom:12, lineHeight:1.6 }}>
+                  Move arquivos de eventos do formato antigo (<code>logos/ID/</code>) para o novo (<code>logos/organizador/evento/</code>).
+                  A operação é segura: primeiro faz upload no path novo, depois atualiza a URL, depois deleta o antigo.
+                </div>
+                <button
+                  style={{ ...s.btnPrimary, opacity: migrandoStorage ? 0.6 : 1 }}
+                  onClick={migrarStoragePaths}
+                  disabled={migrandoStorage}
+                >
+                  {migrandoStorage ? "Migrando..." : "Migrar Paths"}
+                </button>
+                {migracaoLog.length > 0 && (
+                  <div style={{ marginTop:12, maxHeight:300, overflowY:"auto", background:t.bgCard, border:`1px solid ${t.border}`, borderRadius:8, padding:12, fontSize:12, fontFamily:"monospace", lineHeight:1.8, color:t.textSecondary, whiteSpace:"pre-wrap" }}>
+                    {migracaoLog.map((line, i) => <div key={i}>{line}</div>)}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Firestore */}
+            {!diagRodando && diagAba === "firestore" && (() => {
+              if (!diagFirestore) return <div style={{ textAlign:"center", padding:20, color:t.textDisabled, fontSize:13 }}>Clique em "Executar Diagnóstico" para verificar referências cruzadas.</div>;
+              return (
+                <>
+                  <div style={{ display:"flex", gap:16, flexWrap:"wrap", marginBottom:16 }}>
+                    <div style={statItem(diagFirestore.length > 0 ? t.danger : t.success)}>
+                      <div style={statNum(diagFirestore.length > 0 ? t.danger : t.success)}>{diagFirestore.length}</div><div style={statLabel}>Problemas</div>
+                    </div>
+                    <div style={statItem(t.accent)}><div style={statNum(t.accent)}>{(inscricoes || []).length}</div><div style={statLabel}>Inscrições</div></div>
+                    <div style={statItem(t.accent)}><div style={statNum(t.accent)}>{(atletas || []).length}</div><div style={statLabel}>Atletas</div></div>
+                  </div>
+                  {diagFirestore.length > 0 && (
+                    <div style={{ overflowX:"auto", borderRadius:10, border:`1px solid ${t.border}` }}>
+                      <table style={{ width:"100%", borderCollapse:"collapse" }}>
+                        <thead><tr><th style={th}>Coleção</th><th style={th}>Doc ID</th><th style={th}>Campo</th><th style={th}>Valor</th><th style={th}>Problema</th></tr></thead>
+                        <tbody>
+                          {diagFirestore.map((item, i) => (
+                            <tr key={i} style={{ background: i % 2 === 0 ? "transparent" : t.bgHover }}>
+                              <td style={td}><code style={{ fontSize:11 }}>{item.colecao}</code></td>
+                              <td style={{ ...td, fontSize:11, maxWidth:180, overflow:"hidden", textOverflow:"ellipsis" }}>{item.docId}</td>
+                              <td style={td}><code style={{ fontSize:11 }}>{item.campo}</code></td>
+                              <td style={{ ...td, fontSize:11, maxWidth:180, overflow:"hidden", textOverflow:"ellipsis" }}>{item.valor}</td>
+                              <td style={td}>
+                                <span style={badge(t.danger)}>{item.problema}</span>
+                                {item.extra && <span style={{ marginLeft:8, fontSize:11, color:t.textMuted }}>{item.extra}</span>}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                  {diagFirestore.length === 0 && <div style={{ textAlign:"center", padding:20, color:t.success, fontSize:13 }}>Nenhuma referência órfã encontrada.</div>}
+                </>
+              );
+            })()}
+
+            {/* Auth */}
+            {!diagRodando && diagAba === "auth" && (() => {
+              if (!diagAuth) return <div style={{ textAlign:"center", padding:20, color:t.textDisabled, fontSize:13 }}>Clique em "Executar Diagnóstico" para verificar consistência de contas.</div>;
+              return (
+                <>
+                  <div style={{ display:"flex", gap:16, flexWrap:"wrap", marginBottom:16 }}>
+                    <div style={statItem(diagAuth.length > 0 ? t.accent : t.success)}>
+                      <div style={statNum(diagAuth.length > 0 ? t.accent : t.success)}>{diagAuth.length}</div><div style={statLabel}>Alertas</div>
+                    </div>
+                    <div style={statItem(t.accent)}><div style={statNum(t.accent)}>{(organizadores || []).length}</div><div style={statLabel}>Organizadores</div></div>
+                    <div style={statItem(t.accent)}><div style={statNum(t.accent)}>{(equipes || []).length}</div><div style={statLabel}>Equipes</div></div>
+                  </div>
+                  <div style={{ ...s.card, background:t.bgHover, marginBottom:16 }}>
+                    <div style={{ fontSize:12, color:t.textMuted, lineHeight:1.6 }}>
+                      <strong>Nota:</strong> A listagem completa de contas no Firebase Auth requer o Admin SDK (servidor).
+                      Este diagnóstico verifica inconsistências nos dados do Firestore que podem indicar contas Auth órfãs.
+                      Para auditoria completa, use o console do Firebase &gt; Authentication.
+                    </div>
+                  </div>
+                  {diagAuth.length > 0 && (
+                    <div style={{ overflowX:"auto", borderRadius:10, border:`1px solid ${t.border}` }}>
+                      <table style={{ width:"100%", borderCollapse:"collapse" }}>
+                        <thead><tr><th style={th}>Tipo</th><th style={th}>Nome</th><th style={th}>Problema</th></tr></thead>
+                        <tbody>
+                          {diagAuth.map((item, i) => (
+                            <tr key={i} style={{ background: i % 2 === 0 ? "transparent" : t.bgHover }}>
+                              <td style={td}>{item.tipo}</td>
+                              <td style={td}>{item.nome}</td>
+                              <td style={td}><span style={badge(t.danger)}>{item.problema}</span></td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                  {diagAuth.length === 0 && <div style={{ textAlign:"center", padding:20, color:t.success, fontSize:13 }}>Nenhum alerta de consistência encontrado.</div>}
+                </>
+              );
+            })()}
           </div>
         );
       })()}

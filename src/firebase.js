@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject, getBlob } from "firebase/storage";
 import {
   getFirestore,
   collection,
@@ -48,7 +48,7 @@ export {
   auth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
   signOut, sendPasswordResetEmail, updatePassword, onAuthStateChanged, sendEmailVerification,
   // Storage
-  storage, storageRef, uploadBytes, getDownloadURL, deleteObject,
+  storage, storageRef, uploadBytes, getDownloadURL, deleteObject, getBlob,
   // Auth secundário (criar contas sem deslogar o usuário atual)
   secondaryAuth,
 };

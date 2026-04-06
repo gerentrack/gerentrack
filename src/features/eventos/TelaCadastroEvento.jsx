@@ -22,10 +22,21 @@ function extrairPathDoUrl(url) {
   } catch { return null; }
 }
 
+/** Gera slug seguro para path do Storage */
+function slugifyPath(str) {
+  return (str || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-").slice(0, 60) || "sem-nome";
+}
+
 // Faz upload da imagem para Firebase Storage e retorna a URL pública
-async function uploadLogo(file, eventoId, campo) {
+async function uploadLogo(file, pastaEvento, campo, urlAnterior) {
+  // Deletar arquivo anterior se existir (evita órfãos ao trocar extensão)
+  if (urlAnterior) {
+    const pathAnt = extrairPathDoUrl(urlAnterior);
+    if (pathAnt) { try { await deleteObject(storageRef(storage, pathAnt)); } catch {} }
+  }
   const ext = file.name?.split(".")?.pop() || "png";
-  const path = `logos/${eventoId}/${campo}.${ext}`;
+  const path = `logos/${pastaEvento}/${campo}.${ext}`;
   const ref = storageRef(storage, path);
   await uploadBytes(ref, file);
   return await getDownloadURL(ref);
@@ -1166,8 +1177,10 @@ function TelaCadastroEvento() {
                             if (pathAnterior) {
                               try { await deleteObject(storageRef(storage, pathAnterior)); } catch {}
                             }
-                            const id = eventoAtualId || form._uploadId || (form._uploadId = Date.now().toString());
-                            const path = `regulamentos/${id}/regulamento.pdf`;
+                            const orgId = form.organizadorId || (tipoEvt === "organizador" ? usuarioLogado?.id : usuarioLogado?.organizadorId);
+                            const orgNome = organizadores?.find(o => o.id === orgId)?.nome;
+                            const pasta = `${slugifyPath(orgNome)}/${slugifyPath(form.nome)}`;
+                            const path = `regulamentos/${pasta}/regulamento.pdf`;
                             const ref = storageRef(storage, path);
                             await uploadBytes(ref, file);
                             const url = await getDownloadURL(ref);
@@ -1289,9 +1302,17 @@ function TelaCadastroEvento() {
             const campo = cropModal.campo;
             setCropModal(null);
             try {
-              const id = eventoAtualId || form._uploadId || (form._uploadId = Date.now().toString());
+              // Deletar arquivo anterior se existir
+              const urlAnt = form[campo];
+              if (urlAnt) {
+                const pathAnt = extrairPathDoUrl(urlAnt);
+                if (pathAnt) { try { await deleteObject(storageRef(storage, pathAnt)); } catch {} }
+              }
+              const orgId = form.organizadorId || (tipoEvt === "organizador" ? usuarioLogado?.id : usuarioLogado?.organizadorId);
+              const orgNome = organizadores?.find(o => o.id === orgId)?.nome;
+              const pasta = `${slugifyPath(orgNome)}/${slugifyPath(form.nome)}`;
               const ext = blob.type === "image/webp" ? "webp" : "png";
-              const path = `logos/${id}/${campo}.${ext}`;
+              const path = `logos/${pasta}/${campo}.${ext}`;
               const ref = storageRef(storage, path);
               await uploadBytes(ref, blob);
               const url = await getDownloadURL(ref);
