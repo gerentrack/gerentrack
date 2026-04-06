@@ -80,7 +80,7 @@ const getStyles = (t) => ({
   heroBtns: { display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" },
   eventosGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(320px, 100%), 1fr))", gap: 20, marginBottom: 48, overflowX: "auto" },
   eventoCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 14, padding: 24, display: "flex", flexDirection: "column", gap: 10 },
-  eventoCardNome: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.textPrimary, lineHeight: 1.2 },
+  eventoCardNome: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.textPrimary, lineHeight: 1.2, minHeight: "2.4em", maxHeight: "2.4em", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" },
   eventoCardMeta: { fontSize: 13, color: t.textDimmed },
   eventoCardStats: { display: "flex", gap: 16, fontSize: 13, color: t.textMuted, flexWrap: "wrap", borderTop: `1px solid ${t.border}`, paddingTop: 10, marginTop: 4 },
   eventoStatusBadge: (status) => ({
@@ -183,8 +183,7 @@ export default function TelaHome() {
   const mesAtual = hoje.getMonth();
   const anoAtual = hoje.getFullYear();
 
-  const aprovados = eventos
-    .filter(ev => !ev.statusAprovacao || ev.statusAprovacao === "aprovado");
+  const aprovados = eventos;
 
   const proximosEventos = aprovados
     .filter(ev => {
@@ -222,9 +221,9 @@ export default function TelaHome() {
     const status = getStatusEvento(ev, resultados);
     return (
       <div key={ev.id} style={{ ...s.eventoCard, padding:0, overflow:"hidden" }}>
-        <div style={{ position:"relative", width:"100%", minHeight: (ev.logoCompeticao && !ev.competicaoFinalizada) ? 0 : 60, background: (ev.logoCompeticao && !ev.competicaoFinalizada) ? "transparent" : "linear-gradient(135deg, #0a1a2a 0%, #1a0a2a 100%)", borderBottom:"1px solid #1E2130", overflow:"hidden" }}>
+        <div style={{ position:"relative", width:"100%", aspectRatio:"1/1", background: t.bgCard, borderBottom:`1px solid ${t.border}`, overflow:"hidden", display:"flex", alignItems:"center", justifyContent:"center" }}>
           {ev.logoCompeticao && !ev.competicaoFinalizada ? (
-            <img src={ev.logoCompeticao} alt="" style={{ width:"100%", display:"block", objectFit:"contain" }} />
+            <img src={ev.logoCompeticao} alt="" style={{ maxWidth:"100%", maxHeight:"100%", display:"block", objectFit:"contain" }} />
           ) : (
             <span style={{ fontSize:28, opacity:0.3 }}>🏟️</span>
           )}
@@ -343,7 +342,7 @@ export default function TelaHome() {
 
             wrap("stats", (() => {
               const cards = [];
-              if (hs.competicoes) cards.push(<StatCard key="comp" value={eventos.filter(ev=>!ev.statusAprovacao||ev.statusAprovacao==="aprovado").length} label="Competições" escala={tam.stats || 1} />);
+              if (hs.competicoes) cards.push(<StatCard key="comp" value={eventos.length} label="Competições" escala={tam.stats || 1} />);
               if (hs.organizadores) cards.push(<StatCard key="org" value={organizadores?.filter(o => !o.status || o.status === "aprovado").length || 0} label="Organizadores" escala={tam.stats || 1} />);
               if (hs.equipes) cards.push(<StatCard key="eq" value={equipes?.length || 0} label="Equipes" escala={tam.stats || 1} />);
               if (hs.atletas) cards.push(<StatCard key="atl" value={atletas.length} label="Atletas" escala={tam.stats || 1} />);
@@ -380,7 +379,7 @@ export default function TelaHome() {
       {(() => {
         const orgsAtivos = (organizadores || []).filter(o => o.status === "aprovado");
         const orgsComEventos = orgsAtivos.filter(o =>
-          eventos.some(ev => ev.organizadorId === o.id && (!ev.statusAprovacao || ev.statusAprovacao === "aprovado"))
+          eventos.some(ev => ev.organizadorId === o.id)
         );
         if (orgsComEventos.length === 0) return null;
         return (
@@ -388,7 +387,7 @@ export default function TelaHome() {
             <h2 style={s.sectionTitle}>Organizadores</h2>
             <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 8 }}>
               {orgsComEventos.map(org => {
-                const nComp = eventos.filter(ev => ev.organizadorId === org.id && (!ev.statusAprovacao || ev.statusAprovacao === "aprovado")).length;
+                const nComp = eventos.filter(ev => ev.organizadorId === org.id).length;
                 const corPri = org.corPrimaria || t.accent;
                 return (
                   <div key={org.id}

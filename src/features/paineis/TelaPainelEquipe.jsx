@@ -131,9 +131,7 @@ export default function TelaPainelEquipe() {
 
   // Eventos abertos para inscrição
   const eventosAbertos = useMemo(() =>
-    (eventos||[]).filter(ev =>
-      !ev.inscricoesEncerradas &&
-      (!ev.statusAprovacao || ev.statusAprovacao === "aprovado")
+    (eventos||[]).filter(ev => !ev.inscricoesEncerradas
     ).sort((a,b) => (a.data||"").localeCompare(b.data||"")),
     [eventos]
   );

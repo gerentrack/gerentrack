@@ -70,8 +70,6 @@ export function buildAppValue(props) {
     excluirDadosOrganizador: props.excluirDadosOrganizador,
     aprovarOrganizador: props.aprovarOrganizador,
     recusarOrganizador: props.recusarOrganizador,
-    aprovarEvento: props.aprovarEvento,
-    recusarEvento: props.recusarEvento,
 
     // Atletas usuários
     atletasUsuarios: props.atletasUsuarios,

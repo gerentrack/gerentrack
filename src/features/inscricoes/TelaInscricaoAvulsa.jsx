@@ -196,7 +196,6 @@ function TelaInscricaoAvulsa() {
 
   const eventosAbertos = (eventos || []).filter(ev => {
     if (isInscricaoEncerradaAgora(ev)) return false;
-    if (ev.statusAprovacao !== "aprovado" && ev.statusAprovacao) return false;
     if (!isAtleta) return true;
     // Atleta: só vê evento do próprio org OU onde org foi autorizado
     if (!atletaOrgId) return ev.organizadorId === null || !ev.organizadorId; // sem org: só vê eventos sem org

@@ -78,14 +78,13 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado, solicitacoesRecuperacao, resolverSolicitacaoRecuperacao, aplicarSenhaTemp } = useAuth();
   const { equipes, atletas, inscricoes, eventos, selecionarEvento, excluirEvento, resultados, atualizarAtleta, excluirAtleta } = useEvento();
-  const { setTela, organizadores, adicionarOrganizador, aprovarOrganizador, recusarOrganizador, editarOrganizadorAdmin, excluirDadosOrganizador, aprovarEvento, recusarEvento, exportarDados, importarDados, siteBranding, setSiteBranding, gtIcon, gtLogo, historicoAcoes, atletasUsuarios, funcionarios, treinadores, setAtletaEditandoId, solicitacoesEquipe, aprovarEquipe, recusarEquipe, solicitacoesPortabilidade, resolverSolicitacaoPortabilidade, excluirSolicitacaoPortabilidade, registrarAcao } = useApp();
+  const { setTela, organizadores, adicionarOrganizador, aprovarOrganizador, recusarOrganizador, editarOrganizadorAdmin, excluirDadosOrganizador, exportarDados, importarDados, siteBranding, setSiteBranding, gtIcon, gtLogo, historicoAcoes, atletasUsuarios, funcionarios, treinadores, setAtletaEditandoId, solicitacoesEquipe, aprovarEquipe, recusarEquipe, solicitacoesPortabilidade, resolverSolicitacaoPortabilidade, excluirSolicitacaoPortabilidade, registrarAcao } = useApp();
   const confirmar = useConfirm();
   const pendOrg = organizadores.filter(o => o.status === "pendente");
-  const pendEv  = eventos.filter(e => e.statusAprovacao === "pendente");
   const pendRec = (solicitacoesRecuperacao || []).filter(sol => sol.status === "pendente");
   const pendEq  = (solicitacoesEquipe || []).filter(sol => sol.status === "pendente");
   const pendPort = (solicitacoesPortabilidade || []).filter(sol => sol.status === "pendente");
-  const totalPend = pendOrg.length + pendEv.length + pendRec.length + pendEq.length + pendPort.length;
+  const totalPend = pendOrg.length + pendRec.length + pendEq.length + pendPort.length;
 
   // Mapa equipeId → quantidade de atletas (O(n) uma vez, O(1) por equipe)
   const atletasPorEquipeId = useMemo(() => {
@@ -153,7 +152,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
   const TABS = [
     { id:"visao-geral",   label:"Visão Geral",   badge: totalPend },
     { id:"organizadores", label:"Organizadores",  badge: pendOrg.length + pendRec.length, sub: organizadores.length },
-    { id:"competicoes",   label:"Competições",    badge: pendEv.length, sub: eventos.length },
+    { id:"competicoes",   label:"Competições",    sub: eventos.length },
     { id:"equipes",       label:"Equipes",        badge: pendEq.length, sub: equipes.length },
     { id:"atletas",       label:"Atletas",        sub: atletas.length },
     { id:"licencas",      label:"Licenças", sub: organizadores.filter(o => o.plano).length },
@@ -299,16 +298,6 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                       <div style={{ color: t.textDimmed, fontSize:11, marginTop:2 }}>Aguardando aprovação</div>
                     </div>
                     <span style={{ marginLeft:"auto", color:"#1a3a5a", fontSize:16 }}>→</span>
-                  </button>
-                )}
-                {pendEv.length > 0 && (
-                  <button onClick={() => setAba("competicoes")} style={s.pendCard("#e67e22",`${t.warning}11`,"#e67e2244")}>
-                    <span style={{ fontSize:26 }}>📋</span>
-                    <div>
-                      <div style={{ fontWeight:700, color:"#e67e22", fontSize:13 }}>{pendEv.length} competição(ões) pendente(s)</div>
-                      <div style={{ color: t.textDimmed, fontSize:11, marginTop:2 }}>Aguardando aprovação</div>
-                    </div>
-                    <span style={{ marginLeft:"auto", color:"#4a2a00", fontSize:16 }}>→</span>
                   </button>
                 )}
                 {pendPort.length > 0 && (
@@ -590,46 +579,6 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
       ══════════════════════════════════════════════════════════════════════ */}
       {aba === "competicoes" && (
         <>
-          {/* Pendentes */}
-          {pendEv.length > 0 && (
-            <div style={{ ...s.card, borderColor:"#e67e2244", marginBottom:16 }}>
-              <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:800, color:"#e67e22", marginBottom:14, letterSpacing:1 }}>
-                📋 Aguardando Aprovação ({pendEv.length})
-              </div>
-              <div style={s.tableWrap}>
-                <table style={s.table}>
-                  <thead><tr><Th>Competição</Th><Th>Organizador</Th><Th>Data</Th><Th>Local</Th><Th>Provas</Th><Th>Ações</Th></tr></thead>
-                  <tbody>
-                    {pendEv.map(ev => {
-                      const org = organizadores.find(o => o.id === ev.organizadorId);
-                      return (
-                        <tr key={`pend_${ev.id}`} style={s.tr}>
-                          <Td><strong style={{ color:"#e67e22" }}>{ev.nome}</strong></Td>
-                          <Td style={{ fontSize:12 }}>{org ? `${org.nome} — ${org.entidade}` : "—"}</Td>
-                          <Td style={{ fontSize:12 }}>{new Date(ev.data+"T12:00:00").toLocaleDateString("pt-BR")}</Td>
-                          <Td style={{ fontSize:12 }}>{_getLocalEventoDisplay(ev)}</Td>
-                          <Td>{ev.provasPrograma?.length||0}</Td>
-                          <Td>
-                            <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-                              <button onClick={async () => {selecionarEvento(ev.id);setTela("evento-detalhe");}}
-                                style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px" }}>Ver</button>
-                              <button onClick={async () => {selecionarEvento(ev.id);setTela("novo-evento");}}
-                                style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px", color:t.accent, borderColor:`${t.accent}66` }}>⚙️ Editar</button>
-                              <button onClick={() => aprovarEvento(ev.id)}
-                                style={{ ...s.btnGhost, fontSize:11, padding:"3px 12px", color:t.success, borderColor:`${t.success}66` }}>✓ Aprovar</button>
-                              <button onClick={() => recusarEvento(ev.id)}
-                                style={{ ...s.btnGhost, fontSize:11, padding:"3px 12px", color: t.danger, borderColor:`${t.danger}66` }}>✗ Recusar</button>
-                            </div>
-                          </Td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
           {/* Todas as competições */}
           <div style={s.card}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:14 }}>
@@ -645,13 +594,11 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                 <div style={{ display:"flex", flexDirection:"column", gap:8, maxHeight:480, overflowY:"auto" }}>
                   {compPag.map(ev => {
                     const nInscs = inscricoes.filter(i => i.eventoId===ev.id).length;
-                    const bs = badgeStatus(ev.statusAprovacao || "aprovado", t);
                     return (
                       <div key={`all_${ev.id}`} style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, padding:"10px 14px" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
                           {ev.logoCompeticao && <img src={ev.logoCompeticao} alt="" style={{ width:22, height:22, objectFit:"contain", borderRadius:3 }} />}
                           <strong style={{ color: t.textPrimary, fontSize:13, flex:1 }}>{ev.nome}</strong>
-                          <span style={{ background:bs.bg, color:bs.color, fontSize:10, fontWeight:700, padding:"1px 7px", borderRadius:3 }}>{bs.label}</span>
                         </div>
                         <div style={{ color: t.textDimmed, fontSize:11, marginBottom:8 }}>
                           {new Date(ev.data+"T12:00:00").toLocaleDateString("pt-BR")} · {_getLocalEventoDisplay(ev)} · {nInscs} insc.

@@ -83,7 +83,7 @@ export function useEventos() {
   }, []);
 
   // ── Atualizar campos parciais de 1 evento (merge) ────────────────────────
-  // Usado em aprovarEvento, recusarEvento, alterarStatusEvento
+  // Usado em alterarStatusEvento
   const _atualizarCamposEvento = useCallback(async (id, campos) => {
     const atual = eventosRef.current.find(e => e.id === id);
     if (!atual) return;

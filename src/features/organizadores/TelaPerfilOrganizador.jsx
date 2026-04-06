@@ -32,7 +32,7 @@ function getStyles(t) {
     eventosGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(300px, 100%), 1fr))", gap: 16, padding: "0 24px" },
     eventoCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 14, overflow: "hidden", cursor: "pointer", transition: "border-color 0.2s" },
     eventoCardBody: { padding: "14px 18px" },
-    eventoCardNome: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: t.textPrimary, lineHeight: 1.2 },
+    eventoCardNome: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: t.textPrimary, lineHeight: 1.2, minHeight: "2.4em", maxHeight: "2.4em", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" },
     eventoCardMeta: { fontSize: 12, color: t.textDimmed, marginTop: 4 },
     eventoCardStats: { display: "flex", gap: 12, fontSize: 12, color: t.textMuted, marginTop: 8, borderTop: `1px solid ${t.border}`, paddingTop: 8 },
     eventoStatusBadge: (status) => ({
@@ -72,7 +72,7 @@ export default function TelaPerfilOrganizador() {
 
   const eventosOrg = useMemo(() =>
     eventos
-      .filter(ev => ev.organizadorId === org.id && (!ev.statusAprovacao || ev.statusAprovacao === "aprovado"))
+      .filter(ev => ev.organizadorId === org.id)
       .sort((a, b) => new Date(a.data || 0) - new Date(b.data || 0)),
     [eventos, org.id]
   );
@@ -101,9 +101,9 @@ export default function TelaPerfilOrganizador() {
     const dataEv = ev.data ? new Date(ev.data + "T12:00:00") : null;
     return (
       <div key={ev.id} style={{ ...s.eventoCard, padding: 0 }}>
-        <div style={{ position: "relative", width: "100%", minHeight: (ev.logoCompeticao && !ev.competicaoFinalizada) ? 0 : 60, background: (ev.logoCompeticao && !ev.competicaoFinalizada) ? "transparent" : `linear-gradient(135deg, ${corPri}22, ${corSec}22)`, borderBottom: `1px solid ${t.border}`, overflow: "hidden" }}>
+        <div style={{ position: "relative", width: "100%", aspectRatio: "1/1", background: t.bgCard, borderBottom: `1px solid ${t.border}`, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
           {ev.logoCompeticao && !ev.competicaoFinalizada ? (
-            <img src={ev.logoCompeticao} alt="" style={{ width: "100%", display: "block", objectFit: "contain" }} />
+            <img src={ev.logoCompeticao} alt="" style={{ maxWidth: "100%", maxHeight: "100%", display: "block", objectFit: "contain" }} />
           ) : null}
           <div style={{ position: "absolute", top: 10, left: 12, display: "flex", flexDirection: "column", gap: 4 }}>
             <span style={s.eventoStatusBadge(status)}>{labelStatusEvento(status, ev)}</span>

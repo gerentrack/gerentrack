@@ -199,7 +199,6 @@ function TelaPainelAtleta() {
           Array.isArray(e.orgsAutorizadas) &&
           e.orgsAutorizadas.includes(meuOrgId) &&
           e.organizadorId !== meuOrgId &&
-          e.statusAprovacao === "aprovado" &&
           !e.inscricoesEncerradas
         );
         if (disponiveis.length === 0) return null;

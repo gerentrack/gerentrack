@@ -550,13 +550,7 @@ function TelaPainelOrganizador() {
                     <Td>{_getLocalEventoDisplay(ev)}</Td>
                     <Td><span style={s.marca}>{nInsc}</span></Td>
                     <Td>
-                      {ev.statusAprovacao === "pendente" && (
-                        <span style={{ color: t.accent, fontSize:11, fontWeight:700, display:"block" }}>Aguard. aprovação</span>
-                      )}
-                      {ev.statusAprovacao === "recusado" && (
-                        <span style={{ color: t.danger, fontSize:11, fontWeight:700, display:"block" }}>✗ Recusado pelo admin</span>
-                      )}
-                      {(!ev.statusAprovacao || ev.statusAprovacao === "aprovado") && (() => {
+                      {(() => {
                         const hoje = new Date().toISOString().slice(0,10);
                         const aindaNaoAbriu = ev.dataAberturaInscricoes && hoje < ev.dataAberturaInscricoes;
                         if (ev.inscricoesEncerradas && aindaNaoAbriu) return (
@@ -638,8 +632,7 @@ function TelaPainelOrganizador() {
         const eventosCruzados = eventos.filter(e =>
           Array.isArray(e.orgsAutorizadas) &&
           e.orgsAutorizadas.includes(orgId) &&
-          e.organizadorId !== orgId &&
-          e.statusAprovacao === "aprovado"
+          e.organizadorId !== orgId
         );
         return (
           <div style={{ marginTop: 40 }}>

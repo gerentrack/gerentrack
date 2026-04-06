@@ -897,19 +897,6 @@ function App() {
     ));
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Recusou equipe", eq?.nome || equipeId, null, { modulo: "sistema" });
   };
-  const aprovarEvento       = (id) => {
-    const hoje = new Date().toISOString().slice(0, 10);
-    const ev = eventosRef.current.find(e => e.id === id);
-    if (!ev) return;
-    const aindaNaoAbriu = ev.dataAberturaInscricoes && hoje < ev.dataAberturaInscricoes;
-    _atualizarCamposEvento(id, { statusAprovacao: "aprovado", inscricoesEncerradas: aindaNaoAbriu ? true : false });
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Aprovou competição", ev?.nome || id, null, { modulo: "sistema" });
-  };
-  const recusarEvento       = (id) => {
-    _atualizarCamposEvento(id, { statusAprovacao: "recusado" });
-    const ev = eventosRef.current.find(e => e.id === id);
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Recusou competição", ev?.nome || id, null, { modulo: "sistema" });
-  };
   const adicionarAtletaUsuario = (u) => setAtletasUsuarios((p) => [...p, u]);
   const atualizarAtletaUsuario = (u) => setAtletasUsuarios((p) => p.map(x => x.id === u.id ? u : x));
   const adicionarAtleta  = (a) => {
@@ -1144,8 +1131,8 @@ function App() {
       id,
       slug: gerarSlug(ev.nome, id),
       organizadorId: orgPendente ? usuarioLogadoParam.id : (ev.organizadorId || null),
-      statusAprovacao: orgPendente ? "pendente" : "aprovado",
-      inscricoesEncerradas: orgPendente || temAberturaFutura ? true : (ev.inscricoesEncerradas ?? false),
+      statusAprovacao: "aprovado",
+      inscricoesEncerradas: temAberturaFutura ? true : (ev.inscricoesEncerradas ?? false),
     };
     _adicionarEvento(novo);
 
@@ -1459,7 +1446,6 @@ function App() {
     const agora = new Date();
     const atualizados = [];
     eventosRef.current.forEach(ev => {
-      if (ev.statusAprovacao && ev.statusAprovacao !== "aprovado") return;
       const dtAbEv  = _dtInscricoes(ev.dataAberturaInscricoes,    ev.horaAberturaInscricoes);
       const dtEncEv = _dtInscricoes(ev.dataEncerramentoInscricoes, ev.horaEncerramentoInscricoes);
       let novo = ev;
@@ -1711,7 +1697,6 @@ function App() {
     excluirOrganizador, excluirEquipeUsuario, excluirAtletaUsuario, excluirDadosOrganizador,
     editarOrganizadorAdmin, editarEquipeAdmin, editarAtletaUsuarioAdmin,
     adicionarEquipe, adicionarOrganizador, aprovarOrganizador, recusarOrganizador,
-    aprovarEvento, recusarEvento,
     aprovarEquipe, recusarEquipe, adicionarSolicitacaoEquipe,
     solicitacoesEquipe,
     adicionarAtletaUsuario, atualizarAtletaUsuario,
