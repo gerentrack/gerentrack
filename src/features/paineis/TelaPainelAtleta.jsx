@@ -538,8 +538,8 @@ function TelaPainelAtleta() {
             let faseEncontrada = "";
             for (const fase of FASE_PRIO) {
               const chave = fase
-                ? `${evId}_${i.provaId}_${i.categoriaOficialId||i.categoriaId}_${i.sexo}__${fase}`
-                : `${evId}_${i.provaId}_${i.categoriaOficialId||i.categoriaId}_${i.sexo}`;
+                ? `${evId}_${i.provaId}_${i.categoriaId||i.categoriaOficialId}_${i.sexo}__${fase}`
+                : `${evId}_${i.provaId}_${i.categoriaId||i.categoriaOficialId}_${i.sexo}`;
               const docRes = resultados[chave];
               if (docRes && docRes[meuAtleta.id] != null) {
                 const entrada = docRes[meuAtleta.id];

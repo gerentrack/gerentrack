@@ -210,13 +210,13 @@ function TelaResultados() {
 
   // Categorias que têm inscrições nesta competição
   const categoriasComInscricao = CATEGORIAS.filter(c =>
-    inscDoEvento.some(i => (i.categoriaOficialId || i.categoriaId) === c.id)
+    inscDoEvento.some(i => (i.categoriaId || i.categoriaOficialId) === c.id)
   );
 
   // Nomes de provas que têm inscrições, filtradas pela categoria selecionada
   const provasComInscFiltradas = todasProvasComCombinadas.filter(p =>
     inscDoEvento.some(i => i.provaId === p.id &&
-      (filtroCat === "todas" || (i.categoriaOficialId || i.categoriaId) === filtroCat)
+      (filtroCat === "todas" || (i.categoriaId || i.categoriaOficialId) === filtroCat)
     )
   );
   const nomesProvasUnicos = [...new Set(provasComInscFiltradas.map(p => p.nome))].sort();
@@ -241,7 +241,7 @@ function TelaResultados() {
           // Revezamento: entradas são por equipeId
           const inscsRevez = inscDoEvento.filter(i =>
             i.tipo === "revezamento" && i.provaId === prova.id &&
-            (i.categoriaOficialId || i.categoriaId) === cat.id && i.sexo === sexo
+            (i.categoriaId || i.categoriaOficialId) === cat.id && i.sexo === sexo
           );
           const classificados = Object.entries(res)
             .map(([eqId, raw]) => {
@@ -487,7 +487,7 @@ function TelaResultados() {
       .filter(b => b.prova.tipo !== "combinada")
       .map(b => {
         const inscs = inscDoEvento.filter(i =>
-          i.provaId === b.prova.id && (i.categoriaOficialId || i.categoriaId) === b.categoria.id && i.sexo === b.sexo
+          i.provaId === b.prova.id && (i.categoriaId || i.categoriaOficialId) === b.categoria.id && i.sexo === b.sexo
         );
 
         if (b.isRevezamento) {
@@ -1210,7 +1210,7 @@ function TelaResultados() {
                   style={{ ...s.btnGhost, fontSize: 12, padding: "6px 12px", whiteSpace: "nowrap" }}
                   onClick={() => {
                     const inscs = inscDoEvento.filter(ii =>
-                      ii.provaId === b.prova.id && (ii.categoriaOficialId || ii.categoriaId) === b.categoria.id && ii.sexo === b.sexo
+                      ii.provaId === b.prova.id && (ii.categoriaId || ii.categoriaOficialId) === b.categoria.id && ii.sexo === b.sexo
                     );
                     let sumu;
                     if (b.isRevezamento) {
@@ -1278,7 +1278,7 @@ function TelaResultados() {
                 // Fallback para combinadas: divisão simples se não tem seriação
                 const MAX_SERIE = 8;
                 const inscBlk = inscDoEvento.filter(ii =>
-                  ii.provaId === b.prova.id && (ii.categoriaOficialId || ii.categoriaId) === b.categoria.id && ii.sexo === b.sexo
+                  ii.provaId === b.prova.id && (ii.categoriaId || ii.categoriaOficialId) === b.categoria.id && ii.sexo === b.sexo
                 );
                 const atletasInscritos = inscBlk.map(ii => ii.atletaId);
                 const totalSer = Math.ceil(atletasInscritos.length / MAX_SERIE);
@@ -1303,7 +1303,7 @@ function TelaResultados() {
               const _serBlkPont = b.faseSufixo ? buscarSeriacao(eventoAtual.seriacao, b.prova.id, b.categoria.id, b.sexo, b.faseSufixo) : null;
               const _inscsBase = inscDoEvento.filter(i =>
                 i.provaId === b.prova.id &&
-                (i.categoriaOficialId || i.categoriaId) === b.categoria.id &&
+                (i.categoriaId || i.categoriaOficialId) === b.categoria.id &&
                 i.sexo === b.sexo &&
                 (isRevezBlk ? i.tipo === "revezamento" : i.tipo !== "revezamento")
               );

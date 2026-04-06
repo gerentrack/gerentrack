@@ -180,7 +180,7 @@ const TeamScoringEngine = {
             ? _serPont.series.flatMap(ser => ser.atletas.map(a => ({ atletaId: a.id || a.atletaId })))
             : inscDoEvento.filter(function(i) {
                 return i.provaId === prova.id &&
-                  (i.categoriaOficialId || i.categoriaId) === cat.id &&
+                  (i.categoriaId || i.categoriaOficialId) === cat.id &&
                   i.sexo === sexo &&
                   i.tipo !== "revezamento";
               });
@@ -278,7 +278,7 @@ const TeamScoringEngine = {
             ? _serPontR.series.flatMap(ser => ser.atletas.map(a => ({ atletaId: a.id || a.atletaId })))
             : inscDoEvento.filter(function(i) {
                 return i.tipo === "revezamento" && i.provaId === prova.id &&
-                  (i.categoriaOficialId || i.categoriaId) === cat.id &&
+                  (i.categoriaId || i.categoriaOficialId) === cat.id &&
                   i.sexo === sexo;
               });
           var revezCompleto = inscsRevezEng.length === 0 || Object.keys(res).length >= inscsRevezEng.length;

@@ -161,7 +161,7 @@ function TelaSecretaria() {
     inscsRevez.forEach(insc => {
       const prova = todas.find(p => p.id === insc.provaId);
       if (!prova) return;
-      const catId = insc.categoriaOficialId || insc.categoriaId;
+      const catId = insc.categoriaId || insc.categoriaOficialId;
       const cat = CATEGORIAS.find(c => c.id === catId);
       if (!cat) return;
       const key = `revez_${insc.provaId}_${catId}_${insc.sexo}`;

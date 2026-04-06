@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas, nPernasRevezamento } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/constants/categorias";
 import { getFasesProva, getFasesModo, temMultiFases, buscarSeriacao, serKey, resKey, FASE_NOME, FASE_ANTERIOR, getEntradasProva } from "../../shared/constants/fases";
@@ -46,6 +47,7 @@ const getExibicaoEquipe = (atleta, equipes) => {
 function TelaSumulas({ chamada, getPresencaProva }) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
+  const confirmar = useConfirm();
   const { usuarioLogado } = useAuth();
   const { inscricoes, atletas, eventoAtual, resultados, numeracaoPeito, getClubeAtleta, equipes, editarEvento, alterarStatusEvento, recordes } = useEvento();
   const { setTela, registrarAcao } = useApp();
@@ -139,7 +141,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
           // Revezamento: inscrições tipo "revezamento" agrupadas por equipe
           const inscsRevez = inscDoEvento.filter(
             (i) => i.tipo === "revezamento" && i.provaId === prova.id &&
-              (i.categoriaOficialId || i.categoriaId) === cat.id &&
+              (i.categoriaId || i.categoriaOficialId) === cat.id &&
               i.sexo === sexo
           );
           if (inscsRevez.length === 0) return [];
@@ -156,7 +158,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
 
         const inscs = inscDoEvento.filter(
           (i) => i.provaId === prova.id &&
-            (i.categoriaOficialId || i.categoriaId) === cat.id &&
+            (i.categoriaId || i.categoriaOficialId) === cat.id &&
             i.sexo === sexo && i.tipo !== "revezamento"
         );
         if (inscs.length === 0) return [];
@@ -406,7 +408,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
           CATEGORIAS.forEach(cat => {
             ["M","F"].forEach(sexo => {
               const inscs = inscDoEvento.filter(i =>
-                i.provaId === provaId && (i.categoriaOficialId || i.categoriaId) === cat.id && i.sexo === sexo && !i.origemCombinada
+                i.provaId === provaId && (i.categoriaId || i.categoriaOficialId) === cat.id && i.sexo === sexo && !i.origemCombinada
               );
               if (inscs.length <= 0) return;
 
@@ -452,7 +454,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
             ["M","F"].forEach(sexo => {
               const inscs = inscDoEvento.filter(i =>
                 i.tipo === "revezamento" && i.provaId === provaId &&
-                (i.categoriaOficialId || i.categoriaId) === cat.id && i.sexo === sexo
+                (i.categoriaId || i.categoriaOficialId) === cat.id && i.sexo === sexo
               );
               if (inscs.length <= 0) return;
               const chave = `${provaId}_${cat.id}_${sexo}`;
@@ -1663,6 +1665,51 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                 </table>
                 </div>
               ) : (
+              <>
+              {/* Sorteio RT 25.5 — provas de campo (exceto altura/vara) */}
+              {(() => {
+                const _isCampoSum = sum.prova.unidade !== "s" && !(sum.prova.tipo === "salto" && (sum.prova.id.includes("altura") || sum.prova.id.includes("vara")));
+                if (!_isCampoSum || !isDono) return null;
+                const _chS = `${sum.prova.id}_${sum.categoria.id}_${sum.sexo}`;
+                const _srt = eventoAtual?.sorteioCampo?.[_chS];
+                const executarSorteio = () => {
+                  const atlUn = sum.atletas.filter((a, i, arr) => arr.findIndex(x => x.id === a.id) === i);
+                  const ids = atlUn.map(a => a.id);
+                  for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; }
+                  editarEvento({ ...eventoAtual, sorteioCampo: { ...(eventoAtual.sorteioCampo || {}), [_chS]: { ordem: ids, timestamp: Date.now() } } });
+                };
+                return (
+                  <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10, flexWrap:"wrap" }}>
+                    {_srt?.ordem ? (
+                      <>
+                        <span style={{ fontSize:12, color:t.success, fontWeight:600 }}>
+                          Sorteio realizado em {new Date(_srt.timestamp).toLocaleString("pt-BR", { day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit" })}
+                        </span>
+                        <button
+                          style={{ background:"transparent", color:t.textMuted, border:`1px solid ${t.borderLight}`, padding:"5px 14px", borderRadius:6, cursor:"pointer", fontSize:12, fontFamily:"'Barlow',sans-serif" }}
+                          disabled={eventoAtual.competicaoFinalizada}
+                          onClick={async () => {
+                            const ok = await confirmar("Refazer o sorteio de ordem? A ordem atual será substituída.");
+                            if (!ok) return;
+                            executarSorteio();
+                          }}>
+                          Refazer Sorteio
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <span style={{ fontSize:12, color:t.accent, fontWeight:600 }}>Sorteio não realizado (RT 25.5)</span>
+                        <button
+                          style={{ background:`linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color:"#fff", border:"none", padding:"6px 16px", borderRadius:6, cursor:"pointer", fontSize:12, fontWeight:700, fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:1 }}
+                          disabled={eventoAtual.competicaoFinalizada}
+                          onClick={executarSorteio}>
+                          Sortear Ordem
+                        </button>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
               <div style={{ overflowX: "auto" }}>
               <table style={s.table}>
                 <thead>
@@ -1736,8 +1783,17 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                       });
                     }
 
-                    // Sem seriação: renderização padrão
-                    const atletasUnicos = sum.atletas.filter((a, i, arr) => arr.findIndex(x => x.id === a.id) === i);
+                    // Sem seriação: renderização padrão (com sorteio de campo se disponível)
+                    let atletasUnicos = sum.atletas.filter((a, i, arr) => arr.findIndex(x => x.id === a.id) === i);
+                    const _chSorteio = `${sum.prova.id}_${sum.categoria.id}_${sum.sexo}`;
+                    const _sorteio = eventoAtual?.sorteioCampo?.[_chSorteio];
+                    if (_sorteio?.ordem) {
+                      const mapa = new Map(atletasUnicos.map(a => [a.id, a]));
+                      const ordenados = _sorteio.ordem.map(id => mapa.get(id)).filter(Boolean);
+                      const idsNoSorteio = new Set(_sorteio.ordem);
+                      const novos = atletasUnicos.filter(a => !idsNoSorteio.has(a.id));
+                      atletasUnicos = [...ordenados, ...novos];
+                    }
                     return atletasUnicos.map((a, j) => {
                       const insc = sum.inscs.find((ii) => ii.atletaId === a.id);
                       return (
@@ -1772,6 +1828,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                 </tbody>
               </table>
               </div>
+              </>
               )}
             </div>
           ))}

@@ -155,7 +155,7 @@ const RecordDetectionEngine = {
           try {
             const inscRevez = inscricoes.find(i =>
               i.tipo === "revezamento" && i.eventoId === eid && i.provaId === provId &&
-              (i.categoriaOficialId || i.categoriaId) === catId && i.sexo === sexo && i.equipeId === aId
+              (i.categoriaId || i.categoriaOficialId) === catId && i.sexo === sexo && i.equipeId === aId
             );
             if (inscRevez?.atletasIds) atletasRevez = inscRevez.atletasIds.map(aid => atletas.find(a => a.id === aid)?.nome || "—");
           } catch (e) {}

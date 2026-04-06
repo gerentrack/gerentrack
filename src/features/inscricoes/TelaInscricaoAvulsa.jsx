@@ -523,7 +523,6 @@ function TelaInscricaoAvulsa() {
 
     const atleta = (isAtleta || modo !== "novo") ? atletaSel : { ...novoAtleta, id: aId };
     const catOficial  = getCategoria(atleta.anoNasc, anoComp);
-    const catInscricao = catOficial;
     const idadeAtleta = anoComp - parseInt(atleta.anoNasc);
 
     setEnviando(true);
@@ -549,13 +548,15 @@ function TelaInscricaoAvulsa() {
         // Categoria não permitida - pular esta prova silenciosamente
         return;
       }
+      // Categoria da inscrição = categoria da prova (não a oficial do atleta)
+      const catProva = CATEGORIAS.find(c => c.id === catProvaId) || catOficial;
       adicionarInscricao({
         id: `${eventoParaInscricao.id}_${aId}_${provaId}_${baseTs + idx}`,
         eventoId: eventoParaInscricao.id,
         atletaId: aId,
         provaId,
-        categoria: catInscricao.nome,
-        categoriaId: catInscricao.id,
+        categoria: catProva.nome,
+        categoriaId: catProva.id,
         categoriaOficial: catOficial.nome,
         categoriaOficialId: catOficial.id,
         permissividade: permissividade ? permissividade.obs : null,
@@ -583,8 +584,8 @@ function TelaInscricaoAvulsa() {
       if (provaInfo && provaInfo.tipo === "combinada") {
         const provasComp = CombinedEventEngine.gerarProvasComponentes(provaId, eventoParaInscricao.id);
         const dadosBase = {
-          categoria: catInscricao.nome,
-          categoriaId: catInscricao.id,
+          categoria: catProva.nome,
+          categoriaId: catProva.id,
           categoriaOficial: catOficial.nome,
           categoriaOficialId: catOficial.id,
           sexo: atleta.sexo,

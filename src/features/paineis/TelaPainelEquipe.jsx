@@ -152,7 +152,7 @@ export default function TelaPainelEquipe() {
       if (!atletaIdSet.has(atletaId)) return;
       const evId = insc.eventoId;
       const provaId = insc.provaId;
-      const catId = insc.categoriaOficialId || insc.categoriaId;
+      const catId = insc.categoriaId || insc.categoriaOficialId;
       const sexo = insc.sexo;
 
       for (const fase of FASE_PRIO) {

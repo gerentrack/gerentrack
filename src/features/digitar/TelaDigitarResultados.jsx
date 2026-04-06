@@ -302,7 +302,7 @@ function BlocoDigitarCategoria({
 
   // Para provas individuais: atletas inscritos
   let atletasNaProva = isRevezamento ? [] : inscricoes
-    .filter((i) => i.eventoId === eid && i.provaId === filtroProva && (i.categoriaOficialId || i.categoriaId) === catId && i.sexo === filtroSexo && i.tipo !== "revezamento")
+    .filter((i) => i.eventoId === eid && i.provaId === filtroProva && (i.categoriaId || i.categoriaOficialId) === catId && i.sexo === filtroSexo && i.tipo !== "revezamento")
     .map((i) => resolverAtleta(i.atletaId, atletas, eventoAtual))
     .filter(Boolean)
     .filter((a, idx, arr) => arr.findIndex(x => x.id === a.id) === idx); // deduplicar por atletaId
@@ -311,7 +311,7 @@ function BlocoDigitarCategoria({
   const equipesRevezNaProva = isRevezamento
     ? inscricoes
         .filter(i => i.tipo === "revezamento" && i.eventoId === eid && i.provaId === filtroProva &&
-          (i.categoriaOficialId || i.categoriaId) === catId && i.sexo === filtroSexo)
+          (i.categoriaId || i.categoriaOficialId) === catId && i.sexo === filtroSexo)
         .map(i => {
           const eq = equipes.find(e => e.id === i.equipeId);
           const nomeEq = eq ? (eq.clube || eq.nome || "—") : (i.equipeId?.startsWith("clube_") ? i.equipeId.substring(6) : "—");
@@ -346,6 +346,21 @@ function BlocoDigitarCategoria({
       atletasNaProva = atletasDaSeriacao;
     }
   }
+  // ── Sorteio de campo (RT 25.5): aplicar ordem sorteada para provas de campo ──
+  const _isCampoProva = provaSel && provaSel.unidade !== "s" &&
+    !(provaSel.tipo === "salto" && (provaSel.id.includes("altura") || provaSel.id.includes("vara")));
+  const _chaveSorteio = `${filtroProva}_${catId}_${filtroSexo}`;
+  const _sorteioCampo = eventoAtual?.sorteioCampo?.[_chaveSorteio];
+
+  if (_isCampoProva && _sorteioCampo?.ordem && !_serDigitar?.series?.length) {
+    const ordemIds = _sorteioCampo.ordem;
+    const atletasMap = new Map(atletasNaProva.map(a => [a.id, a]));
+    const ordenados = ordemIds.map(id => atletasMap.get(id)).filter(Boolean);
+    const idsNoSorteio = new Set(ordemIds);
+    const novos = atletasNaProva.filter(a => !idsNoSorteio.has(a.id));
+    atletasNaProva = [...ordenados, ...novos];
+  }
+
   // Helper: buscar série/raia pelo índice na lista (posicional) ou por atletaId (fallback)
   const _getSerInfo = (atletaId, index) => {
     if (_serInfoByIndex.has(index)) return _serInfoByIndex.get(index);
@@ -1587,6 +1602,14 @@ function BlocoDigitarCategoria({
                     <strong style={{ color: t.accent }}>Regras Técnicas:</strong>{" "}
                     T1-T3: ordem por sorteio (RT 25.5) · T4-T6: ordem inversa da CP (RT 25.6.1) · Empate na CP: mantém ordem do sorteio (RT 25.6.2) · Desempate: 2ª melhor marca, 3ª, etc (RT 25.22)
                   </div>
+                  {/* Info sorteio RT 25.5 */}
+                  {_sorteioCampo?.ordem && (
+                    <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
+                      <span style={{ fontSize:12, color:t.success, fontWeight:600 }}>
+                        Sorteio realizado em {new Date(_sorteioCampo.timestamp).toLocaleString("pt-BR", { day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit" })}
+                      </span>
+                    </div>
+                  )}
                   {(() => {
                     const atletasComCP = atletasNaProva.map((a, idxOriginal) => {
                       const cp = calcCP(a.id, atletasNaProva);
@@ -2558,13 +2581,13 @@ function TelaDigitarResultados({ getPresencaProva }) {
 
   // Categorias que têm inscrições nesta competição (incluindo revezamentos)
   const categoriasComInscricao = CATEGORIAS.filter(c =>
-    inscDoEvento.some(i => (i.categoriaOficialId || i.categoriaId) === c.id)
+    inscDoEvento.some(i => (i.categoriaId || i.categoriaOficialId) === c.id)
   );
 
   // Provas com inscrições, filtradas pela categoria selecionada (incluindo revezamentos)
   const provasComInscFiltradas = todasProvasComCombinadas.filter(p =>
     inscDoEvento.some(i => i.provaId === p.id &&
-      (!filtroCat || (i.categoriaOficialId || i.categoriaId) === filtroCat)
+      (!filtroCat || (i.categoriaId || i.categoriaOficialId) === filtroCat)
     )
   );
   const nomesProvasUnicos = [...new Set(provasComInscFiltradas.map(p => p.nome))].sort();
@@ -2654,7 +2677,7 @@ function TelaDigitarResultados({ getPresencaProva }) {
                   : [];
                 const cats = CATEGORIAS.filter(c =>
                   inscDoEvento.some(i =>
-                    (i.categoriaOficialId || i.categoriaId) === c.id &&
+                    (i.categoriaId || i.categoriaOficialId) === c.id &&
                     i.sexo === filtroSexo &&
                     (provaIdsSel.length === 0 || provaIdsSel.includes(i.provaId))
                   )
@@ -2709,7 +2732,7 @@ function TelaDigitarResultados({ getPresencaProva }) {
           const cats = [...new Set(
             inscDoEvento
               .filter(i => i.provaId === p.id && i.sexo === filtroSexo)
-              .map(i => i.categoriaOficialId || i.categoriaId)
+              .map(i => i.categoriaId || i.categoriaOficialId)
           )];
           return cats.map(catId => ({ provaId: p.id, catId, catOrdem: CATEGORIAS.findIndex(c => c.id === catId) }));
         });

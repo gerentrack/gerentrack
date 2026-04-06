@@ -392,7 +392,17 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
 
   sumulas.forEach((s) => {
     const isTempo = s.prova.unidade === "s";
-    const atl = s.atletas;
+    // Aplicar sorteio de campo (RT 25.5) se disponível
+    let atl = s.atletas;
+    const _chSort = `${s.prova.id}_${s.categoria.id}_${s.sexo}`;
+    const _sortCampo = evento?.sorteioCampo?.[_chSort];
+    if (!isTempo && _sortCampo?.ordem) {
+      const mapa = new Map(atl.map(a => [a.id, a]));
+      const ord = _sortCampo.ordem.map(id => mapa.get(id)).filter(Boolean);
+      const idsS = new Set(_sortCampo.ordem);
+      const nov = atl.filter(a => !idsS.has(a.id));
+      atl = [...ord, ...nov];
+    }
     const res = s.resultados || {};
     const temRes = Object.keys(res).length > 0;
 

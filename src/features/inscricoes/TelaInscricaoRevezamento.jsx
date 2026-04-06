@@ -293,7 +293,7 @@ function TelaInscricaoRevezamento() {
     if (!revezForm.editId) {
       const outrasInscs = inscsRevez.filter(i =>
         i.provaId === revezForm.provaId &&
-        (i.categoriaOficialId || i.categoriaId) === catFinal && i.sexo === revezForm.sexo
+        (i.categoriaId || i.categoriaOficialId) === catFinal && i.sexo === revezForm.sexo
       );
       for (const aid of idsValidos) {
         const jaEm = outrasInscs.find(i => (i.atletasIds || []).includes(aid));
@@ -333,7 +333,7 @@ function TelaInscricaoRevezamento() {
     const nInvalidos = (insc.atletasIds || []).filter(aid => aid && !atletas.find(a => a.id === aid)).length;
     setRevezForm({
       editId: insc.id, provaId: insc.provaId,
-      catId: insc.categoriaOficialId || insc.categoriaId,
+      catId: insc.categoriaId || insc.categoriaOficialId,
       sexo: insc.sexo, equipeId: insc.equipeId,
       atletasIds: idsLimpos,
     });
@@ -402,7 +402,7 @@ function TelaInscricaoRevezamento() {
                   return (
                     <tr key={insc.id} style={s.tr}>
                       <td style={s.td}>{prv?.nome || insc.provaId}</td>
-                      <td style={s.td}>{CATEGORIAS.find(c => c.id === (insc.categoriaOficialId || insc.categoriaId))?.nome || "—"}</td>
+                      <td style={s.td}>{CATEGORIAS.find(c => c.id === (insc.categoriaId || insc.categoriaOficialId))?.nome || "—"}</td>
                       <td style={{ ...s.td, textAlign: "center" }}>
                         <span style={{ color: insc.sexo === "M" ? "#1a6ef5" : "#e54f9b" }}>{insc.sexo === "M" ? "Masc" : "Fem"}</span>
                       </td>

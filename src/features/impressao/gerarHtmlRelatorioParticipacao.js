@@ -62,7 +62,7 @@ export function gerarHtmlRelatorioParticipacao(evento, atletasFiltrados, inscric
 
     inscsAtleta.forEach(insc => {
       const provaId = insc.provaId;
-      const catId = insc.categoriaOficialId || insc.categoriaId;
+      const catId = insc.categoriaId || insc.categoriaOficialId;
       const sexo = insc.sexo;
       const prova = provas.find(p => p.id === provaId);
 
@@ -87,7 +87,7 @@ export function gerarHtmlRelatorioParticipacao(evento, atletasFiltrados, inscric
     });
 
     // Se o atleta só tinha DNS em todas as provas, ignorar
-    const catId = inscsAtleta[0]?.categoriaOficialId || inscsAtleta[0]?.categoriaId || "";
+    const catId = inscsAtleta[0]?.categoriaId || inscsAtleta[0]?.categoriaOficialId || "";
     const sexo = inscsAtleta[0]?.sexo || "M";
 
     return {
