@@ -289,10 +289,22 @@ function TelaInscricaoRevezamento() {
       }
     }
     const catFinal = catId;
-    if (!revezForm.editId && inscsRevez.some(i =>
-      i.provaId === revezForm.provaId && i.equipeId === revezForm.equipeId &&
-      (i.categoriaOficialId || i.categoriaId) === catFinal && i.sexo === revezForm.sexo
-    )) { setFeedback("❌ Equipe já inscrita nesta prova/categoria/sexo."); return; }
+    // Validar que nenhum atleta já está em outra equipe de revezamento na mesma prova/cat/sexo
+    if (!revezForm.editId) {
+      const outrasInscs = inscsRevez.filter(i =>
+        i.provaId === revezForm.provaId &&
+        (i.categoriaOficialId || i.categoriaId) === catFinal && i.sexo === revezForm.sexo
+      );
+      for (const aid of idsValidos) {
+        const jaEm = outrasInscs.find(i => (i.atletasIds || []).includes(aid));
+        if (jaEm) {
+          const aName = atletas.find(a => a.id === aid)?.nome || aid;
+          const eqName = equipes.find(e => e.id === jaEm.equipeId)?.nome || jaEm.equipeId;
+          setFeedback(`❌ Atleta "${aName}" já está inscrito em outra equipe de revezamento (${eqName}) nesta prova.`);
+          return;
+        }
+      }
+    }
     const inscObj = {
       id: revezForm.editId || `rev_${eid}_${Date.now()}_${Math.random().toString(36).slice(2,5)}`,
       tipo: "revezamento", eventoId: eid, equipeId: revezForm.equipeId,
