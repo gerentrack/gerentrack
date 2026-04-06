@@ -210,13 +210,18 @@ function TelaInscricaoRevezamento() {
   const [feedback, setFeedback] = useState("");
   const [focusIdx, setFocusIdx] = useState(-1);
 
-  // Equipes com atletas inscritos neste evento
+  // Todas as equipes que possuem atletas cadastrados (não exige inscrição individual prévia)
   const equipesComInscritos = (() => {
     const eqSet = new Set();
+    // Equipes com atletas inscritos no evento
     inscsEvt.filter(i => i.tipo !== "revezamento").forEach(i => {
       const a = atletas.find(at => at.id === i.atletaId);
       if (a) { const eqId = a.equipeId || (a.clube ? "clube_" + a.clube : ""); if (eqId) eqSet.add(eqId); }
     });
+    // Todas as equipes cadastradas que tenham atletas
+    for (const eq of (equipes || [])) {
+      if (eq.id && atletas.some(a => a.equipeId === eq.id)) eqSet.add(eq.id);
+    }
     return [...eqSet].map(eqId => {
       const eq = equipes.find(e => e.id === eqId);
       return { id: eqId, nome: eq ? (eq.clube || eq.nome) : (eqId.startsWith("clube_") ? eqId.substring(6) : eqId), sigla: eq?.sigla || "" };
@@ -232,28 +237,24 @@ function TelaInscricaoRevezamento() {
   const isMisto = provaSel ? isRevezamentoMisto(provaSel) : false;
   const catId = revezForm?.provaId ? revezForm.provaId.split("_")[1] : "";
 
-  // Pool de atletas: parte das INSCRIÇÕES INDIVIDUAIS do evento para a equipe selecionada
-  // Inclui atletas de participação cruzada (orgsAutorizadas) inscritos no mesmo evento
+  // Pool de atletas: todos os atletas da equipe selecionada (não exige inscrição individual prévia)
+  // Inclui atletas de participação cruzada (orgsAutorizadas)
   const atletasPool = (() => {
     if (!revezForm?.equipeId) return [];
-    const atletasInscritos = [];
+    const pool = [];
     const vistos = new Set();
-    // Organizadores autorizados para participação cruzada neste evento
     const orgsAutorizadas = new Set(eventoAtual?.orgsAutorizadas || []);
-    inscsEvt.filter(i => i.tipo !== "revezamento").forEach(i => {
-      if (!i.atletaId || vistos.has(i.atletaId)) return;
-      vistos.add(i.atletaId);
-      const a = atletas.find(at => at.id === i.atletaId);
-      if (!a) return;
+    for (const a of (atletas || [])) {
+      if (vistos.has(a.id)) continue;
       const eqId = a.equipeId || (a.clube ? "clube_" + a.clube : "");
       const ehDaEquipe = eqId === revezForm.equipeId;
-      // Atleta cruzado: pertence a org autorizada E está inscrito neste evento
       const ehCruzado = orgsAutorizadas.size > 0 && a.organizadorId && orgsAutorizadas.has(a.organizadorId);
       if ((ehDaEquipe || ehCruzado) && (isMisto || a.sexo === revezForm.sexo)) {
-        atletasInscritos.push({ ...a, _cruzado: ehCruzado && !ehDaEquipe });
+        vistos.add(a.id);
+        pool.push({ ...a, _cruzado: ehCruzado && !ehDaEquipe });
       }
-    });
-    return atletasInscritos;
+    }
+    return pool.sort((a, b) => (a.nome || "").localeCompare(b.nome || ""));
   })();
 
   const buscarAtleta = (query) => {

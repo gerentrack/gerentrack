@@ -233,6 +233,30 @@ function TelaCadastroEvento() {
     }
   }
 
+  // Bloqueio de edição se competição pertence a outro organizador
+  if (editando && tipoEvt === "organizador" && eventoAtual.organizadorId !== usuarioLogado?.id) return (
+    <div style={s.page}><div style={s.emptyState}>
+      <span style={{ fontSize: 48 }}>🚫</span>
+      <p style={{ color: t.danger, fontWeight: 700, fontSize: 18 }}>Acesso não autorizado</p>
+      <p style={{ color: t.textMuted, fontSize: 14, maxWidth: 400, textAlign: "center", lineHeight: 1.6 }}>
+        Esta competição pertence a outro organizador. Você não tem permissão para editá-la.
+      </p>
+      <button style={s.btnGhost} onClick={() => setTela("painel-organizador")}>← Voltar ao Painel</button>
+    </div></div>
+  );
+
+  // Bloqueio de edição se funcionário e competição pertence a outro organizador
+  if (editando && tipoEvt === "funcionario" && eventoAtual.organizadorId !== usuarioLogado?.organizadorId) return (
+    <div style={s.page}><div style={s.emptyState}>
+      <span style={{ fontSize: 48 }}>🚫</span>
+      <p style={{ color: t.danger, fontWeight: 700, fontSize: 18 }}>Acesso não autorizado</p>
+      <p style={{ color: t.textMuted, fontSize: 14, maxWidth: 400, textAlign: "center", lineHeight: 1.6 }}>
+        Esta competição pertence a outro organizador. Você não tem permissão para editá-la.
+      </p>
+      <button style={s.btnGhost} onClick={() => setTela("painel-organizador")}>← Voltar ao Painel</button>
+    </div></div>
+  );
+
   // Bloqueio de edição se competição finalizada
   if (editando && eventoAtual.competicaoFinalizada) return (
     <div style={s.page}><div style={s.emptyState}>

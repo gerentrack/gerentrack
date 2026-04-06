@@ -500,15 +500,10 @@ function resolverAtleta(atletaId, atletas, evento) {
 }
 
 // Máscara fixa de tempo para digitação de resultados de pista
-// O template é determinado pela distância (metros) da prova:
-//   <= 400m:   ss.mmm       (5 slots)
-//   401–9999m: m.ss.mmm     (6 slots, até 7 para ≥3000m)
-//   >= 10000m: h:mm.ss.mmm  (8 slots)
-// Retorna a string com separadores fixos e dígitos preenchidos da direita para esquerda
+// Formato único para todas as provas: h:mm.ss.mmm (8 slots)
+// Permite ao organizador inserir até horas em qualquer prova
 function getMascaraTempo(metros) {
-  if (metros >= 5000)  return { template: "_:__.__.___", slots: 8 };
-  if (metros > 400)    return { template: "_.__.___", slots: 6 };
-  return                       { template: "__.___", slots: 5 };
+  return { template: "_:__.__.___", slots: 8 };
 }
 
 function aplicarMascaraTempo(digits, metros) {

@@ -215,6 +215,9 @@ function TelaEventoDetalhe() {
   const nProvas    = (eventoAtual.provasPrograma || []).length;
   const nResultados = Object.entries(resultados).filter(([k]) => k.startsWith(eventoAtual.id + "_")).reduce((a, [, v]) => a + Object.keys(v).length, 0);
   const isAdmin    = usuarioLogado?.tipo === "admin" || usuarioLogado?.tipo === "organizador";
+  const isDonoOuAdmin = usuarioLogado?.tipo === "admin"
+    || (usuarioLogado?.tipo === "organizador" && eventoAtual.organizadorId === usuarioLogado?.id)
+    || (usuarioLogado?.tipo === "funcionario" && eventoAtual.organizadorId === usuarioLogado?.organizadorId);
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const _dtInsc = (data, hora) => !data ? null : new Date(data + "T" + (hora || "00:00") + ":00");
@@ -282,18 +285,22 @@ function TelaEventoDetalhe() {
     tabs.push({ id: "acompanhamento", label: "📊  Acompanhamento" });
   } else if (tpU === "funcionario") {
     tabs.push({ id: "acompanhamento", label: "📊  Acompanhamento" });
-    tabs.push({ id: "operacional",    label: "⚙️  Operacional" });
+    if (eventoAtual.organizadorId === usuarioLogado?.organizadorId) {
+      tabs.push({ id: "operacional",    label: "⚙️  Operacional" });
+    }
   } else if (tpU === "organizador") {
     tabs.push({ id: "acompanhamento", label: "📊  Acompanhamento" });
-    tabs.push({ id: "operacional",    label: "⚙️  Operacional" });
-    tabs.push({ id: "configuracao",   label: "🔧  Configuração" });
+    if (eventoAtual.organizadorId === usuarioLogado?.id) {
+      tabs.push({ id: "operacional",    label: "⚙️  Operacional" });
+      tabs.push({ id: "configuracao",   label: "🔧  Configuração" });
+    }
   } else if (tpU === "admin") {
     tabs.push({ id: "acompanhamento", label: "📊  Acompanhamento" });
     tabs.push({ id: "operacional",    label: "⚙️  Operacional" });
     tabs.push({ id: "configuracao",   label: "🔧  Configuração" });
   }
 
-  const abaEfetiva = abaAtiva || tabs[0]?.id || null;
+  const abaEfetiva = (abaAtiva && tabs.some(tab => tab.id === abaAtiva)) ? abaAtiva : tabs[0]?.id || null;
 
   // ── Conteúdo de cada aba ──────────────────────────────────────────────────
   const renderTabContent = () => {
@@ -710,7 +717,7 @@ function TelaEventoDetalhe() {
       </div>
 
       {/* ══ BANNER COMPETIÇÃO FINALIZADA ════════════════════════════════════ */}
-      {eventoAtual.competicaoFinalizada && (isAdmin || tpU === "organizador") && (
+      {eventoAtual.competicaoFinalizada && isDonoOuAdmin && (
         <div style={{ background: t.accentBg, border:`2px solid ${t.danger}44`, borderRadius:12, padding:"16px 20px", marginBottom:20, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
           <div>
             <div style={{ fontWeight:800, fontSize:15, color: t.danger, marginBottom:4 }}>🔒 Competição Finalizada</div>
@@ -762,8 +769,8 @@ function TelaEventoDetalhe() {
         </div>
       )}
 
-      {/* ══ ABAS — admin/org: ficam acima do programa horário ══════════════ */}
-      {isAdmin && (
+      {/* ══ ABAS — admin/org dono: ficam acima do programa horário ════════════ */}
+      {isDonoOuAdmin && (
         <>
           <div style={s.tabsWrapper}>
             {tabs.length > 1 && (
@@ -1149,7 +1156,7 @@ function TelaEventoDetalhe() {
       )}
 
       {/* ══ DESCRIÇÃO ═══════════════════════════════════════════════════════ */}
-      {eventoAtual.descricao && (!eventoAtual.competicaoFinalizada || isAdmin || tpU === "organizador") && (
+      {eventoAtual.descricao && (!eventoAtual.competicaoFinalizada || isDonoOuAdmin) && (
         <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:10, padding:"20px 24px", marginBottom:24 }}>
           <div style={{ color: t.accent, fontWeight:700, fontSize:14, marginBottom:12 }}>📝 Informações</div>
           <div
@@ -1159,8 +1166,8 @@ function TelaEventoDetalhe() {
         </div>
       )}
 
-      {/* ══ ABAS — perfis não-admin: ficam após programa horário ════════════ */}
-      {!isAdmin && (
+      {/* ══ ABAS — perfis não-admin (inclui org visitante): ficam após programa horário */}
+      {!isDonoOuAdmin && (
         <div style={s.tabsWrapper}>
           {tabs.length > 1 && (
             <div style={s.tabsBar}>
@@ -1182,8 +1189,8 @@ function TelaEventoDetalhe() {
         </div>
       )}
 
-      {/* ── Barra de status somente-leitura (não-admin logado) ── */}
-      {!isAdmin && usuarioLogado && (
+      {/* ── Barra de status somente-leitura (não-admin/não-dono logado) ── */}
+      {!isDonoOuAdmin && usuarioLogado && (
         <div style={s.statusBar}>
           <div style={s.statusBarItem}>
             <span style={s.statusDot(
@@ -1210,8 +1217,8 @@ function TelaEventoDetalhe() {
         </div>
       )}
 
-      {/* ══ FINALIZAR COMPETIÇÃO — admin/org, sempre no fim da página ═══════ */}
-      {isAdmin && !eventoAtual.competicaoFinalizada && (
+      {/* ══ FINALIZAR COMPETIÇÃO — admin/org dono, sempre no fim da página ═══ */}
+      {isDonoOuAdmin && !eventoAtual.competicaoFinalizada && (
         <div style={{ background: t.bgCardAlt, border:`1px solid #8e44ad44`, borderRadius:12, padding:"16px 20px", marginTop: 8 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
             <div>

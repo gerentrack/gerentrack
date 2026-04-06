@@ -64,7 +64,8 @@ function TelaTermos({ embedded } = {}) {
         <li style={s.li}>Compartilhar credenciais de acesso com terceiros não autorizados;</li>
         <li style={s.li}>Inserir conteúdo ofensivo, difamatório, ilegal ou que viole direitos de terceiros;</li>
         <li style={s.li}>Sobrecarregar intencionalmente a infraestrutura da plataforma;</li>
-        <li style={s.li}>Utilizar a marca, logotipo ou nome GERENTRACK sem autorização expressa.</li>
+        <li style={s.li}>Utilizar a marca, logotipo ou nome GERENTRACK sem autorização expressa;</li>
+        <li style={s.li}>Cadastrar ou realizar competições de terceiros, entendidas como aquelas organizadas por pessoa física ou jurídica diversa da entidade contratante. A plataforma deve ser utilizada exclusivamente para competições próprias da organização titular da conta. A violação desta regra constitui infração grave, sujeita às penalidades previstas no contrato de licença.</li>
       </ol>
 
       <h2 style={s.h2}>5. Da Propriedade Intelectual</h2>
