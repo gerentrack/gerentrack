@@ -154,9 +154,13 @@ function TelaGerenciarInscricoes() {
   const isFunc    = usuarioLogado?.tipo === "funcionario";
   const isTrein   = usuarioLogado?.tipo === "equipe" || usuarioLogado?.tipo === "treinador";
   const isAtleta  = usuarioLogado?.tipo === "atleta";
-  // Amplo = admin|org|func(permissão): pode editar/excluir sempre
+  // isDono: admin ou org/func da competição selecionada
+  const isDono    = isAdmin
+    || (isOrg && eventoAtual?.organizadorId === usuarioLogado?.id)
+    || (isFunc && eventoAtual?.organizadorId === usuarioLogado?.organizadorId);
+  // Amplo = dono|func(permissão): pode editar/excluir sempre
   const funcPerm  = usuarioLogado?.permissoes || [];
-  const isAmplo   = isAdmin || isOrg || (isFunc && (funcPerm.includes("atletas") || funcPerm.includes("inscricoes")));
+  const isAmplo   = isDono || (isFunc && isDono && (funcPerm.includes("atletas") || funcPerm.includes("inscricoes")));
 
   const [filtroEvento, setFiltroEvento] = useState(eventoAtual?.id || "");
   const [filtroAtleta, setFiltroAtleta] = useState("");

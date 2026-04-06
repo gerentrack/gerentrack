@@ -76,9 +76,12 @@ function TelaSumulas({ chamada, getPresencaProva }) {
   // Controle de acesso: não-admins só acessam se sumulaLiberada = true
   const isAdmin  = usuarioLogado?.tipo === "admin";
   const isOrg    = usuarioLogado?.tipo === "organizador";
+  const isDono   = isAdmin
+    || (isOrg && eventoAtual.organizadorId === usuarioLogado?.id)
+    || (usuarioLogado?.tipo === "funcionario" && eventoAtual.organizadorId === usuarioLogado?.organizadorId);
   const isFuncS  = usuarioLogado?.tipo === "funcionario" &&
     (usuarioLogado?.permissoes?.includes("sumulas") || usuarioLogado?.permissoes?.includes("resultados"));
-  const isAmplo  = isAdmin || isOrg || isFuncS;
+  const isAmplo  = isDono || isFuncS;
   if (!isAmplo && !eventoAtual.sumulaLiberada) return (
     <div style={s.page}>
       <div style={s.emptyState}>
@@ -316,7 +319,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
               📥 Exportar .evt
             </button>
           )}
-          {(isAdmin || isOrg || (usuarioLogado?.tipo === "funcionario" && usuarioLogado?.permissoes?.includes("resultados"))) && (
+          {(isDono || (usuarioLogado?.tipo === "funcionario" && eventoAtual.organizadorId === usuarioLogado?.organizadorId && usuarioLogado?.permissoes?.includes("resultados"))) && (
             <button style={s.btnSecondary} onClick={() => setTela("digitar-resultados")}>✏️ Digitar Resultados</button>
           )}
           <button style={s.btnSecondary} onClick={() => setTela("resultados")}>📊 Ver Resultados</button>

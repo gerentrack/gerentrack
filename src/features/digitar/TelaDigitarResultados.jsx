@@ -2524,10 +2524,11 @@ function TelaDigitarResultados({ getPresencaProva }) {
   const { inscricoes, atletas, resultados, atualizarResultado, atualizarResultadosEmLote, limparResultado, limparTodosResultados, eventoAtual, editarEvento, numeracaoPeito, getClubeAtleta, equipes, recordes } = useEvento();
   const { setTela, registrarAcao } = useApp();
   const marchaHook = useMarchaJuizes(eventoAtual?.id);
-  // Guard: apenas admin, organizador ou funcionário com permissão
+  // Guard: apenas admin, organizador dono ou funcionário com permissão
   const tipoUser = usuarioLogado?.tipo;
-  const temAcessoDigitar = tipoUser === "admin" || tipoUser === "organizador" ||
-    (tipoUser === "funcionario" && usuarioLogado?.permissoes?.includes("resultados"));
+  const temAcessoDigitar = tipoUser === "admin"
+    || (tipoUser === "organizador" && eventoAtual?.organizadorId === usuarioLogado?.id)
+    || (tipoUser === "funcionario" && eventoAtual?.organizadorId === usuarioLogado?.organizadorId && usuarioLogado?.permissoes?.includes("resultados"));
 
   const [filtroProva, setFiltroProva] = useState("");
   const [filtroCat,   setFiltroCat]   = useState("");

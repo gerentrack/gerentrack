@@ -175,7 +175,9 @@ function TelaGestaoInscricoes() {
   if (!eventoAtual) return <div style={s.page}><div style={s.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
 
   const tipoUser   = usuarioLogado?.tipo;
-  const isPrivileg = tipoUser === "admin" || tipoUser === "organizador" || tipoUser === "funcionario";
+  const isPrivileg = tipoUser === "admin"
+    || (tipoUser === "organizador" && eventoAtual.organizadorId === usuarioLogado?.id)
+    || (tipoUser === "funcionario" && eventoAtual.organizadorId === usuarioLogado?.organizadorId);
   if (!isPrivileg && isInscricaoEncerradaAgora(eventoAtual)) return (
     <div style={s.page}>
       <div style={s.emptyState}>
@@ -1187,8 +1189,8 @@ function TelaGestaoInscricoes() {
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
           {inscsEvt.length > 0 && (
             <>
-              {/* CSV — só admin e organizador (não funcionário, não equipe) */}
-              {(tipoUser === "admin" || tipoUser === "organizador") && (
+              {/* CSV — só admin e organizador dono */}
+              {isPrivileg && (tipoUser === "admin" || tipoUser === "organizador") && (
                 <button style={{ ...s.btnGhost, fontSize: 12, padding: "7px 14px" }} onClick={exportarCSV} title="Exportar planilha Excel/CSV">
                   📊 Exportar CSV
                 </button>
