@@ -130,11 +130,17 @@ export default function TelaPainelEquipe() {
   // Eventos com inscrições da equipe
   const eventosComInsc = useMemo(() => (eventos||[]).filter(ev => minhasInscs.some(i => i.eventoId === ev.id)), [eventos, minhasInscs]);
 
-  // Eventos abertos para inscrição
+  // Eventos abertos para inscrição (apenas do meu organizador ou com participação cruzada)
+  const meuOrgId = equipe?.organizadorId || null;
   const eventosAbertos = useMemo(() =>
-    (eventos||[]).filter(ev => !ev.inscricoesEncerradas
-    ).sort((a,b) => (a.data||"").localeCompare(b.data||"")),
-    [eventos]
+    (eventos||[]).filter(ev => {
+      if (ev.inscricoesEncerradas) return false;
+      if (!meuOrgId) return true;
+      if (ev.organizadorId === meuOrgId) return true;
+      if ((ev.orgsAutorizadas || []).includes(meuOrgId)) return true;
+      return false;
+    }).sort((a,b) => (a.data||"").localeCompare(b.data||"")),
+    [eventos, meuOrgId]
   );
 
   // ── Resultados dos atletas da equipe ──
