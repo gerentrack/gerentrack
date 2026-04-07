@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { CATEGORIAS, getCategoria } from "../../shared/constants/categorias";
-import { _getClubeAtleta, _getNascDisplay, _getCbat, validarCPF } from "../../shared/formatters/utils";
+import { _getClubeAtleta, _getNascDisplay, _getCbat, validarCPF, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { Th, Td } from "../ui/TableHelpers";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
@@ -101,7 +101,7 @@ function TelaEditarAtleta() {
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
   const { atletas, atualizarAtleta, excluirAtleta, inscricoes, eventos, equipes } = useEvento();
-  const { setTela, notificacoes, marcarNotifLida, atletaEditandoId, setAtletaEditandoId } = useApp();
+  const { setTela, notificacoes, marcarNotifLida, atletaEditandoId, setAtletaEditandoId, organizadores, atletasUsuarios, funcionarios, treinadores } = useApp();
 
   const atletaId = usuarioLogado?.tipo === "atleta"
     ? atletas.find(a => a.cpf && usuarioLogado.cpf &&
@@ -155,6 +155,15 @@ function TelaEditarAtleta() {
       const cbatLimpo = form.cbat.trim();
       const cbatDup = atletas.find(a => a.id !== form.id && a.cbat && a.cbat.trim() === cbatLimpo);
       if (cbatDup) { alert(`Nº CBAt "${cbatLimpo}" já cadastrado para ${cbatDup.nome}. Corrija antes de salvar.`); return; }
+    }
+    // Verificar email duplicado (excluindo o próprio atleta)
+    if (form.email && form.email.trim()) {
+      if (emailJaCadastrado(form.email, { organizadores, equipes, atletasUsuarios, funcionarios, treinadores }, form.id)) {
+        alert("E-mail já cadastrado em outra conta."); return;
+      }
+      const emailNorm = form.email.trim().toLowerCase();
+      const atlDup = atletas.find(a => a.id !== form.id && a.email && a.email.trim().toLowerCase() === emailNorm);
+      if (atlDup) { alert(`E-mail já cadastrado para ${atlDup.nome}.`); return; }
     }
     atualizarAtleta({ ...form });
     setSalvou(true);

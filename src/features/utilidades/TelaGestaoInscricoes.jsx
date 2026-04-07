@@ -172,6 +172,30 @@ function TelaGestaoInscricoes() {
   const { eventoAtual, editarEvento, inscricoes, atletas, equipes, excluirInscricao, adicionarInscricao, atualizarInscricao, numeracaoPeito } = useEvento();
   const { setTela, registrarAcao, organizadores, gtLogo } = useApp();
   const confirmar = useConfirm();
+
+  // ── Todos os useState DEVEM ficar antes de qualquer return antecipado ──
+  const [filtroProva, setFiltroProva] = useState("");
+  const [filtroCat, setFiltroCat]     = useState("");
+  const [filtroSexo, setFiltroSexo]   = useState("");
+  const [filtroNome, setFiltroNome]   = useState("");
+  const [filtroPago, setFiltroPago]   = useState("");
+  const [filtroEquipe, setFiltroEquipe] = useState("");
+  const [feedback, setFeedback]       = useState("");
+  const [carrinho, setCarrinho]           = useState([]);
+  const [confirmando, setConfirmando]     = useState(false);
+  const [modoCarrinho, setModoCarrinho]   = useState(false);
+  const [inserirAtletaId, setInserirAtletaId] = useState("");
+  const [inserirProvasIds, setInserirProvasIds] = useState(new Set());
+  const [etapa, setEtapa]                 = useState("montagem");
+  const [filtroSexoLote, setFiltroSexoLote] = useState("todos");
+  const [filtroCatLote, setFiltroCatLote]   = useState("todas");
+  const [filtroEquipeLote, setFiltroEquipeLote] = useState("todas");
+  const [preInscModalAtleta, setPreInscModalAtleta] = useState(null);
+  const [modoRecibo, setModoRecibo] = useState(null);
+  const [selecionadosRecibo, setSelecionadosRecibo] = useState(new Set());
+  const [assinaturaUrl, setAssinaturaUrl] = useState("");
+  const [marcarComoPago, setMarcarComoPago] = useState(false);
+
   if (!eventoAtual) return <div style={s.page}><div style={s.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
 
   const tipoUser   = usuarioLogado?.tipo;
@@ -236,13 +260,6 @@ function TelaGestaoInscricoes() {
   };
 
   // ── Filtros da tabela ────────────────────────────────────────────────────
-  const [filtroProva, setFiltroProva] = useState("");
-  const [filtroCat, setFiltroCat]     = useState("");
-  const [filtroSexo, setFiltroSexo]   = useState("");
-  const [filtroNome, setFiltroNome]   = useState("");
-  const [filtroPago, setFiltroPago]   = useState(""); // "" | "pago" | "pendente"
-  const [filtroEquipe, setFiltroEquipe] = useState("");
-  const [feedback, setFeedback]       = useState("");
 
   // Um atleta é considerado "pago" se TODAS as suas inscrições visíveis têm pago=true
   const isPago = (inscs) => inscs.filter(i => !i.combinadaId).every(i => i.pago === true);
@@ -255,16 +272,6 @@ function TelaGestaoInscricoes() {
   };
 
   // ── Carrinho ─────────────────────────────────────────────────────────────
-  const [carrinho, setCarrinho]           = useState([]);
-  const [confirmando, setConfirmando]     = useState(false);
-  const [modoCarrinho, setModoCarrinho]   = useState(false);
-  const [inserirAtletaId, setInserirAtletaId] = useState("");
-  const [inserirProvasIds, setInserirProvasIds] = useState(new Set()); // multi-seleção
-  const [etapa, setEtapa]                 = useState("montagem"); // montagem | confirmacao | concluido
-  const [filtroSexoLote, setFiltroSexoLote] = useState("todos");
-  const [filtroCatLote, setFiltroCatLote]   = useState("todas");
-  const [filtroEquipeLote, setFiltroEquipeLote] = useState("todas");
-  const [preInscModalAtleta, setPreInscModalAtleta] = useState(null); // atletaId para definir provas
 
   // ── Pré-inscrições (atletas sem provas definidas) ──────────────────────────
   const preInscricoes = eventoAtual.preInscricoes || [];
@@ -914,10 +921,7 @@ function TelaGestaoInscricoes() {
   };
 
   // ── Estado modal seleção tipo de recibo ──────────────────────────────────
-  const [modoRecibo, setModoRecibo] = useState(null); // null | "escolha"
-  const [selecionadosRecibo, setSelecionadosRecibo] = useState(new Set()); // Set de atletaIds
-  const [assinaturaUrl, setAssinaturaUrl] = useState(""); // base64 da imagem de assinatura
-  const [marcarComoPago, setMarcarComoPago] = useState(false);
+  // (estados de recibo movidos para o topo do componente)
 
   // ── Bloco HTML base de 1 recibo ───────────────────────────────────────────
   const _blocoRecibo = ({ titulo, pagador, atletasLista, org, dataEmissao, assinatura, isEquipe = false, totalOverride }) => {

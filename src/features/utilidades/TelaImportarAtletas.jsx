@@ -148,7 +148,7 @@ function TelaImportarAtletas() {
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
   const { atletas, adicionarAtleta, adicionarAtletasEmLote, equipes } = useEvento();
-  const { setTela, organizadores } = useApp();
+  const { setTela, organizadores, atletasUsuarios, funcionarios, treinadores } = useApp();
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -415,8 +415,20 @@ function TelaImportarAtletas() {
       });
     });
 
+    // Limpar emails duplicados silenciosamente na importação em lote
+    const emailsExistentes = new Set();
+    [...organizadores, ...equipes, ...atletasUsuarios, ...funcionarios, ...treinadores, ...atletas]
+      .forEach(u => { if (u.email) emailsExistentes.add(u.email.trim().toLowerCase()); });
+    const novosLimpos = novosAtletas.map(a => {
+      if (!a.email) return a;
+      const emailNorm = a.email.trim().toLowerCase();
+      if (emailsExistentes.has(emailNorm)) return { ...a, email: "" };
+      emailsExistentes.add(emailNorm); // evitar duplicata entre os próprios importados
+      return a;
+    });
+
     try {
-      await adicionarAtletasEmLote(novosAtletas);
+      await adicionarAtletasEmLote(novosLimpos);
       setLoading(false);
       alert(`✅ ${novosAtletas.length} atleta(s) importado(s) com sucesso!`);
     } catch (err) {

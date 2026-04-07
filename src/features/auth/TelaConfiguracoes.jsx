@@ -2,7 +2,7 @@ import React, { useState, useCallback } from "react";
 import DOMPurify from "dompurify";
 import { validarCPF, validarCNPJ } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
-import { storage, storageRef, uploadBytes, getDownloadURL, deleteObject, getBlob } from "../../firebase";
+import { storage, storageRef, uploadBytes, getDownloadURL, deleteObject, db, doc, deleteDoc } from "../../firebase";
 import CortarImagem from "../../shared/CortarImagem";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
@@ -115,7 +115,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
   const t = useTema();
   const s = useStylesResponsivos(getS(t));
   const { usuarioLogado, setUsuarioLogado, logout, atualizarSenha, perfisDisponiveis } = useAuth();
-  const { equipes, atualizarEquipePerfil, atletas, inscricoes, resultados, atualizarAtleta, eventos, editarEvento } = useEvento();
+  const { equipes, atualizarEquipePerfil, atletas, inscricoes, resultados, atualizarAtleta, eventos, editarEvento, excluirInscricao } = useEvento();
   const { setTela, registrarAcao, organizadores, atletasUsuarios, funcionarios, treinadores, siteBranding, setSiteBranding, exportarDados, importarDados, solicitacoesPortabilidade, adicionarSolicitacaoPortabilidade, editarOrganizadorAdmin, selecionarOrganizador } = useApp();
   const [aba, setAba]           = useState("dados");
   const [feedback, setFeedback] = useState("");
@@ -178,8 +178,6 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
   const [diagStorage, setDiagStorage] = useState(null);
   const [diagFirestore, setDiagFirestore] = useState(null);
   const [diagAuth, setDiagAuth] = useState(null);
-  const [migracaoLog, setMigracaoLog] = useState([]);
-  const [migrandoStorage, setMigrandoStorage] = useState(false);
 
   const extrairStoragePath = (url) => {
     if (!url || typeof url !== "string") return null;
@@ -316,90 +314,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
     setDiagRodando(false);
   }, [organizadores, atletas, equipes]);
 
-  // ── Migração de paths do Storage ──────────────────────────────────────────
-  const slugifyPath = (str) =>
-    (str || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-").slice(0, 60) || "sem-nome";
 
-  const migrarStoragePaths = useCallback(async () => {
-    setMigrandoStorage(true);
-    setMigracaoLog([]);
-    const log = (msg) => setMigracaoLog(prev => [...prev, msg]);
-    const camposLogo = ["logoCompeticao", "logoCabecalho", "logoCabecalhoDireito", "logoRodape", "logoPortalSecao"];
-
-    let migrados = 0, erros = 0, pulados = 0;
-
-    for (const ev of (eventos || [])) {
-      const orgNome = organizadores?.find(o => o.id === ev.organizadorId)?.nome;
-      if (!orgNome) { log(`⏭ ${ev.nome || ev.id}: organizador não encontrado, pulando`); pulados++; continue; }
-      const pastaNova = `${slugifyPath(orgNome)}/${slugifyPath(ev.nome)}`;
-      const updates = {};
-      let temMudanca = false;
-
-      // Logos
-      for (const campo of camposLogo) {
-        const url = ev[campo];
-        if (!url || typeof url !== "string" || !url.startsWith("http")) continue;
-        const pathAtual = extrairStoragePath(url);
-        if (!pathAtual) continue;
-        // Já no formato novo?
-        if (pathAtual.startsWith(`logos/${pastaNova}/`)) { pulados++; continue; }
-
-        try {
-          // Baixar arquivo via SDK (evita CORS)
-          const blob = await getBlob(storageRef(storage, pathAtual));
-          const ext = pathAtual.split(".").pop() || "png";
-          const novoPath = `logos/${pastaNova}/${campo}.${ext}`;
-          const novoRef = storageRef(storage, novoPath);
-          await uploadBytes(novoRef, blob);
-          const novaUrl = await getDownloadURL(novoRef);
-          updates[campo] = novaUrl;
-          temMudanca = true;
-          // Deletar antigo
-          try { await deleteObject(storageRef(storage, pathAtual)); } catch {}
-          log(`✓ ${ev.nome} [${campo}]: migrado`);
-          migrados++;
-        } catch (err) {
-          log(`✗ ${ev.nome} [${campo}]: erro — ${err.message}`);
-          erros++;
-        }
-      }
-
-      // Regulamento
-      if (ev.regulamentoUrl && typeof ev.regulamentoUrl === "string" && ev.regulamentoUrl.startsWith("http")) {
-        const pathAtual = ev.regulamentoPath || extrairStoragePath(ev.regulamentoUrl);
-        if (pathAtual && !pathAtual.startsWith(`regulamentos/${pastaNova}/`)) {
-          try {
-            const blob = await getBlob(storageRef(storage, pathAtual));
-            const novoPath = `regulamentos/${pastaNova}/regulamento.pdf`;
-            const novoRef = storageRef(storage, novoPath);
-            await uploadBytes(novoRef, blob);
-            const novaUrl = await getDownloadURL(novoRef);
-            updates.regulamentoUrl = novaUrl;
-            updates.regulamentoPath = novoPath;
-            temMudanca = true;
-            try { await deleteObject(storageRef(storage, pathAtual)); } catch {}
-            log(`✓ ${ev.nome} [regulamento]: migrado`);
-            migrados++;
-          } catch (err) {
-            log(`✗ ${ev.nome} [regulamento]: erro — ${err.message}`);
-            erros++;
-          }
-        }
-      }
-
-      // Atualizar evento no Firestore
-      if (temMudanca) {
-        try { editarEvento({ ...ev, ...updates }); } catch (err) {
-          log(`✗ ${ev.nome}: erro ao atualizar Firestore — ${err.message}`);
-          erros++;
-        }
-      }
-    }
-
-    log(`\n— Concluído: ${migrados} migrados, ${pulados} já no formato novo, ${erros} erros —`);
-    setMigrandoStorage(false);
-  }, [eventos, organizadores, editarEvento]);
 
   const uploadImagemOrg = async (file, tipo) => {
     if (!meuOrgPerfil || !editarOrganizadorAdmin) return;
@@ -2222,33 +2137,31 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(ts => `   • ${ts}`).joi
                       </table>
                     </div>
                   )}
+                  {falhas.length > 0 && (
+                    <button
+                      style={{ ...s.btnPrimary, fontSize:12, marginTop:12 }}
+                      onClick={async () => {
+                        let corrigidos = 0;
+                        for (const item of falhas) {
+                          if (item.tipo === "Evento") {
+                            const ev = (eventos || []).find(e => (e.nome || e.id) === item.nome);
+                            if (ev) { editarEvento({ ...ev, [item.campo]: "" }); corrigidos++; }
+                          } else if (item.tipo === "Organizador") {
+                            const org = (organizadores || []).find(o => (o.nome || o.id) === item.nome);
+                            if (org && editarOrganizadorAdmin) { editarOrganizadorAdmin({ ...org, [item.campo]: "" }); corrigidos++; }
+                          }
+                        }
+                        alert(`${corrigidos} referência(s) quebrada(s) removida(s).`);
+                        diagnosticarStorage();
+                      }}>
+                      Corrigir referências quebradas
+                    </button>
+                  )}
                   {falhas.length === 0 && <div style={{ textAlign:"center", padding:20, color:t.success, fontSize:13 }}>Todos os arquivos referenciados estão acessíveis.</div>}
                 </>
               );
             })()}
 
-            {/* Migração de paths */}
-            {!diagRodando && diagAba === "storage" && (
-              <div style={{ marginTop:20, padding:16, background:t.bgHover, borderRadius:10, border:`1px solid ${t.border}` }}>
-                <div style={{ fontSize:14, fontWeight:700, color:t.textPrimary, marginBottom:8, fontFamily:"'Barlow Condensed',sans-serif" }}>Migrar paths do Storage</div>
-                <div style={{ fontSize:12, color:t.textMuted, marginBottom:12, lineHeight:1.6 }}>
-                  Move arquivos de eventos do formato antigo (<code>logos/ID/</code>) para o novo (<code>logos/organizador/evento/</code>).
-                  A operação é segura: primeiro faz upload no path novo, depois atualiza a URL, depois deleta o antigo.
-                </div>
-                <button
-                  style={{ ...s.btnPrimary, opacity: migrandoStorage ? 0.6 : 1 }}
-                  onClick={migrarStoragePaths}
-                  disabled={migrandoStorage}
-                >
-                  {migrandoStorage ? "Migrando..." : "Migrar Paths"}
-                </button>
-                {migracaoLog.length > 0 && (
-                  <div style={{ marginTop:12, maxHeight:300, overflowY:"auto", background:t.bgCard, border:`1px solid ${t.border}`, borderRadius:8, padding:12, fontSize:12, fontFamily:"monospace", lineHeight:1.8, color:t.textSecondary, whiteSpace:"pre-wrap" }}>
-                    {migracaoLog.map((line, i) => <div key={i}>{line}</div>)}
-                  </div>
-                )}
-              </div>
-            )}
 
             {/* Firestore */}
             {!diagRodando && diagAba === "firestore" && (() => {
@@ -2283,6 +2196,28 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(ts => `   • ${ts}`).joi
                       </table>
                     </div>
                   )}
+                  {diagFirestore.length > 0 && (
+                    <button
+                      style={{ ...s.btnPrimary, fontSize:12, marginTop:12 }}
+                      onClick={async () => {
+                        const ok = window.confirm(`Corrigir ${diagFirestore.length} problema(s)? Inscrições e resultados órfãos serão excluídos.`);
+                        if (!ok) return;
+                        let corrigidos = 0;
+                        for (const item of diagFirestore) {
+                          try {
+                            if (item.colecao === "inscricoes" && excluirInscricao) {
+                              excluirInscricao(item.docId); corrigidos++;
+                            } else if (item.colecao === "resultados") {
+                              await deleteDoc(doc(db, "resultados", item.docId)); corrigidos++;
+                            }
+                          } catch {}
+                        }
+                        alert(`${corrigidos} documento(s) órfão(s) removido(s).`);
+                        diagnosticarFirestore();
+                      }}>
+                      Corrigir referências órfãs
+                    </button>
+                  )}
                   {diagFirestore.length === 0 && <div style={{ textAlign:"center", padding:20, color:t.success, fontSize:13 }}>Nenhuma referência órfã encontrada.</div>}
                 </>
               );
@@ -2308,20 +2243,48 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(ts => `   • ${ts}`).joi
                     </div>
                   </div>
                   {diagAuth.length > 0 && (
-                    <div style={{ overflowX:"auto", borderRadius:10, border:`1px solid ${t.border}` }}>
-                      <table style={{ width:"100%", borderCollapse:"collapse" }}>
-                        <thead><tr><th style={th}>Tipo</th><th style={th}>Nome</th><th style={th}>Problema</th></tr></thead>
-                        <tbody>
-                          {diagAuth.map((item, i) => (
-                            <tr key={i} style={{ background: i % 2 === 0 ? "transparent" : t.bgHover }}>
-                              <td style={td}>{item.tipo}</td>
-                              <td style={td}>{item.nome}</td>
-                              <td style={td}><span style={badge(t.danger)}>{item.problema}</span></td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                    <>
+                      <div style={{ overflowX:"auto", borderRadius:10, border:`1px solid ${t.border}`, marginBottom:12 }}>
+                        <table style={{ width:"100%", borderCollapse:"collapse" }}>
+                          <thead><tr><th style={th}>Tipo</th><th style={th}>Nome</th><th style={th}>Problema</th></tr></thead>
+                          <tbody>
+                            {diagAuth.map((item, i) => (
+                              <tr key={i} style={{ background: i % 2 === 0 ? "transparent" : t.bgHover }}>
+                                <td style={td}>{item.tipo}</td>
+                                <td style={td}>{item.nome}</td>
+                                <td style={td}><span style={badge(t.danger)}>{item.problema}</span></td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      {diagAuth.some(item => item.tipo === "Atleta" && item.problema.startsWith("Email duplicado")) && (
+                        <button
+                          style={{ ...s.btnPrimary, fontSize:12 }}
+                          onClick={async () => {
+                            const emailsVistos = {};
+                            let corrigidos = 0;
+                            for (const atl of (atletas || [])) {
+                              if (!atl.email) continue;
+                              const email = atl.email.toLowerCase().trim();
+                              if (emailsVistos[email]) {
+                                atualizarAtleta({ ...atl, email: "" });
+                                corrigidos++;
+                              } else {
+                                emailsVistos[email] = true;
+                              }
+                            }
+                            if (corrigidos > 0) {
+                              alert(`${corrigidos} email(s) duplicado(s) removido(s) de atletas.`);
+                              diagnosticarAuth();
+                            } else {
+                              alert("Nenhum email duplicado encontrado.");
+                            }
+                          }}>
+                          Corrigir emails duplicados de atletas
+                        </button>
+                      )}
+                    </>
                   )}
                   {diagAuth.length === 0 && <div style={{ textAlign:"center", padding:20, color:t.success, fontSize:13 }}>Nenhum alerta de consistência encontrado.</div>}
                 </>

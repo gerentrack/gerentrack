@@ -411,6 +411,24 @@ function BlocoDigitarCategoria({
     ? temDuasCronometragens(provaSel.combinadaId, provaSel.provaOriginalSufixo) : false;
   const isProvaDePista = provaSel && provaSel.unidade === "s";
   const mostrarToggleCrono = isProvaDePista;
+
+  // ── Regras de pontuação alternativas para provas de combinada ──
+  const REGRAS_PONTUACAO_OPCOES = {
+    "60mB": [
+      { chave: "women|100mH", label: "100m c/ Barreiras (WA)" },
+      { chave: "women|60mH", label: "60m c/ Barreiras Indoor (WA)" },
+    ],
+  };
+  const provaTemRegraAlternativa = provaSel?.origemCombinada && provaSel?.provaOriginalSufixo
+    && filtroSexo === "F" && REGRAS_PONTUACAO_OPCOES[provaSel.provaOriginalSufixo];
+  const regrasPontuacaoEvento = eventoAtual?.regrasPontuacao || {};
+  const regraKeyAtual = provaSel?.combinadaId && provaSel?.provaOriginalSufixo
+    ? provaSel.combinadaId + "|" + provaSel.provaOriginalSufixo : null;
+  const regraAtual = regraKeyAtual ? (regrasPontuacaoEvento[regraKeyAtual] || null) : null;
+  const alternarRegraPontuacao = (chave) => {
+    const prev = eventoAtual.regrasPontuacao || {};
+    editarEvento({ ...eventoAtual, regrasPontuacao: { ...prev, [regraKeyAtual]: chave } });
+  };
   const temSeriesParaCrono = _serDigitar?.series?.length > 1;
 
   // Sincronizar cronometragem ao trocar de prova (lê do eventoAtual)
@@ -821,6 +839,25 @@ function BlocoDigitarCategoria({
             Salto em Altura / Vara — configure as barras abaixo
           </span>}
         </div>
+        {provaTemRegraAlternativa && (
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 11, color: t.textMuted }}>📐 Regras de pontuação:</span>
+            {REGRAS_PONTUACAO_OPCOES[provaSel.provaOriginalSufixo].map(op => {
+              const ativa = regraAtual === op.chave || (!regraAtual && op === REGRAS_PONTUACAO_OPCOES[provaSel.provaOriginalSufixo][0]);
+              return (
+                <button key={op.chave}
+                  onClick={() => alternarRegraPontuacao(op.chave)}
+                  style={{
+                    fontSize: 11, padding: "3px 10px", borderRadius: 4, cursor: "pointer",
+                    border: ativa ? `1px solid ${t.accent}` : `1px solid ${t.border}`,
+                    background: ativa ? t.accentBg : "transparent",
+                    color: ativa ? t.accent : t.textDimmed,
+                    fontWeight: ativa ? 700 : 400,
+                  }}>{op.label}</button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* ── Condições da Prova: Horário / Umidade / Temperatura ── */}
@@ -1372,7 +1409,7 @@ function BlocoDigitarCategoria({
                 const ptsManuais = res ? (typeof res === "object" ? res.pontosTabela : null) : null;
                 const marcaNum = marca != null ? parseFloat(String(marca).replace(",", ".")) : null;
                 const cronoAtl = resolverCronometragem(eventoAtual.cronometragemProvas, pc.id, eventoAtual.seriacao, catId, filtroSexo, aId);
-                const ptsAuto = (marcaNum != null && !isNaN(marcaNum)) ? CombinedScoringEngine.calcularPontosProva(pc.provaOriginalSufixo, marcaNum, filtroSexo, combinadaId, cronoAtl) : 0;
+                const ptsAuto = (marcaNum != null && !isNaN(marcaNum)) ? CombinedScoringEngine.calcularPontosProva(pc.provaOriginalSufixo, marcaNum, filtroSexo, combinadaId, cronoAtl, regrasPontuacaoEvento) : 0;
                 const pts = ptsManuais != null ? Number(ptsManuais) : ptsAuto;
                 const statusAtl2 = res ? (typeof res === "object" ? res.status : null) : null;
                 if ((marca != null && marca !== "") || statusAtl2) provasRealizadas++;
@@ -2126,7 +2163,7 @@ function BlocoDigitarCategoria({
                     const ptsManuais = res ? (typeof res === "object" ? res.pontosTabela : null) : null;
                     const marcaNum = marca != null ? parseFloat(String(marca).replace(",", ".")) : null;
                     const cronoAtl2 = resolverCronometragem(eventoAtual.cronometragemProvas, pc.id, eventoAtual.seriacao, catId, filtroSexo, aId);
-                    const ptsAuto = (marcaNum != null && !isNaN(marcaNum)) ? CombinedScoringEngine.calcularPontosProva(pc.provaOriginalSufixo, marcaNum, filtroSexo, combinadaId, cronoAtl2) : 0;
+                    const ptsAuto = (marcaNum != null && !isNaN(marcaNum)) ? CombinedScoringEngine.calcularPontosProva(pc.provaOriginalSufixo, marcaNum, filtroSexo, combinadaId, cronoAtl2, regrasPontuacaoEvento) : 0;
                     const pts = ptsManuais != null ? Number(ptsManuais) : ptsAuto;
                     const statusAtl2 = res ? (typeof res === "object" ? res.status : null) : null;
                     if ((marca != null && marca !== "") || statusAtl2) provasRealizadas++;

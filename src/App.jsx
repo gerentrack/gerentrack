@@ -50,64 +50,59 @@ import {
 
 import { Header, NavBtn }          from "./features/layout/Header";
 import TelaLogin                   from "./features/auth/TelaLogin";
-import TelaSelecaoPerfil           from "./features/auth/TelaSelecaoPerfil";
-import TelaRecuperacaoSenha        from "./features/auth/TelaRecuperacaoSenha";
-import TelaTrocarSenha             from "./features/auth/TelaTrocarSenha";
-import TelaConfiguracoes           from "./features/auth/TelaConfiguracoes";
-
-// ── Etapa 4B — adicionar ao App.jsx (junto com os imports da 4A) ──
 import TelaHome                    from "./features/eventos/TelaHome";
+import TelaEventoDetalhe           from "./features/eventos/TelaEventoDetalhe";
 import { TelaCadastroEvento,
          FiltroProvasStep,
          ProgramaHorarioStep }     from "./features/eventos/TelaCadastroEvento";
 import RichTextEditor              from "./features/ui/RichTextEditor";
-import TelaEventoDetalhe           from "./features/eventos/TelaEventoDetalhe";
-import PrepararOffline             from "./features/eventos/PrepararOffline";
 import { getStatusEvento,
          getStatusInscricoes,
          labelStatusEvento,
          _dtInscricoes }           from "./features/eventos/eventoHelpers";
-import TelaGerenciarInscricoes     from "./features/inscricoes/TelaGerenciarInscricoes";
-import TelaInscricaoAvulsa         from "./features/inscricoes/TelaInscricaoAvulsa";
-import TelaInscricaoRevezamento    from "./features/inscricoes/TelaInscricaoRevezamento";
-import TelaSumulas                 from "./features/sumulas/TelaSumulas";
-import TelaResultados              from "./features/resultados/TelaResultados";
-import TelaRecordes                from "./features/recordes/TelaRecordes";
-import TelaRanking                 from "./features/ranking/TelaRanking";
-import TelaFaq                     from "./features/utilidades/TelaFaq";
-import TelaPlanos                  from "./features/comercial/TelaPlanos";
-import TelaPrivacidade             from "./features/legal/TelaPrivacidade";
-import TelaTermos                  from "./features/legal/TelaTermos";
 import { gerarHtmlImpressao }      from "./features/impressao/gerarHtmlImpressao";
-import TelaDigitarResultados       from "./features/digitar/TelaDigitarResultados";
-import TelaConfigPontuacaoEquipes  from "./features/configuracoes/TelaConfigPontuacaoEquipes";
-import TelaSecretaria              from "./features/secretaria/TelaSecretaria";
-import TelaGerenciarUsuarios       from "./features/admin/TelaGerenciarUsuarios";
-import TelaGerenciarEquipes        from "./features/admin/TelaGerenciarEquipes";
-import TelaAdmin                   from "./features/admin/TelaAdmin";
-// Painéis
-import TelaPainel                  from "./features/paineis/TelaPainel";
-import TelaPainelOrganizador       from "./features/paineis/TelaPainelOrganizador";
-import TelaPainelAtleta            from "./features/paineis/TelaPainelAtleta";
-import TelaPainelEquipe            from "./features/paineis/TelaPainelEquipe";
-// Cadastros
-import TelaCadastroEquipe          from "./features/cadastros/TelaCadastroEquipe";
-import TelaCadastroOrganizador     from "./features/cadastros/TelaCadastroOrganizador";
-import TelaCadastroAtletaLogin     from "./features/cadastros/TelaCadastroAtletaLogin";
-// Gestão
-import TelaFuncionarios            from "./features/gestao/TelaFuncionarios";
-import TelaTreinadores             from "./features/gestao/TelaTreinadores";
-import TelaCadastrarAtleta         from "./features/gestao/TelaCadastrarAtleta";
-import TelaEditarAtleta            from "./features/gestao/TelaEditarAtleta";
-// Utilitários
-import TelaImportarAtletas         from "./features/utilidades/TelaImportarAtletas";
-import TelaNumericaPeito           from "./features/utilidades/TelaNumericaPeito";
-import TelaFinishLynx              from "./features/utilidades/TelaFinishLynx";
-import TelaGestaoInscricoes        from "./features/utilidades/TelaGestaoInscricoes";
-import TelaGerenciarMembros        from "./features/utilidades/TelaGerenciarMembros";
-import TelaAuditoria               from "./features/utilidades/TelaAuditoria";
-// Organizadores
-import TelaPerfilOrganizador       from "./features/organizadores/TelaPerfilOrganizador";
+
+// ── Lazy-loaded: telas carregadas sob demanda (pré-cacheadas pelo SW) ──
+const TelaSelecaoPerfil           = React.lazy(() => import("./features/auth/TelaSelecaoPerfil"));
+const TelaRecuperacaoSenha        = React.lazy(() => import("./features/auth/TelaRecuperacaoSenha"));
+const TelaTrocarSenha             = React.lazy(() => import("./features/auth/TelaTrocarSenha"));
+const TelaConfiguracoes           = React.lazy(() => import("./features/auth/TelaConfiguracoes"));
+const PrepararOffline             = React.lazy(() => import("./features/eventos/PrepararOffline"));
+const TelaGerenciarInscricoes     = React.lazy(() => import("./features/inscricoes/TelaGerenciarInscricoes"));
+const TelaInscricaoAvulsa         = React.lazy(() => import("./features/inscricoes/TelaInscricaoAvulsa"));
+const TelaInscricaoRevezamento    = React.lazy(() => import("./features/inscricoes/TelaInscricaoRevezamento"));
+const TelaSumulas                 = React.lazy(() => import("./features/sumulas/TelaSumulas"));
+const TelaResultados              = React.lazy(() => import("./features/resultados/TelaResultados"));
+const TelaRecordes                = React.lazy(() => import("./features/recordes/TelaRecordes"));
+const TelaRanking                 = React.lazy(() => import("./features/ranking/TelaRanking"));
+const TelaFaq                     = React.lazy(() => import("./features/utilidades/TelaFaq"));
+const TelaPlanos                  = React.lazy(() => import("./features/comercial/TelaPlanos"));
+const TelaPrivacidade             = React.lazy(() => import("./features/legal/TelaPrivacidade"));
+const TelaTermos                  = React.lazy(() => import("./features/legal/TelaTermos"));
+const TelaDigitarResultados       = React.lazy(() => import("./features/digitar/TelaDigitarResultados"));
+const TelaConfigPontuacaoEquipes  = React.lazy(() => import("./features/configuracoes/TelaConfigPontuacaoEquipes"));
+const TelaSecretaria              = React.lazy(() => import("./features/secretaria/TelaSecretaria"));
+const TelaGerenciarUsuarios       = React.lazy(() => import("./features/admin/TelaGerenciarUsuarios"));
+const TelaGerenciarEquipes        = React.lazy(() => import("./features/admin/TelaGerenciarEquipes"));
+const TelaAdmin                   = React.lazy(() => import("./features/admin/TelaAdmin"));
+const TelaPainel                  = React.lazy(() => import("./features/paineis/TelaPainel"));
+const TelaPainelOrganizador       = React.lazy(() => import("./features/paineis/TelaPainelOrganizador"));
+const TelaPainelAtleta            = React.lazy(() => import("./features/paineis/TelaPainelAtleta"));
+const TelaPainelEquipe            = React.lazy(() => import("./features/paineis/TelaPainelEquipe"));
+const TelaCadastroEquipe          = React.lazy(() => import("./features/cadastros/TelaCadastroEquipe"));
+const TelaCadastroOrganizador     = React.lazy(() => import("./features/cadastros/TelaCadastroOrganizador"));
+const TelaCadastroAtletaLogin     = React.lazy(() => import("./features/cadastros/TelaCadastroAtletaLogin"));
+const TelaFuncionarios            = React.lazy(() => import("./features/gestao/TelaFuncionarios"));
+const TelaTreinadores             = React.lazy(() => import("./features/gestao/TelaTreinadores"));
+const TelaCadastrarAtleta         = React.lazy(() => import("./features/gestao/TelaCadastrarAtleta"));
+const TelaEditarAtleta            = React.lazy(() => import("./features/gestao/TelaEditarAtleta"));
+const TelaImportarAtletas         = React.lazy(() => import("./features/utilidades/TelaImportarAtletas"));
+const TelaNumericaPeito           = React.lazy(() => import("./features/utilidades/TelaNumericaPeito"));
+const TelaFinishLynx              = React.lazy(() => import("./features/utilidades/TelaFinishLynx"));
+const TelaGestaoInscricoes        = React.lazy(() => import("./features/utilidades/TelaGestaoInscricoes"));
+const TelaGerenciarMembros        = React.lazy(() => import("./features/utilidades/TelaGerenciarMembros"));
+const TelaAuditoria               = React.lazy(() => import("./features/utilidades/TelaAuditoria"));
+const TelaPerfilOrganizador       = React.lazy(() => import("./features/organizadores/TelaPerfilOrganizador"));
 
 // Firebase — apenas auth (Firestore é usado internamente pelos hooks de storage)
 import {
@@ -1908,6 +1903,7 @@ function App() {
         </div>
       )}
       <main style={styles.main}>
+      <React.Suspense fallback={<div style={{ display:"flex", justifyContent:"center", alignItems:"center", minHeight:200 }}><span style={{ color:"#888", fontSize:14 }}>Carregando...</span></div>}>
         {tela === "home"                  && <TelaHome {...props} />}
         {tela === "login"                 && <TelaLogin {...props} adminConfig={adminConfig} setOrganizadores={setOrganizadores} setAtletasUsuarios={setAtletasUsuarios} setFuncionarios={setFuncionarios} setTreinadores={setTreinadores} />}
         {tela === "cadastro-equipe"    && <TelaCadastroEquipe {...props} />}
@@ -1977,6 +1973,7 @@ function App() {
         {tela === "gerenciar-membros" && <TelaGerenciarMembros />}
         {tela === "auditoria"         && <TelaAuditoria />}
         {tela === "organizador-perfil" && <TelaPerfilOrganizador {...props} />}
+      </React.Suspense>
       </main>
       <footer style={styles.footer}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 48, textAlign: "left" }}>

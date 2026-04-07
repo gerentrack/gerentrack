@@ -430,7 +430,7 @@ function TelaResultados() {
         const ptsManuais = res ? (typeof res === "object" ? res.pontosTabela : null) : null;
         const marcaNum = marca != null ? parseFloat(String(marca).replace(",", ".")) : null;
         const cronoAtl = resolverCronometragem(eventoAtual.cronometragemProvas, pc.id, eventoAtual.seriacao, catId, sexoProva, aId);
-        const ptsAuto = (marcaNum != null && !isNaN(marcaNum)) ? CombinedScoringEngine.calcularPontosProva(pc.provaOriginalSufixo, marcaNum, sexoProva, provaId, cronoAtl) : 0;
+        const ptsAuto = (marcaNum != null && !isNaN(marcaNum)) ? CombinedScoringEngine.calcularPontosProva(pc.provaOriginalSufixo, marcaNum, sexoProva, provaId, cronoAtl, eventoAtual.regrasPontuacao) : 0;
         const pts = ptsManuais != null ? Number(ptsManuais) : ptsAuto;
         const statusAtl = res ? (typeof res === "object" ? res.status : null) : null;
         if ((marca != null && marca !== "") || statusAtl) provasRealizadas++;

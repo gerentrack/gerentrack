@@ -29,6 +29,7 @@ const WA_SCORING_CONSTANTS = {
   "men|Discus":     { a: 12.91,    b: 4,     c: 1.1,   tipo: "throw" },
   "men|Javelin":    { a: 10.14,    b: 7,     c: 1.08,  tipo: "throw" },
   "men|60m":     { a: 58.015,  b: 11.5,  c: 1.81,  tipo: "track" },
+  "men|800m":    { a: 0.11193, b: 254,   c: 1.88,  tipo: "track" },
   "men|1000m":   { a: 0.08713, b: 305.5, c: 1.85,  tipo: "track" },
   "men|60mH":    { a: 20.5173, b: 15.5,  c: 1.92,  tipo: "track" },
   "women|200m":   { a: 4.99087,  b: 42.5,  c: 1.81,  tipo: "track" },
@@ -147,7 +148,7 @@ const COMBINED_SCORING_MAP = {
   "tetratlo|M|sub14|60mB":  { metodo: "wa", chave: "men|60mH" },
   "tetratlo|M|sub14|peso":  { metodo: "wa", chave: "men|Shot" },
   "tetratlo|M|sub14|comp":  { metodo: "wa", chave: "men|Long Jump" },
-  "tetratlo|M|sub14|800m":  { metodo: "table", chave: "CBAt_800m_M_Sub16" },
+  "tetratlo|M|sub14|800m":  { metodo: "wa", chave: "men|800m" },
 
   // ── TETRATLO FEMININO (Sub-14) ──
   "tetratlo|F|sub14|60mB":   { metodo: "wa", chave: "women|100mH" },
@@ -196,7 +197,8 @@ const CombinedScoringEngine = {
   // valor: marca numérica (milissegundos para pista, metros para saltos/lançamentos)
   // sexo: "M" ou "F"
   // cronometragem: opcional, "ELE" ou "MAN" — para provas com tabelas duplas
-  calcularPontosProva(provaOriginalSufixo, valor, sexo, combinadaProvaId, cronometragem) {
+  // regrasPontuacao: opcional, objeto { "combinadaId|sufixo": "chaveWA" } para sobrescrever regras
+  calcularPontosProva(provaOriginalSufixo, valor, sexo, combinadaProvaId, cronometragem, regrasPontuacao) {
     if (valor == null || isNaN(valor)) return 0;
     var v = parseFloat(valor);
 
@@ -211,8 +213,13 @@ const CombinedScoringEngine = {
       v = v / 1000;
     }
 
-    // Resolver mapeamento
+    // Resolver mapeamento — com possível override por evento
     var map = combinadaProvaId ? resolverScoringMap(combinadaProvaId, provaOriginalSufixo) : null;
+    if (map && regrasPontuacao) {
+      var overrideKey = combinadaProvaId + "|" + provaOriginalSufixo;
+      var overrideChave = regrasPontuacao[overrideKey];
+      if (overrideChave) map = { metodo: "wa", chave: overrideChave };
+    }
 
     if (map && map.metodo === "table") {
       // Lookup na tabela CBAt — se cronometragem especificada, trocar sufixo

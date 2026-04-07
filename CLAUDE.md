@@ -215,7 +215,8 @@ Environment variables are prefixed with `VITE_FIREBASE_*` and loaded via `.env`.
 - Push para `main` dispara deploy automático na Vercel — nunca commitar código quebrado
 - Rodar `npm run build` localmente antes de commitar mudanças estruturais
 - GitHub: `github.com/gerentrack/gerentrack` | Domínio: `gerentrack.com.br`
-- Firebase project: `gerentrack-b88b5` · Storage bucket: `gerentrack-b88b5.firebasestorage.app` (US-Central1)
+- Firebase project: `gerentrack-b88b5` · Firestore: `southamerica-east1` (São Paulo) · Storage bucket: `gerentrack-b88b5.firebasestorage.app`
+- Backup Firestore: diário com retenção de 30 dias + recuperação pontual (7 dias)
 
 ## Dívida técnica pendente
 

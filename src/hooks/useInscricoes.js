@@ -78,29 +78,6 @@ export function useInscricoes({ atletas = [], registrarAcao, usuarioLogado } = {
     return () => unsub();
   }, []);
 
-  // ── Migração: corrigir categoriaId para usar categoria da prova ──────────
-  const migracaoCatRef = useRef(false);
-  useEffect(() => {
-    if (migracaoCatRef.current || inscricoes.length === 0 || carregando) return;
-    migracaoCatRef.current = true;
-    (async () => {
-      const batch = writeBatch(db);
-      let count = 0;
-      for (const insc of inscricoes) {
-        if (!insc.provaId) continue;
-        const catDaProva = insc.provaId.split("_")[1] || "";
-        if (!catDaProva || insc.categoriaId === catDaProva) continue;
-        // categoriaId difere da categoria da prova — corrigir
-        batch.set(doc(db, COLLECTION, insc.id), { categoriaId: catDaProva }, { merge: true });
-        count++;
-        if (count >= 499) break; // batch limit 500
-      }
-      if (count > 0) {
-        await batch.commit();
-        console.log(`[useInscricoes] Migração categoriaId: ${count} inscrição(ões) corrigidas`);
-      }
-    })().catch(err => console.error("[useInscricoes] Erro migração categoriaId:", err));
-  }, [inscricoes, carregando]);
 
   // ── Adicionar 1 inscrição ────────────────────────────────────────────────
   const adicionarInscricao = useCallback(
