@@ -406,7 +406,7 @@ function TelaResultados() {
     if (!comp) return;
     const todasCompDaCombinada = CombinedEventEngine.gerarProvasComponentes(provaId, eid);
     const atletaIds = [...new Set(
-      inscDoEvento.filter(i => i.combinadaId === provaId || i.provaId === provaId).map(i => i.atletaId)
+      inscDoEvento.filter(i => i.combinadaId === provaId).map(i => i.atletaId)
     )];
     if (atletaIds.length === 0) return;
 

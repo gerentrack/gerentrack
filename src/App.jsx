@@ -926,6 +926,7 @@ function App() {
         solicitanteId: opts.solicitanteId || null,
         solicitanteNome: opts.solicitanteNome || null,
         organizadorId: opts.organizadorId || null,
+        ...(opts.tipo ? { tipo: opts.tipo } : {}),
         status: "pendente", data: new Date().toISOString() }
     ]);
     // Notifica a equipe que um atleta solicitou vínculo
@@ -942,7 +943,23 @@ function App() {
       ? { ...s, status: aceitar ? "aceito" : "recusado", resolvidoPorNome, resolvidoPorTipo, resolvidoEm: new Date().toISOString() } : s));
     if (aceitar) {
       const atv = atletasRef_app.current.find(a => a.id === sol.atletaId);
-      if (atv) _atualizarAtleta({ ...atv, equipeId: sol.equipeId, clube: sol.clube });
+      if (atv) {
+        if (sol.tipo === "desvinculacao") {
+          const equipeAnterior = atv.clube || "";
+          _atualizarAtleta({ ...atv, equipeId: null, clube: "", equipeAnterior, desvinculadoEm: new Date().toISOString() });
+          const contaAtleta = atletasUsuarios.find(u =>
+            u.cpf && atv.cpf && u.cpf.replace(/\D/g,"") === atv.cpf.replace(/\D/g,""));
+          if (contaAtleta) {
+            adicionarNotificacao(contaAtleta.id, "desvinculacao",
+              `Você foi desvinculado${equipeAnterior ? ` da equipe ${equipeAnterior}` : ""}.` +
+              ` Seus resultados anteriores permanecem registrados em nome da equipe.`,
+              { equipeAnterior }
+            );
+          }
+        } else {
+          _atualizarAtleta({ ...atv, equipeId: sol.equipeId, clube: sol.clube });
+        }
+      }
     }
   };
 

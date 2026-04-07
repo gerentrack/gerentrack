@@ -101,7 +101,7 @@ function VinculoSolicitarForm({ atletaId, atletaNome, clubeInicial, equipes, sol
 
 function TelaPainelAtleta() {
   const { usuarioLogado, perfisDisponiveis } = useAuth();
-  const { atletas, inscricoes, eventos, equipes, eventoAtual, adicionarInscricao, excluirInscricao, atualizarInscricao, resultados, solicitarVinculo, responderVinculo, desvincularAtleta: solicitarDesvinculo } = useEvento();
+  const { atletas, inscricoes, eventos, equipes, eventoAtual, adicionarInscricao, excluirInscricao, atualizarInscricao, resultados, solicitarVinculo, responderVinculo } = useEvento();
   const { setTela, atletasUsuarios, atualizarAtletaUsuario, solicitacoesVinculo, notificacoes, marcarNotifLida, organizadores, solicitacoesRelatorio, solicitarRelatorio, setAtletaEditandoId } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
@@ -294,7 +294,7 @@ function TelaPainelAtleta() {
                     </div>
                   </div>
                   {/* Botão de solicitar desvinculação */}
-                  {!solDesvinc && solicitarDesvinculo && (
+                  {!solDesvinc && solicitarVinculo && (
                     <details>
                       <summary style={{ cursor:"pointer", color: t.danger, fontSize:12,
                         background: t.bgCardAlt, border:`1px solid ${t.danger}44`,
@@ -308,29 +308,29 @@ function TelaPainelAtleta() {
                           Solicitar saída da equipe {equipeVinculada.nome}
                         </div>
                         <div style={{ color: t.textMuted, fontSize:12, lineHeight:1.7, marginBottom:12 }}>
-                          A equipe precisará aprovar sua saída.<br/>
+                          O organizador precisará aprovar sua saída.<br/>
                           <strong style={{ color: t.textTertiary }}>Seus resultados e inscrições históricas serão
                           totalmente preservados</strong> — nenhum dado esportivo é apagado.
                         </div>
                         <button
-                          onClick={async () => { 
+                          onClick={async () => {
                             if (!await confirmar(
-                              `⚠️ Solicitar saída da equipe "${equipeVinculada.nome }"?
-
-` +
-                              `A equipe precisará aprovar sua solicitação.
-
-` +
-                              `✅ Seus resultados e inscrições históricas serão PRESERVADOS.
-` +
-                              `✅ Você continuará aparecendo nos resultados de competições já realizadas.
-
-` +
+                              `⚠️ Solicitar saída da equipe "${equipeVinculada.nome }"?\n\n` +
+                              `O organizador precisará aprovar sua solicitação.\n\n` +
+                              `✅ Seus resultados e inscrições históricas serão PRESERVADOS.\n` +
+                              `✅ Você continuará aparecendo nos resultados de competições já realizadas.\n\n` +
                               `Deseja enviar a solicitação?`
                             )) return;
-                            solicitarDesvinculo(
+                            solicitarVinculo(
                               meuAtleta.id, meuAtleta.nome,
-                              equipeVinculada.id, equipeVinculada.nome
+                              equipeVinculada.id, equipeVinculada.nome,
+                              {
+                                tipo: "desvinculacao",
+                                origem: "atleta",
+                                organizadorId: equipeVinculada.organizadorId || null,
+                                solicitanteId: usuarioLogado.id,
+                                solicitanteNome: meuAtleta.nome,
+                              }
                             );
                           }}
                           style={{ background: t.bgCardAlt, border:`1px solid ${t.danger}`, color: t.danger,

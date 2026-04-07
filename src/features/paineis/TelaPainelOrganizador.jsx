@@ -494,7 +494,7 @@ function TelaPainelOrganizador() {
                         <Td style={{ fontSize:12, color:t.warning }}>{sol.equipeAtualNome || (sol.equipeAtualId ? (equipes?.find(eq => eq.id === sol.equipeAtualId)?.nome || "—") : "Sem equipe")}</Td>
                         <Td style={{ color:t.accent, fontSize:13 }}>{equipeNova?.nome || sol.clube || "—"}</Td>
                         <Td style={{ fontSize:11, color: t.textMuted }}>
-                          {sol.aprovadorTipo === "equipe_atual" ? "Transferência" : "Vínculo novo"}
+                          {sol.tipo === "desvinculacao" ? "Desvinculação" : sol.aprovadorTipo === "equipe_atual" ? "Transferência" : "Vínculo novo"}
                         </Td>
                         <Td style={{ fontSize:11, color: t.textDimmed }}>{new Date(sol.data).toLocaleString("pt-BR")}</Td>
                         <Td>

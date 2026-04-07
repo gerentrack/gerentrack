@@ -210,7 +210,7 @@ function InscricaoProvaRow({ insc, prova, atleta, provasDisp, inscAberta, atuali
 
 function TelaPainel() {
   const { usuarioLogado } = useAuth();
-  const { atletas, inscricoes, eventos, equipes, excluirInscricao, atualizarInscricao, responderVinculo } = useEvento();
+  const { atletas, inscricoes, eventos, equipes, excluirInscricao, atualizarInscricao } = useEvento();
   const { setTela, solicitacoesVinculo, treinadores } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
@@ -377,10 +377,13 @@ function TelaPainel() {
             <span style={{ background: t.accent, color: t.textPrimary, borderRadius:12, fontSize:12,
               fontWeight:800, padding:"2px 9px", marginLeft:10 }}>{vincPendentes.length}</span>
           </h2>
+          <div style={{ color: t.textMuted, fontSize: 12, marginBottom: 12 }}>
+            A aprovação é feita pelo organizador.
+          </div>
           <div style={s.tableWrap}>
             <table style={s.table}>
               <thead><tr>
-                <Th>Atleta</Th><Th>Equipe Solicitada</Th><Th>Data</Th><Th>Ação</Th>
+                <Th>Atleta</Th><Th>Equipe Solicitada</Th><Th>Data</Th><Th>Status</Th>
               </tr></thead>
               <tbody>
                 {vincPendentes.map(sol => (
@@ -390,20 +393,7 @@ function TelaPainel() {
                     <Td style={{ fontSize:11, color: t.textDimmed }}>
                       {new Date(sol.data).toLocaleString("pt-BR")}
                     </Td>
-                    <Td>
-                      <div style={{ display:"flex", gap:6 }}>
-                        <button onClick={() => responderVinculo(sol.id, true)}
-                          style={{ ...s.btnGhost, fontSize:12, padding:"4px 14px",
-                            color:t.success, borderColor:`${t.success}66` }}>
-                          ✓ Aceitar
-                        </button>
-                        <button onClick={() => responderVinculo(sol.id, false)}
-                          style={{ ...s.btnGhost, fontSize:12, padding:"4px 12px",
-                            color: t.danger, borderColor:`${t.danger}66` }}>
-                          ✗ Recusar
-                        </button>
-                      </div>
-                    </Td>
+                    <Td><span style={{ fontSize: 11, color: t.warning, fontWeight: 600 }}>Aguardando organizador</span></Td>
                   </tr>
                 ))}
               </tbody>
@@ -479,12 +469,12 @@ function TelaPainel() {
               fontWeight:800, padding:"2px 9px", marginLeft:10 }}>{transferenciasPend.length}</span>
           </h2>
           <p style={{ color: t.textMuted, fontSize:12, marginBottom:12, lineHeight:1.6 }}>
-            Outra equipe está solicitando a transferência de um atleta seu. Aprovar libera o atleta para o novo vínculo.
+            A aprovação é feita pelo organizador.
           </p>
           <div style={s.tableWrap}>
             <table style={s.table}>
               <thead><tr>
-                <Th>Atleta</Th><Th>Nova Equipe</Th><Th>Clube</Th><Th>Data</Th><Th>Ação</Th>
+                <Th>Atleta</Th><Th>Nova Equipe</Th><Th>Clube</Th><Th>Data</Th><Th>Status</Th>
               </tr></thead>
               <tbody>
                 {transferenciasPend.map(sol => {
@@ -497,20 +487,7 @@ function TelaPainel() {
                       <Td style={{ fontSize:11, color: t.textDimmed }}>
                         {new Date(sol.data).toLocaleString("pt-BR")}
                       </Td>
-                      <Td>
-                        <div style={{ display:"flex", gap:6 }}>
-                          <button onClick={() => responderVinculo(sol.id, true)}
-                            style={{ ...s.btnGhost, fontSize:12, padding:"4px 14px",
-                              color:t.success, borderColor:`${t.success}66` }}>
-                            ✓ Aprovar
-                          </button>
-                          <button onClick={() => responderVinculo(sol.id, false)}
-                            style={{ ...s.btnGhost, fontSize:12, padding:"4px 12px",
-                              color: t.danger, borderColor:`${t.danger}66` }}>
-                            ✗ Recusar
-                          </button>
-                        </div>
-                      </Td>
+                      <Td><span style={{ fontSize: 11, color: t.warning, fontWeight: 600 }}>Aguardando organizador</span></Td>
                     </tr>
                   );
                 })}

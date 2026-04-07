@@ -66,7 +66,7 @@ import { useTema } from "../../shared/TemaContext";
 
 export default function TelaPainelEquipe() {
   const { usuarioLogado, logout } = useAuth();
-  const { atletas, inscricoes, eventos, equipes, resultados, selecionarEvento, responderVinculo, desvincularAtleta } = useEvento();
+  const { atletas, inscricoes, eventos, equipes, resultados, selecionarEvento, solicitarVinculo } = useEvento();
   const { setTela, treinadores, solicitarRelatorio, solicitacoesRelatorio, cancelarRelatorio, excluirRelatorio, solicitacoesVinculo, setAtletaEditandoId, notificacoes, marcarNotifLida, historicoAcoes } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(getS(t));
@@ -419,9 +419,17 @@ export default function TelaPainelEquipe() {
                                 </button>
                                 <button style={{ background: `${t.danger}12`, border: `1px solid ${t.danger}44`, color: t.danger, borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: 12 }}
                                   onClick={async () => {
-                                    if (await confirmar(`Desvincular ${a.nome || "este atleta"} da equipe?`)) desvincularAtleta(a.id);
+                                    if (await confirmar(`Solicitar desvinculação de ${a.nome || "este atleta"}?\n\nA desvinculação será efetivada após aprovação do organizador.`)) {
+                                      solicitarVinculo(a.id, a.nome, equipeId, equipe?.nome || "", {
+                                        tipo: "desvinculacao",
+                                        origem: "equipe",
+                                        organizadorId: equipe?.organizadorId || null,
+                                        solicitanteId: usuarioLogado?.id,
+                                        solicitanteNome: usuarioLogado?.nome || equipe?.nome || "",
+                                      });
+                                    }
                                   }}>
-                                  Desvincular
+                                  Solicitar Desvinculação
                                 </button>
                               </div>
                             </Td>
@@ -943,25 +951,21 @@ export default function TelaPainelEquipe() {
         <div>
           {vincPendentes.length > 0 && (
             <div style={{ background: `${t.accent}10`, border: `1px solid ${t.accent}44`, borderRadius: 12, padding: "16px 20px", marginBottom: 20 }}>
-              <div style={{ fontWeight: 700, color: t.accent, fontSize: 14, marginBottom: 12 }}>
+              <div style={{ fontWeight: 700, color: t.accent, fontSize: 14, marginBottom: 8 }}>
                 Solicitações de Vínculo — atletas pedindo para entrar
+              </div>
+              <div style={{ color: t.textMuted, fontSize: 12, marginBottom: 12 }}>
+                A aprovação é feita pelo organizador.
               </div>
               <div style={s.tableWrap}>
                 <table style={s.table}>
-                  <thead><tr><Th>Atleta</Th><Th>Data</Th><Th>Ação</Th></tr></thead>
+                  <thead><tr><Th>Atleta</Th><Th>Data</Th><Th>Status</Th></tr></thead>
                   <tbody>
                     {vincPendentes.map(sol => (
                       <tr key={sol.id} style={s.tr}>
                         <Td><strong style={{ color: t.textPrimary }}>{sol.atletaNome}</strong></Td>
                         <Td style={{ fontSize: 11, color: t.textDimmed }}>{new Date(sol.data).toLocaleString("pt-BR")}</Td>
-                        <Td>
-                          <div style={{ display: "flex", gap: 6 }}>
-                            <button onClick={() => responderVinculo(sol.id, true)}
-                              style={{ ...s.btnGhost, fontSize: 12, padding: "4px 14px", color: t.success, borderColor: `${t.success}66` }}>✓ Aceitar</button>
-                            <button onClick={() => responderVinculo(sol.id, false)}
-                              style={{ ...s.btnGhost, fontSize: 12, padding: "4px 12px", color: t.danger, borderColor: `${t.danger}66` }}>✗ Recusar</button>
-                          </div>
-                        </Td>
+                        <Td><span style={{ fontSize: 11, color: t.warning, fontWeight: 600 }}>Aguardando organizador</span></Td>
                       </tr>
                     ))}
                   </tbody>
@@ -973,20 +977,20 @@ export default function TelaPainelEquipe() {
           {/* ── Solicitações de DESVINCULAÇÃO — atletas pedindo para sair ── */}
           {desvinculacaoPend.length > 0 && (
             <div style={{ background: `${t.danger}10`, border: `1px solid ${t.danger}44`, borderRadius: 12, padding: "16px 20px", marginBottom: 20 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
                 <span style={{ fontSize: 20 }}>🚪</span>
                 <div>
                   <div style={{ fontWeight: 700, color: t.danger, fontSize: 14 }}>
                     Solicitações de Saída — atletas pedindo para sair da equipe
                   </div>
                   <div style={{ color: t.textDimmed, fontSize: 12, marginTop: 2 }}>
-                    Aprovar libera o atleta. Os resultados históricos são sempre preservados.
+                    A aprovação é feita pelo organizador. Os resultados históricos são sempre preservados.
                   </div>
                 </div>
               </div>
               <div style={s.tableWrap}>
                 <table style={s.table}>
-                  <thead><tr><Th>Atleta</Th><Th>Inscrições</Th><Th>Data</Th><Th>Ação</Th></tr></thead>
+                  <thead><tr><Th>Atleta</Th><Th>Inscrições</Th><Th>Data</Th><Th>Status</Th></tr></thead>
                   <tbody>
                     {desvinculacaoPend.map(sol => {
                       const atletaObj = (atletas||[]).find(a => a.id === sol.atletaId);
@@ -1007,51 +1011,7 @@ export default function TelaPainelEquipe() {
                             </span>
                           </Td>
                           <Td style={{ fontSize: 11, color: t.textDimmed }}>{new Date(sol.data).toLocaleString("pt-BR")}</Td>
-                          <Td>
-                            <div style={{ display: "flex", gap: 6, flexDirection: "column", maxWidth: 220 }}>
-                              <div style={{ fontSize: 11, color: t.textDimmed, lineHeight: 1.5, marginBottom: 4 }}>
-                                ✅ Resultados e inscrições históricas são preservados ao aprovar.
-                              </div>
-                              <div style={{ display: "flex", gap: 6 }}>
-                                <button
-                                  onClick={async () => {
-                                    if (!await confirmar(
-                                      `Aprovar saída de "${sol.atletaNome }" da equipe?
-
-` +
-                                      `✅ O atleta será desvinculado.
-` +
-                                      (nInscricoes > 0 ? `✅ ${nInscricoes} inscrição(ões) histórica(s) serão preservadas.
-` : "") +
-                                      `✅ Resultados em competições não são alterados.
-
-` +
-                                      `Deseja aprovar?`
-                                    )) return;
-                                    responderVinculo(sol.id, true);
-                                  }}
-                                  style={{ ...s.btnGhost, fontSize: 12, padding: "4px 14px", color: t.success, borderColor: `${t.success}66` }}>
-                                  ✓ Aprovar saída
-                                </button>
-                                <button
-                                  onClick={async () => {
-                                    if (!await confirmar(
-                                      `Recusar o pedido de saída de "${sol.atletaNome }"?
-
-` +
-                                      `O atleta continuará vinculado à equipe.
-
-` +
-                                      `Deseja recusar?`
-                                    )) return;
-                                    responderVinculo(sol.id, false);
-                                  }}
-                                  style={{ ...s.btnGhost, fontSize: 12, padding: "4px 12px", color: t.danger, borderColor: `${t.danger}66` }}>
-                                  ✗ Recusar
-                                </button>
-                              </div>
-                            </div>
-                          </Td>
+                          <Td><span style={{ fontSize: 11, color: t.warning, fontWeight: 600 }}>Aguardando organizador</span></Td>
                         </tr>
                       );
                     })}
@@ -1067,11 +1027,11 @@ export default function TelaPainelEquipe() {
                 🔄 Transferências — outra equipe quer um atleta seu
               </div>
               <p style={{ color: t.textMuted, fontSize: 12, marginBottom: 12 }}>
-                Aprovar libera o atleta para a nova equipe.
+                A aprovação é feita pelo organizador.
               </p>
               <div style={s.tableWrap}>
                 <table style={s.table}>
-                  <thead><tr><Th>Atleta</Th><Th>Solicitante</Th><Th>Nova Equipe</Th><Th>Data</Th><Th>Ação</Th></tr></thead>
+                  <thead><tr><Th>Atleta</Th><Th>Solicitante</Th><Th>Nova Equipe</Th><Th>Data</Th><Th>Status</Th></tr></thead>
                   <tbody>
                     {transferenciasPend.map(sol => {
                       const novaEquipe = equipes?.find(e => e.id === sol.equipeId);
@@ -1081,14 +1041,7 @@ export default function TelaPainelEquipe() {
                           <Td style={{ fontSize: 12, color: t.textTertiary }}>{sol.solicitanteNome || "—"}</Td>
                           <Td style={{ color: t.warning, fontSize: 13 }}>{novaEquipe?.nome || sol.clube || "—"}</Td>
                           <Td style={{ fontSize: 11, color: t.textDimmed }}>{new Date(sol.data).toLocaleString("pt-BR")}</Td>
-                          <Td>
-                            <div style={{ display: "flex", gap: 6 }}>
-                              <button onClick={() => responderVinculo(sol.id, true)}
-                                style={{ ...s.btnGhost, fontSize: 12, padding: "4px 14px", color: t.success, borderColor: `${t.success}66` }}>✓ Aprovar</button>
-                              <button onClick={() => responderVinculo(sol.id, false)}
-                                style={{ ...s.btnGhost, fontSize: 12, padding: "4px 12px", color: t.danger, borderColor: `${t.danger}66` }}>✗ Recusar</button>
-                            </div>
-                          </Td>
+                          <Td><span style={{ fontSize: 11, color: t.warning, fontWeight: 600 }}>Aguardando organizador</span></Td>
                         </tr>
                       );
                     })}

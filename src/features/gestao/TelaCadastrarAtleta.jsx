@@ -2,7 +2,7 @@ import { usePagination, PaginaControles } from "../../lib/hooks/usePagination.js
 import React, { useState } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { CATEGORIAS, getCategoria } from "../../shared/constants/categorias";
-import { _getClubeAtleta, validarCPF } from "../../shared/formatters/utils";
+import { _getClubeAtleta, validarCPF, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
@@ -247,8 +247,8 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
-  const { adicionarAtleta, atualizarAtleta, excluirAtleta, excluirAtletasEmMassa, equipes, eventoAtual, atletas, solicitarVinculo, desvincularAtleta } = useEvento();
-  const { setTela, atletasUsuarios, solicitacoesVinculo, organizadores, setAtletaEditandoId } = useApp();
+  const { adicionarAtleta, atualizarAtleta, excluirAtleta, excluirAtletasEmMassa, equipes, eventoAtual, atletas, solicitarVinculo } = useEvento();
+  const { setTela, atletasUsuarios, solicitacoesVinculo, organizadores, setAtletaEditandoId, funcionarios, treinadores } = useApp();
   const confirmar = useConfirm();
   const _equipeDoUsuario = usuarioLogado?.tipo === "equipe" ? equipes?.find(e => e.id === usuarioLogado.id) : null;
   // equipeId e clube são auto-preenchidos para tipo "equipe" — não requerem input do usuário
@@ -454,8 +454,22 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
         return;
       }
     }
-    adicionarAtleta({ 
-      ...form, 
+    // Verificar email duplicado
+    if (form.email && form.email.trim()) {
+      if (emailJaCadastrado(form.email, { organizadores, equipes, atletasUsuarios, funcionarios, treinadores })) {
+        setErros({ email: "E-mail já cadastrado em outra conta." });
+        return;
+      }
+      // Verificar entre atletas também
+      const emailNorm = form.email.trim().toLowerCase();
+      const atlDup = atletas.find(a => a.email && a.email.trim().toLowerCase() === emailNorm);
+      if (atlDup) {
+        setErros({ email: `E-mail já cadastrado para ${atlDup.nome}.` });
+        return;
+      }
+    }
+    adicionarAtleta({
+      ...form,
       id: genId(),
       dataCadastro: new Date().toISOString(),
       organizadorId: meuOrgIdFinal,
@@ -717,12 +731,22 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
                         🔀 Transferir
                       </button>
                     )}
-                    {isEquipe && desvincularAtleta && (
+                    {isEquipe && solicitarVinculo && (
                       <button
-                        onClick={async () => { if (await confirmar(`Desvincular ${a.nome} da sua equipe?`)) desvincularAtleta(a.id); }}
+                        onClick={async () => {
+                          if (await confirmar(`Solicitar desvinculação de ${a.nome}?\n\nA desvinculação será efetivada após aprovação do organizador.`)) {
+                            solicitarVinculo(a.id, a.nome, usuarioLogado.id, _equipeDoUsuario?.nome || "", {
+                              tipo: "desvinculacao",
+                              origem: "equipe",
+                              organizadorId: _equipeDoUsuario?.organizadorId || null,
+                              solicitanteId: usuarioLogado.id,
+                              solicitanteNome: _equipeDoUsuario?.nome || usuarioLogado.nome || "",
+                            });
+                          }
+                        }}
                         style={{ ...s.btnGhost, fontSize: 11, padding: "4px 10px", color: t.danger, borderColor: `${t.danger}44` }}
                       >
-                        ✂️ Desvincular
+                        ✂️ Solicitar Desvinculação
                       </button>
                     )}
                   </div>
