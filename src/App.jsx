@@ -1115,6 +1115,7 @@ function App() {
       if (u.cpf && cpfsRem.has(u.cpf.replace(/\D/g, ""))) return false;
       return true;
     }));
+    excluirInscricoesPorAtletas(idsSet);
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Excluiu atletas em massa", `${idsSet.size} atleta(s)`, usuarioLogado.organizadorId || null, { modulo: "atletas" });
   };
 
@@ -1275,7 +1276,10 @@ function App() {
       return false;
     });
     const idsSet = new Set(paraRemover.map(a => a.id));
-    if (idsSet.size > 0) excluirAtletasPorIds(idsSet);
+    if (idsSet.size > 0) {
+      excluirAtletasPorIds(idsSet);
+      excluirInscricoesPorAtletas(idsSet);
+    }
   };
 
   // ── Resultados via Firestore ──────────────────────────────────────────────
