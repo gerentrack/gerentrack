@@ -949,14 +949,27 @@ function TelaInscricaoAvulsa() {
           // Se permissividadeNorma, inclui também provas da categoria superior permitida
           const catPrefixo = `${atletaAtivo.sexo}_${catOficial.id}_`;
           // Categorias superiores que aceitam este atleta por exceção
-          const catsSuperior = eventoParaInscricao.permissividadeNorma ? (() => {
+          const idade = (eventoParaInscricao.data ? new Date(eventoParaInscricao.data).getFullYear() : new Date().getFullYear()) - parseInt(atletaAtivo.anoNasc);
+          const catsSuperior = (() => {
             const extras = [];
-            const idade = (eventoParaInscricao.data ? new Date(eventoParaInscricao.data).getFullYear() : new Date().getFullYear()) - parseInt(atletaAtivo.anoNasc);
-            if (catOficial.id === "sub14" || idade === 11) extras.push(`${atletaAtivo.sexo}_sub14_`);
-            if (catOficial.id === "sub14") extras.push(`${atletaAtivo.sexo}_sub16_`);
-            if (catOficial.id === "sub16") extras.push(`${atletaAtivo.sexo}_sub18_`);
+            // Permissividade norma (Sub-14↔Sub-16, Sub-16→Sub-18)
+            if (eventoParaInscricao.permissividadeNorma) {
+              if (catOficial.id === "sub14" || idade === 11) extras.push(`${atletaAtivo.sexo}_sub14_`);
+              if (catOficial.id === "sub14") extras.push(`${atletaAtivo.sexo}_sub16_`);
+              if (catOficial.id === "sub16") extras.push(`${atletaAtivo.sexo}_sub18_`);
+            }
+            // 16+ em categorias superiores
+            if (eventoParaInscricao.permiteSub16CategoriasSup && idade >= 16) {
+              const hierarquia = ['sub14', 'sub16', 'sub18', 'sub20', 'sub23', 'adulto'];
+              const idxOficial = hierarquia.indexOf(catOficial.id);
+              if (idxOficial >= 0) {
+                for (let idx = idxOficial + 1; idx < hierarquia.length; idx++) {
+                  extras.push(`${atletaAtivo.sexo}_${hierarquia[idx]}_`);
+                }
+              }
+            }
             return extras;
-          })() : [];
+          })();
           const provasDisp = todasAsProvas().filter((p) =>
             (p.id.startsWith(catPrefixo) || catsSuperior.some(pfx => p.id.startsWith(pfx)))
             && provasDoEvento.has(p.id)

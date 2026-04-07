@@ -602,18 +602,20 @@ function TelaGestaoInscricoes() {
         const atl = atletas.find(a => a.id === item.atletaId);
         const prv = todasAsProvas().find(p => p.id === item.provaId);
         if (!atl || !prv) continue;
-        const cat = getCategoria(atl.anoNasc, anoComp);
-        const precoInfoInsc = calcularPrecoInscricao(atl, cat?.id || null, eventoAtual);
+        const catOficial = getCategoria(atl.anoNasc, anoComp);
+        const catProvaId = item.provaId.split("_")[1] || "";
+        const catProva = CATEGORIAS.find(c => c.id === catProvaId) || catOficial;
+        const precoInfoInsc = calcularPrecoInscricao(atl, catOficial?.id || null, eventoAtual);
         const inscBase = {
           id: genId(),
           eventoId: eid,
           atletaId: item.atletaId,
           provaId: item.provaId,
           provaNome: prv.nome,
-          categoria: cat?.nome || "—",
-          categoriaId: cat?.id || "",
-          categoriaOficial: cat?.nome || "—",
-          categoriaOficialId: cat?.id || "",
+          categoria: catProva.nome,
+          categoriaId: catProva.id,
+          categoriaOficial: catOficial?.nome || "—",
+          categoriaOficialId: catOficial?.id || "",
           sexo: atl.sexo,
           data: new Date().toISOString(),
           inscritoPorId: usuarioLogado?.id,
@@ -628,7 +630,7 @@ function TelaGestaoInscricoes() {
           const provasComp = CombinedEventEngine.gerarProvasComponentes(item.provaId, eid);
           const inscricoesComp = CombinedEventEngine.inscreverAtletaNasComponentes(
             item.atletaId, item.provaId, eid,
-            { categoria: cat?.nome || "—", categoriaId: cat?.id || "", categoriaOficial: cat?.nome || "—", categoriaOficialId: cat?.id || "", sexo: atl.sexo, inscritoPorId: usuarioLogado?.id, inscritoPorNome: usuarioLogado?.nome, inscritoPorTipo: usuarioLogado?.tipo, equipeCadastro: atl.clube || "", equipeCadastroId: atl.equipeId || null },
+            { categoria: catProva.nome, categoriaId: catProva.id, categoriaOficial: catOficial?.nome || "—", categoriaOficialId: catOficial?.id || "", sexo: atl.sexo, inscritoPorId: usuarioLogado?.id, inscritoPorNome: usuarioLogado?.nome, inscritoPorTipo: usuarioLogado?.tipo, equipeCadastro: atl.clube || "", equipeCadastroId: atl.equipeId || null },
             provasComp
           );
           todosInscDocs.push(...inscricoesComp);
