@@ -817,13 +817,11 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
           <h1 style={s.pageTitle}>➕ Novo Atleta</h1>
           <p style={{ color: t.textDimmed, fontSize: 14 }}>Cadastrar atleta manualmente</p>
         </div>
-        <button style={s.btnGhost} onClick={handleCancelar}>← Cancelar</button>
+        <button style={s.btnGhost} onClick={handleCancelar}>← Voltar</button>
       </div>
 
       <div style={{ maxWidth: 700, margin: "0 auto", background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 12, padding: "28px 32px" }}>
         <div style={s.grid2form}>
-          <div id="campo-nome"><FormField label="Nome Completo *"      value={form.nome}    onChange={(v) => setForm({ ...form, nome: v })}    error={erros.nome} /></div>
-          <div id="campo-datanasc"><FormField label="Data de Nascimento *"  value={form.dataNasc} onChange={handleDataNasc} type="date"           error={erros.dataNasc} /></div>
           <div style={{ gridColumn:"1/-1" }}>
             <div id="campo-cpf"><FormField label="CPF *" value={form.cpf} onChange={handleCpfChange}
               error={erros.cpf} placeholder="000.000.000-00" /></div>
@@ -854,21 +852,34 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
                     </div>
                   );
                   if (solPendente) return (
-                    <div style={{ background:`${t.accent}12`, borderRadius:6, padding:"8px 12px", color: t.accent, fontSize:13, marginBottom:10 }}>
-                      ⏳ Solicitação de vínculo já enviada — aguardando aprovação.
+                    <div style={{ background:`${t.accent}12`, border:`1px solid ${t.accent}44`, borderRadius:8, padding:"14px 16px", marginBottom:10 }}>
+                      <div style={{ color: t.accent, fontSize:13, fontWeight:700, marginBottom:10 }}>
+                        ⏳ Solicitação de vínculo já enviada — aguardando aprovação do organizador.
+                      </div>
+                      <button onClick={() => { setForm({ nome:"",cpf:"",dataNasc:"",sexo:"",cbat:"",email:"",fone:"" }); }}
+                        style={{ background:t.accent, color:"#fff", border:"none", borderRadius:6, padding:"8px 18px", cursor:"pointer", fontSize:12, fontWeight:700 }}>
+                        Cadastrar outro atleta
+                      </button>
                     </div>
                   );
                   if (vinculoEnviado) return (
-                    <div style={{ background:`${t.success}10`, borderRadius:6, padding:"8px 12px", color:t.success, fontSize:13, marginBottom:10 }}>
-                      {temEquipe ? "✓ Solicitação enviada! A equipe atual receberá a notificação." : "✓ Solicitação enviada! O atleta receberá a notificação para aceitar o vínculo."}
+                    <div style={{ background:`${t.success}10`, border:`1px solid ${t.success}44`, borderRadius:8, padding:"14px 16px", marginBottom:10 }}>
+                      <div style={{ color:t.success, fontSize:13, fontWeight:700, marginBottom:10 }}>
+                        ✓ Solicitação de vínculo enviada com sucesso!
+                      </div>
+                      <div style={{ color: t.textMuted, fontSize:12, marginBottom:12 }}>Aguardando aprovação do organizador.</div>
+                      <button onClick={() => { setVinculoEnviado(false); setForm({ nome:"",cpf:"",dataNasc:"",sexo:"",cbat:"",email:"",fone:"" }); }}
+                        style={{ background:t.accent, color:"#fff", border:"none", borderRadius:6, padding:"8px 18px", cursor:"pointer", fontSize:12, fontWeight:700 }}>
+                        Cadastrar outro atleta
+                      </button>
                     </div>
                   );
                   return (
                     <div style={{ marginBottom:10 }}>
                       <p style={{ color: t.textTertiary, fontSize:12, margin:"0 0 8px", lineHeight:1.6 }}>
                         {temEquipe
-                          ? `Este atleta está vinculado à equipe "${equipes?.find(e => e.id === atletaBase.equipeId)?.nome || atletaBase.clube || "outra equipe"}". A solicitação será enviada a essa equipe.`
-                          : "Este atleta não possui equipe vinculada. A solicitação será enviada ao atleta para aceitar ou recusar."}
+                          ? `Este atleta está vinculado à equipe "${equipes?.find(e => e.id === atletaBase.equipeId)?.nome || atletaBase.clube || "outra equipe"}". A solicitação será enviada ao organizador para aprovação.`
+                          : "Este atleta não possui equipe vinculada. A solicitação será enviada ao organizador para aprovação."}
                       </p>
                       <button onClick={() => {
                         const equipeAtualObj = temEquipe ? equipes?.find(e => e.id === atletaBase.equipeId) : null;
@@ -893,12 +904,6 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
                     </div>
                   );
                 })()}
-                <div style={{ background:`${t.danger}08`, border:`1px solid ${t.danger}44`, borderRadius:6,
-                  padding:"10px 14px", fontSize:12, color: t.textTertiary, lineHeight:1.7 }}>
-                  ⚠️ <strong style={{ color:t.warning }}>Por que isso acontece?</strong><br/>
-                  Uma pessoa não pode ter dois perfis de atleta no mesmo organizador.<br/>
-                  Para gerenciar este atleta, utilize o perfil já existente ou solicite vínculo com a equipe através da tela de cadastro do atleta.
-                </div>
               </div>
             )}
 
@@ -948,23 +953,34 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
                       ✓ Este atleta já está vinculado a você.
                     </div>
                   ) : solPendente ? (
-                    <div style={{ background:`${t.accent}12`, borderRadius:6, padding:"8px 12px",
-                      color: t.accent, fontSize:13 }}>
-                      ⏳ Solicitação de vínculo já enviada — aguardando aprovação.
+                    <div style={{ background:`${t.accent}12`, border:`1px solid ${t.accent}44`, borderRadius:8, padding:"14px 16px" }}>
+                      <div style={{ color: t.accent, fontSize:13, fontWeight:700, marginBottom:10 }}>
+                        ⏳ Solicitação de vínculo já enviada — aguardando aprovação do organizador.
+                      </div>
+                      <button onClick={() => { setForm({ nome:"",cpf:"",dataNasc:"",sexo:"",cbat:"",email:"",fone:"" }); }}
+                        style={{ background:t.accent, color:"#fff", border:"none", borderRadius:6, padding:"8px 18px", cursor:"pointer", fontSize:12, fontWeight:700 }}>
+                        Cadastrar outro atleta
+                      </button>
                     </div>
                   ) : vinculoEnviado ? (
-                    <div style={{ background:`${t.success}10`, borderRadius:6, padding:"8px 12px",
-                      color:t.success, fontSize:13 }}>
-                      {temEquipe
-                        ? "✓ Solicitação enviada! A equipe atual receberá a notificação para aprovar a transferência."
-                        : "✓ Atleta vinculado com sucesso à sua equipe!"}
+                    <div style={{ background:`${t.success}10`, border:`1px solid ${t.success}44`, borderRadius:8, padding:"14px 16px" }}>
+                      <div style={{ color:t.success, fontSize:13, fontWeight:700, marginBottom:10 }}>
+                        {temEquipe
+                          ? "✓ Solicitação de transferência enviada com sucesso!"
+                          : "✓ Solicitação de vínculo enviada com sucesso!"}
+                      </div>
+                      <div style={{ color: t.textMuted, fontSize:12, marginBottom:12 }}>Aguardando aprovação do organizador.</div>
+                      <button onClick={() => { setVinculoEnviado(false); setForm({ nome:"",cpf:"",dataNasc:"",sexo:"",cbat:"",email:"",fone:"" }); }}
+                        style={{ background:t.accent, color:"#fff", border:"none", borderRadius:6, padding:"8px 18px", cursor:"pointer", fontSize:12, fontWeight:700 }}>
+                        Cadastrar outro atleta
+                      </button>
                     </div>
                   ) : temEquipe ? (
                     <div>
                       <p style={{ color: t.textTertiary, fontSize:12, margin:"0 0 10px", lineHeight:1.6 }}>
                         {(() => {
                           const eqAtual = equipes?.find(e => e.id === atletaExistente.equipeId);
-                          return `Este atleta está vinculado à equipe "${eqAtual?.nome || atletaExistente.clube || "outra equipe"}". A solicitação será enviada a essa equipe para aprovar ou recusar a transferência.`;
+                          return `Este atleta está vinculado à equipe "${eqAtual?.nome || atletaExistente.clube || "outra equipe"}". A solicitação será enviada ao organizador para aprovar ou recusar a transferência.`;
                         })()}
                       </p>
                       <button onClick={handleVincular}
@@ -978,7 +994,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
                   ) : (
                     <div>
                       <p style={{ color: t.textTertiary, fontSize:12, margin:"0 0 10px", lineHeight:1.6 }}>
-                        Este atleta não está vinculado a nenhuma equipe. A solicitação será enviada ao atleta para aceitar ou recusar o vínculo.
+                        Este atleta não está vinculado a nenhuma equipe. A solicitação será enviada ao organizador para aprovação.
                       </p>
                       <button onClick={handleVincular}
                         style={{ background:`${t.accent}18`, border:`1px solid ${t.accent}66`,
@@ -993,6 +1009,9 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
               );
             })()}
           </div>
+          {!atletaDuplicadoOrg && !atletaExistente && (<>
+          <div id="campo-nome"><FormField label="Nome Completo *"      value={form.nome}    onChange={(v) => setForm({ ...form, nome: v })}    error={erros.nome} /></div>
+          <div id="campo-datanasc"><FormField label="Data de Nascimento *"  value={form.dataNasc} onChange={handleDataNasc} type="date"           error={erros.dataNasc} /></div>
           <FormField label="Nº CBAt (opcional)"    value={form.cbat}    onChange={(v) => setForm({ ...form, cbat: v })}   placeholder="Número de registro CBAt" />
           <FormField label="E-mail (opcional)"     value={form.email}   onChange={(v) => setForm({ ...form, email: v })}  type="email" placeholder="email@exemplo.com" />
           <div>
@@ -1007,8 +1026,9 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
             </div>
           </div>
           <FormField label="Telefone (opcional)"   value={form.fone}    onChange={(v) => setForm({ ...form, fone: v })}   placeholder="(00) 00000-0000" />
-          
+          </>)}
           {/* Vinculação ao Organizador e Equipe */}
+          {!atletaDuplicadoOrg && !atletaExistente && (
           <div style={{ gridColumn: "1/-1", background: t.bgHeaderSolid, padding: 20, borderRadius: 8, border: `1px solid ${t.border}`, marginTop: 16 }}>
             <h4 style={{ color: t.accent, marginBottom: 16 }}>📍 Vinculação</h4>
 
@@ -1096,7 +1116,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
               </>
             )}
           </div>
-
+          )}
           {!usuarioLogado && (
             <div>
               <label style={s.label}>Equipe (opcional)</label>
@@ -1112,7 +1132,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
             </div>
           )}
         </div>
-        {form.anoNasc && !isNaN(form.anoNasc) && (() => {
+        {!atletaDuplicadoOrg && !atletaExistente && form.anoNasc && !isNaN(form.anoNasc) && (() => {
           const catDetect = getCategoria(form.anoNasc, anoBase);
           const idadeDetect = anoBase - parseInt(form.anoNasc);
           return catDetect
@@ -1121,7 +1141,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
         })()}
 
         {/* ── LGPD: Consentimento Parental (menores) ── */}
-        {(() => {
+        {!atletaDuplicadoOrg && !atletaExistente && (() => {
           const idadeAtleta = calcularIdade(form.dataNasc);
           const ehMenor = idadeAtleta !== null && idadeAtleta < 18;
           if (!ehMenor) return null;
@@ -1149,16 +1169,22 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
         })()}
 
         {/* ── LGPD: Consentimento geral ── */}
-        <div id="campo-lgpd"><BlocoLGPD aceite={lgpdAceite} onChange={setLgpdAceite} erro={erros.lgpd} /></div>
+        {!atletaDuplicadoOrg && !atletaExistente && (
+          <div id="campo-lgpd"><BlocoLGPD aceite={lgpdAceite} onChange={setLgpdAceite} erro={erros.lgpd} /></div>
+        )}
 
-        {Object.keys(erros).length > 0 && (
+        {!atletaDuplicadoOrg && !atletaExistente && Object.keys(erros).length > 0 && (
           <div style={{ background: `${t.danger}15`, border: `1px solid ${t.danger}44`, borderRadius: 8, padding: "10px 16px", marginTop: 16, fontSize: 13, color: t.danger }}>
             <div style={{ fontWeight: 700, marginBottom: 4 }}>Corrija os erros para continuar:</div>
             {Object.values(erros).map((msg, idx) => <div key={idx} style={{ fontSize: 12 }}>• {msg}</div>)}
           </div>
         )}
-        <button style={{ ...s.btnPrimary, marginTop: 16 }} onClick={handleSubmit}>✓ Cadastrar Atleta</button>
-        <button style={{ ...s.btnGhost, marginTop: 8, width: "100%" }} onClick={handleCancelar}>← Cancelar</button>
+        {!atletaDuplicadoOrg && !atletaExistente && (
+          <button style={{ ...s.btnPrimary, marginTop: 16 }} onClick={handleSubmit}>✓ Cadastrar Atleta</button>
+        )}
+        {!atletaDuplicadoOrg && !atletaExistente && (
+          <button style={{ ...s.btnGhost, marginTop: 8, width: "100%" }} onClick={handleCancelar}>← Cancelar</button>
+        )}
       </div>
     </div>
   );

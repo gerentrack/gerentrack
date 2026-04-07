@@ -41,6 +41,12 @@ export function useLocalStorage(key, initialValue) {
       docRef,
       (snap) => {
         if (snap.exists()) {
+          // Se há escrita local pendente (debounce ativo), ignorar snapshot remoto
+          // para não sobrescrever alterações locais com dados stale do Firestore
+          if (debounceTimer.current) {
+            firestoreLoaded.current = true;
+            return;
+          }
           const remoteVal = snap.data().value;
           ref.current = remoteVal;
           setStoredValue(remoteVal);
@@ -92,6 +98,7 @@ export function useLocalStorage(key, initialValue) {
       if (firestoreLoaded.current && auth.currentUser) {
         if (debounceTimer.current) clearTimeout(debounceTimer.current);
         debounceTimer.current = setTimeout(() => {
+          debounceTimer.current = null;
           if (!auth.currentUser) return;
           const docRef = doc(db, "state", key);
           setDoc(docRef, { value: sanitizeForFirestore(ref.current) }).catch(

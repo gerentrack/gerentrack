@@ -81,6 +81,7 @@ export default function TelaPainelEquipe() {
   const [filtroSexoAtl, setFiltroSexoAtl] = useState("todos");
   const [filtroCatAtl, setFiltroCatAtl] = useState("todas");
   const atlPorPagina = 20;
+  const [pagVinc, setPagVinc] = useState(1);
   const [buscaAudit, setBuscaAudit] = useState("");
   const [filtroModulo, setFiltroModulo] = useState("todos");
   const [paginaAudit, setPaginaAudit] = useState(1);
@@ -215,7 +216,7 @@ export default function TelaPainelEquipe() {
     { id: "eventos",      label: `Competições (${eventosAbertos.length} abertas)` },
     { id: "resultados",   label: `Resultados (${medalhas.total})` },
     { id: "treinadores",  label: `Treinadores (${meusTrein.length})` },
-    ...(totalPendentes > 0 ? [{ id: "vinculos", label: `Vínculos (${totalPendentes})`, badge: true }] : []),
+    { id: "vinculos", label: totalPendentes > 0 ? `Vínculos (${totalPendentes})` : "Vínculos", ...(totalPendentes > 0 ? { badge: true } : {}) },
     { id: "auditoria",   label: "Auditoria" },
   ];
 
@@ -266,7 +267,7 @@ export default function TelaPainelEquipe() {
           {totalPendentes > 0 && (
             <div style={{ background: `${t.warning}12`, border: `1px solid ${t.warning}66`, borderRadius: 10, padding: "14px 18px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
               <div>
-                <span style={{ color: t.warning, fontWeight: 700 }}>🔔 {totalPendentes} solicitação(ões) de vínculo aguardando sua resposta</span>
+                <span style={{ color: t.warning, fontWeight: 700 }}>🔔 {totalPendentes} solicitação(ões) de vínculo aguardando aprovação do organizador</span>
               </div>
               <button onClick={() => setAbaAtiva("vinculos")} style={{ ...s.btn, background: t.warning, padding: "6px 16px", fontSize: 12 }}>
                 Ver agora →
@@ -1055,18 +1056,27 @@ export default function TelaPainelEquipe() {
           {(() => {
             const hist = (solicitacoesVinculo||[]).filter(sol =>
               (sol.equipeId === equipeId || sol.equipeAtualId === equipeId) && sol.status !== "pendente"
-            ).sort((a,b) => new Date(b.resolvidoEm||b.data) - new Date(a.resolvidoEm||a.data)).slice(0,30);
+            ).sort((a,b) => new Date(b.resolvidoEm||b.data) - new Date(a.resolvidoEm||a.data));
+            if (hist.length === 0 && totalPendentes === 0) return (
+              <div style={{ textAlign: "center", padding: "40px 20px", color: t.textDimmed }}>
+                <span style={{ fontSize: 36 }}>🔗</span>
+                <p style={{ fontSize: 13, marginTop: 12 }}>Nenhuma solicitação de vínculo registrada.</p>
+              </div>
+            );
             if (hist.length === 0) return null;
+            const porPag = 10;
+            const totalPags = Math.ceil(hist.length / porPag);
+            const paginados = hist.slice((pagVinc - 1) * porPag, pagVinc * porPag);
             return (
-              <details style={{ background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, padding: "12px 18px" }}>
-                <summary style={{ cursor: "pointer", color: t.textDimmed, fontSize: 13, fontWeight: 600 }}>
-                  📂 Histórico ({hist.length})
-                </summary>
-                <div style={{ marginTop: 12, overflowX: "auto" }}>
+              <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, padding: "12px 18px" }}>
+                <div style={{ color: t.textDimmed, fontSize: 13, fontWeight: 600, marginBottom: 12 }}>
+                  Histórico ({hist.length})
+                </div>
+                <div style={{ overflowX: "auto" }}>
                   <table style={s.table}>
                     <thead><tr><Th>Atleta</Th><Th>Tipo</Th><Th>Status</Th><Th>Resolvido por</Th><Th>Data</Th></tr></thead>
                     <tbody>
-                      {hist.map(sol => {
+                      {paginados.map(sol => {
                         const cor = sol.status === "aceito" ? t.success : t.danger;
                         return (
                           <tr key={sol.id} style={s.tr}>
@@ -1081,7 +1091,16 @@ export default function TelaPainelEquipe() {
                     </tbody>
                   </table>
                 </div>
-              </details>
+                {totalPags > 1 && (
+                  <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginTop: 12 }}>
+                    <button disabled={pagVinc <= 1} onClick={() => setPagVinc(pagVinc - 1)}
+                      style={{ ...s.btnGhost, fontSize: 11, padding: "4px 12px", opacity: pagVinc <= 1 ? 0.4 : 1 }}>← Anterior</button>
+                    <span style={{ fontSize: 12, color: t.textDimmed }}>{pagVinc} / {totalPags}</span>
+                    <button disabled={pagVinc >= totalPags} onClick={() => setPagVinc(pagVinc + 1)}
+                      style={{ ...s.btnGhost, fontSize: 11, padding: "4px 12px", opacity: pagVinc >= totalPags ? 0.4 : 1 }}>Próxima →</button>
+                  </div>
+                )}
+              </div>
             );
           })()}
         </div>

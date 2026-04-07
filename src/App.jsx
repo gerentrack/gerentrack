@@ -929,9 +929,18 @@ function App() {
         ...(opts.tipo ? { tipo: opts.tipo } : {}),
         status: "pendente", data: new Date().toISOString() }
     ]);
-    // Notifica a equipe que um atleta solicitou vínculo
-    adicionarNotificacao(equipeId, "vinculo_solicitado",
-      `O atleta "${atletaNome}" solicitou vínculo com sua equipe. Acesse o painel para aprovar ou recusar.`);
+    // Notifica o organizador (quem aprova) e a equipe (informativo)
+    const _orgId = opts.organizadorId || equipes.find(e => e.id === equipeId)?.organizadorId;
+    const _equipeNome = clube || equipes.find(e => e.id === equipeId)?.nome || "";
+    if (opts.tipo === "desvinculacao") {
+      if (_orgId) adicionarNotificacao(_orgId, "vinculo_solicitado",
+        `Solicitação de desvinculação: "${atletaNome}" da equipe "${_equipeNome}". Acesse o painel para aprovar ou recusar.`);
+    } else {
+      if (_orgId) adicionarNotificacao(_orgId, "vinculo_solicitado",
+        `O atleta "${atletaNome}" solicitou vínculo com a equipe "${_equipeNome}". Acesse o painel para aprovar ou recusar.`);
+      adicionarNotificacao(equipeId, "vinculo_solicitado",
+        `O atleta "${atletaNome}" solicitou vínculo com sua equipe. Aguardando aprovação do organizador.`);
+    }
   };
 
   const responderVinculo = (solId, aceitar) => {
@@ -939,28 +948,57 @@ function App() {
     if (!sol) return;
     const resolvidoPorNome = usuarioLogado?.nome || usuarioLogado?.id || "—";
     const resolvidoPorTipo = usuarioLogado?.tipo || "";
+    const _equipeNome = sol.clube || equipes.find(e => e.id === sol.equipeId)?.nome || "";
+    const _statusTxt = aceitar ? "aceito" : "recusado";
+    const _isDesvinc = sol.tipo === "desvinculacao";
+    const _tipoTxt = _isDesvinc ? "Desvinculação" : sol.aprovadorTipo === "equipe_atual" ? "Transferência" : "Vínculo";
+
     setSolicitacoesVinculo(p => p.map(s => s.id === solId
-      ? { ...s, status: aceitar ? "aceito" : "recusado", resolvidoPorNome, resolvidoPorTipo, resolvidoEm: new Date().toISOString() } : s));
+      ? { ...s, status: _statusTxt, resolvidoPorNome, resolvidoPorTipo, resolvidoEm: new Date().toISOString() } : s));
+
+    // Buscar conta do atleta para notificação
+    const atv = atletasRef_app.current.find(a => a.id === sol.atletaId);
+    const contaAtleta = atletasUsuarios.find(u =>
+      u.cpf && atv?.cpf && u.cpf.replace(/\D/g,"") === atv.cpf.replace(/\D/g,""));
+
     if (aceitar) {
-      const atv = atletasRef_app.current.find(a => a.id === sol.atletaId);
       if (atv) {
-        if (sol.tipo === "desvinculacao") {
+        if (_isDesvinc) {
           const equipeAnterior = atv.clube || "";
           _atualizarAtleta({ ...atv, equipeId: null, clube: "", equipeAnterior, desvinculadoEm: new Date().toISOString() });
-          const contaAtleta = atletasUsuarios.find(u =>
-            u.cpf && atv.cpf && u.cpf.replace(/\D/g,"") === atv.cpf.replace(/\D/g,""));
-          if (contaAtleta) {
-            adicionarNotificacao(contaAtleta.id, "desvinculacao",
-              `Você foi desvinculado${equipeAnterior ? ` da equipe ${equipeAnterior}` : ""}.` +
-              ` Seus resultados anteriores permanecem registrados em nome da equipe.`,
-              { equipeAnterior }
-            );
-          }
+          if (contaAtleta) adicionarNotificacao(contaAtleta.id, "desvinculacao",
+            `Você foi desvinculado${equipeAnterior ? ` da equipe ${equipeAnterior}` : ""}. Seus resultados anteriores permanecem registrados.`,
+            { equipeAnterior });
+          adicionarNotificacao(sol.equipeId, "vinculo_resolvido",
+            `Desvinculação de "${sol.atletaNome}" foi aprovada pelo organizador.`);
         } else {
           _atualizarAtleta({ ...atv, equipeId: sol.equipeId, clube: sol.clube });
+          if (contaAtleta) adicionarNotificacao(contaAtleta.id, "vinculo_resolvido",
+            `Seu vínculo com a equipe "${_equipeNome}" foi aprovado.`);
+          adicionarNotificacao(sol.equipeId, "vinculo_resolvido",
+            `Vínculo de "${sol.atletaNome}" com sua equipe foi aprovado pelo organizador.`);
         }
       }
+    } else {
+      // Recusado — notificar atleta e equipe
+      if (contaAtleta) adicionarNotificacao(contaAtleta.id, "vinculo_resolvido",
+        _isDesvinc
+          ? `Sua solicitação de saída da equipe "${_equipeNome}" foi recusada pelo organizador.`
+          : `Sua solicitação de vínculo com a equipe "${_equipeNome}" foi recusada pelo organizador.`);
+      adicionarNotificacao(sol.equipeId, "vinculo_resolvido",
+        _isDesvinc
+          ? `Desvinculação de "${sol.atletaNome}" foi recusada pelo organizador.`
+          : `Solicitação de vínculo de "${sol.atletaNome}" foi recusada pelo organizador.`);
     }
+
+    // Auditoria
+    registrarAcao(
+      usuarioLogado?.id, resolvidoPorNome,
+      `${_tipoTxt} ${_statusTxt}`,
+      `${sol.atletaNome} — equipe ${_equipeNome}`,
+      usuarioLogado?.organizadorId || (usuarioLogado?.tipo === "organizador" ? usuarioLogado?.id : null),
+      { modulo: "vinculos", atletaId: sol.atletaId, equipeId: sol.equipeId }
+    );
   };
 
   const adicionarNotificacao = (para, tipo, msg, extra = {}) =>
