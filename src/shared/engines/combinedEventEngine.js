@@ -55,6 +55,7 @@ const CombinedEventEngine = {
       equipeCadastro: dadosBase.equipeCadastro,
       equipeCadastroId: dadosBase.equipeCadastroId,
       // Metadados da componente
+      provaNome: pc.nome,
       ordemNaCombinada: pc.ordem,
       nomeCombinada: pc.nomeCombinada,
       provaComponenteNome: pc.nome,

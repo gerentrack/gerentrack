@@ -106,7 +106,7 @@ export function useInscricoes({ atletas = [], registrarAcao, usuarioLogado } = {
           usuarioLogado.id,
           usuarioLogado.nome,
           "Inscreveu atleta",
-          `${atl?.nome || insc.atletaId} — ${insc.provaNome || insc.provaId}`,
+          `${atl?.nome || insc.atletaId} — ${insc.provaNome || insc.provaComponenteNome || insc.provaId}`,
           usuarioLogado.organizadorId ||
             (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null),
           { equipeId: usuarioLogado.equipeId, modulo: "inscricoes" }
@@ -189,7 +189,7 @@ export function useInscricoes({ atletas = [], registrarAcao, usuarioLogado } = {
           usuarioLogado.id,
           usuarioLogado.nome,
           "Removeu inscrição",
-          `${atl?.nome || insc.atletaId} — ${insc.provaNome || insc.provaId}`,
+          `${atl?.nome || insc.atletaId} — ${insc.provaNome || insc.provaComponenteNome || insc.provaId}`,
           usuarioLogado.organizadorId ||
             (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null),
           { equipeId: usuarioLogado.equipeId, modulo: "inscricoes" }

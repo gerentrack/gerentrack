@@ -308,7 +308,8 @@ function TelaInscricaoRevezamento() {
     const inscObj = {
       id: revezForm.editId || `rev_${eid}_${Date.now()}_${Math.random().toString(36).slice(2,5)}`,
       tipo: "revezamento", eventoId: eid, equipeId: revezForm.equipeId,
-      provaId: revezForm.provaId, categoriaId: catFinal, categoriaOficialId: catFinal,
+      provaId: revezForm.provaId, provaNome: provaSel?.nome || revezForm.provaId,
+      categoriaId: catFinal, categoriaOficialId: catFinal,
       sexo: revezForm.sexo, atletasIds: idsValidos,
       data: new Date().toISOString(),
       inscritoPorId: usuarioLogado?.id, inscritoPorNome: usuarioLogado?.nome || "—", inscritoPorTipo: usuarioLogado?.tipo,

@@ -549,11 +549,13 @@ function TelaInscricaoAvulsa() {
       }
       // Categoria da inscrição = categoria da prova (não a oficial do atleta)
       const catProva = CATEGORIAS.find(c => c.id === catProvaId) || catOficial;
+      const provaObj = todasAsProvas().find(pp => pp.id === provaId);
       adicionarInscricao({
         id: `${eventoParaInscricao.id}_${aId}_${provaId}_${baseTs + idx}`,
         eventoId: eventoParaInscricao.id,
         atletaId: aId,
         provaId,
+        provaNome: provaObj?.nome || provaId,
         categoria: catProva.nome,
         categoriaId: catProva.id,
         categoriaOficial: catOficial.nome,
