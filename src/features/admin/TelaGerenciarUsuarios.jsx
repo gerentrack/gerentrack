@@ -154,6 +154,7 @@ function TelaGerenciarUsuarios() {
   const [form, setForm] = useState({ nome: "", email: "", senha: "", tipo: "organizador", entidade: "", cnpj: "", fone: "", equipeId: "", cpf: "", dataNasc: "", sexo: "M", organizadorId: "" });
   const [erros, setErros] = useState({});
   const [filtro, setFiltro] = useState("");
+  const [filtroOrgUsuario, setFiltroOrgUsuario] = useState("");
   const [perfilExistente, setPerfilExistente] = useState(null); // perfil já cadastrado com mesmo CPF/CNPJ
 
   // Detectar perfil existente ao digitar CPF ou CNPJ
@@ -181,14 +182,17 @@ function TelaGerenciarUsuarios() {
     return [];
   };
 
-  const usuariosFiltrados = getTodosUsuarios().filter(u =>
-    filtro === "" ||
-    u.nome?.toLowerCase().includes(filtro.toLowerCase()) ||
-    u.email?.toLowerCase().includes(filtro.toLowerCase()) ||
-    u.cpf?.replace(/\D/g, '').includes(filtro.replace(/\D/g, '')) ||
-    u.cnpj?.replace(/\D/g, '').includes(filtro.replace(/\D/g, '')) ||
-    u.sigla?.toLowerCase().includes(filtro.toLowerCase())
-  );
+  const usuariosFiltrados = getTodosUsuarios().filter(u => {
+    if (filtroOrgUsuario && (tipoUsuario === "equipes" || tipoUsuario === "atletas")) {
+      if ((u.organizadorId || "") !== filtroOrgUsuario) return false;
+    }
+    if (filtro === "") return true;
+    return u.nome?.toLowerCase().includes(filtro.toLowerCase()) ||
+      u.email?.toLowerCase().includes(filtro.toLowerCase()) ||
+      u.cpf?.replace(/\D/g, '').includes(filtro.replace(/\D/g, '')) ||
+      u.cnpj?.replace(/\D/g, '').includes(filtro.replace(/\D/g, '')) ||
+      u.sigla?.toLowerCase().includes(filtro.toLowerCase());
+  });
 
   const validar = () => {
     const e = {};
@@ -396,7 +400,7 @@ function TelaGerenciarUsuarios() {
     <div style={s.page}>
       <div style={s.painelHeader}>
         <div>
-          <h1 style={s.pageTitle}>👥 Gerenciar Usuários</h1>
+          <h1 style={s.pageTitle}>Gerenciar Usuários</h1>
           <p style={{ color: t.textDimmed, fontSize: 14 }}>
             Criar, editar e excluir usuários do sistema
           </p>
@@ -414,9 +418,9 @@ function TelaGerenciarUsuarios() {
             background: tipoUsuario === "organizadores" ? t.accentBorder : undefined,
             borderColor: tipoUsuario === "organizadores" ? t.accent : undefined
           }}
-          onClick={async () => { setTipoUsuario("organizadores"); setModo("lista"); }}
+          onClick={async () => { setTipoUsuario("organizadores"); setModo("lista"); setFiltroOrgUsuario(""); }}
         >
-          🏢 Organizadores ({organizadores.length})
+          Organizadores ({organizadores.length})
         </button>
         <button
           style={{
@@ -424,9 +428,9 @@ function TelaGerenciarUsuarios() {
             background: tipoUsuario === "equipes" ? t.accentBorder : undefined,
             borderColor: tipoUsuario === "equipes" ? t.accent : undefined
           }}
-          onClick={async () => { setTipoUsuario("equipes"); setModo("lista"); }}
+          onClick={async () => { setTipoUsuario("equipes"); setModo("lista"); setFiltroOrgUsuario(""); }}
         >
-          🏅 Equipes ({tipoUsuario === "equipes" ? getTodosUsuarios().length : equipes.length})
+          Equipes ({tipoUsuario === "equipes" ? getTodosUsuarios().length : equipes.length})
         </button>
         <button
           style={{
@@ -434,9 +438,9 @@ function TelaGerenciarUsuarios() {
             background: tipoUsuario === "atletas" ? t.accentBorder : undefined,
             borderColor: tipoUsuario === "atletas" ? t.accent : undefined
           }}
-          onClick={async () => { setTipoUsuario("atletas"); setModo("lista"); }}
+          onClick={async () => { setTipoUsuario("atletas"); setModo("lista"); setFiltroOrgUsuario(""); }}
         >
-          🏃 Atletas ({tipoUsuario === "atletas" ? getTodosUsuarios().length : atletasUsuarios.length})
+          Atletas ({tipoUsuario === "atletas" ? getTodosUsuarios().length : atletasUsuarios.length})
         </button>
       </div>
 
@@ -452,6 +456,15 @@ function TelaGerenciarUsuarios() {
           onChange={(e) => setFiltro(e.target.value)}
           style={{ ...s.input, flex: 1 }}
         />
+        {(tipoUsuario === "equipes" || tipoUsuario === "atletas") && (
+          <select value={filtroOrgUsuario} onChange={e => setFiltroOrgUsuario(e.target.value)}
+            style={{ ...s.input, width: "auto", minWidth: 200 }}>
+            <option value="">Todos organizadores</option>
+            {organizadores.filter(o => o.status === "aprovado").sort((a,b) => (a.entidade||a.nome||"").localeCompare(b.entidade||b.nome||"","pt-BR")).map(o => (
+              <option key={o.id} value={o.id}>{o.entidade || o.nome}</option>
+            ))}
+          </select>
+        )}
       </div>
 
       {/* Create/Edit form */}
@@ -468,7 +481,7 @@ function TelaGerenciarUsuarios() {
           <h3 style={{ color: t.accent, marginBottom: 20 }}>
             {modo === "novo" 
               ? `➕ ${tipoUsuario === "organizadores" ? "Novo Organizador" : tipoUsuario === "equipes" ? "Nova Equipe" : "Novo Atleta"}` 
-              : `✏️ Editar ${tipoUsuario === "organizadores" ? "Organizador" : tipoUsuario === "equipes" ? "Equipe" : "Atleta"}`}
+              : `Editar ${tipoUsuario === "organizadores" ? "Organizador" : tipoUsuario === "equipes" ? "Equipe" : "Atleta"}`}
           </h3>
 
           <div style={{ marginBottom: 16 }}>
@@ -510,7 +523,7 @@ function TelaGerenciarUsuarios() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 16px",
                 fontSize: 13, color: t.textTertiary, marginBottom: 12 }}>
                 <span>👤 <strong style={{ color: t.textPrimary }}>{perfilExistente.nome}</strong></span>
-                <span>📧 {perfilExistente.email || "—"}</span>
+                <span>{perfilExistente.email || "—"}</span>
                 {perfilExistente.entidade && <span>🏛️ {perfilExistente.entidade}</span>}
                 {perfilExistente.clube && <span>🏟️ {perfilExistente.clube}</span>}
                 {perfilExistente.cpf && <span>🪪 CPF: {perfilExistente.cpf}</span>}
@@ -537,7 +550,7 @@ function TelaGerenciarUsuarios() {
                     cnpj: perfilExistente.cnpj || f.cnpj,
                   }));
                 }}>
-                📋 Preencher com dados do perfil existente
+                Preencher com dados do perfil existente
               </button>
             </div>
           )}
@@ -729,11 +742,11 @@ function TelaGerenciarUsuarios() {
                 )}
               </div>
               <div style={{ color: t.textMuted, fontSize: 13 }}>
-                {usuario.email ? `📧 ${usuario.email}` : ""}
-                {usuario.entidade && ` • 🏢 ${usuario.entidade}`}
-                {usuario.cpf && ` • 🪪 ${usuario.cpf}`}
-                {usuario.cnpj && ` • 🏢 ${usuario.cnpj}`}
-                {usuario.dataNasc && ` • 📅 ${(() => { const [y,m,d]=(usuario.dataNasc||"").split("-"); return d&&m&&y ? `${d}/${m}/${y}` : usuario.dataNasc; })()}`}
+                {usuario.email || ""}
+                {usuario.entidade && ` • ${usuario.entidade}`}
+                {usuario.cpf && ` • ${usuario.cpf}`}
+                {usuario.cnpj && ` • ${usuario.cnpj}`}
+                {usuario.dataNasc && ` • ${(() => { const [y,m,d]=(usuario.dataNasc||"").split("-"); return d&&m&&y ? `${d}/${m}/${y}` : usuario.dataNasc; })()}`}
                 {usuario.sexo && ` • ${usuario.sexo === "M" ? "Masc." : "Fem."}`}
               </div>
               <div style={{ color: t.textDimmed, fontSize: 12, marginTop: 4 }}>
@@ -760,13 +773,13 @@ function TelaGerenciarUsuarios() {
                 style={s.btnSecondary}
                 onClick={() => handleEditar(usuario)}
               >
-                ✏️ Editar
+                Editar
               </button>
               <button
                 style={s.btnGhost}
                 onClick={() => handleExcluir(usuario.id)}
               >
-                🗑️ Excluir
+                Excluir
               </button>
             </div>
           </div>

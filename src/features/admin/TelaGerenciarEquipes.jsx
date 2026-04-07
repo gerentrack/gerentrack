@@ -303,14 +303,17 @@ function TelaGerenciarEquipes() {
 
   const { paginado: equipesPag, infoPage: equipesInfo } = usePagination(equipesFiltradas, 20);
 
-  // Mapa clube → quantidade de atletas (O(n) uma vez, O(1) por equipe)
-  const atletasPorClube = useMemo(() => {
+  // Mapa equipeId → quantidade de atletas (por equipeId ou fallback por clube/nome)
+  const atletasPorEquipe = useMemo(() => {
     const mapa = {};
+    const nomeParaId = {};
+    (minhasEquipes || []).forEach(eq => { if (eq.nome) nomeParaId[eq.nome] = eq.id; });
     (atletas || []).forEach(a => {
-      if (a.clube) mapa[a.clube] = (mapa[a.clube] || 0) + 1;
+      const eqId = a.equipeId || (a.clube && nomeParaId[a.clube]) || null;
+      if (eqId) mapa[eqId] = (mapa[eqId] || 0) + 1;
     });
     return mapa;
-  }, [atletas]);
+  }, [atletas, minhasEquipes]);
 
   // Stats (baseado nas equipes do organizador)
   const equipesAtivas = minhasEquipes.filter(e => e.status === "ativa").length;
@@ -801,7 +804,7 @@ function TelaGerenciarEquipes() {
           <div>
             <div style={{ display: "grid", gap: 12 }}>
             {equipesPag.map((equipe) => {
-              const nAtletas = atletasPorClube[equipe.nome] || 0;
+              const nAtletas = atletasPorEquipe[equipe.id] || 0;
 
               return (
                 <div key={equipe.id} style={{

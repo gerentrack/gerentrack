@@ -108,9 +108,13 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
   const [aba,       setAba]       = useState("visao-geral");
   const [buscaOrg,  setBuscaOrg]  = useState("");
   const [buscaComp, setBuscaComp] = useState("");
+  const [filtroOrgComp, setFiltroOrgComp] = useState("");
   const [buscaEq,   setBuscaEq]   = useState("");
+  const [filtroOrgEq, setFiltroOrgEq] = useState("");
   const [buscaAtl,  setBuscaAtl]  = useState("");
   const [filtroAtl, setFiltroAtl] = useState("todos");
+  const [filtroOrgAtl, setFiltroOrgAtl] = useState("");
+  const [filtroEqAtl, setFiltroEqAtl] = useState("");
   const [orgSel,    setOrgSel]    = useState({});
   const [buscaHist, setBuscaHist] = useState("");
   const [licencaEditId, setLicencaEditId] = useState(null);
@@ -172,6 +176,13 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
     } else if (filtroAtl === "sem_equipe") {
       if (a.equipeId) return false;
     }
+    if (filtroOrgAtl) {
+      const eq = equipes.find(eq2 => eq2.id === a.equipeId);
+      if ((a.organizadorId || eq?.organizadorId || "") !== filtroOrgAtl) return false;
+    }
+    if (filtroEqAtl) {
+      if (a.equipeId !== filtroEqAtl) return false;
+    }
     if (!buscaAtl) return true;
     const b = buscaAtl.toLowerCase();
     const eq = equipes.find(eq2 => eq2.id === a.equipeId);
@@ -181,6 +192,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
 
   const _equipesFiltradas = [...equipes]
     .filter(eq => {
+      if (filtroOrgEq && (eq.organizadorId || "") !== filtroOrgEq) return false;
       if (!buscaEq) return true;
       const b = buscaEq.toLowerCase();
       return (eq.nome||"").toLowerCase().includes(b)||(eq.sigla||"").toLowerCase().includes(b)||(eq.cidade||"").toLowerCase().includes(b);
@@ -199,11 +211,12 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
 
   const _compFiltradas = [...eventos]
     .filter(e => {
+      if (filtroOrgComp && (e.organizadorId || "") !== filtroOrgComp) return false;
       if (!buscaComp) return true;
       const b = buscaComp.toLowerCase();
       return (e.nome||"").toLowerCase().includes(b)||(e.local||"").toLowerCase().includes(b);
     })
-    .sort((a, b) => (a.nome||"").localeCompare(b.nome||"", "pt-BR"));
+    .sort((a, b) => (a.data||"").localeCompare(b.data||""));
   const { paginado: compPag, infoPage: compInfo } = usePagination(_compFiltradas, 10);
 
   const _histFiltradas = (historicoAcoes || []).filter(h => {
@@ -585,8 +598,17 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
               <div style={s.sectionHd}>🏟 Todas as Competições ({eventos.length})</div>
               <button style={s.btnPrimary} onClick={async () => { selecionarEvento(null); setTela("novo-evento"); }}>+ Nova Competição</button>
             </div>
-            <input type="text" value={buscaComp} onChange={e=>setBuscaComp(e.target.value)}
-              placeholder="🔍 Buscar competição..." style={si} />
+            <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
+              <input type="text" value={buscaComp} onChange={e=>setBuscaComp(e.target.value)}
+                placeholder="🔍 Buscar competição..." style={{ ...si, marginBottom: 0, flex: 1, minWidth: 200 }} />
+              <select value={filtroOrgComp} onChange={e => setFiltroOrgComp(e.target.value)}
+                style={{ ...si, marginBottom: 0, width: "auto", minWidth: 200 }}>
+                <option value="">Todos organizadores</option>
+                {organizadores.filter(o => o.status === "aprovado").sort((a,b) => (a.entidade||a.nome||"").localeCompare(b.entidade||b.nome||"","pt-BR")).map(o => (
+                  <option key={o.id} value={o.id}>{o.entidade || o.nome}</option>
+                ))}
+              </select>
+            </div>
             {eventos.length === 0 ? (
               <div style={s.empty}>Nenhuma competição cadastrada.</div>
             ) : (
@@ -689,8 +711,17 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
             <div style={s.empty}>Nenhuma equipe cadastrada.</div>
           ) : (
             <>
-              <input type="text" value={buscaEq} onChange={e=>setBuscaEq(e.target.value)}
-                placeholder="🔍 Buscar equipe..." style={si} />
+              <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
+                <input type="text" value={buscaEq} onChange={e=>setBuscaEq(e.target.value)}
+                  placeholder="🔍 Buscar equipe..." style={{ ...si, marginBottom: 0, flex: 1, minWidth: 200 }} />
+                <select value={filtroOrgEq} onChange={e => setFiltroOrgEq(e.target.value)}
+                  style={{ ...si, marginBottom: 0, width: "auto", minWidth: 200 }}>
+                  <option value="">Todos organizadores</option>
+                  {organizadores.filter(o => o.status === "aprovado").sort((a,b) => (a.entidade||a.nome||"").localeCompare(b.entidade||b.nome||"","pt-BR")).map(o => (
+                    <option key={o.id} value={o.id}>{o.entidade || o.nome}</option>
+                  ))}
+                </select>
+              </div>
               <div style={s.tableWrap}>
                 <div style={{ maxHeight:480, overflowY:"auto" }}>
                   <table style={s.table}>
@@ -744,6 +775,20 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                   <option value="todos">Todos os atletas</option>
                   <option value="sem_equipe">Sem equipe</option>
                   <option value="sem_equipe_usuario">Sem equipe e sem usuário</option>
+                </select>
+                <select value={filtroOrgAtl} onChange={e => { setFiltroOrgAtl(e.target.value); setFiltroEqAtl(""); }}
+                  style={{ ...si, marginBottom: 0, width: "auto", minWidth: 180 }}>
+                  <option value="">Todos organizadores</option>
+                  {organizadores.filter(o => o.status === "aprovado").sort((a,b) => (a.entidade||a.nome||"").localeCompare(b.entidade||b.nome||"","pt-BR")).map(o => (
+                    <option key={o.id} value={o.id}>{o.entidade || o.nome}</option>
+                  ))}
+                </select>
+                <select value={filtroEqAtl} onChange={e => setFiltroEqAtl(e.target.value)}
+                  style={{ ...si, marginBottom: 0, width: "auto", minWidth: 180 }}>
+                  <option value="">Todas equipes</option>
+                  {equipes.filter(eq => !filtroOrgAtl || eq.organizadorId === filtroOrgAtl).sort((a,b) => (a.nome||"").localeCompare(b.nome||"","pt-BR")).map(eq => (
+                    <option key={eq.id} value={eq.id}>{eq.nome}{eq.sigla ? ` (${eq.sigla})` : ""}</option>
+                  ))}
                 </select>
               </div>
               <div style={s.tableWrap}>
