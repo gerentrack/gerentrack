@@ -150,7 +150,7 @@ const COMBINED_SCORING_MAP = {
   "tetratlo|M|sub14|800m":  { metodo: "table", chave: "CBAt_800m_M_Sub16" },
 
   // ── TETRATLO FEMININO (Sub-14) ──
-  "tetratlo|F|sub14|60mB":   { metodo: "wa", chave: "women|60mH" },
+  "tetratlo|F|sub14|60mB":   { metodo: "wa", chave: "women|100mH" },
   "tetratlo|F|sub14|peso":   { metodo: "wa", chave: "women|Shot" },
   "tetratlo|F|sub14|comp":   { metodo: "wa", chave: "women|Long Jump" },
   "tetratlo|F|sub14|800m":   { metodo: "wa", chave: "women|800m" },
@@ -227,9 +227,10 @@ const CombinedScoringEngine = {
     }
 
     if (map && map.metodo === "wa") {
-      // Fórmula WA
+      // Fórmula WA — ajuste +0.24s para cronometragem manual em provas de pista
       var constantes = WA_SCORING_CONSTANTS[map.chave];
       if (!constantes) return 0;
+      if (cronometragem === "MAN" && constantes.tipo === "track") v += 0.24;
       return calcularPontosWA(constantes, v);
     }
 
@@ -244,7 +245,10 @@ const CombinedScoringEngine = {
     };
     var waKey = prefix + "|" + (sufixoMap[provaOriginalSufixo] || provaOriginalSufixo);
     var c = WA_SCORING_CONSTANTS[waKey];
-    if (c) return calcularPontosWA(c, v);
+    if (c) {
+      if (cronometragem === "MAN" && c.tipo === "track") v += 0.24;
+      return calcularPontosWA(c, v);
+    }
 
     return 0;
   },

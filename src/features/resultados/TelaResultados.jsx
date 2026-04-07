@@ -551,17 +551,19 @@ function TelaResultados() {
         </div>
       </div>`;
     const rodExtra = `
-      <div class="rod-wrap">
-        <div style="text-align:center;font-size:8px;color:#888;margin-top:10px;padding-top:8px;border-top:1px solid #ccc;">
+      <div class="rod" style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:16px;padding-top:8px;border-top:1px solid #ccc;gap:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:6px;">
+          <div style="flex:1;max-width:185px;text-align:center;"><div style="border-bottom:1px solid #aaa;margin-bottom:4px;height:22px;"></div><div style="font-size:9px;color:#555;">\u00c1rbitro Respons\u00e1vel</div></div>
+        </div>
+        <div style="text-align:center;font-size:8px;color:#888;min-width:100px;">
           <div>Gerado em: ${dataGeracao2}</div>
-          <div>Plataforma de Competi\u00e7\u00f5es - GERENTRACK</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:0;">
+            <span>Plataforma de Competi\u00e7\u00f5es -</span>
+            <img src="${_gtLogo2}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7;vertical-align:middle;" />
+          </div>
         </div>
-        ${eventoAtual.logoRodape ? `<div style="margin-top:10px;text-align:center;"><img src="${eventoAtual.logoRodape}" alt="" style="max-width:100%;max-height:18mm;object-fit:contain;"/></div>` : ""}
-        <div style="margin-top:12px;text-align:center;padding-top:6px;border-top:1px solid #e0e0e0;">
-          <div style="font-size:7px;color:#999;letter-spacing:1px;margin-bottom:3px;">Desenvolvido por:</div>
-          <img src="${_gtLogo2}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7;" />
-        </div>
-      </div>`;
+      </div>
+      ${eventoAtual.logoRodape ? `<div style="margin-top:1px;text-align:center;"><img src="${eventoAtual.logoRodape}" alt="" style="max-width:100%;max-height:18mm;object-fit:contain;"/></div>` : ""}`;
 
     // ── Classificação final das Combinadas ──
     blocosCombinadas.forEach(bc => {
@@ -579,15 +581,16 @@ function TelaResultados() {
           <div style="font-size:10px;color:#666;margin-bottom:8px">
             ${bc.categoria.nome} — ${bc.sexo === "M" ? "Masculino" : "Feminino"} — ${bc.provasComResultado || 0}/${bc.totalComp} provas
           </div>
-          <table style="width:100%;border-collapse:collapse;font-size:10px">
+          <table style="width:100%;border-collapse:collapse;font-size:11px">
             <thead>
               <tr style="border-bottom:2px solid #333">
-                <th style="padding:4px 6px;text-align:left;width:30px">Pos</th>
-                <th style="padding:4px 6px;text-align:left">Atleta</th>
-                <th style="padding:4px 6px;text-align:left">Clube/Equipe</th>
+                <th style="padding:6px 8px;text-align:left;width:40px">Pos.</th>
+                <th style="padding:6px 8px;text-align:center;width:35px">Nº</th>
+                <th style="padding:6px 8px;text-align:left">Atleta</th>
+                <th style="padding:6px 8px;text-align:left">Clube/Equipe</th>
                 ${bc.todasCompDaCombinada.map(pc => `<th style="padding:4px 3px;text-align:center;font-size:8px">${abreviarProva(pc.nome)}</th>`).join("")}
-                <th style="padding:4px 6px;text-align:center;font-weight:800;color:#8a7000">Total</th>
-                ${pontEqAtivo ? `<th style="padding:4px 6px;text-align:center;font-weight:800;background:#fffde0;color:#8a7000">Pts Eq.</th>` : ""}
+                <th style="padding:6px 8px;text-align:center;font-weight:800;color:#8a7000">Total</th>
+                ${pontEqAtivo ? `<th style="padding:6px 8px;text-align:center;font-weight:800;background:#fffde0;color:#8a7000">Pts Eq.</th>` : ""}
               </tr>
             </thead>
             <tbody>
@@ -595,13 +598,15 @@ function TelaResultados() {
                 const pos = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : (idx+1)+"º";
                 const atl = r.atleta || resolverAtleta(r.atletaId, atletas, eventoAtual);
                 const clube = atl ? (getExibicaoEquipe(atl, equipes) || "—") : "—";
+                const numP = (numeracaoPeito?.[eid]||{})[r.atletaId] || "";
                 return `<tr style="border-bottom:1px solid #ddd;${idx < 3 ? "background:#f9f9f0" : ""}">
-                  <td style="padding:4px 6px;font-weight:700">${pos}</td>
-                  <td style="padding:4px 6px;font-weight:500">${r.nome}</td>
-                  <td style="padding:4px 6px;color:#666;font-size:9px">${clube}</td>
+                  <td style="padding:6px 8px;font-weight:700">${pos}</td>
+                  <td style="padding:6px 8px;text-align:center;color:#888;font-size:10px">${numP}</td>
+                  <td style="padding:6px 8px;font-weight:600">${r.nome}</td>
+                  <td style="padding:6px 8px;color:#666;font-size:9px">${clube}</td>
                   ${r.porProva.map(pp => `<td style="padding:3px 2px;text-align:center;font-size:9px">${pp.marca != null && pp.marca !== "" ? `<div>${formatarMarca(pp.marca, pp.unidade, 2)}</div><div style="font-weight:700;color:#8a7000">${pp.pts}</div>` : "—"}</td>`).join("")}
-                  <td style="padding:4px 6px;text-align:center;font-weight:800;font-size:13px;color:#8a7000">${r.total}</td>
-                  ${pontEqAtivo ? `<td style="padding:4px 6px;text-align:center;background:#fffde0;font-weight:800;color:#8a7000">${bc.ptsEqCombMap[r.atletaId] || "—"}</td>` : ""}
+                  <td style="padding:6px 8px;text-align:center;font-weight:800;font-size:13px;color:#8a7000">${r.total}</td>
+                  ${pontEqAtivo ? `<td style="padding:6px 8px;text-align:center;background:#fffde0;font-weight:800;color:#8a7000">${bc.ptsEqCombMap[r.atletaId] || "—"}</td>` : ""}
                 </tr>`;
               }).join("")}
             </tbody>
@@ -994,7 +999,7 @@ function TelaResultados() {
                         </div>
                         <div style="font-size:10px;color:#666;margin-bottom:4px">${eventoAtual.nome} — ${bc.categoria.nome} — ${bc.sexo === "M" ? "Masculino" : "Feminino"}</div>
                         <table><thead><tr>
-                          <th style="width:30px">Pos</th><th>Atleta</th><th>Clube/Equipe</th>
+                          <th style="width:30px">Pos.</th><th style="width:30px;text-align:center">Nº</th><th>Atleta</th><th>Clube/Equipe</th>
                           ${bc.todasCompDaCombinada.map(pc => `<th style="text-align:center;font-size:8px">${abreviarProva(pc.nome)}</th>`).join("")}
                           <th style="text-align:center;font-weight:800">Total</th>
                           ${pontEqAtivo ? `<th style="text-align:center;font-weight:800;background:#fffde0">Pts Eq.</th>` : ""}
@@ -1004,24 +1009,27 @@ function TelaResultados() {
                           const clube = atl ? (getExibicaoEquipe(atl, equipes) || "") : "";
                           return `<tr${idx < 3 ? ` class="top3"` : ""}>
                             <td style="font-weight:700">${idx < 3 ? ["🥇","🥈","🥉"][idx] : (idx+1)+"º"}</td>
+                            <td style="text-align:center;color:#888;font-size:10px">${(numeracaoPeito?.[eid]||{})[r.atletaId] || ""}</td>
                             <td>${r.nome}</td><td style="color:#666;font-size:9px">${clube}</td>
-                            ${r.porProva.map(pp => `<td style="text-align:center;font-size:9px">${pp.marca != null && pp.marca !== "" ? formatarMarca(pp.marca, pp.unidade, 2) + "<br/><b>" + pp.pts + "</b>" : "—"}</td>`).join("")}
-                            <td style="text-align:center;font-weight:800;font-size:14px">${r.total}</td>
-                            ${pontEqAtivo ? `<td style="text-align:center;font-weight:800;background:#fffde0">${bc.ptsEqCombMap[r.atletaId] || "—"}</td>` : ""}
+                            ${r.porProva.map(pp => `<td style="text-align:center;font-size:9px">${pp.marca != null && pp.marca !== "" ? `<div>${formatarMarca(pp.marca, pp.unidade, 2)}</div><div style="font-weight:700;color:#8a7000">${pp.pts}</div>` : "—"}</td>`).join("")}
+                            <td style="text-align:center;font-weight:800;font-size:13px;color:#8a7000">${r.total}</td>
+                            ${pontEqAtivo ? `<td style="text-align:center;font-weight:800;background:#fffde0;color:#8a7000">${bc.ptsEqCombMap[r.atletaId] || "—"}</td>` : ""}
                           </tr>`;
                         }).join("")}
                         </tbody></table>
-                        <div class="rod-wrap">
-                          <div style="text-align:center;font-size:8px;color:#888;margin-top:10px;padding-top:8px;border-top:1px solid #ccc;">
-                            <div>Gerado em: ${_dg3}</div>
-                            <div>Plataforma de Competi\u00e7\u00f5es - GERENTRACK</div>
+                        <div class="rod" style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:16px;padding-top:8px;border-top:1px solid #ccc;gap:10px;">
+                          <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:6px;">
+                            <div style="flex:1;max-width:185px;text-align:center;"><div style="border-bottom:1px solid #aaa;margin-bottom:4px;height:22px;"></div><div style="font-size:9px;color:#555;">\u00c1rbitro Respons\u00e1vel</div></div>
                           </div>
-                          ${eventoAtual.logoRodape ? `<div style="margin-top:10px;text-align:center;"><img src="${eventoAtual.logoRodape}" alt="" style="max-width:100%;max-height:18mm;object-fit:contain;"/></div>` : ""}
-                          <div style="margin-top:12px;text-align:center;padding-top:6px;border-top:1px solid #e0e0e0;">
-                            <div style="font-size:7px;color:#999;letter-spacing:1px;margin-bottom:3px;">Desenvolvido por:</div>
-                            <img src="${_gl3}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7;" />
+                          <div style="text-align:center;font-size:8px;color:#888;min-width:100px;">
+                            <div>Gerado em: ${_dg3}</div>
+                            <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:0;">
+                              <span>Plataforma de Competi\u00e7\u00f5es -</span>
+                              <img src="${_gl3}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7;vertical-align:middle;" />
+                            </div>
                           </div>
                         </div>
+                        ${eventoAtual.logoRodape ? `<div style="margin-top:1px;text-align:center;"><img src="${eventoAtual.logoRodape}" alt="" style="max-width:100%;max-height:18mm;object-fit:contain;"/></div>` : ""}
                         <script>window.addEventListener('load',function(){document.querySelectorAll('.pg').forEach(function(pg){var rod=pg.querySelector('.rod-wrap');if(!rod)return;var pgH=pg.offsetHeight;var rodH=rod.offsetHeight;var dH=pgH-rodH;var cH=0;for(var i=0;i<pg.children.length;i++){var c=pg.children[i];if(c===rod)continue;cH+=c.offsetHeight+(parseFloat(getComputedStyle(c).marginTop)||0)+(parseFloat(getComputedStyle(c).marginBottom)||0);}if(cH>dH){var s=Math.max(0.55,dH/cH);for(var j=0;j<pg.children.length;j++){if(pg.children[j]===rod)continue;pg.children[j].style.fontSize=(s*100)+'%';pg.children[j].querySelectorAll('table').forEach(function(t){t.style.fontSize=(s*100)+'%';});}}});});<\/script>
                         </body></html>`;
                       const win = window.open("", "_blank", "width=900,height=700");
@@ -1039,8 +1047,10 @@ function TelaResultados() {
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                   <thead>
                     <tr style={{ borderBottom: `2px solid ${t.border}` }}>
-                      <th style={{ padding: "8px", textAlign: "left", color: t.textMuted, fontSize: 11 }}>Pos</th>
+                      <th style={{ padding: "8px", textAlign: "left", color: t.textMuted, fontSize: 11 }}>Pos.</th>
+                      <th style={{ padding: "8px", textAlign: "center", color: t.textMuted, fontSize: 11 }}>Nº</th>
                       <th style={{ padding: "8px", textAlign: "left", color: t.textMuted, fontSize: 11 }}>Atleta</th>
+                      <th style={{ padding: "8px", textAlign: "left", color: t.textMuted, fontSize: 11 }}>Clube/Equipe</th>
                       {bc.todasCompDaCombinada.map(function(pc) {
                         return (
                           <th key={pc.id} style={{
@@ -1074,8 +1084,14 @@ function TelaResultados() {
                           }}>
                             {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : (idx + 1) + "º"}
                           </td>
+                          <td style={{ padding: "8px", textAlign: "center", color: t.textDimmed, fontSize: 12, fontWeight: 600 }}>
+                            {(numeracaoPeito?.[eid]||{})[r.atletaId] || ""}
+                          </td>
                           <td style={{ padding: "8px", color: t.textPrimary, fontWeight: 500, whiteSpace: "nowrap" }}>
                             {r.nome}
+                          </td>
+                          <td style={{ padding: "8px", color: t.textMuted, fontSize: 11, whiteSpace: "nowrap" }}>
+                            {r.atleta ? (getExibicaoEquipe(r.atleta, equipes) || "") : ""}
                           </td>
                           {r.porProva.map(function(pp, ppIdx) {
                             return (

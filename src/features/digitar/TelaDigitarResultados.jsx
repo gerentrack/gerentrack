@@ -409,8 +409,8 @@ function BlocoDigitarCategoria({
   // ── cronometragem: provas de pista avulsas ou componentes de combinada ──────
   const provaPossuiDuasCronoCombinada = provaSel?.origemCombinada && provaSel?.combinadaId && provaSel?.provaOriginalSufixo
     ? temDuasCronometragens(provaSel.combinadaId, provaSel.provaOriginalSufixo) : false;
-  const isProvaDePista = provaSel && provaSel.unidade === "s" && !provaSel.origemCombinada;
-  const mostrarToggleCrono = provaPossuiDuasCronoCombinada || isProvaDePista;
+  const isProvaDePista = provaSel && provaSel.unidade === "s";
+  const mostrarToggleCrono = isProvaDePista;
   const temSeriesParaCrono = _serDigitar?.series?.length > 1;
 
   // Sincronizar cronometragem ao trocar de prova (lê do eventoAtual)
