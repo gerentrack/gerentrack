@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { auth, db, doc, setDoc, createUserWithEmailAndPassword, sendEmailVerification, signOut as firebaseSignOut } from "../../firebase";
+import { auth, db, doc, setDoc, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, signOut as firebaseSignOut } from "../../firebase";
 import { sanitizeForFirestore } from "../../lib/firestore/sanitize";
 import { validarCNPJ, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
@@ -129,8 +129,16 @@ function TelaCadastroEquipe() {
       const cred = await createUserWithEmailAndPassword(auth, form.email.trim(), senhaFinal);
       try { await sendEmailVerification(cred.user); } catch {}
     } catch (err) {
-      if (err.code !== "auth/email-already-in-use") {
-        if (err.code === "auth/weak-password") { setErros({ senha: "Senha fraca. Use pelo menos 6 caracteres." }); return; }
+      if (err.code === "auth/email-already-in-use") {
+        try {
+          await signInWithEmailAndPassword(auth, form.email.trim(), senhaFinal);
+        } catch (loginErr) {
+          setErros({ email: "E-mail já cadastrado. Se é sua conta, use a tela de login." }); return;
+        }
+      } else if (err.code === "auth/weak-password") {
+        setErros({ senha: "Senha fraca. Use pelo menos 6 caracteres." }); return;
+      } else {
+        setErros({ email: "Erro ao criar conta. Tente novamente." }); return;
       }
     }
 

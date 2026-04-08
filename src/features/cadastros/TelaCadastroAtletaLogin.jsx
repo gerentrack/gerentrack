@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { auth, db, doc, setDoc, signOut as firebaseSignOut, createUserWithEmailAndPassword, sendEmailVerification } from "../../firebase";
+import { auth, db, doc, setDoc, signOut as firebaseSignOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification } from "../../firebase";
 import { sanitizeForFirestore } from "../../lib/firestore/sanitize";
 import { validarCPF, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
@@ -274,8 +274,16 @@ function TelaCadastroAtletaLogin() {
       const cred = await createUserWithEmailAndPassword(auth, form.email.trim(), senhaFinal);
       try { await sendEmailVerification(cred.user); } catch {}
     } catch (err) {
-      if (err.code !== "auth/email-already-in-use") {
-        if (err.code === "auth/weak-password") { setErros({ senha: "Senha fraca. Use pelo menos 6 caracteres." }); return; }
+      if (err.code === "auth/email-already-in-use") {
+        try {
+          await signInWithEmailAndPassword(auth, form.email.trim(), senhaFinal);
+        } catch (loginErr) {
+          setErros({ email: "E-mail já cadastrado. Se é sua conta, use a tela de login." }); return;
+        }
+      } else if (err.code === "auth/weak-password") {
+        setErros({ senha: "Senha fraca. Use pelo menos 6 caracteres." }); return;
+      } else {
+        setErros({ email: "Erro ao criar conta. Tente novamente." }); return;
       }
     }
     // NÃO fazer signOut aqui — precisa de auth.currentUser para Firestore writes

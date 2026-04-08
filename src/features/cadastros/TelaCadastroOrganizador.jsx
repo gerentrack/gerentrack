@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { auth, db, doc, setDoc, createUserWithEmailAndPassword, signOut as firebaseSignOut, sendEmailVerification } from "../../firebase";
+import { auth, db, doc, setDoc, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as firebaseSignOut, sendEmailVerification } from "../../firebase";
 import { sanitizeForFirestore } from "../../lib/firestore/sanitize";
 import { validarCNPJ, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
@@ -43,7 +43,12 @@ function TelaCadastroOrganizador() {
       try { await sendEmailVerification(cred.user); } catch {}
     } catch (err) {
       if (err.code === "auth/email-already-in-use") {
-        // Email já existe no Firebase Auth — ok, pode ser multi-perfil
+        // Email já existe no Firebase Auth — fazer login para ter auth ativo no flush
+        try {
+          await signInWithEmailAndPassword(auth, form.email.trim(), form.senha);
+        } catch (loginErr) {
+          setErros({ email: "E-mail já cadastrado. Se é sua conta, use a tela de login." }); return;
+        }
       } else if (err.code === "auth/weak-password") {
         setErros({ senha: "Senha fraca. Use pelo menos 6 caracteres." }); return;
       } else {
