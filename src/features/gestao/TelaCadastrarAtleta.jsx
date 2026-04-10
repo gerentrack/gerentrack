@@ -252,7 +252,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
   const confirmar = useConfirm();
   const _equipeDoUsuario = usuarioLogado?.tipo === "equipe" ? equipes?.find(e => e.id === usuarioLogado.id) : null;
   // equipeId e clube são auto-preenchidos para tipo "equipe" — não requerem input do usuário
-  const _autoEquipeId  = usuarioLogado?.tipo === "equipe" ? usuarioLogado.id : "";
+  const _autoEquipeId  = usuarioLogado?.tipo === "equipe" ? usuarioLogado.id : (isTreinador ? usuarioLogado?.equipeId || "" : "");
   const _autoClube     = _equipeDoUsuario?.nome || "";
   const _autoOrgId     = usuarioLogado?.organizadorId || (usuarioLogado?.tipo === "organizador" ? usuarioLogado.id : "");
   const FORM_VAZIO = { nome: "", dataNasc: "", anoNasc: "", sexo: "M", cpf: "", cbat: "", fone: "", email: "", equipeId: _autoEquipeId, clube: _autoClube, organizadorId: _autoOrgId, equipeAvulsa: false, cadastradoPor: null };
@@ -296,12 +296,14 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
   const _orgIds = new Set((organizadores || []).map(o => o.id));
   const meusAtletas = isEquipe
     ? atletas.filter(a => a.equipeId === usuarioLogado?.id)
-    : isOrg
-      ? atletas.filter(a => {
-          const meuOrgId = usuarioLogado?.tipo === "funcionario" ? usuarioLogado?.organizadorId : usuarioLogado?.id;
-          return a.organizadorId === meuOrgId || !a.organizadorId || !_orgIds.has(a.organizadorId);
-        })
-      : atletas;
+    : isTreinador
+      ? atletas.filter(a => a.equipeId === usuarioLogado?.equipeId)
+      : isOrg
+        ? atletas.filter(a => {
+            const meuOrgId = usuarioLogado?.tipo === "funcionario" ? usuarioLogado?.organizadorId : usuarioLogado?.id;
+            return a.organizadorId === meuOrgId || !a.organizadorId || !_orgIds.has(a.organizadorId);
+          })
+        : atletas;
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   // Equipes visíveis para filtro

@@ -143,6 +143,8 @@ function TelaEditarAtleta() {
     ? atletas
     : isEquipe
     ? atletas.filter(a => a.equipeId === usuarioLogado?.id)
+    : isTreinador
+    ? atletas.filter(a => a.equipeId === usuarioLogado?.equipeId)
     : isAtleta
     ? atletas.filter(a => a.id === atletaId)
     : atletas;

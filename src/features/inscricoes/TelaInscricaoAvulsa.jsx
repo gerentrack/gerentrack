@@ -135,7 +135,8 @@ function TelaInscricaoAvulsa() {
   const [buscaAtletaDebounced, setBuscaAtletaDebounced] = useState("");
   const [mostrarLista, setMostrarLista] = useState(false);
   const [provasSel, setProvasSel] = useState([]);
-  const [novoAtleta, setNovoAtleta] = useState({ nome: "", dataNasc: "", anoNasc: "", sexo: "M", cbat: "", clube: "", equipeId: "", cpf: "", email: "" });
+  const _autoEqId = usuarioLogado?.tipo === "equipe" ? usuarioLogado.id : (usuarioLogado?.tipo === "treinador" ? usuarioLogado.equipeId || "" : "");
+  const [novoAtleta, setNovoAtleta] = useState({ nome: "", dataNasc: "", anoNasc: "", sexo: "M", cbat: "", clube: "", equipeId: _autoEqId, cpf: "", email: "" });
   const [cpfNovoStatus, setCpfNovoStatus] = useState(null); // null | "invalido" | "existente" | "ok"
   const [atletaCpfExistente, setAtletaCpfExistente] = useState(null);
   const [ok, setOk] = useState(false);

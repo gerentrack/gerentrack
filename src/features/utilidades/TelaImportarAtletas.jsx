@@ -411,8 +411,8 @@ function TelaImportarAtletas() {
         ...data,
         id: idExistente || genId(),
         dataCadastro: new Date().toISOString(),
-        clube: isEquipe ? (usuarioLogado.entidade || "") : clubeParaUsar,
-        equipeId: isEquipe ? usuarioLogado.id : equipeParaUsar,
+        clube: (isEquipe || isTreinador) ? (equipes.find(eq => eq.id === (isEquipe ? usuarioLogado.id : usuarioLogado?.equipeId))?.entidade || usuarioLogado.entidade || "") : clubeParaUsar,
+        equipeId: isEquipe ? usuarioLogado.id : (isTreinador ? usuarioLogado?.equipeId || "" : equipeParaUsar),
         organizadorId: isAdminOuOrg ? (usuarioLogado?.tipo === "organizador" ? usuarioLogado.id : (usuarioLogado?.organizadorId || "")) : "",
         cadastradoPor: usuarioLogado?.tipo || null,
         // LGPD: consentimento não coletado diretamente — será solicitado no primeiro login do atleta
@@ -478,8 +478,8 @@ function TelaImportarAtletas() {
         <div>
           <h1 style={s.pageTitle}>📊 Importar Atletas em Lote</h1>
           <p style={{ color: t.textDimmed, fontSize: 14 }}>
-            {isEquipe 
-              ? "Upload de planilha Excel - atletas vinculados automaticamente a você" 
+            {(isEquipe || isTreinador)
+              ? "Upload de planilha Excel - atletas vinculados automaticamente à sua equipe"
               : "Upload de planilha Excel - selecione a Equipe após processar"}
           </p>
         </div>
@@ -676,7 +676,7 @@ function TelaImportarAtletas() {
                     <th style={s.th}>Sexo</th>
                     <th style={s.th}>Nasc.</th>
                     <th style={s.th}>CPF</th>
-                    {!isEquipe && <th style={s.th}>Equipe</th>}
+                    {!isEquipe && !isTreinador && <th style={s.th}>Equipe</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -686,7 +686,7 @@ function TelaImportarAtletas() {
                       <td style={s.td}>{a.sexo === "M" ? "Masculino" : "Feminino"}</td>
                       <td style={s.td}>{a.dataNasc}</td>
                       <td style={s.td}>{a.cpf}</td>
-                      {!isEquipe && (
+                      {!isEquipe && !isTreinador && (
                         <td style={s.td}>
                           {equipeSelecionada ? (
                             <span style={{ color: t.success }}>
