@@ -119,6 +119,8 @@ import {
   updatePassword,
   onAuthStateChanged,
   sendEmailVerification,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
   storage,
   storageRef,
   uploadBytes,
@@ -762,31 +764,44 @@ function App() {
   };
   const excluirSolicitacaoPortabilidade = (id) =>
     setSolicitacoesPortabilidade(p => p.filter(s => s.id !== id));
-  const atualizarSenha = async (tipo, userId, novaSenha) => {
-    if (tipo === "admin") {
-      try {
-        const currentUser = auth.currentUser;
-        if (currentUser && novaSenha) await updatePassword(currentUser, novaSenha);
-      } catch(e) {
-        console.error("Erro ao atualizar senha admin no Firebase Auth:", e);
+  const atualizarSenha = async (tipo, userId, novaSenha, senhaAtual) => {
+    const currentUser = auth.currentUser;
+    if (!currentUser || !novaSenha) return { ok: false, erro: "Sessão expirada. Faça login novamente." };
+
+    // Tentar atualizar no Auth
+    try {
+      await updatePassword(currentUser, novaSenha);
+    } catch(e) {
+      if (e.code === "auth/requires-recent-login") {
+        // Reautenticar e tentar novamente
+        if (!senhaAtual) return { ok: false, erro: "requires-recent-login" };
+        try {
+          const credential = EmailAuthProvider.credential(currentUser.email, senhaAtual);
+          await reauthenticateWithCredential(currentUser, credential);
+          await updatePassword(currentUser, novaSenha);
+        } catch(reErr) {
+          console.error("Erro ao reautenticar para trocar senha:", reErr);
+          return { ok: false, erro: reErr.code === "auth/invalid-credential" ? "Senha atual incorreta." : "Erro ao atualizar senha. Tente fazer login novamente." };
+        }
+      } else {
+        console.error("Erro ao atualizar senha no Firebase Auth:", e);
+        return { ok: false, erro: "Erro ao atualizar senha. Tente novamente." };
       }
-      setUsuarioLogado(u => u ? {...u, senhaTemporaria: false} : u);
-      return;
     }
-    // ⚠️ SEGURANÇA: senha NÃO é salva localmente — apenas limpa o flag senhaTemporaria.
-    // A atualização real fica exclusivamente no Firebase Auth.
+
+    // Auth atualizado com sucesso — limpar flag senhaTemporaria
+    if (tipo === "admin") {
+      setUsuarioLogado(u => u ? {...u, senhaTemporaria: false} : u);
+      return { ok: true };
+    }
     const updFlag = arr => arr.map(u => u.id === userId ? { ...u, senhaTemporaria: false } : u);
     if (tipo === "equipe")      atualizarCamposEquipe(userId, { senhaTemporaria: false });
     if (tipo === "organizador") setOrganizadores(updFlag);
     if (tipo === "atleta")      setAtletasUsuarios(updFlag);
     if (tipo === "funcionario") setFuncionarios(updFlag);
     if (tipo === "treinador")   setTreinadores(updFlag);
-
     setUsuarioLogado(u => u ? {...u, senhaTemporaria: false} : u);
-    try {
-      const currentUser = auth.currentUser;
-      if (currentUser && novaSenha) await updatePassword(currentUser, novaSenha);
-    } catch(e) { console.error("Erro ao atualizar senha no Firebase Auth:", e); }
+    return { ok: true };
   };
 
   const gerarSlugOrganizador = (nome, id) => {

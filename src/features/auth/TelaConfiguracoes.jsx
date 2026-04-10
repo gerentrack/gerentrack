@@ -422,7 +422,8 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
     } catch (_) {
       setErro("Senha atual incorreta."); return;
     }
-    await atualizarSenha(usuarioLogado.tipo, usuarioLogado.id, formSenha.nova);
+    const resultado = await atualizarSenha(usuarioLogado.tipo, usuarioLogado.id, formSenha.nova, formSenha.atual);
+    if (!resultado?.ok) { setErro(resultado?.erro || "Erro ao atualizar senha."); return; }
     if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Alterou senha", "",
       usuarioLogado.organizadorId || (isOrg ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId });
     setFormSenha({ atual: "", nova: "", confirmar: "" });

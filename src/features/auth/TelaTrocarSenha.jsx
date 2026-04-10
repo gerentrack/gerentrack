@@ -15,6 +15,8 @@ function TelaTrocarSenha() {
   const s = useStylesResponsivos(criarAuthStyles(t));
   const [novaSenha, setNovaSenha] = useState("");
   const [confirmar, setConfirmar] = useState("");
+  const [senhaAtual, setSenhaAtual] = useState("");
+  const [pedirSenhaAtual, setPedirSenhaAtual] = useState(false);
   const [erro, setErro]           = useState("");
   const [ok, setOk]               = useState(false);
 
@@ -22,8 +24,16 @@ function TelaTrocarSenha() {
     setErro("");
     if (novaSenha.length < 6)    { setErro("A senha deve ter pelo menos 6 caracteres."); return; }
     if (novaSenha !== confirmar) { setErro("As senhas não coincidem."); return; }
-    await atualizarSenha(usuarioLogado?.tipo, usuarioLogado?.id, novaSenha);
-    setOk(true);
+    if (pedirSenhaAtual && !senhaAtual) { setErro("Informe a senha atual."); return; }
+    const resultado = await atualizarSenha(usuarioLogado?.tipo, usuarioLogado?.id, novaSenha, senhaAtual || undefined);
+    if (resultado?.ok) {
+      setOk(true);
+    } else if (resultado?.erro === "requires-recent-login") {
+      setPedirSenhaAtual(true);
+      setErro("Por segurança, informe sua senha atual para continuar.");
+    } else {
+      setErro(resultado?.erro || "Erro ao atualizar senha.");
+    }
   };
 
   const irParaPainel = () => {
@@ -48,6 +58,9 @@ function TelaTrocarSenha() {
         ⚠️ Você está usando uma <strong>senha temporária</strong>. Crie uma nova senha para continuar.
       </div>
       {erro && <div style={s.erro}>{erro}</div>}
+      {pedirSenhaAtual && (
+        <FormField label="Senha Atual *" value={senhaAtual} onChange={setSenhaAtual} type="password" placeholder="Informe sua senha atual" />
+      )}
       <FormField label="Nova Senha *"      value={novaSenha} onChange={setNovaSenha} type="password" placeholder="Mínimo 6 caracteres" />
       <FormField label="Confirmar Senha *" value={confirmar} onChange={setConfirmar} type="password" placeholder="Repita a nova senha" />
       <button style={{ ...s.btnPrimary, marginTop:16 }} onClick={handleTrocar}>Salvar Nova Senha</button>
