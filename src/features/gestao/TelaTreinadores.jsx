@@ -227,6 +227,11 @@ function TelaTreinadores({ abaInicial } = {}) {
     if (encontrado) {
       setDocExistente(encontrado);
       setDocModo("vincular");
+      setForm(prev => ({
+        ...prev,
+        nome: encontrado.nome || prev.nome,
+        email: encontrado.email || prev.email,
+      }));
     } else {
       setDocExistente(null);
       setDocModo("novo");
@@ -338,11 +343,13 @@ function TelaTreinadores({ abaInicial } = {}) {
       const novo = docExistente
         ? { ...docExistente, senha: undefined, tipo: "treinador", equipeId, organizadorId: meuOrgId,
             cargo: form.cargo || "", permissoes: form.permissoes || [], nome: form.nome || docExistente.nome,
-            ativo: true, senhaTemporaria: docExistente.senhaTemporaria || false }
+            email: form.email || docExistente.email,
+            ativo: true, senhaTemporaria: docExistente.email ? (docExistente.senhaTemporaria || false) : true }
         : (() => { const { senha: _s, ...formSemSenha } = form; return { ...formSemSenha, id: genId(), tipo: "treinador", equipeId, organizadorId: meuOrgId, ativo: true, dataCadastro: new Date().toISOString(), senhaTemporaria: true }; })();
-      // Criar no Firebase Auth apenas se for perfil novo
+      // Criar no Firebase Auth se perfil novo OU perfil existente sem email (sem conta Auth)
       let authAviso = "";
-      if (!docExistente) {
+      const precisaCriarAuth = !docExistente || (docExistente && !docExistente.email);
+      if (precisaCriarAuth) {
         try {
           const cred = await createUserWithEmailAndPassword(secondaryAuth, form.email.trim(), form.senha);
           try { await sendEmailVerification(cred.user); } catch {}
@@ -362,7 +369,7 @@ function TelaTreinadores({ abaInicial } = {}) {
         "Adicionou treinador", `${form.nome} (${form.email}) — cargo: ${form.cargo||"—"}`,
         null, { equipeId, modulo: "treinadores" });
       setFeedback(authAviso || (docExistente
-        ? "✅ Treinador vinculado! Credenciais anteriores mantidas."
+        ? (docExistente.email ? "✅ Treinador vinculado! Credenciais anteriores mantidas." : "✅ Treinador vinculado! Senha temporária definida.")
         : "✅ Treinador cadastrado! Senha temporária definida."));
     }
     setTimeout(() => { setFeedback(""); setTela(painelDestino(usuarioLogado)); }, 2000);
@@ -452,11 +459,11 @@ function TelaTreinadores({ abaInicial } = {}) {
           {(docModo !== "login" || editando) && (
             <>
           <div style={s.grid2form}>
-            <FormField label="Nome Completo *" value={form.nome} onChange={v=>setForm({...form,nome:v})} error={erros.nome} />
+            <FormField label="Nome Completo *" value={form.nome} onChange={v=>setForm({...form,nome:v})} error={erros.nome} disabled={!editando && docExistente && !!docExistente.nome} />
             <FormField label="Cargo / Função"  value={form.cargo} onChange={v=>setForm({...form,cargo:v})} placeholder="Ex: Treinador, Assistente, Preparador" />
-            <FormField label="E-mail *"        value={form.email} onChange={v=>setForm({...form,email:v})} type="email" error={erros.email} />
+            <FormField label="E-mail *"        value={form.email} onChange={v=>setForm({...form,email:v})} type="email" error={erros.email} disabled={!editando && docExistente && !!docExistente.email} />
             {editando && <FormField label="CPF" value={form.cpf} onChange={v=>setForm({...form,cpf:v})} placeholder="000.000.000-00" />}
-            {docModo !== "vincular" && (
+            {(docModo !== "vincular" || (docExistente && !docExistente.email)) && (
             <div>
               <label style={s.label}>Senha {editando ? "(deixe em branco para manter)" : "(gerada automaticamente)"}</label>
               <div style={{ display:"flex", gap:6, alignItems:"center" }}>

@@ -4,7 +4,8 @@ import { PLANS } from "../../shared/constants/plans";
 import { exportarDadosOrg, downloadCSVs } from "../../shared/engines/exportEngine";
 import React, { useState, useMemo } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
-import { _getLocalEventoDisplay, _getNascDisplay, validarCNPJ, emailJaCadastrado } from "../../shared/formatters/utils";
+import { _getLocalEventoDisplay, _getNascDisplay, validarCNPJ, validarCPF, emailJaCadastrado } from "../../shared/formatters/utils";
+import { capitalizarNome } from "../../lib/utils/sanitize";
 import { StatCard } from "../ui/StatCard";
 import FormField from "../ui/FormField";
 import { Th, Td } from "../ui/TableHelpers";
@@ -76,9 +77,9 @@ function getStyles(t) {
 function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditoria, auditoria=[] }) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
-  const { usuarioLogado, solicitacoesRecuperacao, resolverSolicitacaoRecuperacao, aplicarSenhaTemp } = useAuth();
+  const { usuarioLogado, solicitacoesRecuperacao, resolverSolicitacaoRecuperacao, aplicarSenhaTemp, gerarSenhaTemp } = useAuth();
   const { equipes, atletas, inscricoes, eventos, selecionarEvento, excluirEvento, resultados, atualizarAtleta, excluirAtleta } = useEvento();
-  const { setTela, organizadores, adicionarOrganizador, aprovarOrganizador, recusarOrganizador, editarOrganizadorAdmin, excluirDadosOrganizador, exportarDados, importarDados, siteBranding, setSiteBranding, gtIcon, gtLogo, historicoAcoes, atletasUsuarios, funcionarios, treinadores, setAtletaEditandoId, solicitacoesEquipe, aprovarEquipe, recusarEquipe, solicitacoesPortabilidade, resolverSolicitacaoPortabilidade, excluirSolicitacaoPortabilidade, registrarAcao } = useApp();
+  const { setTela, organizadores, adicionarOrganizador, aprovarOrganizador, recusarOrganizador, editarOrganizadorAdmin, excluirDadosOrganizador, exportarDados, importarDados, siteBranding, setSiteBranding, gtIcon, gtLogo, historicoAcoes, atletasUsuarios, funcionarios, treinadores, adicionarTreinador, atualizarTreinador, removerTreinador, setAtletaEditandoId, solicitacoesEquipe, aprovarEquipe, recusarEquipe, solicitacoesPortabilidade, resolverSolicitacaoPortabilidade, excluirSolicitacaoPortabilidade, registrarAcao } = useApp();
   const confirmar = useConfirm();
   const pendOrg = organizadores.filter(o => o.status === "pendente");
   const pendRec = (solicitacoesRecuperacao || []).filter(sol => sol.status === "pendente");
@@ -123,6 +124,27 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
   const [suspenderForm, setSuspenderForm] = useState({ orgId: null, motivo: "inadimplencia" });
   const [modalTransf, setModalTransf] = useState(null); // { atleta }
   const [transfEquipeId, setTransfEquipeId] = useState("");
+  const [buscaTrein, setBuscaTrein] = useState("");
+  const [filtroOrgTrein, setFiltroOrgTrein] = useState("");
+  const [filtroEqTrein, setFiltroEqTrein] = useState("");
+  const [showTreinForm, setShowTreinForm] = useState(false);
+  const [formTrein, setFormTrein] = useState({ nome:"", email:"", cpf:"", cargo:"", equipeId:"" });
+  const [errosTrein, setErrosTrein] = useState({});
+  const [salvoTrein, setSalvoTrein] = useState("");
+  const [treinDocExistente, setTreinDocExistente] = useState(null);
+
+  const verificarCpfTrein = (cpf) => {
+    const limpo = cpf.replace(/\D/g, "");
+    if (limpo.length < 11 || !validarCPF(limpo)) { setTreinDocExistente(null); return; }
+    const buscar = (arr) => arr.find(item => item.cpf && item.cpf.replace(/\D/g, "") === limpo);
+    const encontrado = buscar(treinadores) || buscar(equipes) || buscar(atletasUsuarios) || buscar(funcionarios) || buscar(atletas);
+    if (encontrado) {
+      setTreinDocExistente(encontrado);
+      setFormTrein(prev => ({ ...prev, nome: encontrado.nome || prev.nome, email: encontrado.email || prev.email }));
+    } else {
+      setTreinDocExistente(null);
+    }
+  };
 
   // Org form (hoisted — não pode ser useState dentro de IIFE)
   const [showOrgForm, setShowOrgForm] = useState(false);
@@ -152,6 +174,76 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
     setErrosOrg({}); setSalvoOrg(true); setTimeout(() => setSalvoOrg(false), 3000); setShowOrgForm(false);
   };
 
+  const handleCriarTrein = async () => {
+    const e = {};
+    if (!formTrein.nome) e.nome = "Nome obrigatório";
+    if (!formTrein.email) e.email = "E-mail obrigatório";
+    if (!formTrein.equipeId) e.equipeId = "Selecione a equipe";
+    if (!formTrein.cpf || formTrein.cpf.replace(/\D/g, "").length < 11) { e.cpf = "CPF obrigatório"; }
+    else {
+      const cpfLimpo = formTrein.cpf.replace(/\D/g, "");
+      if (!validarCPF(cpfLimpo)) e.cpf = "CPF inválido";
+      if (!e.cpf && cpfLimpo.length >= 11) {
+        const eqSel = equipes.find(eq => eq.id === formTrein.equipeId);
+        const orgId = eqSel?.organizadorId;
+        if (orgId) {
+          const dup = treinadores.find(tr =>
+            tr.cpf && tr.cpf.replace(/\D/g, "") === cpfLimpo &&
+            tr.equipeId !== formTrein.equipeId &&
+            equipes.find(eq => eq.id === tr.equipeId)?.organizadorId === orgId
+          );
+          if (dup) {
+            const eqDup = equipes.find(eq => eq.id === dup.equipeId);
+            e.cpf = `CPF já é treinador da equipe "${eqDup?.nome || "outra"}" no mesmo organizador`;
+          }
+        }
+      }
+    }
+    if (emailJaCadastrado(formTrein.email, { organizadores, equipes, atletasUsuarios, funcionarios, treinadores }))
+      e.email = "E-mail já cadastrado em outra conta";
+    if (Object.keys(e).length) { setErrosTrein(e); return; }
+
+    const eqSel = equipes.find(eq => eq.id === formTrein.equipeId);
+    const senhaTemp = gerarSenhaTemp();
+    let authAviso = "";
+    const precisaCriarAuth = !treinDocExistente || (treinDocExistente && !treinDocExistente.email);
+    if (precisaCriarAuth) {
+      try {
+        await createUserWithEmailAndPassword(secondaryAuth, formTrein.email.trim(), senhaTemp);
+        await firebaseSignOut(secondaryAuth).catch(() => {});
+      } catch (err) {
+        if (err.code === "auth/email-already-in-use") {
+          authAviso = "E-mail já possui conta Auth — treinador deve usar senha existente ou redefinir.";
+        } else {
+          setSalvoTrein(`❌ Erro ao criar conta: ${err.message}`);
+          setTimeout(() => setSalvoTrein(""), 5000);
+          return;
+        }
+      }
+    } else {
+      authAviso = "Credenciais anteriores mantidas.";
+    }
+    const novo = {
+      ...(treinDocExistente ? { ...treinDocExistente, senha: undefined } : {}),
+      id: treinDocExistente?.id || `${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
+      nome: capitalizarNome(formTrein.nome), email: formTrein.email || treinDocExistente?.email || "",
+      cpf: formTrein.cpf || "", cargo: capitalizarNome(formTrein.cargo) || "", tipo: "treinador",
+      equipeId: formTrein.equipeId, organizadorId: eqSel?.organizadorId || null,
+      permissoes: [], ativo: true, dataCadastro: treinDocExistente?.dataCadastro || new Date().toISOString(),
+      senhaTemporaria: precisaCriarAuth && !authAviso,
+    };
+    adicionarTreinador(novo);
+    registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Criou treinador (admin)",
+      `${formTrein.nome} (${formTrein.email}) → ${eqSel?.nome || formTrein.equipeId}`, null, { modulo: "admin" });
+    const msg = authAviso
+      ? (treinDocExistente ? `✅ Treinador vinculado! ${authAviso}` : `⚠️ ${authAviso}`)
+      : `✅ Treinador criado! Senha temporária: ${senhaTemp}`;
+    setSalvoTrein(msg);
+    setFormTrein({ nome:"", email:"", cpf:"", cargo:"", equipeId:"" });
+    setErrosTrein({}); setTreinDocExistente(null); setShowTreinForm(false);
+    setTimeout(() => setSalvoTrein(""), 10000);
+  };
+
   // ── Tabs definition ────────────────────────────────────────────────────────
   const TABS = [
     { id:"visao-geral",   label:"Visão Geral",   badge: totalPend },
@@ -159,6 +251,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
     { id:"competicoes",   label:"Competições",    sub: eventos.length },
     { id:"equipes",       label:"Equipes",        badge: pendEq.length, sub: equipes.length },
     { id:"atletas",       label:"Atletas",        sub: atletas.length },
+    { id:"treinadores",   label:"Treinadores", sub: treinadores.length },
     { id:"licencas",      label:"Licenças", sub: organizadores.filter(o => o.plano).length },
     { id:"historico",     label:"Histórico" },
     { id:"portabilidade", label:"Portabilidade", badge: pendPort.length },
@@ -199,6 +292,20 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
     })
     .sort((a, b) => (a.nome||"").localeCompare(b.nome||"", "pt-BR"));
   const { paginado: equipesPag, infoPage: equipesInfo } = usePagination(_equipesFiltradas, 10);
+
+  const _treinFiltrados = [...treinadores]
+    .filter(tr => {
+      if (filtroOrgTrein) {
+        const eq = equipes.find(e => e.id === tr.equipeId);
+        if ((eq?.organizadorId || "") !== filtroOrgTrein) return false;
+      }
+      if (filtroEqTrein && (tr.equipeId || "") !== filtroEqTrein) return false;
+      if (!buscaTrein) return true;
+      const b = buscaTrein.toLowerCase();
+      return (tr.nome||"").toLowerCase().includes(b)||(tr.email||"").toLowerCase().includes(b)||(tr.cpf||"").includes(b);
+    })
+    .sort((a, b) => (a.nome||"").localeCompare(b.nome||"", "pt-BR"));
+  const { paginado: treinPag, infoPage: treinInfo } = usePagination(_treinFiltrados, 10);
 
   const _orgFiltrados = [...organizadores]
     .filter(o => {
@@ -828,6 +935,139 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                   </table>
                 </div>
                 <PaginaControles {...atletasInfo} />
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          ABA: TREINADORES
+      ══════════════════════════════════════════════════════════════════════ */}
+      {aba === "treinadores" && (
+        <div style={s.card}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:14 }}>
+            <div style={s.sectionHd}>👨‍🏫 Treinadores ({treinadores.length})</div>
+            <button style={s.btnPrimary} onClick={() => {
+              setShowTreinForm(v => !v);
+              if (showTreinForm) { setFormTrein({ nome:"", email:"", cpf:"", cargo:"", equipeId:"" }); setErrosTrein({}); setTreinDocExistente(null); }
+            }}>
+              {showTreinForm ? "Cancelar" : "+ Novo Treinador"}
+            </button>
+          </div>
+
+          {salvoTrein && (
+            <div style={{ background: salvoTrein.startsWith("❌") ? `${t.danger}15` : salvoTrein.startsWith("⚠️") ? `${t.accent}15` : `${t.success}15`,
+              border: `1px solid ${salvoTrein.startsWith("❌") ? t.danger : salvoTrein.startsWith("⚠️") ? t.accent : t.success}66`,
+              color: salvoTrein.startsWith("❌") ? t.danger : salvoTrein.startsWith("⚠️") ? t.accent : t.success,
+              borderRadius:8, padding:"10px 16px", marginBottom:16, fontSize:13, fontWeight:600 }}>
+              {salvoTrein}
+            </div>
+          )}
+
+          {showTreinForm && (
+            <div style={{ background:t.bgCardAlt, border:`1px solid ${t.border}`, borderRadius:12, padding:20, marginBottom:20 }}>
+              <div style={{ fontWeight:700, color:t.textPrimary, fontSize:15, marginBottom:14 }}>Cadastrar Treinador</div>
+              <div style={{ marginBottom:12 }}>
+                <FormField label="CPF *" value={formTrein.cpf}
+                  onChange={v => { setFormTrein({...formTrein, cpf:v}); verificarCpfTrein(v); }}
+                  placeholder="000.000.000-00" error={errosTrein.cpf} />
+              </div>
+              {treinDocExistente && (
+                <div style={{ background:`${t.success}10`, border:`1px solid ${t.success}44`, borderRadius:8, padding:"10px 14px", marginBottom:12, fontSize:13, color:t.success }}>
+                  Perfil existente encontrado: <strong>{treinDocExistente.nome}</strong>{treinDocExistente.email ? ` (${treinDocExistente.email})` : ""} — {treinDocExistente.tipo || "atleta"}
+                </div>
+              )}
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                <FormField label="Nome Completo *" value={formTrein.nome} onChange={v => setFormTrein({...formTrein, nome:v})} error={errosTrein.nome} disabled={treinDocExistente && !!treinDocExistente.nome} />
+                <FormField label="E-mail *" value={formTrein.email} onChange={v => setFormTrein({...formTrein, email:v})} type="email" error={errosTrein.email} disabled={treinDocExistente && !!treinDocExistente.email} />
+                <FormField label="Cargo / Função" value={formTrein.cargo} onChange={v => setFormTrein({...formTrein, cargo:v})} placeholder="Ex: Treinador, Assistente" />
+              </div>
+              <div style={{ marginTop:8, marginBottom:12 }}>
+                <label style={{ display:"block", color:t.textTertiary, fontSize:12, marginBottom:5 }}>Equipe *</label>
+                <select value={formTrein.equipeId} onChange={e => setFormTrein({...formTrein, equipeId:e.target.value})}
+                  style={{ background:t.bgInput, border:`1px solid ${errosTrein.equipeId ? t.danger : t.borderInput}`, borderRadius:6, color:t.textPrimary, padding:"10px 14px", fontSize:14, width:"100%", boxSizing:"border-box" }}>
+                  <option value="">Selecione a equipe...</option>
+                  {equipes.sort((a,b) => (a.nome||"").localeCompare(b.nome||"","pt-BR")).map(eq => {
+                    const org = organizadores.find(o => o.id === eq.organizadorId);
+                    return <option key={eq.id} value={eq.id}>{eq.nome}{org ? ` — ${org.entidade||org.nome}` : ""}</option>;
+                  })}
+                </select>
+                {errosTrein.equipeId && <div style={{ color:t.danger, fontSize:11, marginTop:4 }}>{errosTrein.equipeId}</div>}
+              </div>
+              <button style={{ ...s.btnPrimary, marginTop:4 }} onClick={handleCriarTrein}>{treinDocExistente ? "Vincular Treinador" : "Criar Treinador"}</button>
+            </div>
+          )}
+
+          {treinadores.length === 0 && !showTreinForm ? (
+            <div style={s.empty}>Nenhum treinador cadastrado.</div>
+          ) : (
+            <>
+              <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
+                <input type="text" value={buscaTrein} onChange={e=>setBuscaTrein(e.target.value)}
+                  placeholder="Buscar por nome, e-mail ou CPF..." style={{ ...si, marginBottom: 0, flex: 1, minWidth: 200 }} />
+                <select value={filtroOrgTrein} onChange={e => { setFiltroOrgTrein(e.target.value); setFiltroEqTrein(""); }}
+                  style={{ ...si, marginBottom: 0, width: "auto", minWidth: 200 }}>
+                  <option value="">Todos organizadores</option>
+                  {organizadores.filter(o => o.status === "aprovado").sort((a,b) => (a.entidade||a.nome||"").localeCompare(b.entidade||b.nome||"","pt-BR")).map(o => (
+                    <option key={o.id} value={o.id}>{o.entidade || o.nome}</option>
+                  ))}
+                </select>
+                <select value={filtroEqTrein} onChange={e => setFiltroEqTrein(e.target.value)}
+                  style={{ ...si, marginBottom: 0, width: "auto", minWidth: 200 }}>
+                  <option value="">Todas equipes</option>
+                  {equipes
+                    .filter(eq => !filtroOrgTrein || eq.organizadorId === filtroOrgTrein)
+                    .sort((a,b) => (a.nome||"").localeCompare(b.nome||"","pt-BR"))
+                    .map(eq => (
+                      <option key={eq.id} value={eq.id}>{eq.nome}</option>
+                  ))}
+                </select>
+              </div>
+              <div style={s.tableWrap}>
+                <div style={{ maxHeight:520, overflowY:"auto" }}>
+                  <table style={s.table}>
+                    <thead><tr><Th>Nome</Th><Th>E-mail</Th><Th>CPF</Th><Th>Equipe</Th><Th>Organizador</Th><Th>Status</Th><Th>Ações</Th></tr></thead>
+                    <tbody>
+                      {treinPag.map(tr => {
+                        const eq = equipes.find(e => e.id === tr.equipeId);
+                        const org = organizadores.find(o => o.id === (tr.organizadorId || eq?.organizadorId));
+                        return (
+                          <tr key={`tr_${tr.id}`} style={s.tr}>
+                            <Td><strong style={{ color: t.textPrimary }}>{tr.nome || "—"}</strong></Td>
+                            <Td style={{ fontSize:12 }}>{tr.email || "—"}</Td>
+                            <Td style={{ fontSize:11 }}>{tr.cpf || "—"}</Td>
+                            <Td style={{ fontSize:12 }}>{eq ? <span style={{ color: t.accent }}>{eq.nome}</span> : <span style={{ color: t.textDimmed }}>Sem equipe</span>}</Td>
+                            <Td style={{ fontSize:12 }}>{org ? <span style={{ color: t.accent }}>{org.entidade||org.nome}</span> : <span style={{ color: t.textDimmed }}>—</span>}</Td>
+                            <Td>
+                              {tr.ativo === false
+                                ? <span style={{ background:`${t.danger}15`, color:t.danger, border:`1px solid ${t.danger}44`, borderRadius:4, padding:"2px 8px", fontSize:11, fontWeight:600 }}>Inativo</span>
+                                : <span style={{ background:`${t.success}15`, color:t.success, border:`1px solid ${t.success}44`, borderRadius:4, padding:"2px 8px", fontSize:11, fontWeight:600 }}>Ativo</span>
+                              }
+                              {!tr.tipo && <span style={{ background:`${t.danger}15`, color:t.danger, border:`1px solid ${t.danger}44`, borderRadius:4, padding:"2px 8px", fontSize:11, fontWeight:600, marginLeft:4 }}>Sem tipo</span>}
+                            </Td>
+                            <Td>
+                              <div style={{ display:"flex", gap:10, alignItems:"center" }}>
+                                <button title={tr.ativo === false ? "Reativar" : "Desativar"} style={{ ...s.btnGhost, fontSize:12, padding:"4px 10px" }}
+                                  onClick={() => {
+                                    atualizarTreinador({ ...tr, ativo: !tr.ativo });
+                                    registrarAcao(usuarioLogado.id, usuarioLogado.nome, tr.ativo ? "Desativou treinador (admin)" : "Reativou treinador (admin)", tr.nome, null, { modulo: "admin" });
+                                  }}>{tr.ativo === false ? "Ativar" : "Desativar"}</button>
+                                <span style={{ width:1, height:16, background:t.border }} />
+                                <button title="Remover permanentemente" style={{ ...s.btnGhost, fontSize:11, padding:"3px 8px", color:t.danger, opacity:0.7 }}
+                                  onClick={() => {
+                                    removerTreinador(tr.id);
+                                    registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Removeu treinador (admin)", `${tr.nome} (${tr.email})`, null, { modulo: "admin" });
+                                  }}>Remover</button>
+                              </div>
+                            </Td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <PaginaControles {...treinInfo} />
               </div>
             </>
           )}

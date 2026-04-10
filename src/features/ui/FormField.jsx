@@ -1,7 +1,7 @@
 import React from "react";
 import { useTema } from "../../shared/TemaContext";
 
-function FormField({ label, value, onChange, type = "text", placeholder, error }) {
+function FormField({ label, value, onChange, type = "text", placeholder, error, disabled }) {
   const t = useTema();
   return (
     <div style={{ marginBottom: 14 }}>
@@ -11,7 +11,8 @@ function FormField({ label, value, onChange, type = "text", placeholder, error }
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        style={{ background: t.bgHover, border: `1px solid ${error ? t.danger : t.borderLight}`, color: t.textPrimary, borderRadius: 6, padding: "10px 14px", width: "100%", fontSize: 14, boxSizing: "border-box", fontFamily: "'Barlow', sans-serif" }}
+        disabled={disabled}
+        style={{ background: t.bgHover, border: `1px solid ${error ? t.danger : t.borderLight}`, color: disabled ? t.textDisabled : t.textPrimary, borderRadius: 6, padding: "10px 14px", width: "100%", fontSize: 14, boxSizing: "border-box", fontFamily: "'Barlow', sans-serif", opacity: disabled ? 0.7 : 1, cursor: disabled ? "not-allowed" : undefined }}
       />
       {error && <div style={{ color: t.danger, fontSize: 11, marginTop: 4 }}>{error}</div>}
     </div>
