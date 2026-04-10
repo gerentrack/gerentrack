@@ -238,7 +238,7 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
           return;
         }
       }
-      setErro("E-mail, CPF ou senha incorretos.");
+      setErro("Credenciais válidas, mas nenhum perfil ativo encontrado. Entre em contato com o administrador.");
       return;
     }
     // Se só 1 perfil e não suspenso, login direto

@@ -159,7 +159,7 @@ function TelaTreinadores({ abaInicial } = {}) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado, gerarSenhaTemp } = useAuth();
-  const { equipes } = useEvento();
+  const { equipes, atletas } = useEvento();
   const { setTela, treinadores, adicionarTreinador, atualizarTreinador, removerTreinador, registrarAcao, historicoAcoes, atletasUsuarios, funcionarios, organizadores } = useApp();
   const confirmar = useConfirm();
 
@@ -223,7 +223,7 @@ function TelaTreinadores({ abaInicial } = {}) {
     setTreinDuplicadoOrg(null);
 
     const buscar = (arr) => arr.find(i => i.cpf && i.cpf.replace(/\D/g, '') === limpo);
-    const encontrado = buscar(treinadores) || buscar(equipes) || buscar(atletasUsuarios) || buscar(funcionarios);
+    const encontrado = buscar(treinadores) || buscar(equipes) || buscar(atletasUsuarios) || buscar(funcionarios) || buscar(atletas);
     if (encontrado) {
       setDocExistente(encontrado);
       setDocModo("vincular");
@@ -244,7 +244,7 @@ function TelaTreinadores({ abaInicial } = {}) {
       i.cpf && i.cpf.replace(/\D/g, '') === cpfLimpo &&
       i.email && i.email.toLowerCase() === identNorm
     );
-    const match = buscar(treinadores) || buscar(equipes) || buscar(atletasUsuarios) || buscar(funcionarios);
+    const match = buscar(treinadores) || buscar(equipes) || buscar(atletasUsuarios) || buscar(funcionarios) || buscar(atletas);
     if (!match) { setLoginErro("E-mail não encontrado para este CPF."); return; }
 
     // Validar senha via Firebase Auth
@@ -293,7 +293,7 @@ function TelaTreinadores({ abaInicial } = {}) {
     const e = {};
     if (!form.nome)  e.nome  = "Nome obrigatório";
     if (!form.email) e.email = "E-mail obrigatório";
-    if (!editando && emailJaCadastrado(form.email, { atletasUsuarios, funcionarios, treinadores }))
+    if (!editando && emailJaCadastrado(form.email, { organizadores, equipes, atletasUsuarios, funcionarios, treinadores }))
       e.email = "E-mail já cadastrado em outra conta.";
     return e;
   };
@@ -305,7 +305,8 @@ function TelaTreinadores({ abaInicial } = {}) {
     if (editando) {
       const { senha: _s, ...editandoSemSenha } = editando;
       const { senha: _s2, ...formSemSenha } = form;
-      const atualizado = { ...editandoSemSenha, ...formSemSenha };
+      const meuOrgIdEdit = equipes.find(eq => eq.id === equipeId)?.organizadorId || null;
+      const atualizado = { ...editandoSemSenha, ...formSemSenha, tipo: "treinador", organizadorId: editandoSemSenha.organizadorId || meuOrgIdEdit };
       atualizarTreinador(atualizado);
       registrarAcao(usuarioLogado.id, usuarioLogado.nome,
         "Editou treinador", `${form.nome} — permissões: ${form.permissoes.join(", ") || "nenhuma"}`,
@@ -333,19 +334,23 @@ function TelaTreinadores({ abaInicial } = {}) {
         }
       }
 
+      const meuOrgId = equipes.find(eq => eq.id === equipeId)?.organizadorId || null;
       const novo = docExistente
-        ? { ...docExistente, senha: undefined, tipo: "treinador", equipeId, organizadorId: equipes.find(eq => eq.id === equipeId)?.organizadorId || null,
+        ? { ...docExistente, senha: undefined, tipo: "treinador", equipeId, organizadorId: meuOrgId,
             cargo: form.cargo || "", permissoes: form.permissoes || [], nome: form.nome || docExistente.nome,
             ativo: true, senhaTemporaria: docExistente.senhaTemporaria || false }
-        : (() => { const { senha: _s, ...formSemSenha } = form; return { ...formSemSenha, id: genId(), equipeId, ativo: true, dataCadastro: new Date().toISOString(), senhaTemporaria: true }; })();
+        : (() => { const { senha: _s, ...formSemSenha } = form; return { ...formSemSenha, id: genId(), tipo: "treinador", equipeId, organizadorId: meuOrgId, ativo: true, dataCadastro: new Date().toISOString(), senhaTemporaria: true }; })();
       // Criar no Firebase Auth apenas se for perfil novo
+      let authAviso = "";
       if (!docExistente) {
         try {
           const cred = await createUserWithEmailAndPassword(secondaryAuth, form.email.trim(), form.senha);
           try { await sendEmailVerification(cred.user); } catch {}
           await firebaseSignOut(secondaryAuth).catch(() => {});
         } catch (err) {
-          if (err.code !== "auth/email-already-in-use") {
+          if (err.code === "auth/email-already-in-use") {
+            authAviso = "⚠️ Este e-mail já possui conta. O treinador deve usar a senha existente ou redefinir pelo 'Esqueci minha senha'.";
+          } else {
             setFeedback(`❌ Erro ao criar conta: ${err.message}`);
             setTimeout(() => setFeedback(""), 5000);
             return;
@@ -356,9 +361,9 @@ function TelaTreinadores({ abaInicial } = {}) {
       registrarAcao(usuarioLogado.id, usuarioLogado.nome,
         "Adicionou treinador", `${form.nome} (${form.email}) — cargo: ${form.cargo||"—"}`,
         null, { equipeId, modulo: "treinadores" });
-      setFeedback(docExistente
+      setFeedback(authAviso || (docExistente
         ? "✅ Treinador vinculado! Credenciais anteriores mantidas."
-        : "✅ Treinador cadastrado! Senha temporária definida.");
+        : "✅ Treinador cadastrado! Senha temporária definida."));
     }
     setTimeout(() => { setFeedback(""); setTela(painelDestino(usuarioLogado)); }, 2000);
   };
