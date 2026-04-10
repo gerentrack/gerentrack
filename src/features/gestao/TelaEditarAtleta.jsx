@@ -131,8 +131,10 @@ function TelaEditarAtleta() {
   const isEquipe = usuarioLogado?.tipo === "equipe";
   const isAtleta = usuarioLogado?.tipo === "atleta";
   const isOrg = usuarioLogado?.tipo === "organizador";
+  const isTreinador = usuarioLogado?.tipo === "treinador";
   const podeEditar = isAdmin || isEquipe || isOrg ||
     (usuarioLogado?.tipo === "funcionario" && usuarioLogado?.permissoes?.includes("atletas")) ||
+    (isTreinador && (usuarioLogado?.permissoes || []).includes("cadastrar_atletas")) ||
     (isAtleta && selId === atletaId);
   const podeExcluir = isAdmin;
 

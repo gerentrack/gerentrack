@@ -206,22 +206,17 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
     const eqSel = equipes.find(eq => eq.id === formTrein.equipeId);
     const senhaTemp = gerarSenhaTemp();
     let authAviso = "";
-    const precisaCriarAuth = !treinDocExistente || (treinDocExistente && !treinDocExistente.email);
-    if (precisaCriarAuth) {
-      try {
-        await createUserWithEmailAndPassword(secondaryAuth, formTrein.email.trim(), senhaTemp);
-        await firebaseSignOut(secondaryAuth).catch(() => {});
-      } catch (err) {
-        if (err.code === "auth/email-already-in-use") {
-          authAviso = "E-mail já possui conta Auth — treinador deve usar senha existente ou redefinir.";
-        } else {
-          setSalvoTrein(`❌ Erro ao criar conta: ${err.message}`);
-          setTimeout(() => setSalvoTrein(""), 5000);
-          return;
-        }
+    try {
+      await createUserWithEmailAndPassword(secondaryAuth, formTrein.email.trim(), senhaTemp);
+      await firebaseSignOut(secondaryAuth).catch(() => {});
+    } catch (err) {
+      if (err.code === "auth/email-already-in-use") {
+        authAviso = "E-mail já possui conta Auth — treinador deve usar senha existente ou redefinir.";
+      } else {
+        setSalvoTrein(`❌ Erro ao criar conta: ${err.message}`);
+        setTimeout(() => setSalvoTrein(""), 5000);
+        return;
       }
-    } else {
-      authAviso = "Credenciais anteriores mantidas.";
     }
     const novo = {
       ...(treinDocExistente ? { ...treinDocExistente, senha: undefined } : {}),
@@ -230,7 +225,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
       cpf: formTrein.cpf || "", cargo: capitalizarNome(formTrein.cargo) || "", tipo: "treinador",
       equipeId: formTrein.equipeId, organizadorId: eqSel?.organizadorId || null,
       permissoes: [], ativo: true, dataCadastro: treinDocExistente?.dataCadastro || new Date().toISOString(),
-      senhaTemporaria: precisaCriarAuth && !authAviso,
+      senhaTemporaria: !authAviso,
     };
     adicionarTreinador(novo);
     registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Criou treinador (admin)",

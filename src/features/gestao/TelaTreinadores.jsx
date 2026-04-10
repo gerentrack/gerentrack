@@ -344,32 +344,30 @@ function TelaTreinadores({ abaInicial } = {}) {
         ? { ...docExistente, senha: undefined, tipo: "treinador", equipeId, organizadorId: meuOrgId,
             cargo: form.cargo || "", permissoes: form.permissoes || [], nome: form.nome || docExistente.nome,
             email: form.email || docExistente.email,
-            ativo: true, senhaTemporaria: docExistente.email ? (docExistente.senhaTemporaria || false) : true }
+            ativo: true }
         : (() => { const { senha: _s, ...formSemSenha } = form; return { ...formSemSenha, id: genId(), tipo: "treinador", equipeId, organizadorId: meuOrgId, ativo: true, dataCadastro: new Date().toISOString(), senhaTemporaria: true }; })();
-      // Criar no Firebase Auth se perfil novo OU perfil existente sem email (sem conta Auth)
+      // Sempre tentar criar conta Auth — se já existir, email-already-in-use trata
       let authAviso = "";
-      const precisaCriarAuth = !docExistente || (docExistente && !docExistente.email);
-      if (precisaCriarAuth) {
-        try {
-          const cred = await createUserWithEmailAndPassword(secondaryAuth, form.email.trim(), form.senha);
-          try { await sendEmailVerification(cred.user); } catch {}
-          await firebaseSignOut(secondaryAuth).catch(() => {});
-        } catch (err) {
-          if (err.code === "auth/email-already-in-use") {
-            authAviso = "⚠️ Este e-mail já possui conta. O treinador deve usar a senha existente ou redefinir pelo 'Esqueci minha senha'.";
-          } else {
-            setFeedback(`❌ Erro ao criar conta: ${err.message}`);
-            setTimeout(() => setFeedback(""), 5000);
-            return;
-          }
+      try {
+        const cred = await createUserWithEmailAndPassword(secondaryAuth, form.email.trim(), form.senha);
+        try { await sendEmailVerification(cred.user); } catch {}
+        await firebaseSignOut(secondaryAuth).catch(() => {});
+      } catch (err) {
+        if (err.code === "auth/email-already-in-use") {
+          authAviso = "⚠️ Este e-mail já possui conta. O treinador deve usar a senha existente ou redefinir pelo 'Esqueci minha senha'.";
+        } else {
+          setFeedback(`❌ Erro ao criar conta: ${err.message}`);
+          setTimeout(() => setFeedback(""), 5000);
+          return;
         }
       }
+      novo.senhaTemporaria = !authAviso;
       adicionarTreinador(novo);
       registrarAcao(usuarioLogado.id, usuarioLogado.nome,
         "Adicionou treinador", `${form.nome} (${form.email}) — cargo: ${form.cargo||"—"}`,
         null, { equipeId, modulo: "treinadores" });
       setFeedback(authAviso || (docExistente
-        ? (docExistente.email ? "✅ Treinador vinculado! Credenciais anteriores mantidas." : "✅ Treinador vinculado! Senha temporária definida.")
+        ? "✅ Treinador vinculado! Senha temporária definida."
         : "✅ Treinador cadastrado! Senha temporária definida."));
     }
     setTimeout(() => { setFeedback(""); setTela(painelDestino(usuarioLogado)); }, 2000);
@@ -463,7 +461,7 @@ function TelaTreinadores({ abaInicial } = {}) {
             <FormField label="Cargo / Função"  value={form.cargo} onChange={v=>setForm({...form,cargo:v})} placeholder="Ex: Treinador, Assistente, Preparador" />
             <FormField label="E-mail *"        value={form.email} onChange={v=>setForm({...form,email:v})} type="email" error={erros.email} disabled={!editando && docExistente && !!docExistente.email} />
             {editando && <FormField label="CPF" value={form.cpf} onChange={v=>setForm({...form,cpf:v})} placeholder="000.000.000-00" />}
-            {(docModo !== "vincular" || (docExistente && !docExistente.email)) && (
+            {docModo !== "vincular" && (
             <div>
               <label style={s.label}>Senha {editando ? "(deixe em branco para manter)" : "(gerada automaticamente)"}</label>
               <div style={{ display:"flex", gap:6, alignItems:"center" }}>

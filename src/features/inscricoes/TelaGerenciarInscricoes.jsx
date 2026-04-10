@@ -152,7 +152,9 @@ function TelaGerenciarInscricoes() {
   const isAdmin   = usuarioLogado?.tipo === "admin";
   const isOrg     = usuarioLogado?.tipo === "organizador";
   const isFunc    = usuarioLogado?.tipo === "funcionario";
-  const isTrein   = usuarioLogado?.tipo === "equipe" || usuarioLogado?.tipo === "treinador";
+  const isTreinador = usuarioLogado?.tipo === "treinador";
+  const treinPerms = usuarioLogado?.permissoes || [];
+  const isTrein   = usuarioLogado?.tipo === "equipe" || (isTreinador && (treinPerms.includes("inscrever_atletas") || treinPerms.includes("gerenciar_inscricoes")));
   const isAtleta  = usuarioLogado?.tipo === "atleta";
   // isDono: admin ou org/func da competição selecionada
   const isDono    = isAdmin

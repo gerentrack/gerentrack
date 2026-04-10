@@ -74,6 +74,7 @@ export default function TelaPainelEquipe() {
   const isTreinador = usuarioLogado?.tipo === "treinador";
   const equipeId    = isTreinador ? usuarioLogado?.equipeId : usuarioLogado?.id;
   const equipe      = equipes?.find(e => e.id === equipeId) || usuarioLogado;
+  const temPerm = (p) => !isTreinador || (usuarioLogado?.permissoes || []).includes(p);
 
   const [abaAtiva, setAbaAtiva] = useState("visao-geral");
   const [buscaAtl, setBuscaAtl] = useState("");
@@ -217,11 +218,11 @@ export default function TelaPainelEquipe() {
 
   const abas = [
     { id: "visao-geral",  label: "Visão Geral" },
-    { id: "atletas",      label: `Atletas (${meusAtletas.length})` },
-    { id: "inscricoes",   label: `Inscrições (${minhasInscs.length})` },
+    ...(temPerm("ver_atletas") ? [{ id: "atletas", label: `Atletas (${meusAtletas.length})` }] : []),
+    ...(temPerm("inscrever_atletas") || temPerm("gerenciar_inscricoes") ? [{ id: "inscricoes", label: `Inscrições (${minhasInscs.length})` }] : []),
     { id: "eventos",      label: `Competições (${eventosAbertos.length} abertas)` },
     { id: "resultados",   label: `Resultados (${medalhas.total})` },
-    { id: "treinadores",  label: `Treinadores (${meusTrein.length})` },
+    ...(!isTreinador ? [{ id: "treinadores", label: `Treinadores (${meusTrein.length})` }] : []),
     { id: "vinculos", label: totalPendentes > 0 ? `Vínculos (${totalPendentes})` : "Vínculos", ...(totalPendentes > 0 ? { badge: true } : {}) },
     { id: "auditoria",   label: "Auditoria" },
   ];
@@ -341,8 +342,8 @@ export default function TelaPainelEquipe() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
             <div style={s.secTitle}>Atletas da Equipe</div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <button style={s.btn} onClick={() => setTela("cadastrar-atleta-novo")}>+ Cadastrar</button>
-              <button style={s.btnSec} onClick={() => setTela("importar-atletas")}>Importar Planilha</button>
+              {temPerm("cadastrar_atletas") && <button style={s.btn} onClick={() => setTela("cadastrar-atleta-novo")}>+ Cadastrar</button>}
+              {temPerm("importar_atletas") && <button style={s.btnSec} onClick={() => setTela("importar-atletas")}>Importar Planilha</button>}
             </div>
           </div>
 
@@ -420,11 +421,11 @@ export default function TelaPainelEquipe() {
                             <Td style={{ fontSize: 11, color: t.textDimmed }}>{a.cpf || "—"}</Td>
                             <Td>
                               <div style={{ display: "flex", gap: 6 }}>
-                                <button style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.textTertiary, borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: 12 }}
+                                {temPerm("cadastrar_atletas") && <button style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.textTertiary, borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: 12 }}
                                   onClick={async () => { setAtletaEditandoId(a.id); setTela("editar-atleta"); }}>
                                   Editar
-                                </button>
-                                <button style={{ background: `${t.danger}12`, border: `1px solid ${t.danger}44`, color: t.danger, borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: 12 }}
+                                </button>}
+                                {temPerm("cadastrar_atletas") && <button style={{ background: `${t.danger}12`, border: `1px solid ${t.danger}44`, color: t.danger, borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: 12 }}
                                   onClick={async () => {
                                     if (await confirmar(`Solicitar desvinculação de ${a.nome || "este atleta"}?\n\nA desvinculação será efetivada após aprovação do organizador.`)) {
                                       solicitarVinculo(a.id, a.nome, equipeId, equipe?.nome || "", {
@@ -437,7 +438,7 @@ export default function TelaPainelEquipe() {
                                     }
                                   }}>
                                   Solicitar Desvinculação
-                                </button>
+                                </button>}
                               </div>
                             </Td>
                           </tr>

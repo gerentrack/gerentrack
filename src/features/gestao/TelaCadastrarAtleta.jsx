@@ -281,7 +281,16 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
   const isOrg = usuarioLogado?.tipo === "organizador" || usuarioLogado?.tipo === "funcionario";
   const isEquipe = usuarioLogado?.tipo === "equipe";
   const isAdmin = usuarioLogado?.tipo === "admin";
-  const voltarTela = isOrg ? "painel-organizador" : isAdmin ? "admin" : (usuarioLogado?.tipo === "equipe" || usuarioLogado?.tipo === "treinador") ? "painel-equipe" : "painel";
+  const isTreinador = usuarioLogado?.tipo === "treinador";
+  const voltarTela = isOrg ? "painel-organizador" : isAdmin ? "admin" : (isEquipe || isTreinador) ? "painel-equipe" : "painel";
+
+  if (isTreinador && !(usuarioLogado?.permissoes || []).includes("cadastrar_atletas")) {
+    return (<div style={{ maxWidth:600, margin:"40px auto", padding:24, textAlign:"center" }}>
+      <p style={{ fontSize:16, fontWeight:700 }}>Acesso restrito</p>
+      <p style={{ fontSize:13, marginTop:8 }}>Você não tem permissão para cadastrar atletas.</p>
+      <button onClick={() => setTela("painel-equipe")} style={{ marginTop:16, padding:"8px 20px", cursor:"pointer" }}>← Voltar</button>
+    </div>);
+  }
 
   // Atletas visíveis conforme tipo de usuário
   const _orgIds = new Set((organizadores || []).map(o => o.id));

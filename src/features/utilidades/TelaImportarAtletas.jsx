@@ -160,7 +160,16 @@ function TelaImportarAtletas() {
   const [equipeSelecionada, setEquipeSelecionada] = useState("");
   
   const isEquipe = usuarioLogado?.tipo === "equipe";
+  const isTreinador = usuarioLogado?.tipo === "treinador";
   const isAdminOuOrg = usuarioLogado?.tipo === "admin" || usuarioLogado?.tipo === "organizador" || usuarioLogado?.tipo === "funcionario";
+
+  if (isTreinador && !(usuarioLogado?.permissoes || []).includes("importar_atletas")) {
+    return (<div style={{ maxWidth:600, margin:"40px auto", padding:24, textAlign:"center" }}>
+      <p style={{ fontSize:16, fontWeight:700 }}>Acesso restrito</p>
+      <p style={{ fontSize:13, marginTop:8 }}>Você não tem permissão para importar atletas.</p>
+      <button onClick={() => setTela("painel-equipe")} style={{ marginTop:16, padding:"8px 20px", cursor:"pointer" }}>← Voltar</button>
+    </div>);
+  }
 
   const handleFileChange = async (e) => {
     const selectedFile = e.target.files[0];
