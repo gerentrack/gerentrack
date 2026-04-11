@@ -251,8 +251,9 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
   const { setTela, atletasUsuarios, solicitacoesVinculo, organizadores, setAtletaEditandoId, funcionarios, treinadores } = useApp();
   const confirmar = useConfirm();
   const _equipeDoUsuario = usuarioLogado?.tipo === "equipe" ? equipes?.find(e => e.id === usuarioLogado.id) : null;
+  const _isTreinador = usuarioLogado?.tipo === "treinador";
   // equipeId e clube são auto-preenchidos para tipo "equipe" — não requerem input do usuário
-  const _autoEquipeId  = usuarioLogado?.tipo === "equipe" ? usuarioLogado.id : (isTreinador ? usuarioLogado?.equipeId || "" : "");
+  const _autoEquipeId  = usuarioLogado?.tipo === "equipe" ? usuarioLogado.id : (_isTreinador ? usuarioLogado?.equipeId || "" : "");
   const _autoClube     = _equipeDoUsuario?.nome || "";
   const _autoOrgId     = usuarioLogado?.organizadorId || (usuarioLogado?.tipo === "organizador" ? usuarioLogado.id : "");
   const FORM_VAZIO = { nome: "", dataNasc: "", anoNasc: "", sexo: "M", cpf: "", cbat: "", fone: "", email: "", equipeId: _autoEquipeId, clube: _autoClube, organizadorId: _autoOrgId, equipeAvulsa: false, cadastradoPor: null };
