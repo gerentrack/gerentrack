@@ -380,7 +380,7 @@ function TelaCadastroEvento() {
     if (!dadosParaSalvar.dataEncerramentoInscricoes) delete dadosParaSalvar.dataEncerramentoInscricoes;
     if (!dadosParaSalvar.horaEncerramentoInscricoes) delete dadosParaSalvar.horaEncerramentoInscricoes;
     if (editando) {
-      editarEvento(dadosParaSalvar);
+      await editarEvento(dadosParaSalvar);
       selecionarEvento(dadosParaSalvar.id);
     } else {
       const novo = adicionarEvento(dadosParaSalvar, usuarioLogado);

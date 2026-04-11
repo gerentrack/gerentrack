@@ -1217,7 +1217,7 @@ function App() {
     return novo;
   };
 
-  const editarEvento = (ev) => {
+  const editarEvento = async (ev) => {
     // Se não tem slug ainda (evento legado), gera agora
     if (!ev.slug) {
       const base = (ev.nome || "competicao")
@@ -1232,7 +1232,7 @@ function App() {
       const jaExiste = eventosRef.current.some(e => e.slug === slugBase && e.id !== ev.id);
       ev = { ...ev, slug: jaExiste ? `${slugBase}-${ev.id.slice(-4)}` : slugBase };
     }
-    _editarEvento(ev);
+    await _editarEvento(ev);
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Editou competição", ev.nome || "", usuarioLogado.organizadorId || usuarioLogado.id, { equipeId: usuarioLogado.equipeId, modulo: "competicoes" });
   };
 
@@ -1319,7 +1319,7 @@ function App() {
     limparTodosResultados,
     resetResultados,
     importarResultados,
-  } = useResultados({ eventos, recordes, editarEvento });
+  } = useResultados({ eventos, recordes, editarEvento, _atualizarCamposEvento });
 
   // ── Inscrições via Firestore ──────────────────────────────────────────────
   const {
@@ -1735,8 +1735,8 @@ function App() {
       });
     });
 
-    if (novasSer) {
-      editarEvento({ ...eventoAtual, seriacao: novasSer });
+    if (novasSer && eventoAtual?.id) {
+      _atualizarCamposEvento(eventoAtual.id, { seriacao: novasSer });
     }
     }, 800); // debounce — espera 800ms sem mudanças antes de processar
     return () => clearTimeout(timer);

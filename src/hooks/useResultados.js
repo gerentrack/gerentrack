@@ -146,7 +146,7 @@ function calcularPosicoes(docResultados, provaId) {
  * @param {Array}    opts.recordes     — tipos de recorde (para snapshot de recordes)
  * @param {Function} opts.editarEvento — salva evento com snapshot (para snapshot de recordes)
  */
-export function useResultados({ eventos = [], recordes = [], editarEvento } = {}) {
+export function useResultados({ eventos = [], recordes = [], editarEvento, _atualizarCamposEvento } = {}) {
   const [resultados, setResultadosLocal] = useState({});
   const [carregando, setCarregando] = useState(true);
 
@@ -237,18 +237,18 @@ export function useResultados({ eventos = [], recordes = [], editarEvento } = {}
                 snapshot[tipo.id] = (tipo.registros || []).map((r) => ({ ...r }));
               }
             });
-            editarEvento({
-              ...evt,
-              recordesSnapshot: snapshot,
-              recordesSnapshotEm: Date.now(),
-            });
+            if (_atualizarCamposEvento) {
+              _atualizarCamposEvento(eventoId, { recordesSnapshot: snapshot, recordesSnapshotEm: Date.now() });
+            } else {
+              editarEvento({ ...evt, recordesSnapshot: snapshot, recordesSnapshotEm: Date.now() });
+            }
           }
         }
       } catch (_e) {
         /* silently ignore snapshot errors */
       }
     },
-    [eventos, recordes, editarEvento]
+    [eventos, recordes, editarEvento, _atualizarCamposEvento]
   );
 
   // ── Remove resultado de 1 atleta numa prova ──────────────────────────────

@@ -221,10 +221,19 @@ function TelaResultados() {
   );
   const nomesProvasUnicos = [...new Set(provasComInscFiltradas.map(p => p.nome))].sort();
 
+  // Categorias extras das inscrições de combinadas (ex: "COMB" de dados legados)
+  const _catIdsExtras = [...new Set(
+    inscDoEvento.filter(i => i.origemCombinada).map(i => i.categoriaId || i.categoriaOficialId).filter(Boolean)
+  )].filter(cid => !CATEGORIAS.some(c => c.id === cid));
+  // Pseudo-categorias para iterar (permitem encontrar resultados salvos com catId não-padrão)
+  const categoriasParaBlocos = [...CATEGORIAS, ..._catIdsExtras.map(cid => ({ id: cid, nome: cid }))];
+
   const blocos = todasProvasComCombinadas.map((prova) => {
     const isRevez = prova.tipo === "revezamento";
     return ["M", "F"].map((sexo) => {
-      return CATEGORIAS.flatMap((cat) => {
+      // Para componentes de combinadas, usar lista expandida (inclui "COMB" etc.)
+      const catsIterar = prova.origemCombinada ? categoriasParaBlocos : CATEGORIAS;
+      return catsIterar.flatMap((cat) => {
         // Determinar chaves de resultados a verificar
         const _fases = getFasesModo(prova.id, eventoAtual.configSeriacao || {});
         const _semFase = { key: `${eid}_${prova.id}_${cat.id}_${sexo}`, fase: "" };
@@ -271,7 +280,11 @@ function TelaResultados() {
               return 0;
             });
           if (classificados.length === 0) return null;
-          return { prova, sexo, categoria: cat, classificados, isRevezamento: true, faseSufixo: fase, faseNome: fase ? (FASE_NOME[fase] || fase) : "" };
+          // Para componentes de combinada com pseudo-categoria, mapear para a categoria real
+          const catReal = (prova.origemCombinada && !CATEGORIAS.some(c => c.id === cat.id))
+            ? (CATEGORIAS.find(c => c.id === prova.combinadaId?.split("_")[1]) || cat)
+            : cat;
+          return { prova, sexo, categoria: catReal, classificados, isRevezamento: true, faseSufixo: fase, faseNome: fase ? (FASE_NOME[fase] || fase) : "" };
         }
 
         const classificados = Object.entries(res)
@@ -366,14 +379,21 @@ function TelaResultados() {
             }
             return 0;
           });
-        return { prova, sexo, categoria: cat, classificados, faseSufixo: fase, faseNome: fase ? (FASE_NOME[fase] || fase) : "" };
+        // Para componentes de combinada com pseudo-categoria, mapear para a categoria real
+        const catReal = (prova.origemCombinada && !CATEGORIAS.some(c => c.id === cat.id))
+          ? (CATEGORIAS.find(c => c.id === prova.combinadaId?.split("_")[1]) || cat)
+          : cat;
+        return { prova, sexo, categoria: catReal, classificados, faseSufixo: fase, faseNome: fase ? (FASE_NOME[fase] || fase) : "" };
         }).filter(Boolean);
       }).filter(Boolean);
     }).flat();
   }).flat().filter(Boolean);
 
   const blocosFiltrados = blocos.filter((b) => {
-    if (filtroProva !== "todas" && b.prova.nome !== filtroProva) return false;
+    if (filtroProva !== "todas" && b.prova.nome !== filtroProva) {
+      // Se filtro é uma combinada, aceitar componentes dessa combinada
+      if (!(b.prova.origemCombinada && b.prova.nomeCombinada === filtroProva)) return false;
+    }
     if (filtroCat !== "todas" && b.categoria.id !== filtroCat) return false;
     if (filtroSexo !== "todos" && b.sexo !== filtroSexo) return false;
     if (filtroEtapa !== "todas") {
@@ -396,7 +416,12 @@ function TelaResultados() {
     const provaInfo = todasProvas.find(p => p.id === provaId);
     if (!provaInfo || provaInfo.tipo !== "combinada") return;
     const sexoProva = provaId.startsWith("F_") ? "F" : "M";
-    const catId = provaId.split("_")[1] || "";
+    const catIdProva = provaId.split("_")[1] || "";
+    // Coletar categorias reais das inscrições (podem incluir "COMB" por bug legado)
+    const inscsCombi = inscDoEvento.filter(i => i.combinadaId === provaId);
+    const catIdsInscs = [...new Set(inscsCombi.map(i => i.categoriaId || i.categoriaOficialId).filter(Boolean))];
+    // Categoria para exibição: usar a do provaId (sempre válida em CATEGORIAS)
+    const catId = catIdProva;
     const cat = CATEGORIAS.find(c => c.id === catId);
     if (!cat) return;
     if (filtroSexo !== "todos" && sexoProva !== filtroSexo) return;
@@ -406,15 +431,19 @@ function TelaResultados() {
     if (!comp) return;
     const todasCompDaCombinada = CombinedEventEngine.gerarProvasComponentes(provaId, eid);
     const atletaIds = [...new Set(
-      inscDoEvento.filter(i => i.combinadaId === provaId).map(i => i.atletaId)
+      inscsCombi.map(i => i.atletaId)
     )];
     if (atletaIds.length === 0) return;
 
     // Verificar se tem ao menos 1 resultado em qualquer componente
+    // Tentar com catId do provaId E categorias das inscrições (inclui "COMB" de dados legados)
     let temAlgumResultado = false;
+    const catIdsTentar = [...new Set([catId, ...catIdsInscs])];
     todasCompDaCombinada.forEach(pc => {
-      const chaveR = `${eid}_${pc.id}_${catId}_${sexoProva}`;
-      if (resultados[chaveR] && Object.keys(resultados[chaveR]).length > 0) temAlgumResultado = true;
+      for (const cid of catIdsTentar) {
+        const chaveR = `${eid}_${pc.id}_${cid}_${sexoProva}`;
+        if (resultados[chaveR] && Object.keys(resultados[chaveR]).length > 0) temAlgumResultado = true;
+      }
     });
     if (!temAlgumResultado) return;
 
@@ -424,8 +453,13 @@ function TelaResultados() {
       let total = 0;
       let provasRealizadas = 0;
       const porProva = todasCompDaCombinada.map(pc => {
-        const chaveR = `${eid}_${pc.id}_${catId}_${sexoProva}`;
-        const res = resultados[chaveR]?.[aId];
+        // Procurar resultado em ambas as chaves de categoria
+        let res = null;
+        for (const cid of catIdsTentar) {
+          const chaveR = `${eid}_${pc.id}_${cid}_${sexoProva}`;
+          const r = resultados[chaveR]?.[aId];
+          if (r != null) { res = r; break; }
+        }
         const marca = res ? (typeof res === "object" ? res.marca : res) : null;
         const ptsManuais = res ? (typeof res === "object" ? res.pontosTabela : null) : null;
         const marcaNum = marca != null ? parseFloat(String(marca).replace(",", ".")) : null;
@@ -443,8 +477,10 @@ function TelaResultados() {
     const totalComp = todasCompDaCombinada.length;
     // Conta quantas provas componentes já têm resultados salvos (ao menos 1 atleta)
     const provasComResultado = todasCompDaCombinada.filter(pc => {
-      const chaveR = `${eid}_${pc.id}_${catId}_${sexoProva}`;
-      return resultados[chaveR] && Object.keys(resultados[chaveR]).length > 0;
+      return catIdsTentar.some(cid => {
+        const chaveR = `${eid}_${pc.id}_${cid}_${sexoProva}`;
+        return resultados[chaveR] && Object.keys(resultados[chaveR]).length > 0;
+      });
     }).length;
     const todasCompletas = provasComResultado >= totalComp;
 
