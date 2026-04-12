@@ -108,9 +108,7 @@ const TelaPerfilOrganizador       = React.lazy(() => import("./features/organiza
 import {
   db,
   doc,
-  getDoc,
   setDoc,
-  deleteDoc,
   onSnapshot,
   auth,
   secondaryAuth,
@@ -1340,30 +1338,7 @@ function App() {
     importarAtletasUsuarios,
   } = useAtletasUsuarios();
 
-  // ── Migração: state/atl_atletas_usuarios → coleção atletasUsuarios/ ──
-  useEffect(() => {
-    if (!firebaseAuthed) return;
-    const migKey = "atl_migr_atletasUsuarios_colecao_v2";
-    if (localStorage.getItem(migKey)) return;
-    const stateRef = doc(db, "state", "atl_atletas_usuarios");
-    getDoc(stateRef).then(snap => {
-      if (!snap.exists()) { localStorage.setItem(migKey, "1"); return; }
-      const dados = snap.data()?.value;
-      if (!Array.isArray(dados) || dados.length === 0) { localStorage.setItem(migKey, "1"); return; }
-      if (atletasUsuarios.length >= dados.length) {
-        // Migração já concluída — limpar documento legado
-        deleteDoc(stateRef).then(() => console.info("[Migração] state/atl_atletas_usuarios removido.")).catch(() => {});
-        localStorage.setItem(migKey, "1");
-        return;
-      }
-      console.info(`[Migração] Migrando ${dados.length} atletasUsuarios de state/ para coleção...`);
-      importarAtletasUsuarios(dados).then(() => {
-        localStorage.setItem(migKey, "1");
-        deleteDoc(stateRef).then(() => console.info("[Migração] state/atl_atletas_usuarios removido.")).catch(() => {});
-        console.info("[Migração] atletasUsuarios migrados com sucesso.");
-      }).catch(err => console.error("[Migração] Erro:", err));
-    }).catch(() => {});
-  }, [firebaseAuthed, atletasUsuarios.length]);
+
 
   const {
     numeracaoPeito,
