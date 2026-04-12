@@ -223,6 +223,40 @@ function TelaInscricaoAvulsa() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // ── useMemo: devem ficar ANTES de qualquer return condicional (regra de hooks) ──
+  const orgsAutorizadas = eventoParaInscricao?.orgsAutorizadas || [];
+  const atletasCruzados = useMemo(() => orgsAutorizadas.length > 0
+    ? atletas.filter(a => a.organizadorId && orgsAutorizadas.includes(a.organizadorId))
+    : [], [atletas, orgsAutorizadas.join(",")]);
+  const atletasCruzadosIds = new Set(atletasCruzados.map(a => a.id));
+
+  const atletasFiltrados = useMemo(() => {
+    const tipo = usuarioLogado?.tipo;
+    if (tipo === "equipe") return atletas.filter(a => a.equipeId === usuarioLogado.id);
+    if (tipo === "treinador") return atletas.filter(a => a.equipeId === usuarioLogado.equipeId);
+    if (tipo === "atleta") {
+      return atletas.filter(a => {
+        if (a.atletaUsuarioId && a.atletaUsuarioId === usuarioLogado.id) return true;
+        if (a.cpf && usuarioLogado.cpf)
+          return a.cpf.replace(/\D/g,"") === usuarioLogado.cpf.replace(/\D/g,"");
+        return false;
+      });
+    }
+    const meuOrgId = usuarioLogado?.organizadorId || (tipo === "organizador" ? usuarioLogado?.id : null);
+    const base = meuOrgId
+      ? atletas.filter(a => a.organizadorId === meuOrgId)
+      : atletas.filter(a => !!a.organizadorId);
+    const baseIds = new Set(base.map(a => a.id));
+    const extras = atletasCruzados.filter(a => !baseIds.has(a.id));
+    return [...base, ...extras];
+  }, [atletas, usuarioLogado, atletasCruzados]);
+
+  const atletasBusca = useMemo(() => {
+    const termo = buscaAtletaDebounced.trim().toLowerCase();
+    if (!termo) return atletasFiltrados;
+    return atletasFiltrados.filter(a => (a.nome || "").toLowerCase().includes(termo));
+  }, [buscaAtletaDebounced, atletasFiltrados]);
+
   if (!eventoParaInscricao && !isAtleta) return (
     <div style={s.page}>
       <div style={s.emptyState}>
@@ -391,41 +425,7 @@ function TelaInscricaoAvulsa() {
     </div>
   );
 
-  // ── Etapa 5: atletas de organizadores autorizados para participação cruzada ──
-  const orgsAutorizadas = eventoParaInscricao?.orgsAutorizadas || [];
-  const atletasCruzados = useMemo(() => orgsAutorizadas.length > 0
-    ? atletas.filter(a => a.organizadorId && orgsAutorizadas.includes(a.organizadorId))
-    : [], [atletas, orgsAutorizadas.join(",")]);
-  const atletasCruzadosIds = new Set(atletasCruzados.map(a => a.id));
-
-  const atletasFiltrados = useMemo(() => {
-    const tipo = usuarioLogado?.tipo;
-    if (tipo === "equipe") return atletas.filter(a => a.equipeId === usuarioLogado.id);
-    if (tipo === "treinador") return atletas.filter(a => a.equipeId === usuarioLogado.equipeId);
-    if (tipo === "atleta") {
-      return atletas.filter(a => {
-        if (a.atletaUsuarioId && a.atletaUsuarioId === usuarioLogado.id) return true;
-        if (a.cpf && usuarioLogado.cpf)
-          return a.cpf.replace(/\D/g,"") === usuarioLogado.cpf.replace(/\D/g,"");
-        return false;
-      });
-    }
-    // admin, organizador, funcionário: seus atletas + cruzados autorizados
-    const meuOrgId = usuarioLogado?.organizadorId || (tipo === "organizador" ? usuarioLogado?.id : null);
-    const base = meuOrgId
-      ? atletas.filter(a => a.organizadorId === meuOrgId)
-      : atletas.filter(a => !!a.organizadorId);
-    const baseIds = new Set(base.map(a => a.id));
-    const extras = atletasCruzados.filter(a => !baseIds.has(a.id));
-    return [...base, ...extras];
-  }, [atletas, usuarioLogado, atletasCruzados]);
-
-  // Filtro de busca por nome (memoizado + debounce)
-  const atletasBusca = useMemo(() => {
-    const termo = buscaAtletaDebounced.trim().toLowerCase();
-    if (!termo) return atletasFiltrados;
-    return atletasFiltrados.filter(a => (a.nome || "").toLowerCase().includes(termo));
-  }, [buscaAtletaDebounced, atletasFiltrados]);
+  // (useMemo movidos para antes dos early returns — ver acima)
 
   const atletaSel = atletas.find((a) => a.id === atletaId);
   const anoComp = new Date(eventoParaInscricao.data).getFullYear();
