@@ -233,7 +233,7 @@ export default function TelaHome() {
     const status = getStatusEvento(ev, resultados);
     return (
       <div key={ev.id} style={{ ...s.eventoCard, padding:0, overflow:"hidden" }}>
-        <div style={{ position:"relative", width:"100%", aspectRatio:"1/1", background: t.bgCard, borderBottom:`1px solid ${t.border}`, overflow:"hidden", display:"flex", alignItems:"center", justifyContent:"center" }}>
+        <div style={{ position:"relative", width:"100%", aspectRatio:"1/1", minHeight:200, background: t.bgCard, borderBottom:`1px solid ${t.border}`, overflow:"hidden", display:"flex", alignItems:"center", justifyContent:"center" }}>
           {ev.logoCompeticao && !ev.competicaoFinalizada ? (
             <img src={ev.logoCompeticao} alt="" style={{ maxWidth:"100%", maxHeight:"100%", display:"block", objectFit:"contain" }} />
           ) : (
@@ -303,6 +303,7 @@ export default function TelaHome() {
       <div style={{
         ...s.heroSection,
         height: siteBranding?.heroAltura || 400,
+        minHeight: siteBranding?.heroAltura || 400,
         padding: 0,
         ...(siteBranding?.heroBg ? {
           backgroundImage: `url(${siteBranding.heroBg})`,

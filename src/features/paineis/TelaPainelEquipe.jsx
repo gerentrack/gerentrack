@@ -294,7 +294,7 @@ export default function TelaPainelEquipe() {
                   const nInscs = minhasInscs.filter(i => i.eventoId === ev.id).length;
                   const status = getStatusEvento(ev);
                   return (
-                    <div key={ev.id} onClick={async () => { selecionarEvento(ev.id); setTela("gestao-inscricoes"); }}
+                    <div key={ev.id} onClick={() => { selecionarEvento(ev.id); setTela("gestao-inscricoes"); }}
                       style={{ background: t.bgCardAlt, border: `1px solid ${t.border}`, borderRadius: 8, padding: "12px 16px", cursor: "pointer", minWidth: 200 }}>
                       <div style={{ color: t.textPrimary, fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{ev.nome}</div>
                       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
@@ -323,7 +323,7 @@ export default function TelaPainelEquipe() {
                       {ev.data ? new Date(ev.data + "T12:00:00").toLocaleDateString("pt-BR") : ""}
                       {ev.dataEncerramentoInscricoes ? ` · até ${new Date(ev.dataEncerramentoInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}` : ""}
                     </div>
-                    <button onClick={async () => { selecionarEvento(ev.id); setTela("gestao-inscricoes"); }}
+                    <button onClick={() => { selecionarEvento(ev.id); setTela("gestao-inscricoes"); }}
                       style={{ ...s.btn, padding: "5px 14px", fontSize: 11 }}>
                       Inscrever atletas
                     </button>
@@ -422,7 +422,7 @@ export default function TelaPainelEquipe() {
                             <Td>
                               <div style={{ display: "flex", gap: 6 }}>
                                 {temPerm("cadastrar_atletas") && <button style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.textTertiary, borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: 12 }}
-                                  onClick={async () => { setAtletaEditandoId(a.id); setTela("editar-atleta"); }}>
+                                  onClick={() => { setAtletaEditandoId(a.id); setTela("editar-atleta"); }}>
                                   Editar
                                 </button>}
                                 {temPerm("cadastrar_atletas") && <button style={{ background: `${t.danger}12`, border: `1px solid ${t.danger}44`, color: t.danger, borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: 12 }}
@@ -558,11 +558,11 @@ export default function TelaPainelEquipe() {
                       </div>
                     )}
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      <button onClick={async () => { selecionarEvento(ev.id); setTela("gestao-inscricoes"); }}
+                      <button onClick={() => { selecionarEvento(ev.id); setTela("gestao-inscricoes"); }}
                         style={{ ...s.btn, padding: "7px 16px", fontSize: 12 }}>
                         Inscrever atletas
                       </button>
-                      <button onClick={async () => { selecionarEvento(ev.id); setTela("evento-detalhe"); }}
+                      <button onClick={() => { selecionarEvento(ev.id); setTela("evento-detalhe"); }}
                         style={{ ...s.btnGhost, padding: "7px 14px", fontSize: 12 }}>
                         Ver detalhes
                       </button>
