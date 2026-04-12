@@ -132,6 +132,8 @@ import { useResultados } from "./hooks/useResultados";
 import { useInscricoes } from "./hooks/useInscricoes";
 import { useAtletas }    from "./hooks/useAtletas";
 import { useAtletasUsuarios } from "./hooks/useAtletasUsuarios";
+import { useOrganizadores }   from "./hooks/useOrganizadores";
+import { useFuncionarios }    from "./hooks/useFuncionarios";
 import { useNumeracaoPeito } from "./hooks/useNumeracaoPeito";
 import { useEquipes }    from "./hooks/useEquipes";
 import { useEventos }    from "./hooks/useEventos";
@@ -239,13 +241,10 @@ function App() {
     const novo = typeof fn === "function" ? fn(prev) : fn;
     return Array.isArray(novo) ? novo.slice(0, 500) : novo;
   });
-  // Organizadores: sem senha desde migração Auth — seguro sincronizar com Firestore
-  const [organizadores, setOrganizadores] = useLocalStorage("atl_organizadores", []);
-  // ⚠️ SEGURANÇA: useLocalOnly — CPFs sensíveis, não sincronizar
-  // ⚠️ SEGURANÇA: migrado para useLocalStorage — CPFs protegidos pelas Firestore Security Rules (leitura restrita a autenticados)
-  // atletasUsuarios migrado para coleção Firestore individual (useAtletasUsuarios)
-  // const [atletasUsuarios, setAtletasUsuarios] = useLocalStorage("atl_atletas_usuarios", []);
-  const [funcionarios,       setFuncionarios]       = useLocalStorage("atl_funcionarios",    []);
+  // ── Coleções individuais Firestore (migradas de state/) ──────────────────
+  const { organizadores, setOrganizadores, resetOrganizadores, importarOrganizadores } = useOrganizadores();
+  const { atletasUsuarios, setAtletasUsuarios, resetAtletasUsuarios, importarAtletasUsuarios, adicionarAtletaUsuario: _adicionarAtletaUsuario, atualizarAtletaUsuario: _atualizarAtletaUsuario } = useAtletasUsuarios();
+  const { funcionarios, setFuncionarios, resetFuncionarios, importarFuncionarios } = useFuncionarios();
   const [treinadores,        setTreinadores]        = useLocalStorage("atl_treinadores",    []); // treinadores vinculados a equipes
   // ⚠️ Arrays grandes — useLocalOnly evita limite de 1MB do Firestore
   const [solicitacoesVinculo, setSolicitacoesVinculo] = useLocalStorage("atl_vinculo_sol",   []);
@@ -1329,16 +1328,29 @@ function App() {
     importarAtletas,
   } = useAtletas();
 
-  const {
-    atletasUsuarios,
-    setAtletasUsuarios,
-    adicionarAtletaUsuario: _adicionarAtletaUsuario,
-    atualizarAtletaUsuario: _atualizarAtletaUsuario,
-    resetAtletasUsuarios,
-    importarAtletasUsuarios,
-  } = useAtletasUsuarios();
-
-
+  // ── Migração: state/ → coleções individuais (organizadores, funcionarios) ──
+  useEffect(() => {
+    if (!firebaseAuthed) return;
+    const migrar = async (stateKey, dados, colecaoLength, importFn) => {
+      const migKey = `atl_migr_${stateKey}_colecao_v1`;
+      if (localStorage.getItem(migKey)) return;
+      try {
+        const { getDoc } = await import("./firebase");
+        const stateRef = doc(db, "state", stateKey);
+        const snap = await getDoc(stateRef);
+        if (!snap.exists()) { localStorage.setItem(migKey, "1"); return; }
+        const val = snap.data()?.value;
+        if (!Array.isArray(val) || val.length === 0) { localStorage.setItem(migKey, "1"); return; }
+        if (colecaoLength >= val.length) { localStorage.setItem(migKey, "1"); return; }
+        console.info(`[Migração] Migrando ${val.length} ${stateKey} de state/ para coleção...`);
+        await importFn(val);
+        localStorage.setItem(migKey, "1");
+        console.info(`[Migração] ${stateKey} migrados com sucesso.`);
+      } catch (err) { console.error(`[Migração] Erro ${stateKey}:`, err); }
+    };
+    migrar("atl_organizadores", organizadores, organizadores.length, importarOrganizadores);
+    migrar("atl_funcionarios", funcionarios, funcionarios.length, importarFuncionarios);
+  }, [firebaseAuthed, organizadores.length, funcionarios.length]);
 
   const {
     numeracaoPeito,
@@ -1449,10 +1461,10 @@ function App() {
 
   const limparTodosDados = async () => {
     if (!await confirmar("ATENÇÃO: Esta ação é IRREVERSÍVEL e EXTREMAMENTE DESTRUTIVA!\n\nVocê está prestes a APAGAR TODOS OS DADOS do sistema:\n\n• Todas as competições\n• Todos os atletas\n• Todas as equipes\n• Todos os organizadores\n• Todas as inscrições\n• Todos os resultados\n• Todos os recordes\n• Todas as pendências de recorde\n• Todo o histórico\n\nAS CONTAS DE LOGIN (Firebase Auth) NÃO SERÃO APAGADAS.\nOs usuários ainda conseguirão fazer login, mas sem perfil no sistema.\nPara apagar as contas de login, acesse o Console do Firebase manualmente.\n\nEsta ação NÃO PODE SER DESFEITA.\n\nDeseja realmente continuar?")) return;
-    setOrganizadores([]);
+    resetOrganizadores();
     resetAtletasUsuarios();
     setSolicitacoesRecuperacao([]);
-    setFuncionarios([]);
+    resetFuncionarios();
     setTreinadores([]);
     setHistoricoAcoes([]);
     setSolicitacoesVinculo([]);
@@ -1520,9 +1532,9 @@ function App() {
           `Esta ação não pode ser desfeita.`
         )) return;
         if (dados.equipes)                 await importarEquipes(dados.equipes);
-        if (dados.organizadores)           setOrganizadores(dados.organizadores);
+        if (dados.organizadores)           await importarOrganizadores(dados.organizadores);
         if (dados.atletasUsuarios)         await importarAtletasUsuarios(dados.atletasUsuarios);
-        if (dados.funcionarios)            setFuncionarios(dados.funcionarios);
+        if (dados.funcionarios)            await importarFuncionarios(dados.funcionarios);
         if (dados.treinadores)             setTreinadores(dados.treinadores);
         if (dados.atletas)                 await importarAtletas(dados.atletas);
         if (dados.eventos)                 await importarEventos(dados.eventos);
