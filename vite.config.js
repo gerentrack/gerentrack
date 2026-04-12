@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
       includeAssets: ['favicon.jpeg', 'favicon.png', 'apple-touch-icon-180x180.png'],
       manifest: {
         name: 'GERENTRACK — Competição com Precisão',
