@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, db, getDoc, doc } from "../../firebase";
+import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, db, getDoc, doc, googleProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut as firebaseSignOut } from "../../firebase";
 import { _getClubeAtleta } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
@@ -73,8 +73,14 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
   const [consentimentoAceite, setConsentimentoAceite] = useState(false);
   const [modalLegal, setModalLegal] = useState(null); // null | "privacidade" | "termos"
 
-  const matchIdent = (u) => {
+  const matchIdent = (u, googleEmail) => {
     if (!u) return false;
+    // Google login: busca por email principal OU googleEmail vinculado
+    if (googleEmail) {
+      const ge = googleEmail.toLowerCase();
+      return (u.email && u.email.toLowerCase() === ge) ||
+             (u.googleEmail && u.googleEmail.toLowerCase() === ge);
+    }
     const identTrimmed = ident.trim().toLowerCase();
     const identSemPont = ident.replace(/[\.\-\/]/g, "").trim().toLowerCase();
     const emailOk  = u.email && u.email.toLowerCase() === identTrimmed;
@@ -83,26 +89,26 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
     return emailOk || cpfOk || cnpjOk;
   };
 
-  const buscarPerfis = () => {
+  const buscarPerfis = (googleEmail) => {
     const perfisEncontrados = [];
-    organizadores.filter(o => matchIdent(o) && o.status === "aprovado").forEach(o => {
+    organizadores.filter(o => matchIdent(o, googleEmail) && o.status === "aprovado").forEach(o => {
       perfisEncontrados.push({ tipo:"organizador", dados:{ tipo:"organizador", ...o }, label:`Organizador — ${o.entidade}`, icon:"", sublabel:o.nome, organizadorId:o.id, organizadorNome:o.entidade });
     });
-    funcionarios.filter(f => matchIdent(f) && f.ativo !== false).forEach(f => {
+    funcionarios.filter(f => matchIdent(f, googleEmail) && f.ativo !== false).forEach(f => {
       const org = organizadores.find(o => o.id === f.organizadorId);
       if (!org || org.status !== "aprovado") return;
       perfisEncontrados.push({ tipo:"funcionario", dados:{ tipo:"funcionario", ...f, entidade:org.entidade, orgNome:org.nome }, label:`Funcionário — ${org.entidade}`, icon:"", sublabel:f.nome, organizadorId:f.organizadorId, organizadorNome:org.entidade });
     });
-    equipes.filter(eq => matchIdent(eq) && eq.status !== "pendente" && eq.status !== "recusado").forEach(eq => {
+    equipes.filter(eq => matchIdent(eq, googleEmail) && eq.status !== "pendente" && eq.status !== "recusado").forEach(eq => {
       const org = organizadores.find(o => o.id === eq.organizadorId);
       perfisEncontrados.push({ tipo:"equipe", dados:{ tipo:"equipe", ...eq }, label:`Equipe — ${eq.entidade || eq.nome}`, icon:"", sublabel:org ? org.entidade : "Sem organizador", organizadorId:eq.organizadorId, organizadorNome:org?.entidade || "" });
     });
-    treinadores.filter(tr => matchIdent(tr) && tr.ativo !== false).forEach(tr => {
+    treinadores.filter(tr => matchIdent(tr, googleEmail) && tr.ativo !== false).forEach(tr => {
       const equipeVinc = equipes.find(eq => eq.id === tr.equipeId);
       const org = organizadores.find(o => o.id === (tr.organizadorId || equipeVinc?.organizadorId));
       perfisEncontrados.push({ tipo:"treinador", dados:{ tipo:"treinador", ...tr, clube:equipeVinc?.clube, equipeNome:equipeVinc?.nome }, label:`Treinador — ${equipeVinc?.nome || "Equipe"}`, icon:"", sublabel:org ? org.entidade : "", organizadorId:tr.organizadorId || equipeVinc?.organizadorId, organizadorNome:org?.entidade || "" });
     });
-    atletasUsuarios.filter(a => matchIdent(a) && a.status !== "pendente" && a.status !== "recusado").forEach(a => {
+    atletasUsuarios.filter(a => matchIdent(a, googleEmail) && a.status !== "pendente" && a.status !== "recusado").forEach(a => {
       const org = organizadores.find(o => o.id === a.organizadorId);
       perfisEncontrados.push({ tipo:"atleta", dados:{ tipo:"atleta", ...a }, label:`Atleta${_getClubeAtleta(a, equipes) ? ` — ${_getClubeAtleta(a, equipes)}` : ""}`, icon:"", sublabel:org ? org.entidade : "Sem organizador", organizadorId:a.organizadorId, organizadorNome:org?.entidade || "" });
     });
@@ -348,6 +354,59 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
     } finally { setLoading(false); setLoadingMsg(""); }
   };
 
+  // ── Login com Google ──────────────────────────────────────────────────────
+  const isPWA = () => window.matchMedia("(display-mode: standalone)").matches || window.navigator?.standalone === true;
+
+  const processGoogleResult = async (result) => {
+    if (!result?.user?.email) return;
+    const googleEmail = result.user.email;
+    const perfis = buscarPerfis(googleEmail);
+    if (perfis.length === 0) {
+      await firebaseSignOut(auth).catch(() => {});
+      setErro("Nenhum perfil encontrado para " + googleEmail + ". Somente usuários já cadastrados podem usar o login com Google.");
+      setLoading(false);
+      return;
+    }
+    const perfisGoogle = perfis.map(p => ({
+      ...p,
+      dados: { ...p.dados, _googleAuth: true, senhaTemporaria: false },
+    }));
+    finalizarLoginComConsentimento(perfisGoogle);
+  };
+
+  const handleGoogleLogin = async () => {
+    setErro("");
+    setLoading(true);
+    setLoadingMsg("Conectando com Google...");
+    try {
+      if (isPWA()) {
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      }
+      const result = await signInWithPopup(auth, googleProvider);
+      await processGoogleResult(result);
+    } catch (err) {
+      if (err.code === "auth/popup-closed-by-user" || err.code === "auth/cancelled-popup-request") {
+        // usuário fechou o popup, sem erro
+      } else if (err.code === "auth/account-exists-with-different-credential") {
+        setErro("Este e-mail já está associado a outro método de login. Use e-mail e senha.");
+      } else {
+        setErro("Erro ao entrar com Google. Tente novamente.");
+      }
+    } finally { setLoading(false); setLoadingMsg(""); }
+  };
+
+  // Handle redirect result (PWA mode)
+  React.useEffect(() => {
+    getRedirectResult(auth).then(result => {
+      if (result?.user) {
+        setLoading(true);
+        setLoadingMsg("Conectando com Google...");
+        processGoogleResult(result);
+      }
+    }).catch(() => {});
+  }, []);
+
   // ── Tela de Consentimento Retroativo ─────────────────────────────────────
   if (modoConsentimento) return (
     <div style={s.formPage}>
@@ -502,6 +561,31 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
         <div style={{ fontSize:11, color:t.textDimmed, marginTop:3, marginBottom:8 }}>O sistema buscará automaticamente seus perfis cadastrados</div>
         <FormField label="Senha" value={senha} onChange={setSenha} type="password" placeholder="••••••••" />
         <button style={s.btnPrimary} onClick={handleLogin} disabled={loading}>{loading ? <span style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><span style={{width:16,height:16,borderRadius:"50%",border:"2px solid #ffffff44",borderTopColor:"#fff",display:"inline-block",animation:"spin 0.7s linear infinite"}} />{loadingMsg || "Entrando..."}</span> : "Entrar"}</button>
+
+        {/* Separador */}
+        <div style={{ display:"flex", alignItems:"center", gap:12, margin:"16px 0" }}>
+          <div style={{ flex:1, height:1, background:t.border }} />
+          <span style={{ color:t.textDimmed, fontSize:12 }}>ou</span>
+          <div style={{ flex:1, height:1, background:t.border }} />
+        </div>
+
+        {/* Google Sign-In */}
+        <button
+          style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, padding:"10px 20px", cursor:"pointer", fontSize:14, fontWeight:600, fontFamily:"'Barlow', sans-serif", color:t.textSecondary, display:"flex", alignItems:"center", justifyContent:"center", gap:10, width:"100%", transition:"all 0.2s" }}
+          onClick={handleGoogleLogin}
+          disabled={loading}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = t.accent; e.currentTarget.style.background = t.bgCard; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.background = t.bgHeaderSolid; }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Entrar com Google
+        </button>
+
         <div style={{ textAlign:"center", marginTop:12 }}>
           <button style={s.linkBtn} onClick={() => { setModoRecuperar(true); setErro(""); setEmailRecuperar(ident.includes("@") ? ident : ""); }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:"middle",marginRight:4}}><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.78 7.78 5.5 5.5 0 017.78-7.78zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" /></svg>Esqueci minha senha</button>
         </div>

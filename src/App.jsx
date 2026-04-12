@@ -480,7 +480,7 @@ function App() {
     const dadosComSessao = { ...dados, _loginEm: Date.now(), _temOutrosPerfis: perfis.length > 1 };
     setPerfisDisponiveis(perfis);
     setUsuarioLogado(dadosComSessao);
-    if (dados.senhaTemporaria) { setTela("trocar-senha"); return; }
+    if (dados.senhaTemporaria && !dados._googleAuth) { setTela("trocar-senha"); return; }
     if (dados.tipo === "admin")             setTela("admin");
     else if (dados.tipo === "atleta")       { setEventoAtualId(null); setTela("painel-atleta"); }
     else if (dados.tipo === "organizador")  setTela("painel-organizador");
