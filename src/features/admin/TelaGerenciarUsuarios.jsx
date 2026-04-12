@@ -7,6 +7,7 @@ const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
 
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { useEvento } from "../../contexts/EventoContext";
 import { useApp } from "../../contexts/AppContext";
 import { secondaryAuth, createUserWithEmailAndPassword, signOut as firebaseSignOut } from "../../firebase";
@@ -144,6 +145,7 @@ function getStyles(t) {
 function TelaGerenciarUsuarios() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
+  const { gerarSenhaTemp } = useAuth();
   const { equipes, atletas, adicionarAtleta } = useEvento();
   const { setTela, organizadores, atletasUsuarios, funcionarios, adicionarOrganizador, editarOrganizadorAdmin, editarEquipeAdmin, adicionarAtletaUsuario, editarAtletaUsuarioAdmin, excluirOrganizador, excluirEquipeUsuario, excluirAtletaUsuario, excluirAtletaPorUsuario } = useApp();
   const adicionarEquipe = useEvento().adicionarEquipe;
@@ -324,9 +326,9 @@ function TelaGerenciarUsuarios() {
         ? `Perfil existente vinculado com sucesso!\nAs credenciais de acesso foram mantidas.`
         : `Usuário criado com sucesso!`);
     } else if (modo === "editar" && usuarioSelecionado) {
+      const { senha: _s, ...semSenha } = usuarioSelecionado;
       const dadosEditados = {
-        ...usuarioSelecionado,
-        senha: undefined, // ⚠️ senha nunca é persistida localmente
+        ...semSenha,
         nome: form.nome,
         email: form.email,
         entidade: form.entidade || "",
@@ -338,6 +340,27 @@ function TelaGerenciarUsuarios() {
         sexo: form.sexo || "M",
         organizadorId: form.organizadorId || "",
       };
+
+      // Se email mudou, criar nova conta Auth com o novo email
+      const emailAntigo = (usuarioSelecionado.email || "").trim().toLowerCase();
+      const emailNovo = (form.email || "").trim().toLowerCase();
+      let authAviso = "";
+      if (emailNovo && emailNovo !== emailAntigo) {
+        try {
+          const senhaTemp = gerarSenhaTemp ? gerarSenhaTemp() : Math.random().toString(36).slice(2, 10);
+          await createUserWithEmailAndPassword(secondaryAuth, emailNovo, senhaTemp);
+          await firebaseSignOut(secondaryAuth).catch(() => {});
+          dadosEditados.senhaTemporaria = true;
+          authAviso = `\n\nNovo email Auth criado. Senha temporária: ${senhaTemp}\nO usuário deve trocar no primeiro acesso.`;
+        } catch (authErr) {
+          if (authErr.code === "auth/email-already-in-use") {
+            authAviso = "\n\nO novo email já possui conta Auth — o usuário deve usar a senha existente.";
+          } else {
+            authAviso = `\n\nAviso: não foi possível criar conta Auth para o novo email (${authErr.code}).`;
+          }
+        }
+      }
+
       if (tipoUsuario === "organizadores") {
         editarOrganizadorAdmin(dadosEditados);
       } else if (tipoUsuario === "equipes") {
@@ -345,7 +368,7 @@ function TelaGerenciarUsuarios() {
       } else if (tipoUsuario === "atletas") {
         editarAtletaUsuarioAdmin(dadosEditados);
       }
-      alert(`Usuário "${dadosEditados.nome}" atualizado com sucesso!`);
+      alert(`Usuário "${dadosEditados.nome}" atualizado com sucesso!${authAviso}`);
     }
 
     setModo("lista");

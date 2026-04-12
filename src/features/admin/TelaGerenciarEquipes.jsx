@@ -223,6 +223,26 @@ function TelaGerenciarEquipes() {
     } else if (modo === "editar") {
       const { senha: _s, ...dadosAtualizar } = form; // nunca persistir senha
       const equipeAtualizada = { ...equipeSelecionada, ...dadosAtualizar, organizadorId: orgId };
+
+      // Se email mudou, criar nova conta Auth com o novo email
+      const emailAntigo = (equipeSelecionada.email || "").trim().toLowerCase();
+      const emailNovo = (form.email || "").trim().toLowerCase();
+      if (emailNovo && emailNovo !== emailAntigo) {
+        try {
+          const senhaTemp = gerarSenhaTemp ? gerarSenhaTemp() : Math.random().toString(36).slice(2, 10);
+          await createUserWithEmailAndPassword(secondaryAuth, emailNovo, senhaTemp);
+          await firebaseSignOut(secondaryAuth).catch(() => {});
+          equipeAtualizada.senhaTemporaria = true;
+          alert(`Email atualizado! Nova conta Auth criada.\nSenha temporária: ${senhaTemp}\nA equipe deve trocar no primeiro acesso.`);
+        } catch (authErr) {
+          if (authErr.code === "auth/email-already-in-use") {
+            // OK — novo email já tem conta Auth
+          } else {
+            alert(`Aviso: não foi possível criar conta Auth para ${emailNovo} (${authErr.code}).`);
+          }
+        }
+      }
+
       editarEquipeFiliada(equipeAtualizada);
 
       // Atualizar atletas vinculados se nome da equipe mudou
