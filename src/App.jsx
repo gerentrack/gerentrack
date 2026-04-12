@@ -1532,6 +1532,7 @@ function App() {
 
   // ── Auto-gestão de inscrições por data ─────────────────────────────────────
   useEffect(() => {
+    if (!usuarioLogado || !firebaseAuthed) return; // só roda autenticado
     const hoje = new Date().toISOString().slice(0, 10);
     const agora = new Date();
     const atualizados = [];
