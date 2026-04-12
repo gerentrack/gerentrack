@@ -1343,7 +1343,7 @@ function App() {
   // ── Migração: state/atl_atletas_usuarios → coleção atletasUsuarios/ ──
   useEffect(() => {
     if (!firebaseAuthed) return;
-    const migKey = "atl_migr_atletasUsuarios_colecao_v1";
+    const migKey = "atl_migr_atletasUsuarios_colecao_v2";
     if (localStorage.getItem(migKey)) return;
     const stateRef = doc(db, "state", "atl_atletas_usuarios");
     getDoc(stateRef).then(snap => {
