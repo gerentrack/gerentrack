@@ -316,22 +316,30 @@ function TelaCadastroAtletaLogin() {
         return;
       }
     }
-    const senhaFinal = docModo === "vincular" ? (docExistente?.senha || form.senha) : form.senha;
-    // Criar usuário no Firebase Auth
-    try {
-      const cred = await createUserWithEmailAndPassword(auth, form.email.trim(), senhaFinal);
-      try { await sendEmailVerification(cred.user); } catch {}
-    } catch (err) {
-      if (err.code === "auth/email-already-in-use") {
-        try {
-          await signInWithEmailAndPassword(auth, form.email.trim(), senhaFinal);
-        } catch (loginErr) {
-          setErros({ email: "E-mail já cadastrado. Se é sua conta, use a tela de login." }); return;
+    // Criar/autenticar no Firebase Auth
+    // Se modo vincular e já autenticado (ex: confirmou via Google), pula criação Auth
+    if (auth.currentUser) {
+      // já autenticado — não precisa criar conta
+    } else {
+      const senhaFinal = form.senha;
+      if (!senhaFinal || senhaFinal.length < 6) {
+        setErros({ senha: "Senha obrigatória (mínimo 6 caracteres)." }); return;
+      }
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, form.email.trim(), senhaFinal);
+        try { await sendEmailVerification(cred.user); } catch {}
+      } catch (err) {
+        if (err.code === "auth/email-already-in-use") {
+          try {
+            await signInWithEmailAndPassword(auth, form.email.trim(), senhaFinal);
+          } catch (loginErr) {
+            setErros({ email: "E-mail já cadastrado. Se é sua conta, use a tela de login." }); return;
+          }
+        } else if (err.code === "auth/weak-password") {
+          setErros({ senha: "Senha fraca. Use pelo menos 6 caracteres." }); return;
+        } else {
+          setErros({ email: "Erro ao criar conta. Tente novamente." }); return;
         }
-      } else if (err.code === "auth/weak-password") {
-        setErros({ senha: "Senha fraca. Use pelo menos 6 caracteres." }); return;
-      } else {
-        setErros({ email: "Erro ao criar conta. Tente novamente." }); return;
       }
     }
     // NÃO fazer signOut aqui — precisa de auth.currentUser para Firestore writes
