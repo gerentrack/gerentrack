@@ -77,9 +77,11 @@ export function useEventos() {
   }, []);
 
   // ── Atualizar / editar 1 evento ──────────────────────────────────────────
+  // Usa merge:true para não sobrescrever campos que não estão no objeto
+  // (ex: logoCompeticao, dataEncerramentoInscricoes quando form não os inclui)
   const _editarEvento = useCallback(async (ev) => {
     const docRef = doc(db, COLLECTION, ev.id);
-    await setDoc(docRef, sanitize(ev));
+    await setDoc(docRef, sanitize(ev), { merge: true });
   }, []);
 
   // ── Atualizar campos parciais de 1 evento (merge) ────────────────────────
@@ -99,7 +101,7 @@ export function useEventos() {
     for (let i = 0; i < listaAtualizada.length; i += LOTE) {
       const batch = writeBatch(db);
       listaAtualizada.slice(i, i + LOTE).forEach(ev =>
-        batch.set(doc(db, COLLECTION, ev.id), sanitize(ev))
+        batch.set(doc(db, COLLECTION, ev.id), sanitize(ev), { merge: true })
       );
       await batch.commit();
     }
