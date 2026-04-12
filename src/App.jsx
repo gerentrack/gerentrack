@@ -645,8 +645,14 @@ function App() {
     excluirEquipePorId(id);
     if (nAtletas > 0) {
       const idsAtletas = new Set(atletasVinculados.map(a => a.id));
+      const atletaUsuarioIds = new Set(atletasVinculados.filter(a => a.atletaUsuarioId).map(a => a.atletaUsuarioId));
+      const orgIdEquipe = equipe?.organizadorId;
       excluirAtletasPorIds(idsAtletas);
-      setAtletasUsuarios((p) => p.filter(a => !(a.equipeId === id)));
+      setAtletasUsuarios((p) => p.filter(a => {
+        if (a.equipeId === id) return false;
+        if (atletaUsuarioIds.has(a.id) && (!a.organizadorId || a.organizadorId === orgIdEquipe)) return false;
+        return true;
+      }));
       excluirInscricoesPorAtletas(idsAtletas);
     }
   };
@@ -675,9 +681,16 @@ function App() {
     // Remover atletas vinculados à equipe
     if (nAtletas > 0) {
       const idsAtletas = new Set(atletasVinculados.map(a => a.id));
+      const atletaUsuarioIds = new Set(atletasVinculados.filter(a => a.atletaUsuarioId).map(a => a.atletaUsuarioId));
+      const orgIdEquipe = equipe?.organizadorId;
       excluirAtletasPorIds(idsAtletas);
       // Remover contas de atletas-usuários vinculados
-      setAtletasUsuarios((p) => p.filter(a => !(a.equipeId === id)));
+      // Cuidado: só remove se pertence à mesma organização (não afeta perfis em outros orgs)
+      setAtletasUsuarios((p) => p.filter(a => {
+        if (a.equipeId === id) return false;
+        if (atletaUsuarioIds.has(a.id) && (!a.organizadorId || a.organizadorId === orgIdEquipe)) return false;
+        return true;
+      }));
       // Remover inscrições desses atletas
       excluirInscricoesPorAtletas(idsAtletas);
     }
