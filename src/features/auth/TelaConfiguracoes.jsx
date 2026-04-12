@@ -114,7 +114,7 @@ function ExclusaoConfirmada({ titulo, descricao, corAccent, btnLabel, onConfirma
 function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setAtletasUsuarios, setFuncionarios, setTreinadores }) {
   const t = useTema();
   const s = useStylesResponsivos(getS(t));
-  const { usuarioLogado, setUsuarioLogado, logout, atualizarSenha, perfisDisponiveis } = useAuth();
+  const { usuarioLogado, setUsuarioLogado, logout, atualizarSenha, perfisDisponiveis, gerarSenhaTemp } = useAuth();
   const { equipes, atualizarEquipePerfil, atletas, inscricoes, resultados, atualizarAtleta, eventos, atualizarCamposEvento, excluirInscricao } = useEvento();
   const { setTela, registrarAcao, organizadores, atletasUsuarios, funcionarios, treinadores, siteBranding, setSiteBranding, exportarDados, importarDados, solicitacoesPortabilidade, adicionarSolicitacaoPortabilidade, editarOrganizadorAdmin, selecionarOrganizador } = useApp();
   const [aba, setAba]           = useState("dados");
@@ -2325,6 +2325,77 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(ts => `   • ${ts}`).joi
                     </>
                   )}
                   {diagAuth.length === 0 && <div style={{ textAlign:"center", padding:20, color:t.success, fontSize:13 }}>Nenhum alerta de consistência encontrado.</div>}
+
+                  {/* ── Migração em massa: criar contas Auth para perfis legados ── */}
+                  <div style={{ ...s.card, background:t.bgHover, marginTop:20 }}>
+                    <div style={{ fontWeight:700, fontSize:14, color:t.textPrimary, marginBottom:8 }}>Migração em Massa — Contas Auth</div>
+                    <div style={{ fontSize:12, color:t.textMuted, lineHeight:1.6, marginBottom:12 }}>
+                      Cria contas no Firebase Auth para todos os perfis que possuem email mas ainda não têm conta Auth.
+                      Uma senha temporária será gerada para cada um. O usuário será obrigado a trocar no primeiro acesso.
+                    </div>
+                    <button
+                      style={{ ...s.btnPrimary, fontSize:12 }}
+                      disabled={diagRodando}
+                      onClick={async () => {
+                        if (!gerarSenhaTemp) { alert("Função gerarSenhaTemp não disponível."); return; }
+                        const { secondaryAuth, createUserWithEmailAndPassword, signOut: fbSignOut } = await import("../../firebase");
+
+                        const perfis = [
+                          ...(organizadores || []).filter(o => o.email && o.status === "aprovado").map(o => ({ tipo: "organizador", id: o.id, email: o.email, nome: o.nome })),
+                          ...(equipes || []).filter(e => e.email).map(e => ({ tipo: "equipe", id: e.id, email: e.email, nome: e.nome })),
+                          ...(funcionarios || []).filter(f => f.email && f.ativo !== false).map(f => ({ tipo: "funcionario", id: f.id, email: f.email, nome: f.nome })),
+                          ...(treinadores || []).filter(tr => tr.email && tr.ativo !== false).map(tr => ({ tipo: "treinador", id: tr.id, email: tr.email, nome: tr.nome })),
+                          ...(atletasUsuarios || []).filter(a => a.email).map(a => ({ tipo: "atleta", id: a.id, email: a.email, nome: a.nome })),
+                        ];
+
+                        // Deduplicar por email
+                        const vistos = new Set();
+                        const unicos = perfis.filter(p => {
+                          const e = p.email.toLowerCase().trim();
+                          if (vistos.has(e)) return false;
+                          vistos.add(e);
+                          return true;
+                        });
+
+                        let criados = 0, jaExistiam = 0, erros = 0;
+                        setDiagRodando(true);
+
+                        for (const perfil of unicos) {
+                          const senhaTemp = gerarSenhaTemp();
+                          try {
+                            await createUserWithEmailAndPassword(secondaryAuth, perfil.email.trim(), senhaTemp);
+                            await fbSignOut(secondaryAuth).catch(() => {});
+                            criados++;
+                            // Marcar senhaTemporaria no registro
+                            const updFlag = arr => arr.map(u => u.id === perfil.id ? { ...u, senhaTemporaria: true } : u);
+                            if (perfil.tipo === "organizador") setOrganizadores(updFlag);
+                            else if (perfil.tipo === "funcionario") setFuncionarios(updFlag);
+                            else if (perfil.tipo === "treinador") setTreinadores(updFlag);
+                            else if (perfil.tipo === "atleta") setAtletasUsuarios(updFlag);
+                            else if (perfil.tipo === "equipe") {
+                              try { const { atualizarCamposEquipe } = await import("../../hooks/useEquipes"); } catch {}
+                            }
+                          } catch (err) {
+                            if (err.code === "auth/email-already-in-use") jaExistiam++;
+                            else erros++;
+                          }
+                        }
+
+                        setDiagRodando(false);
+                        alert(
+                          `Migração concluída!\n\n` +
+                          `${criados} conta(s) criada(s) com senha temporária\n` +
+                          `${jaExistiam} já possuíam conta Auth\n` +
+                          `${erros} erro(s)\n` +
+                          `${unicos.length} email(s) verificado(s) no total`
+                        );
+                        if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome,
+                          "Migração Auth em massa", `${criados} criadas, ${jaExistiam} existentes, ${erros} erros`,
+                          null, { modulo: "admin" });
+                      }}>
+                      Migrar Contas Legadas para Firebase Auth
+                    </button>
+                  </div>
                 </>
               );
             })()}
