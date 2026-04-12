@@ -110,6 +110,7 @@ import {
   doc,
   getDoc,
   setDoc,
+  deleteDoc,
   onSnapshot,
   auth,
   secondaryAuth,
@@ -1349,10 +1350,16 @@ function App() {
       if (!snap.exists()) { localStorage.setItem(migKey, "1"); return; }
       const dados = snap.data()?.value;
       if (!Array.isArray(dados) || dados.length === 0) { localStorage.setItem(migKey, "1"); return; }
-      if (atletasUsuarios.length >= dados.length) { localStorage.setItem(migKey, "1"); return; }
+      if (atletasUsuarios.length >= dados.length) {
+        // Migração já concluída — limpar documento legado
+        deleteDoc(stateRef).then(() => console.info("[Migração] state/atl_atletas_usuarios removido.")).catch(() => {});
+        localStorage.setItem(migKey, "1");
+        return;
+      }
       console.info(`[Migração] Migrando ${dados.length} atletasUsuarios de state/ para coleção...`);
       importarAtletasUsuarios(dados).then(() => {
         localStorage.setItem(migKey, "1");
+        deleteDoc(stateRef).then(() => console.info("[Migração] state/atl_atletas_usuarios removido.")).catch(() => {});
         console.info("[Migração] atletasUsuarios migrados com sucesso.");
       }).catch(err => console.error("[Migração] Erro:", err));
     }).catch(() => {});
