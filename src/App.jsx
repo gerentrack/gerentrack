@@ -134,6 +134,7 @@ import { useAtletas }    from "./hooks/useAtletas";
 import { useAtletasUsuarios } from "./hooks/useAtletasUsuarios";
 import { useOrganizadores }   from "./hooks/useOrganizadores";
 import { useFuncionarios }    from "./hooks/useFuncionarios";
+import { useTreinadores }    from "./hooks/useTreinadores";
 import { useNumeracaoPeito } from "./hooks/useNumeracaoPeito";
 import { useEquipes }    from "./hooks/useEquipes";
 import { useEventos }    from "./hooks/useEventos";
@@ -245,7 +246,7 @@ function App() {
   const { organizadores, setOrganizadores, resetOrganizadores, importarOrganizadores } = useOrganizadores();
   const { atletasUsuarios, setAtletasUsuarios, resetAtletasUsuarios, importarAtletasUsuarios, adicionarAtletaUsuario: _adicionarAtletaUsuario, atualizarAtletaUsuario: _atualizarAtletaUsuario } = useAtletasUsuarios();
   const { funcionarios, setFuncionarios, resetFuncionarios, importarFuncionarios } = useFuncionarios();
-  const [treinadores,        setTreinadores]        = useLocalStorage("atl_treinadores",    []); // treinadores vinculados a equipes
+  const { treinadores, setTreinadores, resetTreinadores, importarTreinadores } = useTreinadores();
   // ⚠️ Arrays grandes — useLocalOnly evita limite de 1MB do Firestore
   const [solicitacoesVinculo, setSolicitacoesVinculo] = useLocalStorage("atl_vinculo_sol",   []);
   const [notificacoes, _setNotificacoes] = useLocalStorage("atl_notificacoes", []);
@@ -1332,7 +1333,7 @@ function App() {
   useEffect(() => {
     if (!firebaseAuthed) return;
     const migrar = async (stateKey, dados, colecaoLength, importFn) => {
-      const migKey = `atl_migr_${stateKey}_colecao_v1`;
+      const migKey = `atl_migr_${stateKey}_colecao_v2`;
       if (localStorage.getItem(migKey)) return;
       try {
         const { getDoc } = await import("./firebase");
@@ -1341,16 +1342,24 @@ function App() {
         if (!snap.exists()) { localStorage.setItem(migKey, "1"); return; }
         const val = snap.data()?.value;
         if (!Array.isArray(val) || val.length === 0) { localStorage.setItem(migKey, "1"); return; }
-        if (colecaoLength >= val.length) { localStorage.setItem(migKey, "1"); return; }
+        if (colecaoLength >= val.length) {
+          const { deleteDoc } = await import("./firebase");
+          deleteDoc(stateRef).then(() => console.info(`[Migração] state/${stateKey} removido.`)).catch(() => {});
+          localStorage.setItem(migKey, "1");
+          return;
+        }
         console.info(`[Migração] Migrando ${val.length} ${stateKey} de state/ para coleção...`);
         await importFn(val);
+        const { deleteDoc } = await import("./firebase");
+        deleteDoc(stateRef).then(() => console.info(`[Migração] state/${stateKey} removido.`)).catch(() => {});
         localStorage.setItem(migKey, "1");
         console.info(`[Migração] ${stateKey} migrados com sucesso.`);
       } catch (err) { console.error(`[Migração] Erro ${stateKey}:`, err); }
     };
     migrar("atl_organizadores", organizadores, organizadores.length, importarOrganizadores);
     migrar("atl_funcionarios", funcionarios, funcionarios.length, importarFuncionarios);
-  }, [firebaseAuthed, organizadores.length, funcionarios.length]);
+    migrar("atl_treinadores", treinadores, treinadores.length, importarTreinadores);
+  }, [firebaseAuthed, organizadores.length, funcionarios.length, treinadores.length]);
 
   const {
     numeracaoPeito,
@@ -1465,7 +1474,7 @@ function App() {
     resetAtletasUsuarios();
     setSolicitacoesRecuperacao([]);
     resetFuncionarios();
-    setTreinadores([]);
+    resetTreinadores();
     setHistoricoAcoes([]);
     setSolicitacoesVinculo([]);
     setNotificacoes([]);
@@ -1535,7 +1544,7 @@ function App() {
         if (dados.organizadores)           await importarOrganizadores(dados.organizadores);
         if (dados.atletasUsuarios)         await importarAtletasUsuarios(dados.atletasUsuarios);
         if (dados.funcionarios)            await importarFuncionarios(dados.funcionarios);
-        if (dados.treinadores)             setTreinadores(dados.treinadores);
+        if (dados.treinadores)             await importarTreinadores(dados.treinadores);
         if (dados.atletas)                 await importarAtletas(dados.atletas);
         if (dados.eventos)                 await importarEventos(dados.eventos);
         if (dados.inscricoes)              await importarInscricoes(dados.inscricoes);
