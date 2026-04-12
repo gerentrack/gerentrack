@@ -252,20 +252,21 @@ function TelaTreinadores({ abaInicial } = {}) {
     const match = buscar(treinadores) || buscar(equipes) || buscar(atletasUsuarios) || buscar(funcionarios) || buscar(atletas);
     if (!match) { setLoginErro("E-mail não encontrado para este CPF."); return; }
 
-    // Validar senha via Firebase Auth
+    // Validar senha via Firebase Auth (única fonte de verdade)
     try {
       const { signInWithEmailAndPassword, auth } = await import("../../firebase");
       await signInWithEmailAndPassword(auth, identNorm, loginForm.senha);
     } catch (authErr) {
-      // Migração: se Auth falha mas senha local bate, criar conta Auth
-      if (match.senha === loginForm.senha) {
-        try {
-          await createUserWithEmailAndPassword(secondaryAuth, identNorm, loginForm.senha);
-          await firebaseSignOut(secondaryAuth).catch(() => {});
-        } catch {}
+      if (authErr.code === "auth/user-not-found") {
+        setLoginErro("Este e-mail não possui conta. Solicite ao administrador da equipe.");
+      } else if (authErr.code === "auth/wrong-password" || authErr.code === "auth/invalid-credential") {
+        setLoginErro("Senha incorreta. Use 'Esqueci minha senha' para redefinir.");
+      } else if (authErr.code === "auth/too-many-requests") {
+        setLoginErro("Muitas tentativas. Aguarde alguns minutos.");
       } else {
-        setLoginErro("E-mail ou senha incorretos para este CPF."); return;
+        setLoginErro("Erro ao autenticar. Tente novamente.");
       }
+      return;
     }
 
     setForm(prev => ({
@@ -341,10 +342,10 @@ function TelaTreinadores({ abaInicial } = {}) {
 
       const meuOrgId = equipes.find(eq => eq.id === equipeId)?.organizadorId || null;
       const novo = docExistente
-        ? { ...docExistente, senha: undefined, tipo: "treinador", equipeId, organizadorId: meuOrgId,
+        ? (() => { const { senha: _ds, ...docSemSenha } = docExistente; return { ...docSemSenha, tipo: "treinador", equipeId, organizadorId: meuOrgId,
             cargo: form.cargo || "", permissoes: form.permissoes || [], nome: form.nome || docExistente.nome,
             email: form.email || docExistente.email,
-            ativo: true }
+            ativo: true }; })()
         : (() => { const { senha: _s, ...formSemSenha } = form; return { ...formSemSenha, id: genId(), tipo: "treinador", equipeId, organizadorId: meuOrgId, ativo: true, dataCadastro: new Date().toISOString(), senhaTemporaria: true }; })();
       // Criar conta Auth apenas se for cadastro novo (não vinculação)
       let authAviso = "";

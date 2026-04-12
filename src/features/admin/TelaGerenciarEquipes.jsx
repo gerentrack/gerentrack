@@ -208,9 +208,9 @@ function TelaGerenciarEquipes() {
           alert("Erro ao criar conta de login: " + authErr.message); return;
         }
       }
+      const { senha: _s, ...formSemSenha } = form;
       const novaEquipe = {
-        ...form,
-        senha: undefined,
+        ...formSemSenha,
         organizadorId: orgId,
         id: genId(),
         status: "ativa",
@@ -219,10 +219,9 @@ function TelaGerenciarEquipes() {
         senhaTemporaria: true,
       };
       adicionarEquipeFiliada(novaEquipe);
-      alert(`Equipe "${form.nome}" cadastrada!\n\nLogin: ${form.email}\nSenha: ${form.senha}\n\nA equipe será obrigada a trocar a senha no primeiro acesso.`);
+      alert(`Equipe "${form.nome}" cadastrada!\n\nLogin: ${form.email}\nSenha temporária definida.\n\nA equipe será obrigada a trocar a senha no primeiro acesso.`);
     } else if (modo === "editar") {
-      const dadosAtualizar = { ...form };
-      if (!dadosAtualizar.senha) delete dadosAtualizar.senha; // manter senha anterior se vazio
+      const { senha: _s, ...dadosAtualizar } = form; // nunca persistir senha
       const equipeAtualizada = { ...equipeSelecionada, ...dadosAtualizar, organizadorId: orgId };
       editarEquipeFiliada(equipeAtualizada);
 
@@ -270,7 +269,7 @@ function TelaGerenciarEquipes() {
       cnpj: equipe.cnpj || "",
       contato: equipe.contato || "",
       email: equipe.email || "",
-      senha: equipe.senha || "",
+      senha: "", // nunca carregar senha existente — redefinir via Firebase Auth
       organizadorId: equipe.organizadorId || "",
       status: equipe.status || "ativa",
     });
@@ -488,7 +487,7 @@ function TelaGerenciarEquipes() {
       let importados = 0;
       const credenciais = [];
       preview.forEach(equipeDados => {
-        const { _linhaOrigem, _senhaGerada, ...data } = equipeDados;
+        const { _linhaOrigem, _senhaGerada, senha: _senhaImport, ...data } = equipeDados;
         const novaEquipe = {
           ...data,
           id: genId(),
@@ -499,14 +498,14 @@ function TelaGerenciarEquipes() {
           senhaTemporaria: true,
         };
         adicionarEquipeFiliada(novaEquipe);
-        credenciais.push({ nome: data.nome, email: data.email, senha: data.senha, gerada: _senhaGerada });
+        credenciais.push({ nome: data.nome, email: data.email, senha: _senhaImport, gerada: _senhaGerada });
         importados++;
       });
 
-      const resumo = credenciais.map(c => 
-        `${c.nome}: ${c.email} / ${c.senha}${c.gerada ? " (gerada)" : ""}`
+      const resumo = credenciais.map(c =>
+        `${c.nome}: ${c.email} / ${c.gerada ? c.senha + " (temporária)" : "(senha definida na planilha)"}`
       ).join("\n");
-      alert(`${importados} equipe(s) importada(s)!\n\nCredenciais de acesso:\n${resumo}\n\nTodas as senhas são temporárias — a equipe será obrigada a trocar no primeiro acesso.`);
+      alert(`${importados} equipe(s) importada(s)!\n\nCredenciais de acesso:\n${resumo}\n\nAnote as senhas temporárias — elas não serão exibidas novamente.\nTodas são temporárias — a equipe será obrigada a trocar no primeiro acesso.`);
       setModo("lista");
       setFile(null);
       setPreview(null);

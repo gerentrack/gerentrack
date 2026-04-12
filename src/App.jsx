@@ -435,6 +435,31 @@ function App() {
     setOrganizadores(atualizados);
   }, [orgsSemPlanoIds]);
 
+  // ── Migração: remover campo senha de registros no Firestore ──────────
+  // Roda uma vez — limpa senhas legadas que foram persistidas antes da
+  // migração para Firebase Auth. Após limpar, marca como feito.
+  useEffect(() => {
+    if (!firebaseAuthed) return;
+    const migKey = "atl_migr_senha_firestore_v1";
+    if (localStorage.getItem(migKey)) return;
+    const limpar = (arr, setter) => {
+      if (!Array.isArray(arr) || !arr.some(u => u.senha !== undefined)) return;
+      setter(arr.map(({ senha, ...resto }) => resto));
+    };
+    limpar(organizadores, setOrganizadores);
+    limpar(funcionarios, setFuncionarios);
+    limpar(treinadores, setTreinadores);
+    limpar(atletasUsuarios, setAtletasUsuarios);
+    // Equipes: coleção individual — regravar sem senha
+    equipes.forEach(eq => {
+      if (eq.senha !== undefined) {
+        const { senha: _s, ...eqSemSenha } = eq;
+        _atualizarEquipe(eqSemSenha);
+      }
+    });
+    localStorage.setItem(migKey, "1");
+  }, [firebaseAuthed]);
+
   const login = (dados) => {
     const dadosComSessao = { ...dados, _loginEm: Date.now() };
     setUsuarioLogado(dadosComSessao);
