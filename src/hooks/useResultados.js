@@ -239,9 +239,9 @@ export function useResultados({ eventos = [], recordes = [], editarEvento, _atua
             });
             if (_atualizarCamposEvento) {
               _atualizarCamposEvento(eventoId, { recordesSnapshot: snapshot, recordesSnapshotEm: Date.now() });
-            } else {
-              editarEvento({ ...evt, recordesSnapshot: snapshot, recordesSnapshotEm: Date.now() });
             }
+            // Fallback com editarEvento removido — causava "Editou competição"
+            // no histórico a cada digitação de resultado
           }
         }
       } catch (_e) {

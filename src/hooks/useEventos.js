@@ -83,12 +83,11 @@ export function useEventos() {
   }, []);
 
   // ── Atualizar campos parciais de 1 evento (merge) ────────────────────────
-  // Usado em alterarStatusEvento
+  // Usa setDoc com { merge: true } para gravar APENAS os campos passados,
+  // sem sobrescrever campos alterados por outro dispositivo/aba.
   const _atualizarCamposEvento = useCallback(async (id, campos) => {
-    const atual = eventosRef.current.find(e => e.id === id);
-    if (!atual) return;
     const docRef = doc(db, COLLECTION, id);
-    await setDoc(docRef, sanitize({ ...atual, ...campos }));
+    await setDoc(docRef, sanitize(campos), { merge: true });
   }, []);
 
   // ── Atualizar múltiplos eventos em lote ──────────────────────────────────
