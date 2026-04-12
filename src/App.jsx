@@ -1329,37 +1329,6 @@ function App() {
     importarAtletas,
   } = useAtletas();
 
-  // ── Migração: state/ → coleções individuais (organizadores, funcionarios) ──
-  useEffect(() => {
-    if (!firebaseAuthed) return;
-    const migrar = async (stateKey, dados, colecaoLength, importFn) => {
-      const migKey = `atl_migr_${stateKey}_colecao_v2`;
-      if (localStorage.getItem(migKey)) return;
-      try {
-        const { getDoc } = await import("./firebase");
-        const stateRef = doc(db, "state", stateKey);
-        const snap = await getDoc(stateRef);
-        if (!snap.exists()) { localStorage.setItem(migKey, "1"); return; }
-        const val = snap.data()?.value;
-        if (!Array.isArray(val) || val.length === 0) { localStorage.setItem(migKey, "1"); return; }
-        if (colecaoLength >= val.length) {
-          const { deleteDoc } = await import("./firebase");
-          deleteDoc(stateRef).then(() => console.info(`[Migração] state/${stateKey} removido.`)).catch(() => {});
-          localStorage.setItem(migKey, "1");
-          return;
-        }
-        console.info(`[Migração] Migrando ${val.length} ${stateKey} de state/ para coleção...`);
-        await importFn(val);
-        const { deleteDoc } = await import("./firebase");
-        deleteDoc(stateRef).then(() => console.info(`[Migração] state/${stateKey} removido.`)).catch(() => {});
-        localStorage.setItem(migKey, "1");
-        console.info(`[Migração] ${stateKey} migrados com sucesso.`);
-      } catch (err) { console.error(`[Migração] Erro ${stateKey}:`, err); }
-    };
-    migrar("atl_organizadores", organizadores, organizadores.length, importarOrganizadores);
-    migrar("atl_funcionarios", funcionarios, funcionarios.length, importarFuncionarios);
-    migrar("atl_treinadores", treinadores, treinadores.length, importarTreinadores);
-  }, [firebaseAuthed, organizadores.length, funcionarios.length, treinadores.length]);
 
   const {
     numeracaoPeito,
