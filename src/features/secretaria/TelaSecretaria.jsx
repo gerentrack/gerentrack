@@ -18,10 +18,10 @@ import { beepOk, beepErro, beepAviso, beepDuplicado, beepInvalido, vibrarOk, vib
 
 function getMedalhaConfig(t) {
   return {
-    ouro:        { label: "Ouro",         emoji: "🥇", cor: t.gold,         bg: t.trOuro },
-    prata:       { label: "Prata",        emoji: "🥈", cor: "#C0C0C0",      bg: t.trPrata },
-    bronze:      { label: "Bronze",       emoji: "🥉", cor: "#CD7F32",      bg: t.trBronze },
-    participacao:{ label: "Participação", emoji: "🎖️", cor: t.textMuted,    bg: t.bgCardAlt },
+    ouro:        { label: "Ouro",         emoji: "1", cor: t.gold,         bg: t.trOuro },
+    prata:       { label: "Prata",        emoji: "2", cor: "#C0C0C0",      bg: t.trPrata },
+    bronze:      { label: "Bronze",       emoji: "3", cor: "#CD7F32",      bg: t.trBronze },
+    participacao:{ label: "Participação", emoji: "P", cor: t.textMuted,    bg: t.bgCardAlt },
   };
 }
 
@@ -357,16 +357,16 @@ function TelaSecretaria() {
     let atletaId;
 
     if (qr) {
-      if (qr.eventoId !== eid) { beepInvalido(); vibrarInvalido(); return { status: "erro", msg: "⚠️ QR de outro evento", cor: "vermelho" }; }
+      if (qr.eventoId !== eid) { beepInvalido(); vibrarInvalido(); return { status: "erro", msg: "QR de outro evento", cor: "vermelho" }; }
       atletaId = qr.atletaId;
     } else {
       // Fallback: input manual (nº peito)
       atletaId = peitoParaAtleta[raw.trim()];
-      if (!atletaId) { beepInvalido(); vibrarInvalido(); return { status: "erro", msg: `❌ Nº ${raw} não encontrado`, cor: "vermelho" }; }
+      if (!atletaId) { beepInvalido(); vibrarInvalido(); return { status: "erro", msg: `N.${raw} não encontrado`, cor: "vermelho" }; }
     }
 
     const atl = atletas.find(a => a.id === atletaId);
-    if (!atl) { beepInvalido(); vibrarInvalido(); return { status: "erro", msg: "⚠️ Atleta não encontrado", cor: "vermelho" }; }
+    if (!atl) { beepInvalido(); vibrarInvalido(); return { status: "erro", msg: "Atleta não encontrado", cor: "vermelho" }; }
 
     const peito = peitos[atletaId] || "";
     const nomeDisplay = `${peito ? "#" + peito + " " : ""}${atl.nome}`;
@@ -374,13 +374,13 @@ function TelaSecretaria() {
     // Se tem prova selecionada, confirmar nessa prova
     if (filtroProva) {
       const cat = getCategoria(atl.anoNasc, anoComp);
-      if (!cat) { beepAviso(); vibrarAviso(); return { status: "aviso", msg: `⚠️ ${nomeDisplay} — categoria indefinida`, cor: "amarelo" }; }
+      if (!cat) { beepAviso(); vibrarAviso(); return { status: "aviso", msg: `${nomeDisplay} — categoria indefinida`, cor: "amarelo" }; }
       // Buscar grupo correspondente (por nome da prova + categoria do atleta)
       const grupo = provasComAtletas.find(g => g.prova.nome === filtroProva && g.cat.id === cat.id && g.atletas.some(a => a.id === atletaId));
-      if (!grupo) { beepAviso(); vibrarAviso(); return { status: "aviso", msg: `⚠️ ${nomeDisplay} não inscrito nesta prova`, cor: "amarelo" }; }
+      if (!grupo) { beepAviso(); vibrarAviso(); return { status: "aviso", msg: `${nomeDisplay} não inscrito nesta prova`, cor: "amarelo" }; }
       // Verificar se já confirmado
       const estado = getPresenca(grupo.prova.id, cat.id, grupo.sexo, atletaId);
-      if (estado === "confirmado") { beepDuplicado(); return { status: "duplicado", msg: `🔁 ${nomeDisplay} já confirmado`, cor: "azul" }; }
+      if (estado === "confirmado") { beepDuplicado(); return { status: "duplicado", msg: `${nomeDisplay} já confirmado`, cor: "azul" }; }
       // Confirmar
       atualizarPresenca(grupo.prova.id, cat.id, grupo.sexo, atletaId, "confirmado");
       if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, "Confirmou presença via QR", `${nomeDisplay} — ${grupo.prova.nome} ${cat.nome} ${grupo.sexo}`, usuarioLogado?.organizadorId, { metodo: "qr", modulo: "secretaria" });
@@ -390,7 +390,7 @@ function TelaSecretaria() {
 
     // Sem prova selecionada: avisar para selecionar
     beepAviso(); vibrarAviso();
-    return { status: "aviso", msg: `⚠️ Selecione uma prova no seletor acima`, cor: "amarelo" };
+    return { status: "aviso", msg: `Selecione uma prova no seletor acima`, cor: "amarelo" };
   }, [eid, atletas, filtroProva, provasComAtletas, getPresenca, atualizarPresenca, peitoParaAtleta, peitos, anoComp]);
 
   const handleDesfazerChamada = useCallback((raw) => {
@@ -429,10 +429,10 @@ function TelaSecretaria() {
         const pend = isParticipacao && !medalha.entregue && !dnsTodas && !classBloq && !jaLimite
           ? provasPendentes(atletaId).filter(nome => nome !== g.prova.nome) : [];
         let bloqueio = null;
-        if (dnsTodas) bloqueio = "🚫 DNS em todas as provas";
-        else if (classBloq) bloqueio = "🏅 Tem classificação";
-        else if (pend.length > 0) bloqueio = `⏳ Provas pendentes: ${pend.slice(0,2).join(", ")}`;
-        else if (jaLimite) bloqueio = "🚫 Limite atingido";
+        if (dnsTodas) bloqueio = "DNS em todas as provas";
+        else if (classBloq) bloqueio = "Tem classificação";
+        else if (pend.length > 0) bloqueio = `Provas pendentes: ${pend.slice(0,2).join(", ")}`;
+        else if (jaLimite) bloqueio = "Limite atingido";
         resultado.push({ prova: g.prova, cat: g.cat, sexo: g.sexo, posicao, tipo, conf, medalha, bloqueio });
       });
 
@@ -473,15 +473,15 @@ function TelaSecretaria() {
     let atletaId;
 
     if (qr) {
-      if (qr.eventoId !== eid) { beepInvalido(); vibrarInvalido(); return { status: "erro", msg: "⚠️ QR de outro evento", cor: "vermelho" }; }
+      if (qr.eventoId !== eid) { beepInvalido(); vibrarInvalido(); return { status: "erro", msg: "QR de outro evento", cor: "vermelho" }; }
       atletaId = qr.atletaId;
     } else {
       atletaId = peitoParaAtleta[raw.trim()];
-      if (!atletaId) { beepInvalido(); vibrarInvalido(); return { status: "erro", msg: `❌ Nº ${raw} não encontrado`, cor: "vermelho" }; }
+      if (!atletaId) { beepInvalido(); vibrarInvalido(); return { status: "erro", msg: `N.${raw} não encontrado`, cor: "vermelho" }; }
     }
 
     const atl = atletas.find(a => a.id === atletaId);
-    if (!atl) { beepInvalido(); vibrarInvalido(); return { status: "erro", msg: "⚠️ Atleta não encontrado", cor: "vermelho" }; }
+    if (!atl) { beepInvalido(); vibrarInvalido(); return { status: "erro", msg: "Atleta não encontrado", cor: "vermelho" }; }
 
     const peito = peitos[atletaId] || "";
     const nomeDisplay = `${peito ? "#" + peito + " " : ""}${atl.nome}`;
@@ -490,14 +490,14 @@ function TelaSecretaria() {
 
     if (provasDoAtleta.length === 0) {
       beepAviso(); vibrarAviso();
-      return { status: "aviso", msg: `⚠️ ${nomeDisplay} sem provas para medalha`, cor: "amarelo" };
+      return { status: "aviso", msg: `${nomeDisplay} sem provas para medalha`, cor: "amarelo" };
     }
 
     // Fechar scanner e mostrar modal com cards
     setScannerMedalhaAberto(false);
     setMedalhaAtletaInfo({ atl, peito, provas: provasDoAtleta });
     beepOk(); vibrarOk();
-    return { status: "ok", msg: `🏅 ${nomeDisplay} — ${provasDoAtleta.length} prova(s)`, cor: "verde" };
+    return { status: "ok", msg: `${nomeDisplay} — ${provasDoAtleta.length} prova(s)`, cor: "verde" };
   }, [eid, atletas, calcularMedalhasAtleta, peitoParaAtleta, peitos]);
 
   // Contador para o scanner
@@ -539,7 +539,7 @@ function TelaSecretaria() {
       {/* Header */}
       <div style={s.header}>
         <div>
-          <h1 style={s.title}>📋 SECRETARIA</h1>
+          <h1 style={s.title}>SECRETARIA</h1>
           <div style={s.sub}>{eventoAtual.nome}</div>
         </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
@@ -561,19 +561,19 @@ function TelaSecretaria() {
           style={{ ...s.tab, ...(aba === "chamada" ? s.tabActive : {}) }}
           onClick={() => setAba("chamada")}
         >
-          📋 CÂMARA DE CHAMADA
+          CÂMARA DE CHAMADA
         </button>
         <button
           style={{ ...s.tab, ...(aba === "medalhas" ? s.tabActive : {}) }}
           onClick={() => setAba("medalhas")}
         >
-          🏅 MEDALHAS
+          MEDALHAS
         </button>
         <button
           style={{ ...s.tab, ...(aba === "relatorio" ? s.tabActive : {}) }}
           onClick={() => setAba("relatorio")}
         >
-          📊 RELATÓRIO
+          RELATÓRIO
         </button>
       </div>
 
@@ -597,7 +597,7 @@ function TelaSecretaria() {
             <button
               onClick={() => setScannerAberto(true)}
               style={{ background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", borderRadius: 10, padding: "12px 24px", cursor: "pointer", fontSize: 15, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", maxWidth: 320 }}>
-              📷 Escanear QR Code
+              Escanear QR Code
             </button>
           </div>
 
@@ -619,7 +619,7 @@ function TelaSecretaria() {
           <div style={{ marginBottom: 16 }}>
             <input
               type="text"
-              placeholder="🔍 Buscar por nº peito ou nome..."
+              placeholder="Buscar por nº peito ou nome..."
               value={buscaChamada}
               onChange={e => setBuscaChamada(e.target.value)}
               style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 14px", color: t.textPrimary, fontSize: 13, width: "100%", maxWidth: 400, outline: "none", fontFamily: "'Barlow', sans-serif" }}
@@ -749,7 +749,7 @@ function TelaSecretaria() {
                 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
                     <div>
-                      <div style={{ fontWeight: 700, color: t.textPrimary, fontSize: 14 }}>{p.prova.nome}{p.isRevezamento ? " 🏃‍♂️" : ""}</div>
+                      <div style={{ fontWeight: 700, color: t.textPrimary, fontSize: 14 }}>{p.prova.nome}{p.isRevezamento ? " (Rev.)" : ""}</div>
                       <div style={{ fontSize: 11, color: t.textMuted }}>{p.cat.nome} · {p.sexo === "M" ? "Masc" : "Fem"}{p.posicao ? ` · ${p.posicao}º lugar` : ""}{p.isRevezamento ? " · Revezamento" : ""}</div>
                     </div>
                     {p.conf && (
@@ -774,7 +774,7 @@ function TelaSecretaria() {
                           ...s.btn(p.medalha.entregue ? t.success : t.textMuted, p.medalha.entregue ? t.bgCardAlt : t.bgInput),
                           width: "100%", padding: "8px 16px",
                         }}>
-                        {p.medalha.entregue ? "✅ Entregue — desfazer?" : "⬜ Entregar"}
+                        {p.medalha.entregue ? "✓ Entregue — desfazer?" : "— Entregar"}
                       </button>
                     </div>
                   )}
@@ -796,7 +796,7 @@ function TelaSecretaria() {
                     beepOk(); vibrarOk();
                   }}
                   style={{ ...s.btn(t.success, `${t.success}15`), width: "100%", padding: "10px 16px", marginTop: 4, fontSize: 14 }}>
-                  🏅 Entregar todas ({elegibles.length})
+                  Entregar todas ({elegibles.length})
                 </button>
               );
             })()}
@@ -804,7 +804,7 @@ function TelaSecretaria() {
             <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
               <button onClick={() => { setMedalhaAtletaInfo(null); setScannerMedalhaAberto(true); }}
                 style={{ ...s.btn(t.accent, t.accentBg), flex: 1, padding: "10px 16px" }}>
-                📷 Próximo atleta
+                Próximo atleta
               </button>
               <button onClick={() => setMedalhaAtletaInfo(null)}
                 style={{ ...s.btn(t.textMuted, t.bgCardAlt), flex: 1, padding: "10px 16px" }}>
@@ -823,7 +823,7 @@ function TelaSecretaria() {
             <button
               onClick={() => setScannerMedalhaAberto(true)}
               style={{ background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", borderRadius: 10, padding: "12px 24px", cursor: "pointer", fontSize: 15, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", maxWidth: 320 }}>
-              📷 Escanear QR — Medalhas
+              Escanear QR — Medalhas
             </button>
           </div>
 
@@ -831,7 +831,7 @@ function TelaSecretaria() {
           {modoMedalhas === "classificacao_participacao" && <>
           <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20, background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 10, padding: "14px 20px", flexWrap: "wrap" }}>
             <div style={{ fontSize: 13, color: t.textTertiary }}>
-              🎖️ <strong style={{ color: t.textPrimary }}>Limite de medalhas de participação por atleta:</strong>
+              <strong style={{ color: t.textPrimary }}>Limite de medalhas de participação por atleta:</strong>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <button onClick={() => setLimiteParticipacao(l => Math.max(1, l - 1))}
@@ -853,7 +853,7 @@ function TelaSecretaria() {
             />
             <div>
               <div style={{ fontSize: 13, color: classificacaoBloqueiaParticipacao ? t.success : t.textTertiary, fontWeight: 600 }}>
-                🏅 Classificação bloqueia participação
+                Classificação bloqueia participação
               </div>
               <div style={{ fontSize: 11, color: t.textDisabled, marginTop: 2 }}>
                 {classificacaoBloqueiaParticipacao
@@ -866,7 +866,7 @@ function TelaSecretaria() {
 
           {modoMedalhas !== "classificacao_participacao" && (
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20, background: `${apenasParticipacao ? t.warning : t.gold}12`, border: `1px solid ${apenasParticipacao ? t.warning : t.gold}44`, borderRadius: 10, padding: "12px 18px" }}>
-              <span style={{ fontSize: 22 }}>{apenasParticipacao ? "🎖️" : "🥇"}</span>
+              <span style={{ fontSize: 16, fontWeight: 700 }}>{apenasParticipacao ? "P" : "1"}</span>
               <div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: apenasParticipacao ? t.warning : t.gold }}>
                   {apenasParticipacao ? "Modo: Somente Medalhas de Participação" : "Modo: Somente Medalhas de Classificação"}
@@ -890,7 +890,7 @@ function TelaSecretaria() {
           <div style={{ marginBottom: 16 }}>
             <input
               type="text"
-              placeholder="🔍 Buscar por nº peito ou nome..."
+              placeholder="Buscar por nº peito ou nome..."
               value={buscaChamada}
               onChange={e => setBuscaChamada(e.target.value)}
               style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 14px", color: t.textPrimary, fontSize: 13, width: "100%", maxWidth: 400, outline: "none", fontFamily: "'Barlow', sans-serif" }}
@@ -964,7 +964,7 @@ function TelaSecretaria() {
                   </div>
                   <div style={s.cardMeta}>
                     {!temResultados && (
-                      <span style={s.pill(t.textMuted, t.bgCard)}>⏳ Aguardando resultados</span>
+                      <span style={s.pill(t.textMuted, t.bgCard)}>Aguardando resultados</span>
                     )}
                     <span style={s.pill(t.success, t.bgCardAlt)}>{entregues}/{atls.length} entregues</span>
                   </div>
@@ -1028,16 +1028,16 @@ function TelaSecretaria() {
                               <div style={{ display: "flex", flexDirection: "column", gap: 3, alignItems: "center" }}>
                                 {dnsTodas ? (
                                   <button style={s.btnDisabled} disabled>
-                                    🚫 DNS em todas as provas
+                                    DNS em todas as provas
                                   </button>
                                 ) : classificacaoBloqueio ? (
                                   <button style={s.btnDisabled} disabled>
-                                    🏅 Tem classificação
+                                    Tem classificação
                                   </button>
                                 ) : bloqueadoPorPendentes ? (
                                   <>
                                     <button style={s.btnDisabled} disabled>
-                                      ⏳ Provas pendentes
+                                      Provas pendentes
                                     </button>
                                     <span style={s.entregueInfo}>
                                       {pendentes.slice(0, 2).join(", ")}{pendentes.length > 2 ? ` +${pendentes.length - 2}` : ""}
@@ -1046,7 +1046,7 @@ function TelaSecretaria() {
                                 ) : jaAtigindoLimite ? (
                                   <>
                                     <button style={s.btnDisabled} disabled>
-                                      🚫 Limite atingido
+                                      Limite atingido
                                     </button>
                                     <span style={s.entregueInfo}>
                                       {participacoesEntregues.length} de {limiteParticipacao} entregues
@@ -1066,7 +1066,7 @@ function TelaSecretaria() {
                                       usuarioLogado?.id, usuarioLogado?.nome
                                     )}
                                   >
-                                    {medalha.entregue ? "✅ Entregue" : "⬜ Entregar"}
+                                    {medalha.entregue ? "✓ Entregue" : "— Entregar"}
                                   </button>
                                 )}
                                 {medalha.entregue && (
@@ -1165,10 +1165,10 @@ function TelaSecretaria() {
             {/* Cards de totais */}
             <div style={{ display: "flex", gap: 12, marginBottom: 28, flexWrap: "wrap" }}>
               {[
-                { tipo: "ouro",         label: "Ouro",         emoji: "🥇", cor: "#FFD700" },
-                { tipo: "prata",        label: "Prata",        emoji: "🥈", cor: "#C0C0C0" },
-                { tipo: "bronze",       label: "Bronze",       emoji: "🥉", cor: "#CD7F32" },
-                { tipo: "participacao", label: "Participação", emoji: "🎖️", cor: "#888"    },
+                { tipo: "ouro",         label: "Ouro",         emoji: "1", cor: "#FFD700" },
+                { tipo: "prata",        label: "Prata",        emoji: "2", cor: "#C0C0C0" },
+                { tipo: "bronze",       label: "Bronze",       emoji: "3", cor: "#CD7F32" },
+                { tipo: "participacao", label: "Participação", emoji: "P", cor: "#888"    },
               ].map(({ tipo, label, emoji, cor }) => (
                 <div key={tipo} style={{ background: t.bgCard, border: `1px solid ${cor}33`, borderRadius: 12, padding: "16px 24px", textAlign: "center", minWidth: 110 }}>
                   <div style={{ fontSize: 28, marginBottom: 4 }}>{emoji}</div>
@@ -1177,7 +1177,7 @@ function TelaSecretaria() {
                 </div>
               ))}
               <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "16px 24px", textAlign: "center", minWidth: 110 }}>
-                <div style={{ fontSize: 28, marginBottom: 4 }}>⏳</div>
+                <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>...</div>
                 <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 900, color: t.danger, lineHeight: 1 }}>{totais.pendentes}</div>
                 <div style={{ fontSize: 11, color: t.textDimmed, marginTop: 4, textTransform: "uppercase", letterSpacing: 1 }}>Pendentes</div>
               </div>
@@ -1199,10 +1199,10 @@ function TelaSecretaria() {
                   <thead>
                     <tr>
                       <th style={s.th}>Equipe / Clube</th>
-                      <th style={{ ...s.th, textAlign: "center", width: 80 }}>🥇</th>
-                      <th style={{ ...s.th, textAlign: "center", width: 80 }}>🥈</th>
-                      <th style={{ ...s.th, textAlign: "center", width: 80 }}>🥉</th>
-                      <th style={{ ...s.th, textAlign: "center", width: 100 }}>🎖️</th>
+                      <th style={{ ...s.th, textAlign: "center", width: 80 }}>Ouro</th>
+                      <th style={{ ...s.th, textAlign: "center", width: 80 }}>Prata</th>
+                      <th style={{ ...s.th, textAlign: "center", width: 80 }}>Bronze</th>
+                      <th style={{ ...s.th, textAlign: "center", width: 100 }}>Partic.</th>
                       <th style={{ ...s.th, textAlign: "center", width: 80 }}>Total</th>
                     </tr>
                   </thead>

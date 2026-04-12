@@ -126,7 +126,7 @@ export function useInscricoes({ atletas = [], registrarAcao, usuarioLogado } = {
       // Proteger inscrições de componentes de provas combinadas
       if (insc && CombinedEventEngine?.isInscricaoProtegida(insc)) {
         alert(
-          `⚠️ Esta inscrição faz parte da prova combinada "${insc.nomeCombinada || "Combinada"}".\n\nPara remover, exclua a inscrição da prova combinada principal.`
+          `Esta inscrição faz parte da prova combinada "${insc.nomeCombinada || "Combinada"}".\n\nPara remover, exclua a inscrição da prova combinada principal.`
         );
         return;
       }
@@ -134,7 +134,7 @@ export function useInscricoes({ atletas = [], registrarAcao, usuarioLogado } = {
       if (
         !confirmado &&
         !window.confirm(
-          "⚠️ Excluir esta inscrição?\n\nEsta ação é IRREVERSÍVEL e removerá todos os resultados associados."
+          "Excluir esta inscrição?\n\nEsta ação é IRREVERSÍVEL e removerá todos os resultados associados."
         )
       )
         return;

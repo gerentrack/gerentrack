@@ -1,23 +1,23 @@
 /**
  * SinoNotificacoes.jsx
- * Componente reutilizável de sino 🔔 com dropdown de notificações.
+ * Componente reutilizável de sino com dropdown de notificações.
  * Usado nos painéis de equipe, organizador e atleta.
  */
 import React, { useState, useRef, useEffect } from "react";
 import { useTema } from "../../shared/TemaContext";
 
 const ICONES = {
-  aprovacao_equipe:   "✅",
-  portabilidade:      "📦",
-  vinculo_solicitado: "🔗",
-  sumulas_liberadas:  "📋",
-  desvinculacao:      "🔔",
-  medals_ready:       "🏅",
-  relatorio_solicitado: "📄",
-  relatorio_gerado:    "📄",
-  relatorio_cancelado: "❌",
-  relatorio_excluido:  "🗑️",
-  info:               "ℹ️",
+  aprovacao_equipe:   "✓",
+  portabilidade:      "→",
+  vinculo_solicitado: "→",
+  sumulas_liberadas:  "✓",
+  desvinculacao:      "✕",
+  medals_ready:       "✓",
+  relatorio_solicitado: "!",
+  relatorio_gerado:    "✓",
+  relatorio_cancelado: "—",
+  relatorio_excluido:  "✕",
+  info:               "·",
 };
 
 function getCores(t) {
@@ -70,7 +70,7 @@ export function SinoNotificacoes({ notificacoes = [], usuarioId, marcarNotifLida
         }}
         title="Notificações"
       >
-        <span style={{ fontSize: 18, lineHeight: 1 }}>🔔</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{color: t.textSecondary}}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         {naoLidas.length > 0 && (
           <span style={{
             position: "absolute", top: 3, right: 3,
@@ -101,7 +101,7 @@ export function SinoNotificacoes({ notificacoes = [], usuarioId, marcarNotifLida
           }}>
             <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800,
               fontSize: 14, color: t.textPrimary, letterSpacing: 1 }}>
-              🔔 NOTIFICAÇÕES
+              NOTIFICAÇÕES
               {naoLidas.length > 0 && (
                 <span style={{ marginLeft: 8, background: t.danger, color: "#fff",
                   fontSize: 10, fontWeight: 800, borderRadius: 10, padding: "1px 6px" }}>
@@ -127,7 +127,7 @@ export function SinoNotificacoes({ notificacoes = [], usuarioId, marcarNotifLida
             <div>
               {minhas.slice(0, 20).map(n => {
                 const cor = CORES[n.tipo] || CORES.info;
-                const ico = ICONES[n.tipo] || "ℹ️";
+                const ico = ICONES[n.tipo] || "";
                 return (
                   <div key={n.id} style={{
                     display: "flex", gap: 10, padding: "12px 16px",

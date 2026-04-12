@@ -205,7 +205,7 @@ function TelaGestaoInscricoes() {
   if (!isPrivileg && isInscricaoEncerradaAgora(eventoAtual)) return (
     <div style={s.page}>
       <div style={s.emptyState}>
-        <span style={{ fontSize: 48 }}>🔒</span>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         <p style={{ fontWeight: 700, color: t.textPrimary, fontSize: 18 }}>Inscrições Encerradas</p>
         <p style={{ color: t.textDimmed, fontSize: 14 }}>
           As inscrições para <strong>{eventoAtual.nome}</strong> estão encerradas.
@@ -218,7 +218,7 @@ function TelaGestaoInscricoes() {
   if (!isPrivileg && usuarioLogado?.lgpdConsentimentoRevogado) return (
     <div style={s.page}>
       <div style={s.emptyState}>
-        <span style={{ fontSize: 48 }}>🔓</span>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
         <p style={{ fontWeight: 700, color: t.danger, fontSize: 18 }}>Consentimento Revogado</p>
         <p style={{ color: t.textMuted, fontSize: 14, maxWidth: 420, textAlign: "center", lineHeight: 1.6 }}>
           Você revogou seu consentimento LGPD. Novas inscrições não são permitidas.<br/>
@@ -267,7 +267,7 @@ function TelaGestaoInscricoes() {
   const togglePago = (inscs, atl) => {
     const novoStatus = !isPago(inscs);
     inscs.forEach(i => atualizarInscricao({ ...i, pago: novoStatus }));
-    setFeedback(`${novoStatus ? "✅ Pago" : "↩️ Pendente"}: ${atl?.nome || "atleta"}`);
+    setFeedback(`${novoStatus ? "Pago" : "Pendente"}: ${atl?.nome || "atleta"}`);
     setTimeout(() => setFeedback(""), 3000);
   };
 
@@ -387,7 +387,7 @@ function TelaGestaoInscricoes() {
     const prv = todasAsProvas().find(p => p.id === insc.provaId);
     if (!await confirmar(`Remover ${atl?.nome || "atleta" } da prova ${prv?.nome || insc.provaId}?`)) return;
     excluirInscricao(insc.id, { confirmado: true });
-    setFeedback(`✅ ${atl?.nome} removido de ${prv?.nome}`);
+    setFeedback(`${atl?.nome} removido de ${prv?.nome}`);
     setTimeout(() => setFeedback(""), 3000);
   };
 
@@ -404,7 +404,7 @@ function TelaGestaoInscricoes() {
     }
     atualizarInscricao({ ...insc, provaId: novaProva.id, provaNome: novaProva.nome });
     if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, "Trocou prova", `${atl?.nome}: ${provaAtual?.nome} → ${novaProva.nome}`, usuarioLogado?.organizadorId || usuarioLogado?.id, { modulo: "inscricoes" });
-    setFeedback(`✅ ${atl?.nome} transferido para ${novaProva.nome}`);
+    setFeedback(`${atl?.nome} transferido para ${novaProva.nome}`);
     setTimeout(() => setFeedback(""), 3000);
   };
 
@@ -420,7 +420,7 @@ function TelaGestaoInscricoes() {
     const todasNovas = [...novasProvasNoCarrinho, ...[...inserirProvasIds]];
     const validacao = validarLimiteProvas(eventoAtual, inscsEvt, inserirAtletaId, cat?.id || null, todasNovas);
     if (!validacao.ok) {
-      alert(`⚠️ Limite atingido: ${validacao.motivo}`); return;
+      alert(`Limite atingido: ${validacao.motivo}`); return;
     }
 
     // Validar Norma 12 CBAt — Sub-14
@@ -435,7 +435,7 @@ function TelaGestaoInscricoes() {
       eventoAtual, inscsComCarrinho, inserirAtletaId, cat?.id || null, [...inserirProvasIds], todasAsProvas()
     );
     if (!validacaoNorma12.ok) {
-      alert(`⚠️ ${validacaoNorma12.msg}`); return;
+      alert(`${validacaoNorma12.msg}`); return;
     }
 
     const novas = [];
@@ -532,7 +532,7 @@ function TelaGestaoInscricoes() {
 
     const pagamentoSection = (temTotal && (eventoAtual.formaPagamento || eventoAtual.orientacaoPagamento)) ? `
       <div style="margin-top:20px;background:#e8f5e9;border-left:4px solid #4caf50;border-radius:4px;padding:14px 18px;">
-        <div style="font-weight:700;font-size:13px;color:#1b5e20;margin-bottom:6px;">💳 Instruções de Pagamento</div>
+        <div style="font-weight:700;font-size:13px;color:#1b5e20;margin-bottom:6px;">Instrucoes de Pagamento</div>
         ${eventoAtual.formaPagamento ? `<div style="font-size:13px;color:#333;margin-bottom:4px;">Via: <strong>${eventoAtual.formaPagamento}</strong></div>` : ""}
         ${eventoAtual.orientacaoPagamento ? `<div style="font-size:12px;color:#555;white-space:pre-wrap;line-height:1.6;">${eventoAtual.orientacaoPagamento}</div>` : ""}
       </div>` : "";
@@ -557,7 +557,7 @@ function TelaGestaoInscricoes() {
 </head>
 <body>
   <div class="no-print" style="margin-bottom:16px;">
-    <button class="btn-print" onclick="window.print()">🖨️ Imprimir</button>
+    <button class="btn-print" onclick="window.print()">Imprimir</button>
     <button onclick="window.close()" style="margin-left:10px;background:#eee;border:1px solid #ccc;padding:10px 20px;border-radius:6px;cursor:pointer;">✕ Fechar</button>
   </div>
   <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
@@ -776,14 +776,14 @@ function TelaGestaoInscricoes() {
         .map(i => `<span style="display:inline-block;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:3px;padding:1px 5px;font-size:9px;margin:1px 2px;">${todasAsProvas().find(p => p.id === i.provaId)?.nome || i.provaId}</span>`).join("");
       const valor = precoInfo?.preco != null ? formatarPreco(precoInfo.preco) : "Gratuito";
       const pagoCell = isPago(inscs)
-        ? `<span style="color:#1a6b1a;font-weight:700;">✅ Pago</span>`
-        : `<span style="color:#888;">⏳ Pendente</span>`;
+        ? `<span style="color:#1a6b1a;font-weight:700;">Pago</span>`
+        : `<span style="color:#888;">Pendente</span>`;
 
       const novaEquipe = mostrarEquipe && equipeNome !== equipeAtualPdf;
       if (mostrarEquipe) equipeAtualPdf = equipeNome;
 
       const separador = novaEquipe ? `
-        <tr><td colspan="${mostrarEquipe ? (mostrarPago ? 8 : 7) : (mostrarPago ? 7 : 6)}" style="background:#1b5e20;color:#fff;padding:5px 10px;font-weight:700;font-size:10px;letter-spacing:1px;">🏃 ${equipeNome}</td></tr>` : "";
+        <tr><td colspan="${mostrarEquipe ? (mostrarPago ? 8 : 7) : (mostrarPago ? 7 : 6)}" style="background:#1b5e20;color:#fff;padding:5px 10px;font-weight:700;font-size:10px;letter-spacing:1px;">${equipeNome}</td></tr>` : "";
 
       return `${separador}<tr>
         <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:900;color:#e67e00;font-size:14px;">${peito || "—"}</td>
@@ -817,8 +817,8 @@ function TelaGestaoInscricoes() {
         .map(i => `<span style="display:inline-block;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:3px;padding:1px 5px;font-size:9px;margin:1px 2px;">${todasAsProvas().find(p => p.id === i.provaId)?.nome || i.provaId}</span>`).join("");
       const valor = precoInfo?.preco != null ? formatarPreco(precoInfo.preco) : "Gratuito";
       const pagoCell = isPago(inscs)
-        ? `<span style="color:#1a6b1a;font-weight:700;">✅ Pago</span>`
-        : `<span style="color:#888;">⏳ Pendente</span>`;
+        ? `<span style="color:#1a6b1a;font-weight:700;">Pago</span>`
+        : `<span style="color:#888;">Pendente</span>`;
       return `<tr>
         <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:900;color:#e67e00;font-size:14px;">${peito || "—"}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #eee;font-size:10px;color:#888;">${_getCbat(atl) || "—"}</td>
@@ -911,7 +911,7 @@ function TelaGestaoInscricoes() {
     const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/><title>Inscrições — ${eventoAtual.nome}</title><style>${css}</style></head>
     <body>
       <div class="no-print" style="padding:14px 20px;background:#f5f5f5;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:12px;">
-        <button onclick="window.print()" style="background:#1b5e20;color:#fff;border:none;padding:10px 24px;border-radius:6px;cursor:pointer;font-size:14px;">🖨️ Imprimir / Salvar PDF</button>
+        <button onclick="window.print()" style="background:#1b5e20;color:#fff;border:none;padding:10px 24px;border-radius:6px;cursor:pointer;font-size:14px;">Imprimir / Salvar PDF</button>
         <button onclick="window.close()" style="background:#eee;border:1px solid #ccc;padding:10px 18px;border-radius:6px;cursor:pointer;">✕ Fechar</button>
         <span style="font-size:12px;color:#666;">${_porAtletaArr.length} atleta(s) · ${totalPags} página(s)</span>
       </div>
@@ -964,7 +964,7 @@ function TelaGestaoInscricoes() {
 
     const pagSection = temPrecoConfig && (eventoAtual.formaPagamento || eventoAtual.orientacaoPagamento) ? `
       <div style="margin-top:14px;background:#e8f5e9;border-left:4px solid #4caf50;padding:10px 14px;border-radius:4px;">
-        <div style="font-weight:700;font-size:11px;color:#1b5e20;margin-bottom:3px;">💳 Pagamento</div>
+        <div style="font-weight:700;font-size:11px;color:#1b5e20;margin-bottom:3px;">Pagamento</div>
         ${eventoAtual.formaPagamento ? `<div style="font-size:11px;margin-bottom:2px;">Via: <strong>${eventoAtual.formaPagamento}</strong></div>` : ""}
         ${eventoAtual.orientacaoPagamento ? `<div style="font-size:10px;color:#555;white-space:pre-wrap;line-height:1.5;">${eventoAtual.orientacaoPagamento}</div>` : ""}
       </div>` : "";
@@ -1109,7 +1109,7 @@ function TelaGestaoInscricoes() {
 
 
     const btnBar = (extra) => `<div class="no-print" style="padding:14px 20px;background:#f5f5f5;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:12px;">
-      <button onclick="window.print()" style="background:#1b5e20;color:#fff;border:none;padding:10px 24px;border-radius:6px;cursor:pointer;font-size:14px;">🖨️ Imprimir / Salvar PDF</button>
+      <button onclick="window.print()" style="background:#1b5e20;color:#fff;border:none;padding:10px 24px;border-radius:6px;cursor:pointer;font-size:14px;">Imprimir / Salvar PDF</button>
       <button onclick="window.close()" style="background:#eee;border:1px solid #ccc;padding:10px 18px;border-radius:6px;cursor:pointer;">✕ Fechar</button>
       <span style="font-size:12px;color:#666;">${extra}</span>
     </div>`;
@@ -1187,7 +1187,7 @@ function TelaGestaoInscricoes() {
     <div style={s.page}>
       <div style={s.painelHeader}>
         <div>
-          <h1 style={s.pageTitle}>🔄 Gestão de Inscrições</h1>
+          <h1 style={s.pageTitle}>Gestao de Inscricoes</h1>
           <div style={{ color: t.textDimmed, fontSize: 13 }}>
             {eventoAtual.nome} — {[...new Set(inscsEvt.filter(i => i.tipo !== "revezamento" && !i.combinadaId).map(i => i.atletaId))].length} atleta(s), {inscsEvt.filter(i => i.tipo !== "revezamento" && !i.combinadaId).length} inscrições
           </div>
@@ -1198,12 +1198,12 @@ function TelaGestaoInscricoes() {
               {/* CSV — só admin e organizador dono */}
               {isPrivileg && (tipoUser === "admin" || tipoUser === "organizador") && (
                 <button style={{ ...s.btnGhost, fontSize: 12, padding: "7px 14px" }} onClick={exportarCSV} title="Exportar planilha Excel/CSV">
-                  📊 Exportar CSV
+                  Exportar CSV
                 </button>
               )}
               {/* PDF — admin, org, funcionário e equipe (cada um vê seus dados) */}
               <button style={{ ...s.btnGhost, fontSize: 12, padding: "7px 14px" }} onClick={exportarPDF} title="Exportar lista em PDF">
-                📄 Exportar PDF
+                Exportar PDF
               </button>
               {/* Recibo — só admin e org */}
               {isPrivileg && (
@@ -1211,7 +1211,7 @@ function TelaGestaoInscricoes() {
                   if (selecionadosRecibo.size === 0) { alert("Selecione ao menos um atleta para gerar o recibo."); return; }
                   setModoRecibo("escolha");
                 }} title="Gerar recibo dos selecionados">
-                  🧾 Recibo PDF{selecionadosRecibo.size > 0 ? ` (${selecionadosRecibo.size})` : ""}
+                  Recibo PDF{selecionadosRecibo.size > 0 ? ` (${selecionadosRecibo.size})` : ""}
                 </button>
               )}
             </>
@@ -1231,7 +1231,7 @@ function TelaGestaoInscricoes() {
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 16, padding: "32px 36px", maxWidth: 440, width: "90%" }}>
             <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 20, color: t.textPrimary, marginBottom: 8, letterSpacing: 1 }}>
-              🧾 GERAR RECIBO
+              GERAR RECIBO
             </div>
             <div style={{ color: t.textDimmed, fontSize: 13, marginBottom: 20 }}>
               {selecionadosRecibo.size} atleta(s) selecionado(s)
@@ -1239,7 +1239,7 @@ function TelaGestaoInscricoes() {
 
             {/* Upload de assinatura */}
             <div style={{ background: t.bgCardAlt, border: `1px solid ${t.borderInput}`, borderRadius: 10, padding: "14px 16px", marginBottom: 20 }}>
-              <div style={{ fontSize: 12, color: t.textTertiary, marginBottom: 8, fontWeight: 600 }}>✍️ ASSINATURA (opcional)</div>
+              <div style={{ fontSize: 12, color: t.textTertiary, marginBottom: 8, fontWeight: 600 }}>ASSINATURA (opcional)</div>
               {assinaturaUrl ? (
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <img src={assinaturaUrl} alt="Assinatura" style={{ maxHeight: 48, maxWidth: 160, objectFit: "contain", background: "#fff", borderRadius: 4, padding: 4 }} />
@@ -1248,7 +1248,7 @@ function TelaGestaoInscricoes() {
               ) : (
                 <label style={{ cursor: "pointer", display: "inline-block" }}>
                   <span style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 6, padding: "6px 14px", fontSize: 12, color: t.textMuted, cursor: "pointer" }}>
-                    📁 Selecionar imagem
+                    Selecionar imagem
                   </span>
                   <input type="file" accept="image/*" style={{ display: "none" }}
                     onChange={e => {
@@ -1268,20 +1268,20 @@ function TelaGestaoInscricoes() {
               <label style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", background: t.bgCardAlt, border: `1px solid ${marcarComoPago ? `${t.success}44` : t.borderInput}`, borderRadius: 10, cursor: "pointer" }}>
                 <input type="checkbox" checked={marcarComoPago} onChange={e => setMarcarComoPago(e.target.checked)} style={{ width: 16, height: 16, cursor: "pointer" }} />
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 13, color: marcarComoPago ? t.success : t.textMuted }}>✅ Marcar selecionados como pagos</div>
+                  <div style={{ fontWeight: 700, fontSize: 13, color: marcarComoPago ? t.success : t.textMuted }}>Marcar selecionados como pagos</div>
                   <div style={{ fontSize: 11, color: t.textDimmed, marginTop: 2 }}>Atualiza o status de pagamento ao gerar o recibo</div>
                 </div>
               </label>
               <button
                 onClick={() => gerarRecibos("individual")}
                 style={{ background: t.accentBg, border: `1px solid ${t.accentBorder}`, borderRadius: 10, padding: "16px 20px", cursor: "pointer", textAlign: "left" }}>
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: t.accent, marginBottom: 4 }}>👤 Individual</div>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: t.accent, marginBottom: 4 }}>Individual</div>
                 <div style={{ fontSize: 12, color: t.textDimmed }}>Um recibo por atleta — nunca agrupa</div>
               </button>
               <button
                 onClick={() => gerarRecibos("equipe")}
                 style={{ background: t.bgCardAlt, border: `1px solid ${t.success}44`, borderRadius: 10, padding: "16px 20px", cursor: "pointer", textAlign: "left" }}>
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: t.success, marginBottom: 4 }}>🏃 Por Equipe</div>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: t.success, marginBottom: 4 }}>Por Equipe</div>
                 <div style={{ fontSize: 12, color: t.textDimmed }}>Agrupa da mesma equipe · sem equipe fica individual</div>
               </button>
             </div>
@@ -1297,12 +1297,12 @@ function TelaGestaoInscricoes() {
         <button
           style={{ ...s.modoBtn, ...(!modoCarrinho ? s.modoBtnActive : {}) }}
           onClick={() => setModoCarrinho(false)}>
-          📋 Inscrições Salvas
+          Inscricoes Salvas
         </button>
         <button
           style={{ ...s.modoBtn, ...(modoCarrinho ? s.modoBtnActive : {}) }}
           onClick={async () => { setModoCarrinho(true); setEtapa("montagem"); }}>
-          🛒 Realizar Inscrições
+          Realizar Inscricoes
           {carrinho.length > 0 && (
             <span style={{ background: t.accent, color: "#fff", borderRadius: 10, padding: "1px 7px", fontSize: 11, marginLeft: 6 }}>
               {carrinho.length}
@@ -1330,7 +1330,7 @@ function TelaGestaoInscricoes() {
               <option value="M">Masc</option>
               <option value="F">Fem</option>
             </select>
-            <input style={{ ...s.input, maxWidth: 220 }} placeholder="🔍 Nome ou Nº Peito" value={filtroNome} onChange={e => setFiltroNome(e.target.value)} />
+            <input style={{ ...s.input, maxWidth: 220 }} placeholder="Nome ou N. Peito" value={filtroNome} onChange={e => setFiltroNome(e.target.value)} />
             {isPrivileg && equipesUnicas.length > 0 && (
               <select value={filtroEquipe} onChange={e => setFiltroEquipe(e.target.value)} style={{ ...s.input, maxWidth: 200 }}>
                 <option value="">Todas as equipes</option>
@@ -1340,8 +1340,8 @@ function TelaGestaoInscricoes() {
             {isPrivileg && (
               <select value={filtroPago} onChange={e => setFiltroPago(e.target.value)} style={{ ...s.input, maxWidth: 140 }}>
                 <option value="">Todos</option>
-                <option value="pago">✅ Pagos</option>
-                <option value="pendente">⏳ Pendentes</option>
+                <option value="pago">Pagos</option>
+                <option value="pendente">Pendentes</option>
               </select>
             )}
           </div>
@@ -1350,7 +1350,7 @@ function TelaGestaoInscricoes() {
           {isPrivileg && preInscricoes.length > 0 && (
             <div style={{ marginBottom: 16, padding: "14px 18px", background: `${t.warning}08`, border: `1px solid ${t.warning}33`, borderRadius: 10 }}>
               <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, fontWeight: 700, color: t.warning, marginBottom: 10 }}>
-                📋 Pré-inscrições — Sem provas definidas ({preInscricoes.length})
+                Pre-inscricoes — Sem provas definidas ({preInscricoes.length})
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {preInscricoes.map(pre => {
@@ -1432,7 +1432,7 @@ function TelaGestaoInscricoes() {
                           <tr>
                             <td colSpan={10} style={{ background: t.bgCardAlt, borderBottom: `1px solid ${t.border}`, borderTop: rowIdx > 0 ? `2px solid ${t.accentBorder}` : "none", padding: "6px 16px" }}>
                               <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 12, color: t.accent, letterSpacing: 1, textTransform: "uppercase" }}>
-                                🏃 {equipeNome}
+                                {equipeNome}
                               </span>
                             </td>
                           </tr>
@@ -1508,7 +1508,7 @@ function TelaGestaoInscricoes() {
                                     color: isPago(inscs) ? t.success : t.textMuted,
                                     borderColor: isPago(inscs) ? `${t.success}44` : t.borderLight,
                                     background: isPago(inscs) ? t.bgCardAlt : "transparent" }}>
-                                  {isPago(inscs) ? "✅ Pago" : "⏳ Pendente"}
+                                  {isPago(inscs) ? "Pago" : "Pendente"}
                                 </button>
                               )}
                               {/* Excluir — admin/org sempre; equipe só com inscrições abertas; bloqueado se finalizado */}
@@ -1516,11 +1516,11 @@ function TelaGestaoInscricoes() {
                                 <button onClick={async () => {
                                   if (await confirmar(`Remover TODAS as ${inscsVisiveis.length} inscrições de ${atl?.nome || "atleta"}?`)) {
                                     inscs.forEach(i => excluirInscricao(i.id, { confirmado: true }));
-                                    setFeedback(`✅ Todas as inscrições de ${atl?.nome} removidas`);
+                                    setFeedback(`Todas as inscricoes de ${atl?.nome} removidas`);
                                     setTimeout(() => setFeedback(""), 3000);
                                   }
                                 }} style={{ ...s.btnGhost, fontSize: 11, padding: "3px 8px", color: t.danger, borderColor: `${t.danger}44` }}>
-                                  🗑️ Remover
+                                  Remover
                                 </button>
                               )}
                             </div>
@@ -1539,7 +1539,7 @@ function TelaGestaoInscricoes() {
           {Object.keys(resumoFinanceiro.porEquipe).length > 0 && (
             <div style={{ marginTop: 24, background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "20px 24px" }}>
               <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: t.textPrimary, letterSpacing: 1, marginBottom: 16 }}>
-                💰 RESUMO FINANCEIRO
+                RESUMO FINANCEIRO
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
                 {Object.entries(resumoFinanceiro.porEquipe).map(([equipe, dados]) => (
@@ -1549,8 +1549,8 @@ function TelaGestaoInscricoes() {
                       <span style={{ color: t.textDimmed, fontSize: 12, marginLeft: 10 }}>{dados.atletas} atleta(s)</span>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      {isPrivileg && dados.pago > 0 && <span style={{ fontSize: 11, color: t.success }}>✅ {formatarPreco(dados.pago)}</span>}
-                      {isPrivileg && dados.valor - dados.pago > 0 && <span style={{ fontSize: 11, color: t.warning }}>⏳ {formatarPreco(dados.valor - dados.pago)}</span>}
+                      {isPrivileg && dados.pago > 0 && <span style={{ fontSize: 11, color: t.success }}>Pago: {formatarPreco(dados.pago)}</span>}
+                      {isPrivileg && dados.valor - dados.pago > 0 && <span style={{ fontSize: 11, color: t.warning }}>Pend.: {formatarPreco(dados.valor - dados.pago)}</span>}
                       <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: dados.valor > 0 ? t.success : t.textDisabled }}>
                         {dados.valor > 0 ? formatarPreco(dados.valor) : "Gratuito"}
                       </span>
@@ -1565,8 +1565,8 @@ function TelaGestaoInscricoes() {
                     <span style={{ color: t.textDimmed, fontSize: 12, marginLeft: 10 }}>{_porAtletaArr.length} atleta(s)</span>
                     {isPrivileg && (
                       <div style={{ marginTop: 4, display: "flex", gap: 12 }}>
-                        <span style={{ fontSize: 11, color: t.success }}>✅ Pago: {formatarPreco(resumoFinanceiro.totalPago)}</span>
-                        <span style={{ fontSize: 11, color: t.warning }}>⏳ Pendente: {formatarPreco(resumoFinanceiro.totalGlobalSalvo - resumoFinanceiro.totalPago)}</span>
+                        <span style={{ fontSize: 11, color: t.success }}>Pago: {formatarPreco(resumoFinanceiro.totalPago)}</span>
+                        <span style={{ fontSize: 11, color: t.warning }}>Pendente: {formatarPreco(resumoFinanceiro.totalGlobalSalvo - resumoFinanceiro.totalPago)}</span>
                       </div>
                     )}
                   </div>
@@ -1582,7 +1582,7 @@ function TelaGestaoInscricoes() {
           {provasRevez.length > 0 && (isPrivileg || eventoAtual.revezamentoInscAntecipada) && (
             <div style={{ marginTop: 28, padding: 16, background: t.bgHeaderSolid, border: `1px solid ${t.accentBorder}`, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
               <div>
-                <h2 style={{ color: t.accent, fontSize: 17, margin: 0, fontFamily: "'Barlow Condensed', sans-serif" }}>🏃‍♂️ Revezamentos</h2>
+                <h2 style={{ color: t.accent, fontSize: 17, margin: 0, fontFamily: "'Barlow Condensed', sans-serif" }}>Revezamentos</h2>
                 <p style={{ color: t.textMuted, fontSize: 13, marginTop: 4 }}>
                   {inscsRevez.length > 0 ? `${inscsRevez.length} equipe(s) inscrita(s)` : "Nenhuma equipe inscrita ainda"}
                   <span style={{ color: t.success, marginLeft: 8, fontSize: 12, fontWeight: 600 }}>· Sem custo adicional</span>
@@ -1610,7 +1610,7 @@ function TelaGestaoInscricoes() {
               {/* ── Painel interativo de seleção ── */}
               <div style={{ background: t.accentBg, border: `1px solid ${t.accentBorder}`, borderRadius: 10, padding: 20, marginBottom: 20 }}>
                 <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 16, color: t.accent, marginBottom: 14 }}>
-                  ➕ Selecionar atleta e provas
+                  Selecionar atleta e provas
                 </div>
 
                 {/* Filtros + Seletor de atleta */}
@@ -1673,7 +1673,7 @@ function TelaGestaoInscricoes() {
                       style={{ ...s.btnGhost, fontSize: 12, padding: "7px 16px", whiteSpace: "nowrap", color: t.warning, borderColor: `${t.warning}55` }}
                       onClick={handlePreInscricao}
                       title="Registrar atleta sem definir provas agora">
-                      📋 Pré-inscrição (sem provas)
+                      Pre-inscricao (sem provas)
                     </button>
                   )}
                 </div>
@@ -1742,7 +1742,7 @@ function TelaGestaoInscricoes() {
                           background: `${t.warning}12`, border: `1px solid ${t.warning}33`,
                           fontSize:11, color: t.warning, lineHeight:1.5,
                         }}>
-                          <span style={{ fontSize:14, flexShrink:0 }}>⚖</span>
+                          <span style={{ fontSize:14, flexShrink:0 }}>!</span>
                           <span><strong>Norma 12 CBAt</strong> — Máximo 2 provas individuais de grupos diferentes, ou somente Tetratlo.</span>
                         </div>
                       )}
@@ -1758,8 +1758,8 @@ function TelaGestaoInscricoes() {
                             color: limiteAtingido ? t.danger : t.accent,
                           }}>
                             {limiteAtingido
-                              ? `🔒 Limite atingido (${limite} prova${limite !== 1 ? "s" : ""})`
-                              : `📋 Limite: ${usadas}/${limite} — restam ${restam}`}
+                              ? `Limite atingido (${limite} prova${limite !== 1 ? "s" : ""})`
+                              : `Limite: ${usadas}/${limite} — restam ${restam}`}
                           </span>
                         )}
                         {selecionadas > 0 && (
@@ -1816,7 +1816,7 @@ function TelaGestaoInscricoes() {
                               return (
                                 <button key={p.id} style={chipStyle} onClick={toggle}
                                   title={jaInscrito ? "Já inscrito" : jaNoLote ? "Já no lote" : norma12Bloq ? norma12Bloq : bloqueada ? "Limite atingido" : "Clique para selecionar"}>
-                                  {jaInscrito ? "✓ " : jaNoLote ? "🛒 " : selecionada ? "✔ " : ""}{p.nome}
+                                  {jaInscrito ? "✓ " : jaNoLote ? "+ " : selecionada ? "✓ " : ""}{p.nome}
                                 </button>
                               );
                             })}
@@ -1826,8 +1826,8 @@ function TelaGestaoInscricoes() {
 
                       <div style={{ marginTop: 8, fontSize: 11, color: t.textDisabled, display: "flex", gap: 16, flexWrap: "wrap" }}>
                         <span><span style={{ color: t.success }}>✓</span> já inscrito</span>
-                        <span><span style={{ color: t.warning }}>🛒</span> já no lote</span>
-                        <span><span style={{ color: t.accent }}>✔</span> selecionado agora</span>
+                        <span><span style={{ color: t.warning }}>+</span> ja no lote</span>
+                        <span><span style={{ color: t.accent }}>✓</span> selecionado agora</span>
                       </div>
                     </div>
                   );
@@ -1835,17 +1835,17 @@ function TelaGestaoInscricoes() {
 
                 {!inserirAtletaId && (
                   <div style={{ color: t.textDimmed, fontSize: 13, padding: "8px 0" }}>
-                    👆 Selecione um atleta para ver as provas disponíveis para a categoria dele.
+                    Selecione um atleta para ver as provas disponiveis para a categoria dele.
                   </div>
                 )}
                 <div style={{ marginTop: 12, fontSize: 12, color: t.textDisabled }}>
-                  💡 Revezamentos não aparecem — são compostos por atletas já inscritos, sem custo adicional.
+                  Revezamentos nao aparecem — sao compostos por atletas ja inscritos, sem custo adicional.
                 </div>
               </div>
 
               {carrinho.length === 0 ? (
                 <div style={s.emptyState}>
-                  <span style={{ fontSize: 36 }}>🛒</span>
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
                   <p>Nenhum atleta adicionado ao lote.</p>
                   <p style={{ fontSize: 13 }}>Selecione atleta e prova acima.</p>
                 </div>
@@ -1890,9 +1890,9 @@ function TelaGestaoInscricoes() {
                                       {formatarPreco(r.precoInfo?.preco)}
                                     </strong>
                                     <div style={{ fontSize: 10, color: t.textDimmed, marginTop: 1 }}>
-                                      {r.precoInfo?.tipo === "comEquipe" ? "🏛️ com equipe" :
-                                       r.precoInfo?.tipo === "semEquipe" ? "👤 sem equipe" :
-                                       r.precoInfo?.tipo === "global"    ? "🌐 valor geral" : ""}
+                                      {r.precoInfo?.tipo === "comEquipe" ? "com equipe" :
+                                       r.precoInfo?.tipo === "semEquipe" ? "sem equipe" :
+                                       r.precoInfo?.tipo === "global"    ? "valor geral" : ""}
                                     </div>
                                   </div>
                                 ) : (
@@ -1903,7 +1903,7 @@ function TelaGestaoInscricoes() {
                             <td style={s.td}>
                               <button onClick={() => setCarrinho(c => c.filter(x => x.atletaId !== r.atletaId))}
                                 style={{ ...s.btnGhost, fontSize: 11, padding: "3px 8px", color: t.danger, borderColor: `${t.danger}44` }}>
-                                🗑️ Remover
+                                Remover
                               </button>
                             </td>
                           </tr>
@@ -1938,7 +1938,7 @@ function TelaGestaoInscricoes() {
                   </div>
 
                   <div style={{ display: "flex", gap: 12, marginTop: 20, justifyContent: "flex-end" }}>
-                    <button style={s.btnGhost} onClick={() => setCarrinho([])}>🗑 Limpar lote</button>
+                    <button style={s.btnGhost} onClick={() => setCarrinho([])}>Limpar lote</button>
                     <button style={s.btnPrimary} onClick={() => setEtapa("confirmacao")}>
                       Revisar e Confirmar ({carrinho.length}) →
                     </button>
@@ -1953,7 +1953,7 @@ function TelaGestaoInscricoes() {
             <div style={{ maxWidth: 720, margin: "0 auto" }}>
               <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 16, padding: 28 }}>
                 <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, fontWeight: 800, color: t.textPrimary, marginBottom: 4 }}>
-                  📋 Revisão do Lote
+                  Revisao do Lote
                 </div>
                 <div style={{ color: t.textDimmed, fontSize: 13, marginBottom: 24 }}>
                   {eventoAtual.nome} · {carrinho.length} inscrição(ões) para {resumoCarrinho.length} atleta(s)
@@ -1983,17 +1983,17 @@ function TelaGestaoInscricoes() {
                               <div style={{ display: "flex", justifyContent: "flex-end", gap: 4, marginTop: 3, flexWrap: "wrap" }}>
                                 {r.precoInfo?.tipo === "comEquipe" && (
                                   <span style={{ fontSize: 10, background: `${t.success}15`, border: `1px solid ${t.success}44`, color: t.success, borderRadius: 4, padding: "1px 6px" }}>
-                                    🏛️ atleta federado
+                                    atleta federado
                                   </span>
                                 )}
                                 {r.precoInfo?.tipo === "semEquipe" && (
                                   <span style={{ fontSize: 10, background: `${t.warning}15`, border: `1px solid ${t.warning}44`, color: t.warning, borderRadius: 4, padding: "1px 6px" }}>
-                                    👤 atleta não federado
+                                    atleta nao federado
                                   </span>
                                 )}
                                 {r.precoInfo?.tipo === "global" && (
                                   <span style={{ fontSize: 10, background: t.accentBg, border: `1px solid ${t.accentBorder}`, color: t.accent, borderRadius: 4, padding: "1px 6px" }}>
-                                    🌐 valor geral
+                                    valor geral
                                   </span>
                                 )}
                               </div>
@@ -2018,7 +2018,7 @@ function TelaGestaoInscricoes() {
                 {temPrecoConfig && (
                   <div style={{ background: t.accentBg, border: `1px solid ${t.accentBorder}`, borderRadius: 10, padding: "16px 20px", marginTop: 16 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                      <span style={{ fontWeight: 700, color: t.textPrimary, fontSize: 15 }}>💰 Total do lote</span>
+                      <span style={{ fontWeight: 700, color: t.textPrimary, fontSize: 15 }}>Total do lote</span>
                       <strong style={{ color: t.success, fontSize: 26, fontFamily: "'Barlow Condensed', sans-serif" }}>
                         {totalGeral > 0 ? formatarPreco(totalGeral) : "—"}
                       </strong>
@@ -2042,7 +2042,7 @@ function TelaGestaoInscricoes() {
                     {/* Aviso revezamento */}
                     {provasRevez.length > 0 && (
                       <div style={{ marginTop: 8, fontSize: 12, color: t.success, borderTop: `1px solid ${t.border}`, paddingTop: 8 }}>
-                        ✔ Revezamentos não entram neste cálculo — sem custo adicional para atletas já inscritos.
+                        ✓ Revezamentos não entram neste cálculo — sem custo adicional para atletas já inscritos.
                       </div>
                     )}
                   </div>
@@ -2052,12 +2052,12 @@ function TelaGestaoInscricoes() {
                   <button style={s.btnGhost} onClick={() => setEtapa("montagem")}>← Voltar e editar</button>
                   <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                     <button style={{ ...s.btnGhost, borderColor: t.accentBorder, color: t.accent }} onClick={imprimirLote}>
-                      🖨️ Imprimir detalhamento
+                      Imprimir detalhamento
                     </button>
                     <button
                       style={{ ...s.btnPrimary, background: `linear-gradient(135deg, ${t.success}, ${t.success}cc)`, fontSize: 16, padding: "14px 32px", opacity: confirmando ? 0.5 : 1 }}
                       onClick={handleConfirmar} disabled={confirmando}>
-                      {confirmando ? "Inscrevendo..." : `✅ Confirmar ${carrinho.length} inscrição${carrinho.length !== 1 ? "ões" : ""}`}
+                      {confirmando ? "Inscrevendo..." : `Confirmar ${carrinho.length} inscricao${carrinho.length !== 1 ? "es" : ""}`}
                     </button>
                   </div>
                 </div>
@@ -2069,7 +2069,7 @@ function TelaGestaoInscricoes() {
           {etapa === "concluido" && (
             <div style={{ maxWidth: 560, margin: "0 auto", textAlign: "center" }}>
               <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 16, padding: 40 }}>
-                <div style={{ fontSize: 64, marginBottom: 16 }}>🎉</div>
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{margin:"0 auto 16px"}}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                 <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 28, fontWeight: 800, color: t.success, marginBottom: 8 }}>
                   Lote confirmado!
                 </div>
@@ -2080,7 +2080,7 @@ function TelaGestaoInscricoes() {
                 {/* Resumo financeiro final */}
                 {temPreco && totalGeral > 0 && (
                   <div style={{ background: t.accentBg, border: `1px solid ${t.accentBorder}`, borderRadius: 10, padding: "16px 18px", marginBottom: 24, textAlign: "left" }}>
-                    <div style={{ fontWeight: 700, color: t.accent, fontSize: 13, marginBottom: 10 }}>💳 Resumo de Pagamento</div>
+                    <div style={{ fontWeight: 700, color: t.accent, fontSize: 13, marginBottom: 10 }}>Resumo de Pagamento</div>
                     {resumoCarrinho.filter(r => r.valorCobrar > 0).map((r, rIdx) => (
                       <div key={`fin_${r.atletaId}_${rIdx}`} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", borderBottom: `1px solid ${t.border}`, fontSize: 13 }}>
                         <span style={{ color: t.textSecondary }}>{r.atletaNome}</span>
@@ -2108,7 +2108,7 @@ function TelaGestaoInscricoes() {
 
                 <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginBottom: 12 }}>
                   <button style={{ ...s.btnGhost, borderColor: t.accentBorder, color: t.accent }} onClick={imprimirLote}>
-                    🖨️ Imprimir detalhamento
+                    Imprimir detalhamento
                   </button>
                 </div>
                 <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>

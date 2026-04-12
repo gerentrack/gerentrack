@@ -11,6 +11,23 @@ import TelaPrivacidade from "../legal/TelaPrivacidade";
 import TelaTermos from "../legal/TelaTermos";
 import { getEncerramento } from "../../shared/engines/planEngine";
 
+// SVG icons para substituir emojis
+const SvgLock = ({ size = 48, color = "#f5c542" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0110 0v4" />
+  </svg>
+);
+const SvgKey = ({ size = 36, color = "#f5c542" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.78 7.78 5.5 5.5 0 017.78-7.78zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+  </svg>
+);
+const SvgShield = ({ size = 36, color = "#f5c542" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+  </svg>
+);
+
 function getStyles(t) {
   return {
     page:       { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
@@ -69,25 +86,25 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
   const buscarPerfis = () => {
     const perfisEncontrados = [];
     organizadores.filter(o => matchIdent(o) && o.status === "aprovado").forEach(o => {
-      perfisEncontrados.push({ tipo:"organizador", dados:{ tipo:"organizador", ...o }, label:`Organizador — ${o.entidade}`, icon:"🏟️", sublabel:o.nome, organizadorId:o.id, organizadorNome:o.entidade });
+      perfisEncontrados.push({ tipo:"organizador", dados:{ tipo:"organizador", ...o }, label:`Organizador — ${o.entidade}`, icon:"", sublabel:o.nome, organizadorId:o.id, organizadorNome:o.entidade });
     });
     funcionarios.filter(f => matchIdent(f) && f.ativo !== false).forEach(f => {
       const org = organizadores.find(o => o.id === f.organizadorId);
       if (!org || org.status !== "aprovado") return;
-      perfisEncontrados.push({ tipo:"funcionario", dados:{ tipo:"funcionario", ...f, entidade:org.entidade, orgNome:org.nome }, label:`Funcionário — ${org.entidade}`, icon:"👔", sublabel:f.nome, organizadorId:f.organizadorId, organizadorNome:org.entidade });
+      perfisEncontrados.push({ tipo:"funcionario", dados:{ tipo:"funcionario", ...f, entidade:org.entidade, orgNome:org.nome }, label:`Funcionário — ${org.entidade}`, icon:"", sublabel:f.nome, organizadorId:f.organizadorId, organizadorNome:org.entidade });
     });
     equipes.filter(eq => matchIdent(eq) && eq.status !== "pendente" && eq.status !== "recusado").forEach(eq => {
       const org = organizadores.find(o => o.id === eq.organizadorId);
-      perfisEncontrados.push({ tipo:"equipe", dados:{ tipo:"equipe", ...eq }, label:`Equipe — ${eq.entidade || eq.nome}`, icon:"🎽", sublabel:org ? org.entidade : "Sem organizador", organizadorId:eq.organizadorId, organizadorNome:org?.entidade || "" });
+      perfisEncontrados.push({ tipo:"equipe", dados:{ tipo:"equipe", ...eq }, label:`Equipe — ${eq.entidade || eq.nome}`, icon:"", sublabel:org ? org.entidade : "Sem organizador", organizadorId:eq.organizadorId, organizadorNome:org?.entidade || "" });
     });
     treinadores.filter(tr => matchIdent(tr) && tr.ativo !== false).forEach(tr => {
       const equipeVinc = equipes.find(eq => eq.id === tr.equipeId);
       const org = organizadores.find(o => o.id === (tr.organizadorId || equipeVinc?.organizadorId));
-      perfisEncontrados.push({ tipo:"treinador", dados:{ tipo:"treinador", ...tr, clube:equipeVinc?.clube, equipeNome:equipeVinc?.nome }, label:`Treinador — ${equipeVinc?.nome || "Equipe"}`, icon:"👨‍🏫", sublabel:org ? org.entidade : "", organizadorId:tr.organizadorId || equipeVinc?.organizadorId, organizadorNome:org?.entidade || "" });
+      perfisEncontrados.push({ tipo:"treinador", dados:{ tipo:"treinador", ...tr, clube:equipeVinc?.clube, equipeNome:equipeVinc?.nome }, label:`Treinador — ${equipeVinc?.nome || "Equipe"}`, icon:"", sublabel:org ? org.entidade : "", organizadorId:tr.organizadorId || equipeVinc?.organizadorId, organizadorNome:org?.entidade || "" });
     });
     atletasUsuarios.filter(a => matchIdent(a) && a.status !== "pendente" && a.status !== "recusado").forEach(a => {
       const org = organizadores.find(o => o.id === a.organizadorId);
-      perfisEncontrados.push({ tipo:"atleta", dados:{ tipo:"atleta", ...a }, label:`Atleta${_getClubeAtleta(a, equipes) ? ` — ${_getClubeAtleta(a, equipes)}` : ""}`, icon:"🏃", sublabel:org ? org.entidade : "Sem organizador", organizadorId:a.organizadorId, organizadorNome:org?.entidade || "" });
+      perfisEncontrados.push({ tipo:"atleta", dados:{ tipo:"atleta", ...a }, label:`Atleta${_getClubeAtleta(a, equipes) ? ` — ${_getClubeAtleta(a, equipes)}` : ""}`, icon:"", sublabel:org ? org.entidade : "Sem organizador", organizadorId:a.organizadorId, organizadorNome:org?.entidade || "" });
     });
     return perfisEncontrados;
   };
@@ -228,13 +245,13 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
     if (perfisEncontrados.length === 0) {
       const pendentes = [...organizadores.filter(o => matchIdent(o) && o.status === "pendente"), ...equipes.filter(eq => matchIdent(eq) && eq.status === "pendente"), ...atletasUsuarios.filter(a => matchIdent(a) && a.status === "pendente")];
       const recusados = [...organizadores.filter(o => matchIdent(o) && o.status === "recusado"), ...equipes.filter(eq => matchIdent(eq) && eq.status === "recusado"), ...atletasUsuarios.filter(a => matchIdent(a) && a.status === "recusado")];
-      if (pendentes.length > 0) { setErro("⏳ Seu cadastro ainda está aguardando aprovação do administrador."); return; }
-      if (recusados.length > 0) { setErro("❌ Seu cadastro foi recusado. Entre em contato com o administrador."); return; }
+      if (pendentes.length > 0) { setErro("Seu cadastro ainda está aguardando aprovação do administrador."); return; }
+      if (recusados.length > 0) { setErro("Seu cadastro foi recusado. Entre em contato com o administrador."); return; }
       if (atletasBase) {
         const atlBase = atletasBase.find(a => matchIdent(a));
         if (atlBase) {
           const dadosAtleta = { tipo:"atleta", ...atlBase, senhaTemporaria:true };
-          loginComSelecao(dadosAtleta, [{ tipo:"atleta", dados:dadosAtleta, label:`Atleta`, icon:"🏃", sublabel:"", organizadorId:atlBase.organizadorId }]);
+          loginComSelecao(dadosAtleta, [{ tipo:"atleta", dados:dadosAtleta, label:`Atleta`, icon:"", sublabel:"", organizadorId:atlBase.organizadorId }]);
           return;
         }
       }
@@ -325,7 +342,7 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
     setLoading(true);
     try {
       await sendPasswordResetEmail(auth, emailRecuperar.trim());
-      setFeedbackRecuperar("✅ E-mail de recuperação enviado! Verifique sua caixa de entrada e spam.");
+      setFeedbackRecuperar("E-mail de recuperação enviado! Verifique sua caixa de entrada e spam.");
     } catch (err) {
       setErro(err.code === "auth/user-not-found" ? "E-mail não encontrado." : "Erro ao enviar e-mail. Tente novamente.");
     } finally { setLoading(false); setLoadingMsg(""); }
@@ -370,7 +387,7 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
       )}
 
       <div style={{ ...s.formCard, maxWidth:500 }}>
-        <div style={{ fontSize:48, textAlign:"center", marginBottom:12 }}>🔒</div>
+        <div style={{ textAlign:"center", marginBottom:12 }}><SvgShield size={48} /></div>
         <h2 style={s.formTitle}>Atualização da Política de Privacidade</h2>
         <p style={{ ...s.formSub, marginBottom:20 }}>
           Para continuar usando o GerenTrack, precisamos do seu consentimento conforme a
@@ -380,7 +397,7 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
         {/* Resumo do que será tratado */}
         <div style={{ background:t.bgCardAlt, border:`1px solid ${t.accentBorder}`, borderRadius:10,
           padding:"14px 16px", marginBottom:20, fontSize:13, color:t.textTertiary, lineHeight:1.7 }}>
-          <strong style={{ color:t.textPrimary, display:"block", marginBottom:8 }}>📋 Resumo do tratamento:</strong>
+          <strong style={{ color:t.textPrimary, display:"block", marginBottom:8 }}>Resumo do tratamento:</strong>
           <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
             {[
               "Seus dados são usados para gestão de competições de atletismo",
@@ -459,7 +476,7 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
     <div style={s.formPage}>
       <LoginStyle />
       <div style={{ ...s.formCard, maxWidth:460 }}>
-        <div style={s.formIcon}>🔑</div>
+        <div style={s.formIcon}><SvgKey /></div>
         <h2 style={s.formTitle}>Recuperar Senha</h2>
         <p style={s.formSub}>Informe seu e-mail para receber o link de redefinição</p>
         {erro && <div style={s.erro}>{erro}</div>}
@@ -478,7 +495,6 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
       <LoginStyle />
       <div style={{ ...s.formCard, maxWidth:460, position:"relative", overflow:"hidden" }}>
         {loading && <div style={{position:"absolute",inset:0,background:"rgba(10,11,13,0.6)",zIndex:10,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:12,backdropFilter:"blur(2px)"}}><span style={{width:36,height:36,borderRadius:"50%",border:`3px solid ${t.accentBorder}`,borderTopColor:t.accent,display:"inline-block",animation:"spin 0.7s linear infinite"}} /><span style={{color:t.accent,fontSize:14,fontWeight:600}}>{loadingMsg || "Aguarde..."}</span></div>}
-        <div style={s.formIcon}>🔐</div>
         <h2 style={s.formTitle}>Entrar no Sistema</h2>
         <p style={s.formSub}>Use seu e-mail, CPF ou CNPJ para acessar</p>
         {erro && <div style={s.erro}>{erro}</div>}
@@ -487,7 +503,7 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
         <FormField label="Senha" value={senha} onChange={setSenha} type="password" placeholder="••••••••" />
         <button style={s.btnPrimary} onClick={handleLogin} disabled={loading}>{loading ? <span style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><span style={{width:16,height:16,borderRadius:"50%",border:"2px solid #ffffff44",borderTopColor:"#fff",display:"inline-block",animation:"spin 0.7s linear infinite"}} />{loadingMsg || "Entrando..."}</span> : "Entrar"}</button>
         <div style={{ textAlign:"center", marginTop:12 }}>
-          <button style={s.linkBtn} onClick={() => { setModoRecuperar(true); setErro(""); setEmailRecuperar(ident.includes("@") ? ident : ""); }}>🔑 Esqueci minha senha</button>
+          <button style={s.linkBtn} onClick={() => { setModoRecuperar(true); setErro(""); setEmailRecuperar(ident.includes("@") ? ident : ""); }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:"middle",marginRight:4}}><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.78 7.78 5.5 5.5 0 017.78-7.78zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" /></svg>Esqueci minha senha</button>
         </div>
         <div style={{ textAlign:"center", marginTop:16 }}>
           <p style={{ color:t.textMuted, fontSize:13 }}>
@@ -500,9 +516,9 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
           </p>
           {cadastroAberto && (
             <div style={{ display:"flex", gap:8, justifyContent:"center", flexWrap:"wrap", marginTop:10 }}>
-              <button style={{ ...s.linkBtn, padding:"6px 12px", border:`1px solid ${t.border}`, borderRadius:6, background:t.bgHeaderSolid }} onClick={() => setTela("cadastro-equipe")}>🎽 Equipe</button>
-              <button style={{ ...s.linkBtn, padding:"6px 12px", border:`1px solid ${t.border}`, borderRadius:6, background:t.bgHeaderSolid }} onClick={() => setTela("cadastro-organizador")}>🏟️ Organizador</button>
-              <button style={{ ...s.linkBtn, padding:"6px 12px", border:`1px solid ${t.border}`, borderRadius:6, background:t.bgHeaderSolid }} onClick={() => setTela("cadastro-atleta-login")}>🏃 Atleta</button>
+              <button style={{ ...s.linkBtn, padding:"6px 12px", border:`1px solid ${t.border}`, borderRadius:6, background:t.bgHeaderSolid }} onClick={() => setTela("cadastro-equipe")}>Equipe</button>
+              <button style={{ ...s.linkBtn, padding:"6px 12px", border:`1px solid ${t.border}`, borderRadius:6, background:t.bgHeaderSolid }} onClick={() => setTela("cadastro-organizador")}>Organizador</button>
+              <button style={{ ...s.linkBtn, padding:"6px 12px", border:`1px solid ${t.border}`, borderRadius:6, background:t.bgHeaderSolid }} onClick={() => setTela("cadastro-atleta-login")}>Atleta</button>
             </div>
           )}
         </div>

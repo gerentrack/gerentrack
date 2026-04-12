@@ -183,7 +183,7 @@ function RegulamentoViewer({ eventoAtual, tema: _t }) {
 
   if (!url || status === "error") return (
     <div style={{ textAlign:"center", padding:60, color:_t.textDimmed }}>
-      <div style={{ fontSize:40, marginBottom:12 }}>📄</div>
+      <div style={{ fontSize:16, marginBottom:12, color:_t.textDimmed }}>Documento</div>
       <div style={{ fontSize:16, fontWeight:600, marginBottom:6 }}>Regulamento indisponível</div>
       <div style={{ fontSize:13 }}>O arquivo foi removido ou não está acessível.</div>
     </div>
@@ -193,11 +193,11 @@ function RegulamentoViewer({ eventoAtual, tema: _t }) {
     <div style={{ display:"flex", flexDirection:"column", height:"calc(100vh - 80px)", padding:"16px 24px 0" }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
         <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:20, fontWeight:700, color:_t.textPrimary }}>
-          📄 {eventoAtual.regulamentoNome || "Regulamento"}
+          {eventoAtual.regulamentoNome || "Regulamento"}
         </div>
         <a href={url} download={eventoAtual.regulamentoNome || "regulamento.pdf"}
           style={{ background:`linear-gradient(135deg, ${_t.accent}, ${_t.accentDark})`, color:"#fff", border:"none", padding:"8px 20px", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:700, fontFamily:"'Barlow Condensed', sans-serif", letterSpacing:1, textDecoration:"none" }}>
-          ⬇ Download
+          Download
         </a>
       </div>
       <div style={{ flex:1, position:"relative", borderRadius:10, overflow:"hidden", border:`1px solid ${_t.border}` }}>
@@ -600,7 +600,7 @@ function App() {
   };
   // ── Exclusão de Usuários (Admin) ──────────────────────────────────────────
   const excluirOrganizador = async (id) => {
-    if (!await confirmar("⚠️ Excluir este organizador?\n\nEsta ação é IRREVERSÍVEL!")) return;
+    if (!await confirmar("Excluir este organizador?\n\nEsta ação é IRREVERSÍVEL!")) return;
     setOrganizadores((p) => p.filter(o => o.id !== id));
   };
   
@@ -613,8 +613,8 @@ function App() {
     const nomeEquipe = equipe?.nome || "esta equipe";
     const atletasVinculados = atletas.filter(a => a.clube === equipe?.nome || a.equipeId === id);
     const nAtletas = atletasVinculados.length;
-    const msg = `⚠️ Excluir equipe "${nomeEquipe}"?\n\n` +
-      (nAtletas > 0 ? `⚠️ ${nAtletas} atleta(s) vinculado(s) também serão excluídos!\n\n` : "") +
+    const msg = `Excluir equipe "${nomeEquipe}"?\n\n` +
+      (nAtletas > 0 ? `${nAtletas} atleta(s) vinculado(s) também serão excluídos!\n\n` : "") +
       `Esta ação é IRREVERSÍVEL!`;
     if (!await confirmar(msg)) return;
     excluirEquipePorId(id);
@@ -630,7 +630,7 @@ function App() {
   
   
   const excluirAtletaUsuario = async (id) => {
-    if (!await confirmar("⚠️ Excluir este atleta usuário?\n\nEsta ação é IRREVERSÍVEL!")) return;
+    if (!await confirmar("Excluir este atleta usuário?\n\nEsta ação é IRREVERSÍVEL!")) return;
     setAtletasUsuarios((p) => p.filter(a => a.id !== id));
   };
   
@@ -640,9 +640,9 @@ function App() {
     const atletasVinculados = atletas.filter(a => a.clube === equipe?.nome || a.equipeId === id);
     const nAtletas = atletasVinculados.length;
     
-    const msg = `⚠️ ATENÇÃO: Esta ação é IRREVERSÍVEL!\n\n` +
+    const msg = `ATENÇÃO: Esta ação é IRREVERSÍVEL!\n\n` +
       `Excluir equipe "${nomeEquipe}"?\n\n` +
-      (nAtletas > 0 ? `⚠️ ${nAtletas} atleta(s) vinculado(s) também serão excluídos!\n\n` : "") +
+      (nAtletas > 0 ? `${nAtletas} atleta(s) vinculado(s) também serão excluídos!\n\n` : "") +
       `Deseja realmente continuar?`;
     
     if (!await confirmar(msg)) return;
@@ -835,7 +835,7 @@ function App() {
     const func = funcionarios.find(f => f.id === id);
     const nomeFuncionario = func?.nome || "este funcionário";
     
-    if (!await confirmar(`⚠️ Remover "${nomeFuncionario}"?\n\nEsta ação é IRREVERSÍVEL e o funcionário perderá acesso ao sistema.`)) return;
+    if (!await confirmar(`Remover "${nomeFuncionario}"?\n\nEsta ação é IRREVERSÍVEL e o funcionário perderá acesso ao sistema.`)) return;
     
     setFuncionarios((p) => p.filter(x => x.id !== id));
   };
@@ -845,7 +845,7 @@ function App() {
   const atualizarTreinador   = (t) => setTreinadores((p) => p.map(x => x.id === t.id ? t : x));
   const removerTreinador     = async (id) => {
     const trein = treinadores.find(t => t.id === id);
-    if (!await confirmar(`⚠️ Remover "${trein?.nome || "este treinador"}"?\n\nEsta ação é IRREVERSÍVEL.`)) return;
+    if (!await confirmar(`Remover "${trein?.nome || "este treinador"}"?\n\nEsta ação é IRREVERSÍVEL.`)) return;
     setTreinadores((p) => p.filter(x => x.id !== id));
   };
   const registrarAcao = (usuarioId, nomeUsuario, acao, detalhe = "", organizadorId = null, extra = {}) =>
@@ -1091,7 +1091,7 @@ function App() {
     const atleta = atletas.find(a => a.id === atletaId);
     const nomeAtleta = atleta?.nome || "este atleta";
     
-    if (!await confirmar(`⚠️ ATENÇÃO: Esta ação é IRREVERSÍVEL!\n\nExcluir "${nomeAtleta}"?\n\nO cadastro será removido permanentemente.\nInscrições e resultados serão mantidos como snapshots.`)) return;
+    if (!await confirmar(`ATENÇÃO: Esta ação é IRREVERSÍVEL!\n\nExcluir "${nomeAtleta}"?\n\nO cadastro será removido permanentemente.\nInscrições e resultados serão mantidos como snapshots.`)) return;
     
     _excluirAtletaInterno(atletaId);
   };
@@ -1297,21 +1297,6 @@ function App() {
     importarNumeracao,
   } = useNumeracaoPeito();
 
-  // ── Guard: perfil deletado no Firestore mas ainda no localStorage ────────
-  useEffect(() => {
-    if (!usuarioLogado || !firebaseAuthed) return;
-    const tipo = usuarioLogado.tipo;
-    if (tipo === "admin") return;
-    const listas = { organizador: organizadores, equipe: equipes, funcionario: funcionarios, treinador: treinadores, atleta: atletasUsuarios };
-    const lista = listas[tipo];
-    if (!lista || lista.length === 0) return;
-    if (!lista.some(u => u.id === usuarioLogado.id)) {
-      console.warn(`[App] Perfil ${tipo} id=${usuarioLogado.id} não encontrado — logout automático`);
-      setUsuarioLogado(null);
-      setPerfisDisponiveis([]);
-      setTela("login");
-    }
-  }, [usuarioLogado, firebaseAuthed, organizadores, equipes, funcionarios, treinadores, atletasUsuarios]);
 
   const atletasRef_app = React.useRef(atletas);
   React.useEffect(() => { atletasRef_app.current = atletas; }, [atletas]);
@@ -1400,7 +1385,7 @@ function App() {
       const provaNome = provaInfo?.nome || provaId;
       const catInfo = CATEGORIAS.find(c => c.id === catId);
       const catNome = catInfo?.nome || catId;
-      const msg = `✅ Prova concluída: ${provaNome} — ${catNome} ${sexo === "M" ? "Masc" : "Fem"} — ${eventoAtual.nome}. Medalhas disponíveis para entrega.`;
+      const msg = `Prova concluída: ${provaNome} — ${catNome} ${sexo === "M" ? "Masc" : "Fem"} — ${eventoAtual.nome}. Medalhas disponíveis para entrega.`;
       const orgEvento = (organizadores || []).find(o => o.id === eventoAtual.organizadorId);
       if (orgEvento) adicionarNotificacao(orgEvento.id, "medals_ready", msg);
       (funcionarios || []).forEach(f => {
@@ -1412,7 +1397,7 @@ function App() {
   }, [resultados, eventoAtual, inscricoes, atletas, organizadores, funcionarios]);
 
   const limparTodosDados = async () => {
-    if (!await confirmar("⚠️ ATENÇÃO: Esta ação é IRREVERSÍVEL e EXTREMAMENTE DESTRUTIVA!\n\nVocê está prestes a APAGAR TODOS OS DADOS do sistema:\n\n• Todas as competições\n• Todos os atletas\n• Todas as equipes\n• Todos os organizadores\n• Todas as inscrições\n• Todos os resultados\n• Todos os recordes\n• Todas as pendências de recorde\n• Todo o histórico\n\n⚠️ AS CONTAS DE LOGIN (Firebase Auth) NÃO SERÃO APAGADAS.\nOs usuários ainda conseguirão fazer login, mas sem perfil no sistema.\nPara apagar as contas de login, acesse o Console do Firebase manualmente.\n\nEsta ação NÃO PODE SER DESFEITA.\n\nDeseja realmente continuar?")) return;
+    if (!await confirmar("ATENÇÃO: Esta ação é IRREVERSÍVEL e EXTREMAMENTE DESTRUTIVA!\n\nVocê está prestes a APAGAR TODOS OS DADOS do sistema:\n\n• Todas as competições\n• Todos os atletas\n• Todas as equipes\n• Todos os organizadores\n• Todas as inscrições\n• Todos os resultados\n• Todos os recordes\n• Todas as pendências de recorde\n• Todo o histórico\n\nAS CONTAS DE LOGIN (Firebase Auth) NÃO SERÃO APAGADAS.\nOs usuários ainda conseguirão fazer login, mas sem perfil no sistema.\nPara apagar as contas de login, acesse o Console do Firebase manualmente.\n\nEsta ação NÃO PODE SER DESFEITA.\n\nDeseja realmente continuar?")) return;
     setOrganizadores([]);
     setAtletasUsuarios([]);
     setSolicitacoesRecuperacao([]);
@@ -1462,7 +1447,7 @@ function App() {
     a.click();
     URL.revokeObjectURL(url);
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Exportou backup", `${eventos.length} eventos, ${atletas.length} atletas, ${recordes.length} tipos recorde`, null, { modulo: "sistema" });
-    alert("✅ Backup exportado com sucesso!\n\n⚠️ ATENÇÃO: O backup NÃO inclui as contas de login (Firebase Auth).\nAs senhas e e-mails de acesso dos usuários ficam no Firebase Authentication e não podem ser exportados pelo sistema.\nSe necessário, exporte-os manualmente pelo Console do Firebase.");
+    alert("Backup exportado com sucesso!\n\nATENÇÃO: O backup NÃO inclui as contas de login (Firebase Auth).\nAs senhas e e-mails de acesso dos usuários ficam no Firebase Authentication e não podem ser exportados pelo sistema.\nSe necessário, exporte-os manualmente pelo Console do Firebase.");
   };
 
   const importarDados = async (arquivo) => {
@@ -1512,10 +1497,10 @@ function App() {
           setAdminConfig(dados.adminConfig);
         }
         setEventoAtualId(null);
-        alert("✅ Backup importado com sucesso!");
+        alert("Backup importado com sucesso!");
         registrarAcao(usuarioLogado?.id || "system", usuarioLogado?.nome || "Sistema", "Importou backup", `v${dados.versao} de ${new Date(dados.exportadoEm).toLocaleString("pt-BR")}`, null, { modulo: "sistema" });
       } catch (err) {
-        alert("❌ Erro ao importar: " + err.message);
+        alert("Erro ao importar: " + err.message);
       }
     };
     reader.readAsText(arquivo);
@@ -1573,7 +1558,7 @@ function App() {
     const nomeEvento = evento?.nome || "esta competição";
     const nInscs = inscricoes.filter(i => i.eventoId === id).length;
 
-    const msg = `⚠️ ATENÇÃO: Esta ação é IRREVERSÍVEL!\n\n` +
+    const msg = `ATENÇÃO: Esta ação é IRREVERSÍVEL!\n\n` +
       `Você está prestes a excluir "${nomeEvento}".\n\n` +
       `Isso também excluirá:\n` +
       `• ${nInscs} inscrição(ões)\n` +
@@ -1869,7 +1854,7 @@ function App() {
       {sessaoAvisoContagem !== null && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ background: "#181B25", border: "1px solid #1976D244", borderRadius: 16, padding: "36px 40px", maxWidth: 380, width: "90%", textAlign: "center" }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>⏱️</div>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 28, marginBottom: 12, color: "#ffaa44" }}>AVISO</div>
             <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 20, color: "#fff", marginBottom: 8, letterSpacing: 1 }}>
               SESSÃO PRESTES A EXPIRAR
             </div>
@@ -1883,7 +1868,7 @@ function App() {
               <button
                 onClick={renovarSessao}
                 style={{ background: "linear-gradient(135deg, #1976D2, #1565C0)", color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 }}>
-                ✅ Continuar conectado
+                Continuar conectado
               </button>
               <button
                 onClick={logout}
@@ -1899,7 +1884,7 @@ function App() {
       {reloginNecessario && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)", zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ background: "#181B25", border: "1px solid #1976D244", borderRadius: 16, padding: "36px 40px", maxWidth: 380, width: "90%", textAlign: "center" }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>🔒</div>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 28, marginBottom: 12, color: "#ff6b6b" }}>BLOQUEADO</div>
             <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 20, color: "#fff", marginBottom: 8, letterSpacing: 1 }}>
               SESSÃO EXPIRADA
             </div>
@@ -1943,14 +1928,14 @@ function App() {
       {/* Banner de verificação de e-mail */}
       {usuarioLogado && firebaseAuthed && auth.currentUser && !auth.currentUser.emailVerified && (
         <div style={{ background:"#fff3e0", borderBottom:"1px solid #f0c040", padding:"8px 20px", display:"flex", alignItems:"center", justifyContent:"center", gap:10, flexWrap:"wrap", fontSize:13, color:"#8a6d00" }}>
-          <span>📧 Seu e-mail ainda não foi verificado.</span>
+          <span>Seu e-mail ainda não foi verificado.</span>
           <button onClick={async () => {
             try {
               await sendEmailVerification(auth.currentUser);
-              alert("✅ E-mail de verificação enviado! Verifique sua caixa de entrada e spam.");
+              alert("E-mail de verificação enviado! Verifique sua caixa de entrada e spam.");
             } catch (err) {
-              if (err.code === "auth/too-many-requests") alert("⚠️ Aguarde alguns minutos antes de solicitar novamente.");
-              else alert("❌ Erro ao enviar: " + err.message);
+              if (err.code === "auth/too-many-requests") alert("Aguarde alguns minutos antes de solicitar novamente.");
+              else alert("Erro ao enviar: " + err.message);
             }
           }} style={{ background:"#f0a000", color:"#fff", border:"none", borderRadius:6, padding:"4px 14px", fontSize:12, fontWeight:700, cursor:"pointer" }}>
             Enviar verificação
@@ -1986,7 +1971,7 @@ function App() {
         {/* Bloqueio global: telas de edição bloqueadas se competição finalizada */}
         {eventoAtual?.competicaoFinalizada && ["inscricao-avulsa","digitar-resultados","inscricao-revezamento","config-pontuacao-equipes","numeracao-peito","secretaria"].includes(tela) ? (
           <div style={styles.page}><div style={styles.emptyState}>
-            <span style={{ fontSize:48 }}>🔒</span>
+            <span style={{ fontSize:18, fontWeight:700, color:"#ff6b6b" }}>BLOQUEADO</span>
             <p style={{ color:"#ff6b6b", fontWeight:700, fontSize:18 }}>Competição Finalizada</p>
             <p style={{ color:"#888", fontSize:13, maxWidth:400, textAlign:"center", lineHeight:1.6 }}>
               Os dados desta competição estão bloqueados para edição.<br/>

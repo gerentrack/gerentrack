@@ -182,7 +182,7 @@ function InscricaoProvaRow({ insc, prova, atleta, provasDisp, inscAberta, atuali
           </span>
           {insc.inscritoPorNome && (
             <span style={{ fontSize:10, color: insc.inscritoPorTipo === "atleta" ? t.success : t.accent }}>
-              {insc.inscritoPorTipo === "atleta" ? "🏃" : insc.inscritoPorTipo === "treinador" ? "👨‍🏫" : "🎽"} {insc.inscritoPorNome}
+              {insc.inscritoPorTipo === "atleta" ? "Atleta" : insc.inscritoPorTipo === "treinador" ? "Treinador" : "Equipe"}: {insc.inscritoPorNome}
             </span>
           )}
           {inscAberta && (
@@ -190,14 +190,14 @@ function InscricaoProvaRow({ insc, prova, atleta, provasDisp, inscAberta, atuali
               <button onClick={() => setEditando(true)}
                 style={{ ...s.btnGhost, fontSize:10, padding:"2px 8px" }}
                 title="Trocar prova">
-                ✏️
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:"middle"}}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               </button>
               <button onClick={async () => { 
                 if (await confirmar(`Excluir inscrição de ${atleta?.nome } em ${prova?.nome}?`)) excluirInscricao(insc.id, { confirmado: true });
               }}
                 style={{ ...s.btnGhost, fontSize:10, padding:"2px 8px", color: t.danger, borderColor:"#3a1a1a" }}
                 title="Excluir inscrição">
-                🗑
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:"middle"}}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
               </button>
             </div>
           )}
@@ -220,7 +220,7 @@ function TelaPainel() {
   
   if (usuarioLogado?.tipo !== "equipe" && !isTreinador) return (
     <div style={s.page}><div style={s.emptyState}>
-      <span style={{ fontSize: 48 }}>🚫</span>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
       <p style={{ color: t.danger, fontWeight: 700 }}>Acesso restrito a equipes</p>
       <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
     </div></div>
@@ -251,14 +251,14 @@ function TelaPainel() {
     <div style={s.page}>
       <div style={s.painelHeader}>
         <div>
-          <h1 style={s.pageTitle}>🎽 Painel da Equipe</h1>
+          <h1 style={s.pageTitle}>Painel da Equipe</h1>
           <p style={{ color: t.textTertiary, margin: "4px 0 0" }}>
             {usuarioLogado?.nome}{isTreinador ? ` (Treinador) — ${usuarioLogado?.equipeNome}` : (usuarioLogado?.entidade ? ` — ${usuarioLogado.entidade}` : "")}
           </p>
         </div>
         <div style={s.painelBtns}>
-          <button style={s.btnPrimary} onClick={() => setTela("cadastrar-atleta")}>🏃 Atletas</button>
-          <button style={s.btnSecondary} onClick={() => setTela("treinadores")}>👨‍🏫 Treinadores</button>
+          <button style={s.btnPrimary} onClick={() => setTela("cadastrar-atleta")}>Atletas</button>
+          <button style={s.btnSecondary} onClick={() => setTela("treinadores")}>Treinadores</button>
         </div>
       </div>
 
@@ -281,8 +281,8 @@ function TelaPainel() {
         if (eventosComInsc.length === 0) return null;
         return (
           <div style={{ marginBottom: 24 }}>
-            <h2 style={s.sectionTitle}>📋 Inscrições da Equipe</h2>
-            <input type="text" value={buscaInscEq} onChange={e => setBuscaInscEq(e.target.value)} placeholder="🔍 Buscar competição ou atleta..." style={{ ...s.input, padding:"6px 12px", fontSize:12, marginBottom:8, maxWidth:350 }} />
+            <h2 style={s.sectionTitle}>Inscrições da Equipe</h2>
+            <input type="text" value={buscaInscEq} onChange={e => setBuscaInscEq(e.target.value)} placeholder="Buscar competição ou atleta..." style={{ ...s.input, padding:"6px 12px", fontSize:12, marginBottom:8, maxWidth:350 }} />
             <div style={{ maxHeight:400, overflowY:"auto" }}>
             {eventosComInsc.filter(ev => {
               if (!buscaInscEq) return true;
@@ -312,7 +312,7 @@ function TelaPainel() {
                       {inscsEvento.length} inscrição(ões) · {atletaIds.length} atleta(s)
                     </span>
                     <span style={{ color: t.textDimmed, fontSize:11, fontWeight:400 }}>
-                      📅 {new Date(ev.data + "T12:00:00").toLocaleDateString("pt-BR")}
+                      {new Date(ev.data + "T12:00:00").toLocaleDateString("pt-BR")}
                     </span>
                   </summary>
                   <div style={{ padding:"0 18px 14px" }}>
@@ -373,7 +373,7 @@ function TelaPainel() {
         <div style={{ background:`${t.accent}10`, border:`1px solid ${t.accent}44`, borderRadius:10,
           padding:"16px 20px", marginBottom:24 }}>
           <h2 style={{ ...s.sectionTitle, color:t.accent, marginTop:0 }}>
-            🔗 Solicitações de Vínculo Pendentes
+            Solicitações de Vínculo Pendentes
             <span style={{ background: t.accent, color: t.textPrimary, borderRadius:12, fontSize:12,
               fontWeight:800, padding:"2px 9px", marginLeft:10 }}>{vincPendentes.length}</span>
           </h2>
@@ -416,7 +416,7 @@ function TelaPainel() {
             padding:"14px 18px", marginBottom:24 }}>
             <summary style={{ cursor:"pointer", color: t.textDimmed, fontSize:13, fontWeight:600,
               display:"flex", alignItems:"center", gap:8 }}>
-              📂 Histórico de Vínculos
+              Histórico de Vínculos
               <span style={{ background:t.bgCard, color: t.textDimmed, borderRadius:12, fontSize:11,
                 fontWeight:700, padding:"1px 8px" }}>{historico.length}</span>
             </summary>
@@ -433,7 +433,7 @@ function TelaPainel() {
                       <tr key={sol.id} style={s.tr}>
                         <Td><strong style={{ color: t.textPrimary }}>{sol.atletaNome}</strong></Td>
                         <Td style={{ fontSize:11, color: t.textMuted }}>
-                          {foiTransf ? "🔄 Transferência saiu" : sol.aprovadorTipo === "equipe_atual" ? "🔄 Transferência entrou" : "🔗 Vínculo"}
+                          {foiTransf ? "Transferência saiu" : sol.aprovadorTipo === "equipe_atual" ? "Transferência entrou" : "Vínculo"}
                         </Td>
                         <Td>
                           <span style={{ background: statusColor+"22", color: statusColor,
@@ -464,7 +464,7 @@ function TelaPainel() {
         <div style={{ background:`${t.warning}10`, border:`1px solid ${t.warning}44`, borderRadius:10,
           padding:"16px 20px", marginBottom:24 }}>
           <h2 style={{ ...s.sectionTitle, color:t.warning, marginTop:0 }}>
-            🔄 Solicitações de Transferência
+            Solicitações de Transferência
             <span style={{ background: t.accent, color: t.textPrimary, borderRadius:12, fontSize:12,
               fontWeight:800, padding:"2px 9px", marginLeft:10 }}>{transferenciasPend.length}</span>
           </h2>

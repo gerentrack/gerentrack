@@ -164,7 +164,7 @@ function TelaFuncionarios() {
   const tipoUsr = usuarioLogado?.tipo;
   if (tipoUsr !== "organizador" && tipoUsr !== "admin") return (
     <div style={s.page}><div style={s.emptyState}>
-      <span style={{ fontSize: 48 }}>🚫</span>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
       <p style={{ color: t.danger, fontWeight: 700 }}>Acesso não autorizado</p>
       <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
     </div></div>
@@ -256,7 +256,7 @@ function TelaFuncionarios() {
       registrarAcao(usuarioLogado.id, usuarioLogado.nome,
         "Editou funcionário", `${form.nome} — permissões: ${form.permissoes.join(", ") || "nenhuma"}`,
         orgId);
-      setFeedback("✅ Funcionário atualizado!");
+      setFeedback("Funcionário atualizado!");
     } else {
       const novo = docExistente
         ? {
@@ -292,7 +292,7 @@ function TelaFuncionarios() {
           await firebaseSignOut(secondaryAuth).catch(() => {});
         } catch (err) {
           if (err.code !== "auth/email-already-in-use") {
-            setFeedback(`❌ Erro ao criar conta: ${err.message}`);
+            setFeedback(`Erro ao criar conta: ${err.message}`);
             setTimeout(() => setFeedback(""), 5000);
             return;
           }
@@ -303,8 +303,8 @@ function TelaFuncionarios() {
         "Adicionou funcionário", `${novo.nome} (${novo.email}) — cargo: ${novo.cargo||"—"}`,
         orgId);
       setFeedback(docExistente
-        ? "✅ Funcionário vinculado! Credenciais anteriores mantidas."
-        : "✅ Funcionário cadastrado! Senha temporária definida.");
+        ? "Funcionário vinculado! Credenciais anteriores mantidas."
+        : "Funcionário cadastrado! Senha temporária definida.");
     }
     setTimeout(() => setFeedback(""), 3000);
     setAba("lista");
@@ -343,7 +343,7 @@ function TelaFuncionarios() {
     <div style={s.page}>
       <div style={s.painelHeader}>
         <div>
-          <h1 style={s.pageTitle}>👥 Funcionários</h1>
+          <h1 style={s.pageTitle}>Funcionários</h1>
           <p style={{ color: t.textTertiary, margin:"4px 0 0" }}>
             Gerencie os acessos da sua equipe
           </p>
@@ -356,9 +356,9 @@ function TelaFuncionarios() {
 
       {/* Abas */}
       <div style={{ display:"flex", gap:8, marginBottom:24 }}>
-        <button style={tabStyle("lista")}    onClick={() => setAba("lista")}>📋 Funcionários</button>
-        <button style={tabStyle("historico")} onClick={() => setAba("historico")}>📜 Histórico</button>
-        {aba === "novo" && <button style={tabStyle("novo")}>{editando ? "✏️ Editar" : "➕ Novo"}</button>}
+        <button style={tabStyle("lista")}    onClick={() => setAba("lista")}>Funcionários</button>
+        <button style={tabStyle("historico")} onClick={() => setAba("historico")}>Histórico</button>
+        {aba === "novo" && <button style={tabStyle("novo")}>{editando ? "Editar" : "Novo"}</button>}
       </div>
 
       {feedback && (
@@ -372,13 +372,13 @@ function TelaFuncionarios() {
       {aba === "lista" && (
         meusFuncionarios.length === 0 ? (
           <div style={s.emptyState}>
-            <span style={{ fontSize:48 }}>👥</span>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
             <p>Nenhum funcionário cadastrado ainda.</p>
             {podeGerenciar && <button style={s.btnPrimary} onClick={abrirNovo}>+ Adicionar Primeiro</button>}
           </div>
         ) : (
           <div style={s.tableWrap}>
-            <input type="text" value={buscaFunc} onChange={e => setBuscaFunc(e.target.value)} placeholder="🔍 Buscar funcionário..." style={{ ...s.input, padding:"6px 12px", fontSize:12, marginBottom:8, maxWidth:350 }} />
+            <input type="text" value={buscaFunc} onChange={e => setBuscaFunc(e.target.value)} placeholder="Buscar funcionário..." style={{ ...s.input, padding:"6px 12px", fontSize:12, marginBottom:8, maxWidth:350 }} />
             <div style={{ maxHeight:320, overflowY:"auto" }}>
             <table style={s.table}>
               <thead><tr>
@@ -418,7 +418,7 @@ function TelaFuncionarios() {
                         {f.ativo===false ? "Inativo" : "Ativo"}
                       </span>
                       {f.senhaTemporaria && (
-                        <span style={{ fontSize:10, color: t.accent, display:"block", marginTop:2 }}>⚠️ Senha temp.</span>
+                        <span style={{ fontSize:10, color: t.accent, display:"block", marginTop:2 }}>Senha temp.</span>
                       )}
                     </Td>
                     <Td style={{ fontSize:11, color: t.textDimmed }}>
@@ -428,7 +428,7 @@ function TelaFuncionarios() {
                       <Td>
                         <div style={{ display:"flex", gap:5 }}>
                           <button onClick={() => abrirEditar(f)}
-                            style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px" }}>✏️</button>
+                            style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px" }}>Editar</button>
                           <button onClick={() => handleToggleAtivo(f)}
                             style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px",
                               color: f.ativo===false ? t.success : t.warning,
@@ -437,7 +437,7 @@ function TelaFuncionarios() {
                           </button>
                           <button onClick={() => handleRemover(f)}
                             style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px",
-                              color: t.danger, borderColor:`${t.danger}66` }}>🗑️</button>
+                              color: t.danger, borderColor:`${t.danger}66` }}>✕</button>
                         </div>
                       </Td>
                     )}
@@ -462,14 +462,14 @@ function TelaFuncionarios() {
 
               {docModo === "vincular" && docExistente && (
                 <div style={{ background: `${t.success}10`, border: `2px solid ${t.success}66`, borderRadius: 10, padding: 14, marginTop: 8 }}>
-                  <div style={{ color: t.success, fontSize: 13, fontWeight: 700, marginBottom: 6 }}>✅ Perfil encontrado — credenciais mantidas</div>
+                  <div style={{ color: t.success, fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Perfil encontrado — credenciais mantidas</div>
                   <div style={{ color: t.textTertiary, fontSize: 12, marginBottom: 4 }}>
-                    👤 <strong style={{ color: t.textPrimary }}>{docExistente.nome}</strong>
-                    {docExistente.email && <span style={{ marginLeft: 12 }}>📧 {docExistente.email}</span>}
+                    <strong style={{ color: t.textPrimary }}>{docExistente.nome}</strong>
+                    {docExistente.email && <span style={{ marginLeft: 12 }}>{docExistente.email}</span>}
                   </div>
                   <div style={{ background: `${t.success}08`, border: `1px solid ${t.success}44`, borderRadius: 6,
                     padding: "6px 10px", fontSize: 11, color: t.success, lineHeight: 1.6 }}>
-                    ✅ Dados carregados automaticamente. <strong>Não é necessário informar senha.</strong><br/>
+                    Dados carregados automaticamente. <strong>Não é necessário informar senha.</strong><br/>
                     Preencha apenas o cargo e as permissões para concluir.
                   </div>
                 </div>
@@ -495,7 +495,7 @@ function TelaFuncionarios() {
                   onChange={e => setForm({...form, senha:e.target.value})} />
                 <button onClick={() => setSenhaVis(senhaVis==="form" ? null : "form")}
                   style={{ ...s.btnGhost, fontSize:12, padding:"6px 10px" }}>
-                  {senhaVis==="form" ? "🙈" : "👁️"}
+                  {senhaVis==="form" ? "Ocultar" : "Mostrar"}
                 </button>
               </div>
             </div>
@@ -505,7 +505,7 @@ function TelaFuncionarios() {
           {/* Permissões por grupo */}
           <div style={{ marginTop:20 }}>
             <label style={{ ...s.label, fontSize:13, marginBottom:10, display:"block" }}>
-              🔐 Permissões de Acesso
+              Permissões de Acesso
             </label>
             {grupos.map(grupo => (
               <div key={grupo} style={{ marginBottom:14 }}>
@@ -533,7 +533,7 @@ function TelaFuncionarios() {
 
           <div style={{ display:"flex", gap:10, marginTop:24 }}>
             <button style={s.btnPrimary} onClick={handleSalvar}>
-              {editando ? "💾 Salvar Alterações" : docModo === "vincular" ? "🔗 Vincular Funcionário" : "✅ Cadastrar Funcionário"}
+              {editando ? "Salvar Alterações" : docModo === "vincular" ? "Vincular Funcionário" : "Cadastrar Funcionário"}
             </button>
             <button style={s.btnGhost} onClick={async () => { setAba("lista"); setDocModo("novo"); setDocExistente(null); }}>Cancelar</button>
           </div>
@@ -545,15 +545,15 @@ function TelaFuncionarios() {
       {/* ── HISTÓRICO ─────────────────────────────────────────────── */}
       {aba === "historico" && (
         <>
-          <h2 style={s.sectionTitle}>📜 Histórico de Ações</h2>
+          <h2 style={s.sectionTitle}>Histórico de Ações</h2>
           {meuHistorico.length === 0 ? (
             <div style={s.emptyState}>
-              <span style={{ fontSize:40 }}>📜</span>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
               <p>Nenhuma ação registrada ainda.</p>
             </div>
           ) : (
             <div style={s.tableWrap}>
-              <input type="text" value={buscaHist} onChange={e => setBuscaHist(e.target.value)} placeholder="🔍 Buscar ação..." style={{ ...s.input, padding:"6px 12px", fontSize:12, marginBottom:8, maxWidth:350 }} />
+              <input type="text" value={buscaHist} onChange={e => setBuscaHist(e.target.value)} placeholder="Buscar ação..." style={{ ...s.input, padding:"6px 12px", fontSize:12, marginBottom:8, maxWidth:350 }} />
               <div style={{ maxHeight:320, overflowY:"auto" }}>
               <table style={s.table}>
                 <thead><tr>

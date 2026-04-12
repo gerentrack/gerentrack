@@ -175,7 +175,7 @@ function TelaInscricaoRevezamento() {
   if (!isPrivileg && isInscricaoEncerradaAgora(eventoAtual)) return (
     <div style={s.page}>
       <div style={s.emptyState}>
-        <span style={{ fontSize: 48 }}>🔒</span>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
         <p style={{ fontWeight: 700, color: t.textPrimary, fontSize: 18 }}>Inscrições Encerradas</p>
         <p style={{ color: t.textDimmed, fontSize: 14 }}>
           As inscrições para <strong>{eventoAtual.nome}</strong> estão encerradas.
@@ -188,7 +188,7 @@ function TelaInscricaoRevezamento() {
   if (!isPrivileg && usuarioLogado?.lgpdConsentimentoRevogado) return (
     <div style={s.page}>
       <div style={s.emptyState}>
-        <span style={{ fontSize: 48 }}>🔓</span>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 018-3"/></svg>
         <p style={{ fontWeight: 700, color: t.danger, fontSize: 18 }}>Consentimento Revogado</p>
         <p style={{ color: t.textMuted, fontSize: 14, maxWidth: 420, textAlign: "center", lineHeight: 1.6 }}>
           Você revogou seu consentimento LGPD. Novas inscrições não são permitidas.<br/>
@@ -269,12 +269,12 @@ function TelaInscricaoRevezamento() {
   };
 
   const handleSalvar = () => {
-    if (!revezForm.provaId || !revezForm.equipeId) { setFeedback("❌ Selecione prova e equipe."); return; }
+    if (!revezForm.provaId || !revezForm.equipeId) { setFeedback("Erro: Selecione prova e equipe."); return; }
     const idsValidos = revezForm.atletasIds.filter(Boolean);
-    if (idsValidos.length < nPernas) { setFeedback(`❌ Preencha todos os ${nPernas} atletas. Use a lista suspensa para selecionar.`); return; }
+    if (idsValidos.length < nPernas) { setFeedback(`Erro: Preencha todos os ${nPernas} atletas. Use a lista suspensa para selecionar.`); return; }
     // Validar que todos os IDs correspondem a atletas reais
     const idsInvalidos = idsValidos.filter(aid => !atletas.find(a => a.id === aid));
-    if (idsInvalidos.length > 0) { setFeedback("❌ Atleta(s) inválido(s). Remova e selecione novamente da lista."); return; }
+    if (idsInvalidos.length > 0) { setFeedback("Erro: Atleta(s) inválido(s). Remova e selecione novamente da lista."); return; }
     // ── Validar limite de revezamentos por atleta ──
     const limRev = eventoAtual.limiteProvasRevezamento || 0;
     if (limRev > 0) {
@@ -283,7 +283,7 @@ function TelaInscricaoRevezamento() {
         const countAtleta = revInscsEvento.filter(i => (i.atletasIds || []).includes(aid)).length;
         if (countAtleta + 1 > limRev) {
           const aName = atletas.find(a => a.id === aid)?.nome || aid;
-          setFeedback(`❌ Atleta "${aName}" já atingiu o limite de ${limRev} revezamento(s).`);
+          setFeedback(`Erro: Atleta "${aName}" já atingiu o limite de ${limRev} revezamento(s).`);
           return;
         }
       }
@@ -300,7 +300,7 @@ function TelaInscricaoRevezamento() {
         if (jaEm) {
           const aName = atletas.find(a => a.id === aid)?.nome || aid;
           const eqName = equipes.find(e => e.id === jaEm.equipeId)?.nome || jaEm.equipeId;
-          setFeedback(`❌ Atleta "${aName}" já está inscrito em outra equipe de revezamento (${eqName}) nesta prova.`);
+          setFeedback(`Erro: Atleta "${aName}" já está inscrito em outra equipe de revezamento (${eqName}) nesta prova.`);
           return;
         }
       }
@@ -314,8 +314,8 @@ function TelaInscricaoRevezamento() {
       data: new Date().toISOString(),
       inscritoPorId: usuarioLogado?.id, inscritoPorNome: usuarioLogado?.nome || "—", inscritoPorTipo: usuarioLogado?.tipo,
     };
-    if (revezForm.editId) { atualizarInscricao(inscObj); setFeedback("✅ Revezamento atualizado!"); }
-    else { adicionarInscricao(inscObj); setFeedback("✅ Equipe inscrita com sucesso!"); }
+    if (revezForm.editId) { atualizarInscricao(inscObj); setFeedback("Revezamento atualizado!"); }
+    else { adicionarInscricao(inscObj); setFeedback("Equipe inscrita com sucesso!"); }
     if (registrarAcao) {
       const eq = equipes.find(e => e.id === revezForm.equipeId);
       registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, revezForm.editId ? "Editou inscrição revezamento" : "Inscreveu revezamento",
@@ -339,7 +339,7 @@ function TelaInscricaoRevezamento() {
       atletasIds: idsLimpos,
     });
     setRevezBusca(idsLimpos.map(() => ""));
-    if (nInvalidos > 0) setFeedback(`⚠️ ${nInvalidos} atleta(s) com ID inválido foram removidos. Selecione novamente da lista.`);
+    if (nInvalidos > 0) setFeedback(`${nInvalidos} atleta(s) com ID inválido foram removidos. Selecione novamente da lista.`);
     else setFeedback("");
   };
 
@@ -351,7 +351,7 @@ function TelaInscricaoRevezamento() {
     excluirInscricao(insc.id, { confirmado: true });
     if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, "Removeu inscrição revezamento",
       `${prv?.nome || insc.provaId} — ${nomeEq}`, usuarioLogado?.organizadorId || usuarioLogado?.id, { modulo: "revezamento" });
-    setFeedback("✅ Inscrição removida."); setTimeout(() => setFeedback(""), 3000);
+    setFeedback("Inscrição removida."); setTimeout(() => setFeedback(""), 3000);
   };
 
   // Filtrar inscrições exibidas (equipe/treinador vê só as suas)
@@ -361,7 +361,7 @@ function TelaInscricaoRevezamento() {
     <div style={s.page}>
       <div style={s.painelHeader}>
         <div>
-          <h1 style={s.pageTitle}>🏃‍♂️ Inscrição de Revezamento</h1>
+          <h1 style={s.pageTitle}>Inscrição de Revezamento</h1>
           <div style={{ color: t.textDimmed, fontSize: 13 }}>
             {eventoAtual.nome} — {provasRevez.length} prova(s) · {inscsVisiveis.length} equipe(s) inscrita(s)
           </div>
@@ -370,7 +370,7 @@ function TelaInscricaoRevezamento() {
       </div>
 
       {feedback && (
-        <div style={{ background: feedback.includes("❌") ? `${t.danger}15` : `${t.success}15`, border: `1px solid ${feedback.includes("❌") ? `${t.danger}66` : `${t.success}66`}`, borderRadius: 8, padding: "10px 16px", marginBottom: 16, color: feedback.includes("❌") ? t.danger : t.success, fontSize: 13 }}>
+        <div style={{ background: feedback.startsWith("Erro:") ? `${t.danger}15` : `${t.success}15`, border: `1px solid ${feedback.startsWith("Erro:") ? `${t.danger}66` : `${t.success}66`}`, borderRadius: 8, padding: "10px 16px", marginBottom: 16, color: feedback.startsWith("Erro:") ? t.danger : t.success, fontSize: 13 }}>
           {feedback}
         </div>
       )}
@@ -410,14 +410,14 @@ function TelaInscricaoRevezamento() {
                       <td style={{ ...s.td, fontWeight: 600, color: t.accent }}>{nomeEq}{siglaEq}</td>
                       <td style={{ ...s.td, fontSize: 11 }}>
                         {nomesStr ? <span style={{ color: t.textTertiary }}>{nomesStr}</span> : null}
-                        {temInvalidos && <span style={{ color: t.danger, fontWeight: 600 }}> ⚠ {nomes.filter(n => n === null).length} ID(s) inválido(s) — edite para corrigir</span>}
+                        {temInvalidos && <span style={{ color: t.danger, fontWeight: 600 }}> {nomes.filter(n => n === null).length} ID(s) inválido(s) — edite para corrigir</span>}
                         {!nomesStr && !temInvalidos && <span style={{ color: t.textDimmed }}>Sem atletas</span>}
                       </td>
                       <td style={{ ...s.td, whiteSpace: "nowrap" }}>
                         <button onClick={() => abrirEdicao(insc)}
-                          style={{ ...s.btnGhost, fontSize: 11, padding: "3px 8px", marginRight: 6 }} title="Editar">✏️ Editar</button>
+                          style={{ ...s.btnGhost, fontSize: 11, padding: "3px 8px", marginRight: 6 }} title="Editar">Editar</button>
                         <button onClick={() => handleExcluir(insc)}
-                          style={{ ...s.btnGhost, fontSize: 11, padding: "3px 8px", color: t.danger, borderColor: `${t.danger}44` }} title="Remover">🗑️</button>
+                          style={{ ...s.btnGhost, fontSize: 11, padding: "3px 8px", color: t.danger, borderColor: `${t.danger}44` }} title="Remover">✕</button>
                       </td>
                     </tr>
                   );
@@ -430,7 +430,7 @@ function TelaInscricaoRevezamento() {
 
       {inscsVisiveis.length === 0 && !revezForm && (
         <div style={{ ...s.emptyState, marginBottom: 24 }}>
-          <span style={{ fontSize: 48 }}>🏃‍♂️</span>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 4a1.5 1.5 0 103 0 1.5 1.5 0 00-3 0"/><path d="M7 21l3-4 2.5 1L16 13"/><path d="M16 13l-2-4-5 1-1 4"/><path d="M5 21l3-7"/></svg>
           <p style={{ fontWeight: 700, color: t.textPrimary, fontSize: 16 }}>Nenhuma equipe inscrita em revezamentos</p>
           <p style={{ color: t.textMuted, fontSize: 13 }}>Clique no botão abaixo para inscrever a primeira equipe.</p>
         </div>
@@ -448,7 +448,7 @@ function TelaInscricaoRevezamento() {
       {revezForm && (
         <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.accentBorder}`, borderRadius: 12, padding: 20 }}>
           <div style={{ color: t.accent, fontWeight: 700, fontSize: 17, marginBottom: 16, fontFamily: "'Barlow Condensed', sans-serif" }}>
-            {revezForm.editId ? "✏️ Editar Inscrição" : "➕ Nova Inscrição de Revezamento"}
+            {revezForm.editId ? "Editar Inscrição" : "Nova Inscrição de Revezamento"}
           </div>
 
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 18 }}>
@@ -490,7 +490,7 @@ function TelaInscricaoRevezamento() {
           {revezForm.equipeId && revezForm.provaId && (
             <div style={{ marginBottom: 18 }}>
               <div style={{ fontSize: 13, color: t.accent, fontWeight: 700, marginBottom: 10 }}>
-                🏃 Selecione {nPernas} Atletas {isMisto ? "(Misto)" : revezForm.sexo === "M" ? "(Masculino)" : "(Feminino)"}
+                Selecione {nPernas} Atletas {isMisto ? "(Misto)" : revezForm.sexo === "M" ? "(Masculino)" : "(Feminino)"}
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {Array.from({ length: nPernas }).map((_, idx) => {
@@ -533,7 +533,7 @@ function TelaInscricaoRevezamento() {
                                     onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}>
                                     <span style={{ color: t.textPrimary, fontSize: 13 }}>{a.nome}</span>
                                     <span style={{ color: a.sexo === "M" ? "#1a6ef5" : "#e54f9b", fontSize: 10, marginLeft: 8 }}>{a.sexo}</span>
-                                    {a._cruzado && <span style={{ color: t.accent, fontSize: 10, marginLeft: 6, background: t.accentBg, border: `1px solid ${t.accentBorder}`, borderRadius: 4, padding: "0 5px" }}>🤝 cruzado</span>}
+                                    {a._cruzado && <span style={{ color: t.accent, fontSize: 10, marginLeft: 6, background: t.accentBg, border: `1px solid ${t.accentBorder}`, borderRadius: 4, padding: "0 5px" }}>cruzado</span>}
                                     {a.cbat && <span style={{ color: t.textDimmed, fontSize: 10, marginLeft: 8 }}>CBAt: {a.cbat}</span>}
                                     {numPeito[a.id] && <span style={{ color: t.textMuted, fontSize: 10, marginLeft: 8 }}>Nº {numPeito[a.id]}</span>}
                                     {jaEscolhido && <span style={{ color: t.accent, fontSize: 10, marginLeft: 8 }}>(já selecionado)</span>}
@@ -551,7 +551,7 @@ function TelaInscricaoRevezamento() {
 
               {atletasPool.length === 0 && (
                 <div style={{ color: t.danger, fontSize: 12, marginTop: 8, padding: 10, background: t.bgCardAlt, borderRadius: 6, border: `1px solid ${t.danger}33` }}>
-                  <p style={{ margin: 0, fontWeight: 700 }}>⚠️ Nenhum atleta encontrado</p>
+                  <p style={{ margin: 0, fontWeight: 700 }}>Nenhum atleta encontrado</p>
                   <p style={{ margin: "4px 0 0", color: t.textMuted, fontSize: 11 }}>
                     Verifique se há atletas desta equipe inscritos <strong>individualmente</strong> em alguma prova {isMisto ? "" : `(${revezForm.sexo === "M" ? "masculino" : "feminino"})`} nesta competição.
                   </p>
@@ -576,7 +576,7 @@ function TelaInscricaoRevezamento() {
               )}
               {atletasPool.length > 0 && (
                 <p style={{ color: t.success, fontSize: 11, marginTop: 4 }}>
-                  ✅ {atletasPool.length} atleta(s) disponível(eis) — clique no campo para ver a lista
+                  {atletasPool.length} atleta(s) disponível(eis) — clique no campo para ver a lista
                 </p>
               )}
             </div>
@@ -584,7 +584,7 @@ function TelaInscricaoRevezamento() {
 
           <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
             <button style={s.btnPrimary} onClick={handleSalvar}>
-              💾 {revezForm.editId ? "Atualizar Inscrição" : "Inscrever Equipe"}
+              {revezForm.editId ? "Atualizar Inscrição" : "Inscrever Equipe"}
             </button>
             <button style={s.btnGhost} onClick={async () => { setRevezForm(null); setRevezBusca(["","","","",""]); setFeedback(""); }}>
               Cancelar
@@ -596,7 +596,7 @@ function TelaInscricaoRevezamento() {
       {/* ── INFO ── */}
       <div style={{ marginTop: 24, padding: 14, background: t.bgHeaderSolid, borderRadius: 8, border: `1px solid ${t.border}` }}>
         <div style={{ fontSize: 12, color: t.textMuted }}>
-          💡 <strong>Dica:</strong> Os atletas devem estar inscritos individualmente em alguma prova para aparecerem na busca.
+          <strong>Dica:</strong> Os atletas devem estar inscritos individualmente em alguma prova para aparecerem na busca.
           A composição da equipe pode ser alterada até o início da prova.
         </div>
       </div>

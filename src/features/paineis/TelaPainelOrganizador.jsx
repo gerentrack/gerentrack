@@ -162,7 +162,7 @@ function TelaPainelOrganizador() {
   const tipoOrg = usuarioLogado?.tipo;
   if (tipoOrg !== "organizador" && tipoOrg !== "funcionario" && tipoOrg !== "admin") return (
     <div style={s.page}><div style={s.emptyState}>
-      <span style={{ fontSize: 48 }}>🚫</span>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
       <p style={{ color: t.danger, fontWeight: 700 }}>Acesso não autorizado</p>
       <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
     </div></div>
@@ -187,8 +187,8 @@ function TelaPainelOrganizador() {
     responderVinculo(solId, aceitar);
     const nome = sol?.atletaNome || "Atleta";
     const msg = aceitar
-      ? `✅ Vínculo de ${nome} aceito com sucesso!`
-      : `❌ Vínculo de ${nome} recusado.`;
+      ? `Vínculo de ${nome} aceito com sucesso!`
+      : `Vínculo de ${nome} recusado.`;
     setVinculoFeedback(msg);
     setTimeout(() => setVinculoFeedback(null), 4000);
   };
@@ -446,9 +446,9 @@ function TelaPainelOrganizador() {
                 </div>
                 <div style={{ display:"flex", gap:8 }}>
                   <button style={{ background:`linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: t.textPrimary, border:"none", borderRadius:6, cursor:"pointer", fontSize:13, fontWeight:700, padding:"6px 16px" }}
-                    onClick={() => aprovarEquipe?.(sol.equipeId, meuOrgId)}>✅ Aprovar</button>
+                    onClick={() => aprovarEquipe?.(sol.equipeId, meuOrgId)}>Aprovar</button>
                   <button style={{ background:`${t.danger}18`, color: t.danger, border:`1px solid ${t.danger}66`, borderRadius:6, cursor:"pointer", fontSize:13, fontWeight:700, padding:"6px 16px" }}
-                    onClick={() => recusarEquipe?.(sol.equipeId)}>❌ Recusar</button>
+                    onClick={() => recusarEquipe?.(sol.equipeId)}>Recusar</button>
                 </div>
               </div>
             ))}
@@ -471,7 +471,7 @@ function TelaPainelOrganizador() {
         return (
           <div style={{ background:`${t.accent}10`, border:`1px solid ${t.accent}44`, borderRadius:12, padding:"16px 20px", marginBottom:16 }}>
             {vinculoFeedback && (
-              <div style={{ background: vinculoFeedback.startsWith("✅") ? `${t.success}15` : `${t.danger}15`, border: `1px solid ${vinculoFeedback.startsWith("✅") ? t.success : t.danger}44`, borderRadius: 8, padding: "10px 16px", marginBottom: 12, fontSize: 13, fontWeight: 700, color: vinculoFeedback.startsWith("✅") ? t.success : t.danger }}>
+              <div style={{ background: vinculoFeedback.includes("aceito") ? `${t.success}15` : `${t.danger}15`, border: `1px solid ${vinculoFeedback.includes("aceito") ? t.success : t.danger}44`, borderRadius: 8, padding: "10px 16px", marginBottom: 12, fontSize: 13, fontWeight: 700, color: vinculoFeedback.includes("aceito") ? t.success : t.danger }}>
                 {vinculoFeedback}
               </div>
             )}
@@ -569,11 +569,11 @@ function TelaPainelOrganizador() {
                       <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
                         {(temPerm("sumulas") || (ev.sumulaLiberada && usuarioLogado)) && (
                           <button style={{ ...s.btnSecondary, fontSize:12, padding:"4px 10px" }} onClick={()=>{ selecionarEvento(ev.id); setTela("sumulas"); }} title="Ver súmulas">
-                            📋
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:"middle"}}><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
                           </button>
                         )}
                         <button style={{ ...s.btnSecondary, fontSize:12, padding:"4px 10px" }} onClick={()=>{ selecionarEvento(ev.id); setTela("resultados"); }} title="Ver resultados">
-                          🏆
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:"middle"}}><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
                         </button>
                         <button style={{ ...s.btnGhost, fontSize:12, padding:"4px 10px" }} onClick={()=>{ selecionarEvento(ev.id); setTela("evento-detalhe"); }}>Abrir</button>
                         {temPerm("editar_competições") && (
@@ -596,7 +596,7 @@ function TelaPainelOrganizador() {
                             return (
                               <button style={{ ...s.btnGhost, fontSize:12, padding:"4px 10px", color: t.danger, borderColor:`${t.danger}66` }}
                                 onClick={()=>alterarStatusEvento(ev.id,{inscricoesEncerradas:true,inscricoesForceEncerradas:true,inscricoesForceAbertas:false})}>
-                                🔴 Encerrar
+                                Encerrar
                               </button>
                             );
                           } else {
@@ -605,7 +605,7 @@ function TelaPainelOrganizador() {
                             return (
                               <button style={{ ...s.btnGhost, fontSize:12, padding:"4px 10px", color: t.success, borderColor:`${t.success}66` }}
                                 onClick={()=>alterarStatusEvento(ev.id,{inscricoesEncerradas:false,inscricoesForceAbertas:true,inscricoesForceEncerradas:false,sumulaLiberada:false})}>
-                                🟢 Reabrir
+                                Reabrir
                               </button>
                             );
                           }
@@ -704,7 +704,7 @@ function TelaPainelOrganizador() {
                               )}
                               <button style={{ ...s.btnSecondary, fontSize:12, padding:"4px 10px" }}
                                 onClick={() => { selecionarEvento(ev.id); setTela("resultados"); }}>
-                                🏆 Resultados
+                                Resultados
                               </button>
                               <button style={{ ...s.btnGhost, fontSize:12, padding:"4px 10px" }}
                                 onClick={() => { selecionarEvento(ev.id); setTela("evento-detalhe"); }}>
@@ -808,7 +808,7 @@ function TelaPainelOrganizador() {
               <div style={{ fontSize: 12, fontWeight: 700, color: t.textMuted, marginBottom: 8 }}>ASSINATURA DO ORGANIZADOR (opcional)</div>
               <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
                 <label style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 6, padding: "6px 14px", cursor: "pointer", fontSize: 12, color: t.textTertiary }}>
-                  📁 Selecionar imagem
+                  Selecionar imagem
                   <input type="file" accept="image/*" style={{ display: "none" }} onChange={e => {
                     const file = e.target.files?.[0];
                     if (!file) return;

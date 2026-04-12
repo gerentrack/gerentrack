@@ -200,7 +200,7 @@ function TelaEditarAtleta() {
   if (modo === "lista") return (
     <div style={s.page}>
       <div style={s.painelHeader}>
-        <h1 style={s.pageTitle}>🏃 Atletas</h1>
+        <h1 style={s.pageTitle}>Atletas</h1>
         <button style={s.btnGhost} onClick={() => setTela(
           isAtleta ? "painel-atleta" : isEquipe ? "painel-equipe" : "admin")}>← Voltar</button>
       </div>
@@ -234,7 +234,7 @@ function TelaEditarAtleta() {
                   <Td>
                     <button onClick={() => abrirAtleta(a.id)}
                       style={{ ...s.btnGhost, fontSize:12, padding:"3px 12px" }}>
-                      {podeEditar ? "✏️ Ver/Editar" : "👁 Ver"}
+                      {podeEditar ? "Ver/Editar" : "Ver"}
                     </button>
                   </Td>
                 </tr>
@@ -260,24 +260,24 @@ function TelaEditarAtleta() {
       <div style={s.painelHeader}>
         <div>
           <h1 style={s.pageTitle}>
-            {modo === "editar" ? "✏️ Editar Atleta" : "👁 Dados do Atleta"}
+            {modo === "editar" ? "Editar Atleta" : "Dados do Atleta"}
           </h1>
           <p style={{ color: t.textTertiary, margin:"4px 0 0" }}>{atleta.nome}</p>
         </div>
         <div style={s.painelBtns}>
           {modo === "ver" && podeEditar && (
-            <button style={s.btnPrimary} onClick={() => setModo("editar")}>✏️ Editar</button>
+            <button style={s.btnPrimary} onClick={() => setModo("editar")}>Editar</button>
           )}
           {modo === "editar" && (
             <>
-              <button style={s.btnPrimary} onClick={handleSalvar}>💾 Salvar</button>
+              <button style={s.btnPrimary} onClick={handleSalvar}>Salvar</button>
               <button style={s.btnGhost}   onClick={() => { setForm({...atleta}); setModo("ver"); }}>Cancelar</button>
             </>
           )}
           {podeExcluir && modo === "ver" && !confirmExcluir && (
             <button onClick={() => setConfirmExcluir(true)}
               style={{ ...s.btnGhost, color: t.danger, borderColor:`${t.danger}66`, fontSize:13 }}>
-              🗑 Excluir
+              Excluir
             </button>
           )}
           {confirmExcluir && (
@@ -303,7 +303,7 @@ function TelaEditarAtleta() {
       {salvou && (
         <div style={{ background:`${t.success}10`, border:`1px solid ${t.success}44`, borderRadius:6,
           padding:"10px 16px", marginBottom:16, color:t.success, fontSize:13 }}>
-          ✅ Dados salvos com sucesso!
+          ✓ Dados salvos com sucesso!
         </div>
       )}
 

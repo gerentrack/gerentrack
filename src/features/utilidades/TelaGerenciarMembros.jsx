@@ -203,7 +203,7 @@ function TelaGerenciarMembros() {
   const handleRemover = async (equipeId) => {
     const membro = equipe.membros?.find(m => m.id === equipeId);
     
-    if (!confirm(`⚠️ Excluir membro "${membro.nome}"?\n\nEsta ação é IRREVERSÍVEL!`)) {
+    if (!confirm(`Excluir membro "${membro.nome}"?\n\nEsta ação é IRREVERSÍVEL!`)) {
       return;
     }
 
@@ -230,7 +230,7 @@ function TelaGerenciarMembros() {
     <div style={s.page}>
       <div style={s.painelHeader}>
         <div>
-          <h1 style={s.pageTitle}>👥 Gerenciar Membros</h1>
+          <h1 style={s.pageTitle}>Gerenciar Membros</h1>
           <p style={{ color: t.textDimmed, fontSize: 14 }}>
             Adicione e gerencie membros da equipe {equipe.nome}
           </p>
@@ -261,7 +261,7 @@ function TelaGerenciarMembros() {
           maxWidth: 800
         }}>
           <h3 style={{ color: t.accent, marginBottom: 24 }}>
-            {modo === 'novo' ? '➕ Novo Membro' : '✏️ Editar Membro'}
+            {modo === 'novo' ? 'Novo Membro' : 'Editar Membro'}
           </h3>
 
           <div style={{ display: 'grid', gap: 16 }}>
@@ -415,7 +415,7 @@ function TelaGerenciarMembros() {
                   {membro.nome}
                 </div>
                 <div style={{ color: t.textMuted, fontSize: 14, marginBottom: 8 }}>
-                  📧 {membro.email} {membro.cargo && `• ${membro.cargo}`}
+                  {membro.email} {membro.cargo && `• ${membro.cargo}`}
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {membro.permissoes.map(permId => {
@@ -446,13 +446,13 @@ function TelaGerenciarMembros() {
                   style={s.btnSecondary}
                   onClick={() => handleEditar(membro)}
                 >
-                  ✏️ Editar
+                  Editar
                 </button>
                 <button
                   style={s.btnGhost}
                   onClick={() => handleRemover(membro.id)}
                 >
-                  🗑️ Remover
+                  Remover
                 </button>
               </div>
             </div>
@@ -460,7 +460,6 @@ function TelaGerenciarMembros() {
 
           {(!equipe.membros || (equipe.membros || []).length === 0) && (
             <div style={{ textAlign: 'center', padding: 60, color: t.textDimmed }}>
-              <div style={{ fontSize: 64, marginBottom: 16 }}>👨‍🏫</div>
               <div style={{ fontSize: 18 }}>Nenhum membro cadastrado</div>
               <div style={{ fontSize: 14, marginTop: 8 }}>
                 Clique em "Adicionar Membro" para começar

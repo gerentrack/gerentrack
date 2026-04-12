@@ -132,13 +132,13 @@ function TelaAuditoria() {
 
   const { paginado, infoPage } = usePagination(auditoriaFiltrada, 20);
 
-  const getModuloIcon = (mod) => ({ equipes:"🏢", atletas:"🏃", competicoes:"🏟️", inscricoes:"📝", resultados:"📊", sumulas:"📋", recordes:"🏆", numeracao:"🔢", membros:"👥", treinadores:"👨‍🏫", funcionarios:"👷", auth:"🔐", sistema:"⚙️" }[mod] || "📋");
+  const getModuloIcon = (mod) => "";
 
   return (
     <div style={s.page}>
       <div style={s.painelHeader}>
         <div>
-          <h1 style={s.pageTitle}>📊 Auditoria de Ações</h1>
+          <h1 style={s.pageTitle}>Auditoria de Ações</h1>
           <p style={{ color: t.textDimmed, fontSize: 14 }}>Histórico de ações da equipe {equipe?.nome}</p>
         </div>
         <button style={s.btnGhost} onClick={() => setTela('painel-equipe')}>← Voltar</button>
@@ -167,7 +167,6 @@ function TelaAuditoria() {
       <div style={{ display:"grid", gap:8 }}>
         {auditoriaFiltrada.length === 0 ? (
           <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:12, padding:60, textAlign:"center" }}>
-            <div style={{ fontSize:64, marginBottom:16 }}>📊</div>
             <div style={{ color: t.textTertiary, fontSize:16 }}>Nenhum registro encontrado</div>
           </div>
         ) : paginado.map(reg => (

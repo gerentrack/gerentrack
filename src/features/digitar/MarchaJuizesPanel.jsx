@@ -137,7 +137,7 @@ export default function MarchaJuizesPanel({
       <div style={panelSt}>
         <div style={headerSt} onClick={() => setAberto(true)}>
           <span style={titleSt}>
-            📋 Súmula de Juízes de Marcha
+            Súmula de Juízes de Marcha
             {alertCount > 0 && (
               <span style={{ marginLeft: 8, fontSize: 11, padding: "2px 8px", borderRadius: 4, fontWeight: 700, background: `${t.danger}15`, color: t.danger }}>
                 {alertCount} DQ
@@ -160,7 +160,7 @@ export default function MarchaJuizesPanel({
     <div style={panelSt}>
       <div style={headerSt} onClick={() => setAberto(false)}>
         <span style={titleSt}>
-          📋 Súmula de Juízes de Marcha
+          Súmula de Juízes de Marcha
           {alertCount > 0 && (
             <span style={{ marginLeft: 8, fontSize: 11, padding: "2px 8px", borderRadius: 4, fontWeight: 700, background: `${t.danger}15`, color: t.danger }}>
               {alertCount} DQ
@@ -186,9 +186,9 @@ export default function MarchaJuizesPanel({
               fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5,
             }}
           >
-            {salvando ? "Salvando..." : "💾 Salvar Súmula"}
+            {salvando ? "Salvando..." : "Salvar Súmula"}
           </button>
-          {salvo && <span style={{ color: t.success, fontSize: 13, fontWeight: 700 }}>✅ Salvo com sucesso!</span>}
+          {salvo && <span style={{ color: t.success, fontSize: 13, fontWeight: 700 }}>✓ Salvo com sucesso!</span>}
           {dirty && !salvo && <span style={{ color: t.warning, fontSize: 12 }}>Alterações não salvas</span>}
         </div>
 
@@ -341,7 +341,7 @@ export default function MarchaJuizesPanel({
                     {isDq && !jaTemDqResult && (
                       <tr>
                         <td colSpan={30} style={{ background: `${t.danger}10`, padding: "4px 12px", fontSize: 11, color: t.danger, fontWeight: 700, borderBottom: `2px solid ${t.danger}44` }}>
-                          ⚠ {a.nome} — {totals.dqs} cartões vermelhos de juízes diferentes (TR 54.7)
+                          {a.nome} — {totals.dqs} cartões vermelhos de juízes diferentes (TR 54.7)
                           <button onClick={() => handleAplicarDq(a.id)} style={{ marginLeft: 12, background: t.danger, color: "#fff", border: "none", borderRadius: 4, fontSize: 11, padding: "2px 10px", cursor: "pointer", fontWeight: 700 }}>
                             Aplicar DQ no Resultado
                           </button>
@@ -369,9 +369,9 @@ export default function MarchaJuizesPanel({
               fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5,
             }}
           >
-            {salvando ? "Salvando..." : "💾 Salvar Súmula"}
+            {salvando ? "Salvando..." : "Salvar Súmula"}
           </button>
-          {salvo && <span style={{ color: t.success, fontSize: 13, fontWeight: 700 }}>✅ Salvo com sucesso!</span>}
+          {salvo && <span style={{ color: t.success, fontSize: 13, fontWeight: 700 }}>✓ Salvo com sucesso!</span>}
           {dirty && !salvo && <span style={{ color: t.warning, fontSize: 12 }}>Alterações não salvas</span>}
         </div>
 
@@ -380,13 +380,13 @@ export default function MarchaJuizesPanel({
           <div style={{ ...lblSm, marginBottom: 8, fontSize: 11 }}>Anexar Súmula Manual (foto ou PDF)</div>
           <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
             <label style={{ background: t.accent, color: "#fff", border: "none", padding: "6px 16px", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 700, opacity: uploading ? 0.5 : 1 }}>
-              {uploading ? "Enviando..." : (marchaDoc.anexoUrl ? "Substituir" : "📎 Anexar arquivo")}
+              {uploading ? "Enviando..." : (marchaDoc.anexoUrl ? "Substituir" : "Anexar arquivo")}
               <input type="file" accept="image/*,application/pdf" onChange={handleUpload} style={{ display: "none" }} disabled={uploading} />
             </label>
             {marchaDoc.anexoUrl && (
               <>
                 <a href={marchaDoc.anexoUrl} target="_blank" rel="noopener noreferrer" style={{ color: t.accent, fontSize: 12, fontWeight: 600 }}>
-                  📄 {marchaDoc.anexoNome || "Anexo"}
+                  {marchaDoc.anexoNome || "Anexo"}
                 </a>
                 <button onClick={() => removerAnexo(filtroProva, catId, filtroSexo)} style={{ background: "transparent", border: `1px solid ${t.danger}44`, color: t.danger, borderRadius: 4, fontSize: 11, padding: "2px 8px", cursor: "pointer" }}>
                   Remover

@@ -47,7 +47,7 @@ function BlocoConsentimentoParental({ responsavel, onResponsavel, cpfResp, onCpf
     <div style={{ background:`${t.success}11`, border:`1px solid ${t.success}44`, borderRadius:10,
       padding:"16px 18px", marginTop:16 }}>
       <div style={{ fontSize:12, fontWeight:700, color: t.success, letterSpacing:1,
-        textTransform:"uppercase", marginBottom:4 }}>👨‍👩‍👧 Consentimento Parental (Art. 14 LGPD)</div>
+        textTransform:"uppercase", marginBottom:4 }}>Consentimento Parental (Art. 14 LGPD)</div>
       <p style={{ fontSize:12, color: t.textMuted, marginBottom:12, lineHeight:1.6 }}>
         O atleta é <strong style={{ color: t.textPrimary }}>menor de 18 anos</strong>. Conforme o Art. 14 da LGPD,
         é obrigatório o consentimento específico de um dos pais ou responsável legal para o tratamento
@@ -61,7 +61,7 @@ function BlocoConsentimentoParental({ responsavel, onResponsavel, cpfResp, onCpf
           onChange={e => onResponsavel(e.target.value)}
           placeholder="Nome completo do pai, mãe ou responsável legal"
         />
-        {erroResponsavel && <div style={{ color: t.danger, fontSize:12, marginTop:2 }}>⚠️ {erroResponsavel}</div>}
+        {erroResponsavel && <div style={{ color: t.danger, fontSize:12, marginTop:2 }}>{erroResponsavel}</div>}
       </div>
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:0, marginBottom:12 }}>
         <div>
@@ -72,7 +72,7 @@ function BlocoConsentimentoParental({ responsavel, onResponsavel, cpfResp, onCpf
             onChange={e => onCpfResp(e.target.value)}
             placeholder="000.000.000-00"
           />
-          {erroCpfResp && <div style={{ color: t.danger, fontSize:12, marginTop:2 }}>⚠️ {erroCpfResp}</div>}
+          {erroCpfResp && <div style={{ color: t.danger, fontSize:12, marginTop:2 }}>{erroCpfResp}</div>}
         </div>
         <div>
           <label style={styles.label}>E-mail do Responsável *</label>
@@ -83,7 +83,7 @@ function BlocoConsentimentoParental({ responsavel, onResponsavel, cpfResp, onCpf
             type="email"
             placeholder="responsavel@email.com"
           />
-          {erroEmailResp && <div style={{ color: t.danger, fontSize:12, marginTop:2 }}>⚠️ {erroEmailResp}</div>}
+          {erroEmailResp && <div style={{ color: t.danger, fontSize:12, marginTop:2 }}>{erroEmailResp}</div>}
         </div>
       </div>
       <label style={{ display:"flex", alignItems:"flex-start", gap:12, cursor:"pointer" }}>
@@ -95,7 +95,7 @@ function BlocoConsentimentoParental({ responsavel, onResponsavel, cpfResp, onCpf
           de atletismo, conforme a <strong style={{ color: t.success }}>Lei nº 13.709/2018 (LGPD), Art. 14</strong>.
         </span>
       </label>
-      {erroAceite && <div style={{ color: t.danger, fontSize:12, marginTop:8 }}>⚠️ {erroAceite}</div>}
+      {erroAceite && <div style={{ color: t.danger, fontSize:12, marginTop:8 }}>{erroAceite}</div>}
     </div>
   );
 }
@@ -364,14 +364,14 @@ function TelaCadastroAtletaLogin() {
 
   if (ok) return (
     <div style={s.formPage}><div style={s.formCard}>
-      <div style={{ fontSize:64, textAlign:"center" }}>✅</div>
+      <div style={{ fontSize:64, textAlign:"center" }}>✓</div>
       <h2 style={{ ...s.formTitle, textAlign:"center" }}>
         {docModo === "vincular" ? "Vínculo criado!" : "Conta criada!"}
       </h2>
       <p style={{ textAlign:"center", color: t.textTertiary }}>Bem-vindo, {form.nome}!</p>
       {form.equipeId && (
         <div style={{ textAlign:"center", color: t.accent, fontSize:13, margin:"10px 0", padding:"8px 16px", background:t.accentBg, borderRadius:8, border:`1px solid ${t.accentBorder}` }}>
-          ⏳ Sua solicitação de vínculo com a equipe foi enviada e aguarda aprovação.
+          Sua solicitação de vínculo com a equipe foi enviada e aguarda aprovação.
         </div>
       )}
       <button style={s.btnPrimary} onClick={() => setTela("painel-atleta")}>Ir para Meu Painel</button>
@@ -380,7 +380,7 @@ function TelaCadastroAtletaLogin() {
 
   return (
     <div style={s.formPage}><div style={s.formCard}>
-      <div style={s.formIcon}>🏃</div>
+      <div style={s.formIcon}></div>
       <h2 style={s.formTitle}>Cadastro de Atleta</h2>
       <p style={s.formSub}>Crie sua conta para se inscrever em competições</p>
 
@@ -393,7 +393,7 @@ function TelaCadastroAtletaLogin() {
         {cpfStatus === "invalido" && (
           <div style={{ background:`${t.danger}11`, border:`1px solid ${t.danger}44`, borderRadius:6,
             padding:"8px 12px", marginTop:6, color: t.danger, fontSize:12 }}>
-            ⛔ CPF inválido — verifique os dígitos digitados.
+            CPF inválido — verifique os dígitos digitados.
           </div>
         )}
 
@@ -402,12 +402,12 @@ function TelaCadastroAtletaLogin() {
           <div style={{ background:`${t.warning}11`, border:`2px solid ${t.warning}`,
             borderRadius:10, padding:"16px 18px", marginTop:8, marginBottom:8 }}>
             <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
-              <span style={{ fontSize:22 }}>🚫</span>
+              <span style={{ fontSize:14, fontWeight:700 }}>!</span>
               <strong style={{ color:t.warning, fontSize:15 }}>Perfil já existente neste organizador</strong>
             </div>
             <div style={{ fontSize:13, color: t.textSecondary, lineHeight:1.7, marginBottom:10 }}>
               O CPF informado já possui uma conta de atleta ativa vinculada à federação/organizador desta equipe:<br/>
-              <strong style={{ color: t.textPrimary }}>👤 {atletaDuplicadoOrg.nome}</strong>
+              <strong style={{ color: t.textPrimary }}>{atletaDuplicadoOrg.nome}</strong>
               {atletaDuplicadoOrg.email && (
                 <span style={{ color: t.textMuted, marginLeft:8 }}>({atletaDuplicadoOrg.email})</span>
               )}
@@ -421,7 +421,7 @@ function TelaCadastroAtletaLogin() {
               borderRadius:6, padding:"8px 18px", cursor:"pointer", fontSize:13, fontWeight:700,
               fontFamily:"'Barlow',sans-serif" }}
               onClick={() => setTela("login")}>
-              🔐 Ir para o Login
+              Ir para o Login
             </button>
           </div>
         )}
@@ -430,7 +430,7 @@ function TelaCadastroAtletaLogin() {
       {/* CPF existente no sistema → modo login */}
       {docModo === "login" && docExistente && (
         <div style={{ background: t.accentBg, border: `2px solid ${t.accentBorder}`, borderRadius: 10, padding: 20, marginBottom: 20 }}>
-          <div style={{ color: t.accent, fontSize: 14, fontWeight: 700, marginBottom: 8 }}>🔄 CPF já cadastrado no sistema</div>
+          <div style={{ color: t.accent, fontSize: 14, fontWeight: 700, marginBottom: 8 }}>CPF já cadastrado no sistema</div>
           <div style={{ color: t.textTertiary, fontSize: 12, marginBottom: 4 }}>
             Nome: <strong style={{ color: t.textPrimary }}>{docExistente.nome}</strong>
           </div>
@@ -440,7 +440,7 @@ function TelaCadastroAtletaLogin() {
           {loginErro && <div style={{ ...s.erro, marginBottom: 12 }}>{loginErro}</div>}
           <FormField label="E-mail da conta" value={loginForm.email} onChange={v => setLoginForm({ ...loginForm, email: v })} type="email" placeholder="E-mail cadastrado" />
           <FormField label="Senha" value={loginForm.senha} onChange={v => setLoginForm({ ...loginForm, senha: v })} type="password" placeholder="Senha da conta" />
-          <button style={{ ...s.btnPrimary, marginTop: 8 }} onClick={handleLoginExistente}>🔐 Confirmar Identidade</button>
+          <button style={{ ...s.btnPrimary, marginTop: 8 }} onClick={handleLoginExistente}>Confirmar Identidade</button>
           <div style={{ textAlign: "center", marginTop: 8 }}>
             <button style={s.linkBtn} onClick={() => setTela("recuperar-senha")}>Esqueci minha senha</button>
           </div>
@@ -450,7 +450,7 @@ function TelaCadastroAtletaLogin() {
       {/* Modo vincular confirmado */}
       {docModo === "vincular" && (
         <div style={{ background: `${t.success}11`, border: `2px solid ${t.success}66`, borderRadius: 10, padding: 16, marginBottom: 16 }}>
-          <div style={{ color: t.success, fontSize: 13, fontWeight: 700 }}>✅ Identidade confirmada!</div>
+          <div style={{ color: t.success, fontSize: 13, fontWeight: 700 }}>✓ Identidade confirmada!</div>
           <div style={{ color: t.textTertiary, fontSize: 12, marginTop: 4 }}>Dados carregados. Complete o cadastro abaixo.</div>
         </div>
       )}
@@ -463,7 +463,7 @@ function TelaCadastroAtletaLogin() {
             <div style={{ background: t.accentBg, border:`2px solid ${t.accentBorder}`,
               borderRadius:8, padding:"12px 14px", marginBottom: 12 }}>
               <strong style={{ color: t.accent, fontSize:13 }}>
-                ℹ️ CPF já possui cadastro no sistema
+                CPF já possui cadastro no sistema
               </strong>
               <p style={{ color: t.textTertiary, fontSize:12, margin:"6px 0 10px", lineHeight:1.6 }}>
                 Para receber uma senha temporária, informe seu e-mail abaixo.
@@ -487,14 +487,14 @@ function TelaCadastroAtletaLogin() {
                 style={{ background:t.accentBg, border:`1px solid ${t.accentBorder}`, color:t.accent,
                   borderRadius:6, padding:"8px 18px", cursor:"pointer", fontSize:13,
                   fontWeight:700, fontFamily:"Inter,sans-serif", marginTop: 8 }}>
-                📨 Solicitar Senha Temporária ao Administrador
+                Solicitar Senha Temporária ao Administrador
               </button>
             </div>
           )}
           {pedidoSenhaEnviado && (
             <div style={{ background:`${t.success}11`, border:`1px solid ${t.success}44`, borderRadius:8,
               padding:"12px 14px", marginBottom: 12, color:t.success, fontSize:13 }}>
-              ✅ Solicitação enviada! Entre em contato com o organizador ou administrador.
+              ✓ Solicitação enviada! Entre em contato com o organizador ou administrador.
             </div>
           )}
 
@@ -524,7 +524,7 @@ function TelaCadastroAtletaLogin() {
                   <option key={o.id} value={o.id}>{o.entidade || o.nome}</option>
                 ))}
               </select>
-              {erros.organizadorId && <div style={{ color: t.danger, fontSize:12, marginTop:4 }}>⚠️ {erros.organizadorId}</div>}
+              {erros.organizadorId && <div style={{ color: t.danger, fontSize:12, marginTop:4 }}>{erros.organizadorId}</div>}
             </div>
             <div style={{ gridColumn:"1/-1" }}>
               <label style={s.label}>Vinculado a uma Equipe? (opcional)</label>
@@ -574,7 +574,7 @@ function TelaCadastroAtletaLogin() {
           <BlocoLGPD aceite={lgpdAceite} onChange={setLgpdAceite} erro={erros.lgpd} />
 
           <button style={{ ...s.btnPrimary, marginTop: 16 }} onClick={handleSubmit}>
-            {docModo === "vincular" ? "✅ Realizar Cadastro" : "Criar Conta"}
+            {docModo === "vincular" ? "Realizar Cadastro" : "Criar Conta"}
           </button>
         </>
       )}

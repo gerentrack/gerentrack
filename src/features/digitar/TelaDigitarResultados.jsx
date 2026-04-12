@@ -230,7 +230,7 @@ function CondicoesProvaPanel({ eid, filtroProva, catId, filtroSexo, eventoAtual,
     <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, padding: "14px 18px", marginBottom: 16 }}>
       <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-end" }}>
         <div style={{ flex: 1, minWidth: 280 }}>
-          <div style={{ color: t.success, fontSize: 12, fontWeight: 700, marginBottom: 8, letterSpacing: 1 }}>▶ INÍCIO DA PROVA</div>
+          <div style={{ color: t.success, fontSize: 12, fontWeight: 700, marginBottom: 8, letterSpacing: 1 }}>INICIO DA PROVA</div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <div style={grpSt}>
               <div style={lblSt}>Horário</div>
@@ -248,7 +248,7 @@ function CondicoesProvaPanel({ eid, filtroProva, catId, filtroSexo, eventoAtual,
         </div>
         <div style={{ width: 1, height: 60, background: t.border, alignSelf: "center" }} />
         <div style={{ flex: 1, minWidth: 280 }}>
-          <div style={{ color: t.danger, fontSize: 12, fontWeight: 700, marginBottom: 8, letterSpacing: 1 }}>⏹ TÉRMINO DA PROVA</div>
+          <div style={{ color: t.danger, fontSize: 12, fontWeight: 700, marginBottom: 8, letterSpacing: 1 }}>TERMINO DA PROVA</div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <div style={grpSt}>
               <div style={lblSt}>Horário</div>
@@ -644,7 +644,7 @@ function BlocoDigitarCategoria({
     if (entradas.length > 0) {
       await atualizarResultadosEmLote(eid, filtroProva, catId, filtroSexo, faseEfetiva, entradas);
     }
-    console.log("💾 handleSalvarAltura: salvou", atletasNaProva.length, "atletas com alturas:", alturas);
+    console.log("handleSalvarAltura: salvou", atletasNaProva.length, "atletas com alturas:", alturas);
     if (usuarioLogado && registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Digitou resultados", `${provaSel?.nome || filtroProva} — ${atletasNaProva.length} atleta(s)`, usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "resultados" });
     setSalvo(true);
     setTimeout(() => setSalvo(false), 2500);
@@ -725,7 +725,7 @@ function BlocoDigitarCategoria({
             d.vento !== "" ? d.vento : undefined);
       }
     }
-    console.log("💾 handleSalvar: salvou", atletasSalvar.length, "atletas");
+    console.log("handleSalvar: salvou", atletasSalvar.length, "atletas");
     if (usuarioLogado && registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Digitou resultados", `${provaSel?.nome || filtroProva} — ${atletasSalvar.length} atleta(s)`, usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "resultados" });
     setSalvo(true);
     setTimeout(() => setSalvo(false), 2000);
@@ -759,14 +759,14 @@ function BlocoDigitarCategoria({
         background:t.bgHover, border:"1px solid #cc4444",
         borderRadius:12, padding:"28px 32px", maxWidth:360, textAlign:"center",
       }}>
-        <div style={{ fontSize:32, marginBottom:12 }}>🗑️</div>
+        <div style={{ fontSize:32, marginBottom:12 }}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>
         <div style={{ color: t.textPrimary, fontWeight:700, fontSize:16, marginBottom:8 }}>
           {confirmLimpar === "todos"
             ? "Limpar todos os resultados desta prova?"
             : `Limpar resultado deste atleta?`}
         </div>
         <div style={{ color: t.danger, fontSize:13, marginBottom:4, fontWeight:600 }}>
-          ⚠️ ATENÇÃO: Esta ação é IRREVERSÍVEL!
+          ATENCAO: Esta acao e IRREVERSIVEL!
         </div>
         <div style={{ color: t.textMuted, fontSize:12, marginBottom:24 }}>
           {confirmLimpar === "todos"
@@ -781,7 +781,7 @@ function BlocoDigitarCategoria({
           <button
             style={{ ...s.btnPrimary, background: t.danger, borderColor: t.danger, minWidth:100 }}
             onClick={confirmarLimpar}
-          >🗑️ Confirmar</button>
+          >Confirmar</button>
         </div>
       </div>
     </div>
@@ -809,12 +809,12 @@ function BlocoDigitarCategoria({
           )}
           {provaSel?.origemCombinada && (
             <span style={{ fontSize: 11, background: t.accentBg, color: t.accent, padding: "2px 8px", borderRadius: 4, marginLeft: 8, fontWeight: 600 }}>
-              🏅 {provaSel.nomeCombinada} ({provaSel.ordem}/{provaSel.totalProvas})
+              {provaSel.nomeCombinada} ({provaSel.ordem}/{provaSel.totalProvas})
             </span>
           )}
           {mostrarToggleCrono && !temSeriesParaCrono && (
             <span style={{ marginLeft: 12, display: "inline-flex", alignItems: "center", gap: 4 }}>
-              <span style={{ fontSize: 11, color: t.textMuted }}>⏱ Cronometragem:</span>
+              <span style={{ fontSize: 11, color: t.textMuted }}>Cronometragem:</span>
               <button
                 onClick={() => alternarCronometragem("ELE")}
                 style={{
@@ -841,7 +841,7 @@ function BlocoDigitarCategoria({
         </div>
         {provaTemRegraAlternativa && (
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 11, color: t.textMuted }}>📐 Regras de pontuação:</span>
+            <span style={{ fontSize: 11, color: t.textMuted }}>Regras de pontuacao:</span>
             {REGRAS_PONTUACAO_OPCOES[provaSel.provaOriginalSufixo].map(op => {
               const ativa = regraAtual === op.chave || (!regraAtual && op === REGRAS_PONTUACAO_OPCOES[provaSel.provaOriginalSufixo][0]);
               return (
@@ -867,7 +867,7 @@ function BlocoDigitarCategoria({
       {atletasNaProva.some(a => resExistentes[a.id] != null) && Object.keys(marcas).length === 0 && (
         <div style={{ background: t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:8, padding:"12px 18px", marginBottom:16, display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
           <span style={{ color: t.accent, fontSize:13 }}>
-            📝 Esta prova já possui resultados salvos.
+            Esta prova ja possui resultados salvos.
           </span>
           <button
             style={{ ...s.btnSecondary, fontSize:12, padding:"5px 14px" }}
@@ -905,7 +905,7 @@ function BlocoDigitarCategoria({
               }
             }}
           >
-            ✏️ Editar Resultados
+            Editar Resultados
           </button>
           <span style={{ color: t.textDimmed, fontSize:11 }}>
             Clique para carregar os dados nos campos e editar
@@ -914,7 +914,7 @@ function BlocoDigitarCategoria({
       )}
       {Object.keys(marcas).length > 0 && atletasNaProva.some(a => resExistentes[a.id] != null) && (
         <div style={{ background:`${t.success}12`, border:`1px solid ${t.success}44`, borderRadius:8, padding:"8px 16px", marginBottom:16, display:"flex", alignItems:"center", gap:8, fontSize:12, color: t.success }}>
-          ✏️ <strong>Modo edição</strong> — altere os valores e clique em "Salvar e Publicar"
+          <strong>Modo edicao</strong> — altere os valores e clique em "Salvar e Publicar"
           <button
             style={{ ...s.linkBtn, marginLeft:"auto", color: t.textMuted, fontSize:11 }}
             onClick={async () => { setMarcas({}); setTentativas({}); }}
@@ -1007,7 +1007,7 @@ function BlocoDigitarCategoria({
             <>
               {Object.keys(marcas).length > 0 && temResExistRevez && (
                 <div style={{ background:`${t.success}12`, border:`1px solid ${t.success}44`, borderRadius:8, padding:"8px 16px", marginBottom:12, display:"flex", alignItems:"center", gap:8, fontSize:12, color: t.success }}>
-                  ✏️ <strong>Modo edição</strong> — altere os valores e clique em "Salvar e Publicar"
+                  <strong>Modo edicao</strong> — altere os valores e clique em "Salvar e Publicar"
                   <button style={{ ...s.linkBtn, marginLeft:"auto", color: t.textMuted, fontSize:11 }}
                     onClick={() => setMarcas({})}>Cancelar edição</button>
                 </div>
@@ -1054,7 +1054,7 @@ function BlocoDigitarCategoria({
                         <Td><strong style={{ color: t.accent }}>{eq.nomeEquipe}{eq.sigla ? ` (${eq.sigla})` : ""}</strong></Td>
                         <Td>{eq.atletas.length > 0
                           ? <span style={{ fontSize: 11, color: t.textTertiary }}>{eq.atletas.map(a => a.nome).join(" · ")}</span>
-                          : <span style={{ fontSize: 11, color: t.danger }}>⚠ Sem atletas</span>
+                          : <span style={{ fontSize: 11, color: t.danger }}>Sem atletas</span>
                         }</Td>
                         <Td><input type="number" min="1" max="20" style={{ ...s.input, width: 45, textAlign: "center", fontSize: 12, padding: "6px 4px" }}
                           value={valSerie} onChange={e => setMarcas(prev => ({ ...prev, [eq.equipeId]: { ...prev[eq.equipeId], serie: e.target.value } }))} /></Td>
@@ -1109,7 +1109,7 @@ function BlocoDigitarCategoria({
               </table>
               <div style={{ display: "flex", gap: 10, marginTop: 16, flexWrap: "wrap", alignItems: "center" }}>
                 <button style={s.btnPrimary} onClick={handleSalvarRevez}>
-                  💾 Salvar e Publicar Revezamento
+                  Salvar e Publicar Revezamento
                 </button>
                 {Object.keys(marcas).length > 0 && (
                   <button style={s.btnGhost} onClick={() => setMarcas({})}>Limpar edições</button>
@@ -1117,12 +1117,12 @@ function BlocoDigitarCategoria({
                 {equipesRevezNaProva.some(eq => resExistentes[eq.equipeId] != null) && (
                   <button style={{ ...s.btnGhost, color: t.danger, borderColor: `${t.danger}44` }}
                     onClick={async () => {
-                      if (!await confirmar(`⚠️ Limpar TODOS os resultados deste revezamento?\n\n${provaSel?.nome } — ${catId} — ${filtroSexo === "M" ? "Masc." : "Fem."}\n\nEsta ação é IRREVERSÍVEL.`)) return;
+                      if (!await confirmar(`Limpar TODOS os resultados deste revezamento?\n\n${provaSel?.nome } — ${catId} — ${filtroSexo === "M" ? "Masc." : "Fem."}\n\nEsta ação é IRREVERSÍVEL.`)) return;
                       _limparTodos(eid, filtroProva, catId, filtroSexo);
                       setMarcas({});
-                    }}>🗑 Limpar Todos</button>
+                    }}>Limpar Todos</button>
                 )}
-                {salvo && <span style={{ color: t.success, fontWeight: 700, fontSize: 14 }}>✅ Salvo!</span>}
+                {salvo && <span style={{ color: t.success, fontWeight: 700, fontSize: 14 }}>Salvo!</span>}
               </div>
             </>
           );
@@ -1147,7 +1147,7 @@ function BlocoDigitarCategoria({
             return marca != null && marca !== "";
           }) && (
             <div style={{ background:`${t.success}15`, border:`1px solid ${t.success}44`, borderRadius:8, padding:"6px 14px", marginBottom:10, fontSize:11, color: t.success }}>
-              🏆 <strong>Prova Concluída</strong>
+              <strong>Prova Concluida</strong>
               <span style={{ color: t.textMuted, marginLeft:8 }}>Todos os atletas possuem resultado</span>
             </div>
           )}
@@ -1155,7 +1155,7 @@ function BlocoDigitarCategoria({
           <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, padding:"14px 18px", marginBottom:16 }}>
             <div style={{ display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
               <span style={{ color: t.accent, fontFamily:"'Barlow Condensed',sans-serif", fontSize:13, fontWeight:800, letterSpacing:1, whiteSpace:"nowrap" }}>
-                📏 ALTURAS
+                ALTURAS
               </span>
               {(Array.isArray(alturas) ? alturas : [""]).map((h, i) => (
                 <div key={i} style={{ display:"flex", alignItems:"center", gap:3 }}>
@@ -1178,7 +1178,7 @@ function BlocoDigitarCategoria({
           {/* ── Tabela: linhas = atletas, colunas = alturas ─────────── */}
           {temDesempateAltura && (
             <div style={{ background: t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:8, padding:"6px 14px", marginBottom:10, fontSize:11, color: t.accent }}>
-              ⚖️ <strong>RT 26.9 — Regra de Desempate Aplicada</strong>
+              <strong>RT 26.9 — Regra de Desempate Aplicada</strong>
               <span style={{ color: t.textMuted, marginLeft:8 }}>1º menor nº de saltos na última altura transposta (SU) · 2º menor nº total de falhas na prova (FP)</span>
             </div>
           )}
@@ -1363,7 +1363,7 @@ function BlocoDigitarCategoria({
                             title="Limpar resultado deste atleta"
                             onClick={() => pedirLimparAtleta(a.id)}
                             style={{ background:"transparent", border:`1px solid ${t.danger}44`, borderRadius:6, cursor:"pointer", color: t.danger, fontSize:13, padding:"3px 8px" }}
-                          >🗑️</button>
+                          ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:"middle"}}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
                         )}
                       </td>
                     </tr>
@@ -1375,7 +1375,7 @@ function BlocoDigitarCategoria({
 
           <div style={{ marginTop:16, display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
             <button style={s.btnPrimary} onClick={handleSalvarAltura}>
-              💾 Salvar e Publicar
+              Salvar e Publicar
             </button>
             <div style={{ marginLeft:"auto", display:"flex", gap:8 }}>
               {atletasNaProva.some(a => resExistentes[a.id] != null) && (
@@ -1383,10 +1383,10 @@ function BlocoDigitarCategoria({
                   style={{ ...s.btnGhost, borderColor: `${t.danger}44`, color: t.danger, fontSize:12 }}
                   onClick={pedirLimparTodos}
                   title="Limpar todos os resultados desta prova"
-                >🗑️ Limpar Todos</button>
+                >Limpar Todos</button>
               )}
             </div>
-            {salvo && <span style={s.savedBadge} className="saved-pulse">✅ Resultados publicados!</span>}
+            {salvo && <span style={s.savedBadge} className="saved-pulse">Resultados publicados!</span>}
           </div>
 
           {/* ── Painel Pontuação Acumulada da Combinada (Altura/Vara) ── */}
@@ -1433,7 +1433,7 @@ function BlocoDigitarCategoria({
                 borderRadius: 10, padding: 20, overflowX: "auto"
               }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-                  <span style={{ fontSize: 20 }}>🏅</span>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
                   <h3 style={{ color: t.accent, margin: 0, fontSize: 16 }}>
                     Classificação {comp?.nome || "Combinada"} — {todasCompletas ? "FINAL" : "PARCIAL"}
                   </h3>
@@ -1502,7 +1502,7 @@ function BlocoDigitarCategoria({
                 </table>
                 {!todasCompletas && (
                   <div style={{ marginTop: 10, fontSize: 11, color: t.textDimmed, textAlign: "center" }}>
-                    ⚠️ Classificação parcial — faltam resultados em algumas provas. A tabela de pontuação será aplicada posteriormente.
+                    Classificacao parcial — faltam resultados em algumas provas. A tabela de pontuacao sera aplicada posteriormente.
                   </div>
                 )}
               </div>
@@ -1732,19 +1732,19 @@ function BlocoDigitarCategoria({
                       <>
                         {estadoProva === 2 && (
                           <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.accentBorder}`, borderRadius:8, padding:"6px 14px", marginBottom:10, fontSize:11, color: t.accent }}>
-                            🔄 <strong>RT 25.6.1 — Ordem Inversa Aplicada</strong>
+                            <strong>RT 25.6.1 — Ordem Inversa Aplicada</strong>
                             <span style={{ color: t.textMuted, marginLeft:8 }}>Top 8 em ordem inversa do CP (pior primeiro) · Eliminados abaixo</span>
                           </div>
                         )}
                         {estadoProva === 3 && (
                           <div style={{ background:`${t.success}15`, border:`1px solid ${t.success}44`, borderRadius:8, padding:"6px 14px", marginBottom:10, fontSize:11, color: t.success }}>
-                            🏆 <strong>Classificação Final</strong>
+                            <strong>Classificacao Final</strong>
                             <span style={{ color: t.textMuted, marginLeft:8 }}>Todas as tentativas completas — ordenado pela melhor marca com desempate RT 25.22</span>
                           </div>
                         )}
                         {temDesempate && (
                           <div style={{ background: t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:8, padding:"6px 14px", marginBottom:10, fontSize:11, color: t.accent }}>
-                            ⚖️ <strong>RT 25.22 — Regra de Desempate Aplicada</strong>
+                            <strong>RT 25.22 — Regra de Desempate Aplicada</strong>
                             <span style={{ color: t.textMuted, marginLeft:8 }}>Atletas com mesma melhor marca desempatados pela 2ª melhor, 3ª melhor, etc.</span>
                           </div>
                         )}
@@ -1788,7 +1788,7 @@ function BlocoDigitarCategoria({
                                           borderTop: `2px solid ${t.danger}44`, borderBottom: `1px solid ${t.danger}22`,
                                           fontSize: 11, color: t.danger, fontWeight: 700, textAlign: "center"
                                         }}>
-                                          ❌ Eliminados — não avançam para T4-T6
+                                          Eliminados — nao avancam para T4-T6
                                         </td>
                                       </tr>
                                     )}
@@ -1799,7 +1799,7 @@ function BlocoDigitarCategoria({
                                           borderTop: `2px solid ${t.border}`, borderBottom: `1px solid ${t.border}`,
                                           fontSize: 11, color: t.textMuted, fontWeight: 700, textAlign: "center"
                                         }}>
-                                          🚫 DNS / NM / DQ
+                                          DNS / NM / DQ
                                         </td>
                                       </tr>
                                     )}
@@ -1825,7 +1825,7 @@ function BlocoDigitarCategoria({
                                         {isSaltoHoriz && !atletaInativo && (
                                           <input
                                             style={{ ...inputStyle, width:54, background: t.accentBg, color: t.accent, fontSize:9, marginTop:2, textAlign:"center", border:`1px solid ${t.accentBorder}` }}
-                                            placeholder="💨 m/s"
+                                            placeholder="m/s"
                                             value={(marcas[a.id]?.[tk+"v"] ?? getExist(a, tk+"v", ""))}
                                             onChange={e => setDado(a, tk+"v", e.target.value)}
                                           />
@@ -1875,7 +1875,7 @@ function BlocoDigitarCategoria({
                                         {isSaltoHoriz && podeEditar && (
                                           <input
                                             style={{ ...inputStyle, width:54, background: t.accentBg, color: t.accent, fontSize:9, marginTop:2, textAlign:"center", border:`1px solid ${t.accentBorder}` }}
-                                            placeholder="💨 m/s"
+                                            placeholder="m/s"
                                             value={(marcas[a.id]?.[tk+"v"] ?? getExist(a, tk+"v", ""))}
                                             onChange={e => setDado(a, tk+"v", e.target.value)}
                                           />
@@ -1923,7 +1923,7 @@ function BlocoDigitarCategoria({
                                     <td style={{ ...tdStyle }}>
                                       {resExistentes[a.id] != null && (
                                         <button title="Limpar" onClick={() => pedirLimparAtleta(a.id)}
-                                          style={{ background:"transparent", border:`1px solid ${t.danger}44`, borderRadius:5, cursor:"pointer", color: t.danger, fontSize:13, padding:"2px 6px" }}>🗑️</button>
+                                          style={{ background:"transparent", border:`1px solid ${t.danger}44`, borderRadius:5, cursor:"pointer", color: t.danger, fontSize:13, padding:"2px 6px" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:"middle"}}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
                                       )}
                                     </td>
                                   </tr>
@@ -1949,7 +1949,7 @@ function BlocoDigitarCategoria({
                     return marca != null && marca !== "";
                   }) && (
                     <div style={{ background:`${t.success}15`, border:`1px solid ${t.success}44`, borderRadius:8, padding:"6px 14px", marginBottom:10, fontSize:11, color: t.success }}>
-                      🏆 <strong>Prova Concluída</strong>
+                      <strong>Prova Concluida</strong>
                       <span style={{ color: t.textMuted, marginLeft:8 }}>Todos os atletas possuem resultado</span>
                     </div>
                   )}
@@ -1958,7 +1958,7 @@ function BlocoDigitarCategoria({
                   </div>
                   {provaSel?.especBarreiras && (
                     <div style={{ background: t.bgCardAlt, border:`1px solid ${t.border}`, borderRadius:8, padding:"8px 14px", marginBottom:10, fontSize:11, color: t.textTertiary, display:"flex", gap:14, flexWrap:"wrap", alignItems:"center" }}>
-                      <span style={{ fontWeight:700, color: t.accent }}>🏃‍♂️ Barreiras:</span>
+                      <span style={{ fontWeight:700, color: t.accent }}>Barreiras:</span>
                       <span>Altura: <strong style={{ color: t.textPrimary }}>{provaSel.especBarreiras.altura}</strong></span>
                       <span>Saída→1ª: <strong style={{ color: t.textPrimary }}>{provaSel.especBarreiras.saida1a}</strong></span>
                       <span>Entre barr.: <strong style={{ color: t.textPrimary }}>{provaSel.especBarreiras.entre}</strong></span>
@@ -2000,7 +2000,7 @@ function BlocoDigitarCategoria({
                               <span>Série {_si.serie}</span>
                               {mostrarToggleCrono && (
                                 <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                                  <span style={{ fontSize: 11, color: t.textMuted, fontWeight: 400 }}>⏱ Cronometragem:</span>
+                                  <span style={{ fontSize: 11, color: t.textMuted, fontWeight: 400 }}>Cronometragem:</span>
                                   <button
                                     onClick={() => alternarCronoSerie(_si.serie, "ELE")}
                                     style={{
@@ -2095,7 +2095,7 @@ function BlocoDigitarCategoria({
                             <Td>
                               {resExistentes[a.id] != null && (
                                 <button title="Limpar" onClick={() => pedirLimparAtleta(a.id)}
-                                  style={{ background:"transparent", border:"none", cursor:"pointer", color: t.danger, fontSize:15, padding:"2px 6px" }}>🗑️</button>
+                                  style={{ background:"transparent", border:"none", cursor:"pointer", color: t.danger, fontSize:15, padding:"2px 6px" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:"middle"}}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
                               )}
                             </Td>
                           </tr>
@@ -2108,17 +2108,17 @@ function BlocoDigitarCategoria({
               )}
               <div style={{ marginTop:16, display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
                 <button style={s.btnPrimary} onClick={handleSalvar}>
-                  💾 Salvar e Publicar
+                  Salvar e Publicar
                 </button>
                 <div style={{ marginLeft:"auto", display:"flex", gap:8 }}>
                   {atletasNaProva.some(a => resExistentes[a.id] != null) && (
                     <button style={{ ...s.btnGhost, borderColor: `${t.danger}44`, color: t.danger, fontSize:12 }}
                       onClick={pedirLimparTodos} title="Limpar todos os resultados desta prova">
-                      🗑️ Limpar Todos
+                      Limpar Todos
                     </button>
                   )}
                 </div>
-                {salvo && <span style={s.savedBadge} className="saved-pulse">✅ Resultados publicados!</span>}
+                {salvo && <span style={s.savedBadge} className="saved-pulse">Resultados publicados!</span>}
               </div>
 
               {/* ── Painel Súmula de Juízes de Marcha ── */}
@@ -2187,7 +2187,7 @@ function BlocoDigitarCategoria({
                     borderRadius: 10, padding: 20, overflowX: "auto"
                   }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-                      <span style={{ fontSize: 20 }}>🏅</span>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
                       <h3 style={{ color: t.accent, margin: 0, fontSize: 16 }}>
                         Classificação {comp?.nome || "Combinada"} — {todasCompletas ? "FINAL" : "PARCIAL"}
                       </h3>
@@ -2256,7 +2256,7 @@ function BlocoDigitarCategoria({
                     </table>
                     {!todasCompletas && (
                       <div style={{ marginTop: 10, fontSize: 11, color: t.textDimmed, textAlign: "center" }}>
-                        ⚠️ Classificação parcial — faltam resultados em algumas provas. A tabela de pontuação será aplicada posteriormente.
+                        Classificacao parcial — faltam resultados em algumas provas. A tabela de pontuacao sera aplicada posteriormente.
                       </div>
                     )}
                   </div>
@@ -2424,7 +2424,7 @@ function ModalImportLif({ eventoAtual, inscricoes, atletas, equipes, numeracaoPe
                 <div style={{ marginBottom: 12, maxHeight: 120, overflowY: "auto" }}>
                   {parseado.avisos.map((av, idx) => (
                     <div key={idx} style={{ display: "flex", gap: 6, padding: "4px 8px", borderRadius: 6, fontSize: 11, background: `${t.warning}10`, border: `1px solid ${t.warning}22`, color: t.warning, marginBottom: 4 }}>
-                      <span>⚠</span><span>{av}</span>
+                      <span>{av}</span>
                     </div>
                   ))}
                 </div>
@@ -2632,7 +2632,7 @@ function TelaDigitarResultados({ getPresencaProva }) {
   // Resolver provaIds a partir do nome/label selecionado no filtro
   const provaIdsDaSelecao = filtroProva
     ? todasProvasComCombinadas.filter(p => {
-        const label = p.origemCombinada ? `🏅 ${p.nome} (${p.nomeCombinada} ${p.ordem}/${p.totalProvas})` : p.nome;
+        const label = p.origemCombinada ? `${p.nome} (${p.nomeCombinada} ${p.ordem}/${p.totalProvas})` : p.nome;
         return label === filtroProva && p.tipo !== "combinada" && inscDoEvento.some(i => i.provaId === p.id);
       })
     : [];
@@ -2646,7 +2646,7 @@ function TelaDigitarResultados({ getPresencaProva }) {
   if (!temAcessoDigitar) return (
     <div style={s.page}>
       <div style={s.emptyState}>
-        <span style={{ fontSize: 48 }}>🚫</span>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
         <p style={{ color: t.danger, fontWeight: 700 }}>Acesso não autorizado</p>
         <p style={{ color: t.textDimmed, fontSize: 14 }}>Você não tem permissão para digitar resultados.</p>
         <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
@@ -2658,7 +2658,7 @@ function TelaDigitarResultados({ getPresencaProva }) {
     <div style={s.page}>
       <div style={s.painelHeader}>
         <div>
-          <h1 style={s.pageTitle}>✏️ Digitar Resultados</h1>
+          <h1 style={s.pageTitle}>Digitar Resultados</h1>
           <div style={{ color: t.textDimmed, fontSize: 13 }}>{eventoAtual.nome}</div>
         </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -2686,7 +2686,7 @@ function TelaDigitarResultados({ getPresencaProva }) {
                 const nomesVistos = new Set();
                 const provasUnicas = [];
                 provasFilt.forEach(p => {
-                  const label = p.origemCombinada ? `🏅 ${p.nome} (${p.nomeCombinada} ${p.ordem}/${p.totalProvas})` : p.nome;
+                  const label = p.origemCombinada ? `${p.nome} (${p.nomeCombinada} ${p.ordem}/${p.totalProvas})` : p.nome;
                   if (!nomesVistos.has(label)) {
                     nomesVistos.add(label);
                     provasUnicas.push({ label, nome: p.nome, origemCombinada: p.origemCombinada, nomeCombinada: p.nomeCombinada, ordem: p.ordem, totalProvas: p.totalProvas });
@@ -2708,7 +2708,7 @@ function TelaDigitarResultados({ getPresencaProva }) {
                 // Categorias que têm inscrição em provas com o nome selecionado
                 const provaIdsSel = filtroProva
                   ? todasProvasComCombinadas.filter(p => {
-                      const label = p.origemCombinada ? `🏅 ${p.nome} (${p.nomeCombinada} ${p.ordem}/${p.totalProvas})` : p.nome;
+                      const label = p.origemCombinada ? `${p.nome} (${p.nomeCombinada} ${p.ordem}/${p.totalProvas})` : p.nome;
                       return label === filtroProva;
                     }).map(p => p.id)
                   : [];

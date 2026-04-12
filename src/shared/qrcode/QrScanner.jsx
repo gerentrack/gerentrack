@@ -94,7 +94,7 @@ export default function QrScanner({
           ultimoScanRef.current = { texto, ts: agora };
 
           const resultado = onScanRef.current(texto);
-          const res = resultado || { status: "erro", msg: "❌ QR não reconhecido", cor: "vermelho" };
+          const res = resultado || { status: "erro", msg: "QR não reconhecido", cor: "vermelho" };
           setHistorico(prev => [{ dados: texto, ...res, ts: agora }, ...prev].slice(0, 5));
           setSessaoStats(prev => ({
             total: prev.total + 1,
@@ -160,7 +160,7 @@ export default function QrScanner({
     const val = inputManual.trim();
     if (!val) return;
     const resultado = onScanRef.current(val);
-    const res = resultado || { status: "erro", msg: `❌ Nº ${val} não reconhecido`, cor: "vermelho" };
+    const res = resultado || { status: "erro", msg: `Nº ${val} não reconhecido`, cor: "vermelho" };
     setHistorico(prev => [{ dados: val, ...res, ts: Date.now(), manual: true }, ...prev].slice(0, 5));
     setSessaoStats(prev => ({
       total: prev.total + 1,
@@ -244,7 +244,7 @@ export default function QrScanner({
     return (
       <div style={{ position: "fixed", inset: 0, background: t.bgOverlay, zIndex: 9000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
         <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 16, padding: "28px 32px", maxWidth: 360, width: "100%", textAlign: "center" }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>📊</div>
+          <div style={{ fontSize: 18, marginBottom: 12, color: t.accent, fontWeight: 700 }}>Resumo</div>
           <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 20, color: t.textPrimary, marginBottom: 16 }}>
             Resumo da Sessão
           </div>
@@ -286,7 +286,7 @@ export default function QrScanner({
       <div style={{ background: t.bgHeaderSolid, paddingTop: "calc(env(safe-area-inset-top, 0px) + 10px)", paddingBottom: 10, paddingLeft: 16, paddingRight: 16, display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `1px solid ${t.border}` }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: t.textPrimary, letterSpacing: 1 }}>
-            📷 SCANNER QR
+            SCANNER QR
           </span>
           <span style={{
             display: "inline-flex", alignItems: "center", gap: 5,
@@ -302,12 +302,12 @@ export default function QrScanner({
         <div style={{ display: "flex", gap: 8 }}>
           <button onClick={() => setUsarFrontal(f => !f)} title="Alternar câmera"
             style={{ background: t.bgCardAlt, border: `1px solid ${t.border}`, borderRadius: 6, padding: "6px 10px", cursor: "pointer", fontSize: 14, color: t.textMuted }}>
-            🔄
+            Cam
           </button>
           {cameraAtiva && (
             <button onClick={toggleLanterna} title="Lanterna"
               style={{ background: lanterna ? `${t.warning}22` : t.bgCardAlt, border: `1px solid ${lanterna ? t.warning : t.border}`, borderRadius: 6, padding: "6px 10px", cursor: "pointer", fontSize: 14, color: lanterna ? t.warning : t.textMuted }}>
-              🔦
+              Flash
             </button>
           )}
           <button onClick={fecharScanner}
@@ -346,11 +346,11 @@ export default function QrScanner({
         {/* Erro de permissão */}
         {erro === "permissao" && (
           <div style={{ padding: 24, textAlign: "center" }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>🚫</div>
+            <div style={{ fontSize: 18, marginBottom: 12, color: t.danger, fontWeight: 700 }}>Bloqueado</div>
             <div style={{ color: t.danger, fontWeight: 700, fontSize: 16, marginBottom: 8 }}>Acesso à câmera negado</div>
             <div style={{ color: t.textMuted, fontSize: 13, marginBottom: 16, lineHeight: 1.6 }}>
               Para escanear QR codes, permita o acesso à câmera nas configurações do navegador.
-              <br />Em Chrome: ícone 🔒 na barra de endereço → Permissões → Câmera → Permitir.
+              <br />Em Chrome: ícone de cadeado na barra de endereço → Permissões → Câmera → Permitir.
             </div>
             <button onClick={() => { setErro(null); iniciarCamera(); }}
               style={{ background: t.accent, color: "#fff", border: "none", borderRadius: 8, padding: "10px 20px", cursor: "pointer", fontWeight: 700, fontSize: 14 }}>
@@ -362,7 +362,7 @@ export default function QrScanner({
         {/* Sem câmera */}
         {erro === "sem_camera" && (
           <div style={{ padding: 24, textAlign: "center" }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>📵</div>
+            <div style={{ fontSize: 18, marginBottom: 12, color: t.warning, fontWeight: 700 }}>Sem câmera</div>
             <div style={{ color: t.warning, fontWeight: 700, fontSize: 16, marginBottom: 8 }}>Câmera não encontrada</div>
             <div style={{ color: t.textMuted, fontSize: 13 }}>Use o campo abaixo para digitar o nº de peito manualmente.</div>
           </div>
@@ -371,7 +371,7 @@ export default function QrScanner({
         {/* Erro genérico */}
         {erro === "generico" && (
           <div style={{ padding: 24, textAlign: "center" }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>⚠️</div>
+            <div style={{ fontSize: 18, marginBottom: 12, color: t.warning, fontWeight: 700 }}>Erro</div>
             <div style={{ color: t.warning, fontWeight: 700, fontSize: 16, marginBottom: 8 }}>Erro ao abrir a câmera</div>
             <button onClick={() => { setErro(null); iniciarCamera(); }}
               style={{ background: t.accent, color: "#fff", border: "none", borderRadius: 8, padding: "10px 20px", cursor: "pointer", fontWeight: 700, fontSize: 14, marginTop: 8 }}>
@@ -428,7 +428,7 @@ export default function QrScanner({
                 fontSize: 12,
               }}>
                 <span style={{ color: corTexto[item.cor] || t.textMuted, fontWeight: 600, flex: 1 }}>
-                  {item.manual ? "⌨️ " : "📷 "}{item.msg}
+                  {item.manual ? "[M] " : "[QR] "}{item.msg}
                 </span>
                 <span style={{ color: t.textDisabled, fontSize: 10, flexShrink: 0 }}>
                   {new Date(item.ts).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}

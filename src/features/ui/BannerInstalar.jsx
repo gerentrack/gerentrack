@@ -17,7 +17,7 @@ export default function BannerInstalar() {
     }}>
       <div style={{ flex: 1, minWidth: 200 }}>
         <div style={{ fontWeight: 700, fontSize: 14, color: t.textPrimary, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5 }}>
-          📲 Instalar GERENTRACK
+          Instalar GERENTRACK
         </div>
         <div style={{ fontSize: 12, color: t.textMuted, marginTop: 2, lineHeight: 1.4 }}>
           {showIOSGuide

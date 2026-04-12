@@ -219,7 +219,7 @@ function TelaConfigPontuacaoEquipes() {
     <div style={s.page}>
       <div style={s.painelHeader}>
         <div>
-          <h1 style={s.pageTitle}>🏅 Pontuação por Equipes</h1>
+          <h1 style={s.pageTitle}>Pontuação por Equipes</h1>
           <div style={{ color: t.textDimmed, fontSize: 13 }}>{eventoAtual.nome}</div>
         </div>
         <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
@@ -232,7 +232,7 @@ function TelaConfigPontuacaoEquipes() {
             style={{ width: 20, height: 20, accentColor: t.accent, cursor: "pointer" }} />
           <div>
             <div style={{ fontWeight: 700, color: ativo ? t.success : t.danger, fontSize: 15 }}>
-              {ativo ? "✅ Pontuação por Equipes ATIVA" : "❌ Pontuação por Equipes DESATIVADA"}
+              {ativo ? "Pontuação por Equipes ATIVA" : "Pontuação por Equipes DESATIVADA"}
             </div>
             <div style={{ fontSize: 12, color: t.textMuted }}>Os pontos das colocações individuais serão somados por equipe</div>
           </div>
@@ -242,7 +242,7 @@ function TelaConfigPontuacaoEquipes() {
           <>
             {/* Seleção de equipes */}
             <div style={{ marginBottom: 24 }}>
-              <h3 style={{ color: t.accent, fontSize: 15, marginBottom: 10 }}>📋 Equipes Participantes</h3>
+              <h3 style={{ color: t.accent, fontSize: 15, marginBottom: 10 }}>Equipes Participantes</h3>
               <div style={{ fontSize: 12, color: t.textMuted, marginBottom: 10 }}>Selecione as equipes que disputarão a classificação por equipes. Apenas equipes com atletas inscritos são listadas.</div>
               {equipesDisponiveis.length === 0 ? (
                 <div style={{ color: t.textDimmed, padding: 16, textAlign: "center", background: t.bgCardAlt, borderRadius: 8 }}>
@@ -282,7 +282,7 @@ function TelaConfigPontuacaoEquipes() {
 
             {/* Tabela de pontuação — provas normais */}
             <div style={{ marginBottom: 24 }}>
-              <h3 style={{ color: t.accent, fontSize: 15, marginBottom: 10 }}>🏆 Tabela de Pontuação — Provas Individuais e Combinadas</h3>
+              <h3 style={{ color: t.accent, fontSize: 15, marginBottom: 10 }}>Tabela de Pontuação — Provas Individuais e Combinadas</h3>
               <div style={{ fontSize: 12, color: t.textMuted, marginBottom: 10 }}>Defina quantos pontos cada colocação recebe. Inclui provas individuais e a classificação final das combinadas (Decatlo, Heptatlo, etc.). As combinadas só pontuam quando todas as provas componentes tiverem resultado.</div>
               <table style={{ borderCollapse: "collapse", fontSize: 13 }}>
                 <thead>
@@ -319,7 +319,7 @@ function TelaConfigPontuacaoEquipes() {
             {/* Tabela de pontuação — revezamentos */}
             {temRevezamentos && (
               <div style={{ marginBottom: 24 }}>
-                <h3 style={{ color: t.accent, fontSize: 15, marginBottom: 10 }}>🏅 Tabela de Pontuação — Provas de Revezamento</h3>
+                <h3 style={{ color: t.accent, fontSize: 15, marginBottom: 10 }}>Tabela de Pontuação — Provas de Revezamento</h3>
                 <div style={{ fontSize: 12, color: t.textMuted, marginBottom: 10 }}>Pontuação diferenciada para as provas de revezamento (4x100m, 4x400m, etc.). Aplicada a todos os revezamentos do programa.</div>
                 <table style={{ borderCollapse: "collapse", fontSize: 13 }}>
                   <thead>
@@ -356,7 +356,7 @@ function TelaConfigPontuacaoEquipes() {
 
             {/* Atletas pontuantes por equipe por prova */}
             <div style={{ marginBottom: 24 }}>
-              <h3 style={{ color: t.accent, fontSize: 15, marginBottom: 10 }}>👥 Atletas Pontuantes por Equipe</h3>
+              <h3 style={{ color: t.accent, fontSize: 15, marginBottom: 10 }}>Atletas Pontuantes por Equipe</h3>
               <div style={{ fontSize: 12, color: t.textMuted, marginBottom: 10, lineHeight: 1.5 }}>
                 Quantos atletas da mesma equipe podem pontuar em cada prova, desde que estejam dentro das colocações definidas na tabela acima.
                 <br/>Exemplo: se configurar <strong style={{ color: t.textSecondary }}>2</strong> e a tabela pontua até o 8º lugar, até 2 atletas da mesma equipe que ficarem entre os 8 primeiros somarão pontos.
@@ -375,7 +375,7 @@ function TelaConfigPontuacaoEquipes() {
               const recTipos = (recordes || []).filter(rt => recSumulaIds.includes(rt.id));
               if (recTipos.length === 0) return (
                 <div style={{ marginBottom: 24, padding: "14px 18px", background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10 }}>
-                  <h3 style={{ color: t.accent, fontSize: 15, marginBottom: 6 }}>🏆 Bônus por Quebra de Recorde</h3>
+                  <h3 style={{ color: t.accent, fontSize: 15, marginBottom: 6 }}>Bônus por Quebra de Recorde</h3>
                   <div style={{ fontSize: 12, color: t.textDimmed, lineHeight: 1.5 }}>
                     Nenhum tipo de recorde habilitado nas súmulas desta competição.
                     <br/>Para usar esta funcionalidade, vá em <strong style={{ color: t.textMuted }}>Editar Competição → Recordes nas Súmulas</strong> e selecione pelo menos um tipo de recorde.
@@ -384,7 +384,7 @@ function TelaConfigPontuacaoEquipes() {
               );
               return (
                 <div style={{ marginBottom: 24 }}>
-                  <h3 style={{ color: t.accent, fontSize: 15, marginBottom: 6 }}>🏆 Bônus por Quebra de Recorde</h3>
+                  <h3 style={{ color: t.accent, fontSize: 15, marginBottom: 6 }}>Bônus por Quebra de Recorde</h3>
                   <div style={{ fontSize: 12, color: t.textMuted, marginBottom: 12, lineHeight: 1.5 }}>
                     Defina quantos pontos bônus a equipe recebe quando um de seus atletas quebra um recorde nesta competição.
                     <br/>Cada quebra de recorde em cada prova pontua independentemente. Deixe <strong style={{ color: t.textSecondary }}>0</strong> para não bonificar.
@@ -420,7 +420,7 @@ function TelaConfigPontuacaoEquipes() {
 
             {/* ── Penalidades ── */}
             <div style={{ marginBottom: 24 }}>
-              <h3 style={{ color: t.danger, fontSize: 15, marginBottom: 6 }}>⚠ Penalidades</h3>
+              <h3 style={{ color: t.danger, fontSize: 15, marginBottom: 6 }}>Penalidades</h3>
               <div style={{ fontSize: 12, color: t.textMuted, marginBottom: 12, lineHeight: 1.5 }}>
                 Retire pontos de equipes por infrações. O valor será subtraído do total de pontos na classificação.
               </div>
@@ -528,16 +528,16 @@ function TelaConfigPontuacaoEquipes() {
 
             {/* Salvar */}
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <button style={s.btnPrimary} onClick={handleSalvar}>💾 Salvar Configuração</button>
-              {salvo && <span style={s.savedBadge}>✅ Salvo!</span>}
+              <button style={s.btnPrimary} onClick={handleSalvar}>Salvar Configuração</button>
+              {salvo && <span style={s.savedBadge}>✓ Salvo!</span>}
             </div>
           </>
         )}
 
         {!ativo && (
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <button style={s.btnPrimary} onClick={handleSalvar}>💾 Salvar (Desativado)</button>
-            {salvo && <span style={s.savedBadge}>✅ Salvo!</span>}
+            <button style={s.btnPrimary} onClick={handleSalvar}>Salvar (Desativado)</button>
+            {salvo && <span style={s.savedBadge}>✓ Salvo!</span>}
           </div>
         )}
       </div>

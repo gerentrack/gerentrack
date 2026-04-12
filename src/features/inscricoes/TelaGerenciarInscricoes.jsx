@@ -222,7 +222,6 @@ function TelaGerenciarInscricoes() {
   // Guard: funcionário sem permissão não pode gerenciar inscrições
   if (isFunc && !isAmplo) return (
     <div style={s.page}><div style={s.emptyState}>
-      <span style={{ fontSize: 48 }}>🚫</span>
       <p style={{ color: t.danger, fontWeight: 700 }}>Permissão insuficiente</p>
       <p style={{ color: t.textDimmed, fontSize: 14 }}>Você não tem permissão para gerenciar inscrições.</p>
       <button style={s.btnGhost} onClick={() => setTela("painel-organizador")}>← Voltar</button>
@@ -250,7 +249,7 @@ function TelaGerenciarInscricoes() {
     <div style={s.page}>
       <div style={s.painelHeader}>
         <div>
-          <h1 style={s.pageTitle}>✍️ Gerenciar Inscrições</h1>
+          <h1 style={s.pageTitle}>Gerenciar Inscrições</h1>
           <p style={{ color: t.textTertiary, margin:"4px 0 0", fontSize:13 }}>
             {isAmplo ? "Acesso amplo — todas as inscrições de todos os eventos" :
              isAtleta ? "Suas inscrições" : "Inscrições dos seus atletas"}
@@ -294,7 +293,6 @@ function TelaGerenciarInscricoes() {
 
       {inscVisiveis.length === 0 ? (
         <div style={s.emptyState}>
-          <span style={{ fontSize:48 }}>✍️</span>
           <p>Nenhuma inscrição encontrada.</p>
         </div>
       ) : (
@@ -335,7 +333,7 @@ function TelaGerenciarInscricoes() {
                               style={{ marginLeft:6, fontSize:10, color: t.accent,
                                 background: t.accentBg, border:`1px solid ${t.accentBorder}`,
                                 padding:"1px 6px", borderRadius:8, cursor: "help" }}>
-                              🤝 cruzado{orgNome ? ` · ${orgNome}` : ""}
+                              cruzado{orgNome ? ` · ${orgNome}` : ""}
                             </span>
                           );
                         })()}
@@ -382,7 +380,7 @@ function TelaGerenciarInscricoes() {
                         <Td>
                           <div style={{fontSize:11}}>
                             <span style={{color: first.inscritoPorTipo === "atleta" ? t.success : first.inscritoPorTipo === "treinador" ? t.accent : t.accent}}>
-                              {first.inscritoPorTipo === "atleta" ? "🏃" : first.inscritoPorTipo === "treinador" ? "👨‍🏫" : first.inscritoPorTipo === "equipe" ? "🎽" : first.inscritoPorTipo === "admin" ? "⚙️" : first.inscritoPorTipo === "organizador" ? "🏟️" : "—"}
+                              {first.inscritoPorTipo === "atleta" ? "" : first.inscritoPorTipo === "treinador" ? "" : first.inscritoPorTipo === "equipe" ? "" : first.inscritoPorTipo === "admin" ? "" : first.inscritoPorTipo === "organizador" ? "" : "—"}
                               {" "}{first.inscritoPorNome || (first.origemAtleta ? "Atleta" : "Equipe")}
                             </span>
                           </div>
@@ -396,7 +394,7 @@ function TelaGerenciarInscricoes() {
                             }
                           }}
                             style={{...s.btnGhost,fontSize:11,padding:"3px 8px",color: t.danger,borderColor:`${t.danger}44`}}>
-                            🗑️ Todas
+                            Todas
                           </button>
                         ) : (
                           <span style={{color: t.textDisabled,fontSize:11}}>Encerrada</span>

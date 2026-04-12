@@ -62,7 +62,7 @@ function ExclusaoConfirmada({ titulo, descricao, corAccent, btnLabel, onConfirma
     <div style={{ background: corAccent + "08", border: `1px solid ${corAccent}33`,
       borderRadius: 10, padding: "16px 18px" }}>
       <div style={{ fontWeight: 700, color: corAccent, marginBottom: 8, fontSize: 14 }}>
-        ⚠️ {titulo}
+        {titulo}
       </div>
       <div style={{ color: t.textTertiary, fontSize: 13, lineHeight: 1.7, marginBottom: 14 }}
         dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(descricao) }} />
@@ -84,7 +84,7 @@ function ExclusaoConfirmada({ titulo, descricao, corAccent, btnLabel, onConfirma
     <div style={{ background: corAccent + "08", border: `2px solid ${corAccent}55`,
       borderRadius: 10, padding: "16px 18px" }}>
       <div style={{ fontWeight: 700, color: corAccent, marginBottom: 8, fontSize: 14 }}>
-        🔐 Confirmação final
+        Confirmação final
       </div>
       <div style={{ color: t.textMuted, fontSize: 12, marginBottom: 10, lineHeight: 1.6 }}>
         Para confirmar, digite <strong style={{ color: t.textPrimary, fontFamily: "monospace",
@@ -102,7 +102,7 @@ function ExclusaoConfirmada({ titulo, descricao, corAccent, btnLabel, onConfirma
             border: "none", padding: "9px 18px", borderRadius: 7,
             cursor: errada ? "not-allowed" : "pointer", fontSize: 13, fontWeight: 700,
             fontFamily: "'Barlow Condensed', sans-serif", transition: "all 0.2s" }}>
-          {errada ? "⬜ Confirmar" : "⚠️ Confirmar"}
+          Confirmar
         </button>
         <button onClick={() => { setFase(0); setPalavra(""); }} style={S.btnGhost}>Cancelar</button>
       </div>
@@ -400,7 +400,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
       `Nome: ${formDados.nome}`,
       usuarioLogado.organizadorId || (isOrg ? usuarioLogado.id : null),
       { equipeId: usuarioLogado.equipeId });
-    ok("✅ Dados atualizados com sucesso!");
+    ok("Dados atualizados com sucesso!");
   };
 
   const salvarSenha = async () => {
@@ -427,7 +427,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
     if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Alterou senha", "",
       usuarioLogado.organizadorId || (isOrg ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId });
     setFormSenha({ atual: "", nova: "", confirmar: "" });
-    ok("✅ Senha alterada com sucesso!");
+    ok("Senha alterada com sucesso!");
   };
 
   // ── Revogação de Consentimento LGPD (Art. 8º §5º) ──────────────────────────
@@ -532,7 +532,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
     <div style={s.page}>
       <div style={s.painelHeader}>
         <div>
-          <h1 style={s.pageTitle}>⚙️ Configurações da Conta</h1>
+          <h1 style={s.pageTitle}>Configurações da Conta</h1>
           <div style={{ color: t.textDimmed, fontSize: 13 }}>
             {tipoLabel[usuarioLogado?.tipo] || "Usuário"} · {meuRegistro?.nome || "—"}
           </div>
@@ -541,17 +541,17 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
       </div>
 
       {feedback && <div style={s.okBox}>{feedback}</div>}
-      {erro     && <div style={s.errBox}>⚠️ {erro}</div>}
+      {erro     && <div style={s.errBox}>{erro}</div>}
 
       <div style={s.tabBar}>
-        <button style={tabStyle("dados")} onClick={() => { setAba("dados"); setErro(""); }}>📝 Dados Pessoais</button>
-        <button style={tabStyle("senha")} onClick={() => { setAba("senha"); setErro(""); }}>🔒 Alterar Senha</button>
-        {!isAdmin && <button style={tabStyle("conta")} onClick={() => { setAba("conta"); setErro(""); }}>ℹ️ Minha Conta</button>}
-        {isOrg    && <button style={tabStyle("perfil")} onClick={() => { setAba("perfil"); setErro(""); }}>🏢 Perfil Público</button>}
-        {isAdmin  && <button style={tabStyle("aparencia")} onClick={() => { setAba("aparencia"); setErro(""); }}>⚙️ Configurações Avançadas</button>}
-        {isAdmin  && <button style={tabStyle("ropa")} onClick={() => { setAba("ropa"); setErro(""); }}>📋 ROPA</button>}
-        {isAdmin  && <button style={tabStyle("incidente")} onClick={() => { setAba("incidente"); setErro(""); }}>🚨 Incidente LGPD</button>}
-        {isAdmin  && <button style={tabStyle("diagnostico")} onClick={() => { setAba("diagnostico"); setErro(""); }}>🔍 Diagnóstico Firebase</button>}
+        <button style={tabStyle("dados")} onClick={() => { setAba("dados"); setErro(""); }}>Dados Pessoais</button>
+        <button style={tabStyle("senha")} onClick={() => { setAba("senha"); setErro(""); }}>Alterar Senha</button>
+        {!isAdmin && <button style={tabStyle("conta")} onClick={() => { setAba("conta"); setErro(""); }}>Minha Conta</button>}
+        {isOrg    && <button style={tabStyle("perfil")} onClick={() => { setAba("perfil"); setErro(""); }}>Perfil Público</button>}
+        {isAdmin  && <button style={tabStyle("aparencia")} onClick={() => { setAba("aparencia"); setErro(""); }}>Configurações Avançadas</button>}
+        {isAdmin  && <button style={tabStyle("ropa")} onClick={() => { setAba("ropa"); setErro(""); }}>ROPA</button>}
+        {isAdmin  && <button style={tabStyle("incidente")} onClick={() => { setAba("incidente"); setErro(""); }}>Incidente LGPD</button>}
+        {isAdmin  && <button style={tabStyle("diagnostico")} onClick={() => { setAba("diagnostico"); setErro(""); }}>Diagnóstico Firebase</button>}
       </div>
 
       {/* ── ABA: DADOS PESSOAIS ─────────────────────────────────────────── */}
@@ -565,7 +565,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
             : <FormField label="CPF"    value={formDados.cpf}  onChange={v => setFormDados({ ...formDados, cpf: v })}  placeholder="000.000.000-00" />
           )}
           {!isAdmin && <FormField label="Telefone" value={formDados.fone} onChange={v => setFormDados({ ...formDados, fone: v })} placeholder="(00) 00000-0000" />}
-          <button style={{ ...s.btnPrimary, marginTop: 12 }} onClick={salvarDados}>💾 Salvar Dados</button>
+          <button style={{ ...s.btnPrimary, marginTop: 12 }} onClick={salvarDados}>Salvar Dados</button>
         </div>
       )}
 
@@ -576,7 +576,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
           <FormField label="Senha Atual *"          value={formSenha.atual}     onChange={v => setFormSenha({ ...formSenha, atual: v })}     type="password" placeholder="Digite sua senha atual" />
           <FormField label="Nova Senha *"           value={formSenha.nova}      onChange={v => setFormSenha({ ...formSenha, nova: v })}      type="password" placeholder={isAdmin ? "Mínimo 12 caracteres (maiúscula, minúscula e número)" : "Mínimo 6 caracteres"} />
           <FormField label="Confirmar Nova Senha *" value={formSenha.confirmar} onChange={v => setFormSenha({ ...formSenha, confirmar: v })} type="password" placeholder="Repita a nova senha" />
-          <button style={{ ...s.btnPrimary, marginTop: 12 }} onClick={salvarSenha}>🔒 Alterar Senha</button>
+          <button style={{ ...s.btnPrimary, marginTop: 12 }} onClick={salvarSenha}>Alterar Senha</button>
         </div>
       )}
 
@@ -646,7 +646,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                   </div>
                 </div>
                 <div style={{ marginTop: 8, fontSize: 11, color: t.textDimmed, lineHeight: 1.6 }}>
-                  ℹ️ Inscrições e resultados oficiais são registros permanentes das competições e não são afetados pelas opções de exclusão de conta abaixo.
+                  Inscrições e resultados oficiais são registros permanentes das competições e não são afetados pelas opções de exclusão de conta abaixo.
                 </div>
               </div>
             )}
@@ -657,7 +657,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
             <div style={{ ...s.card, borderColor: meuRegistro?.lgpdConsentimentoRevogado ? `${t.danger}55` : `${t.accent}33`,
               background: meuRegistro?.lgpdConsentimentoRevogado ? `${t.danger}08` : t.accentBg }}>
               <h3 style={{ ...s.sectionTitle, color: meuRegistro?.lgpdConsentimentoRevogado ? t.danger : t.accent }}>
-                🔒 Consentimento LGPD
+                Consentimento LGPD
               </h3>
 
               {/* Status atual */}
@@ -665,7 +665,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                 {[
                   {
                     label: "Status",
-                    value: meuRegistro?.lgpdConsentimentoRevogado ? "⚠️ Revogado" : "✅ Ativo",
+                    value: meuRegistro?.lgpdConsentimentoRevogado ? "Revogado" : "Ativo",
                     color: meuRegistro?.lgpdConsentimentoRevogado ? t.danger : t.success,
                   },
                   meuRegistro?.lgpdConsentimentoData ? {
@@ -716,7 +716,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                     • Ano de nascimento e sexo (para integridade das categorias)<br/><br/>
                     <strong style="color:#ffaa44">Esta ação não pode ser desfeita.</strong>`}
                   corAccent="#ffaa44"
-                  btnLabel="🔓 Revogar Consentimento LGPD..."
+                  btnLabel="Revogar Consentimento LGPD..."
                   confirmWord="REVOGAR"
                   onConfirmar={revogarConsentimento}
                 />
@@ -726,7 +726,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
               {meuRegistro?.lgpdConsentimentoRevogado && (
                 <div style={{ background: `${t.warning}11`, border: `1px solid ${t.warning}55`, borderRadius: 8,
                   padding: "10px 14px", fontSize: 12, color: t.warning, lineHeight: 1.6 }}>
-                  ⚠️ Seu consentimento já foi revogado. Seus dados estão anonimizados.
+                  Seu consentimento já foi revogado. Seus dados estão anonimizados.
                   Para reativar o uso do sistema, será necessário realizar um novo cadastro.
                 </div>
               )}
@@ -736,7 +736,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
           {/* ── PORTABILIDADE DE DADOS (Art. 18º, V LGPD) ──────────────────── */}
           {!isAdmin && (
             <div style={{ ...s.card, borderColor: t.accentBorder }}>
-              <h3 style={s.sectionTitle}>📦 Portabilidade dos Meus Dados</h3>
+              <h3 style={s.sectionTitle}>Portabilidade dos Meus Dados</h3>
               <p style={{ color:t.textDimmed, fontSize:13, marginBottom:14, lineHeight:1.6 }}>
                 Conforme o <strong style={{ color:t.textPrimary }}>Art. 18º, V da LGPD</strong>, você tem direito a receber
                 uma cópia dos seus dados pessoais em formato estruturado. A solicitação será analisada pelo
@@ -754,7 +754,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                   <div>
                     <div style={{ background:`${t.success}15`, border:`1px solid ${t.success}66`, borderRadius:8,
                       padding:"12px 16px", marginBottom:12, fontSize:13, color:t.success }}>
-                      ✅ Seu arquivo está pronto! Solicitação aprovada em{" "}
+                      Seu arquivo está pronto! Solicitação aprovada em{" "}
                       {new Date(solPronta.dataResolucao).toLocaleString("pt-BR")}.
                     </div>
                     <button style={s.btnPrimary} onClick={() => {
@@ -768,7 +768,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                       if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome,
                         "Baixou portabilidade de dados", "", null, { modulo: "lgpd" });
                     }}>
-                      ⬇️ Baixar Meus Dados (JSON)
+                      Baixar Meus Dados (JSON)
                     </button>
                   </div>
                 );
@@ -776,7 +776,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                 if (solPendente) return (
                   <div style={{ background:t.accentBg, border:`1px solid ${t.accent}44`, borderRadius:8,
                     padding:"12px 16px", fontSize:13, color:t.accent }}>
-                    ⏳ Solicitação enviada em {new Date(solPendente.data).toLocaleString("pt-BR")}.
+                    Solicitação enviada em {new Date(solPendente.data).toLocaleString("pt-BR")}.
                     O administrador irá processar em até 15 dias.
                   </div>
                 );
@@ -792,9 +792,9 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                     });
                     if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome,
                       "Solicitou portabilidade de dados", "", null, { modulo: "lgpd" });
-                    ok("✅ Solicitação enviada! O administrador irá processar em até 15 dias.");
+                    ok("Solicitação enviada! O administrador irá processar em até 15 dias.");
                   }}>
-                    📤 Solicitar Exportação dos Meus Dados
+                    Solicitar Exportação dos Meus Dados
                   </button>
                 );
               })()}
@@ -803,7 +803,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
 
           {/* ── ZONA DE PERIGO ─────────────────────────────────────────────── */}
           <div style={{ background: `${t.danger}08`, border: `2px solid ${t.danger}33`, borderRadius: 12, padding: "20px 24px" }}>
-            <h3 style={{ color: t.danger, fontSize: 16, fontWeight: 800, marginBottom: 6 }}>⚠️ Zona de Perigo</h3>
+            <h3 style={{ color: t.danger, fontSize: 16, fontWeight: 800, marginBottom: 6 }}>Zona de Perigo</h3>
             <p style={{ color: t.textDimmed, fontSize: 12, marginBottom: 20, lineHeight: 1.6 }}>
               Ações irreversíveis relacionadas ao seu acesso ao sistema.
               Leia cada opção com atenção antes de prosseguir.
@@ -813,7 +813,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
             <div style={{ background: `${t.danger}08`, border: `1px solid ${t.danger}33`, borderRadius: 10,
               padding: "16px 18px", marginBottom: 14 }}>
               <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 12 }}>
-                <span style={{ fontSize: 24, flexShrink: 0 }}>🗑️</span>
+                <span style={{ fontSize: 24, flexShrink: 0, color: t.danger }}>&#x2716;</span>
                 <div>
                   <div style={{ color: t.danger, fontWeight: 700, fontSize: 14, marginBottom: 4 }}>
                     Excluir este Perfil
@@ -830,15 +830,15 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                   </div>
                   <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 4 }}>
                     {[
-                      { ico: "✅", txt: "Seu acesso de login nesta organização será removido" },
+                      { ico: "\u2022", txt: "Seu acesso de login nesta organização será removido", color: t.success },
                       temOutrosPerfis
-                        ? { ico: "✅", txt: "Seus outros perfis continuarão funcionando normalmente" }
+                        ? { ico: "\u2022", txt: "Seus outros perfis continuarão funcionando normalmente", color: t.success }
                         : null,
-                      { ico: "✅", txt: "Inscrições e resultados históricos são preservados integralmente" },
-                      { ico: "✅", txt: "Seu registro de atleta não é alterado" },
+                      { ico: "\u2022", txt: "Inscrições e resultados históricos são preservados integralmente", color: t.success },
+                      { ico: "\u2022", txt: "Seu registro de atleta não é alterado", color: t.success },
                     ].filter(Boolean).map((item, i) => (
                       <div key={i} style={{ display: "flex", gap: 6, fontSize: 12, color: t.textMuted }}>
-                        <span>{item.ico}</span><span>{item.txt}</span>
+                        <span style={{ color: item.color || t.textMuted }}>{item.ico}</span><span>{item.txt}</span>
                       </div>
                     ))}
                   </div>
@@ -855,7 +855,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                   • Todos os seus resultados oficiais<br/>
                   • Seu cadastro de atleta`}
                 corAccent="#ff6b6b"
-                btnLabel="🗑️ Excluir este Perfil..."
+                btnLabel="Excluir este Perfil..."
                 confirmWord="EXCLUIR"
                 onConfirmar={() => {
                   if (store) store.set(arr => arr.filter(u => u.id !== usuarioLogado.id));
@@ -869,7 +869,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
               <div style={{ background: `${t.danger}08`, border: `1px solid ${t.danger}55`, borderRadius: 10,
                 padding: "16px 18px" }}>
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 12 }}>
-                  <span style={{ fontSize: 24, flexShrink: 0 }}>💣</span>
+                  <span style={{ fontSize: 24, flexShrink: 0, color: t.danger }}>&#x2716;</span>
                   <div>
                     <div style={{ color: t.danger, fontWeight: 700, fontSize: 14, marginBottom: 4 }}>
                       Excluir Todos os Perfis e Sair do Sistema
@@ -880,20 +880,20 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                     </div>
                     <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 4 }}>
                       {[
-                        { ico: "❌", txt: "Todos os seus perfis de login serão excluídos" },
-                        { ico: "❌", txt: "Seus dados pessoais (nome, CPF, e-mail, telefone) serão anonimizados" },
-                        { ico: "✅", txt: "Inscrições e resultados históricos são preservados como registros anônimos — obrigação dos regulamentos esportivos" },
-                        { ico: "✅", txt: "Nenhum resultado oficial de competição é apagado" },
+                        { ico: "\u2022", txt: "Todos os seus perfis de login serão excluídos", color: t.danger },
+                        { ico: "\u2022", txt: "Seus dados pessoais (nome, CPF, e-mail, telefone) serão anonimizados", color: t.danger },
+                        { ico: "\u2022", txt: "Inscrições e resultados históricos são preservados como registros anônimos — obrigação dos regulamentos esportivos", color: t.success },
+                        { ico: "\u2022", txt: "Nenhum resultado oficial de competição é apagado", color: t.success },
                       ].map((item, i) => (
                         <div key={i} style={{ display: "flex", gap: 6, fontSize: 12, color: t.textMuted }}>
-                          <span>{item.ico}</span><span>{item.txt}</span>
+                          <span style={{ color: item.color || t.textMuted }}>{item.ico}</span><span>{item.txt}</span>
                         </div>
                       ))}
                     </div>
                     {nInscricoes > 0 && (
                       <div style={{ marginTop: 10, background: `${t.warning}11`, border: `1px solid ${t.warning}55`,
                         borderRadius: 7, padding: "8px 12px", fontSize: 12, color: t.warning }}>
-                        ⚠️ Você tem <strong>{nInscricoes} inscrição(ões) oficial(is)</strong>.
+                        Você tem <strong>{nInscricoes} inscrição(ões) oficial(is)</strong>.
                         Elas serão preservadas como "Atleta Excluído" para integridade do histórico da competição.
                       </div>
                     )}
@@ -910,7 +910,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                     • Todos os resultados de competições (anonimizados)<br/><br/>
                     <strong style="color:#ff8888">Esta ação não pode ser desfeita.</strong>`}
                   corAccent="#ff4444"
-                  btnLabel="💣 Excluir Todos os Perfis e Sair do Sistema..."
+                  btnLabel="Excluir Todos os Perfis e Sair do Sistema..."
                   confirmWord="EXCLUIR TUDO"
                   onConfirmar={() => {
                     const agora = new Date().toISOString();
@@ -957,7 +957,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
       {aba === "perfil" && isOrg && meuOrgPerfil && (
         <div style={{ maxWidth: 700 }}>
           <div style={s.card}>
-            <h3 style={s.sectionTitle}>🏢 Perfil Público</h3>
+            <h3 style={s.sectionTitle}>Perfil Público</h3>
             <div style={{ fontSize: 13, color: t.textDimmed, marginBottom: 16, lineHeight: 1.6 }}>
               Configure as informações que aparecem na sua página pública.
               {meuOrgPerfil.slug && (
@@ -974,7 +974,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: 11, fontWeight: 600, color: t.textMuted, letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" }}>Logo</div>
                 <div style={{ width: 90, height: 90, borderRadius: 14, overflow: "hidden", border: `2px solid ${(meuOrgPerfil.corPrimaria || t.accent)}33`, background: t.bgCardAlt, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 8px" }}>
-                  {meuOrgPerfil.logo ? <img src={meuOrgPerfil.logo} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} /> : <span style={{ fontSize: 40, opacity: 0.3 }}>🏢</span>}
+                  {meuOrgPerfil.logo ? <img src={meuOrgPerfil.logo} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} /> : <span style={{ fontSize: 14, opacity: 0.3, color: t.textDisabled }}>Sem logo</span>}
                 </div>
                 <label style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 6, padding: "5px 14px", cursor: "pointer", fontSize: 12, color: t.textTertiary }}>
                   {perfilUploading ? "Enviando..." : "Alterar logo"}
@@ -1050,12 +1050,12 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
 
             {/* Botões */}
             <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <button style={s.btnPrimary} onClick={salvarPerfilOrg}>💾 Salvar Perfil</button>
+              <button style={s.btnPrimary} onClick={salvarPerfilOrg}>Salvar Perfil</button>
               {meuOrgPerfil.slug && (
                 <button style={s.btnSecondary} onClick={() => {
                   if (selecionarOrganizador) selecionarOrganizador(meuOrgPerfil.id);
                 }}>
-                  👁 Ver Página Pública
+                  Ver Página Pública
                 </button>
               )}
             </div>
@@ -1096,7 +1096,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
 
           {/* ── Identidade Visual ────────────────────────────────────────────── */}
           <div style={s.card}>
-            <h3 style={s.sectionTitle}>🎨 Identidade Visual</h3>
+            <h3 style={s.sectionTitle}>Identidade Visual</h3>
             <p style={{ color:t.textDimmed, fontSize:13, marginBottom:16, lineHeight:1.6 }}>
               Personalize o ícone, logo, nome e slogan exibidos no sistema.
             </p>
@@ -1114,7 +1114,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                 </div>
                 <label style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 10px",
                   background:t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:5, cursor:"pointer", fontSize:11, color:t.accent }}>
-                  📁 Trocar
+                  Trocar
                   <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }}
                     onChange={e => {
                       const f = e.target.files?.[0]; if (!f) return;
@@ -1142,7 +1142,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                 </div>
                 <label style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 10px",
                   background:t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:5, cursor:"pointer", fontSize:11, color:t.accent }}>
-                  📁 Trocar
+                  Trocar
                   <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }}
                     onChange={e => {
                       const f = e.target.files?.[0]; if (!f) return;
@@ -1173,7 +1173,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
               </div>
               <label style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 10px",
                 background:t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:5, cursor:"pointer", fontSize:11, color:t.accent }}>
-                📁 {siteBranding?.logoFooter ? "Trocar" : "Enviar"}
+                {siteBranding?.logoFooter ? "Trocar" : "Enviar"}
                 <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" style={{ display:"none" }}
                   onChange={(e) => {
                     const f = e.target.files?.[0]; if (!f) return;
@@ -1189,7 +1189,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                   onClick={async () => {
                     try { await deleteObject(storageRef(storage, siteBranding.logoFooter)); } catch {}
                     setSiteBranding(prev => ({ ...prev, logoFooter: "" }));
-                  }}>🗑 Remover</button>
+                  }}>Remover</button>
               )}
             </div>
 
@@ -1289,7 +1289,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
 
           {/* ── Imagem de Fundo do Hero ──────────────────────────────────────── */}
           <div style={s.card}>
-            <h3 style={s.sectionTitle}>🖼️ Imagem de Fundo do Hero</h3>
+            <h3 style={s.sectionTitle}>Imagem de Fundo do Hero</h3>
             <p style={{ color: t.textDimmed, fontSize: 13, marginBottom: 20, lineHeight: 1.6 }}>
               Esta imagem aparecerá no fundo da seção principal da página inicial.<br />
               <strong style={{ color: t.textMuted }}>Tamanho recomendado:</strong> 1920 × 560px · JPG ou WebP · até 2MB.
@@ -1448,7 +1448,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                 onChange={async e => {
                   const file = e.target.files?.[0];
                   if (!file) return;
-                  if (file.size > 2 * 1024 * 1024) { setErro("⚠️ Imagem muito grande. Use no máximo 2MB."); e.target.value = ""; return; }
+                  if (file.size > 2 * 1024 * 1024) { setErro("Imagem muito grande. Use no máximo 2MB."); e.target.value = ""; return; }
                   setErro("");
                   setUploadandoHero(true);
                   try {
@@ -1458,7 +1458,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                     setHeroBgUrl(url);
                     setHeroBgPreview(url);
                   } catch (err) {
-                    setErro("❌ Erro ao enviar imagem: " + err.message);
+                    setErro("Erro ao enviar imagem: " + err.message);
                   } finally {
                     setUploadandoHero(false);
                     e.target.value = "";
@@ -1474,7 +1474,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                 fontSize: 13, color: uploadandoHero ? t.accent : t.textTertiary,
                 fontFamily: "'Barlow', sans-serif", transition: "all 0.2s",
               }}>
-                {uploadandoHero ? "⏳ Enviando para Firebase Storage..." : "📁 Escolher arquivo (JPG, PNG, WebP — máx. 2MB)"}
+                {uploadandoHero ? "Enviando para Firebase Storage..." : "Escolher arquivo (JPG, PNG, WebP — máx. 2MB)"}
               </label>
             </div>
 
@@ -1501,19 +1501,19 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                   if (!setSiteBranding || uploadandoHero) return;
                   setSiteBranding(prev => ({ ...prev, heroBg: heroBgUrl }));
                   if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Alterou imagem do hero", "", null, { modulo: "aparencia" });
-                  ok("✅ Imagem de fundo salva com sucesso!");
+                  ok("Imagem de fundo salva com sucesso!");
                 }}
               >
-                💾 Salvar Imagem
+                Salvar Imagem
               </button>
               {(siteBranding?.heroBg || heroBgPreview) && (
                 <button style={s.btnGhost} onClick={() => {
                   setHeroBgUrl(""); setHeroBgPreview("");
                   if (setSiteBranding) setSiteBranding(prev => ({ ...prev, heroBg: "" }));
                   if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Removeu imagem do hero", "", null, { modulo: "aparencia" });
-                  ok("✅ Imagem de fundo removida.");
+                  ok("Imagem de fundo removida.");
                 }}>
-                  🗑️ Remover Imagem
+                  Remover Imagem
                 </button>
               )}
             </div>
@@ -1521,7 +1521,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
 
           {/* ── Assinaturas de Federações (Ranking) ─────────────────────────── */}
           <div style={s.card}>
-            <h3 style={s.sectionTitle}>🏅 Assinaturas de Federações (Ranking)</h3>
+            <h3 style={s.sectionTitle}>Assinaturas de Federações (Ranking)</h3>
             <p style={{ color:t.textDimmed, fontSize:13, marginBottom:14, lineHeight:1.6 }}>
               Logo/assinatura de cada federação estadual que aparecerá na impressão do ranking oficial ao filtrar pela UF correspondente.
             </p>
@@ -1537,7 +1537,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                 )}
                 <label style={{ display:"inline-flex", alignItems:"center", gap:4, padding:"4px 10px",
                   background:t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:5, cursor:"pointer", fontSize:11, color:t.accent }}>
-                  📁 {fed.logo ? "Trocar" : "Enviar"}
+                  {fed.logo ? "Trocar" : "Enviar"}
                   <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }}
                     onChange={async ev => {
                       const f = ev.target.files?.[0]; if (!f) return;
@@ -1553,7 +1553,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                 </label>
                 {fed.logo && (
                   <button style={{ fontSize:10, color:t.danger, background:"transparent", border:`1px solid ${t.danger}44`, borderRadius:4, padding:"3px 8px", cursor:"pointer" }}
-                    onClick={() => setSiteBranding(prev => ({ ...prev, assinaturasFederacao: { ...prev.assinaturasFederacao, [uf]: { ...prev.assinaturasFederacao[uf], logo: "" } } }))}>🗑️</button>
+                    onClick={() => setSiteBranding(prev => ({ ...prev, assinaturasFederacao: { ...prev.assinaturasFederacao, [uf]: { ...prev.assinaturasFederacao[uf], logo: "" } } }))}>Remover</button>
                 )}
                 <button style={{ fontSize:10, color:t.danger, background:"transparent", border:"none", cursor:"pointer" }}
                   onClick={() => setSiteBranding(prev => {
@@ -1577,24 +1577,24 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
 
           {/* ── Backup e Restauração ─────────────────────────────────────────── */}
           <div style={s.card}>
-            <h3 style={s.sectionTitle}>💾 Backup e Restauração</h3>
+            <h3 style={s.sectionTitle}>Backup e Restauração</h3>
             <p style={{ color:t.textDimmed, fontSize:13, marginBottom:16, lineHeight:1.6 }}>
               Exporte os dados para proteger suas informações ou transferir para outro ambiente.
             </p>
             <div style={{ background:`${t.success}08`, border:`1px solid ${t.success}44`, borderRadius:8, padding:14, marginBottom:10 }}>
               <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-                <span style={{ fontSize:20 }}>📤</span>
+                <span style={{ fontSize:14, color:t.success, fontWeight:700 }}>&#x2191;</span>
                 <div>
                   <div style={{ color:t.success, fontWeight:700, fontSize:13 }}>Exportar Backup</div>
                   <div style={{ color:t.textDisabled, fontSize:11 }}>Baixa um arquivo .json com todos os dados</div>
                 </div>
               </div>
               <button style={{ ...s.btnGhost, color:t.success, borderColor:`${t.success}66`, width:"100%", fontSize:12 }}
-                onClick={exportarDados}>⬇️ Baixar Backup Agora</button>
+                onClick={exportarDados}>Baixar Backup Agora</button>
             </div>
             <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.accentBorder}`, borderRadius:8, padding:14 }}>
               <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-                <span style={{ fontSize:20 }}>📥</span>
+                <span style={{ fontSize:14, color:t.accent, fontWeight:700 }}>&#x2193;</span>
                 <div>
                   <div style={{ color:t.accent, fontWeight:700, fontSize:13 }}>Restaurar Backup</div>
                   <div style={{ color:t.textDisabled, fontSize:11 }}>Carrega um arquivo .json deste sistema</div>
@@ -1602,12 +1602,12 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
               </div>
               <label style={{ display:"block", cursor:"pointer" }}>
                 <div style={{ border:`1px solid ${t.accentBorder}`, color:t.accent, fontSize:12, textAlign:"center", padding:"8px 12px", borderRadius:6 }}>
-                  📂 Selecionar Arquivo de Backup
+                  Selecionar Arquivo de Backup
                 </div>
                 <input type="file" accept=".json" style={{ display:"none" }}
                   onChange={e => { if (e.target.files[0]) importarDados(e.target.files[0]); e.target.value = ""; }} />
               </label>
-              <div style={{ marginTop:8, fontSize:11, color:t.textMuted }}>⚠️ Importar substitui todos os dados atuais.</div>
+              <div style={{ marginTop:8, fontSize:11, color:t.textMuted }}>Importar substitui todos os dados atuais.</div>
             </div>
           </div>
 
@@ -1618,16 +1618,16 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
           {/* ── Redes Sociais ───────────────────────────────────────────── */}
           {(() => {
             const REDES_OPCOES = [
-              { id: "instagram", label: "Instagram", emoji: "📷", placeholder: "https://instagram.com/seu_perfil" },
-              { id: "facebook", label: "Facebook", emoji: "📘", placeholder: "https://facebook.com/sua_pagina" },
-              { id: "youtube", label: "YouTube", emoji: "🎬", placeholder: "https://youtube.com/@seu_canal" },
-              { id: "linkedin", label: "LinkedIn", emoji: "💼", placeholder: "https://linkedin.com/company/sua_empresa" },
-              { id: "x", label: "X (Twitter)", emoji: "🐦", placeholder: "https://x.com/seu_perfil" },
-              { id: "tiktok", label: "TikTok", emoji: "🎵", placeholder: "https://tiktok.com/@seu_perfil" },
-              { id: "whatsapp", label: "WhatsApp", emoji: "💬", placeholder: "https://wa.me/5531999999999" },
-              { id: "email", label: "E-mail", emoji: "✉️", placeholder: "mailto:contato@exemplo.com.br" },
-              { id: "site", label: "Site", emoji: "🌐", placeholder: "https://seu-site.com.br" },
-              { id: "outro", label: "Outro", emoji: "🔗", placeholder: "https://..." },
+              { id: "instagram", label: "Instagram", placeholder: "https://instagram.com/seu_perfil" },
+              { id: "facebook", label: "Facebook", placeholder: "https://facebook.com/sua_pagina" },
+              { id: "youtube", label: "YouTube", placeholder: "https://youtube.com/@seu_canal" },
+              { id: "linkedin", label: "LinkedIn", placeholder: "https://linkedin.com/company/sua_empresa" },
+              { id: "x", label: "X (Twitter)", placeholder: "https://x.com/seu_perfil" },
+              { id: "tiktok", label: "TikTok", placeholder: "https://tiktok.com/@seu_perfil" },
+              { id: "whatsapp", label: "WhatsApp", placeholder: "https://wa.me/5531999999999" },
+              { id: "email", label: "E-mail", placeholder: "mailto:contato@exemplo.com.br" },
+              { id: "site", label: "Site", placeholder: "https://seu-site.com.br" },
+              { id: "outro", label: "Outro", placeholder: "https://..." },
             ];
             const redesSociais = siteBranding.redesSociais || [];
             const formVazio = { rede: "instagram", label: "", url: "", emoji: "", ordem: redesSociais.length + 1, ativo: true };
@@ -1636,8 +1636,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
             const salvarRede = () => {
               if (!formRede.url.trim()) { setErroRede("URL obrigatória"); return; }
               const label = formRede.label.trim() || redeOpcao.label;
-              const emoji = formRede.emoji.trim() || redeOpcao.emoji;
-              const novaRede = { ...formRede, label, emoji };
+              const novaRede = { ...formRede, label };
               let novaLista;
               if (editandoRedeIdx !== null) {
                 novaLista = redesSociais.map((r, i) => i === editandoRedeIdx ? novaRede : r);
@@ -1666,7 +1665,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
 
             return (
               <div style={s.card}>
-                <h3 style={s.sectionTitle}>🌐 Redes Sociais e Contato</h3>
+                <h3 style={s.sectionTitle}>Redes Sociais e Contato</h3>
                 <p style={{ color: t.textDimmed, fontSize: 13, marginBottom: 20, lineHeight: 1.6 }}>
                   Configure os links que aparecem no rodapé do site.
                 </p>
@@ -1688,11 +1687,15 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                           <div style={{ fontSize: 12, color: t.textMuted, wordBreak: "break-all" }}>{rede.url}</div>
                         </div>
                         <span style={{ fontSize: 11, color: t.textDimmed, fontFamily: "'Barlow Condensed', sans-serif" }}>#{rede.ordem}</span>
-                        <button onClick={() => toggleAtivo(idx)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16 }} title={rede.ativo ? "Desativar" : "Ativar"}>
-                          {rede.ativo ? "✅" : "⬜"}
+                        <button onClick={() => toggleAtivo(idx)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 700, color: rede.ativo ? t.success : t.textDisabled }} title={rede.ativo ? "Desativar" : "Ativar"}>
+                          {rede.ativo ? "\u2713" : "\u2014"}
                         </button>
-                        <button onClick={() => editarRede(idx)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: t.accent }}>✏️</button>
-                        <button onClick={() => excluirRede(idx)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: t.danger }}>🗑️</button>
+                        <button onClick={() => editarRede(idx)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: t.accent }} title="Editar">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.85 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                        </button>
+                        <button onClick={() => excluirRede(idx)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: t.danger }} title="Excluir">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -1706,7 +1709,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                     <div>
                       <label style={s.label}>Rede Social</label>
                       <select style={{ ...s.input, padding: "8px 12px" }} value={formRede.rede} onChange={ev => setFormRede(prev => ({ ...prev, rede: ev.target.value }))}>
-                        {REDES_OPCOES.map(op => <option key={op.id} value={op.id}>{op.emoji} {op.label}</option>)}
+                        {REDES_OPCOES.map(op => <option key={op.id} value={op.id}>{op.label}</option>)}
                       </select>
                     </div>
                     <div>
@@ -1728,7 +1731,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                           <img src={formRede.iconeUrl} alt="" style={{ width: 32, height: 32, objectFit: "contain", borderRadius: 4, background: t.bgHover }} />
                         )}
                         <label style={{ ...s.btnGhost, fontSize: 12, padding: "6px 12px", cursor: "pointer", display: "inline-block" }}>
-                          📤 Upload
+                          Upload
                           <input type="file" accept="image/png,image/svg+xml,image/webp,image/jpeg" style={{ display: "none" }} onChange={async (ev) => {
                             const file = ev.target.files?.[0];
                             if (!file) return;
@@ -1764,8 +1767,8 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                     </div>
                     <div>
                       <label style={s.label}>Ou usar emoji como icone</label>
-                      <input style={{ ...s.input, padding: "8px 12px" }} value={formRede.emoji} onChange={ev => setFormRede(prev => ({ ...prev, emoji: ev.target.value }))} placeholder={redeOpcao.emoji} />
-                      <div style={{ fontSize: 11, color: t.textDimmed, marginTop: 4 }}>Se nao enviar imagem, o emoji sera usado.</div>
+                      <input style={{ ...s.input, padding: "8px 12px" }} value={formRede.emoji} onChange={ev => setFormRede(prev => ({ ...prev, emoji: ev.target.value }))} placeholder="Ex: @" />
+                      <div style={{ fontSize: 11, color: t.textDimmed, marginTop: 4 }}>Se nao enviar imagem, o texto sera usado como icone.</div>
                     </div>
                     <div>
                       <label style={s.label}>Ordem</label>
@@ -1816,7 +1819,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
           <div style={{ maxWidth: 1100 }}>
             <div style={s.card}>
               <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:800, color:t.accent, marginBottom:4, letterSpacing:1 }}>
-                📋 Registro de Operações de Tratamento de Dados Pessoais (ROPA)
+                Registro de Operações de Tratamento de Dados Pessoais (ROPA)
               </div>
               <p style={{ color: t.textDimmed, fontSize:13, marginBottom:4, lineHeight:1.6 }}>
                 Art. 37 da Lei nº 13.709/2018 (LGPD) — O controlador e o operador devem manter registro das operações de tratamento de dados pessoais.
@@ -1860,7 +1863,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
               </div>
 
               <div style={{ marginTop:12, fontSize:11, color: t.textDimmed, lineHeight:1.6 }}>
-                📅 Última atualização deste registro: abril de 2026
+                Última atualização deste registro: abril de 2026
               </div>
             </div>
           </div>
@@ -1973,7 +1976,7 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(ts => `   • ${ts}`).joi
             {/* Alerta */}
             <div style={{ background:"#1a0800", border:"2px solid #cc4400", borderRadius:12,
               padding:"16px 20px", marginBottom:20, display:"flex", gap:14, alignItems:"flex-start" }}>
-              <span style={{ fontSize:28, flexShrink:0 }}>🚨</span>
+              <span style={{ fontSize:20, flexShrink:0, color:"#ff7744", fontWeight:900 }}>!</span>
               <div>
                 <div style={{ color:"#ff7744", fontWeight:800, fontSize:15, marginBottom:4 }}>
                   Comunicação de Incidente — Art. 48º LGPD
@@ -1986,7 +1989,7 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(ts => `   • ${ts}`).joi
                   style={{ display:"inline-block", marginTop:10, background:"#cc4400", color:"#fff",
                     borderRadius:6, padding:"6px 14px", fontSize:12, fontWeight:700,
                     fontFamily:"'Barlow Condensed',sans-serif", textDecoration:"none", letterSpacing:1 }}>
-                  🔗 Abrir Portal da ANPD →
+                  Abrir Portal da ANPD →
                 </a>
               </div>
             </div>
@@ -2037,11 +2040,11 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(ts => `   • ${ts}`).joi
                 <div style={{ display:"flex", gap:8 }}>
                   <button onClick={() => copiar(emailsAfetados.join("; "), "emails")}
                     style={{ ...s.btnGhost, fontSize:11, padding:"4px 12px", color:t.accent, borderColor:`${t.accent}44` }}>
-                    {incCopiado === "emails" ? "✅ Copiado!" : `📋 Copiar ${emailsAfetados.length} e-mails`}
+                    {incCopiado === "emails" ? "Copiado!" : `Copiar ${emailsAfetados.length} e-mails`}
                   </button>
                   <button onClick={() => copiar(templateEmail, "template_titular")}
                     style={{ ...s.btnGhost, fontSize:11, padding:"4px 12px" }}>
-                    {incCopiado === "template_titular" ? "✅ Copiado!" : "📋 Copiar Template"}
+                    {incCopiado === "template_titular" ? "Copiado!" : "Copiar Template"}
                   </button>
                 </div>
               </div>
@@ -2061,7 +2064,7 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(ts => `   • ${ts}`).joi
                 <h3 style={{ ...s.sectionTitle, margin:0 }}>3. Template — Notificação à ANPD</h3>
                 <button onClick={() => copiar(templateANPD, "template_anpd")}
                   style={{ ...s.btnGhost, fontSize:11, padding:"4px 12px" }}>
-                  {incCopiado === "template_anpd" ? "✅ Copiado!" : "📋 Copiar Template"}
+                  {incCopiado === "template_anpd" ? "Copiado!" : "Copiar Template"}
                 </button>
               </div>
               <div style={{ fontSize:11, color:t.textDisabled, marginBottom:10 }}>
@@ -2093,9 +2096,9 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(ts => `   • ${ts}`).joi
                   `${tiposSelecionados.join(", ") || "Tipo não especificado"} — ${incDescricao.slice(0,100) || "Sem descrição"}`,
                   null, { modulo: "lgpd" }
                 );
-                alert("✅ Incidente registrado no histórico de ações.");
+                alert("Incidente registrado no histórico de ações.");
               }} style={{ ...s.btnGhost, color:t.danger, borderColor:`${t.danger}55` }}>
-                📝 Registrar Incidente no Histórico
+                Registrar Incidente no Histórico
               </button>
             </div>
 

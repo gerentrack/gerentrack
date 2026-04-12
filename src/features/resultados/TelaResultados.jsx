@@ -611,7 +611,7 @@ function TelaResultados() {
         <div class="pg" style="padding:12mm 14mm 10mm">
           ${cabExtra}
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;margin-top:10px">
-            <span style="font-size:16px;font-weight:800;color:#111">🏅 ${bc.comp.nome}</span>
+            <span style="font-size:16px;font-weight:800;color:#111">${bc.comp.nome}</span>
             <span style="font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700;background:${bc.todasCompletas ? "#e8ffe8" : "#fff8e0"};color:${corStatus};border:1px solid ${corStatus}">${labelStatus}</span>
           </div>
           <div style="font-size:10px;color:#666;margin-bottom:8px">
@@ -631,7 +631,7 @@ function TelaResultados() {
             </thead>
             <tbody>
               ${bc.rows.map((r, idx) => {
-                const pos = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : (idx+1)+"º";
+                const pos = (idx+1)+"º";
                 const atl = r.atleta || resolverAtleta(r.atletaId, atletas, eventoAtual);
                 const clube = atl ? (getExibicaoEquipe(atl, equipes) || "—") : "—";
                 const numP = (numeracaoPeito?.[eid]||{})[r.atletaId] || "";
@@ -660,7 +660,7 @@ function TelaResultados() {
         <div class="pg" style="padding:12mm 14mm 10mm">
           ${cabExtra}
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;margin-top:10px">
-            <span style="font-size:16px;font-weight:800;color:#111">🏅 Classificação por Equipes</span>
+            <span style="font-size:16px;font-weight:800;color:#111">Classificação por Equipes</span>
             <span style="font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700;background:${classifEquipes.totalProvasComResultado >= classifEquipes.totalProvas ? "#e8ffe8" : "#fff8e0"};color:${corEq};border:1px solid ${corEq}">${labelEq}</span>
           </div>
           <div style="font-size:10px;color:#666;margin-bottom:8px">
@@ -679,13 +679,13 @@ function TelaResultados() {
             </thead>
             <tbody>
               ${classifEquipes.classificacao.map((eq, idx) => {
-                const pos = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : (idx+1)+"º";
+                const pos = (idx+1)+"º";
                 const nProvas = Object.keys(eq.pontosPorProva).length;
                 const totalBonus = (eq.bonusRecordes || []).reduce((acc, b) => acc + b.pontos, 0);
                 const bonusDetail = (eq.bonusRecordes || []).map(b => `${b.tipoSigla} ${b.provaNome} (+${b.pontos})`).join(", ");
                 return `<tr style="border-bottom:1px solid #ddd;${idx < 3 ? "background:#f9f9f0" : ""}">
                   <td style="padding:6px 8px;font-weight:700">${pos}</td>
-                  <td style="padding:6px 8px;font-weight:600">${eq.nome}${bonusDetail ? `<div style="font-size:8px;color:#996600;margin-top:1px">🏆 ${bonusDetail}</div>` : ""}</td>
+                  <td style="padding:6px 8px;font-weight:600">${eq.nome}${bonusDetail ? `<div style="font-size:8px;color:#996600;margin-top:1px">${bonusDetail}</div>` : ""}</td>
                   <td style="padding:6px 8px;color:#8a7000;font-weight:600">${eq.sigla}</td>
                   <td style="padding:6px 8px;text-align:center;color:#666">${nProvas}</td>
                   ${classifEquipes.totalBonusRecordes > 0 ? `<td style="padding:6px 8px;text-align:center;color:#996600;font-weight:700">${totalBonus > 0 ? "+" + totalBonus : "—"}</td>` : ""}
@@ -710,20 +710,20 @@ function TelaResultados() {
     <div style={s.page}>
       <div style={s.painelHeader}>
         <div>
-          <h1 style={s.pageTitle}>🏆 Resultados</h1>
+          <h1 style={s.pageTitle}>Resultados</h1>
           <div style={{ color: t.textDimmed, fontSize: 13 }}>{eventoAtual.nome}</div>
         </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           {isAmplo && (blocosFiltrados.length > 0 || blocosCombinadas.length > 0 || classifEquipes.classificacao.length > 0) && (
             <button style={{ ...s.btnPrimary, display: "flex", alignItems: "center", gap: 8 }} onClick={handleImprimirResultados}>
-              🖨 Imprimir Resultados
+              Imprimir Resultados
               <span style={{ background: "#00000033", borderRadius: 10, padding: "1px 8px", fontSize: 11 }}>
                 {blocosFiltrados.length}
               </span>
             </button>
           )}
           {isAmplo && (
-            <button style={s.btnSecondary} onClick={() => setTela("digitar-resultados")}>✏️ Inserir Resultados</button>
+            <button style={s.btnSecondary} onClick={() => setTela("digitar-resultados")}>Inserir Resultados</button>
           )}
           <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Competição</button>
         </div>
@@ -774,7 +774,7 @@ function TelaResultados() {
           <div style={{ padding:"14px 20px", background:t.bgHeaderSolid, borderBottom:`1px solid ${t.border}`, display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12 }}>
             <div>
               <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:22, fontWeight:800, color: t.textPrimary, marginBottom:4, display: "flex", alignItems: "center", gap: 10 }}>
-                <span>{"🏅 Classificação por Equipes"}</span>
+                <span>{"Classificação por Equipes"}</span>
                 <span style={{
                   fontSize: 11, padding: "2px 10px", borderRadius: 4, fontWeight: 600,
                   background: classifEquipes.totalProvasComResultado >= classifEquipes.totalProvas ? `${t.success}15` : `${t.accent}15`,
@@ -818,7 +818,7 @@ function TelaResultados() {
                       <div style="text-align:right;">${eventoAtual.logoCabecalhoDireito ? `<img src="${eventoAtual.logoCabecalhoDireito}" alt="" style="max-height:24mm;max-width:45mm;object-fit:contain;" />` : ""}</div>
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;margin-top:10px">
-                      <span style="font-size:16px;font-weight:800">🏅 Classificação por Equipes</span>
+                      <span style="font-size:16px;font-weight:800">Classificação por Equipes</span>
                       <span style="font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700;border:1px solid ${isFinal ? "#2a8a2a" : "#8a7a00"};color:${isFinal ? "#2a8a2a" : "#8a7a00"}">${isFinal ? "CLASSIFICAÇÃO FINAL" : "CLASSIFICAÇÃO PARCIAL"}</span>
                     </div>
                     <div style="font-size:10px;color:#666;margin-bottom:8px">${eventoAtual.nome} — ${classifEquipes.totalProvasComResultado}/${classifEquipes.totalProvas} provas com resultado</div>
@@ -836,8 +836,8 @@ function TelaResultados() {
                       const totalPenPrint = (eq.penalidades || []).reduce((acc, p) => acc + p.pontos, 0);
                       const penDetail = (eq.penalidades || []).map(p => `${p.motivo}${p.obs ? " — " + p.obs : ""} (-${p.pontos})`).join(", ");
                       return `<tr${idx < 3 ? ` class="top3"` : ""}>
-                        <td style="font-weight:700">${idx < 3 ? ["🥇","🥈","🥉"][idx] : (idx+1)+"º"}</td>
-                        <td style="font-weight:600">${eq.nome}${bonusDetail ? `<div style="font-size:8px;color:#996600;margin-top:2px">🏆 ${bonusDetail}</div>` : ""}${penDetail ? `<div style="font-size:8px;color:#cc0000;margin-top:2px">⚠ ${penDetail}</div>` : ""}</td>
+                        <td style="font-weight:700">${(idx+1)+"º"}</td>
+                        <td style="font-weight:600">${eq.nome}${bonusDetail ? `<div style="font-size:8px;color:#996600;margin-top:2px">${bonusDetail}</div>` : ""}${penDetail ? `<div style="font-size:8px;color:#cc0000;margin-top:2px">${penDetail}</div>` : ""}</td>
                         <td style="font-weight:600">${eq.sigla}</td>
                         <td style="text-align:center;color:#666">${nProvas}</td>
                         ${classifEquipes.totalBonusRecordes > 0 ? `<td style="text-align:center;color:#996600;font-weight:700">${totalBonus > 0 ? "+" + totalBonus : "—"}</td>` : ""}
@@ -865,7 +865,7 @@ function TelaResultados() {
                 }}
                 title="Imprimir classificação por equipes"
               >
-                🖨 Imprimir
+                Imprimir
               </button>
             )}
           </div>
@@ -879,10 +879,10 @@ function TelaResultados() {
                   <th style={{ padding: "8px", textAlign: "left", color: t.textMuted, fontSize: 11 }}>Sigla</th>
                   <th style={{ padding: "8px", textAlign: "center", color: t.textMuted, fontSize: 11 }}>Provas Pontuadas</th>
                   {classifEquipes.totalBonusRecordes > 0 && (
-                    <th style={{ padding: "8px", textAlign: "center", color: t.warning, fontSize: 11 }}>🏆 Bônus Rec.</th>
+                    <th style={{ padding: "8px", textAlign: "center", color: t.warning, fontSize: 11 }}>Bônus Rec.</th>
                   )}
                   {classifEquipes.totalPenalidades > 0 && (
-                    <th style={{ padding: "8px", textAlign: "center", color: t.danger, fontSize: 11 }}>⚠ Penal.</th>
+                    <th style={{ padding: "8px", textAlign: "center", color: t.danger, fontSize: 11 }}>Penal.</th>
                   )}
                   <th style={{ padding: "8px", textAlign: "center", color: t.accent, fontWeight: 700, fontSize: 13 }}>Total</th>
                 </tr>
@@ -901,7 +901,7 @@ function TelaResultados() {
                         padding: "10px 8px", fontWeight: 700, fontSize: 15,
                         color: idx === 0 ? t.gold : idx === 1 ? "#C0C0C0" : idx === 2 ? "#CD7F32" : t.textMuted
                       }}>
-                        {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : (idx + 1) + "º"}
+                        {(idx + 1) + "º"}
                       </td>
                       <td style={{ padding: "10px 8px", color: t.textPrimary, fontWeight: 600 }}>{eq.nome}</td>
                       <td style={{ padding: "10px 8px", color: t.accent, fontWeight: 600 }}>{eq.sigla}</td>
@@ -928,7 +928,7 @@ function TelaResultados() {
                             {eq.bonusRecordes.map(function(b, bi) {
                               return (
                                 <span key={bi} style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: t.bgCardAlt, color: t.warning, border: `1px solid ${t.warning}44` }}>
-                                  🏆 {b.tipoSigla} {b.provaNome} — {b.atletaNome} (+{b.pontos}pts)
+                                  {b.tipoSigla} {b.provaNome} — {b.atletaNome} (+{b.pontos}pts)
                                 </span>
                               );
                             })}
@@ -943,7 +943,7 @@ function TelaResultados() {
                             {eq.penalidades.map(function(pen, pi) {
                               return (
                                 <span key={pi} style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: `${t.danger}10`, color: t.danger, border: `1px solid ${t.danger}33` }}>
-                                  ⚠ {pen.motivo}{pen.obs ? " — " + pen.obs : ""} (-{pen.pontos}pts)
+                                  {pen.motivo}{pen.obs ? " — " + pen.obs : ""} (-{pen.pontos}pts)
                                 </span>
                               );
                             })}
@@ -968,7 +968,7 @@ function TelaResultados() {
 
       {blocosFiltrados.length === 0 && blocosCombinadas.length === 0 ? (
         <div style={s.emptyState}>
-          <span style={{ fontSize: 48 }}>🏆</span>
+          <span style={{ fontSize: 48 }}>—</span>
           <p>Nenhum resultado publicado ainda.</p>
         </div>
       ) : (
@@ -982,7 +982,7 @@ function TelaResultados() {
               <div style={{ padding:"14px 20px", background:t.bgHeaderSolid, borderBottom:`1px solid ${t.border}`, display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12 }}>
                 <div>
                   <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:22, fontWeight:800, color: t.textPrimary, marginBottom:4, display: "flex", alignItems: "center", gap: 10 }}>
-                    <span>{"🏅 " + bc.comp.nome}</span>
+                    <span>{bc.comp.nome}</span>
                     <span style={{
                       fontSize: 11, padding: "2px 10px", borderRadius: 4, fontWeight: 600,
                       background: bc.todasCompletas ? `${t.success}15` : `${t.accent}15`,
@@ -1030,7 +1030,7 @@ function TelaResultados() {
                           <div style="text-align:right;">${eventoAtual.logoCabecalhoDireito ? `<img src="${eventoAtual.logoCabecalhoDireito}" alt="" style="max-height:24mm;max-width:45mm;object-fit:contain;" />` : ""}</div>
                         </div>
                         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;margin-top:10px">
-                          <span style="font-size:16px;font-weight:800">🏅 ${bc.comp.nome}</span>
+                          <span style="font-size:16px;font-weight:800">${bc.comp.nome}</span>
                           <span style="font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700;border:1px solid ${bc.todasCompletas ? "#2a8a2a" : "#8a7a00"};color:${bc.todasCompletas ? "#2a8a2a" : "#8a7a00"}">${bc.todasCompletas ? "CLASSIFICAÇÃO FINAL" : "CLASSIFICAÇÃO PARCIAL"}</span>
                         </div>
                         <div style="font-size:10px;color:#666;margin-bottom:4px">${eventoAtual.nome} — ${bc.categoria.nome} — ${bc.sexo === "M" ? "Masculino" : "Feminino"}</div>
@@ -1044,7 +1044,7 @@ function TelaResultados() {
                           const atl = r.atleta || resolverAtleta(r.atletaId, atletas, eventoAtual);
                           const clube = atl ? (getExibicaoEquipe(atl, equipes) || "") : "";
                           return `<tr${idx < 3 ? ` class="top3"` : ""}>
-                            <td style="font-weight:700">${idx < 3 ? ["🥇","🥈","🥉"][idx] : (idx+1)+"º"}</td>
+                            <td style="font-weight:700">${(idx+1)+"º"}</td>
                             <td style="text-align:center;color:#888;font-size:10px">${(numeracaoPeito?.[eid]||{})[r.atletaId] || ""}</td>
                             <td>${r.nome}</td><td style="color:#666;font-size:9px">${clube}</td>
                             ${r.porProva.map(pp => `<td style="text-align:center;font-size:9px">${pp.marca != null && pp.marca !== "" ? `<div>${formatarMarca(pp.marca, pp.unidade, 2)}</div><div style="font-weight:700;color:#8a7000">${pp.pts}</div>` : "—"}</td>`).join("")}
@@ -1074,7 +1074,7 @@ function TelaResultados() {
                     }}
                     title="Imprimir classificação desta combinada"
                   >
-                    🖨 Imprimir
+                    Imprimir
                   </button>
                 )}
               </div>
@@ -1118,7 +1118,7 @@ function TelaResultados() {
                             padding: "8px", fontWeight: 700, fontSize: 14,
                             color: idx === 0 ? t.gold : idx === 1 ? "#C0C0C0" : idx === 2 ? "#CD7F32" : t.textMuted
                           }}>
-                            {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : (idx + 1) + "º"}
+                            {(idx + 1) + "º"}
                           </td>
                           <td style={{ padding: "8px", textAlign: "center", color: t.textDimmed, fontSize: 12, fontWeight: 600 }}>
                             {(numeracaoPeito?.[eid]||{})[r.atletaId] || ""}
@@ -1190,7 +1190,7 @@ function TelaResultados() {
                   <NomeProvaComImplemento nome={b.prova.nome} />
                   {b.prova.origemCombinada && (
                     <span style={{ fontSize: 11, background: t.accentBg, color: t.accent, padding: "2px 8px", borderRadius: 4, marginLeft: 8, fontWeight: 600 }}>
-                      🏅 {b.prova.nomeCombinada} ({b.prova.ordem}/{b.prova.totalProvas})
+                      {b.prova.nomeCombinada} ({b.prova.ordem}/{b.prova.totalProvas})
                     </span>
                   )}
                   {b.faseNome && (
@@ -1245,7 +1245,7 @@ function TelaResultados() {
                   if (linhas.length === 0) return null;
                   return (
                     <div style={{ padding:"3px 10px", background: t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:4, fontSize:10, color: t.textSecondary, marginTop:4 }}>
-                      🏆 {linhas.map((l, i) => (
+                      {linhas.map((l, i) => (
                         <span key={i}>
                           {i > 0 && " · "}
                           <strong style={{ color: t.accent }}>{l.sigla}:</strong>{" "}
@@ -1299,7 +1299,7 @@ function TelaResultados() {
                   }}
                   title="Imprimir resultado desta prova"
                 >
-                  🖨 Imprimir
+                  Imprimir
                 </button>
               )}
             </div>
@@ -1540,7 +1540,7 @@ function TelaResultados() {
                           return (
                             <tr key={item.equipeId} style={{ ...s.tr, ...(item.isStatus ? {} : j===0?s.trOuro:j===1?s.trPrata:j===2?s.trBronze:{}) }}>
                               <Td><strong style={{ color: item.isStatus ? t.textDimmed : j<3?t.accent:t.textPrimary, fontSize:15 }}>
-                                {item.isStatus ? "" : j===0?"🥇":j===1?"🥈":j===2?"🥉":`${j+1}º`}
+                                {item.isStatus ? "" : `${j+1}º`}
                               </strong></Td>
                               <Td><strong style={{ color: j<3?t.accent:t.textPrimary }}>{item.nomeEquipe}</strong></Td>
                               <Td><span style={{ fontSize: 11, color: t.textTertiary }}>{atlNomes}</span></Td>
@@ -1564,13 +1564,13 @@ function TelaResultados() {
                   <>
                   {temDesempateBlk && (
                     <div style={{ background:t.bgMarca, border:`1px solid ${t.accentBorder}`, borderRadius:6, padding:"5px 12px", marginBottom:8, fontSize:11, color: t.accent }}>
-                      ⚖️ <strong>RT 25.22 — Regra de Desempate Aplicada</strong>
+                      <strong>RT 25.22 — Regra de Desempate Aplicada</strong>
                       <span style={{ color: t.textMuted, marginLeft:6 }}>Atletas com mesma melhor marca desempatados pela 2ª melhor, 3ª, etc.</span>
                     </div>
                   )}
                   {temDesempateAltBlk && (
                     <div style={{ background:t.bgMarca, border:`1px solid ${t.accentBorder}`, borderRadius:6, padding:"5px 12px", marginBottom:8, fontSize:11, color: t.accent }}>
-                      ⚖️ <strong>RT 26.9 — Regra de Desempate Aplicada</strong>
+                      <strong>RT 26.9 — Regra de Desempate Aplicada</strong>
                       <span style={{ color: t.textMuted, marginLeft:6 }}>1º menor nº de saltos na última altura transposta (SU) · 2º menor nº total de falhas na prova (FP)</span>
                     </div>
                   )}
@@ -1633,7 +1633,7 @@ function TelaResultados() {
                       return (
                         <tr key={`${isSerieFinal ? "g" : "s"}_${item.atleta.id}`} style={{ ...s.tr, ...(isSerieFinal && !item.isStatus ? (j===0?s.trOuro:j===1?s.trPrata:j===2?s.trBronze:{}) : {}) }}>
                           <Td><strong style={{ color: item.isStatus ? t.textDimmed : (isSerieFinal && j<3?t.accent:t.textPrimary), fontSize:15 }}>
-                            {item.isStatus ? "" : (isSerieFinal ? (j===0?"🥇":j===1?"🥈":j===2?"🥉":posLabel) : posLabel)}
+                            {item.isStatus ? "" : posLabel}
                           </strong></Td>
                           <Td><strong style={{ color: t.textTertiary, fontSize:13 }}>{(numeracaoPeito?.[eventoAtual?.id]||{})[item.atleta.id]||""}</strong></Td>
                           <Td><strong style={{ color: isSerieFinal && j<3?t.accent:t.textPrimary }}>{item.atleta.contaExcluida ? <span style={{ color: t.textDimmed, fontStyle: "italic", fontWeight: 400 }} title="Conta excluída — histórico preservado de forma anônima">Atleta Excluído</span> : item.atleta.nome}</strong></Td>
@@ -1648,7 +1648,7 @@ function TelaResultados() {
                             <div>
                               {fmtTent(getTent(raw, key), best)}
                               {isSaltoHoriz && getTent(raw, key+"v") && (
-                                <div style={{ fontSize:8, color: t.accent, marginTop:1 }}>💨 {getTent(raw, key+"v")}</div>
+                                <div style={{ fontSize:8, color: t.accent, marginTop:1 }}>{getTent(raw, key+"v")}</div>
                               )}
                             </div>
                           );
@@ -1809,7 +1809,7 @@ function TelaResultados() {
                                     background: bg.ehMelhor ? t.accentBg : t.bgCardAlt,
                                     color: bg.ehMelhor ? t.gold : t.accent,
                                   }}>
-                                    {bg.ehMelhor ? "🏆 NOVO REC" : "⚡ Superou REC"} {bg.sigla}
+                                    {bg.ehMelhor ? "NOVO REC" : "Superou REC"} {bg.sigla}
                                   </span>
                                 ))}
                               </div>
@@ -1901,12 +1901,12 @@ function TelaResultados() {
                             </td>
                           </tr>
                         );
-                        b.classificados.forEach((item, j) => rows.push(renderRow(item, j, item.isStatus ? "" : (j===0?"🥇":j===1?"🥈":j===2?"🥉":`${j+1}º`), true)));
+                        b.classificados.forEach((item, j) => rows.push(renderRow(item, j, item.isStatus ? "" : `${j+1}º`, true)));
                         return rows;
                       } else {
                         // Renderização unificada (série única ou legado)
                         return b.classificados.map((item, j) =>
-                          renderRow(item, j, item.isStatus ? "" : (j===0?"🥇":j===1?"🥈":j===2?"🥉":`${j+1}º`), true)
+                          renderRow(item, j, item.isStatus ? "" : `${j+1}º`, true)
                         );
                       }
                     })()}
@@ -1928,7 +1928,7 @@ function TelaResultados() {
                 <div style={{ padding:"8px 12px", borderTop:`1px solid ${t.border}`, marginTop:6 }}>
                   {isAmplo ? (
                     <div>
-                      <label style={{ fontSize:11, color: t.textMuted, fontWeight:600, display:"block", marginBottom:4 }}>📝 Observações</label>
+                      <label style={{ fontSize:11, color: t.textMuted, fontWeight:600, display:"block", marginBottom:4 }}>Observações</label>
                       <textarea
                         style={{ width:"100%", minHeight:48, padding:"8px 10px", background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:6, color: t.textSecondary, fontSize:12, resize:"vertical", fontFamily:"inherit", lineHeight:1.5 }}
                         placeholder="Observações sobre esta prova (ex: vento, condições, protestos, desclassificações...)"
@@ -1941,7 +1941,7 @@ function TelaResultados() {
                     </div>
                   ) : (
                     obsTexto && <div style={{ fontSize:12, color: t.textTertiary, whiteSpace:"pre-wrap", lineHeight:1.5 }}>
-                      <span style={{ color: t.textMuted, fontWeight:600 }}>📝 Obs:</span> {obsTexto}
+                      <span style={{ color: t.textMuted, fontWeight:600 }}>Obs:</span> {obsTexto}
                     </div>
                   )}
                 </div>

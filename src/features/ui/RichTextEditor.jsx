@@ -54,10 +54,10 @@ function RichTextEditor({ value, onChange, placeholder }) {
         </button>
         <div style={{ width:1, background:t.borderLight, margin:"0 4px" }} />
         <button type="button" onClick={() => execCmd("insertUnorderedList")} style={btnStyle(isActive("insertUnorderedList"))} title="Lista">
-          ☰
+          ·
         </button>
         <button type="button" onClick={() => execCmd("removeFormat")} style={btnStyle(false)} title="Limpar formatação">
-          🧹
+          ✕
         </button>
         <div style={{ width:1, background:t.borderLight, margin:"0 4px" }} />
         <button type="button" onClick={() => execCmd("justifyLeft")} style={btnStyle(false)} title="Alinhar à esquerda">
@@ -67,7 +67,7 @@ function RichTextEditor({ value, onChange, placeholder }) {
           ⊜
         </button>
         <button type="button" onClick={() => execCmd("justifyFull")} style={btnStyle(false)} title="Justificar">
-          ☰
+          |||
         </button>
       </div>
 

@@ -192,7 +192,7 @@ function TelaCadastroEquipe() {
   if (ok) return (
     <div style={s.formPage}>
       <div style={s.formCard}>
-        <div style={{ fontSize: 64, textAlign: "center" }}>⏳</div>
+        <div style={{ fontSize: 32, textAlign: "center", color:"inherit" }}>...</div>
         <h2 style={{ ...s.formTitle, textAlign: "center" }}>Cadastro enviado!</h2>
         <p style={{ textAlign: "center", color: t.textTertiary, marginBottom: 8 }}>
           Seu cadastro foi recebido e está aguardando aprovação.
@@ -210,14 +210,14 @@ function TelaCadastroEquipe() {
   return (
     <div style={s.formPage}>
       <div style={s.formCard}>
-        <div style={s.formIcon}>🎽</div>
+        <div style={s.formIcon}></div>
         <h2 style={s.formTitle}>Cadastro de Equipe</h2>
         <p style={s.formSub}>Crie sua conta para gerenciar atletas e inscrições</p>
 
         {/* Banner de duplicidade */}
         {erros._duplicados && (
           <div style={{ background: `${t.danger}11`, border: `1px solid ${t.danger}`, borderRadius: 8, padding: "12px 16px", marginBottom: 16, color: t.danger, fontSize: 13, lineHeight: 1.5 }}>
-            ⚠️ {erros._duplicados}
+            {erros._duplicados}
           </div>
         )}
 
@@ -229,7 +229,7 @@ function TelaCadastroEquipe() {
         {/* CNPJ existente → modo login */}
         {docModo === "login" && docExistente && (
           <div style={{ background: t.accentBg, border: `2px solid ${t.accentBorder}`, borderRadius: 10, padding: 20, marginBottom: 20 }}>
-            <div style={{ color: t.accent, fontSize: 14, fontWeight: 700, marginBottom: 8 }}>🔄 CNPJ já cadastrado no sistema</div>
+            <div style={{ color: t.accent, fontSize: 14, fontWeight: 700, marginBottom: 8 }}>CNPJ já cadastrado no sistema</div>
             <div style={{ color: t.textTertiary, fontSize: 12, marginBottom: 4 }}>
               Equipe: <strong style={{ color: t.textPrimary }}>{docExistente.nome}</strong>
             </div>
@@ -239,7 +239,7 @@ function TelaCadastroEquipe() {
             {loginErro && <div style={{ ...s.erro, marginBottom: 12 }}>{loginErro}</div>}
             <FormField label="E-mail da conta" value={loginForm.email} onChange={v => setLoginForm({ ...loginForm, email: v })} type="email" placeholder="E-mail cadastrado" />
             <FormField label="Senha" value={loginForm.senha} onChange={v => setLoginForm({ ...loginForm, senha: v })} type="password" placeholder="Senha da conta" />
-            <button style={{ ...s.btnPrimary, marginTop: 8 }} onClick={handleLoginExistente}>🔐 Confirmar Identidade</button>
+            <button style={{ ...s.btnPrimary, marginTop: 8 }} onClick={handleLoginExistente}>Confirmar Identidade</button>
             <div style={{ textAlign: "center", marginTop: 8 }}>
               <button style={s.linkBtn} onClick={() => setTela("recuperar-senha")}>Esqueci minha senha</button>
             </div>
@@ -249,7 +249,7 @@ function TelaCadastroEquipe() {
         {/* Modo vincular — autenticou, agora escolhe org */}
         {docModo === "vincular" && (
           <div style={{ background: `${t.success}11`, border: `2px solid ${t.success}66`, borderRadius: 10, padding: 16, marginBottom: 16 }}>
-            <div style={{ color: t.success, fontSize: 13, fontWeight: 700 }}>✅ Identidade confirmada!</div>
+            <div style={{ color: t.success, fontSize: 13, fontWeight: 700 }}>✓ Identidade confirmada!</div>
             <div style={{ color: t.textTertiary, fontSize: 12, marginTop: 4 }}>Dados carregados. Selecione o organizador para criar o novo vínculo.</div>
           </div>
         )}
@@ -271,7 +271,7 @@ function TelaCadastroEquipe() {
 
             {/* Vinculação ao Organizador e Equipe */}
             <div style={{ background: t.bgHeaderSolid, padding: 20, borderRadius: 8, border: `1px solid ${t.border}`, marginTop: 16 }}>
-              <h4 style={{ color: t.accent, marginBottom: 16 }}>📍 Vinculação ao Organizador</h4>
+              <h4 style={{ color: t.accent, marginBottom: 16 }}>Vinculação ao Organizador</h4>
               
               {/* Organizador — sempre visível para seleção */}
               <div style={{ marginBottom: 16 }}>
@@ -298,7 +298,7 @@ function TelaCadastroEquipe() {
             <BlocoLGPD aceite={lgpdAceite} onChange={setLgpdAceite} erro={erros.lgpd} />
 
             <button style={{ ...s.btnPrimary, marginTop: 16 }} onClick={handleSubmit}>
-              {docModo === "vincular" ? "🔗 Criar Vínculo" : "Criar Conta"}
+              {docModo === "vincular" ? "Criar Vínculo" : "Criar Conta"}
             </button>
           </>
         )}

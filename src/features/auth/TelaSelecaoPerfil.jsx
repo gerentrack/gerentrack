@@ -12,7 +12,6 @@ function TelaSelecaoPerfil() {
   const s = useStylesResponsivos(criarAuthStyles(t));
   if (!perfisDisponiveis || perfisDisponiveis.length === 0) return (
     <div style={s.formPage}><div style={s.formCard}>
-      <div style={{ fontSize:64, textAlign:"center" }}>🔍</div>
       <h2 style={{ ...s.formTitle, textAlign:"center" }}>Nenhum perfil encontrado</h2>
       <p style={{ textAlign:"center", color:t.textTertiary }}>Não foram encontrados perfis ativos vinculados à sua conta.</p>
       <button style={s.btnGhost} onClick={() => setTela("login")}>← Voltar ao Login</button>
@@ -33,7 +32,6 @@ function TelaSelecaoPerfil() {
     <div style={s.formPage}>
       <div style={{ ...s.formCard, maxWidth:540 }}>
         <div style={{ textAlign:"center", marginBottom:24 }}>
-          <div style={{ fontSize:48, marginBottom:8 }}>👋</div>
           <h2 style={{ ...s.formTitle, margin:0 }}>Olá, {nome}!</h2>
           <p style={{ color:t.textTertiary, fontSize:14, marginTop:8 }}>
             Você possui <strong style={{ color:t.accent }}>{perfisDisponiveis.length} perfil(is)</strong> cadastrado(s). Selecione o contexto para esta sessão:
@@ -42,7 +40,7 @@ function TelaSelecaoPerfil() {
         <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
           {Object.entries(perfisAgrupados).map(([orgNome, perfis]) => (
             <div key={orgNome}>
-              <div style={{ color:t.textMuted, fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:1, marginBottom:8, paddingLeft:4 }}>🏟️ {orgNome}</div>
+              <div style={{ color:t.textMuted, fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:1, marginBottom:8, paddingLeft:4 }}>{orgNome}</div>
               {perfis.map((perfil, idx) => {
                 const suspenso = perfil._suspenso;
                 return (
@@ -52,7 +50,7 @@ function TelaSelecaoPerfil() {
                     onMouseEnter={e => { if (!suspenso) { e.currentTarget.style.borderColor=t.accent; e.currentTarget.style.background=t.bgCard; } }}
                     onMouseLeave={e => { if (!suspenso) { e.currentTarget.style.borderColor=t.border; e.currentTarget.style.background=t.bgHeaderSolid; } }}
                   >
-                    <div style={{ width:48, height:48, borderRadius:10, background:t.bgInput, border:`2px solid ${t.borderInput}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, flexShrink:0 }}>{perfil.icon}</div>
+                    {perfil.icon ? <div style={{ width:48, height:48, borderRadius:10, background:t.bgInput, border:`2px solid ${t.borderInput}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, flexShrink:0 }}>{perfil.icon}</div> : null}
                     <div style={{ flex:1 }}>
                       <div style={{ color: suspenso ? t.textDisabled : t.textPrimary, fontSize:15, fontWeight:700 }}>
                         {perfil.label}

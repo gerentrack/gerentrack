@@ -163,7 +163,7 @@ function TelaFinishLynx() {
           <div style={{ maxHeight: 200, overflowY: "auto" }}>
             {resultado.avisos.map((av, idx) => (
               <div key={idx} style={s.aviso}>
-                <span style={{ flexShrink: 0 }}>⚠</span>
+                <span style={{ flexShrink: 0 }}>!</span>
                 <span>{av}</span>
               </div>
             ))}

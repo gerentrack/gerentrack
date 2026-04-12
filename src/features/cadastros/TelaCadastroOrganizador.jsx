@@ -82,7 +82,7 @@ function TelaCadastroOrganizador() {
 
   if (ok) return (
     <div style={s.formPage}><div style={s.formCard}>
-      <div style={{ fontSize:64, textAlign:"center" }}>⏳</div>
+      <div style={{ fontSize:32, textAlign:"center", color:"inherit" }}>...</div>
       <h2 style={{ ...s.formTitle, textAlign:"center" }}>Cadastro enviado!</h2>
       <p style={{ textAlign:"center", color: t.textTertiary, lineHeight:1.6 }}>
         Seu cadastro como organizador foi recebido e está <strong style={{ color: t.accent }}>aguardando aprovação</strong> do administrador do sistema.<br/><br/>
@@ -94,7 +94,7 @@ function TelaCadastroOrganizador() {
 
   return (
     <div style={s.formPage}><div style={s.formCard}>
-      <div style={s.formIcon}>🏟️</div>
+      <div style={s.formIcon}></div>
       <h2 style={s.formTitle}>Cadastro de Organizador</h2>
       <p style={s.formSub}>Crie sua conta para gerenciar competições</p>
       <div style={s.grid2form}>

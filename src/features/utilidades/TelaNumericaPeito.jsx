@@ -144,7 +144,7 @@ function TelaNumericaPeito() {
     if (input === null) return; // cancelou
     const inicio = parseInt(input);
     if (isNaN(inicio) || inicio < 0) {
-      setFeedback("❌ Número inválido.");
+      setFeedback("Número inválido.");
       setTimeout(() => setFeedback(""), 3000);
       return;
     }
@@ -152,7 +152,7 @@ function TelaNumericaPeito() {
     atletasOrdenados.forEach((a, i) => { novo[a.id] = inicio + i; });
     setEditNum(novo);
     setErroNum({});
-    setFeedback(`✅ Numeração automática gerada a partir do nº ${inicio} — salve para aplicar.`);
+    setFeedback(`Numeração automática gerada a partir do nº ${inicio} — salve para aplicar.`);
     setTimeout(() => setFeedback(""), 3000);
   };
 
@@ -182,7 +182,7 @@ function TelaNumericaPeito() {
     const errs = validarDuplicatas(editNum);
     if (Object.keys(errs).length) {
       setErroNum(errs);
-      setFeedback("❌ Há números duplicados — corrija antes de salvar.");
+      setFeedback("Há números duplicados — corrija antes de salvar.");
       setTimeout(() => setFeedback(""), 3000);
       return;
     }
@@ -190,7 +190,7 @@ function TelaNumericaPeito() {
     Object.entries(editNum).forEach(([k, v]) => { if (v !== "" && v != null) limpo[k] = Number(v); });
     setNumeracaoEvento(eid, limpo);
     if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, "Numeração de peito", `${Object.keys(limpo).length} atletas — ${eventoAtual.nome}`, usuarioLogado?.organizadorId || usuarioLogado?.id, { modulo: "numeracao" });
-    setFeedback("✅ Numeração salva com sucesso!");
+    setFeedback("Numeração salva com sucesso!");
     setTimeout(() => setFeedback(""), 3000);
   };
 
@@ -206,7 +206,7 @@ function TelaNumericaPeito() {
 
   const exportarComQr = async () => {
     if (!eventoAtual?.slug) {
-      alert("⚠️ Defina um slug para a competição antes de exportar com QR.\n\nO slug é necessário para o QR público funcionar corretamente.\n\nVá em: Cadastrar/Editar Competição → Dados da competição → Slug.");
+      alert("Defina um slug para a competição antes de exportar com QR.\n\nO slug é necessário para o QR público funcionar corretamente.\n\nVá em: Cadastrar/Editar Competição → Dados da competição → Slug.");
       return;
     }
 
@@ -334,13 +334,13 @@ function TelaNumericaPeito() {
 
   const gerarPreviewQr = async () => {
     if (!eventoAtual?.slug) {
-      alert("⚠️ Defina um slug para a competição antes de testar QR.");
+      alert("Defina um slug para a competição antes de testar QR.");
       return;
     }
     // Pegar o primeiro atleta com nº de peito
     const primeiro = atletasOrdenados.find(a => editNum[a.id] ?? numMap[a.id]);
     if (!primeiro) {
-      alert("⚠️ Numere pelo menos um atleta antes de testar.");
+      alert("Numere pelo menos um atleta antes de testar.");
       return;
     }
     const peito = editNum[primeiro.id] ?? numMap[primeiro.id];
@@ -363,19 +363,19 @@ function TelaNumericaPeito() {
     if (qr) {
       if (qr.eventoId !== eventoAtual?.id) {
         beepInvalido(); vibrarInvalido();
-        return { status: "erro", msg: "⚠️ QR de outro evento", cor: "vermelho" };
+        return { status: "erro", msg: "QR de outro evento", cor: "vermelho" };
       }
       const atl = atletas.find(a => a.id === qr.atletaId);
       beepOk(); vibrarOk();
-      return { status: "ok", msg: `✅ QR Staff válido — #${qr.numPeito} ${atl?.nome || qr.atletaId}`, cor: "verde" };
+      return { status: "ok", msg: `✓ QR Staff válido — #${qr.numPeito} ${atl?.nome || qr.atletaId}`, cor: "verde" };
     }
     // Tentar como URL pública
     if (raw.includes("/competicao/") && raw.includes("/resultados")) {
       beepOk(); vibrarOk();
-      return { status: "ok", msg: `✅ QR Público válido — ${raw}`, cor: "verde" };
+      return { status: "ok", msg: `✓ QR Público válido — ${raw}`, cor: "verde" };
     }
     beepInvalido(); vibrarInvalido();
-    return { status: "erro", msg: `❌ QR não reconhecido: ${raw.slice(0, 50)}`, cor: "vermelho" };
+    return { status: "erro", msg: `QR não reconhecido: ${raw.slice(0, 50)}`, cor: "vermelho" };
   };
 
   const exportarCsv = () => {
@@ -416,7 +416,7 @@ function TelaNumericaPeito() {
       const novaEquipe = eqNome !== equipeAtualPdf;
       equipeAtualPdf = eqNome;
       const separador = novaEquipe ? `
-        <tr><td colspan="7" style="background:#1b5e20;color:#fff;padding:6px 12px;font-weight:700;font-size:11px;letter-spacing:1px;">🏟️ ${eqNome}</td></tr>` : "";
+        <tr><td colspan="7" style="background:#1b5e20;color:#fff;padding:6px 12px;font-weight:700;font-size:11px;letter-spacing:1px;">${eqNome}</td></tr>` : "";
       return `${separador}
         <tr>
           <td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:center;font-weight:900;font-size:15px;color:#e67e00;">${peito || "—"}</td>
@@ -444,7 +444,7 @@ function TelaNumericaPeito() {
 </head>
 <body>
   <div class="no-print" style="margin-bottom:20px;">
-    <button onclick="window.print()" style="background:#1b5e20;color:#fff;border:none;padding:10px 24px;border-radius:6px;cursor:pointer;font-size:14px;margin-right:10px;">🖨️ Imprimir / Salvar PDF</button>
+    <button onclick="window.print()" style="background:#1b5e20;color:#fff;border:none;padding:10px 24px;border-radius:6px;cursor:pointer;font-size:14px;margin-right:10px;">Imprimir / Salvar PDF</button>
     <button onclick="window.close()" style="background:#eee;border:1px solid #ccc;padding:10px 18px;border-radius:6px;cursor:pointer;">✕ Fechar</button>
   </div>
   <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;padding-bottom:12px;border-bottom:2px solid #1b5e20;flex-wrap:wrap;gap:10px;">
@@ -498,7 +498,7 @@ function TelaNumericaPeito() {
         <div style={{ position: "fixed", inset: 0, background: t.bgOverlay, zIndex: 8000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
           <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 16, padding: "28px 32px", maxWidth: 420, width: "100%", textAlign: "center" }}>
             <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 20, color: t.textPrimary, marginBottom: 4 }}>
-              🔍 Preview QR Code
+              Preview QR Code
             </div>
             <div style={{ fontSize: 12, color: t.textMuted, marginBottom: 20 }}>
               Atleta: #{testeQrPreview.peito} {testeQrPreview.atleta}
@@ -521,7 +521,7 @@ function TelaNumericaPeito() {
             <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
               <button onClick={() => { setTesteQrPreview(null); setTesteQrAberto(true); }}
                 style={{ background: t.accent, color: "#fff", border: "none", borderRadius: 8, padding: "10px 20px", cursor: "pointer", fontWeight: 700, fontSize: 14 }}>
-                📷 Abrir Scanner para Testar
+                Abrir Scanner para Testar
               </button>
               <button onClick={() => setTesteQrPreview(null)}
                 style={{ background: "transparent", color: t.textMuted, border: `1px solid ${t.border}`, borderRadius: 8, padding: "10px 20px", cursor: "pointer", fontSize: 14 }}>
@@ -534,34 +534,34 @@ function TelaNumericaPeito() {
 
       <div style={s.painelHeader}>
         <div>
-          <h1 style={s.pageTitle}>🔢 Numeração de Peito</h1>
+          <h1 style={s.pageTitle}>Numeração de Peito</h1>
           <div style={{ color: t.textDimmed, fontSize: 13 }}>{eventoAtual.nome} — {atletasEvt.length} atletas</div>
         </div>
         <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
       </div>
 
       {feedback && (
-        <div style={{ background: t.bgCardAlt, border: `1px solid ${feedback.includes("❌") ? `${t.danger}44` : `${t.success}44`}`, borderRadius: 8, padding: "10px 16px", marginBottom: 16, color: feedback.includes("❌") ? t.danger : t.success, fontSize: 13 }}>
+        <div style={{ background: t.bgCardAlt, border: `1px solid ${(feedback.includes("inválido") || feedback.includes("duplicados")) ? `${t.danger}44` : `${t.success}44`}`, borderRadius: 8, padding: "10px 16px", marginBottom: 16, color: (feedback.includes("inválido") || feedback.includes("duplicados")) ? t.danger : t.success, fontSize: 13 }}>
           {feedback}
         </div>
       )}
 
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 20 }}>
-        <button style={s.btnPrimary} onClick={numerarAuto}>🔢 Numerar Automaticamente</button>
-        <button style={s.btnSecondary} onClick={salvar}>💾 Salvar Numeração</button>
-        <button style={s.btnSecondary} onClick={exportarCsv}>📥 Exportar CSV</button>
-        <button style={s.btnSecondary} onClick={exportarPDF}>📄 Exportar PDF</button>
+        <button style={s.btnPrimary} onClick={numerarAuto}>Numerar Automaticamente</button>
+        <button style={s.btnSecondary} onClick={salvar}>Salvar Numeração</button>
+        <button style={s.btnSecondary} onClick={exportarCsv}>Exportar CSV</button>
+        <button style={s.btnSecondary} onClick={exportarPDF}>Exportar PDF</button>
         <button style={s.btnSecondary} onClick={exportarComQr} disabled={gerandoQr}>
-          {gerandoQr ? `⏳ ${qrProgresso || "Gerando..."}` : "📱 Exportar com QR"}
+          {gerandoQr ? `${qrProgresso || "Gerando..."}` : "Exportar com QR"}
         </button>
-        <button style={s.btnSecondary} onClick={gerarPreviewQr} disabled={gerandoQr}>🔍 Testar QR</button>
-        <button style={s.btnGhost} onClick={limparTudo}>🗑️ Limpar</button>
+        <button style={s.btnSecondary} onClick={gerarPreviewQr} disabled={gerandoQr}>Testar QR</button>
+        <button style={s.btnGhost} onClick={limparTudo}>Limpar</button>
         <div style={{ flex: 1 }} />
-        <input style={{ ...s.input, maxWidth: 250 }} placeholder="🔍 Filtrar atleta ou equipe..." value={filtro} onChange={e => setFiltro(e.target.value)} />
+        <input style={{ ...s.input, maxWidth: 250 }} placeholder="Filtrar atleta ou equipe..." value={filtro} onChange={e => setFiltro(e.target.value)} />
       </div>
 
       <div style={{ fontSize: 11, color: t.textMuted, marginBottom: 12 }}>
-        💡 Numeração automática: agrupa por equipe e ordena por nome alfabeticamente.
+        Numeração automática: agrupa por equipe e ordena por nome alfabeticamente.
       </div>
 
       <div style={s.tableWrap}>
@@ -578,7 +578,7 @@ function TelaNumericaPeito() {
                 return p?.nome || i.provaId;
               }).join(", ");
               return [
-                  novaEquipe && <tr key={"eq_"+a.id}><td colSpan={7} style={{ background: t.bgCardAlt, padding: "6px 12px", fontWeight: 700, color: t.accent, fontSize: 12, borderTop: `2px solid ${t.accentBorder}` }}>🏟️ {eqNome}</td></tr>,
+                  novaEquipe && <tr key={"eq_"+a.id}><td colSpan={7} style={{ background: t.bgCardAlt, padding: "6px 12px", fontWeight: 700, color: t.accent, fontSize: 12, borderTop: `2px solid ${t.accentBorder}` }}>{eqNome}</td></tr>,
                   <tr key={`num_${a.id}`} style={{ ...s.tr, background: erroNum[a.id] ? t.bgCardAlt : undefined }}>
                     <td style={{ ...s.td, width: 80 }}>
                       <input type="number" min={1} value={editNum[a.id] ?? ""} onChange={e => handleChangeNum(a.id, e.target.value)}

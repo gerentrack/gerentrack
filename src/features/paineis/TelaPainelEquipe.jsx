@@ -210,9 +210,9 @@ export default function TelaPainelEquipe() {
 
   const exibirPosicao = (pos) => {
     if (pos == null) return "—";
-    if (pos === 1) return "🥇";
-    if (pos === 2) return "🥈";
-    if (pos === 3) return "🥉";
+    if (pos === 1) return "1\u00BA";
+    if (pos === 2) return "2\u00BA";
+    if (pos === 3) return "3\u00BA";
     return `${pos}º`;
   };
 
@@ -274,7 +274,7 @@ export default function TelaPainelEquipe() {
           {totalPendentes > 0 && (
             <div style={{ background: `${t.warning}12`, border: `1px solid ${t.warning}66`, borderRadius: 10, padding: "14px 18px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
               <div>
-                <span style={{ color: t.warning, fontWeight: 700 }}>🔔 {totalPendentes} solicitação(ões) de vínculo aguardando aprovação do organizador</span>
+                <span style={{ color: t.warning, fontWeight: 700 }}>{totalPendentes} solicitação(ões) de vínculo aguardando aprovação do organizador</span>
               </div>
               <button onClick={() => setAbaAtiva("vinculos")} style={{ ...s.btn, background: t.warning, padding: "6px 16px", fontSize: 12 }}>
                 Ver agora →
@@ -325,7 +325,7 @@ export default function TelaPainelEquipe() {
                     </div>
                     <button onClick={async () => { selecionarEvento(ev.id); setTela("gestao-inscricoes"); }}
                       style={{ ...s.btn, padding: "5px 14px", fontSize: 11 }}>
-                      📝 Inscrever atletas
+                      Inscrever atletas
                     </button>
                   </div>
                 ))}
@@ -365,7 +365,7 @@ export default function TelaPainelEquipe() {
           {/* Busca + Filtros */}
           <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap", alignItems: "center" }}>
             <input type="text" value={buscaAtl} onChange={e => { setBuscaAtl(e.target.value); setPaginaAtl(1); }}
-              placeholder="🔍 Buscar nome, CPF..." style={{ ...s.input, flex: 1, minWidth: 180, marginBottom: 0 }} />
+              placeholder="Buscar nome, CPF..." style={{ ...s.input, flex: 1, minWidth: 180, marginBottom: 0 }} />
             <select value={filtroSexoAtl} onChange={e => { setFiltroSexoAtl(e.target.value); setPaginaAtl(1); }}
               style={{ ...s.input, width: "auto", minWidth: 100, marginBottom: 0 }}>
               <option value="todos">Todos</option>
@@ -383,7 +383,7 @@ export default function TelaPainelEquipe() {
 
           {meusAtletas.length === 0 ? (
             <div style={s.emptyState}>
-              <span style={{ fontSize: 40 }}>👤</span>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               <p>Nenhum atleta cadastrado</p>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
                 <button style={s.btn} onClick={() => setTela("cadastrar-atleta-novo")}>+ Cadastrar primeiro atleta</button>
@@ -473,7 +473,7 @@ export default function TelaPainelEquipe() {
         <div>
           {eventosComInsc.length === 0 ? (
             <div style={{ ...s.card, ...s.emptyState }}>
-              <span style={{ fontSize: 40 }}>📋</span>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
               <p>Nenhuma inscrição registrada ainda.</p>
               <button style={s.btn} onClick={() => setAbaAtiva("eventos")}>Ver competições abertas</button>
             </div>
@@ -487,7 +487,7 @@ export default function TelaPainelEquipe() {
                     <span>{ev.nome}</span>
                     <span style={s.badge(t.success)}>{inscsEvento.length} inscrição(ões)</span>
                     <span style={{ color: t.textDimmed, fontSize: 11, fontWeight: 400 }}>
-                      📅 {ev.data ? new Date(ev.data + "T12:00:00").toLocaleDateString("pt-BR") : ""}
+                      {ev.data ? new Date(ev.data + "T12:00:00").toLocaleDateString("pt-BR") : ""}
                     </span>
                     <button onClick={async (e) => { e.preventDefault(); e.stopPropagation(); selecionarEvento(ev.id); setTela("gestao-inscricoes"); }}
                       style={{ ...s.btnSec, fontSize: 11, padding: "3px 12px", marginLeft: "auto" }}>
@@ -526,7 +526,7 @@ export default function TelaPainelEquipe() {
       {/* ── ABA: COMPETIÇÕES ── */}
       {abaAtiva === "eventos" && (
         <div style={s.card}>
-          <div style={s.secTitle}>🏟️ Competições com inscrições abertas</div>
+          <div style={s.secTitle}>Competições com inscrições abertas</div>
           {eventosAbertos.length === 0 ? (
             <div style={s.emptyState}>
               <span style={{ fontSize: 16, color: t.textDisabled }}>—</span>
@@ -544,8 +544,8 @@ export default function TelaPainelEquipe() {
                       <span style={s.eventoStatusBadge(status)}>{labelStatusEvento(status)}</span>
                     </div>
                     <div style={{ color: t.textDimmed, fontSize: 12, marginBottom: 8 }}>
-                      {ev.data ? `📅 ${new Date(ev.data + "T12:00:00").toLocaleDateString("pt-BR")}` : ""}
-                      {ev.local ? ` · 📍 ${ev.local}` : ""}
+                      {ev.data ? `${new Date(ev.data + "T12:00:00").toLocaleDateString("pt-BR")}` : ""}
+                      {ev.local ? ` · ${ev.local}` : ""}
                     </div>
                     {ev.dataEncerramentoInscricoes && (
                       <div style={{ color: t.warning, fontSize: 11, marginBottom: 10 }}>
@@ -560,7 +560,7 @@ export default function TelaPainelEquipe() {
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       <button onClick={async () => { selecionarEvento(ev.id); setTela("gestao-inscricoes"); }}
                         style={{ ...s.btn, padding: "7px 16px", fontSize: 12 }}>
-                        📝 Inscrever atletas
+                        Inscrever atletas
                       </button>
                       <button onClick={async () => { selecionarEvento(ev.id); setTela("evento-detalhe"); }}
                         style={{ ...s.btnGhost, padding: "7px 14px", fontSize: 12 }}>
@@ -652,7 +652,7 @@ export default function TelaPainelEquipe() {
 
         return (
           <div style={s.card}>
-            <div style={s.secTitle}>📜 Auditoria</div>
+            <div style={s.secTitle}>Auditoria</div>
             <p style={{ color: t.textDimmed, fontSize: 12, marginBottom: 14, lineHeight: 1.5 }}>
               Registro de todas as ações realizadas na equipe — cadastros, edições, exclusões, inscrições, treinadores, relatórios e acessos.
             </p>
@@ -666,7 +666,7 @@ export default function TelaPainelEquipe() {
                 {modulosPresentes.map(mod => (
                   <span key={mod} style={{ fontSize: 11, padding: "3px 8px", background: t.bgCardAlt, borderRadius: 5, border: `1px solid ${t.border}`, cursor: "pointer", fontWeight: filtroModulo === mod ? 700 : 400, borderColor: filtroModulo === mod ? t.accent : t.border, color: filtroModulo === mod ? t.accent : t.textTertiary }}
                     onClick={() => { setFiltroModulo(filtroModulo === mod ? "todos" : mod); setPaginaAudit(1); }}>
-                    {MODULO_ICONS[mod] || "📌"} {MODULO_LABELS[mod] || mod}: <strong>{meuHistorico.filter(h => h.modulo === mod).length}</strong>
+                    {MODULO_ICONS[mod] || ""} {MODULO_LABELS[mod] || mod}: <strong>{meuHistorico.filter(h => h.modulo === mod).length}</strong>
                   </span>
                 ))}
               </div>
@@ -674,11 +674,11 @@ export default function TelaPainelEquipe() {
 
             {/* Busca */}
             <input type="text" value={buscaAudit} onChange={e => { setBuscaAudit(e.target.value); setPaginaAudit(1); }}
-              placeholder="🔍 Buscar ação, usuário, detalhe..." style={{ ...s.input, marginBottom: 12 }} />
+              placeholder="Buscar ação, usuário, detalhe..." style={{ ...s.input, marginBottom: 12 }} />
 
             {filtrados.length === 0 ? (
               <div style={s.emptyState}>
-                <span style={{ fontSize: 40 }}>📜</span>
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                 <p>Nenhuma ação registrada{filtroModulo !== "todos" || buscaAudit ? " com os filtros aplicados" : ""}.</p>
               </div>
             ) : (
@@ -695,7 +695,7 @@ export default function TelaPainelEquipe() {
                           <Td><span style={{ color: t.accent, fontSize: 12, fontWeight: 600 }}>{h.nomeUsuario || "—"}</span></Td>
                           <Td>
                             <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 4, background: t.bgCardAlt, border: `1px solid ${t.border}`, color: t.textTertiary, fontWeight: 600 }}>
-                              {MODULO_ICONS[h.modulo] || "📌"} {MODULO_LABELS[h.modulo] || h.modulo || "—"}
+                              {MODULO_ICONS[h.modulo] || ""} {MODULO_LABELS[h.modulo] || h.modulo || "—"}
                             </span>
                           </Td>
                           <Td><strong style={{ color: t.textPrimary, fontSize: 12 }}>{h.acao}</strong></Td>
@@ -891,18 +891,18 @@ export default function TelaPainelEquipe() {
           {/* Stats medalhas */}
           <div style={s.statsRow}>
             <StatCard value={medalhas.total} label="Resultados" />
-            <StatCard value={medalhas.ouro} label="🥇 Ouro" color={t.gold} />
-            <StatCard value={medalhas.prata} label="🥈 Prata" color="#C0C0C0" />
-            <StatCard value={medalhas.bronze} label="🥉 Bronze" color="#CD7F32" />
+            <StatCard value={medalhas.ouro} label="Ouro" color={t.gold} />
+            <StatCard value={medalhas.prata} label="Prata" color="#C0C0C0" />
+            <StatCard value={medalhas.bronze} label="Bronze" color="#CD7F32" />
           </div>
 
           {/* Busca */}
           <input type="text" value={buscaRes} onChange={e => setBuscaRes(e.target.value)}
-            placeholder="🔍 Buscar atleta..." style={s.input} />
+            placeholder="Buscar atleta..." style={s.input} />
 
           {resultadosEquipe.length === 0 ? (
             <div style={s.emptyState}>
-              <span style={{ fontSize: 40 }}>🏆</span>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
               <p>Nenhum resultado registrado para atletas da equipe.</p>
             </div>
           ) : (
@@ -914,9 +914,9 @@ export default function TelaPainelEquipe() {
               return (
                 <details key={ev.id} open style={{ background: t.bgCardAlt, border: `1px solid ${t.border}`, borderRadius: 10, marginBottom: 12, overflow: "hidden" }}>
                   <summary style={{ padding: "12px 18px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                    <span style={{ color: t.accent, fontWeight: 700, fontSize: 14 }}>🏟 {ev.nome}</span>
-                    {ev.data && <span style={{ color: t.textDimmed, fontSize: 11 }}>📅 {new Date(ev.data + "T12:00:00").toLocaleDateString("pt-BR")}</span>}
-                    {ev.local && <span style={{ color: t.textDisabled, fontSize: 11 }}>· 📍 {ev.local}</span>}
+                    <span style={{ color: t.accent, fontWeight: 700, fontSize: 14 }}>{ev.nome}</span>
+                    {ev.data && <span style={{ color: t.textDimmed, fontSize: 11 }}>{new Date(ev.data + "T12:00:00").toLocaleDateString("pt-BR")}</span>}
+                    {ev.local && <span style={{ color: t.textDisabled, fontSize: 11 }}>· {ev.local}</span>}
                     <span style={s.badge(t.accent)}>{filtrados.length} resultado{filtrados.length !== 1 ? "s" : ""}</span>
                   </summary>
                   <div style={{ padding: "0 12px 14px" }}>
@@ -986,7 +986,7 @@ export default function TelaPainelEquipe() {
           {desvinculacaoPend.length > 0 && (
             <div style={{ background: `${t.danger}10`, border: `1px solid ${t.danger}44`, borderRadius: 12, padding: "16px 20px", marginBottom: 20 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                <span style={{ fontSize: 20 }}>🚪</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                 <div>
                   <div style={{ fontWeight: 700, color: t.danger, fontSize: 14 }}>
                     Solicitações de Saída — atletas pedindo para sair da equipe
@@ -1032,7 +1032,7 @@ export default function TelaPainelEquipe() {
                     {transferenciasPend.length > 0 && (
             <div style={{ background: `${t.warning}10`, border: `1px solid ${t.warning}44`, borderRadius: 12, padding: "16px 20px", marginBottom: 20 }}>
               <div style={{ fontWeight: 700, color: t.warning, fontSize: 14, marginBottom: 8 }}>
-                🔄 Transferências — outra equipe quer um atleta seu
+                Transferências — outra equipe quer um atleta seu
               </div>
               <p style={{ color: t.textMuted, fontSize: 12, marginBottom: 12 }}>
                 A aprovação é feita pelo organizador.
@@ -1066,7 +1066,7 @@ export default function TelaPainelEquipe() {
             ).sort((a,b) => new Date(b.resolvidoEm||b.data) - new Date(a.resolvidoEm||a.data));
             if (hist.length === 0 && totalPendentes === 0) return (
               <div style={{ textAlign: "center", padding: "40px 20px", color: t.textDimmed }}>
-                <span style={{ fontSize: 36 }}>🔗</span>
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
                 <p style={{ fontSize: 13, marginTop: 12 }}>Nenhuma solicitação de vínculo registrada.</p>
               </div>
             );
@@ -1088,7 +1088,7 @@ export default function TelaPainelEquipe() {
                         return (
                           <tr key={sol.id} style={s.tr}>
                             <Td><strong style={{ color: t.textPrimary }}>{sol.atletaNome}</strong></Td>
-                            <Td style={{ fontSize: 11 }}>{sol.tipo === "desvinculacao" ? "🚪 Saída" : sol.aprovadorTipo === "equipe_atual" ? "🔄 Transferência" : "🔗 Vínculo"}</Td>
+                            <Td style={{ fontSize: 11 }}>{sol.tipo === "desvinculacao" ? "Saída" : sol.aprovadorTipo === "equipe_atual" ? "Transferência" : "Vínculo"}</Td>
                             <Td><span style={{ background: cor+"22", color: cor, border: `1px solid ${cor}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>{sol.status === "aceito" ? "✓ Aceito" : "✗ Recusado"}</span></Td>
                             <Td style={{ fontSize: 11, color: t.textMuted }}>{sol.resolvidoPorNome || "—"} {sol.resolvidoPorTipo ? `(${sol.resolvidoPorTipo})` : ""}</Td>
                             <Td style={{ fontSize: 11, color: t.textDimmed }}>{sol.resolvidoEm ? new Date(sol.resolvidoEm).toLocaleString("pt-BR") : new Date(sol.data).toLocaleString("pt-BR")}</Td>

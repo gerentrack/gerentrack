@@ -200,7 +200,7 @@ function TelaImportarAtletas() {
         }
       }
       if (!XL) {
-        setErro("❌ Não foi possível carregar a biblioteca Excel. Recarregue a página (Ctrl+Shift+R).");
+        setErro(" Não foi possível carregar a biblioteca Excel. Recarregue a página (Ctrl+Shift+R).");
         setLoading(false);
         return;
       }
@@ -351,7 +351,7 @@ function TelaImportarAtletas() {
         setPreview(null);
       } else {
         if (erros.length > 0) {
-          setErro(`⚠️ ${erros.length} linha(s) com problema (serão ignoradas):\n${erros.join('\n')}\n\n✅ ${atletasParaImportar.length} atleta(s) válido(s) prontos para importar.`);
+          setErro(`${erros.length} linha(s) com problema (serão ignoradas):\n${erros.join('\n')}\n\n${atletasParaImportar.length} atleta(s) válido(s) prontos para importar.`);
         }
         setPreview(atletasParaImportar);
       }
@@ -439,11 +439,11 @@ function TelaImportarAtletas() {
     try {
       await adicionarAtletasEmLote(novosLimpos);
       setLoading(false);
-      alert(`✅ ${novosAtletas.length} atleta(s) importado(s) com sucesso!`);
+      alert(`✓ ${novosAtletas.length} atleta(s) importado(s) com sucesso!`);
     } catch (err) {
       console.error("[importar atletas] erro:", err);
       setLoading(false);
-      alert("❌ Erro ao salvar atletas. Tente novamente.");
+      alert(" Erro ao salvar atletas. Tente novamente.");
       return;
     }
     const tp = usuarioLogado?.tipo;
@@ -476,7 +476,7 @@ function TelaImportarAtletas() {
     <div style={s.page}>
       <div style={s.painelHeader}>
         <div>
-          <h1 style={s.pageTitle}>📊 Importar Atletas em Lote</h1>
+          <h1 style={s.pageTitle}>Importar Atletas em Lote</h1>
           <p style={{ color: t.textDimmed, fontSize: 14 }}>
             {(isEquipe || isTreinador)
               ? "Upload de planilha Excel - atletas vinculados automaticamente à sua equipe"
@@ -503,7 +503,6 @@ function TelaImportarAtletas() {
           textAlign: "center",
           marginBottom: 24
         }}>
-          <div style={{ fontSize: 64, marginBottom: 16 }}>📤</div>
           <h3 style={{ color: t.accent, marginBottom: 12 }}>Faça upload da planilha Excel</h3>
           <p style={{ color: t.textMuted, marginBottom: 24, fontSize: 14 }}>
             Arraste o arquivo ou clique para selecionar
@@ -530,7 +529,7 @@ function TelaImportarAtletas() {
 
           {loading && (
             <div style={{ marginTop: 16, color: t.accent }}>
-              ⏳ Processando planilha...
+              Processando planilha...
             </div>
           )}
         </div>
@@ -544,7 +543,6 @@ function TelaImportarAtletas() {
           marginBottom: 24
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ fontSize: 32 }}>📋</div>
             <div style={{ flex: 1 }}>
               <h4 style={{ color: t.textPrimary, marginBottom: 4 }}>Modelo de Planilha</h4>
               <p style={{ color: t.textMuted, fontSize: 13, marginBottom: 0 }}>
@@ -573,7 +571,7 @@ function TelaImportarAtletas() {
                   }
                 }
                 if (!XL) {
-                  alert("❌ Não foi possível carregar a biblioteca Excel. Recarregue a página.");
+                  alert(" Não foi possível carregar a biblioteca Excel. Recarregue a página.");
                   return;
                 }
                 const modelo = [
@@ -588,7 +586,7 @@ function TelaImportarAtletas() {
               }}
               style={{ ...s.btnSecondary, border: "none", cursor: "pointer" }}
             >
-              ⬇️ Baixar Modelo
+              Baixar Modelo
             </button>
           </div>
         </div>
@@ -604,7 +602,7 @@ function TelaImportarAtletas() {
             whiteSpace: "pre-line"
           }}>
             <div style={{ color: preview && preview.length > 0 ? t.warning : t.danger, fontWeight: 600, marginBottom: 8 }}>
-              {preview && preview.length > 0 ? "⚠️ Importação parcial:" : "❌ Erros encontrados:"}
+              {preview && preview.length > 0 ? "Importação parcial:" : "Erros encontrados:"}
             </div>
             <div style={{ color: preview && preview.length > 0 ? t.warning : t.danger, fontSize: 13 }}>{erro}</div>
           </div>
@@ -620,7 +618,6 @@ function TelaImportarAtletas() {
             marginBottom: 24
           }}>
             <h3 style={{ color: t.accent, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 24 }}>⚙️</span>
               Vincular atletas a:
             </h3>
             <div>
@@ -647,7 +644,7 @@ function TelaImportarAtletas() {
               </select>
             </div>
             <p style={{ color: t.textDimmed, fontSize: 12, marginTop: 12, fontStyle: "italic" }}>
-              ℹ️ Todos os {preview.length} atleta(s) serão vinculados à equipe selecionada
+              Todos os {preview.length} atleta(s) serão vinculados à equipe selecionada
             </p>
           </div>
         )}
@@ -718,11 +715,11 @@ function TelaImportarAtletas() {
                 <div style={{ background: t.bgCardAlt, border:`1px solid ${lgpdDeclarado ? t.accentBorder : t.borderInput}`,
                   borderRadius:10, padding:"16px 18px", marginTop:16, marginBottom:8, transition:"border-color 0.2s" }}>
                   <div style={{ fontSize:12, fontWeight:700, color: t.accent, letterSpacing:1,
-                    textTransform:"uppercase", marginBottom:10 }}>🔒 Declaração LGPD — Art. 7º e {temMenor ? "Art. 14" : "Art. 8"} da Lei 13.709/2018</div>
+                    textTransform:"uppercase", marginBottom:10 }}>Declaração LGPD — Art. 7º e {temMenor ? "Art. 14" : "Art. 8"} da Lei 13.709/2018</div>
                   {temMenor && (
                     <div style={{ background:`${t.success}10`, border:`1px solid ${t.success}44`, borderRadius:7,
                       padding:"8px 12px", marginBottom:12, fontSize:12, color: t.success, lineHeight:1.6 }}>
-                      👨‍👩‍👧 <strong>Atenção:</strong> Esta lista contém <strong>atletas menores de 18 anos</strong>.
+                       <strong>Atenção:</strong> Esta lista contém <strong>atletas menores de 18 anos</strong>.
                       A declaração abaixo inclui a confirmação do consentimento parental exigido pelo Art. 14 da LGPD.
                     </div>
                   )}
@@ -744,7 +741,7 @@ function TelaImportarAtletas() {
                   </label>
                   {!lgpdDeclarado && (
                     <div style={{ color: t.danger, fontSize:12, marginTop:8 }}>
-                      ⚠️ É necessário fazer esta declaração antes de confirmar a importação.
+                      É necessário fazer esta declaração antes de confirmar a importação.
                     </div>
                   )}
                 </div>
@@ -778,7 +775,7 @@ function TelaImportarAtletas() {
             borderRadius: 8,
             padding: 20
           }}>
-            <h4 style={{ color: t.accent, marginBottom: 12 }}>📖 Como usar:</h4>
+            <h4 style={{ color: t.accent, marginBottom: 12 }}>Como usar:</h4>
             <ol style={{ color: t.textTertiary, fontSize: 14, lineHeight: 1.8, paddingLeft: 20 }}>
               <li>Baixe o modelo de planilha Excel acima</li>
               <li>Preencha: Nome, Sexo, Data de Nascimento, CPF{isEquipe ? "" : ""}</li>
@@ -794,7 +791,7 @@ function TelaImportarAtletas() {
               </p>
             ) : (
               <p style={{ color: t.accent, fontSize: 12, marginTop: 16, fontStyle: "italic" }}>
-                ⚠️ Você deve selecionar a Equipe após processar o arquivo
+                Você deve selecionar a Equipe após processar o arquivo
               </p>
             )}
           </div>

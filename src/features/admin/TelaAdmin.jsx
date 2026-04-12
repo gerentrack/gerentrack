@@ -18,7 +18,7 @@ import { useApp } from "../../contexts/AppContext";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 const badgeStatus = (s, t) => ({
-  pendente: { bg:t.accentBg, color: t.accent, label:"⏳ Pendente" },
+  pendente: { bg:t.accentBg, color: t.accent, label:"Pendente" },
   aprovado: { bg:`${t.success}15`, color:t.success, label:"✓ Aprovado" },
   recusado: { bg:`${t.danger}15`, color: t.danger, label:"✗ Recusado" },
 }[s] || { bg:t.bgHover, color: t.textMuted, label: s || "—" });
@@ -99,7 +99,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
   // ── Guard ──────────────────────────────────────────────────────────────────
   if (usuarioLogado?.tipo !== "admin") return (
     <div style={s.page}><div style={s.empty}>
-      <span style={{ fontSize:48 }}>🚫</span>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={t.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
       <p style={{ color: t.danger, fontWeight:700 }}>Acesso restrito ao administrador</p>
       <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
     </div></div>
@@ -229,7 +229,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
       if (err.code === "auth/email-already-in-use") {
         authAviso = "E-mail já possui conta Auth — treinador deve usar senha existente ou redefinir.";
       } else {
-        setSalvoTrein(`❌ Erro ao criar conta: ${err.message}`);
+        setSalvoTrein(`Erro ao criar conta: ${err.message}`);
         setTimeout(() => setSalvoTrein(""), 5000);
         return;
       }
@@ -247,8 +247,8 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
     registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Criou treinador (admin)",
       `${formTrein.nome} (${formTrein.email}) → ${eqSel?.nome || formTrein.equipeId}`, null, { modulo: "admin" });
     const msg = authAviso
-      ? (treinDocExistente ? `✅ Treinador vinculado! ${authAviso}` : `⚠️ ${authAviso}`)
-      : `✅ Treinador criado! Senha temporária: ${senhaTemp}`;
+      ? (treinDocExistente ? `Treinador vinculado! ${authAviso}` : `${authAviso}`)
+      : `Treinador criado! Senha temporária: ${senhaTemp}`;
     setSalvoTrein(msg);
     setFormTrein({ nome:"", email:"", cpf:"", cargo:"", equipeId:"", permissoes:[] }); setEditandoTrein(null);
     setErrosTrein({}); setTreinDocExistente(null); setShowTreinForm(false);
@@ -269,7 +269,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
     atualizarTreinador(atualizado);
     registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Editou treinador (admin)",
       `${atualizado.nome} — permissões: ${(atualizado.permissoes || []).join(", ") || "nenhuma"}`, null, { modulo: "admin" });
-    setSalvoTrein("✅ Treinador atualizado!");
+    setSalvoTrein("Treinador atualizado!");
     setFormTrein({ nome:"", email:"", cpf:"", cargo:"", equipeId:"", permissoes:[] }); setEditandoTrein(null);
     setShowTreinForm(false);
     setTimeout(() => setSalvoTrein(""), 5000);
@@ -377,7 +377,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
 
       {/* ── HEADER ─────────────────────────────────────────────────────────── */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:24 }}>
-        <h1 style={s.title}>⚙️ Administração</h1>
+        <h1 style={s.title}>Administração</h1>
       </div>
 
       {/* ── TAB BAR ────────────────────────────────────────────────────────── */}
@@ -436,12 +436,12 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
           {totalPend > 0 && (
             <div style={{ ...s.card, borderColor:"#c0392b44", marginBottom:20 }}>
               <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:16, fontWeight:800, color:"#c0392b", marginBottom:14, letterSpacing:1 }}>
-                ⚠️ PENDÊNCIAS QUE REQUEREM ATENÇÃO
+                PENDÊNCIAS QUE REQUEREM ATENÇÃO
               </div>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))", gap:10 }}>
                 {pendRec.length > 0 && (
                   <button onClick={() => setAba("organizadores")} style={s.pendCard(t.success,`${t.success}15`,`${t.success}44`)}>
-                    <span style={{ fontSize:26 }}>🔑</span>
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{color:t.success,flexShrink:0}}><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
                     <div>
                       <div style={{ fontWeight:700, color:t.success, fontSize:13 }}>{pendRec.length} recuperação(ões) de senha</div>
                       <div style={{ color: t.textDimmed, fontSize:11, marginTop:2 }}>Aguardando envio de senha temporária</div>
@@ -451,7 +451,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                 )}
                 {pendOrg.length > 0 && (
                   <button onClick={() => setAba("organizadores")} style={s.pendCard(t.accent,t.accentBg,`${t.accent}44`)}>
-                    <span style={{ fontSize:26 }}>🏟️</span>
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{color:t.accent,flexShrink:0}}><path d="M3 21h18M3 7v1a3 3 0 006 0V7m0 0v1a3 3 0 006 0V7m0 0v1a3 3 0 006 0V7M3 7l9-4 9 4"/><path d="M6 12v5h12v-5"/></svg>
                     <div>
                       <div style={{ fontWeight:700, color: t.accent, fontSize:13 }}>{pendOrg.length} organizador(es) pendente(s)</div>
                       <div style={{ color: t.textDimmed, fontSize:11, marginTop:2 }}>Aguardando aprovação</div>
@@ -461,7 +461,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                 )}
                 {pendPort.length > 0 && (
                   <button onClick={() => setAba("portabilidade")} style={s.pendCard("#a855f7","#a855f711","#a855f744")}>
-                    <span style={{ fontSize:26 }}>📦</span>
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{color:"#a855f7",flexShrink:0}}><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
                     <div>
                       <div style={{ fontWeight:700, color:"#a855f7", fontSize:13 }}>{pendPort.length} solicitação(ões) de portabilidade</div>
                       <div style={{ color: t.textDimmed, fontSize:11, marginTop:2 }}>Aguardando geração e liberação</div>
@@ -540,7 +540,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
           {(historicoAcoes||[]).length > 0 && (
             <div style={s.card}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
-                <div style={s.sectionHd}>🕐 Últimas Ações</div>
+                <div style={s.sectionHd}>Últimas Ações</div>
                 <button style={{ ...s.btnGhost, fontSize:11, padding:"4px 12px" }} onClick={() => setAba("historico")}>
                   Ver tudo →
                 </button>
@@ -576,7 +576,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
           {pendRec.length > 0 && (
             <div style={{ ...s.card, borderColor:"#2a5a2a", marginBottom:16 }}>
               <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:800, color:t.success, marginBottom:14, letterSpacing:1 }}>
-                🔑 Recuperação de Senha ({pendRec.length})
+                Recuperação de Senha ({pendRec.length})
               </div>
               <div style={s.tableWrap}>
                 <table style={s.table}>
@@ -585,7 +585,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                   </tr></thead>
                   <tbody>
                     {pendRec.map(sol => {
-                      const LABEL = { equipe:"🎽 Equipe", organizador:"🏟️ Org.", atleta:"🏃 Atleta" };
+                      const LABEL = { equipe:"Equipe", organizador:"Org.", atleta:"Atleta" };
                       return (
                         <tr key={sol.id} style={s.tr}>
                           <Td><strong style={{ color: t.textPrimary }}>{sol.nome}</strong></Td>
@@ -608,15 +608,15 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                                 style={{ background:"none", border:"none", cursor:"pointer", fontSize:14, color: t.textDimmed, padding:"0 2px" }}
                                 title={senhasVisiveis.has(sol.id) ? "Ocultar senha" : "Revelar senha"}
                               >
-                                {senhasVisiveis.has(sol.id) ? "🙈" : "👁️"}
+                                {senhasVisiveis.has(sol.id) ? "Ocultar" : "Revelar"}
                               </button>
                             </div>
                           </Td>
                           <Td>
                             {resetFeedback[sol.id] === "ok" ? (
-                              <span style={{ color:t.success, fontSize:12 }}>✅ E-mail enviado!</span>
+                              <span style={{ color:t.success, fontSize:12 }}>E-mail enviado!</span>
                             ) : resetFeedback[sol.id] === "erro" ? (
-                              <span style={{ color: t.danger, fontSize:12 }}>❌ Falhou — tente de novo</span>
+                              <span style={{ color: t.danger, fontSize:12 }}>Falhou — tente de novo</span>
                             ) : (
                               <button onClick={async () => {
                                 setResetFeedback(prev => ({ ...prev, [sol.id]: "enviando" }));
@@ -637,7 +637,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                               style={{ ...s.btnGhost, fontSize:12, padding:"4px 14px", color:t.success, borderColor:`${t.success}66`,
                                 opacity: resetFeedback[sol.id] === "enviando" ? 0.5 : 1,
                                 cursor: resetFeedback[sol.id] === "enviando" ? "not-allowed" : "pointer" }}>
-                                {resetFeedback[sol.id] === "enviando" ? "⏳ Enviando..." : "📧 Enviar Link de Redefinição"}
+                                {resetFeedback[sol.id] === "enviando" ? "Enviando..." : "Enviar Link de Redefinição"}
                               </button>
                             )}
                           </Td>
@@ -656,7 +656,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
           {/* Lista de Organizadores */}
           <div style={s.card}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:16 }}>
-              <div style={s.sectionHd}>🏟️ Organizadores ({organizadores.length})</div>
+              <div style={s.sectionHd}>Organizadores ({organizadores.length})</div>
               <button onClick={async () => { setShowOrgForm(!showOrgForm); setErrosOrg({}); }}
                 style={{ ...s.btnPrimary, fontSize:12, padding:"6px 16px" }}>
                 {showOrgForm ? "✕ Cancelar" : "+ Novo Organizador"}
@@ -665,7 +665,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
 
             {salvoOrg && (
               <div style={{ background:`${t.success}15`, border:`1px solid ${t.success}66`, borderRadius:8, padding:"8px 14px", marginBottom:12, color:t.success, fontSize:13 }}>
-                ✅ Organizador criado com sucesso!
+                Organizador criado com sucesso!
               </div>
             )}
 
@@ -680,14 +680,14 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                   <FormField label="CNPJ *"                 value={formOrg.cnpj}     onChange={v=>setFormOrg({...formOrg,cnpj:v})}     placeholder="00.000.000/0001-00" error={errosOrg.cnpj} />
                 </div>
                 <div style={{ display:"flex", gap:8, marginTop:8 }}>
-                  <button onClick={handleCriarOrg} style={s.btnPrimary}>✅ Criar Organizador (aprovado)</button>
+                  <button onClick={handleCriarOrg} style={s.btnPrimary}>Criar Organizador (aprovado)</button>
                   <button onClick={() => setShowOrgForm(false)} style={s.btnGhost}>Cancelar</button>
                 </div>
               </div>
             )}
 
             <input type="text" value={buscaOrg} onChange={e=>setBuscaOrg(e.target.value)}
-              placeholder="🔍 Buscar organizador..." style={si} />
+              placeholder="Buscar organizador..." style={si} />
             <div style={s.tableWrap}>
               <div style={{ maxHeight:400, overflowY:"auto" }}>
                 <table style={s.table}>
@@ -741,12 +741,12 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
           {/* Todas as competições */}
           <div style={s.card}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:14 }}>
-              <div style={s.sectionHd}>🏟 Todas as Competições ({eventos.length})</div>
+              <div style={s.sectionHd}>Todas as Competições ({eventos.length})</div>
               <button style={s.btnPrimary} onClick={async () => { selecionarEvento(null); setTela("novo-evento"); }}>+ Nova Competição</button>
             </div>
             <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
               <input type="text" value={buscaComp} onChange={e=>setBuscaComp(e.target.value)}
-                placeholder="🔍 Buscar competição..." style={{ ...si, marginBottom: 0, flex: 1, minWidth: 200 }} />
+                placeholder="Buscar competição..." style={{ ...si, marginBottom: 0, flex: 1, minWidth: 200 }} />
               <select value={filtroOrgComp} onChange={e => setFiltroOrgComp(e.target.value)}
                 style={{ ...si, marginBottom: 0, width: "auto", minWidth: 200 }}>
                 <option value="">Todos organizadores</option>
@@ -775,9 +775,9 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                           <button style={{ ...s.btnSecondary, fontSize:11, padding:"3px 10px" }}
                             onClick={async () => { selecionarEvento(ev.id); setTela("evento-detalhe"); }}>Acessar</button>
                           <button style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px" }}
-                            onClick={async () => { selecionarEvento(ev.id); setTela("novo-evento"); }}>✏️ Editar</button>
+                            onClick={async () => { selecionarEvento(ev.id); setTela("novo-evento"); }}>Editar</button>
                           <button style={{ ...s.btnGhost, fontSize:11, padding:"3px 9px", color: t.danger, borderColor:`${t.danger}44` }}
-                            onClick={() => excluirEvento(ev.id)}>🗑</button>
+                            onClick={() => excluirEvento(ev.id)}>✕</button>
                         </div>
                       </div>
                     );
@@ -800,7 +800,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
             return (
               <div style={{ marginBottom: 24 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
-                  <div style={s.sectionHd}>⏳ Equipes Aguardando Aprovação</div>
+                  <div style={s.sectionHd}>Equipes Aguardando Aprovação</div>
                   <span style={{ background:`${t.success}15`, color:t.success, border:`1px solid ${t.success}66`, borderRadius:20, padding:"2px 10px", fontSize:12, fontWeight:700 }}>
                     {pendEq.length}
                   </span>
@@ -816,7 +816,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                       <div style={{ marginLeft:"auto", textAlign:"right" }}>
                         {sol.organizadorId
                           ? <div style={{ color:t.accent, fontSize:12 }}>Org.: {sol.organizadorNome || sol.organizadorId}</div>
-                          : <div style={{ color:"#e67e22", fontSize:12 }}>⚠️ Sem organizador vinculado</div>
+                          : <div style={{ color:"#e67e22", fontSize:12 }}>Sem organizador vinculado</div>
                         }
                         <div style={{ color: t.textDimmed, fontSize:11 }}>{new Date(sol.data).toLocaleDateString("pt-BR")}</div>
                       </div>
@@ -839,9 +839,9 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                           const orgId = sol.organizadorId || orgSel[sol.id];
                           if (!sol.organizadorId && !orgId) { alert("Selecione um organizador antes de aprovar."); return; }
                           aprovarEquipe(sol.equipeId, orgId || null);
-                        }}>✅ Aprovar</button>
+                        }}>Aprovar</button>
                       <button style={{ background:`${t.danger}15`, color: t.danger, border:`1px solid ${t.danger}66`, borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:700, padding:"6px 18px" }}
-                        onClick={() => recusarEquipe(sol.equipeId)}>❌ Recusar</button>
+                        onClick={() => recusarEquipe(sol.equipeId)}>Recusar</button>
                     </div>
                   </div>
                 ))}
@@ -850,8 +850,8 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
           })()}
 
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:14 }}>
-            <div style={s.sectionHd}>🏅 Equipes ({equipes.length})</div>
-            <button style={s.btnSecondary} onClick={() => setTela("gerenciar-equipes")}>🏅 Gestão Completa →</button>
+            <div style={s.sectionHd}>Equipes ({equipes.length})</div>
+            <button style={s.btnSecondary} onClick={() => setTela("gerenciar-equipes")}>Gestão Completa →</button>
           </div>
           {equipes.length === 0 ? (
             <div style={s.empty}>Nenhuma equipe cadastrada.</div>
@@ -859,7 +859,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
             <>
               <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
                 <input type="text" value={buscaEq} onChange={e=>setBuscaEq(e.target.value)}
-                  placeholder="🔍 Buscar equipe..." style={{ ...si, marginBottom: 0, flex: 1, minWidth: 200 }} />
+                  placeholder="Buscar equipe..." style={{ ...si, marginBottom: 0, flex: 1, minWidth: 200 }} />
                 <select value={filtroOrgEq} onChange={e => setFiltroOrgEq(e.target.value)}
                   style={{ ...si, marginBottom: 0, width: "auto", minWidth: 200 }}>
                   <option value="">Todos organizadores</option>
@@ -903,10 +903,10 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
       {aba === "atletas" && (
         <div style={s.card}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:14 }}>
-            <div style={s.sectionHd}>🏃 Atletas ({atletas.length})</div>
+            <div style={s.sectionHd}>Atletas ({atletas.length})</div>
             <div style={{ display:"flex", gap:8 }}>
               <button style={s.btnPrimary} onClick={() => setTela("cadastrar-atleta")}>+ Cadastrar</button>
-              <button style={s.btnSecondary} onClick={() => setTela("importar-atletas")}>📊 Importar</button>
+              <button style={s.btnSecondary} onClick={() => setTela("importar-atletas")}>Importar</button>
             </div>
           </div>
           {atletas.length === 0 ? (
@@ -915,7 +915,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
             <>
               <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
                 <input type="text" value={buscaAtl} onChange={e=>setBuscaAtl(e.target.value)}
-                  placeholder="🔍 Buscar atleta..." style={{ ...si, marginBottom: 0, flex: 1, minWidth: 200 }} />
+                  placeholder="Buscar atleta..." style={{ ...si, marginBottom: 0, flex: 1, minWidth: 200 }} />
                 <select value={filtroAtl} onChange={e => setFiltroAtl(e.target.value)}
                   style={{ ...si, marginBottom: 0, width: "auto", minWidth: 180 }}>
                   <option value="todos">Todos os atletas</option>
@@ -960,11 +960,11 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                             <Td>
                               <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
                                 <button onClick={async () => { setAtletaEditandoId(a.id); setTela("editar-atleta"); }}
-                                  style={{ ...s.btnGhost, fontSize:11, padding:"3px 12px" }}>✏️ Editar</button>
+                                  style={{ ...s.btnGhost, fontSize:11, padding:"3px 12px" }}>Editar</button>
                                 <button onClick={() => { setModalTransf({ atleta: a }); setTransfEquipeId(a.equipeId || ""); }}
-                                  style={{ ...s.btnGhost, fontSize:11, padding:"3px 12px", color:"#e6c430", borderColor:"#5a4a00" }}>🔀 Transferir</button>
+                                  style={{ ...s.btnGhost, fontSize:11, padding:"3px 12px", color:"#e6c430", borderColor:"#5a4a00" }}>Transferir</button>
                                 <button onClick={async () => {  if (await confirmar(`Excluir ${a.nome }?`)) excluirAtleta(a.id); }}
-                                  style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px", color: t.danger, borderColor:"#5a1a1a" }}>🗑</button>
+                                  style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px", color: t.danger, borderColor:"#5a1a1a" }}>✕</button>
                               </div>
                             </Td>
                           </tr>
@@ -986,7 +986,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
       {aba === "treinadores" && (
         <div style={s.card}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:14 }}>
-            <div style={s.sectionHd}>👨‍🏫 Treinadores ({treinadores.length})</div>
+            <div style={s.sectionHd}>Treinadores ({treinadores.length})</div>
             <button style={s.btnPrimary} onClick={() => {
               setShowTreinForm(v => !v);
               if (showTreinForm) { setFormTrein({ nome:"", email:"", cpf:"", cargo:"", equipeId:"", permissoes:[] }); setEditandoTrein(null); setErrosTrein({}); setTreinDocExistente(null); }
@@ -996,9 +996,9 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
           </div>
 
           {salvoTrein && (
-            <div style={{ background: salvoTrein.startsWith("❌") ? `${t.danger}15` : salvoTrein.startsWith("⚠️") ? `${t.accent}15` : `${t.success}15`,
-              border: `1px solid ${salvoTrein.startsWith("❌") ? t.danger : salvoTrein.startsWith("⚠️") ? t.accent : t.success}66`,
-              color: salvoTrein.startsWith("❌") ? t.danger : salvoTrein.startsWith("⚠️") ? t.accent : t.success,
+            <div style={{ background: salvoTrein.startsWith("Erro") ? `${t.danger}15` : salvoTrein.includes("já possui conta") ? `${t.accent}15` : `${t.success}15`,
+              border: `1px solid ${salvoTrein.startsWith("Erro") ? t.danger : salvoTrein.includes("já possui conta") ? t.accent : t.success}66`,
+              color: salvoTrein.startsWith("Erro") ? t.danger : salvoTrein.includes("já possui conta") ? t.accent : t.success,
               borderRadius:8, padding:"10px 16px", marginBottom:16, fontSize:13, fontWeight:600 }}>
               {salvoTrein}
             </div>
@@ -1059,7 +1059,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                 ))}
               </div>
               <button style={{ ...s.btnPrimary, marginTop:8 }} onClick={editandoTrein ? handleSalvarTreinEdit : handleCriarTrein}>
-                {editandoTrein ? "💾 Salvar Alterações" : treinDocExistente ? "Vincular Treinador" : "Criar Treinador"}
+                {editandoTrein ? "Salvar Alterações" : treinDocExistente ? "Vincular Treinador" : "Criar Treinador"}
               </button>
               {editandoTrein && <button style={{ ...s.btnGhost, marginTop:8, marginLeft:8 }} onClick={() => {
                 setEditandoTrein(null); setShowTreinForm(false);
@@ -1444,28 +1444,28 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
         return (
           <div style={s.card}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:14 }}>
-              <div style={s.sectionHd}>📊 Histórico de Ações</div>
+              <div style={s.sectionHd}>Histórico de Ações</div>
               <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
                 <span style={{ fontSize:12, color: t.textDimmed }}>{_histFiltradas.length} de {todas.length} · máx. 500</span>
                 {todas.length > 0 && setHistoricoAcoes && (
                   <>
                     <button
                       onClick={() => {
-                        if (!window.confirm(`⚠️ Apagar as entradas mais antigas?\n\nSerão mantidas apenas as 100 mais recentes das ${todas.length} existentes.`)) return;
+                        if (!window.confirm(`Apagar as entradas mais antigas?\n\nSerão mantidas apenas as 100 mais recentes das ${todas.length} existentes.`)) return;
                         setHistoricoAcoes(p => p.slice(0, 100));
                         registrarAcao?.(usuarioLogado.id, usuarioLogado.nome, "Limpou histórico de ações (manteve 100)", "", null, { modulo: "sistema" });
                       }}
                       style={{ ...s.btnGhost, fontSize:11, padding:"4px 12px", color:"#e67e22", borderColor:`${t.warning}44` }}>
-                      🧹 Manter últimas 100
+                      Manter últimas 100
                     </button>
                     <button
                       onClick={() => {
-                        if (!window.confirm(`⚠️ Apagar TODO o histórico de ações?\n\nEsta ação é IRREVERSÍVEL e não pode ser desfeita.`)) return;
+                        if (!window.confirm(`Apagar TODO o histórico de ações?\n\nEsta ação é IRREVERSÍVEL e não pode ser desfeita.`)) return;
                         setHistoricoAcoes([]);
                         registrarAcao?.(usuarioLogado.id, usuarioLogado.nome, "Apagou todo o histórico de ações", "", null, { modulo: "sistema" });
                       }}
                       style={{ ...s.btnGhost, fontSize:11, padding:"4px 12px", color: t.danger, borderColor:`${t.danger}44` }}>
-                      🗑️ Apagar tudo
+                      Apagar tudo
                     </button>
                   </>
                 )}
@@ -1476,25 +1476,25 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
             {auditoria.length > 0 && (
               <div style={{ background:`${t.success}08`, border:`1px solid ${t.success}33`, borderRadius:8, padding:"10px 14px", marginBottom:14, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
                 <span style={{ fontSize:12, color: t.success }}>
-                  📋 Auditoria de equipes/organizadores: <strong>{auditoria.length}</strong> entrada(s)
+                  Auditoria de equipes/organizadores: <strong>{auditoria.length}</strong> entrada(s)
                 </span>
                 {setAuditoria && (
                   <div style={{ display:"flex", gap:8 }}>
                     <button
                       onClick={() => {
-                        if (!window.confirm(`⚠️ Manter apenas as 100 entradas mais recentes da auditoria?`)) return;
+                        if (!window.confirm(`Manter apenas as 100 entradas mais recentes da auditoria?`)) return;
                         setAuditoria(p => p.slice(0, 100));
                       }}
                       style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px", color:"#e67e22", borderColor:`${t.warning}44` }}>
-                      🧹 Manter 100
+                      Manter 100
                     </button>
                     <button
                       onClick={() => {
-                        if (!window.confirm(`⚠️ Apagar TODA a auditoria de equipes/organizadores?`)) return;
+                        if (!window.confirm(`Apagar TODA a auditoria de equipes/organizadores?`)) return;
                         setAuditoria([]);
                       }}
                       style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px", color: t.danger, borderColor:`${t.danger}44` }}>
-                      🗑️ Apagar tudo
+                      Apagar tudo
                     </button>
                   </div>
                 )}
@@ -1506,7 +1506,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
             ) : (
               <>
                 <input type="text" value={buscaHist} onChange={e=>setBuscaHist(e.target.value)}
-                  placeholder="🔍 Buscar ação, usuário, módulo..." style={si} />
+                  placeholder="Buscar ação, usuário, módulo..." style={si} />
                 <div style={s.tableWrap}>
                   <table style={s.table}>
                     <thead><tr><Th>Data/Hora</Th><Th>Usuário</Th><Th>Ação</Th><Th>Detalhe</Th><Th>Módulo</Th></tr></thead>
@@ -1614,7 +1614,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
             <div style={{ ...s.card, borderColor:"#a855f733" }}>
               <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:800,
                 color:"#a855f7", marginBottom:8, letterSpacing:1 }}>
-                📦 Solicitações de Portabilidade de Dados
+                Solicitações de Portabilidade de Dados
               </div>
               <p style={{ color: t.textDimmed, fontSize:13, marginBottom:16, lineHeight:1.6 }}>
                 Art. 18º, V da LGPD — O titular tem direito a receber cópia dos seus dados em formato estruturado.
@@ -1623,7 +1623,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
 
               {todasSols.length === 0 ? (
                 <div style={s.empty}>
-                  <span style={{ fontSize:36 }}>📭</span>
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{color:t.textDimmed}}><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
                   <p>Nenhuma solicitação de portabilidade ainda.</p>
                 </div>
               ) : (
@@ -1641,7 +1641,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                       {todasSols.map(sol => {
                         const isPendente = sol.status === "pendente";
                         const isPronto   = sol.status === "pronto";
-                        const tipoLabel  = { atleta:"🏃 Atleta", equipe:"🎽 Equipe", organizador:"🏟️ Org.", funcionario:"👥 Func.", treinador:"👨‍🏫 Trein." };
+                        const tipoLabel  = { atleta:"Atleta", equipe:"Equipe", organizador:"Org.", funcionario:"Func.", treinador:"Trein." };
                         const diasDesde = isPendente ? Math.floor((Date.now() - new Date(sol.data).getTime()) / 86400000) : 0;
                         const prazoVencido = diasDesde > 15;
                         const prazoUrgente = diasDesde > 12 && !prazoVencido;
@@ -1652,8 +1652,8 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                             <Td style={{ fontSize:12 }}>{sol.email || "—"}</Td>
                             <Td>
                               <div style={{ fontSize:11, color: t.textDimmed }}>{new Date(sol.data).toLocaleString("pt-BR")}</div>
-                              {isPendente && prazoVencido && <div style={{ fontSize:10, color:"#ef4444", fontWeight:700, marginTop:2 }}>⛔ Prazo expirado ({diasDesde} dias)</div>}
-                              {isPendente && prazoUrgente && <div style={{ fontSize:10, color:"#f59e0b", fontWeight:700, marginTop:2 }}>⚠️ Prazo expira em {15 - diasDesde} dia(s)</div>}
+                              {isPendente && prazoVencido && <div style={{ fontSize:10, color:"#ef4444", fontWeight:700, marginTop:2 }}>Prazo expirado ({diasDesde} dias)</div>}
+                              {isPendente && prazoUrgente && <div style={{ fontSize:10, color:"#f59e0b", fontWeight:700, marginTop:2 }}>Prazo expira em {15 - diasDesde} dia(s)</div>}
                             </Td>
                             <Td>
                               <span style={{
@@ -1662,7 +1662,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                                 border:     `1px solid ${isPendente ? "#a855f744" : isPronto ? `${t.success}66` : t.border}`,
                                 borderRadius:10, padding:"2px 10px", fontSize:11, fontWeight:700,
                               }}>
-                                {isPendente ? "⏳ Pendente" : isPronto ? "✅ Pronto" : sol.status}
+                                {isPendente ? "Pendente" : isPronto ? "Pronto" : sol.status}
                               </span>
                             </Td>
                             <Td>
@@ -1673,7 +1673,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                                     resolverSolicitacaoPortabilidade(sol.id, json);
                                   }}
                                     style={{ ...s.btnGhost, fontSize:11, padding:"4px 12px", color:"#a855f7", borderColor:"#a855f744" }}>
-                                    ⚙️ Gerar e Liberar
+                                    Gerar e Liberar
                                   </button>
                                 )}
                                 {isPronto && (
@@ -1687,13 +1687,13 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                                     URL.revokeObjectURL(url);
                                   }}
                                     style={{ ...s.btnGhost, fontSize:11, padding:"4px 12px", color:t.success, borderColor:`${t.success}66` }}>
-                                    ⬇️ Baixar Cópia
+                                    Baixar Cópia
                                   </button>
                                 )}
                                 <button onClick={() => excluirSolicitacaoPortabilidade(sol.id)}
                                   style={{ ...s.btnGhost, fontSize:11, padding:"4px 10px", color: t.danger, borderColor:`${t.danger}44` }}
                                   title="Excluir solicitação">
-                                  🗑
+                                  ✕
                                 </button>
                               </div>
                             </Td>
@@ -1705,7 +1705,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                 </div>
               )}
               <div style={{ fontSize:11, color: t.textDimmed, marginTop:10, lineHeight:1.6 }}>
-                ⚖️ A LGPD exige atendimento em prazo razoável — recomendado até <strong style={{ color: t.textMuted }}>15 dias</strong> da solicitação (Art. 19º).
+                A LGPD exige atendimento em prazo razoável — recomendado até <strong style={{ color: t.textMuted }}>15 dias</strong> da solicitação (Art. 19º).
               </div>
             </div>
           </div>
@@ -1719,7 +1719,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
           <div style={{ background:t.bgCard, border:`1px solid ${t.border}`, borderRadius:14, padding:28, width:420, maxWidth:"95vw" }}
             onClick={e => e.stopPropagation()}>
             <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:22, fontWeight:800, color: t.textPrimary, marginBottom:4 }}>
-              🔀 Transferir Atleta
+              Transferir Atleta
             </h3>
             <p style={{ color: t.textMuted, fontSize:13, marginBottom:20 }}>{modalTransf.atleta.nome}</p>
 
@@ -1756,7 +1756,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                 }
                 setModalTransf(null);
                 setTransfEquipeId("");
-              }}>✅ Confirmar Transferência</button>
+              }}>Confirmar Transferência</button>
               <button style={{ ...s.btnGhost }} onClick={() => setModalTransf(null)}>Cancelar</button>
             </div>
           </div>

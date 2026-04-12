@@ -219,7 +219,7 @@ function TelaGerenciarEquipes() {
         senhaTemporaria: true,
       };
       adicionarEquipeFiliada(novaEquipe);
-      alert(`✅ Equipe "${form.nome}" cadastrada!\n\n📧 Login: ${form.email}\n🔑 Senha: ${form.senha}\n\nA equipe será obrigada a trocar a senha no primeiro acesso.`);
+      alert(`Equipe "${form.nome}" cadastrada!\n\nLogin: ${form.email}\nSenha: ${form.senha}\n\nA equipe será obrigada a trocar a senha no primeiro acesso.`);
     } else if (modo === "editar") {
       const dadosAtualizar = { ...form };
       if (!dadosAtualizar.senha) delete dadosAtualizar.senha; // manter senha anterior se vazio
@@ -245,12 +245,12 @@ function TelaGerenciarEquipes() {
           });
         }
         if (atletasVinculados.length > 0) {
-          alert(`✅ Equipe "${nomeNovo}" atualizada!\n\n🔄 ${atletasVinculados.length} atleta(s) e inscrições atualizados automaticamente.`);
+          alert(`Equipe "${nomeNovo}" atualizada!\n\n${atletasVinculados.length} atleta(s) e inscrições atualizados automaticamente.`);
         } else {
-          alert(`✅ Equipe "${nomeNovo}" atualizada!`);
+          alert(`Equipe "${nomeNovo}" atualizada!`);
         }
       } else {
-        alert(`✅ Equipe "${form.nome}" atualizada!`);
+        alert(`Equipe "${form.nome}" atualizada!`);
       }
     }
 
@@ -349,7 +349,7 @@ function TelaGerenciarEquipes() {
           }
         }
         if (!XL) {
-          setErro("❌ Não foi possível carregar a biblioteca Excel. Recarregue a página (Ctrl+Shift+R).");
+          setErro("Não foi possível carregar a biblioteca Excel. Recarregue a página (Ctrl+Shift+R).");
           setLoading(false);
           return;
         }
@@ -461,7 +461,7 @@ function TelaGerenciarEquipes() {
           setPreview(null);
         } else {
           if (erros.length > 0) {
-            setErro(`⚠️ ${erros.length} linha(s) com problema (serão ignoradas):\n${erros.join('\n')}\n\n✅ ${equipesParaImportar.length} equipe(s) válida(s) pronta(s) para importar.`);
+            setErro(`${erros.length} linha(s) com problema (serão ignoradas):\n${erros.join('\n')}\n\n${equipesParaImportar.length} equipe(s) válida(s) pronta(s) para importar.`);
           }
           setPreview(equipesParaImportar);
         }
@@ -506,7 +506,7 @@ function TelaGerenciarEquipes() {
       const resumo = credenciais.map(c => 
         `${c.nome}: ${c.email} / ${c.senha}${c.gerada ? " (gerada)" : ""}`
       ).join("\n");
-      alert(`✅ ${importados} equipe(s) importada(s)!\n\n📋 Credenciais de acesso:\n${resumo}\n\n⚠️ Todas as senhas são temporárias — a equipe será obrigada a trocar no primeiro acesso.`);
+      alert(`${importados} equipe(s) importada(s)!\n\nCredenciais de acesso:\n${resumo}\n\nTodas as senhas são temporárias — a equipe será obrigada a trocar no primeiro acesso.`);
       setModo("lista");
       setFile(null);
       setPreview(null);
@@ -517,7 +517,7 @@ function TelaGerenciarEquipes() {
       <div style={s.page}>
         <div style={s.painelHeader}>
           <div>
-            <h1 style={s.pageTitle}>📊 Importar Equipes</h1>
+            <h1 style={s.pageTitle}>Importar Equipes</h1>
             <p style={{ color: t.textDimmed, fontSize: 14 }}>
               Upload de planilha Excel com múltiplas equipes
             </p>
@@ -537,7 +537,7 @@ function TelaGerenciarEquipes() {
             textAlign: "center",
             marginBottom: 24
           }}>
-            <div style={{ fontSize: 64, marginBottom: 16 }}>📤</div>
+            <div style={{ marginBottom: 16 }}><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
             <h3 style={{ color: t.accent, marginBottom: 12 }}>Faça upload da planilha Excel</h3>
             
             <input
@@ -561,7 +561,7 @@ function TelaGerenciarEquipes() {
 
             {loading && (
               <div style={{ marginTop: 16, color: t.accent }}>
-                ⏳ Processando planilha...
+                Processando planilha...
               </div>
             )}
           </div>
@@ -575,7 +575,7 @@ function TelaGerenciarEquipes() {
             marginBottom: 24
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              <div style={{ fontSize: 32 }}>📋</div>
+              <div><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></div>
               <div style={{ flex: 1 }}>
                 <h4 style={{ color: t.textPrimary, marginBottom: 4 }}>Modelo de Planilha</h4>
                 <p style={{ color: t.textMuted, fontSize: 13, marginBottom: 0 }}>
@@ -602,7 +602,7 @@ function TelaGerenciarEquipes() {
                     }
                   }
                   if (!XL) {
-                    alert("❌ Não foi possível carregar a biblioteca Excel. Recarregue a página.");
+                    alert("Não foi possível carregar a biblioteca Excel. Recarregue a página.");
                     return;
                   }
                   const modelo = [
@@ -617,7 +617,7 @@ function TelaGerenciarEquipes() {
                 }}
                 style={{ ...s.btnSecondary, border: "none", cursor: "pointer" }}
               >
-                ⬇️ Baixar Modelo
+                Baixar Modelo
               </button>
             </div>
           </div>
@@ -633,7 +633,7 @@ function TelaGerenciarEquipes() {
               whiteSpace: "pre-line"
             }}>
               <div style={{ color: preview && preview.length > 0 ? t.warning : t.danger, fontWeight: 600, marginBottom: 8 }}>
-                {preview && preview.length > 0 ? "⚠️ Importação parcial:" : "❌ Erros encontrados:"}
+                {preview && preview.length > 0 ? "Importação parcial:" : "Erros encontrados:"}
               </div>
               <div style={{ color: preview && preview.length > 0 ? t.warning : `${t.danger}cc`, fontSize: 13 }}>{erro}</div>
             </div>
@@ -649,7 +649,7 @@ function TelaGerenciarEquipes() {
               marginBottom: 24
             }}>
               <h3 style={{ color: t.accent, marginBottom: 16 }}>
-                ⚙️ Vincular equipes a:
+                Vincular equipes a:
               </h3>
               <div>
                 <label style={{ display: "block", color: t.textTertiary, fontSize: 13, marginBottom: 6 }}>
@@ -670,7 +670,7 @@ function TelaGerenciarEquipes() {
                   ))}
                 </select>
                 <p style={{ color: t.textDimmed, fontSize: 12, marginTop: 12 }}>
-                  ℹ️ Todas as {preview.length} equipe(s) serão vinculadas a este organizador
+                  Todas as {preview.length} equipe(s) serão vinculadas a este organizador
                 </p>
               </div>
             </div>
@@ -742,7 +742,7 @@ function TelaGerenciarEquipes() {
       <div style={s.page}>
         <div style={s.painelHeader}>
           <div>
-            <h1 style={s.pageTitle}>🏟️ Equipes</h1>
+            <h1 style={s.pageTitle}>Equipes</h1>
             <p style={{ color: t.textDimmed, fontSize: 14 }}>
               Gerenciar clubes e equipes cadastradas no sistema
             </p>
@@ -770,11 +770,11 @@ function TelaGerenciarEquipes() {
             + Nova Equipe
           </button>
           <button style={s.btnSecondary} onClick={() => setModo("importar")}>
-            📊 Importar Planilha
+            Importar Planilha
           </button>
           <input
             type="text"
-            placeholder="🔍 Buscar equipe..."
+            placeholder="Buscar equipe..."
             value={filtro}
             onChange={(e) => setFiltro(e.target.value)}
             style={{ ...s.input, flex: 1 }}
@@ -784,7 +784,7 @@ function TelaGerenciarEquipes() {
         {/* Lista de Equipes */}
         {equipesFiltradas.length === 0 ? (
           <div style={{ textAlign: "center", padding: 60, color: t.textDimmed }}>
-            <div style={{ fontSize: 64, marginBottom: 16 }}>🏟️</div>
+            <div style={{ marginBottom: 16 }}><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 20h20"/><path d="M4 20V8l8-4 8 4v12"/><path d="M9 20v-6h6v6"/><path d="M3 8h18"/></svg></div>
             {filtro ? (
               <>
                 <div style={{ fontSize: 18, marginBottom: 8 }}>Nenhuma equipe encontrada</div>
@@ -854,14 +854,14 @@ function TelaGerenciarEquipes() {
                       </span>
                     </div>
                     <div style={{ color: t.textMuted, fontSize: 13 }}>
-                      📍 {equipe.cidade}, {equipe.estado}
+                      {equipe.cidade}, {equipe.estado}
                       {equipe.cnpj && ` • CNPJ: ${equipe.cnpj}`}
                     </div>
                     {isAdmin && (() => {
                       const org = organizadores.find(o => o.id === equipe.organizadorId);
                       return (
                         <div style={{ color: org ? t.accent : t.warning, fontSize: 11, marginTop: 3 }}>
-                          🏢 {org ? `${org.nome} — ${org.entidade}` : (equipe.organizadorId ? `Org. não encontrado (${equipe.organizadorId.substring(0,8)}...)` : "Sem organizador vinculado")}
+                          {org ? `${org.nome} — ${org.entidade}` : (equipe.organizadorId ? `Org. não encontrado (${equipe.organizadorId.substring(0,8)}...)` : "Sem organizador vinculado")}
                         </div>
                       );
                     })()}
@@ -875,14 +875,14 @@ function TelaGerenciarEquipes() {
                       style={s.btnSecondary}
                       onClick={() => handleEditar(equipe)}
                     >
-                      ✏️ Editar
+                      Editar
                     </button>
                     <button
                       style={s.btnGhost}
                       onClick={() => {
                         const atletasVinc = atletas.filter(a => a.equipeId === equipe.id || a.clube === equipe.nome);
                         const msg = atletasVinc.length > 0
-                          ? `Excluir equipe "${equipe.nome}"?\n\n⚠ ${atletasVinc.length} atleta(s) vinculado(s) terão o vínculo removido.`
+                          ? `Excluir equipe "${equipe.nome}"?\n\n${atletasVinc.length} atleta(s) vinculado(s) terão o vínculo removido.`
                           : `Excluir equipe "${equipe.nome}"?`;
                         if (!window.confirm(msg)) return;
                         atletasVinc.forEach(a => {
@@ -894,7 +894,7 @@ function TelaGerenciarEquipes() {
                         excluirEquipeFiliada(equipe.id);
                       }}
                     >
-                      🗑️
+                      ✕
                     </button>
                   </div>
                 </div>
@@ -914,7 +914,7 @@ function TelaGerenciarEquipes() {
       <div style={s.painelHeader}>
         <div>
           <h1 style={s.pageTitle}>
-            {modo === "novo" ? "➕ Nova Equipe" : "✏️ Editar Equipe"}
+            {modo === "novo" ? "Nova Equipe" : "Editar Equipe"}
           </h1>
           <p style={{ color: t.textDimmed, fontSize: 14 }}>
             {modo === "novo" ? "Cadastrar nova equipe" : `Editando: ${equipeSelecionada?.nome}`}
@@ -1076,7 +1076,7 @@ function TelaGerenciarEquipes() {
                       for (let i = 0; i < 8; i++) pwd += chars[Math.floor(Math.random() * chars.length)];
                       setForm({ ...form, senha: pwd });
                     }}>
-                    🎲 Gerar
+                    Gerar
                   </button>
                 )}
               </div>
@@ -1089,10 +1089,10 @@ function TelaGerenciarEquipes() {
               <label style={{ display: "block", color: t.textTertiary, fontSize: 13, marginBottom: 6 }}>Status da Equipe</label>
               <select value={form.status || "ativa"} onChange={e => setForm({ ...form, status: e.target.value })}
                 style={s.input}>
-                <option value="ativa">✅ Ativa</option>
-                <option value="pendente">⏳ Pendente</option>
-                <option value="inativa">❌ Inativa</option>
-                <option value="recusada">🚫 Recusada</option>
+                <option value="ativa">Ativa</option>
+                <option value="pendente">Pendente</option>
+                <option value="inativa">Inativa</option>
+                <option value="recusada">Recusada</option>
               </select>
             </div>
           )}

@@ -7,6 +7,18 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useEvento } from "../../contexts/EventoContext";
 import { useApp } from "../../contexts/AppContext";
 
+// SVG icons inline
+const svgI = (d, size=12) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:"middle",marginRight:3}}>{d}</svg>;
+const IcoCalendar = (s=12) => svgI(<><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></>, s);
+const IcoClock = (s=12) => svgI(<><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>, s);
+const IcoPin = (s=12) => svgI(<><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></>, s);
+const IcoList = (s=12) => svgI(<><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></>, s);
+const IcoTarget = (s=12) => svgI(<><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></>, s);
+const IcoUsers = (s=12) => svgI(<><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></>, s);
+const IcoEdit = (s=12) => svgI(<><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></>, s);
+const IcoPen = (s=12) => svgI(<><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></>, s);
+const IcoTrash = (s=12) => svgI(<><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></>, s);
+
 const getStyles = (t) => ({
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
   pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: t.textPrimary, marginBottom: 24, letterSpacing: 1 },
@@ -225,29 +237,29 @@ export default function TelaHome() {
           {ev.logoCompeticao && !ev.competicaoFinalizada ? (
             <img src={ev.logoCompeticao} alt="" style={{ maxWidth:"100%", maxHeight:"100%", display:"block", objectFit:"contain" }} />
           ) : (
-            <span style={{ fontSize:28, opacity:0.3 }}>🏟️</span>
+            <span style={{ opacity:0.3 }}>{IcoTarget(28)}</span>
           )}
           <div style={{ position:"absolute", top:10, left:12, display:"flex", flexDirection:"column", gap:4 }}>
             <div style={s.eventoStatusBadge(status)}>{labelStatusEvento(status, ev)}</div>
           </div>
           {usuarioLogado?.tipo === "admin" && (
             <div style={{ position:"absolute", top:8, right:10, display:"flex", gap:6 }}>
-              <button style={{ ...s.btnIconSm, background:"rgba(0,0,0,0.5)", backdropFilter:"blur(4px)" }} onClick={() => { selecionarEvento(ev.id); setTela("novo-evento"); }} title="Editar">✏️</button>
-              <button style={{ ...s.btnIconSmDanger, background:"rgba(0,0,0,0.5)", backdropFilter:"blur(4px)" }} onClick={() => excluirEvento(ev.id)} title="Excluir">🗑</button>
+              <button style={{ ...s.btnIconSm, background:"rgba(0,0,0,0.5)", backdropFilter:"blur(4px)" }} onClick={() => { selecionarEvento(ev.id); setTela("novo-evento"); }} title="Editar">{IcoEdit(14)}</button>
+              <button style={{ ...s.btnIconSmDanger, background:"rgba(0,0,0,0.5)", backdropFilter:"blur(4px)" }} onClick={() => excluirEvento(ev.id)} title="Excluir">{IcoTrash(14)}</button>
             </div>
           )}
         </div>
         <div style={{ padding:"14px 20px 20px" }}>
           <div style={s.eventoCardNome}>{ev.nome}</div>
           <div style={s.eventoCardMeta}>
-            <span>📅 {dataEv.toLocaleDateString("pt-BR", { day:"2-digit", month:"long", year:"numeric" })}
-              {ev.horaInicio && <> · ⏰ {ev.horaInicio}h</>}
+            <span>{IcoCalendar()} {dataEv.toLocaleDateString("pt-BR", { day:"2-digit", month:"long", year:"numeric" })}
+              {ev.horaInicio && <> · {IcoClock()} {ev.horaInicio}h</>}
             </span>
           </div>
-          <div style={s.eventoCardMeta}><span>📍 {_getLocalEventoDisplay(ev)}</span></div>
+          <div style={s.eventoCardMeta}><span>{IcoPin()} {_getLocalEventoDisplay(ev)}</span></div>
           {(ev.dataAberturaInscricoes || ev.dataEncerramentoInscricoes) && (
             <div style={s.eventoCardMeta}>
-              <span>📋 Inscrições:&nbsp;
+              <span>{IcoList()} Inscrições:&nbsp;
                 {ev.dataAberturaInscricoes && <>{new Date(ev.dataAberturaInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}</>}
                 {ev.dataAberturaInscricoes && ev.dataEncerramentoInscricoes && " a "}
                 {ev.dataEncerramentoInscricoes && <>{new Date(ev.dataEncerramentoInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}</>}
@@ -255,9 +267,9 @@ export default function TelaHome() {
             </div>
           )}
           <div style={s.eventoCardStats}>
-            <span>🎯 {nProvas} prova{nProvas !== 1 ? "s" : ""}</span>
-            <span>🏃 {nAtletas} atleta{nAtletas !== 1 ? "s" : ""}</span>
-            <span>✍️ {nInscs} {nInscs !== 1 ? "inscrições" : "inscrição"}</span>
+            <span>{IcoTarget()} {nProvas} prova{nProvas !== 1 ? "s" : ""}</span>
+            <span>{IcoUsers()} {nAtletas} atleta{nAtletas !== 1 ? "s" : ""}</span>
+            <span>{IcoPen()} {nInscs} {nInscs !== 1 ? "inscrições" : "inscrição"}</span>
           </div>
           <div style={{ display:"flex", gap:6, marginBottom:10 }}>
             {(() => {
@@ -498,7 +510,7 @@ export default function TelaHome() {
                     <span style={{ margin:"0 8px", color:t.textDisabled }}>—</span>
                     {ev.nome}
                   </div>
-                  {local && <div style={{ fontSize:12, color:t.textMuted }}>📍 {local}</div>}
+                  {local && <div style={{ fontSize:12, color:t.textMuted }}>{IcoPin()} {local}</div>}
                 </div>
               );
             })}

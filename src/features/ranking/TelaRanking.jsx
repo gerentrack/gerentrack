@@ -570,7 +570,7 @@ export default function TelaRanking() {
                       const pos = r.posReal;
                       const bgPodio = pos === 1 ? "#FFD70018" : pos === 2 ? "#C0C0C018" : pos === 3 ? "#CD7F3218" : null;
                       const corPos = pos === 1 ? "#FFD700" : pos === 2 ? "#C0C0C0" : pos === 3 ? "#CD7F32" : t.accent;
-                      const medalha = pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : null;
+                      const medalha = null;
                       return (
                       <tr key={r.id} style={{ ...s.tr, background: bgPodio || (idx % 2 === 0 ? "transparent" : t.bgHeaderSolid) }}>
                         <td style={{ ...s.td, textAlign: "center", fontWeight: 700, color: corPos }}>{medalha ? <>{medalha} {pos}º</> : `${pos}º`}</td>
@@ -621,7 +621,7 @@ export default function TelaRanking() {
                         const sexoLabel = filtroSexo === "M" ? "Masculino" : "Feminino";
                         const linhas = rankingFiltrado.map((r, idx) => {
                           const pos = r.posReal;
-                          const medal = pos <= 3 ? ["🥇","🥈","🥉"][pos-1] : "";
+                          const medal = "";
                           return `<tr style="border-bottom:1px solid #ddd;${pos <= 3 ? "background:#fffbe6" : idx % 2 === 0 ? "" : "background:#f8f8f8"}">
                             <td style="padding:5px 8px;text-align:center;font-weight:700;font-size:12px">${medal} ${pos}º</td>
                             <td style="padding:5px 8px;font-weight:700;font-size:13px;font-family:'Barlow Condensed',sans-serif">${formatarMarca(r.marcaNum, r.unidade)}${r.ventoAssistido ? ' <span style="color:#c66;font-size:9px">w</span>' : ""}</td>
@@ -691,7 +691,7 @@ export default function TelaRanking() {
                         if (!win) { alert("Permita pop-ups para imprimir."); return; }
                         win.document.open(); win.document.write(html); win.document.close();
                       }}>
-                      🖨️ Imprimir Ranking Oficial
+                      Imprimir Ranking Oficial
                     </button>
                   );
                 })()}
@@ -706,7 +706,7 @@ export default function TelaRanking() {
         <>
           {pendentesAgrupados.length === 0 ? (
             <div style={s.emptyState}>
-              <span style={{ fontSize: 48 }}>✅</span>
+              <span style={{ fontSize: 48 }}>✓</span>
               <p>Nenhuma pendência de ranking.</p>
             </div>
           ) : (
@@ -715,7 +715,7 @@ export default function TelaRanking() {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
                   <h3 style={{ ...s.sectionTitle, margin: 0 }}>{grupo.eventoNome}</h3>
                   <button style={{ ...s.btnPrimary, fontSize: 12, padding: "6px 14px" }} onClick={() => homologarTodos(grupo.entradas)}>
-                    ✅ Homologar Todos ({grupo.entradas.length})
+                    ✓ Homologar Todos ({grupo.entradas.length})
                   </button>
                 </div>
                 <div style={s.tableWrap}>
@@ -745,8 +745,8 @@ export default function TelaRanking() {
                           <td style={{ ...s.td, fontSize: 12, textAlign: "center" }}>{r.sexo}</td>
                           <td style={s.td}>
                             <div style={{ display: "flex", gap: 6 }}>
-                              <button style={{ ...s.btnIconSm, color: t.success, borderColor: t.success + "44" }} onClick={() => homologar(r)}>✅</button>
-                              <button style={{ ...s.btnIconSmDanger }} onClick={() => rejeitar(r)}>❌</button>
+                              <button style={{ ...s.btnIconSm, color: t.success, borderColor: t.success + "44" }} onClick={() => homologar(r)}>✓</button>
+                              <button style={{ ...s.btnIconSmDanger }} onClick={() => rejeitar(r)}></button>
                             </div>
                           </td>
                         </tr>
@@ -905,10 +905,10 @@ export default function TelaRanking() {
           <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 20 }}>
             <input ref={fileInputRef} type="file" accept=".xlsx,.xls" onChange={handleImportFile} style={{ display: "none" }} />
             <button style={s.btnPrimary} onClick={() => { fileInputRef.current?.click(); setImportStatus(""); setImportPreview(null); setImportErros([]); }}>
-              📁 Selecionar Planilha
+              Selecionar Planilha
             </button>
             {importStatus === "carregando" && <span style={{ color: t.textMuted, fontSize: 13 }}>Processando...</span>}
-            {importStatus === "importado" && <span style={{ color: t.success, fontSize: 13, fontWeight: 700 }}>✅ Importação concluída!</span>}
+            {importStatus === "importado" && <span style={{ color: t.success, fontSize: 13, fontWeight: 700 }}>✓ Importação concluída!</span>}
           </div>
 
           {/* Erros */}
@@ -935,7 +935,7 @@ export default function TelaRanking() {
                     Cancelar
                   </button>
                   <button style={s.btnPrimary} onClick={confirmarImportacao}>
-                    ✅ Confirmar Importação ({importPreview.length})
+                    ✓ Confirmar Importação ({importPreview.length})
                   </button>
                 </div>
               </div>
@@ -988,7 +988,7 @@ export default function TelaRanking() {
 
           {importPreview && importPreview.length === 0 && importStatus === "" && (
             <div style={s.emptyState}>
-              <span style={{ fontSize: 36 }}>⚠️</span>
+              <span style={{ fontSize: 16, fontWeight: 700, color: t.warning }}>Atenção</span>
               <p>Nenhuma entrada válida encontrada na planilha.</p>
             </div>
           )}

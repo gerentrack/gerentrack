@@ -37,9 +37,9 @@ function TelaRecordes() {
 
   // Escopos geográficos
   const ESCOPOS = [
-    { id: "mundial",   label: "🌍 Mundial",   desc: "Sem restrição geográfica" },
-    { id: "pais",      label: "🏳️ País",       desc: "Vinculado a um país" },
-    { id: "estado",    label: "📍 Estado",     desc: "Vinculado a um estado" },
+    { id: "mundial",   label: "Mundial",   desc: "Sem restrição geográfica" },
+    { id: "pais",      label: "País",       desc: "Vinculado a um país" },
+    { id: "estado",    label: "Estado",     desc: "Vinculado a um estado" },
     // { id: "municipio", label: "🏙️ Município", desc: "Vinculado a um município" },  // ← Descomente para ativar
   ];
 
@@ -494,7 +494,7 @@ function TelaRecordes() {
     <div style={S.page}>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
         <div>
-          <h2 style={s.pageTitle}>🏆 Recordes</h2>
+          <h2 style={s.pageTitle}>Recordes</h2>
           <p style={{ color:t.textDimmed, fontSize:13 }}>Acervo de recordes</p>
         </div>
         <div style={{ display:"flex", gap:8, alignItems:"center" }}>
@@ -508,9 +508,9 @@ function TelaRecordes() {
       {isAdmin && (
         <div style={{ display:"flex", gap:6, marginBottom:16, borderBottom:`1px solid ${t.borderLight}`, paddingBottom:8 }}>
           {[
-            { id: "registros", label: "📋 Registros", count: null },
-            { id: "pendencias", label: "⏳ Pendências", count: (pendenciasRecorde || []).filter(p => p.status === "pendente").length },
-            { id: "historico", label: "📜 Histórico", count: (historicoRecordes || []).length },
+            { id: "registros", label: "Registros", count: null },
+            { id: "pendencias", label: "Pendencias", count: (pendenciasRecorde || []).filter(p => p.status === "pendente").length },
+            { id: "historico", label: "Historico", count: (historicoRecordes || []).length },
           ].map(aba => (
             <button key={aba.id} onClick={() => setAbaRecordes(aba.id)}
               style={{
@@ -599,7 +599,7 @@ function TelaRecordes() {
               <input style={{ ...s.input, width:80 }} placeholder="CM" maxLength={6}
                 value={novoTipo.sigla} onChange={e => setNovoTipo({ ...novoTipo, sigla: e.target.value })} />
             </div>
-            <button style={s.btnPrimary} onClick={criarTipo}>✅ Criar</button>
+            <button style={s.btnPrimary} onClick={criarTipo}>Criar</button>
             <button style={s.btnGhost} onClick={() => setShowNovoTipo(false)}>Cancelar</button>
           </div>
         </div>
@@ -608,7 +608,7 @@ function TelaRecordes() {
       {/* Tabs de tipos — agrupados por escopo geográfico */}
       <div style={{ marginBottom:16 }}>
         {(() => {
-          const escopoIcons = { mundial: "🌍", pais: "🏳️", estado: "📍", municipio: "🏙️" };
+          const escopoIcons = { mundial: "", pais: "", estado: "", municipio: "" };
           const escopoOrdem = ["mundial", "pais", "estado", "municipio"];
           // Gerar chave de grupo: escopo + localidade
           const getGrupoKey = (tipo) => {
@@ -642,7 +642,7 @@ function TelaRecordes() {
           return chaves.map(key => (
             <div key={key} style={{ marginBottom:10 }}>
               <div style={{ color:t.textDimmed, fontSize:11, fontWeight:700, marginBottom:5, textTransform:"uppercase", letterSpacing:1 }}>
-                {escopoIcons[grupoMeta[key].escopo] || "📋"} {grupoMeta[key].label}
+                {escopoIcons[grupoMeta[key].escopo]} {grupoMeta[key].label}
               </div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
                 {grupos[key].map(tipo => (
@@ -679,7 +679,7 @@ function TelaRecordes() {
                   <select style={{ ...S.inputSm, width:110 }} value={tipoAtivo.escopo || "estado"}
                     onChange={e => editarTipo(tipoAtivo.id, "escopo", e.target.value)}>
                     {ESCOPOS.map(esc => <option key={esc.id} value={esc.id}>{esc.label}</option>)}
-                    <option value="municipio">🏙️ Município</option>
+                    <option value="municipio">Municipio</option>
                   </select>
                   {(tipoAtivo.escopo || "estado") !== "mundial" && (
                     <input style={{ ...S.inputSm, width:100 }} placeholder="País" value={tipoAtivo.pais || ""}
@@ -704,13 +704,13 @@ function TelaRecordes() {
                     color: (tipoAtivo.escopo||"estado") === "mundial" ? t.accent : (tipoAtivo.escopo||"estado") === "pais" ? t.success : t.warning,
                     border: `1px solid ${t.border}`
                   }}>
-                    {(tipoAtivo.escopo||"estado") === "mundial" ? "🌍 Mundial"
-                      : (tipoAtivo.escopo||"estado") === "pais" ? `🏳️ ${tipoAtivo.pais || "País"}`
-                      : (tipoAtivo.escopo||"estado") === "municipio" ? `🏙️ ${tipoAtivo.municipio || ""}, ${tipoAtivo.estado || ""}`
-                      : `📍 ${tipoAtivo.estado || "Estado"}`}
+                    {(tipoAtivo.escopo||"estado") === "mundial" ? "Mundial"
+                      : (tipoAtivo.escopo||"estado") === "pais" ? `${tipoAtivo.pais || "País"}`
+                      : (tipoAtivo.escopo||"estado") === "municipio" ? `${tipoAtivo.municipio || ""}, ${tipoAtivo.estado || ""}`
+                      : `${tipoAtivo.estado || "Estado"}`}
                   </span>
                   {isAdmin && <button style={{ background:"none", border:"none", color:t.textDimmed, cursor:"pointer", marginLeft:8, fontSize:12 }}
-                    onClick={() => setEditTipoId(tipoAtivo.id)}>✏️</button>}
+                    onClick={() => setEditTipoId(tipoAtivo.id)}>Editar</button>}
                 </div>
               )}
               <div style={{ color:t.textDimmed, fontSize:12, marginTop:2 }}>{tipoAtivo.registros.length} registros</div>
@@ -722,7 +722,7 @@ function TelaRecordes() {
                   + Adicionar
                 </button>
                 <label style={{ ...s.btnGhost, fontSize:11, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
-                  📥 Importar Planilha
+                  Importar Planilha
                   <input type="file" accept=".xlsx,.xls,.csv" style={{ display:"none" }} onChange={handleImport} />
                 </label>
                 <button style={{ ...s.btnGhost, fontSize:11, color: t.accent, borderColor: t.accentBorder }}
@@ -808,10 +808,10 @@ function TelaRecordes() {
                       XLSX.writeFile(wb, "modelo_recordes.xlsx");
                     } catch(err) { alert("Erro ao gerar modelo: " + err.message); }
                   }}>
-                  📋 Baixar Modelo
+                  Baixar Modelo
                 </button>
                 <button style={{ ...s.btnGhost, fontSize:11, color:t.danger, borderColor:`${t.danger}44` }}
-                  onClick={() => excluirTipo(tipoAtivo.id)}>🗑 Excluir Tipo</button>
+                  onClick={() => excluirTipo(tipoAtivo.id)}>Excluir Tipo</button>
               </div>
             )}
           </div>
@@ -828,17 +828,17 @@ function TelaRecordes() {
             const paraImportar = incluir + atualizar;
             return (
             <div style={{ ...S.card, border:`2px solid ${t.accent}` }}>
-              <div style={{ color:t.accent, fontWeight:700, fontSize:14, marginBottom:4 }}>📥 Preview da importação — {importPreview.length} registros</div>
+              <div style={{ color:t.accent, fontWeight:700, fontSize:14, marginBottom:4 }}>Preview da importacao — {importPreview.length} registros</div>
               <div style={{ fontSize:10, color:t.textMuted, marginBottom:8, lineHeight:1.6 }}>
                 Somente provas com nome <strong style={{color:t.textTertiary}}>exato</strong> do site serão reconhecidas. Marcas normalizadas (vírgulas → pontos, min:seg → segundos).
               </div>
               <div style={{ display:"flex", gap:10, marginBottom:10, flexWrap:"wrap" }}>
-                {incluir > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background: t.accentBg, color: t.accent, fontWeight:600 }}>🆕 {incluir} novos</span>}
-                {atualizar > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background: t.accentBg, color: t.gold, fontWeight:600 }}>⬆️ {atualizar} atualizados</span>}
-                {inferiores > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background: t.bgCardAlt, color: t.danger, fontWeight:600 }}>⬇️ {inferiores} inferiores</span>}
-                {naoEncontradas > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background: t.bgCardAlt, color:"#ff44ff", fontWeight:600 }}>❌ {naoEncontradas} não encontradas</span>}
-                {outroTipo > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background: t.bgCardAlt, color:"#44dddd", fontWeight:600 }}>🔄 {outroTipo} em outro tipo</span>}
-                {tipoDesconhecido > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background: t.bgCardAlt, color: t.warning, fontWeight:600 }}>⚠️ {tipoDesconhecido} tipo não encontrado</span>}
+                {incluir > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background: t.accentBg, color: t.accent, fontWeight:600 }}>{incluir} novos</span>}
+                {atualizar > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background: t.accentBg, color: t.gold, fontWeight:600 }}>{atualizar} atualizados</span>}
+                {inferiores > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background: t.bgCardAlt, color: t.danger, fontWeight:600 }}>{inferiores} inferiores</span>}
+                {naoEncontradas > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background: t.bgCardAlt, color:"#ff44ff", fontWeight:600 }}>{naoEncontradas} nao encontradas</span>}
+                {outroTipo > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background: t.bgCardAlt, color:"#44dddd", fontWeight:600 }}>{outroTipo} em outro tipo</span>}
+                {tipoDesconhecido > 0 && <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, background: t.bgCardAlt, color: t.warning, fontWeight:600 }}>{tipoDesconhecido} tipo nao encontrado</span>}
               </div>
               <div style={{ maxHeight:400, overflowY:"auto", overflowX:"auto", marginBottom:10 }}>
                 <table style={{ width:"100%", borderCollapse:"collapse", fontSize:11, minWidth: 700 }}>
@@ -861,12 +861,12 @@ function TelaRecordes() {
                     {classificados.map((r, idx) => {
                       const catObj = CATEGORIAS.find(c => c.id === r.categoriaId);
                       const sc = {
-                        incluir:          { icon: "🆕", color: t.accent, bg: t.accentBg },
-                        atualizar:        { icon: "⬆️", color: t.gold, bg: t.accentBg },
-                        inferior:         { icon: "⬇️", color: t.danger, bg: t.bgCardAlt },
-                        nao_encontrada:   { icon: "❌", color: "#ff44ff", bg: t.bgCardAlt },
-                        outro_tipo:       { icon: "🔄", color: "#44dddd", bg: t.bgCardAlt },
-                        tipo_desconhecido:{ icon: "⚠️", color: t.warning, bg: t.bgCardAlt },
+                        incluir:          { icon: "+", color: t.accent, bg: t.accentBg },
+                        atualizar:        { icon: "^", color: t.gold, bg: t.accentBg },
+                        inferior:         { icon: "v", color: t.danger, bg: t.bgCardAlt },
+                        nao_encontrada:   { icon: "x", color: "#ff44ff", bg: t.bgCardAlt },
+                        outro_tipo:       { icon: "~", color: "#44dddd", bg: t.bgCardAlt },
+                        tipo_desconhecido:{ icon: "!", color: t.warning, bg: t.bgCardAlt },
                       }[r._status] || { icon: "?", color: t.textMuted, bg: "transparent" };
                       const isExcluido = r._status === "inferior" || r._status === "nao_encontrada" || r._status === "outro_tipo" || r._status === "tipo_desconhecido";
                       const tipoAlvo = r.tipoRecordeId ? recordes.find(tipo => tipo.id === r.tipoRecordeId) : null;
@@ -879,7 +879,7 @@ function TelaRecordes() {
                             {tipoAlvo ? (
                               <span style={{ color: t.accent, fontWeight:600 }}>{tipoAlvo.sigla}</span>
                             ) : r._raw?.tipoRecorde ? (
-                              <span style={{ color: t.warning }}>⚠ {r._raw.tipoRecorde}</span>
+                              <span style={{ color: t.warning }}>{r._raw.tipoRecorde}</span>
                             ) : (
                               <span style={{ color:t.textDimmed }}>{tipoAtivo?.sigla || "—"}</span>
                             )}
@@ -910,7 +910,7 @@ function TelaRecordes() {
                           <td style={{ padding:"3px 6px", color:t.textMuted, fontSize:10 }}>{r.equipe}</td>
                           <td style={{ padding:"3px 6px", color:t.textMuted, textAlign:"center", fontSize:10 }}>{r.ano}</td>
                           <td style={{ padding:"3px 6px", fontSize:9, minWidth:140 }}>
-                            {r._status === "incluir" && <span style={{ color: t.accent }}>{r._fixedManually ? "✅ Corrigido" : "Será incluído"}</span>}
+                            {r._status === "incluir" && <span style={{ color: t.accent }}>{r._fixedManually ? "Corrigido" : "Será incluído"}</span>}
                             {r._status === "atualizar" && <span style={{ color: t.gold }}>Supera recorde atual</span>}
                             {r._status === "inferior" && <span style={{ color: t.danger }}>Recorde atual é melhor</span>}
                             {r._status === "tipo_desconhecido" && <span style={{ color: t.warning }}>Tipo "{r._raw?.tipoRecorde}" não cadastrado</span>}
@@ -944,17 +944,17 @@ function TelaRecordes() {
               </div>
               {naoEncontradas > 0 && (
                 <div style={{ fontSize:10, color:"#ff44ff", marginBottom:8, padding:"6px 10px", background: t.bgCardAlt, borderRadius:4, lineHeight:1.5 }}>
-                  ❌ <strong>{naoEncontradas} registro(s)</strong> com nome de prova não reconhecido. Use o nome exato do site (ex: "100m Rasos", "3.000m Obstáculos", "Salto em Distância").
+                  <strong>{naoEncontradas} registro(s)</strong> com nome de prova nao reconhecido. Use o nome exato do site (ex: "100m Rasos", "3.000m Obstaculos", "Salto em Distancia").
                 </div>
               )}
               {outroTipo > 0 && (
                 <div style={{ fontSize:10, color:"#44dddd", marginBottom:8, padding:"6px 10px", background: t.bgCardAlt, borderRadius:4, lineHeight:1.5 }}>
-                  🔄 <strong>{outroTipo} registro(s)</strong> não reconhecidos aqui, mas existem em outro tipo de recorde. Considere importar nesse outro tipo.
+                  <strong>{outroTipo} registro(s)</strong> nao reconhecidos aqui, mas existem em outro tipo de recorde. Considere importar nesse outro tipo.
                 </div>
               )}
               <div style={{ display:"flex", gap:8, alignItems:"center" }}>
                 <button style={{ ...s.btnPrimary, opacity: paraImportar > 0 ? 1 : 0.5 }} onClick={confirmarImport} disabled={paraImportar === 0}>
-                  ✅ Importar {paraImportar} registro(s)
+                  Importar {paraImportar} registro(s)
                 </button>
                 <button style={s.btnGhost} onClick={() => setImportPreview(null)}>Cancelar</button>
                 {(inferiores + naoEncontradas + outroTipo) > 0 && (
@@ -1041,7 +1041,7 @@ function TelaRecordes() {
                 const atlRevez = editReg.atletasRevezamento || ["", "", "", ""];
                 return (
                   <div style={{ marginTop:8, padding:"8px 10px", background:t.bgHeaderSolid, borderRadius:6, border:`1px solid ${t.border}` }}>
-                    <label style={{ fontSize:10, color:t.accent, display:"block", marginBottom:4, fontWeight:700 }}>🏃 Atletas do Revezamento</label>
+                    <label style={{ fontSize:10, color:t.accent, display:"block", marginBottom:4, fontWeight:700 }}>Atletas do Revezamento</label>
                     <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
                       {[0,1,2,3].map(i => (
                         <input key={i} style={{ ...S.inputSm, width:160, color:t.textSecondary }}
@@ -1059,7 +1059,7 @@ function TelaRecordes() {
                 );
               })()}
               <div style={{ display:"flex", gap:8, marginTop:10 }}>
-                <button style={s.btnPrimary} onClick={() => salvarRegistro(editReg)}>💾 Salvar</button>
+                <button style={s.btnPrimary} onClick={() => salvarRegistro(editReg)}>Salvar</button>
                 <button style={s.btnGhost} onClick={() => setEditReg(null)}>Cancelar</button>
               </div>
             </div>
@@ -1159,9 +1159,9 @@ function TelaRecordes() {
                             setEditReg({ ...r, atleta: d.atleta, equipe: d.equipe, atletaId: d.atletaId, ano: d.ano, local: d.local,
                               competicaoId: d.competicaoId, competicaoNome: d.competicaoNome, atletasRevezamento: d.atletasRevezamento,
                               _coDetentores: (RecordHelper.getDetentores(r).length > 1) ? RecordHelper.getDetentores(r).slice(1) : null });
-                          }}>✏️</button>
+                          }}>Editar</button>
                         <button style={{ background:"none", border:"none", color:t.danger, cursor:"pointer", fontSize:11 }}
-                          onClick={() => excluirRegistro(r.id)}>🗑</button>
+                          onClick={() => excluirRegistro(r.id)}>Excluir</button>
                       </td>
                     )}
                   </tr>
@@ -1210,12 +1210,12 @@ function TelaRecordes() {
 
         const relBadge = (rel, uf) => {
           const cfg = {
-            local:        { bg: `${t.success}15`, color: t.success, border: `${t.success}44`, label: `📍 Local (${uf || "?"})` },
-            atleta:       { bg: t.accentBg, color: t.accent, border: t.accentBorder, label: `🏃 Atleta (${uf || "?"})` },
-            nacional:     { bg: t.accentBg, color: t.accent, border: t.accentBorder, label: "🏳️ Nacional" },
-            mundial:      { bg: t.bgCardAlt, color: "#c39bdf", border: t.border, label: "🌍 Mundial" },
-            especial:     { bg: t.bgCardAlt, color: t.warning, border: `${t.warning}44`, label: "⭐ Especial" },
-            outro_estado: { bg: t.bgCard, color: t.textMuted,    border: t.border, label: `🔄 Outro UF (${uf || "?"})` },
+            local:        { bg: `${t.success}15`, color: t.success, border: `${t.success}44`, label: `Local (${uf || "?"})` },
+            atleta:       { bg: t.accentBg, color: t.accent, border: t.accentBorder, label: `Atleta (${uf || "?"})` },
+            nacional:     { bg: t.accentBg, color: t.accent, border: t.accentBorder, label: "Nacional" },
+            mundial:      { bg: t.bgCardAlt, color: "#c39bdf", border: t.border, label: "Mundial" },
+            especial:     { bg: t.bgCardAlt, color: t.warning, border: `${t.warning}44`, label: "Especial" },
+            outro_estado: { bg: t.bgCard, color: t.textMuted,    border: t.border, label: `Outro UF (${uf || "?"})` },
           }[rel] || { bg: t.bgCard, color: t.textMuted, border: t.border, label: rel };
           return <span style={{ fontSize:8, padding:"1px 5px", borderRadius:3, fontWeight:600,
             background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.border}` }}>{cfg.label}</span>;
@@ -1259,13 +1259,13 @@ function TelaRecordes() {
           <div>
             {pendentes.length === 0 ? (
               <div style={{ ...S.card, textAlign:"center", color:t.textDimmed }}>
-                <span style={{ fontSize:48 }}>✅</span>
+                <span style={{ fontSize:48 }}>✓</span>
                 <p style={{ marginTop:8 }}>Nenhuma pendência de recorde para analisar.</p>
               </div>
             ) : (
               <>
                 <div style={{ color: t.warning, fontWeight:700, fontSize:14, marginBottom:12 }}>
-                  ⏳ {pendentes.length} pendência(s) aguardando homologação
+                  {pendentes.length} pendencia(s) aguardando homologacao
                 </div>
 
                 {/* Legenda de relevância */}
@@ -1287,19 +1287,19 @@ function TelaRecordes() {
                       const lista = pendentes.filter(p => pendsSelecionadas.has(p.id));
                       setObsModal({ lote: lista, tipo: "homologar", texto: "" });
                     }} style={{ padding:"5px 12px", borderRadius:6, border:`1px solid ${t.success}44`, background:`${t.success}15`, color:t.success, fontSize:11, fontWeight:700, cursor:"pointer" }}>
-                      ✅ Homologar {pendsSelecionadas.size}
+                      Homologar {pendsSelecionadas.size}
                     </button>
                     <button onClick={() => {
                       const lista = pendentes.filter(p => pendsSelecionadas.has(p.id));
                       setObsModal({ lote: lista, tipo: "rejeitar", texto: "" });
                     }} style={{ padding:"5px 12px", borderRadius:6, border:`1px solid ${t.danger}44`, background:`${t.danger}10`, color:t.danger, fontSize:11, fontWeight:700, cursor:"pointer" }}>
-                      ❌ Rejeitar {pendsSelecionadas.size}
+                      Rejeitar {pendsSelecionadas.size}
                     </button>
                     <button onClick={() => {
                       const lista = pendentes.filter(p => pendsSelecionadas.has(p.id));
                       setObsModal({ lote: lista, tipo: "observar", texto: "" });
                     }} style={{ padding:"5px 12px", borderRadius:6, border:`1px solid ${t.accentBorder}`, background:t.bgHeaderSolid, color:t.accent, fontSize:11, fontWeight:700, cursor:"pointer" }}>
-                      ☑️ Resolver sem atualizar {pendsSelecionadas.size}
+                      Resolver sem atualizar {pendsSelecionadas.size}
                     </button>
                     <button onClick={() => setPendsSelecionadas(new Set())}
                       style={{ padding:"5px 12px", borderRadius:6, border:`1px solid ${t.borderLight}`, background:"transparent", color:t.textMuted, fontSize:11, cursor:"pointer" }}>
@@ -1319,15 +1319,15 @@ function TelaRecordes() {
                     <div key={evtId} style={{ ...S.card, marginBottom:12 }}>
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:8, marginBottom:10 }}>
                         <div style={{ color: t.accent, fontWeight:700, fontSize:13 }}>
-                          🏟️ {pendsEvt[0]?.eventoNome || evtId}
-                          {evtUf && <span style={{ fontSize:10, color:t.textMuted, marginLeft:8 }}>📍 {pendsEvt[0]?.eventoLocal || evtUf}</span>}
+                          {pendsEvt[0]?.eventoNome || evtId}
+                          {evtUf && <span style={{ fontSize:10, color:t.textMuted, marginLeft:8 }}>{pendsEvt[0]?.eventoLocal || evtUf}</span>}
                         </div>
                         <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
                           {locais.length > 0 && (
                             <button onClick={() => setObsModal({ lote: locais, tipo: "homologar", texto: "" })}
                               style={{ padding:"4px 10px", borderRadius:4, border:`1px solid ${t.success}44`, background:`${t.success}15`,
                               color: t.success, fontSize:10, fontWeight:700, cursor:"pointer" }}>
-                              ✅ Homologar {locais.length} local ({evtUf})
+                              Homologar {locais.length} local ({evtUf})
                             </button>
                           )}
                           {atletaRelevantes.length > 0 && (() => {
@@ -1336,7 +1336,7 @@ function TelaRecordes() {
                               <button onClick={() => setObsModal({ lote: atletaRelevantes, tipo: "homologar", texto: "" })}
                                 style={{ padding:"4px 10px", borderRadius:4, border:`1px solid ${t.accentBorder}`, background: t.accentBg,
                                 color: t.accent, fontSize:10, fontWeight:700, cursor:"pointer" }}>
-                                ✅ Homologar {atletaRelevantes.length} atleta ({ufsAtl.join(", ")})
+                                Homologar {atletaRelevantes.length} atleta ({ufsAtl.join(", ")})
                               </button>
                             );
                           })()}
@@ -1344,14 +1344,14 @@ function TelaRecordes() {
                             <button onClick={() => setObsModal({ lote: nacionais, tipo: "homologar", texto: "" })}
                               style={{ padding:"4px 10px", borderRadius:4, border:`1px solid ${t.accentBorder}`, background:t.bgHeaderSolid,
                               color: t.accent, fontSize:10, fontWeight:700, cursor:"pointer" }}>
-                              ✅ Homologar {nacionais.length} nacionais
+                              Homologar {nacionais.length} nacionais
                             </button>
                           )}
                           {outroEstado.length > 0 && (
                             <button onClick={() => setObsModal({ lote: outroEstado, tipo: "rejeitar", texto: `Competição em ${evtUf}, não se aplica a este RE` })}
                               style={{ padding:"4px 10px", borderRadius:4, border:`1px solid ${t.warning}44`, background: t.bgCardAlt,
                               color: t.warning, fontSize:10, fontWeight:700, cursor:"pointer" }}>
-                              ❌ Rejeitar {outroEstado.length} outros UFs
+                              Rejeitar {outroEstado.length} outros UFs
                             </button>
                           )}
                         </div>
@@ -1431,7 +1431,7 @@ function TelaRecordes() {
                                     background: pend.tipoQuebra === "superou" ? `${t.success}15` : pend.tipoQuebra === "igualou" ? t.accentBg : `${t.warning}15`,
                                     color: pend.tipoQuebra === "superou" ? "#7cfc7c" : pend.tipoQuebra === "igualou" ? "#6ab4ff" : "#ffaa44"
                                   }}>
-                                    {pend.tipoQuebra === "superou" ? "⬆️ Superou" : pend.tipoQuebra === "igualou" ? "🤝 Igualou" : "🆕 Novo"}
+                                    {pend.tipoQuebra === "superou" ? "Superou" : pend.tipoQuebra === "igualou" ? "Igualou" : "Novo"}
                                   </span>
                                 </td>
                                 <td style={{ padding:"6px 8px", textAlign:"center" }}>
@@ -1439,17 +1439,17 @@ function TelaRecordes() {
                                     <button onClick={() => setObsModal({ pendId: pend.id, tipo: "homologar", texto: "", pend })}
                                       style={{ padding:"3px 8px", borderRadius:4, border:`1px solid ${t.success}44`, background:`${t.success}15`,
                                       color: t.success, fontSize:10, fontWeight:700, cursor:"pointer" }}>
-                                      ✅
+                                      ✓
                                     </button>
                                     <button onClick={() => setObsModal({ pendId: pend.id, tipo: "observar", texto: "", pend })}
                                       style={{ padding:"3px 8px", borderRadius:4, border:`1px solid ${t.accentBorder}`, background:t.bgHeaderSolid,
                                       color: t.accent, fontSize:10, fontWeight:700, cursor:"pointer" }}>
-                                      ☑️
+                                      —
                                     </button>
                                     <button onClick={() => setObsModal({ pendId: pend.id, tipo: "rejeitar", texto: "", pend })}
                                       style={{ padding:"3px 8px", borderRadius:4, border:`1px solid ${t.danger}44`, background: t.bgCardAlt,
                                       color: t.danger, fontSize:10, fontWeight:700, cursor:"pointer" }}>
-                                      ❌
+                                      ✕
                                     </button>
                                   </div>
                                 </td>
@@ -1500,7 +1500,7 @@ function TelaRecordes() {
                             background: p.status === "homologado" ? `${t.success}15` : p.status === "homologado_nao_aplicado" ? t.accentBg : `${t.danger}15`,
                             color: p.status === "homologado" ? "#7cfc7c" : p.status === "homologado_nao_aplicado" ? "#6ab4ff" : "#ff6b6b"
                           }}>
-                            {p.status === "homologado" ? "✅" : p.status === "homologado_nao_aplicado" ? "☑️" : "❌"}
+                            {p.status === "homologado" ? "✓" : p.status === "homologado_nao_aplicado" ? "—" : "✕"}
                           </span>
                         </td>
                         <td style={{ padding:"4px 6px", color:t.textMuted }}>{p.resolvidoPor}</td>
@@ -1524,7 +1524,7 @@ function TelaRecordes() {
           <div>
             {hist.length === 0 ? (
               <div style={{ ...S.card, textAlign:"center", color:t.textDimmed }}>
-                <span style={{ fontSize:48 }}>📜</span>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                 <p style={{ marginTop:8 }}>Nenhuma alteração de recorde registrada.</p>
               </div>
             ) : (
@@ -1564,7 +1564,7 @@ function TelaRecordes() {
                             background: h.tipoAcao === "superou" ? `${t.success}15` : h.tipoAcao === "igualou" ? t.accentBg : `${t.warning}15`,
                             color: h.tipoAcao === "superou" ? "#7cfc7c" : h.tipoAcao === "igualou" ? "#6ab4ff" : "#ffaa44"
                           }}>
-                            {h.tipoAcao === "superou" ? "⬆️" : h.tipoAcao === "igualou" ? "🤝" : "🆕"}
+                            {h.tipoAcao === "superou" ? "^" : h.tipoAcao === "igualou" ? "=" : "+"}
                           </span>
                         </td>
                         <td style={{ padding:"6px 8px", color: t.warning, textAlign:"center", fontWeight:600 }}>
@@ -1601,7 +1601,7 @@ function TelaRecordes() {
           : obsModal.tipo === "homologar" ? `HOMOLOGAR ${qtd > 1 ? qtd + " RECORDES" : "RECORDE"}`
           : `RESOLVER ${qtd > 1 ? qtd + " RECORDES" : "RECORDE"} SEM ATUALIZAR`;
         const cor = obsModal.tipo === "rejeitar" ? t.danger : obsModal.tipo === "homologar" ? t.success : t.accent;
-        const ico = obsModal.tipo === "rejeitar" ? "❌" : obsModal.tipo === "homologar" ? "✅" : "☑️";
+        const ico = obsModal.tipo === "rejeitar" ? "✕" : obsModal.tipo === "homologar" ? "✓" : "—";
         return (
           <div style={{ position:"fixed", inset:0, background:t.bgOverlay, display:"flex", alignItems:"center", justifyContent:"center", zIndex:9999, padding:24 }} onClick={() => setObsModal(null)}>
             <div style={{ background:t.bgCard, border:`1px solid ${cor}44`, borderRadius:14, padding:"28px 32px", maxWidth:480, width:"100%", boxShadow:t.shadowLg }} onClick={ev => ev.stopPropagation()}>

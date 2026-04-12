@@ -18,7 +18,7 @@ export default function AtualizacaoDisponivel() {
       boxShadow: "0 -2px 12px rgba(0,0,0,0.3)",
     }}>
       <span style={{ color: "#fff", fontSize: 14, fontWeight: 600, fontFamily: "'Barlow', sans-serif" }}>
-        🔄 Nova versão disponível
+        Nova versão disponível
       </span>
       <button
         onClick={() => updateServiceWorker(true)}

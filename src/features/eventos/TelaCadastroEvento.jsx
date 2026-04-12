@@ -208,7 +208,7 @@ function TelaCadastroEvento() {
   const tipoEvt = usuarioLogado?.tipo;
   if (tipoEvt !== "admin" && tipoEvt !== "organizador" && tipoEvt !== "funcionario") return (
     <div style={s.page}><div style={s.emptyState}>
-      <span style={{ fontSize: 48 }}>🚫</span>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={t.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
       <p style={{ color: t.danger, fontWeight: 700 }}>Acesso não autorizado</p>
       <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
     </div></div>
@@ -236,7 +236,7 @@ function TelaCadastroEvento() {
   // Bloqueio de edição se competição pertence a outro organizador
   if (editando && tipoEvt === "organizador" && eventoAtual.organizadorId !== usuarioLogado?.id) return (
     <div style={s.page}><div style={s.emptyState}>
-      <span style={{ fontSize: 48 }}>🚫</span>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={t.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
       <p style={{ color: t.danger, fontWeight: 700, fontSize: 18 }}>Acesso não autorizado</p>
       <p style={{ color: t.textMuted, fontSize: 14, maxWidth: 400, textAlign: "center", lineHeight: 1.6 }}>
         Esta competição pertence a outro organizador. Você não tem permissão para editá-la.
@@ -248,7 +248,7 @@ function TelaCadastroEvento() {
   // Bloqueio de edição se funcionário e competição pertence a outro organizador
   if (editando && tipoEvt === "funcionario" && eventoAtual.organizadorId !== usuarioLogado?.organizadorId) return (
     <div style={s.page}><div style={s.emptyState}>
-      <span style={{ fontSize: 48 }}>🚫</span>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={t.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
       <p style={{ color: t.danger, fontWeight: 700, fontSize: 18 }}>Acesso não autorizado</p>
       <p style={{ color: t.textMuted, fontSize: 14, maxWidth: 400, textAlign: "center", lineHeight: 1.6 }}>
         Esta competição pertence a outro organizador. Você não tem permissão para editá-la.
@@ -260,7 +260,7 @@ function TelaCadastroEvento() {
   // Bloqueio de edição se competição finalizada
   if (editando && eventoAtual.competicaoFinalizada) return (
     <div style={s.page}><div style={s.emptyState}>
-      <span style={{ fontSize: 48 }}>🔒</span>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={t.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
       <p style={{ color: t.danger, fontWeight: 700, fontSize: 18 }}>Competição Finalizada</p>
       <p style={{ color: t.textMuted, fontSize: 14, maxWidth: 400, textAlign: "center", lineHeight: 1.6 }}>
         Esta competição foi finalizada{eventoAtual.competicaoFinalizadaEm ? ` em ${new Date(eventoAtual.competicaoFinalizadaEm).toLocaleString("pt-BR")}` : ""}
@@ -421,9 +421,9 @@ function TelaCadastroEvento() {
 
   const resumoMedalhas = (() => {
     const m = form.modoMedalhas || "classificacao_participacao";
-    if (m === "apenas_participacao") return "🎖️ Somente participação";
-    if (m === "apenas_classificacao") return "🥇 Somente classificação";
-    return "🏅 Classificação + participação";
+    if (m === "apenas_participacao") return "Somente participação";
+    if (m === "apenas_classificacao") return "Somente classificação";
+    return "Classificação + participação";
   })();
 
   return (
@@ -437,7 +437,7 @@ function TelaCadastroEvento() {
       )}
       <div style={s.painelHeader}>
         <div>
-          <h1 style={s.pageTitle}>{editando ? "✏️ Editar Competição" : "🏟 Nova Competição"}</h1>
+          <h1 style={s.pageTitle}>{editando ? "Editar Competição" : "Nova Competição"}</h1>
           <p style={{ color: t.textDimmed, fontSize: 14 }}>
             {step === 1 ? `Passo 1 de ${totalSteps} — Dados da competição`
               : step === 2 ? `Passo 2 de ${totalSteps} — Configurações`
@@ -519,7 +519,7 @@ function TelaCadastroEvento() {
                 </select>
                 {erros.organizadorId && <span style={{ color: t.danger, fontSize: 12 }}>{erros.organizadorId}</span>}
                 <p style={{ color: t.textDimmed, fontSize: 12, marginTop: 6 }}>
-                  💡 Selecione a qual organizador esta competição será vinculada.
+                  Selecione a qual organizador esta competição será vinculada.
                 </p>
               </div>
             )}
@@ -528,7 +528,7 @@ function TelaCadastroEvento() {
           {/* ── Participação Cruzada (admin only) ── */}
           {tipoEvt === "admin" && (organizadores || []).filter(o => o.id !== form.organizadorId && o.status === "aprovado").length > 0 && (
             <div style={{ background: t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:10, padding:"16px 20px", marginBottom:16 }}>
-              <div style={{ color: t.accent, fontWeight:700, fontSize:14, marginBottom:8 }}>🤝 Participação Cruzada entre Organizadores</div>
+              <div style={{ color: t.accent, fontWeight:700, fontSize:14, marginBottom:8 }}>Participação Cruzada entre Organizadores</div>
               <p style={{ color: t.textDimmed, fontSize:12, marginBottom:12, lineHeight:1.6 }}>
                 Selecione os organizadores cujos atletas poderão se inscrever nesta competição.<br/>
                 Os atletas participarão com seu perfil e vínculo de origem — nenhum novo vínculo será criado.
@@ -554,14 +554,14 @@ function TelaCadastroEvento() {
                           fontSize: 13, fontFamily: "'Barlow', sans-serif",
                           display: "flex", alignItems: "center", gap: 6, transition: "all 0.15s"
                         }}>
-                        {sel ? "✅" : "⬜"} {o.entidade || o.nome}
+                        {sel ? "✓" : "—"} {o.entidade || o.nome}
                       </button>
                     );
                   })}
               </div>
               {(form.orgsAutorizadas || []).length > 0 && (
                 <div style={{ marginTop:10, fontSize:12, color: t.accent }}>
-                  🤝 {(form.orgsAutorizadas || []).length} organizador(es) autorizado(s) para participação cruzada.
+                  {(form.orgsAutorizadas || []).length} organizador(es) autorizado(s) para participação cruzada.
                 </div>
               )}
             </div>
@@ -569,7 +569,7 @@ function TelaCadastroEvento() {
 
           {/* ── Período de Inscrições ── */}
           <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:10, padding:"16px 20px", marginBottom:16 }}>
-            <div style={{ color: t.accent, fontWeight:700, fontSize:14, marginBottom:12 }}>📅 Período de Inscrições</div>
+            <div style={{ color: t.accent, fontWeight:700, fontSize:14, marginBottom:12 }}>Período de Inscrições</div>
             <div style={s.grid2form}>
               <div>
                 <FormField label="Abertura das Inscrições" value={form.dataAberturaInscricoes || ""} onChange={(v) => setForm({ ...form, dataAberturaInscricoes: v })} type="date" />
@@ -581,24 +581,24 @@ function TelaCadastroEvento() {
               </div>
             </div>
             <p style={{ color: t.textDimmed, fontSize:12, marginTop:8, lineHeight:1.5 }}>
-              💡 Opcional. Se definidas, as inscrições abrirão e encerrarão automaticamente nas datas e horários escolhidos.
+              Opcional. Se definidas, as inscrições abrirão e encerrarão automaticamente nas datas e horários escolhidos.
               O organizador ainda pode abrir/encerrar manualmente a qualquer momento.
             </p>
           </div>
 
           {/* ── Descrição ── */}
           <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:10, padding:"16px 20px", marginBottom:16 }}>
-            <div style={{ color: t.accent, fontWeight:700, fontSize:14, marginBottom:12 }}>📝 Informações da Competição</div>
+            <div style={{ color: t.accent, fontWeight:700, fontSize:14, marginBottom:12 }}>Informações da Competição</div>
             <RichTextEditor
               value={form.descricao || ""}
               onChange={(v) => setForm({ ...form, descricao: v })}
               placeholder="Regulamento, informações gerais, observações..."
             />
             <p style={{ color: t.textDimmed, fontSize:12, marginTop:8, lineHeight:1.5 }}>
-              💡 Opcional. Este texto será exibido na página da competição para todos os usuários.
+              Opcional. Este texto será exibido na página da competição para todos os usuários.
             </p>
             <div style={{ marginTop:10, padding:"10px 14px", background:t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:8, display:"flex", alignItems:"center", gap:8 }}>
-              <span style={{ fontSize:18 }}>📋</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{color:t.accent,flexShrink:0}}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
               <span style={{ fontSize:12, color:t.accent, fontWeight:600 }}>Upload do regulamento em PDF disponível na próxima tela (Configurações).</span>
             </div>
           </div>
@@ -617,7 +617,7 @@ function TelaCadastroEvento() {
           {/* ── Regras de Participação (3 checkboxes agrupados) ── */}
           <div style={{ background:t.bgCard, border:`1px solid ${t.border}`, borderRadius:12, padding:"20px 24px", marginBottom:16 }}>
             <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:18, fontWeight:700, color: t.accent, marginBottom:4 }}>
-              📋 Regras de Participação
+              Regras de Participação
             </div>
             <p style={{ fontSize:12, color: t.textDimmed, marginBottom:18 }}>
               Defina as permissões especiais de inscrição para esta competição.
@@ -636,7 +636,7 @@ function TelaCadastroEvento() {
                     <strong style={{ color: t.accent }}>13 anos</strong> → Sub-16 &nbsp;·&nbsp;
                     <strong style={{ color: t.accent }}>15 anos</strong> → Sub-18
                     <span style={{ display:"block", marginTop:4, fontStyle:"italic", color: t.textDimmed }}>
-                      ⚠️ A categoria oficial do atleta não é alterada. A inscrição será marcada como participação excepcional.
+                      A categoria oficial do atleta não é alterada. A inscrição será marcada como participação excepcional.
                     </span>
                   </div>
                 </div>
@@ -661,7 +661,7 @@ function TelaCadastroEvento() {
                       </span>
                     )}
                     <span style={{ display:"block", marginTop:4, fontStyle:"italic", color: t.textDimmed }}>
-                      ⚠️ A categoria oficial registrada no sistema permanece como a categoria de origem do atleta.
+                      A categoria oficial registrada no sistema permanece como a categoria de origem do atleta.
                     </span>
                   </div>
                 </div>
@@ -679,7 +679,7 @@ function TelaCadastroEvento() {
                   <div style={{ color: t.textDimmed, fontSize:12, marginTop:3, lineHeight:1.5 }}>
                     Quando ativado, <strong>equipes e treinadores</strong> podem inscrever equipes de revezamento junto com as inscrições individuais (antes da competição).
                     <span style={{ display:"block", marginTop:4, fontStyle:"italic", color: t.textDimmed }}>
-                      ⚠️ Se desativado, revezamentos só poderão ser inscritos por <strong>organizadores, funcionários ou admins</strong> — normalmente no dia do evento.
+                      Se desativado, revezamentos só poderão ser inscritos por <strong>organizadores, funcionários ou admins</strong> — normalmente no dia do evento.
                     </span>
                   </div>
                 </div>
@@ -688,7 +688,7 @@ function TelaCadastroEvento() {
           </div>
 
           {/* ── Limite de Provas por Atleta (acordeão) ── */}
-          <Acordeao keyName="limites" aberto={acordeoes["limites"]} onToggle={toggleAcordeo} titulo="Limite de Provas por Atleta" icone="🎯" resumo={resumoLimites}>
+          <Acordeao keyName="limites" aberto={acordeoes["limites"]} onToggle={toggleAcordeo} titulo="Limite de Provas por Atleta" icone="" resumo={resumoLimites}>
             <p style={{ color: t.textDimmed, fontSize:12, marginBottom:14, lineHeight:1.5 }}>
               Opcional. Define o máximo de provas em que cada atleta pode se inscrever. Deixe <strong>0</strong> para ilimitado.
             </p>
@@ -710,7 +710,7 @@ function TelaCadastroEvento() {
             </div>
             {(form.limiteProvasIndividual > 0 || form.limiteProvasRevezamento > 0) && (
               <div style={{ marginTop:14, padding:"10px 14px", background:t.bgHeaderSolid, borderRadius:8, border:`1px solid ${t.border}` }}>
-                <div style={{ fontWeight:700, fontSize:12, color: t.accent, marginBottom:8 }}>🔓 Exceções — Provas que NÃO contam no limite</div>
+                <div style={{ fontWeight:700, fontSize:12, color: t.accent, marginBottom:8 }}>Exceções — Provas que NÃO contam no limite</div>
                 <p style={{ fontSize:11, color: t.textDimmed, marginBottom:10, lineHeight:1.5 }}>
                   Marque as provas que não devem contar no limite (ex: provas combinadas, provas extras).
                   Atletas poderão se inscrever nessas provas mesmo tendo atingido o limite.
@@ -807,7 +807,7 @@ function TelaCadastroEvento() {
           </Acordeao>
 
           {/* ── Preços e Pagamento (acordeão) ── */}
-          <Acordeao keyName="precos" aberto={acordeoes["precos"]} onToggle={toggleAcordeo} titulo="Preços e Pagamento" icone="💰" resumo={resumoPrecos}>
+          <Acordeao keyName="precos" aberto={acordeoes["precos"]} onToggle={toggleAcordeo} titulo="Preços e Pagamento" icone="" resumo={resumoPrecos}>
             <p style={{ color: t.textDimmed, fontSize:12, marginBottom:14, lineHeight:1.5 }}>
               Opcional. Defina preços diferentes por categoria. Atletas das <strong style={{ color: t.textSecondary }}>equipes federadas selecionadas</strong> com Nº CBAt pagarão o <em>Preço de atleta federado</em>. Os demais pagarão o <em>Preço de atleta não federado</em>.
             </p>
@@ -815,7 +815,7 @@ function TelaCadastroEvento() {
             {/* Equipes federadas */}
             <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, padding:"12px 16px", marginBottom:14 }}>
               <div style={{ fontSize:11, color: t.accent, fontWeight:700, marginBottom:8 }}>
-                🏢 Equipes federadas — {(form.equipeIdsFederados || []).length} selecionada(s)
+                Equipes federadas — {(form.equipeIdsFederados || []).length} selecionada(s)
               </div>
               {(() => {
                 const _evOrg = form.organizadorId || usuarioLogado?.id;
@@ -854,7 +854,7 @@ function TelaCadastroEvento() {
                 </div>
               )}
               <p style={{ fontSize:10, color: t.textDimmed, marginTop:6, lineHeight:1.5 }}>
-                💡 Atletas dessas equipes <strong>com Nº CBAt</strong> cadastrado pagarão o preço "atleta federado".
+                Atletas dessas equipes <strong>com Nº CBAt</strong> cadastrado pagarão o preço "atleta federado".
               </p>
             </div>
 
@@ -943,7 +943,7 @@ function TelaCadastroEvento() {
             {/* Forma de pagamento */}
             <div style={{ marginTop:20, paddingTop:16, borderTop:`1px solid ${t.border}` }}>
               <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:16, fontWeight:700, color: t.accent, marginBottom:12 }}>
-                💳 Forma de Pagamento
+                Forma de Pagamento
               </div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:16 }}>
                 <div>
@@ -985,7 +985,7 @@ function TelaCadastroEvento() {
               </div>
               {(form.valorInscricao || form.formaPagamento || form.orientacaoPagamento) && (
                 <div style={{ marginTop:14, background: t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:8, padding:"12px 16px" }}>
-                  <div style={{ fontSize:11, color: t.accent, fontWeight:700, marginBottom:8 }}>👁 Preview — como o atleta verá após a inscrição:</div>
+                  <div style={{ fontSize:11, color: t.accent, fontWeight:700, marginBottom:8 }}>Preview — como o atleta verá após a inscrição:</div>
                   {form.valorInscricao !== "" && form.valorInscricao != null && (
                     <div style={{ display:"flex", justifyContent:"space-between", padding:"5px 0", borderBottom:`1px solid ${t.border}` }}>
                       <span style={{ color: t.textMuted, fontSize:12 }}>Valor por atleta</span>
@@ -1011,7 +1011,7 @@ function TelaCadastroEvento() {
           </Acordeao>
 
           {/* ── Logos da Competição (acordeão) ── */}
-          <Acordeao keyName="logos" aberto={acordeoes["logos"]} onToggle={toggleAcordeo} titulo="Logos da Competição" icone="🖼️" resumo={resumoLogos}>
+          <Acordeao keyName="logos" aberto={acordeoes["logos"]} onToggle={toggleAcordeo} titulo="Logos da Competição" icone="" resumo={resumoLogos}>
             <p style={{ color: t.textDimmed, fontSize:12, marginBottom:14, lineHeight:1.5 }}>
               Opcional. As imagens são armazenadas na nuvem e ficam visíveis para todos. Use PNG ou JPG com fundo transparente quando possível. Máximo 2MB por imagem.
             </p>
@@ -1020,7 +1020,7 @@ function TelaCadastroEvento() {
             <div style={{ marginBottom:14, padding:"12px 14px", background:t.bgHeaderSolid, borderRadius:8, border:`1px solid ${t.border}` }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12 }}>
                 <div style={{ flex:1 }}>
-                  <div style={{ fontWeight:700, fontSize:13, color: t.textPrimary, marginBottom:4 }}>🏟️ Logo da Competição</div>
+                  <div style={{ fontWeight:700, fontSize:13, color: t.textPrimary, marginBottom:4 }}>Logo da Competição</div>
                   <p style={{ fontSize:11, color: t.textMuted, margin:0, lineHeight:1.5 }}>
                     Aparece na lista de competições e na tela de detalhe.<br/>
                     <strong style={{ color: t.accent }}>Tamanho recomendado: 500×500px</strong> (quadrada). PNG/JPG.
@@ -1039,7 +1039,7 @@ function TelaCadastroEvento() {
                     />
                     <button type="button" onClick={() => document.getElementById("crop_logoCompeticao").click()}
                       style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", background: t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:6, cursor:"pointer", fontSize:12, color: t.accent, fontWeight:600 }}>
-                      📁 Escolher imagem
+                      Escolher imagem
                     </button>
                     {form.logoCompeticao && (
                       <button type="button" style={{ fontSize:11, color: t.danger, background:"transparent", border:`1px solid ${t.danger}44`, borderRadius:4, padding:"4px 10px", cursor:"pointer" }}
@@ -1059,7 +1059,7 @@ function TelaCadastroEvento() {
             <div style={{ marginBottom:14, padding:"12px 14px", background:t.bgHeaderSolid, borderRadius:8, border:`1px solid ${t.border}` }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12 }}>
                 <div style={{ flex:1 }}>
-                  <div style={{ fontWeight:700, fontSize:13, color: t.textPrimary, marginBottom:4 }}>📄 Logo Cabeçalho da Súmula</div>
+                  <div style={{ fontWeight:700, fontSize:13, color: t.textPrimary, marginBottom:4 }}>Logo Cabeçalho da Súmula</div>
                   <p style={{ fontSize:11, color: t.textMuted, margin:0, lineHeight:1.5 }}>
                     Aparece no <strong>canto esquerdo</strong> do cabeçalho da súmula impressa.<br/>
                     <strong style={{ color: t.accent }}>Tamanho recomendado: 300×120px</strong> (retangular horizontal). PNG com fundo transparente.
@@ -1076,7 +1076,7 @@ function TelaCadastroEvento() {
                     />
                     <button type="button" onClick={() => document.getElementById("crop_logoCabecalho").click()}
                       style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", background: t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:6, cursor:"pointer", fontSize:12, color: t.accent, fontWeight:600 }}>
-                      📁 Escolher imagem
+                      Escolher imagem
                     </button>
                     {form.logoCabecalho && (
                       <button type="button" style={{ fontSize:11, color: t.danger, background:"transparent", border:`1px solid ${t.danger}44`, borderRadius:4, padding:"4px 10px", cursor:"pointer" }}
@@ -1096,7 +1096,7 @@ function TelaCadastroEvento() {
             <div style={{ marginBottom:14, padding:"12px 14px", background:t.bgHeaderSolid, borderRadius:8, border:`1px solid ${t.border}` }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12 }}>
                 <div style={{ flex:1 }}>
-                  <div style={{ fontWeight:700, fontSize:13, color: t.textPrimary, marginBottom:4 }}>📄 Logo Cabeçalho Direito da Súmula</div>
+                  <div style={{ fontWeight:700, fontSize:13, color: t.textPrimary, marginBottom:4 }}>Logo Cabeçalho Direito da Súmula</div>
                   <p style={{ fontSize:11, color: t.textMuted, margin:0, lineHeight:1.5 }}>
                     Aparece no <strong>canto direito</strong> do cabeçalho da súmula impressa.<br/>
                     <strong style={{ color: t.accent }}>Tamanho recomendado: 300×120px</strong> (retangular horizontal). PNG com fundo transparente.
@@ -1113,7 +1113,7 @@ function TelaCadastroEvento() {
                     />
                     <button type="button" onClick={() => document.getElementById("crop_logoCabecalhoDireito").click()}
                       style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", background: t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:6, cursor:"pointer", fontSize:12, color: t.accent, fontWeight:600 }}>
-                      📁 Escolher imagem
+                      Escolher imagem
                     </button>
                     {form.logoCabecalhoDireito && (
                       <button type="button" style={{ fontSize:11, color: t.danger, background:"transparent", border:`1px solid ${t.danger}44`, borderRadius:4, padding:"4px 10px", cursor:"pointer" }}
@@ -1133,7 +1133,7 @@ function TelaCadastroEvento() {
             <div style={{ padding:"12px 14px", background:t.bgHeaderSolid, borderRadius:8, border:`1px solid ${t.border}` }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12 }}>
                 <div style={{ flex:1 }}>
-                  <div style={{ fontWeight:700, fontSize:13, color: t.textPrimary, marginBottom:4 }}>📃 Logo / Banner Rodapé da Súmula</div>
+                  <div style={{ fontWeight:700, fontSize:13, color: t.textPrimary, marginBottom:4 }}>Logo / Banner Rodapé da Súmula</div>
                   <p style={{ fontSize:11, color: t.textMuted, margin:0, lineHeight:1.5 }}>
                     Banner de largura total no rodapé da súmula impressa (patrocinadores, federação, etc.).<br/>
                     <strong style={{ color: t.accent }}>Tamanho recomendado: 1200×200px</strong> (retangular largo). PNG/JPG.
@@ -1150,7 +1150,7 @@ function TelaCadastroEvento() {
                     />
                     <button type="button" onClick={() => document.getElementById("crop_logoRodape").click()}
                       style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", background: t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:6, cursor:"pointer", fontSize:12, color: t.accent, fontWeight:600 }}>
-                      📁 Escolher imagem
+                      Escolher imagem
                     </button>
                     {form.logoRodape && (
                       <button style={{ fontSize:11, color: t.danger, background:"transparent", border:`1px solid ${t.danger}44`, borderRadius:4, padding:"4px 10px", cursor:"pointer" }}
@@ -1168,14 +1168,14 @@ function TelaCadastroEvento() {
           </Acordeao>
 
           {/* ── Regulamento (PDF) ── */}
-          <Acordeao keyName="regulamento" aberto={acordeoes["regulamento"]} onToggle={toggleAcordeo} titulo="Regulamento da Competição" icone="📋" resumo={form.regulamentoUrl ? "PDF enviado" : "Nenhum"}>
+          <Acordeao keyName="regulamento" aberto={acordeoes["regulamento"]} onToggle={toggleAcordeo} titulo="Regulamento da Competição" icone="" resumo={form.regulamentoUrl ? "PDF enviado" : "Nenhum"}>
             <p style={{ color: t.textDimmed, fontSize:12, marginBottom:14, lineHeight:1.5 }}>
               Opcional. Faça upload do regulamento em PDF. O arquivo ficará disponível para download pelos participantes. Máximo 10MB.
             </p>
             <div style={{ padding:"12px 14px", background:t.bgHeaderSolid, borderRadius:8, border:`1px solid ${t.border}` }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12 }}>
                 <div style={{ flex:1 }}>
-                  <div style={{ fontWeight:700, fontSize:13, color: t.textPrimary, marginBottom:4 }}>📋 Regulamento (PDF)</div>
+                  <div style={{ fontWeight:700, fontSize:13, color: t.textPrimary, marginBottom:4 }}>Regulamento (PDF)</div>
                   <p style={{ fontSize:11, color: t.textMuted, margin:0, lineHeight:1.5 }}>
                     Arquivo PDF com as regras e regulamento da competição.<br/>
                     <strong style={{ color: t.accent }}>Formato: PDF · Máximo: 10MB</strong>
@@ -1188,7 +1188,7 @@ function TelaCadastroEvento() {
                       borderRadius:6, cursor: uploadandoRegulamento ? "not-allowed" : "pointer",
                       fontSize:12, color: uploadandoRegulamento ? t.textDisabled : t.accent, fontWeight:600,
                     }}>
-                      {uploadandoRegulamento ? "Enviando..." : "📁 Escolher PDF"}
+                      {uploadandoRegulamento ? "Enviando..." : "Escolher PDF"}
                       <input type="file" accept="application/pdf" style={{ display:"none" }} disabled={uploadandoRegulamento}
                         onChange={async (e) => {
                           const file = e.target.files?.[0];
@@ -1234,7 +1234,7 @@ function TelaCadastroEvento() {
                 </div>
                 {form.regulamentoUrl && (
                   <div style={{ width:60, height:60, borderRadius:8, border:`2px solid ${t.border}`, overflow:"hidden", background:t.bgInput, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
-                    <span style={{ fontSize:28 }}>📄</span>
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{color:t.textDimmed}}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                   </div>
                 )}
               </div>
@@ -1242,14 +1242,14 @@ function TelaCadastroEvento() {
           </Acordeao>
 
           {/* ── Modo de Medalhas ── */}
-          <Acordeao keyName="medalhas" aberto={acordeoes["medalhas"]} onToggle={toggleAcordeo} titulo="Modo de Medalhas" icone="🏅" resumo={resumoMedalhas}>
+          <Acordeao keyName="medalhas" aberto={acordeoes["medalhas"]} onToggle={toggleAcordeo} titulo="Modo de Medalhas" icone="" resumo={resumoMedalhas}>
             <div style={{ fontSize:12, color: t.textMuted, marginBottom:12 }}>
               Define como as medalhas serão atribuídas na Secretaria da competição.
             </div>
             {[
-              { value: "classificacao_participacao", icon: "🏅", label: "Classificação + Participação", desc: "1º/2º/3º recebem ouro/prata/bronze. Demais recebem participação.", cor: t.accent },
-              { value: "apenas_participacao", icon: "🎖️", label: "Somente Participação", desc: "Todos os atletas recebem medalha de participação, sem ouro/prata/bronze.", cor: t.warning },
-              { value: "apenas_classificacao", icon: "🥇", label: "Somente Classificação", desc: "Apenas 1º/2º/3º recebem medalha (ouro/prata/bronze). Sem medalha de participação.", cor: t.gold },
+              { value: "classificacao_participacao", icon: "", label: "Classificação + Participação", desc: "1º/2º/3º recebem ouro/prata/bronze. Demais recebem participação.", cor: t.accent },
+              { value: "apenas_participacao", icon: "", label: "Somente Participação", desc: "Todos os atletas recebem medalha de participação, sem ouro/prata/bronze.", cor: t.warning },
+              { value: "apenas_classificacao", icon: "", label: "Somente Classificação", desc: "Apenas 1º/2º/3º recebem medalha (ouro/prata/bronze). Sem medalha de participação.", cor: t.gold },
             ].map(opt => {
               const ativo = (form.modoMedalhas || "classificacao_participacao") === opt.value;
               return (
@@ -1502,7 +1502,7 @@ function FiltroProvasStep({ todasProvas, form, setForm, toggleProva, toggleGrupo
       {/* ── Recordes nas Súmulas ── */}
       {recordes && recordes.length > 0 && (
         <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:10, padding:"16px 20px", marginTop:16, marginBottom:16 }}>
-          <div style={{ color: t.accent, fontWeight:700, fontSize:14, marginBottom:4 }}>🏆 Recordes nas Súmulas</div>
+          <div style={{ color: t.accent, fontWeight:700, fontSize:14, marginBottom:4 }}>Recordes nas Súmulas</div>
           <p style={{ color: t.textDimmed, fontSize:12, marginBottom:10, lineHeight:1.5 }}>
             Selecione quais recordes exibir no cabeçalho de cada prova nas súmulas impressas.
           </p>
@@ -1535,7 +1535,7 @@ function FiltroProvasStep({ todasProvas, form, setForm, toggleProva, toggleGrupo
           </button>
         ) : (
           <button style={s.btnPrimary} onClick={handleSalvar} disabled={form.provasPrograma.length === 0}>
-            ✅ Criar Competição
+            Criar Competição
           </button>
         )}
       </div>
@@ -1754,7 +1754,7 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
     if (comInscricaoAgora.length > 0) {
       setConfirmLimpar(false);
       setRemovidosConfirmados([]);
-      alert(`⚠️ Dados de inscrição foram atualizados desde que o painel foi aberto.\n\n${comInscricaoAgora.length} prova(s) passaram a ter inscrições e foram mantidas.\n\nReabra o painel para ver a lista atualizada.`);
+      alert(`Dados de inscrição foram atualizados desde que o painel foi aberto.\n\n${comInscricaoAgora.length} prova(s) passaram a ter inscrições e foram mantidas.\n\nReabra o painel para ver a lista atualizada.`);
       return;
     }
     if (aRemover.size === 0) { setConfirmLimpar(false); return; }
@@ -1876,7 +1876,7 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
     <div style={s.formCard}>
       <div style={{ marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-          <div style={{ color: t.accent, fontWeight: 700, fontSize: 15 }}>🕐 Programa Horário</div>
+          <div style={{ color: t.accent, fontWeight: 700, fontSize: 15 }}>Programa Horário</div>
           <span style={{ fontSize: 12, color: t.textMuted }}>{totalComHorario}/{totalEntries} horários preenchidos</span>
         </div>
 
@@ -1886,12 +1886,12 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
             padding: "7px 16px", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer", border: "none",
             background: modoHorario === "agrupado" ? t.accent : t.bgInput,
             color: modoHorario === "agrupado" ? "#fff" : t.textDimmed,
-          }}>📋 Por modalidade/sexo</button>
+          }}>Por modalidade/sexo</button>
           <button onClick={() => setModoHorario("detalhado")} style={{
             padding: "7px 16px", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer", border: "none",
             background: modoHorario === "detalhado" ? t.accent : t.bgInput,
             color: modoHorario === "detalhado" ? "#fff" : t.textDimmed,
-          }}>🔍 Detalhado por categoria</button>
+          }}>Detalhado por categoria</button>
           {podeVerificar && (
             <button onClick={abrirConfirmLimpar} style={{
               marginLeft: "auto", padding: "7px 14px", borderRadius: 6, fontSize: 12, fontWeight: 700,
@@ -1899,7 +1899,7 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
               background: calcRemovidos().length > 0 ? t.warning + "22" : t.bgCardAlt,
               color: calcRemovidos().length > 0 ? t.warning : t.textDimmed,
             }}>
-              🧹 Remover sem inscrições {calcRemovidos().length > 0 ? `(${calcRemovidos().length})` : ""}
+              Remover sem inscrições {calcRemovidos().length > 0 ? `(${calcRemovidos().length})` : ""}
             </button>
           )}
         </div>
@@ -1909,13 +1909,13 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
           <div style={{ background: t.warning + "11", border: `1px solid ${t.warning}44`, borderRadius: 8, padding: "16px 18px", marginBottom: 14 }}>
             {removidosConfirmados.length === 0 ? (
               <>
-                <div style={{ color: t.success, fontWeight: 700, fontSize: 13, marginBottom: 8 }}>✅ Todas as provas têm inscrições</div>
+                <div style={{ color: t.success, fontWeight: 700, fontSize: 13, marginBottom: 8 }}>Todas as provas têm inscrições</div>
                 <p style={{ color: t.textMuted, fontSize: 12, margin: "0 0 12px" }}>Nenhuma prova precisa ser removida.</p>
                 <button onClick={() => { setConfirmLimpar(false); setRemovidosConfirmados([]); }} style={{ background: t.bgInput, color: t.textMuted, border: `1px solid ${t.borderLight}`, borderRadius: 6, padding: "6px 16px", cursor: "pointer", fontSize: 12 }}>Fechar</button>
               </>
             ) : (
               <>
-                <div style={{ color: t.warning, fontWeight: 700, fontSize: 13, marginBottom: 8 }}>⚠️ {removidosConfirmados.length} prova(s) sem inscrição</div>
+                <div style={{ color: t.warning, fontWeight: 700, fontSize: 13, marginBottom: 8 }}>{removidosConfirmados.length} prova(s) sem inscrição</div>
                 <p style={{ color: t.textMuted, fontSize: 12, margin: "0 0 10px" }}>
                   Serão <strong style={{ color: t.danger }}>removidas da competição</strong>, propagando para súmulas, resultados e secretaria. Provas com inscrições <strong style={{ color: t.success }}>nunca serão removidas</strong>.
                 </p>
@@ -2091,7 +2091,7 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
             return (
               <div key={mae.id} style={{ marginBottom: 18, background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, padding: "14px 16px" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                  <span style={{ fontWeight: 700, color: t.accent, fontSize: 13 }}>🏅 {mae.nome} — {sexoLabel} · {catNome}</span>
+                  <span style={{ fontWeight: 700, color: t.accent, fontSize: 13 }}>{mae.nome} — {sexoLabel} · {catNome}</span>
                   <span style={{ fontSize: 11, color: t.textDimmed }}>{componentes.length} prova(s)</span>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -2127,7 +2127,7 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
 
       {/* ── Pausa / Intervalo ── */}
       <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 8 }}>
-        <div style={{ color: t.accent, fontWeight: 700, fontSize: 13, marginBottom: 10 }}>⏸️ Intervalo / Pausa</div>
+        <div style={{ color: t.accent, fontWeight: 700, fontSize: 13, marginBottom: 10 }}>Intervalo / Pausa</div>
         <p style={{ color: t.textMuted, fontSize: 12, marginBottom: 12, lineHeight: 1.5 }}>
           Defina um intervalo entre os períodos da manhã e da tarde. As provas serão automaticamente divididas pelo horário da pausa em etapas{temDoisDias ? " (4 etapas: manhã/tarde × 2 dias)" : " (1ª Etapa — Manhã, 2ª Etapa — Tarde)"}.
         </p>
@@ -2160,7 +2160,7 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
       <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
         <button style={s.btnGhost} onClick={() => setStep(3)}>← Voltar</button>
         <button style={s.btnPrimary} onClick={handleSalvar}>
-          {editando ? "💾 Salvar Alterações" : "✅ Criar Competição"}
+          {editando ? "Salvar Alterações" : "Criar Competição"}
         </button>
       </div>
     </div>

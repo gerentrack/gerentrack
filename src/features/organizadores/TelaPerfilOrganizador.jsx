@@ -57,7 +57,7 @@ export default function TelaPerfilOrganizador() {
   const org = organizadores?.find(o => o.id === organizadorPerfilId);
   if (!org) return (
     <div style={{ maxWidth: 1200, margin: "0 auto", padding: "60px 24px", textAlign: "center" }}>
-      <span style={{ fontSize: 56 }}>🔍</span>
+      <span style={{ fontSize: 22, color: t.textDisabled }}>?</span>
       <p style={{ color: t.textDisabled, marginTop: 12 }}>Organizador não encontrado.</p>
       <button style={s.backBtn} onClick={() => setTela("home")}>← Voltar</button>
     </div>
@@ -113,15 +113,15 @@ export default function TelaPerfilOrganizador() {
           <div style={s.eventoCardNome}>{ev.nome}</div>
           {dataEv && (
             <div style={s.eventoCardMeta}>
-              <span>📅 {dataEv.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}
-                {ev.horaInicio && <> · ⏰ {ev.horaInicio}h</>}
+              <span>{dataEv.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}
+                {ev.horaInicio && <> · {ev.horaInicio}h</>}
               </span>
             </div>
           )}
-          <div style={s.eventoCardMeta}><span>📍 {_getLocalEventoDisplay(ev)}</span></div>
+          <div style={s.eventoCardMeta}><span>{_getLocalEventoDisplay(ev)}</span></div>
           {(ev.dataAberturaInscricoes || ev.dataEncerramentoInscricoes) && (
             <div style={s.eventoCardMeta}>
-              <span>📋 Inscrições:&nbsp;
+              <span>Inscrições:&nbsp;
                 {ev.dataAberturaInscricoes && <>{new Date(ev.dataAberturaInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}</>}
                 {ev.dataAberturaInscricoes && ev.dataEncerramentoInscricoes && " a "}
                 {ev.dataEncerramentoInscricoes && <>{new Date(ev.dataEncerramentoInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}</>}
@@ -129,9 +129,9 @@ export default function TelaPerfilOrganizador() {
             </div>
           )}
           <div style={s.eventoCardStats}>
-            <span>🎯 {nProvas} prova{nProvas !== 1 ? "s" : ""}</span>
-            <span>🏃 {nAtletas} atleta{nAtletas !== 1 ? "s" : ""}</span>
-            <span>✍️ {nInscs} {nInscs !== 1 ? "inscrições" : "inscrição"}</span>
+            <span>{nProvas} prova{nProvas !== 1 ? "s" : ""}</span>
+            <span>{nAtletas} atleta{nAtletas !== 1 ? "s" : ""}</span>
+            <span>{nInscs} {nInscs !== 1 ? "inscrições" : "inscrição"}</span>
           </div>
           <button style={{ background: `linear-gradient(135deg, ${corPri}, ${corSec})`, color: "#fff", border: "none", padding: "10px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, width: "100%", marginTop: 8, transition: "opacity 0.2s" }}
             onClick={() => selecionarEvento(ev.id)}>
@@ -177,7 +177,7 @@ export default function TelaPerfilOrganizador() {
         )}
         {(org.cidade || org.estado) && (
           <div style={s.orgLocal}>
-            📍 {[capitalizarNome(org.cidade), org.estado ? org.estado.toUpperCase() : null].filter(Boolean).join(", ")}
+            {[capitalizarNome(org.cidade), org.estado ? org.estado.toUpperCase() : null].filter(Boolean).join(", ")}
           </div>
         )}
 
@@ -247,7 +247,7 @@ export default function TelaPerfilOrganizador() {
                     <span style={{ margin: "0 8px", color: t.textDisabled }}>—</span>
                     {ev.nome}
                   </div>
-                  {local && <div style={{ fontSize: 12, color: t.textMuted }}>📍 {local}</div>}
+                  {local && <div style={{ fontSize: 12, color: t.textMuted }}>{local}</div>}
                 </div>
               );
             })}

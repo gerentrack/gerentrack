@@ -87,7 +87,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
   if (!isAmplo && !eventoAtual.sumulaLiberada) return (
     <div style={s.page}>
       <div style={s.emptyState}>
-        <span style={{ fontSize: 56 }}>🔐</span>
+        <span style={{ fontSize: 56 }}>—</span>
         <p style={{ fontWeight: 700, color: t.textPrimary, fontSize: 18 }}>Súmulas não disponíveis</p>
         <p style={{ color: t.textDimmed, fontSize: 14, maxWidth: 380, textAlign: "center" }}>
           As súmulas desta competição ainda não foram liberadas para consulta.
@@ -297,13 +297,13 @@ function TelaSumulas({ chamada, getPresencaProva }) {
     <div style={s.page}>
       <div style={s.painelHeader}>
         <div>
-          <h1 style={s.pageTitle}>📋 Súmulas</h1>
+          <h1 style={s.pageTitle}>Súmulas</h1>
           <div style={{ color: t.textDimmed, fontSize: 13 }}>{eventoAtual.nome}</div>
         </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           {isAmplo && sumuFiltradas.length > 0 && (
             <button style={{ ...s.btnPrimary, display: "flex", alignItems: "center", gap: 8 }} onClick={handleImprimir}>
-              🖨 Imprimir Súmulas
+              Imprimir Súmulas
               <span style={{ background: "#00000033", borderRadius: 10, padding: "1px 8px", fontSize: 11 }}>
                 {sumuFiltradas.length}
               </span>
@@ -312,19 +312,19 @@ function TelaSumulas({ chamada, getPresencaProva }) {
           {isAmplo && (
             <button style={{ ...s.btnSecondary, background: t.accentBg, borderColor: t.accentBorder, color: t.accent }}
               onClick={() => setShowSeriar(!showSeriar)}>
-              🔀 Seriar Provas
+              Seriar Provas
             </button>
           )}
           {isAmplo && (
             <button style={{ ...s.btnSecondary, background: `${t.success}12`, borderColor: `${t.success}44`, color: t.success }}
               onClick={() => setTela("export-lynx")}>
-              📥 Exportar .evt
+              Exportar .evt
             </button>
           )}
           {(isDono || (usuarioLogado?.tipo === "funcionario" && eventoAtual.organizadorId === usuarioLogado?.organizadorId && usuarioLogado?.permissoes?.includes("resultados"))) && (
-            <button style={s.btnSecondary} onClick={() => setTela("digitar-resultados")}>✏️ Digitar Resultados</button>
+            <button style={s.btnSecondary} onClick={() => setTela("digitar-resultados")}>Digitar Resultados</button>
           )}
-          <button style={s.btnSecondary} onClick={() => setTela("resultados")}>📊 Ver Resultados</button>
+          <button style={s.btnSecondary} onClick={() => setTela("resultados")}>Ver Resultados</button>
           <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Competição</button>
         </div>
       </div>
@@ -332,7 +332,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
       {/* Aviso de impressão filtrada */}
       {isAmplo && sumuFiltradas.length > 0 && (filtroProva !== "todas" || filtroCat !== "todas" || filtroSexo !== "todos") && (
         <div style={{ background: `${t.success}12`, border: `1px solid ${t.success}44`, borderRadius: 8, padding: "10px 16px", marginBottom: 16, fontSize: 13, color: t.success, display: "flex", alignItems: "center", gap: 8 }}>
-          🖨 O botão de impressão irá gerar apenas as <strong>{sumuFiltradas.length} súmula(s)</strong> filtradas atualmente.
+          O botão de impressão irá gerar apenas as <strong>{sumuFiltradas.length} súmula(s)</strong> filtradas atualmente.
           <button style={{ ...s.linkBtn, marginLeft: 8 }} onClick={() => { setFiltroProva("todas"); setFiltroCat("todas"); setFiltroSexo("todos"); }}>
             Limpar filtros para imprimir tudo
           </button>
@@ -703,13 +703,13 @@ function TelaSumulas({ chamada, getPresencaProva }) {
           <div style={{ background: t.bgCardAlt, border:`1px solid ${t.border}`, borderRadius:12, padding:"16px 20px", marginBottom:20 }}>
             {isFinalizado && (
               <div style={{ background:`${t.danger}10`, border:`1px solid ${t.danger}44`, borderRadius:8, padding:"8px 14px", marginBottom:12, fontSize:12, color: t.danger, fontWeight:600 }}>
-                🔒 Competição finalizada — seriação em modo somente leitura
+                Competição finalizada — seriação em modo somente leitura
               </div>
             )}
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
               <div>
                 <div style={{ color: t.accent, fontWeight:800, fontSize:16, fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:1 }}>
-                  🔀 SERIAÇÃO — RT 20.3 a 20.8
+                  SERIAÇÃO — RT 20.3 a 20.8
                 </div>
                 <div style={{ color: t.textDimmed, fontSize:11, marginTop:2 }}>
                   {isFinalizado ? "Visualização da seriação configurada" : "Configure modo e capacidade por prova, depois serie cada prova individualmente"}
@@ -720,7 +720,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
 
             {/* \u2500\u2500 CONFIGURAÇÃO POR PROVA \u2500\u2500 */}
             <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, padding:"12px 14px", marginBottom:14 }}>
-              <div style={{ color: t.textTertiary, fontWeight:700, fontSize:12, marginBottom:8 }}>⚙️ Configuração por Prova</div>
+              <div style={{ color: t.textTertiary, fontWeight:700, fontSize:12, marginBottom:8 }}>Configuração por Prova</div>
               <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
                 {Object.keys(nomesConfig).map(nome => {
                   const { provas, metros: mt, isLonga } = nomesConfig[nome];
@@ -934,7 +934,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
             {provasRevezPista.length > 0 && (
               <div style={{ marginBottom:16 }}>
                 <div style={{ color: t.accent, fontWeight:700, fontSize:12, marginBottom:6, borderTop:`1px solid ${t.border}`, paddingTop:10 }}>
-                  🏃‍♂️ Revezamentos
+                  Revezamentos
                 </div>
                 <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
                   {provasRevezPista.map(item => {
@@ -1007,14 +1007,14 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                   <div style={{ display:"flex", gap:6 }}>
                     {itemAtivo.jaSeriada && (
                       <button style={{ ...s.btnGhost, fontSize:11, color: t.danger, borderColor:`${t.danger}44` }}
-                        onClick={() => limparSeriacao(itemAtivo.chave)}>🗑 Limpar</button>
+                        onClick={() => limparSeriacao(itemAtivo.chave)}>Limpar</button>
                     )}
                   </div>
                 </div>
 
                 {/* Seletor de modo de seriação */}
                 <div style={{ display:"flex", gap:4, marginBottom:10 }}>
-                  {[["marca","📊 Por Marca"],["aleatorio","🎲 Aleatório"],["manual","✏️ Manual"]].map(([val,lbl]) => (
+                  {[["marca","Por Marca"],["aleatorio","Aleatório"],["manual","Manual"]].map(([val,lbl]) => (
                     <button key={val}
                       style={{
                         padding:"5px 14px", borderRadius:5, border:"1px solid",
@@ -1116,7 +1116,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                 {/* Modo ALEATÓRIO */}
                 {seriacaoModo === "aleatorio" && (
                   <div style={{ fontSize:12, color: t.textMuted, marginBottom:10, padding:"10px 14px", background:t.bgHeaderSolid, borderRadius:6, border:`1px solid ${t.border}` }}>
-                    🎲 As séries e raias serão sorteadas aleatoriamente. Clique em "Gerar" para sortear. Gere novamente se quiser outro resultado.
+                    As séries e raias serão sorteadas aleatoriamente. Clique em "Gerar" para sortear. Gere novamente se quiser outro resultado.
                   </div>
                 )}
 
@@ -1177,7 +1177,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
 
                 <div style={{ display:"flex", gap:8, marginBottom:10, flexWrap:"wrap" }}>
                   <button style={{ ...s.btnPrimary, fontSize:12 }} onClick={gerarPreview}>
-                    🔀 Gerar Seriação
+                    Gerar Seriação
                   </button>
                   {/* Botão "Gerar a partir da fase anterior" — só aparece para SEM e FIN com multi-fases */}
                   {itemAtivo?.faseAnterior && itemAtivo?.multiFases && (
@@ -1185,7 +1185,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                       style={{ ...s.btnPrimary, fontSize:12, background:`${t.success}22`, borderColor:`${t.success}44` }}
                       onClick={gerarFromFaseAnterior}
                     >
-                      ⬆️ Gerar a partir da {FASE_NOME[itemAtivo.faseAnterior]}
+                      Gerar a partir da {FASE_NOME[itemAtivo.faseAnterior]}
                     </button>
                   )}
                   <button style={{ ...s.btnGhost, fontSize:12 }}
@@ -1197,16 +1197,16 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                 {seriacaoPreview && (
                   <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.success}44`, borderRadius:8, padding:"12px 14px" }}>
                     <div style={{ color: t.success, fontWeight:700, fontSize:13, marginBottom:4 }}>
-                      ✅ Seriação gerada — {seriacaoPreview.series.length} série(s)
+                      Seriação gerada — {seriacaoPreview.series.length} série(s)
                     </div>
                     {seriacaoPreview.regraAplicada && (
                       <div style={{ fontSize:10, color: t.accent, marginBottom:4, padding:"3px 8px", background: t.accentBg, borderRadius:4, display:"inline-block" }}>
-                        📐 {seriacaoPreview.regraAplicada}
+                        {seriacaoPreview.regraAplicada}
                       </div>
                     )}
                     {seriacaoPreview.classificadosInfo && (
                       <div style={{ fontSize:10, color: t.success, marginBottom:8, padding:"3px 8px", background:`${t.success}15`, borderRadius:4, display:"inline-block", marginLeft:4 }}>
-                        ✅ {seriacaoPreview.classificadosInfo.porPosicao}P + {seriacaoPreview.classificadosInfo.porTempo}T = {seriacaoPreview.classificadosInfo.total} classificados da {seriacaoPreview.classificadosInfo.faseOrigem}
+                        {seriacaoPreview.classificadosInfo.porPosicao}P + {seriacaoPreview.classificadosInfo.porTempo}T = {seriacaoPreview.classificadosInfo.total} classificados da {seriacaoPreview.classificadosInfo.faseOrigem}
                       </div>
                     )}
                     {(() => {
@@ -1255,7 +1255,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                     })()}
                     <div style={{ display:"flex", gap:8, alignItems:"center", marginTop:6 }}>
                       <button style={{ ...s.btnPrimary, fontSize:12 }} onClick={salvarSeriacao}>
-                        💾 Salvar Seriação
+                        Salvar Seriação
                       </button>
                       <span style={{ fontSize:9, color: t.textDimmed }}>RT 20.4.8 — Atleta não pode competir em série/raia diferente da designada</span>
                     </div>
@@ -1269,7 +1269,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
               <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.accent}44`, borderRadius:8, padding:"14px 16px" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
                   <div>
-                    <strong style={{ color: t.textPrimary, fontSize:14 }}>🏃‍♂️ {itemAtivoRevez.prova.nome}</strong>
+                    <strong style={{ color: t.textPrimary, fontSize:14 }}>{itemAtivoRevez.prova.nome}</strong>
                     <span style={{ color: t.textMuted, fontSize:12, marginLeft:8 }}>
                       {itemAtivoRevez.cat.nome} · {itemAtivoRevez.sexo === "M" ? "Masculino" : "Feminino"} · {itemAtivoRevez.nInscritos} equipes
                     </span>
@@ -1280,7 +1280,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                   <div style={{ display:"flex", gap:6 }}>
                     {itemAtivoRevez.jaSeriada && (
                       <button style={{ ...s.btnGhost, fontSize:11, color: t.danger, borderColor:`${t.danger}44` }}
-                        onClick={() => limparSeriacao(itemAtivoRevez.chave)}>🗑 Limpar</button>
+                        onClick={() => limparSeriacao(itemAtivoRevez.chave)}>Limpar</button>
                     )}
                     <button style={{ ...s.btnGhost, fontSize:11 }}
                       onClick={() => { setSeriacaoProvaId(null); setSeriacaoPreview(null); }}>✕</button>
@@ -1348,7 +1348,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                     const ordemSeries = seriesArr.map(ser => ser.numero);
                     setSeriacaoPreview({ series: seriesArr, ordemSeries, modo: "manual", chave: itemAtivoRevez.chave, isRevez: true });
                   }}>
-                    🔀 Gerar Seriação
+                    Gerar Seriação
                   </button>
                   <button style={{ ...s.btnGhost, fontSize:12 }}
                     onClick={() => { setSeriacaoProvaId(null); setSeriacaoPreview(null); }}>
@@ -1359,7 +1359,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                 {seriacaoPreview && seriacaoPreview.isRevez && (
                   <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.success}44`, borderRadius:8, padding:"12px 14px" }}>
                     <div style={{ color: t.success, fontWeight:700, fontSize:13, marginBottom:8 }}>
-                      ✅ Seriação gerada — {seriacaoPreview.series.length} série(s)
+                      Seriação gerada — {seriacaoPreview.series.length} série(s)
                     </div>
                     {seriacaoPreview.series.map((serie, si) => (
                       <div key={si} style={{ marginBottom:8 }}>
@@ -1388,7 +1388,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                       </div>
                     ))}
                     <button style={{ ...s.btnPrimary, fontSize:12, marginTop:6 }} onClick={salvarSeriacao}>
-                      💾 Salvar Seriação
+                      Salvar Seriação
                     </button>
                   </div>
                 )}
@@ -1442,17 +1442,17 @@ function TelaSumulas({ chamada, getPresencaProva }) {
             style={{ ...s.btnGhost, fontSize: 12, padding: "6px 14px", display: "flex", alignItems: "center", gap: 6 }}
             onClick={() => setShowOrientConfig(!showOrientConfig)}
           >
-            📐 Orientação das folhas {showOrientConfig ? "▲" : "▼"}
+            Orientação das folhas {showOrientConfig ? "▲" : "▼"}
           </button>
           {showOrientConfig && (
             <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 10, padding: "14px 18px", marginTop: 8 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
                 <span style={{ color: t.textMuted, fontSize: 12 }}>Ações em lote:</span>
                 <button style={{ ...s.btnGhost, fontSize: 11, padding: "3px 10px" }} onClick={() => setTodas("portrait")}>
-                  📄 Todas Retrato
+                  Todas Retrato
                 </button>
                 <button style={{ ...s.btnGhost, fontSize: 11, padding: "3px 10px" }} onClick={() => setTodas("landscape")}>
-                  📄 Todas Paisagem
+                  Todas Paisagem
                 </button>
                 <button style={{ ...s.linkBtn, fontSize: 11, color: t.textMuted }} onClick={resetOrient}>
                   ↺ Restaurar padrão
@@ -1497,7 +1497,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
 
       {sumuFiltradas.length === 0 ? (
         <div style={s.emptyState}>
-          <span style={{ fontSize: 48 }}>📋</span>
+          <span style={{ fontSize: 48 }}>—</span>
           <p>Nenhuma súmula encontrada. As inscrições vão gerar as súmulas automaticamente.</p>
         </div>
       ) : (
@@ -1516,7 +1516,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                     <NomeProvaComImplemento nome={sum.prova.nome} />
                     {sum.prova.origemCombinada && (
                       <span style={{ fontSize: 11, background: t.accentBg, color: t.accent, padding: "2px 8px", borderRadius: 4, marginLeft: 8, fontWeight: 600 }}>
-                        🏅 {sum.prova.nomeCombinada} ({sum.prova.ordem}/{sum.prova.totalProvas})
+                        {sum.prova.nomeCombinada} ({sum.prova.ordem}/{sum.prova.totalProvas})
                       </span>
                     )}
                   </div>
@@ -1564,7 +1564,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                     })()}
                     {sum.isRevezamento && (
                       <span style={{ fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:600, background:t.accentBg, color: t.accent, border:`1px solid ${t.accent}44` }}>
-                        🏃‍♂️ Revezamento ({nPernasRevezamento(sum.prova)} pernas)
+                        Revezamento ({nPernasRevezamento(sum.prova)} pernas)
                       </span>
                     )}
                     {sum.faseNome && (
@@ -1599,7 +1599,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                           const nRaiasS = (typeof cfgS === "object" && cfgS?.nRaias) ? cfgS.nRaias : 8;
                           if (sum.atletas.length > nRaiasS) return (
                             <span style={{ fontSize:10, padding:"2px 8px", borderRadius:4, fontWeight:500, background:`${t.warning}15`, color: t.accent, border:"1px solid #4a3a0a" }}>
-                              ⚠ Sem seriação
+                              Sem seriação
                             </span>
                           );
                         }
@@ -1634,7 +1634,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                     }}
                     title="Imprimir só esta súmula"
                   >
-                    🖨️
+                    Impr.
                   </button>
                   </div>
                 )}
@@ -1656,7 +1656,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                         <Td>
                           {eq.atletas.length > 0
                             ? <span style={{ fontSize: 11, color: t.textTertiary }}>{eq.atletas.map(a => a.nome).join(" · ")}</span>
-                            : <span style={{ fontSize: 11, color: t.danger }}>⚠ Atletas não definidos — <button style={{ ...s.linkBtn, fontSize: 11, color: t.accent }} onClick={() => setTela("inscricao-revezamento")}>editar inscrição</button></span>
+                            : <span style={{ fontSize: 11, color: t.danger }}>Atletas não definidos — <button style={{ ...s.linkBtn, fontSize: 11, color: t.accent }} onClick={() => setTela("inscricao-revezamento")}>editar inscrição</button></span>
                           }
                         </Td>
                       </tr>
@@ -1772,7 +1772,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                               </Td>
                               <Td>
                                 {insc?.permissividade
-                                  ? <span style={s.badgeNorma} title={insc.permissividade}>⚖️ Exceção CBAt</span>
+                                  ? <span style={s.badgeNorma} title={insc.permissividade}>Exceção CBAt</span>
                                   : <span style={{ color: t.textDimmed, fontSize: 12 }}>—</span>}
                               </Td>
                             </tr>
@@ -1818,7 +1818,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                           </Td>
                           <Td>
                             {insc?.permissividade
-                              ? <span style={s.badgeNorma} title={insc.permissividade}>⚖️ Exceção CBAt</span>
+                              ? <span style={s.badgeNorma} title={insc.permissividade}>Exceção CBAt</span>
                               : <span style={{ color: t.textDimmed, fontSize: 12 }}>—</span>}
                           </Td>
                         </tr>

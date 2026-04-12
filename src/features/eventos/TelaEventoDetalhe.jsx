@@ -11,6 +11,30 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useEvento } from "../../contexts/EventoContext";
 import { useApp } from "../../contexts/AppContext";
 
+const svgI = (d, size=12) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:"middle",marginRight:3}}>{d}</svg>;
+const IcoCalendar = (sz) => svgI(<><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></>, sz);
+const IcoPin = (sz) => svgI(<><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></>, sz);
+const IcoClock = (sz) => svgI(<><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>, sz);
+const IcoSignup = (sz) => svgI(<><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></>, sz);
+const IcoTrophy = (sz) => svgI(<><rect x="4" y="14" width="4" height="8" rx="1"/><rect x="10" y="6" width="4" height="16" rx="1"/><rect x="16" y="10" width="4" height="12" rx="1"/></>, sz);
+const IcoLock = (sz) => svgI(<><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></>, sz);
+const IcoUnlock = (sz) => svgI(<><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 019.9-1"/></>, sz);
+const IcoEdit = (sz) => svgI(<><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></>, sz);
+const IcoRefresh = (sz) => svgI(<><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></>, sz);
+const IcoList = (sz) => svgI(<><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></>, sz);
+const IcoHash = (sz) => svgI(<><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></>, sz);
+const IcoRun = (sz) => svgI(<><path d="M13 4v3m0 0l3 3m-3-3l-3 3"/><circle cx="13" cy="3" r="1"/><path d="M7 21l3-7 4 2 3-8"/></>, sz);
+const IcoMedal = (sz) => svgI(<><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></>, sz);
+const IcoClipboard = (sz) => svgI(<><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></>, sz);
+const IcoShield = (sz) => svgI(<><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></>, sz);
+const IcoWifi = (sz) => svgI(<><path d="M5 12.55a11 11 0 0114.08 0"/><path d="M1.42 9a16 16 0 0121.16 0"/><path d="M8.53 16.11a6 6 0 016.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></>, sz);
+const IcoSettings = (sz) => svgI(<><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></>, sz);
+const IcoUsers = (sz) => svgI(<><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></>, sz);
+const IcoPrinter = (sz) => svgI(<><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></>, sz);
+const IcoFile = (sz) => svgI(<><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></>, sz);
+const IcoInfo = (sz) => svgI(<><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/><circle cx="12" cy="12" r="10"/></>, sz);
+const IcoFlag = (sz) => svgI(<><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></>, sz);
+
 function getStyles(t) {
   return {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
@@ -230,17 +254,17 @@ function TelaEventoDetalhe() {
     const novoEncerrado = !eventoAtual.inscricoesEncerradas;
     if (!novoEncerrado) {
       if (dtAb && agora < dtAb) {
-        alert(`⚠️ Não é possível abrir as inscrições antes da data programada.\n\nAbertura agendada: ${dtAb.toLocaleString("pt-BR")}\n\nAs inscrições serão abertas automaticamente nessa data/hora.`);
+        alert(`Não é possível abrir as inscrições antes da data programada.\n\nAbertura agendada: ${dtAb.toLocaleString("pt-BR")}\n\nAs inscrições serão abertas automaticamente nessa data/hora.`);
         return;
       }
       if (dtEnc && agora >= dtEnc) {
-        alert(`⚠️ O prazo de inscrições já encerrou.\n\nEncerramento foi em: ${dtEnc.toLocaleString("pt-BR")}\n\nPara reabrir, altere a data de encerramento no cadastro do evento.`);
+        alert(`O prazo de inscrições já encerrou.\n\nEncerramento foi em: ${dtEnc.toLocaleString("pt-BR")}\n\nPara reabrir, altere a data de encerramento no cadastro do evento.`);
         return;
       }
     }
     if (novoEncerrado) {
       if (dtEnc && agora < dtEnc) {
-        alert(`⚠️ Não é possível encerrar as inscrições antes da data programada.\n\nEncerramento agendado: ${dtEnc.toLocaleString("pt-BR")}\n\nAs inscrições serão encerradas automaticamente nessa data/hora.`);
+        alert(`Não é possível encerrar as inscrições antes da data programada.\n\nEncerramento agendado: ${dtEnc.toLocaleString("pt-BR")}\n\nAs inscrições serão encerradas automaticamente nessa data/hora.`);
         return;
       }
     }
@@ -278,26 +302,26 @@ function TelaEventoDetalhe() {
   if (!usuarioLogado) {
     // sem abas — layout público direto
   } else if (tpU === "atleta") {
-    tabs.push({ id: "participacao",   label: "✍️  Participação" });
-    tabs.push({ id: "acompanhamento", label: "📊  Acompanhamento" });
+    tabs.push({ id: "participacao",   label: "Participação" });
+    tabs.push({ id: "acompanhamento", label: "Acompanhamento" });
   } else if (tpU === "equipe" || tpU === "treinador") {
-    tabs.push({ id: "inscricoes",     label: "✍️  Inscrições" });
-    tabs.push({ id: "acompanhamento", label: "📊  Acompanhamento" });
+    tabs.push({ id: "inscricoes",     label: "Inscrições" });
+    tabs.push({ id: "acompanhamento", label: "Acompanhamento" });
   } else if (tpU === "funcionario") {
-    tabs.push({ id: "acompanhamento", label: "📊  Acompanhamento" });
+    tabs.push({ id: "acompanhamento", label: "Acompanhamento" });
     if (eventoAtual.organizadorId === usuarioLogado?.organizadorId) {
-      tabs.push({ id: "operacional",    label: "⚙️  Operacional" });
+      tabs.push({ id: "operacional",    label: "Operacional" });
     }
   } else if (tpU === "organizador") {
-    tabs.push({ id: "acompanhamento", label: "📊  Acompanhamento" });
+    tabs.push({ id: "acompanhamento", label: "Acompanhamento" });
     if (eventoAtual.organizadorId === usuarioLogado?.id) {
-      tabs.push({ id: "operacional",    label: "⚙️  Operacional" });
-      tabs.push({ id: "configuracao",   label: "🔧  Configuração" });
+      tabs.push({ id: "operacional",    label: "Operacional" });
+      tabs.push({ id: "configuracao",   label: "Configuração" });
     }
   } else if (tpU === "admin") {
-    tabs.push({ id: "acompanhamento", label: "📊  Acompanhamento" });
-    tabs.push({ id: "operacional",    label: "⚙️  Operacional" });
-    tabs.push({ id: "configuracao",   label: "🔧  Configuração" });
+    tabs.push({ id: "acompanhamento", label: "Acompanhamento" });
+    tabs.push({ id: "operacional",    label: "Operacional" });
+    tabs.push({ id: "configuracao",   label: "Configuração" });
   }
 
   const abaEfetiva = (abaAtiva && tabs.some(tab => tab.id === abaAtiva)) ? abaAtiva : tabs[0]?.id || null;
@@ -310,20 +334,20 @@ function TelaEventoDetalhe() {
         <div style={s.eventoAcoesGrid}>
           {!eventoAtual.competicaoFinalizada && (
             <button style={s.eventoAcaoBtn} onClick={() => setTela("login")}>
-              <span style={{ fontSize: 36 }}>✍️</span>
+              {IcoSignup(28)}
               <strong>Inscreva-se</strong>
               <span style={{ color: t.textMuted, fontSize: 13 }}>Faça login ou cadastre-se para inscrever atletas</span>
             </button>
           )}
           {podeVerResultados ? (
             <button style={s.eventoAcaoBtn} onClick={() => setTela("resultados")}>
-              <span style={{ fontSize: 36 }}>🏆</span>
+              {IcoTrophy(28)}
               <strong>Resultados</strong>
               <span style={{ color: t.textDimmed, fontSize: 13 }}>Classificação e marcas publicadas</span>
             </button>
           ) : (
             <div style={{ ...s.eventoAcaoBtn, opacity: 0.35, cursor: "not-allowed" }}>
-              <span style={{ fontSize: 36 }}>🏆</span>
+              {IcoTrophy(28)}
               <strong>Resultados</strong>
               <span style={{ color: t.textDimmed, fontSize: 13 }}>Disponível a partir do dia da competição</span>
             </div>
@@ -340,13 +364,13 @@ function TelaEventoDetalhe() {
           <div style={s.eventoAcoesGrid}>
             {!eventoAtual.inscricoesEncerradas ? (
               <button style={s.eventoAcaoBtn} onClick={() => setTela("inscricao-avulsa")}>
-                <span style={{ fontSize: 36 }}>✍️</span>
+                {IcoSignup(28)}
                 <strong>Inscrever-se</strong>
                 <span style={{ color: t.textDimmed, fontSize: 13 }}>Inscrição individual em provas</span>
               </button>
             ) : (
               <div style={{ ...s.eventoAcaoBtn, opacity: 0.4, cursor: "not-allowed" }}>
-                <span style={{ fontSize: 36 }}>🔒</span>
+                {IcoLock(28)}
                 <strong>Inscrições Encerradas</strong>
                 <span style={{ color: t.textDimmed, fontSize: 13 }}>Novas inscrições não são permitidas</span>
               </div>
@@ -360,20 +384,20 @@ function TelaEventoDetalhe() {
           <div style={s.eventoAcoesGrid}>
             {!eventoAtual.inscricoesEncerradas ? (
               <button style={s.eventoAcaoBtn} onClick={() => setTela("gestao-inscricoes")}>
-                <span style={{ fontSize: 36 }}>✍️</span>
+                {IcoSignup(28)}
                 <strong>Inscrever Atletas</strong>
                 <span style={{ color: t.textDimmed, fontSize: 13 }}>Montar lote e confirmar inscrições</span>
               </button>
             ) : (
               <div style={{ ...s.eventoAcaoBtn, opacity: 0.4, cursor: "not-allowed" }}>
-                <span style={{ fontSize: 36 }}>🔒</span>
+                {IcoLock(28)}
                 <strong>Inscrições Encerradas</strong>
                 <span style={{ color: t.textDimmed, fontSize: 13 }}>Novas inscrições não são permitidas</span>
               </div>
             )}
             {provasRevez.length > 0 && eventoAtual.revezamentoInscAntecipada && (
               <button style={{ ...s.eventoAcaoBtn, borderColor: t.accent + "66" }} onClick={() => setTela("inscricao-revezamento")}>
-                <span style={{ fontSize: 36 }}>🏃‍♂️</span>
+                {IcoRun(28)}
                 <strong>Inscrição de Revezamento</strong>
                 <span style={{ color: t.textDimmed, fontSize: 13 }}>
                   {nInscsRevez > 0 ? `${nInscsRevez} equipe(s) inscrita(s)` : "Montar equipes de revezamento"}
@@ -389,7 +413,7 @@ function TelaEventoDetalhe() {
           <div style={s.eventoAcoesGrid}>
             {temAcessoSumulas ? (
               <button style={s.eventoAcaoBtn} onClick={() => setTela("sumulas")}>
-                <span style={{ fontSize: 36 }}>📋</span>
+                {IcoClipboard(28)}
                 <strong>Súmulas</strong>
                 <span style={{ color: t.textDimmed, fontSize: 13 }}>
                   {tpU === "admin" && !eventoAtual.sumulaLiberada
@@ -399,20 +423,20 @@ function TelaEventoDetalhe() {
               </button>
             ) : (
               <div style={{ ...s.eventoAcaoBtn, opacity: 0.35, cursor: "not-allowed" }}>
-                <span style={{ fontSize: 36 }}>🔐</span>
+                {IcoShield(28)}
                 <strong>Súmulas</strong>
                 <span style={{ color: t.textDimmed, fontSize: 13 }}>Disponível após encerramento das inscrições</span>
               </div>
             )}
             {podeVerResultados ? (
               <button style={s.eventoAcaoBtn} onClick={() => setTela("resultados")}>
-                <span style={{ fontSize: 36 }}>🏆</span>
+                {IcoTrophy(28)}
                 <strong>Resultados</strong>
                 <span style={{ color: t.textDimmed, fontSize: 13 }}>Classificação e marcas publicadas</span>
               </button>
             ) : (
               <div style={{ ...s.eventoAcaoBtn, opacity: 0.35, cursor: "not-allowed" }}>
-                <span style={{ fontSize: 36 }}>🏆</span>
+                {IcoTrophy(28)}
                 <strong>Resultados</strong>
                 <span style={{ color: t.textDimmed, fontSize: 13 }}>Disponível a partir do dia da competição</span>
               </div>
@@ -428,28 +452,28 @@ function TelaEventoDetalhe() {
           <div style={s.eventoAcoesGrid}>
             {_temPerm("resultados") && (
               <button style={{ ...s.eventoAcaoBtn, borderColor: t.accent + "66" }} onClick={() => setTela("digitar-resultados")}>
-                <span style={{ fontSize: 36 }}>✏️</span>
+                {IcoEdit(28)}
                 <strong style={{ color: t.accent }}>Digitar Resultados</strong>
                 <span style={{ color: t.textDimmed, fontSize: 13 }}>Inserir marcas e publicar</span>
               </button>
             )}
             {_temPerm("inscricoes") && (
               <button style={{ ...s.eventoAcaoBtn, borderColor: t.warning + "66" }} onClick={() => setTela("gestao-inscricoes")}>
-                <span style={{ fontSize: 36 }}>🔄</span>
+                {IcoRefresh(28)}
                 <strong>Gestão de Inscrições</strong>
                 <span style={{ color: t.textDimmed, fontSize: 13 }}>Excluir, trocar prova ou inserir atleta</span>
               </button>
             )}
             {_temPerm("inscricoes") && (
               <button style={{ ...s.eventoAcaoBtn, borderColor: t.success + "66" }} onClick={() => setTela("numeracao-peito")}>
-                <span style={{ fontSize: 36 }}>🔢</span>
+                {IcoHash(28)}
                 <strong>Numeração de Peito</strong>
                 <span style={{ color: t.textDimmed, fontSize: 13 }}>Numerar atletas automaticamente ou manualmente</span>
               </button>
             )}
             {provasRevez.length > 0 && _temPerm("inscricoes") && (
               <button style={{ ...s.eventoAcaoBtn, borderColor: t.accent + "66" }} onClick={() => setTela("inscricao-revezamento")}>
-                <span style={{ fontSize: 36 }}>🏃‍♂️</span>
+                {IcoRun(28)}
                 <strong>Inscrição de Revezamento</strong>
                 <span style={{ color: t.textDimmed, fontSize: 13 }}>
                   {nInscsRevez > 0 ? `${nInscsRevez} equipe(s) inscrita(s)` : "Montar equipes de revezamento"}
@@ -458,23 +482,23 @@ function TelaEventoDetalhe() {
             )}
             {(tpU === "admin" || tpU === "organizador") && (
               <button style={{ ...s.eventoAcaoBtn, borderColor: t.accent + "66" }} onClick={() => setTela("config-pontuacao-equipes")}>
-                <span style={{ fontSize: 36 }}>🏅</span>
+                {IcoMedal(28)}
                 <strong>Pontuação por Equipes</strong>
                 <span style={{ color: t.textDimmed, fontSize: 13 }}>
-                  {eventoAtual.pontuacaoEquipes?.ativo ? "✅ Ativa — configurar tabela" : "Configurar disputa por equipes"}
+                  {eventoAtual.pontuacaoEquipes?.ativo ? "Ativa — configurar tabela" : "Configurar disputa por equipes"}
                 </span>
               </button>
             )}
             {_temPerm("camara_chamada") && (
               <button style={{ ...s.eventoAcaoBtn, borderColor: t.accent + "66" }} onClick={() => setTela("secretaria")}>
-                <span style={{ fontSize: 36 }}>📋</span>
+                {IcoClipboard(28)}
                 <strong>Secretaria</strong>
                 <span style={{ color: t.textDimmed, fontSize: 13 }}>Câmara de chamada · Entrega de medalhas</span>
               </button>
             )}
             {(tpU === "admin" || tpU === "organizador" || tpU === "funcionario") && (
               <button style={{ ...s.eventoAcaoBtn, borderColor: t.warning + "66" }} onClick={() => setTela("preparar-offline")}>
-                <span style={{ fontSize: 36 }}>📶</span>
+                {IcoWifi(28)}
                 <strong>Preparar Offline</strong>
                 <span style={{ color: t.textDimmed, fontSize: 13 }}>Sincronizar dados para uso sem internet</span>
               </button>
@@ -489,19 +513,19 @@ function TelaEventoDetalhe() {
           <div style={s.eventoAcoesGrid}>
             <button style={{ ...s.eventoAcaoBtn, borderColor: t.accent + "66" }}
                     onClick={async () => { selecionarEvento(eventoAtual.id); setTela("novo-evento"); }}>
-              <span style={{ fontSize: 36 }}>⚙️</span>
+              {IcoSettings(28)}
               <strong>Editar Competição</strong>
               <span style={{ color: t.textDimmed, fontSize: 13 }}>Alterar dados, provas e configurações</span>
             </button>
             <button style={{ ...s.eventoAcaoBtn, borderColor: t.gold + "66" }}
                     onClick={async () => { selecionarEvento(eventoAtual.id); setCadEventoGoStep("step3"); setTela("novo-evento"); }}>
-              <span style={{ fontSize: 36 }}>🕐</span>
+              {IcoClock(28)}
               <strong>Programa Horário</strong>
               <span style={{ color: t.textDimmed, fontSize: 13 }}>Definir horários e fases das provas</span>
             </button>
             <button style={{ ...s.eventoAcaoBtn, borderColor: t.accent + "66" }}
                     onClick={() => setAbaAtiva("func_acesso")}>
-              <span style={{ fontSize: 36 }}>👥</span>
+              {IcoUsers(28)}
               <strong>Acesso de Funcionários</strong>
               <span style={{ color: t.textDimmed, fontSize: 13 }}>Definir quem pode ver esta competição</span>
             </button>
@@ -533,23 +557,23 @@ function TelaEventoDetalhe() {
               <button style={{ background: "none", border: "none", color: t.textMuted, cursor: "pointer", fontSize: 14 }}
                 onClick={() => setAbaAtiva("configuracao")}>← Voltar</button>
               <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.textPrimary, margin: 0 }}>
-                👥 Acesso de Funcionários
+                Acesso de Funcionários
               </h3>
             </div>
 
             <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 16px", marginBottom: 16, fontSize: 12, color: t.textMuted, lineHeight: 1.6 }}>
-              ℹ️ Funcionários com permissão <strong style={{ color: t.textTertiary }}>"Criar / editar competições"</strong> sempre têm acesso a todas as competições.
+              Funcionários com permissão <strong style={{ color: t.textTertiary }}>"Criar / editar competições"</strong> sempre têm acesso a todas as competições.
               Marque abaixo os demais funcionários que devem ter acesso a esta competição.
             </div>
 
             <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
               <button onClick={marcarTodos}
                 style={{ background: t.accentBg, border: `1px solid ${t.accent}44`, color: t.accent, borderRadius: 6, padding: "6px 14px", cursor: "pointer", fontSize: 12, fontFamily: "'Barlow', sans-serif" }}>
-                ☑ Marcar todos
+                Marcar todos
               </button>
               <button onClick={desmarcarTodos}
                 style={{ background: t.bgHeaderSolid, border: `1px solid ${t.borderInput}`, color: t.textMuted, borderRadius: 6, padding: "6px 14px", cursor: "pointer", fontSize: 12, fontFamily: "'Barlow', sans-serif" }}>
-                ☐ Desmarcar todos
+                Desmarcar todos
               </button>
               <span style={{ fontSize: 12, color: t.textDimmed, marginLeft: "auto", alignSelf: "center" }}>
                 {acessoAtual.length} funcionário(s) com acesso
@@ -633,9 +657,9 @@ function TelaEventoDetalhe() {
       <div style={s.painelHeader}>
         <div style={{ flex: 1 }}>
           <div style={{ color: t.textDimmed, fontSize: 13, marginBottom: 6 }}>
-            📅 {new Date(eventoAtual.data + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
-            {eventoAtual.horaInicio && <> · ⏰ {eventoAtual.horaInicio}h</>}
-            &nbsp;·&nbsp; 📍 {_getLocalEventoDisplay(eventoAtual)}
+            {IcoCalendar()} {new Date(eventoAtual.data + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
+            {eventoAtual.horaInicio && <> · {IcoClock()} {eventoAtual.horaInicio}h</>}
+            &nbsp;·&nbsp; {IcoPin()} {_getLocalEventoDisplay(eventoAtual)}
             <span style={{ marginLeft: 10 }}>
               <span style={s.eventoStatusBadge(getStatusEvento(eventoAtual, resultados))}>
                 {labelStatusEvento(getStatusEvento(eventoAtual, resultados), eventoAtual)}
@@ -644,7 +668,7 @@ function TelaEventoDetalhe() {
           </div>
           <h1 style={{ ...s.pageTitle, marginBottom: 4 }}>{eventoAtual.nome}</h1>
           {eventoAtual.permissividadeNorma && (
-            <span style={s.permissividadeTag(true)}>⚖️ Permissividade de norma ativa</span>
+            <span style={s.permissividadeTag(true)}>Permissividade de norma ativa</span>
           )}
           {(eventoAtual.orgsAutorizadas || []).length > 0 && (() => {
             const orgsNomes = (eventoAtual.orgsAutorizadas || [])
@@ -654,7 +678,7 @@ function TelaEventoDetalhe() {
             return (
               <div style={{ marginTop:6, display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
                 <span style={{ display:"inline-block", padding:"3px 12px", borderRadius:20, fontSize:11, fontWeight:700, background: t.accentBg, color: t.accent, border:`1px solid ${t.accentBorder}` }}>
-                  🤝 Participação cruzada ativa
+                  Participação cruzada ativa
                 </span>
                 <span style={{ fontSize:12, color: t.textDimmed }}>
                   Atletas autorizados: {orgsNomes.join(", ") || `${(eventoAtual.orgsAutorizadas||[]).length} organizador(es)`}
@@ -666,19 +690,19 @@ function TelaEventoDetalhe() {
             <div style={{ marginTop:6, display:"flex", gap:8, flexWrap:"wrap" }}>
               {eventoAtual.limiteProvasIndividual > 0 && (
                 <span style={{ display:"inline-block", padding:"3px 10px", borderRadius:20, fontSize:11, fontWeight:700, background: t.accentBg, color: t.accent, border:`1px solid ${t.accentBorder}` }}>
-                  🎯 Máx. {eventoAtual.limiteProvasIndividual} prova(s) individual(is) por atleta
+                  Máx. {eventoAtual.limiteProvasIndividual} prova(s) individual(is) por atleta
                 </span>
               )}
               {eventoAtual.limiteProvasRevezamento > 0 && (
                 <span style={{ display:"inline-block", padding:"3px 10px", borderRadius:20, fontSize:11, fontWeight:700, background: t.accentBg, color: t.accent, border:`1px solid ${t.accentBorder}` }}>
-                  🏃‍♂️ Máx. {eventoAtual.limiteProvasRevezamento} revezamento(s) por atleta
+                  Máx. {eventoAtual.limiteProvasRevezamento} revezamento(s) por atleta
                 </span>
               )}
             </div>
           )}
           {(eventoAtual.dataAberturaInscricoes || eventoAtual.dataEncerramentoInscricoes) ? (
             <div style={{ marginTop:8, fontSize:13, color: t.textMuted }}>
-              📋 Inscrições:&nbsp;
+              Inscrições:&nbsp;
               {eventoAtual.dataAberturaInscricoes && (
                 <span>de <strong style={{ color: t.success }}>
                   {new Date(eventoAtual.dataAberturaInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}
@@ -694,7 +718,7 @@ function TelaEventoDetalhe() {
             </div>
           ) : (
             <div style={{ marginTop:8, fontSize:12, color: t.textDimmed }}>
-              📋 Período de inscrições não configurado — controle manual
+              Período de inscrições não configurado — controle manual
             </div>
           )}
         </div>
@@ -720,7 +744,7 @@ function TelaEventoDetalhe() {
       {eventoAtual.competicaoFinalizada && isDonoOuAdmin && (
         <div style={{ background: t.accentBg, border:`2px solid ${t.danger}44`, borderRadius:12, padding:"16px 20px", marginBottom:20, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
           <div>
-            <div style={{ fontWeight:800, fontSize:15, color: t.danger, marginBottom:4 }}>🔒 Competição Finalizada</div>
+            <div style={{ fontWeight:800, fontSize:15, color: t.danger, marginBottom:4 }}>Competição Finalizada</div>
             <div style={{ fontSize:12, color: t.textMuted, lineHeight:1.5 }}>
               Finalizada em {eventoAtual.competicaoFinalizadaEm ? new Date(eventoAtual.competicaoFinalizadaEm).toLocaleString("pt-BR") : "—"}
               {eventoAtual.competicaoFinalizadaPor && <> por <strong style={{ color: t.textTertiary }}>{eventoAtual.competicaoFinalizadaPor}</strong></>}.
@@ -749,20 +773,20 @@ function TelaEventoDetalhe() {
                     } catch (er) { console.error("Erro ranking:", er); }
                     alert(
                       `Reprocessamento concluído!\n\n` +
-                      `🏆 Recordes: ${novasPendencias.length} quebra(s) detectada(s), ${novas} nova(s) pendência(s).\n` +
-                      `📊 Ranking: ${nRnk} entrada(s) extraída(s).` +
-                      (novas > 0 ? `\n\nAcesse 🏆 Recordes → ⏳ Pendências para analisar.` : "")
+                      `Recordes: ${novasPendencias.length} quebra(s) detectada(s), ${novas} nova(s) pendência(s).\n` +
+                      `Ranking: ${nRnk} entrada(s) extraída(s).` +
+                      (novas > 0 ? `\n\nAcesse Recordes → Pendências para analisar.` : "")
                     );
                   } catch (e) { alert("Erro ao reprocessar: " + e.message); }
                 }}>
-                🏆 Reprocessar Recordes e Ranking
+                Reprocessar Recordes e Ranking
               </button>
               <button style={{ padding:"8px 18px", borderRadius:8, border:`1px solid ${t.danger}44`, background: t.accentBg, color: t.danger, fontWeight:700, fontSize:12, cursor:"pointer" }}
                 onClick={async () => { 
                   if (await confirmar("Desbloquear esta competição para edição? Isso removerá a finalização."))
                     alterarStatusEvento(eventoAtual.id, { competicaoFinalizada: false, competicaoFinalizadaEm: null, competicaoFinalizadaPor: null, snapshotAtletas: null });
                 }}>
-                🔓 Desbloquear (Admin)
+                Desbloquear (Admin)
               </button>
             </div>
           )}
@@ -795,7 +819,7 @@ function TelaEventoDetalhe() {
           <div style={{ height: 1, background: t.border, marginBottom: 28 }} />
 
           <div style={s.statusControlsCard}>
-            <div style={s.statusControlsTitle}>🔧 Controles de Status da Competição</div>
+            <div style={s.statusControlsTitle}>Controles de Status da Competição</div>
             <div style={s.statusControlsGrid}>
               {(() => {
                 const agora = new Date();
@@ -811,23 +835,23 @@ function TelaEventoDetalhe() {
                 return (
                   <div style={s.statusControlBox(encerradas, "#c0392b", "#3a0a0a")}>
                     <div style={{ fontWeight:700, fontSize:14, color: encerradas ? t.danger : t.success, marginBottom:8 }}>
-                      {encerradas ? "🔒 Inscrições Encerradas" : "🟢 Inscrições Abertas"}
+                      {encerradas ? "Inscrições Encerradas" : "Inscrições Abertas"}
                     </div>
                     {(eventoAtual.dataAberturaInscricoes || eventoAtual.dataEncerramentoInscricoes) && (
                       <div style={{ fontSize:11, color: t.textDimmed, marginBottom:10 }}>
-                        📅&nbsp;
+                        {IcoCalendar()}&nbsp;
                         {eventoAtual.dataAberturaInscricoes && `abertura ${new Date(eventoAtual.dataAberturaInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}`}
                         {eventoAtual.dataAberturaInscricoes && eventoAtual.dataEncerramentoInscricoes && " · "}
                         {eventoAtual.dataEncerramentoInscricoes && `encerramento ${new Date(eventoAtual.dataEncerramentoInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}`}
                       </div>
                     )}
                     {!encerradas && (bloqEncerrar
-                      ? <div style={{ fontSize:12, color: t.warning }}>🔒 {bloqEncerrar}</div>
-                      : <button onClick={toggleInscricoes} style={{ background: t.accentBg, border:`1px solid ${t.danger}44`, color: t.danger, borderRadius:7, padding:"7px 16px", cursor:"pointer", fontSize:13, fontWeight:700, fontFamily:"'Barlow', sans-serif" }}>🔒 Encerrar Inscrições</button>
+                      ? <div style={{ fontSize:12, color: t.warning }}>{bloqEncerrar}</div>
+                      : <button onClick={toggleInscricoes} style={{ background: t.accentBg, border:`1px solid ${t.danger}44`, color: t.danger, borderRadius:7, padding:"7px 16px", cursor:"pointer", fontSize:13, fontWeight:700, fontFamily:"'Barlow', sans-serif" }}>Encerrar Inscrições</button>
                     )}
                     {encerradas && (bloqReabrir
-                      ? <div style={{ fontSize:12, color: t.warning }}>🔒 {bloqReabrir}</div>
-                      : <button onClick={toggleInscricoes} style={{ background: t.accentBg, border:`1px solid ${t.success}44`, color: t.success, borderRadius:7, padding:"7px 16px", cursor:"pointer", fontSize:13, fontWeight:700, fontFamily:"'Barlow', sans-serif" }}>🔓 Reabrir Inscrições</button>
+                      ? <div style={{ fontSize:12, color: t.warning }}>{bloqReabrir}</div>
+                      : <button onClick={toggleInscricoes} style={{ background: t.accentBg, border:`1px solid ${t.success}44`, color: t.success, borderRadius:7, padding:"7px 16px", cursor:"pointer", fontSize:13, fontWeight:700, fontFamily:"'Barlow', sans-serif" }}>Reabrir Inscrições</button>
                     )}
                   </div>
                 );
@@ -838,12 +862,12 @@ function TelaEventoDetalhe() {
                     style={{ width:18, height:18, accentColor: t.accent, cursor: eventoAtual.inscricoesEncerradas ? "pointer" : "not-allowed", marginRight:10, flexShrink:0 }} />
                   <div>
                     <div style={{ fontWeight:700, color: eventoAtual.sumulaLiberada ? t.success : t.textTertiary }}>
-                      {eventoAtual.sumulaLiberada ? "📋 Súmulas Liberadas para Consulta" : "🔐 Súmulas Restritas (só Admin)"}
+                      {eventoAtual.sumulaLiberada ? "Súmulas Liberadas para Consulta" : "Súmulas Restritas (só Admin)"}
                     </div>
                     <div style={{ fontSize:12, color: t.textDimmed, marginTop:3 }}>
                       {eventoAtual.inscricoesEncerradas
                         ? eventoAtual.sumulaLiberada ? "Equipes e atletas podem visualizar as súmulas." : "Marque para liberar as súmulas a equipes e atletas."
-                        : "⚠️ Encerre as inscrições primeiro para liberar as súmulas."}
+                        : "Encerre as inscrições primeiro para liberar as súmulas."}
                     </div>
                   </div>
                 </label>
@@ -855,7 +879,7 @@ function TelaEventoDetalhe() {
                     style={{ width:18, height:18, accentColor:"#8e44ad", cursor:"pointer", marginRight:10, flexShrink:0 }} />
                   <div>
                     <div style={{ fontWeight:700, color: eventoAtual.competicaoEncerrada ? "#c39bdf" : t.textTertiary }}>
-                      {eventoAtual.competicaoEncerrada ? "🏁 Competição Encerrada" : "▶️ Competição em Andamento"}
+                      {eventoAtual.competicaoEncerrada ? "Competição Encerrada" : "Competição em Andamento"}
                     </div>
                     <div style={{ fontSize:12, color: t.textDimmed, marginTop:3 }}>
                       {eventoAtual.competicaoEncerrada ? "O status mostra 'Encerrado'. Desmarque para reativar." : "Marque quando a competição terminar para mudar o status para Encerrado."}
@@ -1008,7 +1032,7 @@ function TelaEventoDetalhe() {
         const pausaRow = () => (
           <tr key="_pausa" style={{ background: t.bgCardAlt }}>
             <td colSpan={5} style={{ padding:"10px 14px", textAlign:"center" }}>
-              <span style={{ color: t.accent, fontWeight:700, fontSize:13 }}>⏸️ {pausaDesc || "Intervalo"}</span>
+              <span style={{ color: t.accent, fontWeight:700, fontSize:13 }}>{pausaDesc || "Intervalo"}</span>
               <span style={{ color: t.textMuted, fontSize:12, marginLeft:10 }}>
                 {pausaHorario}{pausaRetorno ? ` — ${pausaRetorno}` : ""}
               </span>
@@ -1055,7 +1079,7 @@ function TelaEventoDetalhe() {
         return (
           <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:10, padding:"20px 24px", marginBottom:24 }}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
-              <div style={{ color: t.accent, fontWeight:700, fontSize:14 }}>🕐 Programa Horário</div>
+              <div style={{ color: t.accent, fontWeight:700, fontSize:14 }}>Programa Horário</div>
               <div style={{ display:"flex", alignItems:"center", gap:12 }}>
                 <span style={{ fontSize:12, color: t.textDimmed }}>{linhasOrdenadas.length} entrada(s)</span>
                 {(tpU === "admin" || tpU === "organizador" || tpU === "funcionario") && (
@@ -1066,17 +1090,17 @@ function TelaEventoDetalhe() {
                     const logoCabDir = eventoAtual.logoCabecalhoDireito || "";
                     const logoRod  = eventoAtual.logoRodape || "";
                     const thPrint  = `<tr><th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;font-size:10px;color:#555;font-weight:700;width:55px">Horário</th><th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;font-size:10px;color:#555;font-weight:700">Prova</th><th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;font-size:10px;color:#555;font-weight:700;width:70px">Sexo</th><th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;font-size:10px;color:#555;font-weight:700">Categorias</th><th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;font-size:10px;color:#555;font-weight:700">Fase</th></tr>`;
-                    const pausaPrint = temPausa ? `<tr><td colspan="5" style="padding:10px;text-align:center;background:#f0f0f0;border-bottom:1px solid #ddd"><strong style="color:#b88a00">⏸️ ${pausaDesc || "Intervalo"}</strong><span style="color:#666;margin-left:8px;font-size:11px">${pausaHorario}${pausaRetorno ? " — " + pausaRetorno : ""}</span></td></tr>` : "";
+                    const pausaPrint = temPausa ? `<tr><td colspan="5" style="padding:10px;text-align:center;background:#f0f0f0;border-bottom:1px solid #ddd"><strong style="color:#b88a00">${pausaDesc || "Intervalo"}</strong><span style="color:#666;margin-left:8px;font-size:11px">${pausaHorario}${pausaRetorno ? " — " + pausaRetorno : ""}</span></td></tr>` : "";
                     const secLabel = (label) => `<tr><td colspan="5" style="padding:8px 10px 4px;font-weight:800;font-size:12px;color:#b88a00;border-bottom:1px solid #ccc;letter-spacing:1px">${label}</td></tr>`;
                     let tableBody = "";
                     if (usarDivisao) {
-                      tableBody += secLabel("☀️ MANHÃ");
+                      tableBody += secLabel("MANHÃ");
                       agruparLinhas(manha).forEach((p,i) => { tableBody += printRow(p,i); });
                       tableBody += pausaPrint;
-                      tableBody += secLabel("🌤️ TARDE");
+                      tableBody += secLabel("TARDE");
                       agruparLinhas(tarde).forEach((p,i) => { tableBody += printRow(p,i); });
                       if (semHorarioList.length > 0) {
-                        tableBody += secLabel("📋 A DEFINIR");
+                        tableBody += secLabel("A DEFINIR");
                         agruparLinhas(semHorarioList).forEach((p,i) => { tableBody += printRow(p,i); });
                       }
                     } else {
@@ -1097,11 +1121,11 @@ function TelaEventoDetalhe() {
                         ${logoCabEsq ? `<img src="${logoCabEsq}" style="max-height:60px;max-width:120px;object-fit:contain;flex-shrink:0"/>` : ""}
                         <div style="flex:1;min-width:0">
                           <div style="font-size:18px;font-weight:800;color:#111">${eventoAtual.nome}</div>
-                          <div style="font-size:11px;color:#666;margin-top:2px">📅 ${dataEvt} · 📍 ${_getLocalEventoDisplay(eventoAtual)}</div>
+                          <div style="font-size:11px;color:#666;margin-top:2px">${dataEvt} · ${_getLocalEventoDisplay(eventoAtual)}</div>
                         </div>
                         ${logoCabDir ? `<img src="${logoCabDir}" style="max-height:60px;max-width:120px;object-fit:contain;flex-shrink:0"/>` : ""}
                       </div>
-                      <div style="text-align:center;font-size:15px;font-weight:800;color:#333;margin:10px 0 14px;letter-spacing:1px">🕐 PROGRAMA HORÁRIO</div>
+                      <div style="text-align:center;font-size:15px;font-weight:800;color:#333;margin:10px 0 14px;letter-spacing:1px">PROGRAMA HORÁRIO</div>
                       <table><thead>${thPrint}</thead><tbody>${tableBody}</tbody></table>
                       <div class="rod-wrap">
                         ${logoRod ? `<div style="margin-top:14px;padding-top:10px;border-top:1px solid #ddd;text-align:center;"><img src="${logoRod}" alt="" style="max-width:100%;max-height:18mm;object-fit:contain;"/></div>` : ""}
@@ -1115,7 +1139,7 @@ function TelaEventoDetalhe() {
                     win.document.open(); win.document.write(html); win.document.close();
                   }}
                   style={{ background:"transparent", border:`1px solid ${t.border}`, borderRadius:6, color: t.accent, fontSize:12, padding:"5px 14px", cursor:"pointer", fontWeight:600 }}>
-                    🖨️ Imprimir
+                    Imprimir
                   </button>
                 )}
               </div>
@@ -1125,13 +1149,13 @@ function TelaEventoDetalhe() {
                 <thead>{tHead}</thead>
                 <tbody>
                   {usarDivisao ? (<>
-                    {sectionLabel("☀️ MANHÃ")}
+                    {sectionLabel("MANHÃ")}
                     {agruparLinhas(manha).map((p, i) => renderRow(p, i))}
                     {pausaRow()}
-                    {sectionLabel("🌤️ TARDE")}
+                    {sectionLabel("TARDE")}
                     {agruparLinhas(tarde).map((p, i) => renderRow(p, i))}
                     {semHorarioList.length > 0 && (<>
-                      {sectionLabel("📋 A DEFINIR")}
+                      {sectionLabel("A DEFINIR")}
                       {agruparLinhas(semHorarioList).map((p, i) => renderRow(p, i))}
                     </>)}
                   </>) : (
@@ -1147,7 +1171,7 @@ function TelaEventoDetalhe() {
       {/* ══ REGULAMENTO ════════════════════════════════════════════════════ */}
       {eventoAtual.regulamentoUrl && (
         <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:10, padding:"20px 24px", marginBottom:24, display:"flex", alignItems:"center", gap:12 }}>
-          <div style={{ color: t.accent, fontWeight:700, fontSize:14 }}>📄 Regulamento</div>
+          <div style={{ color: t.accent, fontWeight:700, fontSize:14 }}>Regulamento</div>
           <a href={`/competicao/${eventoAtual.slug || eventoAtual.id}/regulamento`} target="_blank" rel="noopener noreferrer"
             style={{ background:`linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color:"#fff", padding:"6px 18px", borderRadius:6, fontSize:12, fontWeight:700, fontFamily:"'Barlow Condensed', sans-serif", letterSpacing:1, textDecoration:"none", cursor:"pointer" }}>
             Clique aqui
@@ -1158,7 +1182,7 @@ function TelaEventoDetalhe() {
       {/* ══ DESCRIÇÃO ═══════════════════════════════════════════════════════ */}
       {eventoAtual.descricao && (!eventoAtual.competicaoFinalizada || isDonoOuAdmin) && (
         <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:10, padding:"20px 24px", marginBottom:24 }}>
-          <div style={{ color: t.accent, fontWeight:700, fontSize:14, marginBottom:12 }}>📝 Informações</div>
+          <div style={{ color: t.accent, fontWeight:700, fontSize:14, marginBottom:12 }}>Informações</div>
           <div
             style={{ color: t.textSecondary, fontFamily:"'Inter', sans-serif", fontSize:14, lineHeight:1.7, wordBreak:"break-word", whiteSpace:"pre-wrap", maxHeight: 400, overflowY: "auto", textAlign:"justify" }}
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(eventoAtual.descricao) }}
@@ -1222,7 +1246,7 @@ function TelaEventoDetalhe() {
         <div style={{ background: t.bgCardAlt, border:`1px solid #8e44ad44`, borderRadius:12, padding:"16px 20px", marginTop: 8 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
             <div>
-              <div style={{ fontWeight:700, fontSize:14, color:"#c39bdf", marginBottom:4 }}>🏁 Finalizar Competição</div>
+              <div style={{ fontWeight:700, fontSize:14, color:"#c39bdf", marginBottom:4 }}>Finalizar Competição</div>
               <div style={{ fontSize:12, color: t.textMuted, lineHeight:1.5 }}>
                 Ao finalizar, <strong style={{ color: t.danger }}>todos os dados serão bloqueados para edição</strong> (inscrições, resultados, súmulas, programa de provas).
                 Somente um <strong style={{ color: t.accent }}>administrador</strong> poderá desbloquear mediante solicitação.
@@ -1232,7 +1256,7 @@ function TelaEventoDetalhe() {
               style={{ padding:"10px 24px", borderRadius:8, border:"2px solid #8e44ad", background: t.accentBg, color:"#c39bdf", fontWeight:800, fontSize:13, cursor:"pointer", whiteSpace:"nowrap", letterSpacing:0.5 }}
               onClick={async () => { 
                 if (await confirmar(
-                  "⚠️ FINALIZAR COMPETIÇÃO\n\n" +
+                  "FINALIZAR COMPETIÇÃO\n\n" +
                   "Após finalizar, NENHUM dado poderá ser editado:\n" +
                   "• Inscrições\n• Resultados\n• Súmulas\n• Programa de provas\n• Dados da competição\n\n" +
                   "Possíveis quebras de recorde serão detectadas e ficarão como PENDÊNCIAS para homologação pelo administrador.\n" +
@@ -1281,7 +1305,7 @@ function TelaEventoDetalhe() {
                   });
                 }
               }}>
-              🔒 Finalizar Competição
+              Finalizar Competição
             </button>
           </div>
         </div>

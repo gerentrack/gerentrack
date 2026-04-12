@@ -34,7 +34,7 @@ function BlocoConsentimentoParental({ responsavel, onResponsavel, cpfResp, onCpf
     <div style={{ background:`${t.success}08`, border:`1px solid ${t.success}44`, borderRadius:10,
       padding:"16px 18px", marginTop:16 }}>
       <div style={{ fontSize:12, fontWeight:700, color: t.success, letterSpacing:1,
-        textTransform:"uppercase", marginBottom:4 }}>👨‍👩‍👧 Consentimento Parental (Art. 14 LGPD)</div>
+        textTransform:"uppercase", marginBottom:4 }}>Consentimento Parental (Art. 14 LGPD)</div>
       <p style={{ fontSize:12, color: t.textMuted, marginBottom:12, lineHeight:1.6 }}>
         O atleta é <strong style={{ color: t.textPrimary }}>menor de 18 anos</strong>. Conforme o Art. 14 da LGPD,
         é obrigatório o consentimento de um responsável legal para o tratamento dos dados pessoais de menores.
@@ -70,7 +70,7 @@ function BlocoConsentimentoParental({ responsavel, onResponsavel, cpfResp, onCpf
               onChange={e => onResponsavel(e.target.value)}
               placeholder="Nome completo do pai, mãe ou responsável legal"
             />
-            {erroResponsavel && <div style={{ color: t.danger, fontSize:12, marginTop:2 }}>⚠️ {erroResponsavel}</div>}
+            {erroResponsavel && <div style={{ color: t.danger, fontSize:12, marginTop:2 }}>{erroResponsavel}</div>}
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:0, marginBottom:12 }}>
             <div>
@@ -81,7 +81,7 @@ function BlocoConsentimentoParental({ responsavel, onResponsavel, cpfResp, onCpf
                 onChange={e => onCpfResp(e.target.value)}
                 placeholder="000.000.000-00"
               />
-              {erroCpfResp && <div style={{ color: t.danger, fontSize:12, marginTop:2 }}>⚠️ {erroCpfResp}</div>}
+              {erroCpfResp && <div style={{ color: t.danger, fontSize:12, marginTop:2 }}>{erroCpfResp}</div>}
             </div>
             <div>
               <label style={labelStyle}>E-mail do Responsável *</label>
@@ -92,7 +92,7 @@ function BlocoConsentimentoParental({ responsavel, onResponsavel, cpfResp, onCpf
                 type="email"
                 placeholder="responsavel@email.com"
               />
-              {erroEmailResp && <div style={{ color: t.danger, fontSize:12, marginTop:2 }}>⚠️ {erroEmailResp}</div>}
+              {erroEmailResp && <div style={{ color: t.danger, fontSize:12, marginTop:2 }}>{erroEmailResp}</div>}
             </div>
           </div>
           <label style={{ display:"flex", alignItems:"flex-start", gap:12, cursor:"pointer" }}>
@@ -107,7 +107,7 @@ function BlocoConsentimentoParental({ responsavel, onResponsavel, cpfResp, onCpf
         </>
       )}
 
-      {erroAceite && <div style={{ color: t.danger, fontSize:12, marginTop:8 }}>⚠️ {erroAceite}</div>}
+      {erroAceite && <div style={{ color: t.danger, fontSize:12, marginTop:8 }}>{erroAceite}</div>}
     </div>
   );
 }
@@ -525,7 +525,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
   if (ok) return (
     <div style={s.formPage}>
       <div style={s.formCard}>
-        <div style={{ fontSize: 64, textAlign: "center" }}>✅</div>
+        <div style={{ fontSize: 64, textAlign: "center" }}><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{color:"inherit"}}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
         <h2 style={{ ...s.formTitle, textAlign: "center" }}>Atleta cadastrado!</h2>
         <div style={s.heroBtns}>
           <button style={s.btnPrimary} onClick={async () => { setOk(false); setForm(FORM_VAZIO); setAtletaExistente(null); setVinculoEnviado(false); }}>Cadastrar outro</button>
@@ -547,7 +547,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
       <div style={s.page}>
         <div style={s.painelHeader}>
           <div>
-            <h1 style={s.pageTitle}>🏃 Atletas</h1>
+            <h1 style={s.pageTitle}>Atletas</h1>
             <p style={{ color: t.textDimmed, fontSize: 14 }}>Gerenciar atletas cadastrados</p>
           </div>
           <button style={s.btnGhost} onClick={() => setTela(voltarTela)}>← Voltar</button>
@@ -572,10 +572,10 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
         {/* Ações */}
         <div style={{ display: "flex", gap: 12, marginBottom: 12, flexWrap: "wrap", alignItems: "center" }}>
           <button style={s.btnPrimary} onClick={() => setModo("novo")}>+ Novo Atleta</button>
-          <button style={s.btnSecondary} onClick={() => setTela("importar-atletas")}>📊 Importar Planilha</button>
+          <button style={s.btnSecondary} onClick={() => setTela("importar-atletas")}>Importar Planilha</button>
           <input
             type="text"
-            placeholder="🔍 Buscar atleta, CPF ou equipe..."
+            placeholder="Buscar atleta, CPF ou equipe..."
             value={filtro}
             onChange={e => setFiltro(e.target.value)}
             style={{ ...s.input, flex: 1, minWidth: 200 }}
@@ -637,12 +637,12 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
               <button
                 style={{ ...s.btnGhost, fontSize: 12, padding: "5px 14px", color: t.danger, borderColor: `${t.danger}44` }}
                 onClick={async () => { 
-                  if (!await confirmar(`⚠️ ATENÇÃO: Excluir ${selecionados.size } atleta(s)?\n\nEsta ação é IRREVERSÍVEL!`)) return;
+                  if (!await confirmar(`ATENÇÃO: Excluir ${selecionados.size } atleta(s)?\n\nEsta ação é IRREVERSÍVEL!`)) return;
                   excluirAtletasEmMassa(selecionados);
                   setSelecionados(new Set());
                 }}
               >
-                🗑️ Excluir {selecionados.size} selecionado(s)
+                Excluir {selecionados.size} selecionado(s)
               </button>
             )}
             {selecionados.size > 0 && (
@@ -660,7 +660,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
         <PaginaControles {...atletasInfo} />
         {atletasFiltrados.length === 0 ? (
           <div style={{ textAlign: "center", padding: 60, color: t.textDimmed }}>
-            <div style={{ fontSize: 64, marginBottom: 16 }}>🏃</div>
+            <div style={{ fontSize: 64, marginBottom: 16 }}><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{color:"inherit"}}><circle cx="12" cy="5" r="2"/><path d="M7 21l3-7 2 2 4-8"/><path d="M17 21l-2-6"/></svg></div>
             {filtro || filtroSexoAtl !== "todos" || filtroCatAtl !== "todas" ? (
               <>
                 <div style={{ fontSize: 18, marginBottom: 8 }}>Nenhum atleta encontrado</div>
@@ -672,7 +672,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
                 <div style={{ fontSize: 14, marginBottom: 16 }}>Cadastre o primeiro atleta manualmente ou importe uma planilha</div>
                 <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
                   <button style={s.btnPrimary} onClick={() => setModo("novo")}>+ Novo Atleta</button>
-                  <button style={s.btnSecondary} onClick={() => setTela("importar-atletas")}>📊 Importar Planilha</button>
+                  <button style={s.btnSecondary} onClick={() => setTela("importar-atletas")}>Importar Planilha</button>
                 </div>
               </>
             )}
@@ -721,8 +721,8 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
                       {a.cbat && <span style={{ fontSize: 10, color: t.textMuted, background: t.bgCardAlt, padding: "1px 6px", borderRadius: 3, flexShrink: 0 }}>CBAt {a.cbat}</span>}
                     </div>
                     <div style={{ color: t.textMuted, fontSize: 11 }}>
-                      {a.dataNasc ? (() => { const [y,m,d] = a.dataNasc.split("-"); return `📅 ${d}/${m}/${y}`; })() : a.anoNasc ? `📅 ${a.anoNasc}` : ""}
-                      {eq ? ` · 🏟️ ${eq}` : ""}
+                      {a.dataNasc ? (() => { const [y,m,d] = a.dataNasc.split("-"); return `${d}/${m}/${y}`; })() : a.anoNasc ? `${a.anoNasc}` : ""}
+                      {eq ? ` · ${eq}` : ""}
                       {a.cpf ? ` · CPF: ${a.cpf}` : ""}
                     </div>
                   </div>
@@ -732,7 +732,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
                       style={{ background: `${t.accent}18`, color: t.accent, border: `1px solid ${t.accent}44`, borderRadius: 6, cursor: "pointer", fontSize: 11, padding: "4px 10px", fontFamily: "'Barlow', sans-serif" }}
                       title="Ver e editar dados do atleta"
                     >
-                      👁 Ver/Editar
+                      Ver/Editar
                     </button>
                     {(isOrg || isAdmin) && a.equipeId && (
                       <button
@@ -740,7 +740,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
                         style={{ background: `${t.gold}12`, color: t.gold, border: `1px solid ${t.gold}44`, borderRadius: 6, cursor: "pointer", fontSize: 11, padding: "4px 10px", fontFamily: "'Barlow', sans-serif" }}
                         title="Transferir para outra equipe"
                       >
-                        🔀 Transferir
+                        Transferir
                       </button>
                     )}
                     {isEquipe && solicitarVinculo && (
@@ -758,7 +758,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
                         }}
                         style={{ ...s.btnGhost, fontSize: 11, padding: "4px 10px", color: t.danger, borderColor: `${t.danger}44` }}
                       >
-                        ✂️ Solicitar Desvinculação
+                        Solicitar Desvinculação
                       </button>
                     )}
                   </div>
@@ -781,7 +781,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
             <div style={{ background:t.bgCard, border:`1px solid ${t.border}`, borderRadius:14, padding:28, width:420, maxWidth:"95vw" }}
               onClick={e => e.stopPropagation()}>
               <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:22, fontWeight:800, color: t.textPrimary, marginBottom:4 }}>
-                🔀 Transferir Atleta
+                Transferir Atleta
               </h3>
               <p style={{ color: t.textMuted, fontSize:13, marginBottom:20 }}>{transfAtleta.nome}</p>
               <div style={{ marginBottom:12 }}>
@@ -809,7 +809,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
                   await atualizarAtleta({ ...transfAtleta, equipeId: transfEquipeId, clube: novaEquipe?.nome || "" });
                   setTransfAtleta(null);
                   setTransfEquipeId("");
-                }}>✅ Confirmar Transferência</button>
+                }}>Confirmar Transferência</button>
                 <button style={s.btnGhost} onClick={() => setTransfAtleta(null)}>Cancelar</button>
               </div>
             </div>
@@ -826,7 +826,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
     <div style={s.page}>
       <div style={s.painelHeader}>
         <div>
-          <h1 style={s.pageTitle}>➕ Novo Atleta</h1>
+          <h1 style={s.pageTitle}>Novo Atleta</h1>
           <p style={{ color: t.textDimmed, fontSize: 14 }}>Cadastrar atleta manualmente</p>
         </div>
         <button style={s.btnGhost} onClick={handleCancelar}>← Voltar</button>
@@ -843,12 +843,12 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
               <div style={{ background:`${t.danger}10`, border:`2px solid ${t.danger}`,
                 borderRadius:8, padding:"14px 16px", marginTop:8 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
-                  <span style={{ fontSize:20 }}>🚫</span>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
                   <strong style={{ color:t.danger, fontSize:14 }}>Perfil de atleta já existente neste organizador</strong>
                 </div>
                 <div style={{ fontSize:13, color: t.textSecondary, marginBottom:10, lineHeight:1.6 }}>
                   O CPF informado já possui uma conta de atleta ativa vinculada a este organizador:<br/>
-                  <strong style={{ color: t.textPrimary }}>👤 {atletaDuplicadoOrg.nome}</strong>
+                  <strong style={{ color: t.textPrimary }}>{atletaDuplicadoOrg.nome}</strong>
                   {atletaDuplicadoOrg.email && <span style={{ color: t.textMuted, marginLeft:8 }}>— {atletaDuplicadoOrg.email}</span>}
                 </div>
                 {/* Se for equipe, oferecer solicitar vínculo */}
@@ -866,7 +866,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
                   if (solPendente) return (
                     <div style={{ background:`${t.accent}12`, border:`1px solid ${t.accent}44`, borderRadius:8, padding:"14px 16px", marginBottom:10 }}>
                       <div style={{ color: t.accent, fontSize:13, fontWeight:700, marginBottom:10 }}>
-                        ⏳ Solicitação de vínculo já enviada — aguardando aprovação do organizador.
+                        Solicitação de vínculo já enviada — aguardando aprovação do organizador.
                       </div>
                       <button onClick={() => { setForm({ nome:"",cpf:"",dataNasc:"",sexo:"",cbat:"",email:"",fone:"" }); }}
                         style={{ background:t.accent, color:"#fff", border:"none", borderRadius:6, padding:"8px 18px", cursor:"pointer", fontSize:12, fontWeight:700 }}>
@@ -911,7 +911,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
                           color:t.accent, borderRadius:6, padding:"8px 18px",
                           cursor:"pointer", fontSize:13, fontWeight:700,
                           fontFamily:"Inter,sans-serif" }}>
-                        🔗 Solicitar Vínculo com este Atleta
+                        Solicitar Vínculo com este Atleta
                       </button>
                     </div>
                   );
@@ -930,29 +930,29 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
                 <div style={{ background:`${t.accent}12`, border:`2px solid ${t.accent}`,
                   borderRadius:8, padding:"14px 16px", marginTop:8 }}>
                   <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
-                    <span style={{ fontSize:20 }}>⚠️</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                     <strong style={{ color: t.accent, fontSize:14 }}>Atleta já cadastrado no sistema</strong>
                   </div>
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"4px 16px",
                     fontSize:13, color: t.textTertiary, marginBottom:12 }}>
-                    <span>👤 <strong style={{ color: t.textPrimary }}>{atletaExistente.nome}</strong></span>
-                    <span>📅 {atletaExistente.dataNasc
+                    <span><strong style={{ color: t.textPrimary }}>{atletaExistente.nome}</strong></span>
+                    <span>{atletaExistente.dataNasc
                       ? (() => { const [y,m,d]=atletaExistente.dataNasc.split("-"); return `${d}/${m}/${y}`; })()
                       : atletaExistente.anoNasc || "—"}</span>
-                    <span>🏆 {getCategoria(atletaExistente.anoNasc, anoBase)?.nome || "Idade inválida"}</span>
+                    <span>{getCategoria(atletaExistente.anoNasc, anoBase)?.nome || "Idade inválida"}</span>
                     <span>{atletaExistente.sexo === "M" ? "Masc." : "Fem."}</span>
                     {atletaExistente.equipeId && (() => {
                     const eq = equipes?.find(e => e.id === atletaExistente.equipeId);
-                    return eq ? <span style={{ color:t.warning }}>🏛️ Equipe atual: <strong>{eq.nome}</strong></span> : atletaExistente.clube ? <span>🏟️ {atletaExistente.clube}</span> : null;
+                    return eq ? <span style={{ color:t.warning }}>Equipe atual: <strong>{eq.nome}</strong></span> : atletaExistente.clube ? <span>{atletaExistente.clube}</span> : null;
                   })()}
-                  {!atletaExistente.equipeId && atletaExistente.clube && <span>🏟️ {atletaExistente.clube}</span>}
-                    {atletaExistente.cbat  && <span>📋 CBAt: {atletaExistente.cbat}</span>}
+                  {!atletaExistente.equipeId && atletaExistente.clube && <span>{atletaExistente.clube}</span>}
+                    {atletaExistente.cbat  && <span>CBAt: {atletaExistente.cbat}</span>}
                   </div>
 
                   {atletaExistente.desvinculadoEm && !jaEhMeu && (
                     <div style={{ background:`${t.accent}12`, border:`1px solid ${t.accentBorder}`,
                       borderRadius:6, padding:"8px 12px", marginBottom:8, fontSize:12, color: t.textTertiary }}>
-                      ℹ️ Atleta foi desvinculado da equipe
+                      Atleta foi desvinculado da equipe
                       <strong style={{ color: t.accent }}>{atletaExistente.equipeAnterior ? ` ${atletaExistente.equipeAnterior}` : ""}</strong> em{" "}
                       {new Date(atletaExistente.desvinculadoEm).toLocaleDateString("pt-BR")}.
                       Atualmente sem equipe vinculada.
@@ -967,7 +967,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
                   ) : solPendente ? (
                     <div style={{ background:`${t.accent}12`, border:`1px solid ${t.accent}44`, borderRadius:8, padding:"14px 16px" }}>
                       <div style={{ color: t.accent, fontSize:13, fontWeight:700, marginBottom:10 }}>
-                        ⏳ Solicitação de vínculo já enviada — aguardando aprovação do organizador.
+                        Solicitação de vínculo já enviada — aguardando aprovação do organizador.
                       </div>
                       <button onClick={() => { setForm({ nome:"",cpf:"",dataNasc:"",sexo:"",cbat:"",email:"",fone:"" }); }}
                         style={{ background:t.accent, color:"#fff", border:"none", borderRadius:6, padding:"8px 18px", cursor:"pointer", fontSize:12, fontWeight:700 }}>
@@ -1000,7 +1000,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
                           color:t.accent, borderRadius:6, padding:"8px 18px",
                           cursor:"pointer", fontSize:13, fontWeight:700,
                           fontFamily:"Inter,sans-serif" }}>
-                        🔗 Solicitar Transferência para Minha Equipe
+                        Solicitar Transferência para Minha Equipe
                       </button>
                     </div>
                   ) : (
@@ -1013,7 +1013,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
                           color:t.accent, borderRadius:6, padding:"8px 18px",
                           cursor:"pointer", fontSize:13, fontWeight:700,
                           fontFamily:"Inter,sans-serif" }}>
-                        🔗 Solicitar Vínculo com este Atleta
+                        Solicitar Vínculo com este Atleta
                       </button>
                     </div>
                   )}
@@ -1042,7 +1042,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
           {/* Vinculação ao Organizador e Equipe */}
           {!atletaDuplicadoOrg && !atletaExistente && (
           <div style={{ gridColumn: "1/-1", background: t.bgHeaderSolid, padding: 20, borderRadius: 8, border: `1px solid ${t.border}`, marginTop: 16 }}>
-            <h4 style={{ color: t.accent, marginBottom: 16 }}>📍 Vinculação</h4>
+            <h4 style={{ color: t.accent, marginBottom: 16 }}>Vinculação</h4>
 
             {/* Banner automático para equipe logada */}
             {isEquipe && !atletaExistente && !atletaDuplicadoOrg ? (

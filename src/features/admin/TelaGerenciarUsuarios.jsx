@@ -321,8 +321,8 @@ function TelaGerenciarUsuarios() {
       }
 
       alert(perfilExistente
-        ? `✅ Perfil existente vinculado com sucesso!\nAs credenciais de acesso foram mantidas.`
-        : `✅ Usuário criado com sucesso!`);
+        ? `Perfil existente vinculado com sucesso!\nAs credenciais de acesso foram mantidas.`
+        : `Usuário criado com sucesso!`);
     } else if (modo === "editar" && usuarioSelecionado) {
       const dadosEditados = {
         ...usuarioSelecionado,
@@ -345,7 +345,7 @@ function TelaGerenciarUsuarios() {
       } else if (tipoUsuario === "atletas") {
         editarAtletaUsuarioAdmin(dadosEditados);
       }
-      alert(`✅ Usuário "${dadosEditados.nome}" atualizado com sucesso!`);
+      alert(`Usuário "${dadosEditados.nome}" atualizado com sucesso!`);
     }
 
     setModo("lista");
@@ -375,7 +375,7 @@ function TelaGerenciarUsuarios() {
 
   const handleExcluir = async (id) => { 
     const usuario = getTodosUsuarios().find(u => u.id === id);
-    if (!await confirmar(`⚠️ Excluir usuário "${usuario?.nome }"?\n\nEsta ação é IRREVERSÍVEL!`)) return;
+    if (!await confirmar(`Excluir usuário "${usuario?.nome }"?\n\nEsta ação é IRREVERSÍVEL!`)) return;
     
     if (tipoUsuario === "organizadores") {
       excluirOrganizador(id);
@@ -389,7 +389,7 @@ function TelaGerenciarUsuarios() {
       }
     }
     
-    alert(`✅ Usuário "${usuario?.nome}" excluído com sucesso!`);
+    alert(`Usuário "${usuario?.nome}" excluído com sucesso!`);
   };
 
   // ── Paginação usuários ─────────────────────────────────────────────────────
@@ -451,7 +451,7 @@ function TelaGerenciarUsuarios() {
         </button>
         <input
           type="text"
-          placeholder="🔍 Buscar usuário..."
+          placeholder="Buscar usuário..."
           value={filtro}
           onChange={(e) => setFiltro(e.target.value)}
           style={{ ...s.input, flex: 1 }}
@@ -480,7 +480,7 @@ function TelaGerenciarUsuarios() {
         }}>
           <h3 style={{ color: t.accent, marginBottom: 20 }}>
             {modo === "novo" 
-              ? `➕ ${tipoUsuario === "organizadores" ? "Novo Organizador" : tipoUsuario === "equipes" ? "Nova Equipe" : "Novo Atleta"}` 
+              ? `${tipoUsuario === "organizadores" ? "Novo Organizador" : tipoUsuario === "equipes" ? "Nova Equipe" : "Novo Atleta"}` 
               : `Editar ${tipoUsuario === "organizadores" ? "Organizador" : tipoUsuario === "equipes" ? "Equipe" : "Atleta"}`}
           </h3>
 
@@ -517,21 +517,21 @@ function TelaGerenciarUsuarios() {
             <div style={{ background: `${t.success}08`, border: `2px solid ${t.success}66`, borderRadius: 10,
               padding: "14px 16px", marginBottom: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                <span style={{ fontSize: 20 }}>✅</span>
+                <span style={{ fontSize: 20 }}>✓</span>
                 <strong style={{ color: t.success, fontSize: 14 }}>Perfil encontrado — credenciais mantidas</strong>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 16px",
                 fontSize: 13, color: t.textTertiary, marginBottom: 12 }}>
-                <span>👤 <strong style={{ color: t.textPrimary }}>{perfilExistente.nome}</strong></span>
+                <span><strong style={{ color: t.textPrimary }}>{perfilExistente.nome}</strong></span>
                 <span>{perfilExistente.email || "—"}</span>
-                {perfilExistente.entidade && <span>🏛️ {perfilExistente.entidade}</span>}
-                {perfilExistente.clube && <span>🏟️ {perfilExistente.clube}</span>}
-                {perfilExistente.cpf && <span>🪪 CPF: {perfilExistente.cpf}</span>}
-                {perfilExistente.cnpj && <span>🪪 CNPJ: {perfilExistente.cnpj}</span>}
+                {perfilExistente.entidade && <span>{perfilExistente.entidade}</span>}
+                {perfilExistente.clube && <span>{perfilExistente.clube}</span>}
+                {perfilExistente.cpf && <span>CPF: {perfilExistente.cpf}</span>}
+                {perfilExistente.cnpj && <span>CNPJ: {perfilExistente.cnpj}</span>}
               </div>
               <div style={{ background: `${t.success}0a`, border: `1px solid ${t.success}44`, borderRadius: 6,
                 padding: "8px 12px", fontSize: 12, color: t.success, lineHeight: 1.6 }}>
-                ✅ Este documento já pertence a um usuário cadastrado.<br/>
+                Este documento já pertence a um usuário cadastrado.<br/>
                 <strong>Não é necessário informar senha.</strong> Confirme os dados pessoais abaixo
                 e preencha apenas o cargo/permissões para concluir.
               </div>
@@ -761,7 +761,7 @@ function TelaGerenciarUsuarios() {
                   const org = organizadores.find(o => o.id === orgId);
                   return org ? (
                     <span style={{ marginLeft: 12 }}>
-                      📍 <span style={{ color: t.accent }}>{org.entidade || org.nome}</span>
+                      <span style={{ color: t.accent }}>{org.entidade || org.nome}</span>
                     </span>
                   ) : null;
                 })()}
@@ -788,7 +788,7 @@ function TelaGerenciarUsuarios() {
         <PaginaControles {...usuariosInfo} />
         {usuariosFiltrados.length === 0 && (
           <div style={{ textAlign: "center", padding: 60, color: t.textDimmed }}>
-            <div style={{ fontSize: 64, marginBottom: 16 }}>👥</div>
+            <div style={{ marginBottom: 16 }}><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
             <div style={{ fontSize: 18 }}>Nenhum usuário encontrado</div>
           </div>
         )}

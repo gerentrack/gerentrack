@@ -169,7 +169,7 @@ function TelaTreinadores({ abaInicial } = {}) {
   
   if (tipoUsr !== "equipe" && !isTreinador) return (
     <div style={s.page}><div style={s.emptyState}>
-      <span style={{ fontSize: 48 }}>🚫</span>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
       <p style={{ color: t.danger, fontWeight: 700 }}>Acesso restrito a equipes</p>
       <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
     </div></div>
@@ -316,7 +316,7 @@ function TelaTreinadores({ abaInicial } = {}) {
       registrarAcao(usuarioLogado.id, usuarioLogado.nome,
         "Editou treinador", `${form.nome} — permissões: ${form.permissoes.join(", ") || "nenhuma"}`,
         null, { equipeId, modulo: "treinadores" });
-      setFeedback("✅ Treinador atualizado!");
+      setFeedback("Treinador atualizado!");
     } else {
       // ── Etapa 4: dupla verificação de treinador no mesmo org ──
       if (form.cpf) {
@@ -355,9 +355,9 @@ function TelaTreinadores({ abaInicial } = {}) {
           await firebaseSignOut(secondaryAuth).catch(() => {});
         } catch (err) {
           if (err.code === "auth/email-already-in-use") {
-            authAviso = "⚠️ Este e-mail já possui conta. O treinador deve usar a senha existente ou redefinir pelo 'Esqueci minha senha'.";
+            authAviso = "Este e-mail já possui conta. O treinador deve usar a senha existente ou redefinir pelo 'Esqueci minha senha'.";
           } else {
-            setFeedback(`❌ Erro ao criar conta: ${err.message}`);
+            setFeedback(`Erro ao criar conta: ${err.message}`);
             setTimeout(() => setFeedback(""), 5000);
             return;
           }
@@ -369,8 +369,8 @@ function TelaTreinadores({ abaInicial } = {}) {
         "Adicionou treinador", `${form.nome} (${form.email}) — cargo: ${form.cargo||"—"}`,
         null, { equipeId, modulo: "treinadores" });
       setFeedback(authAviso || (docExistente
-        ? "✅ Treinador vinculado ao perfil existente!"
-        : "✅ Treinador cadastrado! Senha temporária definida."));
+        ? "Treinador vinculado ao perfil existente!"
+        : "Treinador cadastrado! Senha temporária definida."));
     }
     setTimeout(() => { setFeedback(""); setTela(painelDestino(usuarioLogado)); }, 2000);
   };
@@ -408,7 +408,7 @@ function TelaTreinadores({ abaInicial } = {}) {
     <div style={s.page}>
       <div style={s.painelHeader}>
         <div>
-          <h1 style={s.pageTitle}>👨‍🏫 {aba === "lista" && !editando ? "Gerenciar Treinadores" : editando ? "Editar Treinador" : "Novo Treinador"}</h1>
+          <h1 style={s.pageTitle}>{aba === "lista" && !editando ? "Gerenciar Treinadores" : editando ? "Editar Treinador" : "Novo Treinador"}</h1>
         </div>
         <button style={s.btnGhost} onClick={() => {
           if (editando) { setEditando(null); setAba("lista"); }
@@ -432,7 +432,7 @@ function TelaTreinadores({ abaInicial } = {}) {
           </div>
           {meusTreinadores.length === 0 ? (
             <div style={s.emptyState}>
-              <span style={{ fontSize:48 }}>👨‍🏫</span>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               <p>Nenhum treinador cadastrado</p>
             </div>
           ) : (
@@ -468,11 +468,11 @@ function TelaTreinadores({ abaInicial } = {}) {
                       </Td>
                       <Td>
                         <div style={{ display:"flex", gap:6, justifyContent:"center" }}>
-                          <button style={s.btnIconSm} onClick={() => abrirEditar(tr)} title="Editar">✏️</button>
+                          <button style={s.btnIconSm} onClick={() => abrirEditar(tr)} title="Editar">Editar</button>
                           <button style={s.btnIconSm} onClick={() => handleToggleAtivo(tr)} title={tr.ativo === false ? "Reativar" : "Desativar"}>
-                            {tr.ativo === false ? "✅" : "⏸️"}
+                            {tr.ativo === false ? "✓" : "—"}
                           </button>
-                          <button style={s.btnIconSmDanger} onClick={() => handleRemover(tr)} title="Remover">🗑️</button>
+                          <button style={s.btnIconSmDanger} onClick={() => handleRemover(tr)} title="Remover">✕</button>
                         </div>
                       </Td>
                     </tr>
@@ -498,11 +498,11 @@ function TelaTreinadores({ abaInicial } = {}) {
                 <div style={{ background:`${t.danger}10`, border:`2px solid ${t.danger}`,
                   borderRadius:8, padding:"14px 16px", marginTop:8 }}>
                   <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
-                    <span style={{ fontSize:18 }}>🚫</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
                     <strong style={{ color:t.danger, fontSize:13 }}>Treinador já vinculado a outra equipe deste organizador</strong>
                   </div>
                   <div style={{ fontSize:13, color: t.textSecondary, marginBottom:8, lineHeight:1.6 }}>
-                    <strong style={{ color: t.textPrimary }}>👤 {treinDuplicadoOrg.treinador.nome}</strong> já é treinador da equipe{" "}
+                    <strong style={{ color: t.textPrimary }}>{treinDuplicadoOrg.treinador.nome}</strong> já é treinador da equipe{" "}
                     <strong style={{ color:t.warning }}>"{treinDuplicadoOrg.equipeNome}"</strong> no mesmo organizador.
                   </div>
                   <div style={{ fontSize:12, color: t.textMuted, lineHeight:1.6 }}>
@@ -513,7 +513,7 @@ function TelaTreinadores({ abaInicial } = {}) {
 
               {docModo === "vincular" && !treinDuplicadoOrg && (
                 <div style={{ background: `${t.success}10`, border: `1px solid ${t.success}66`, borderRadius: 8, padding: "8px 12px", marginTop: 8, color: t.success, fontSize: 12 }}>
-                  ✅ Perfil existente encontrado — credenciais mantidas. Complete cargo e permissões.
+                  Perfil existente encontrado — credenciais mantidas. Complete cargo e permissões.
                 </div>
               )}
             </div>
@@ -536,7 +536,7 @@ function TelaTreinadores({ abaInicial } = {}) {
                   onChange={e => setForm({...form, senha:e.target.value})} />
                 <button onClick={() => setSenhaVis(senhaVis==="form" ? null : "form")}
                   style={{ ...s.btnGhost, fontSize:12, padding:"6px 10px" }}>
-                  {senhaVis==="form" ? "🙈" : "👁️"}
+                  {senhaVis==="form" ? "Ocultar" : "Mostrar"}
                 </button>
               </div>
             </div>
@@ -546,7 +546,7 @@ function TelaTreinadores({ abaInicial } = {}) {
           {/* Permissões por grupo */}
           <div style={{ marginTop:20 }}>
             <label style={{ ...s.label, fontSize:13, marginBottom:10, display:"block" }}>
-              🔐 Permissões de Acesso
+              Permissões de Acesso
             </label>
             {grupos.map(grupo => (
               <div key={grupo} style={{ marginBottom:14 }}>
@@ -575,7 +575,7 @@ function TelaTreinadores({ abaInicial } = {}) {
           <div style={{ display:"flex", gap:10, marginTop:24 }}>
             <button style={{ ...s.btnPrimary, opacity: treinDuplicadoOrg ? 0.4 : 1 }}
               onClick={handleSalvar} disabled={!!treinDuplicadoOrg}>
-              {editando ? "💾 Salvar Alterações" : docModo === "vincular" ? "🔗 Vincular Treinador" : "✅ Cadastrar Treinador"}
+              {editando ? "Salvar Alterações" : docModo === "vincular" ? "Vincular Treinador" : "Cadastrar Treinador"}
             </button>
             <button style={s.btnGhost} onClick={() => setTela(painelDestino(usuarioLogado))}>Cancelar</button>
           </div>

@@ -24,11 +24,11 @@ function TelaRecuperacaoSenha() {
   const [erro, setErro]       = useState("");
 
   const PERFIS_REC = [
-    { id:"organizador", icon:"🏟️", label:"Organizador", usaCnpj:true },
-    { id:"funcionario", icon:"👥",  label:"Funcionário", usaCnpj:false },
-    { id:"equipe",      icon:"🎽",  label:"Equipe",      usaCnpj:true },
-    { id:"treinador",   icon:"👨‍🏫", label:"Treinador",   usaCnpj:false },
-    { id:"atleta",      icon:"🏃",  label:"Atleta",      usaCnpj:false },
+    { id:"organizador", icon:"", label:"Organizador", usaCnpj:true },
+    { id:"funcionario", icon:"", label:"Funcionário", usaCnpj:false },
+    { id:"equipe",      icon:"", label:"Equipe",      usaCnpj:true },
+    { id:"treinador",   icon:"", label:"Treinador",   usaCnpj:false },
+    { id:"atleta",      icon:"", label:"Atleta",      usaCnpj:false },
   ];
 
   const stores = { equipe:equipes, organizador:organizadores, atleta:atletasUsuarios, funcionario:funcionarios, treinador:treinadores };
@@ -59,7 +59,6 @@ function TelaRecuperacaoSenha() {
   return (
     <div style={s.formPage}>
       <div style={{ ...s.formCard, maxWidth:480 }}>
-        <div style={s.formIcon}>🔑</div>
         <h2 style={s.formTitle}>Recuperar Senha</h2>
 
         {passo === 1 && (<>
@@ -93,7 +92,7 @@ function TelaRecuperacaoSenha() {
         {passo === 2 && (<>
           <p style={s.formSub}>Conta encontrada: <strong style={{ color:t.accent }}>{usuario?.nome}</strong></p>
           <div style={{ background:t.accentBg, border:`1px solid ${t.accent}`, borderRadius:10, padding:"18px 20px", marginBottom:16 }}>
-            <div style={{ color:t.accent, fontWeight:700, fontSize:14, marginBottom:8 }}>📧 Recuperar por E-mail</div>
+            <div style={{ color:t.accent, fontWeight:700, fontSize:14, marginBottom:8 }}>Recuperar por E-mail</div>
             <div style={{ color:t.textTertiary, fontSize:12, marginBottom:12, lineHeight:1.5 }}>Enviaremos um link para <strong style={{ color:t.textPrimary }}>{usuario?.email}</strong> para redefinir sua senha.</div>
             {erro && <div style={{ ...s.erro, marginBottom:10 }}>{erro}</div>}
             <button style={s.btnPrimary} onClick={async () => {
@@ -104,7 +103,7 @@ function TelaRecuperacaoSenha() {
           </div>
           <div style={{ textAlign:"center", color:t.textDimmed, fontSize:12, marginBottom:12 }}>— ou —</div>
           <button onClick={handleSolicitarAdmin} style={{ background:t.bgCardAlt, border:`1px solid ${t.border}`, borderRadius:8, padding:"14px 18px", cursor:"pointer", width:"100%", textAlign:"left" }}>
-            <div style={{ color:t.textMuted, fontWeight:600, fontSize:13 }}>🛡️ Solicitar ao Administrador</div>
+            <div style={{ color:t.textMuted, fontWeight:600, fontSize:13 }}>Solicitar ao Administrador</div>
             <div style={{ color:t.textDimmed, fontSize:11, marginTop:3 }}>O administrador poderá redefinir sua senha manualmente.</div>
           </button>
           <div style={{ textAlign:"center", marginTop:16 }}>
@@ -114,7 +113,6 @@ function TelaRecuperacaoSenha() {
 
         {passo === 3 && metodo === "email" && (<>
           <div style={{ textAlign:"center", marginBottom:16 }}>
-            <div style={{ fontSize:48 }}>📧</div>
             <h3 style={{ color:t.accent, marginBottom:8 }}>E-mail Enviado!</h3>
             <p style={{ color:t.textTertiary, fontSize:13, lineHeight:1.6 }}>Enviamos um link de recuperação para<br/><strong style={{ color:t.textPrimary }}>{usuario?.email}</strong></p>
             <p style={{ color:t.textMuted, fontSize:12, lineHeight:1.6, marginTop:12 }}>Verifique sua caixa de entrada e a pasta de spam.<br/>O link expira em 1 hora.</p>
@@ -124,7 +122,6 @@ function TelaRecuperacaoSenha() {
 
         {passo === 3 && metodo === "admin" && (<>
           <div style={{ textAlign:"center" }}>
-            <div style={{ fontSize:56, marginBottom:12 }}>🛡️</div>
             <h3 style={{ color:t.accent, marginBottom:8 }}>Solicitação enviada!</h3>
             <p style={{ color:t.textTertiary, fontSize:13, lineHeight:1.7 }}>O administrador foi notificado e enviará uma senha temporária para<br/><strong style={{ color:t.accent }}>{usuario?.email}</strong></p>
           </div>
