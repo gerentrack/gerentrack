@@ -59,7 +59,7 @@ export function useLocalStorage(key, initialValue) {
         firestoreLoaded.current = true;
       },
       (error) => {
-        console.error("Firestore sync error:", key, error);
+        if (error.code !== "permission-denied") console.error("Firestore sync error:", key, error);
         firestoreLoaded.current = true;
       }
     );

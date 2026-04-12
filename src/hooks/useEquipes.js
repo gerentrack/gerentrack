@@ -52,7 +52,7 @@ export function useEquipes() {
         setCarregando(false);
       },
       (err) => {
-        console.error("[useEquipes] onSnapshot error:", err);
+        if (err.code !== "permission-denied") console.error("[useEquipes] onSnapshot error:", err);
         setCarregando(false);
       }
     );

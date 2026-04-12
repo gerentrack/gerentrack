@@ -55,7 +55,7 @@ export function useAtletas() {
         setCarregando(false);
       },
       (err) => {
-        console.error("[useAtletas] onSnapshot error:", err);
+        if (err.code !== "permission-denied") console.error("[useAtletas] onSnapshot error:", err);
         setCarregando(false);
       }
     );

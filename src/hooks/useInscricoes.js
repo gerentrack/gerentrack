@@ -71,7 +71,7 @@ export function useInscricoes({ atletas = [], registrarAcao, usuarioLogado } = {
         setCarregando(false);
       },
       (err) => {
-        console.error("[useInscricoes] onSnapshot error:", err);
+        if (err.code !== "permission-denied") console.error("[useInscricoes] onSnapshot error:", err);
         setCarregando(false);
       }
     );

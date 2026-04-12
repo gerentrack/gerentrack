@@ -63,7 +63,7 @@ export function useEventos() {
         setCarregando(false);
       },
       (err) => {
-        console.error("[useEventos] onSnapshot error:", err);
+        if (err.code !== "permission-denied") console.error("[useEventos] onSnapshot error:", err);
         setCarregando(false);
       }
     );

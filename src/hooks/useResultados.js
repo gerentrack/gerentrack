@@ -177,7 +177,7 @@ export function useResultados({ eventos = [], recordes = [], editarEvento, _atua
         setCarregando(false);
       },
       (err) => {
-        console.error("[useResultados] onSnapshot error:", err);
+        if (err.code !== "permission-denied") console.error("[useResultados] onSnapshot error:", err);
         setCarregando(false);
       }
     );
