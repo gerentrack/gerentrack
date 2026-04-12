@@ -29,7 +29,7 @@ export function useEvento() {
  * - resultados, atualizarResultado, atualizarResultadosEmLote, limparResultado, limparTodosResultados
  * - atletas, adicionarAtleta, adicionarAtletasEmLote, atualizarAtleta, excluirAtleta, excluirAtletasEmMassa
  * - equipes, adicionarEquipe, atualizarEquipe, atualizarEquipePerfil
- * - adicionarEvento, editarEvento, excluirEvento, alterarStatusEvento
+ * - adicionarEvento, editarEvento, atualizarCamposEvento, excluirEvento, alterarStatusEvento
  * - numeracaoPeito, setNumeracaoEvento
  * - recordes, setRecordes, pendenciasRecorde, setPendenciasRecorde
  * - historicoRecordes, setHistoricoRecordes
@@ -77,6 +77,7 @@ export function buildEventoValue(props) {
 
     adicionarEvento: props.adicionarEvento,
     editarEvento: props.editarEvento,
+    atualizarCamposEvento: props.atualizarCamposEvento,
     excluirEvento: props.excluirEvento,
     alterarStatusEvento: props.alterarStatusEvento,
 

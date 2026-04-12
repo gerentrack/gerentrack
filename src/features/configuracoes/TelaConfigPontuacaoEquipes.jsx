@@ -97,7 +97,7 @@ function TelaConfigPontuacaoEquipes() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
-  const { eventoAtual, editarEvento, equipes, inscricoes, atletas, recordes } = useEvento();
+  const { eventoAtual, atualizarCamposEvento, equipes, inscricoes, atletas, recordes } = useEvento();
   const { setTela } = useApp();
   if (!eventoAtual) return (
     <div style={s.page}><div style={s.emptyState}><p>Selecione uma competição.</p>
@@ -200,8 +200,7 @@ function TelaConfigPontuacaoEquipes() {
     // Limpar bonus com valor 0
     var bonusLimpo = {};
     Object.keys(bonusRecordes).forEach(function(k) { if (parseInt(bonusRecordes[k]) > 0) bonusLimpo[k] = parseInt(bonusRecordes[k]); });
-    editarEvento({
-      ...eventoAtual,
+    atualizarCamposEvento(eventoAtual.id, {
       pontuacaoEquipes: {
         ativo: ativo,
         equipesParticipantes: equipeSel,

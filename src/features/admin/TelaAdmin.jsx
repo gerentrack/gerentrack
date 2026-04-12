@@ -128,10 +128,26 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
   const [filtroOrgTrein, setFiltroOrgTrein] = useState("");
   const [filtroEqTrein, setFiltroEqTrein] = useState("");
   const [showTreinForm, setShowTreinForm] = useState(false);
-  const [formTrein, setFormTrein] = useState({ nome:"", email:"", cpf:"", cargo:"", equipeId:"" });
+  const [formTrein, setFormTrein] = useState({ nome:"", email:"", cpf:"", cargo:"", equipeId:"", permissoes:[] });
   const [errosTrein, setErrosTrein] = useState({});
   const [salvoTrein, setSalvoTrein] = useState("");
   const [treinDocExistente, setTreinDocExistente] = useState(null);
+  const [editandoTrein, setEditandoTrein] = useState(null);
+
+  const PERMISSOES_TREINADOR = [
+    { id:"ver_atletas",          grupo:"Atletas",      label:"Visualizar atletas" },
+    { id:"cadastrar_atletas",    grupo:"Atletas",      label:"Cadastrar / editar atletas" },
+    { id:"inscrever_atletas",    grupo:"Inscrições",   label:"Inscrever atletas" },
+    { id:"gerenciar_inscricoes", grupo:"Inscrições",   label:"Gerenciar inscrições" },
+    { id:"importar_atletas",     grupo:"Atletas",      label:"Importar atletas em lote" },
+  ];
+  const gruposPerm = [...new Set(PERMISSOES_TREINADOR.map(p => p.grupo))];
+  const togglePermTrein = (pid) => {
+    const perms = formTrein.permissoes.includes(pid)
+      ? formTrein.permissoes.filter(p => p !== pid)
+      : [...formTrein.permissoes, pid];
+    setFormTrein({...formTrein, permissoes: perms});
+  };
 
   const verificarCpfTrein = (cpf) => {
     const limpo = cpf.replace(/\D/g, "");
@@ -199,7 +215,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
         }
       }
     }
-    if (emailJaCadastrado(formTrein.email, { organizadores, equipes, atletasUsuarios, funcionarios, treinadores }))
+    if (!treinDocExistente && emailJaCadastrado(formTrein.email, { organizadores, equipes, atletasUsuarios, funcionarios, treinadores }))
       e.email = "E-mail já cadastrado em outra conta";
     if (Object.keys(e).length) { setErrosTrein(e); return; }
 
@@ -224,7 +240,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
       nome: capitalizarNome(formTrein.nome), email: formTrein.email || treinDocExistente?.email || "",
       cpf: formTrein.cpf || "", cargo: capitalizarNome(formTrein.cargo) || "", tipo: "treinador",
       equipeId: formTrein.equipeId, organizadorId: eqSel?.organizadorId || null,
-      permissoes: [], ativo: true, dataCadastro: treinDocExistente?.dataCadastro || new Date().toISOString(),
+      permissoes: formTrein.permissoes || [], ativo: true, dataCadastro: treinDocExistente?.dataCadastro || new Date().toISOString(),
       senhaTemporaria: !authAviso,
     };
     adicionarTreinador(novo);
@@ -234,9 +250,37 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
       ? (treinDocExistente ? `✅ Treinador vinculado! ${authAviso}` : `⚠️ ${authAviso}`)
       : `✅ Treinador criado! Senha temporária: ${senhaTemp}`;
     setSalvoTrein(msg);
-    setFormTrein({ nome:"", email:"", cpf:"", cargo:"", equipeId:"" });
+    setFormTrein({ nome:"", email:"", cpf:"", cargo:"", equipeId:"", permissoes:[] }); setEditandoTrein(null);
     setErrosTrein({}); setTreinDocExistente(null); setShowTreinForm(false);
     setTimeout(() => setSalvoTrein(""), 10000);
+  };
+
+  const handleSalvarTreinEdit = () => {
+    if (!editandoTrein) return;
+    const atualizado = {
+      ...editandoTrein,
+      nome: formTrein.nome || editandoTrein.nome,
+      email: formTrein.email || editandoTrein.email,
+      cpf: formTrein.cpf || editandoTrein.cpf || "",
+      cargo: formTrein.cargo || "",
+      equipeId: formTrein.equipeId || editandoTrein.equipeId,
+      permissoes: formTrein.permissoes || [],
+    };
+    atualizarTreinador(atualizado);
+    registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Editou treinador (admin)",
+      `${atualizado.nome} — permissões: ${(atualizado.permissoes || []).join(", ") || "nenhuma"}`, null, { modulo: "admin" });
+    setSalvoTrein("✅ Treinador atualizado!");
+    setFormTrein({ nome:"", email:"", cpf:"", cargo:"", equipeId:"", permissoes:[] }); setEditandoTrein(null);
+    setShowTreinForm(false);
+    setTimeout(() => setSalvoTrein(""), 5000);
+  };
+
+  const abrirEditarTrein = (tr) => {
+    setEditandoTrein(tr);
+    setFormTrein({ nome:tr.nome||"", email:tr.email||"", cpf:tr.cpf||"", cargo:tr.cargo||"", equipeId:tr.equipeId||"", permissoes:tr.permissoes||[] });
+    setErrosTrein({});
+    setTreinDocExistente(null);
+    setShowTreinForm(true);
   };
 
   // ── Tabs definition ────────────────────────────────────────────────────────
@@ -945,7 +989,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
             <div style={s.sectionHd}>👨‍🏫 Treinadores ({treinadores.length})</div>
             <button style={s.btnPrimary} onClick={() => {
               setShowTreinForm(v => !v);
-              if (showTreinForm) { setFormTrein({ nome:"", email:"", cpf:"", cargo:"", equipeId:"" }); setErrosTrein({}); setTreinDocExistente(null); }
+              if (showTreinForm) { setFormTrein({ nome:"", email:"", cpf:"", cargo:"", equipeId:"", permissoes:[] }); setEditandoTrein(null); setErrosTrein({}); setTreinDocExistente(null); }
             }}>
               {showTreinForm ? "Cancelar" : "+ Novo Treinador"}
             </button>
@@ -962,7 +1006,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
 
           {showTreinForm && (
             <div style={{ background:t.bgCardAlt, border:`1px solid ${t.border}`, borderRadius:12, padding:20, marginBottom:20 }}>
-              <div style={{ fontWeight:700, color:t.textPrimary, fontSize:15, marginBottom:14 }}>Cadastrar Treinador</div>
+              <div style={{ fontWeight:700, color:t.textPrimary, fontSize:15, marginBottom:14 }}>{editandoTrein ? "Editar Treinador" : "Cadastrar Treinador"}</div>
               <div style={{ marginBottom:12 }}>
                 <FormField label="CPF *" value={formTrein.cpf}
                   onChange={v => { setFormTrein({...formTrein, cpf:v}); verificarCpfTrein(v); }}
@@ -990,7 +1034,37 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                 </select>
                 {errosTrein.equipeId && <div style={{ color:t.danger, fontSize:11, marginTop:4 }}>{errosTrein.equipeId}</div>}
               </div>
-              <button style={{ ...s.btnPrimary, marginTop:4 }} onClick={handleCriarTrein}>{treinDocExistente ? "Vincular Treinador" : "Criar Treinador"}</button>
+              {/* Permissões */}
+              <div style={{ marginTop:12 }}>
+                <label style={{ display:"block", color:t.textTertiary, fontSize:12, marginBottom:5 }}>Permissões de Acesso</label>
+                {gruposPerm.map(grupo => (
+                  <div key={grupo} style={{ marginBottom:8 }}>
+                    <div style={{ color:t.textDimmed, fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:1, marginBottom:4 }}>{grupo}</div>
+                    <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                      {PERMISSOES_TREINADOR.filter(p => p.grupo === grupo).map(p => {
+                        const ativo = formTrein.permissoes.includes(p.id);
+                        return (
+                          <button key={p.id} type="button" onClick={() => togglePermTrein(p.id)}
+                            style={{ padding:"4px 12px", borderRadius:5, cursor:"pointer", fontSize:11,
+                              background: ativo ? `${t.success}18` : t.bgHeaderSolid,
+                              border: `1px solid ${ativo ? t.success : t.borderLight}`,
+                              color: ativo ? t.success : t.textDimmed,
+                              fontWeight: ativo ? 700 : 400 }}>
+                            {ativo ? "✓ " : ""}{p.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button style={{ ...s.btnPrimary, marginTop:8 }} onClick={editandoTrein ? handleSalvarTreinEdit : handleCriarTrein}>
+                {editandoTrein ? "💾 Salvar Alterações" : treinDocExistente ? "Vincular Treinador" : "Criar Treinador"}
+              </button>
+              {editandoTrein && <button style={{ ...s.btnGhost, marginTop:8, marginLeft:8 }} onClick={() => {
+                setEditandoTrein(null); setShowTreinForm(false);
+                setFormTrein({ nome:"", email:"", cpf:"", cargo:"", equipeId:"", permissoes:[] }); setEditandoTrein(null);
+              }}>Cancelar edição</button>}
             </div>
           )}
 
@@ -1043,6 +1117,9 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                             </Td>
                             <Td>
                               <div style={{ display:"flex", gap:10, alignItems:"center" }}>
+                                <button title="Editar" style={{ ...s.btnGhost, fontSize:12, padding:"4px 10px" }}
+                                  onClick={() => abrirEditarTrein(tr)}>Editar</button>
+                                <span style={{ width:1, height:16, background:t.border }} />
                                 <button title={tr.ativo === false ? "Reativar" : "Desativar"} style={{ ...s.btnGhost, fontSize:12, padding:"4px 10px" }}
                                   onClick={() => {
                                     atualizarTreinador({ ...tr, ativo: !tr.ativo });

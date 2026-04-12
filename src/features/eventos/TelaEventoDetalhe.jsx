@@ -182,7 +182,7 @@ function StatCard({ value, label }) {
 
 function TelaEventoDetalhe() {
   const { usuarioLogado } = useAuth();
-  const { eventoAtual, inscricoes, atletas, resultados, alterarStatusEvento, selecionarEvento, recordes, setRecordes, equipes, getClubeAtleta, editarEvento, pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes, RecordDetectionEngine, RankingExtractionEngine, ranking, setRanking } = useEvento();
+  const { eventoAtual, inscricoes, atletas, resultados, alterarStatusEvento, selecionarEvento, recordes, setRecordes, equipes, getClubeAtleta, atualizarCamposEvento, pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes, RecordDetectionEngine, RankingExtractionEngine, ranking, setRanking } = useEvento();
   const { setTela, organizadores, setCadEventoGoStep, funcionarios, selecionarOrganizador } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
@@ -517,14 +517,14 @@ function TelaEventoDetalhe() {
           const novo = acessoAtual.includes(fId)
             ? acessoAtual.filter(id => id !== fId)
             : [...acessoAtual, fId];
-          editarEvento({ ...eventoAtual, funcionariosVisiveis: novo });
+          atualizarCamposEvento(eventoAtual.id, { funcionariosVisiveis: novo });
         };
         const marcarTodos = () => {
           const ids = meusFuncs.filter(f => !(f.permissoes || []).includes("editar_competições")).map(f => f.id);
-          editarEvento({ ...eventoAtual, funcionariosVisiveis: ids });
+          atualizarCamposEvento(eventoAtual.id, { funcionariosVisiveis: ids });
         };
         const desmarcarTodos = () => {
-          editarEvento({ ...eventoAtual, funcionariosVisiveis: [] });
+          atualizarCamposEvento(eventoAtual.id, { funcionariosVisiveis: [] });
         };
 
         return (

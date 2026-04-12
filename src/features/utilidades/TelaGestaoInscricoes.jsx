@@ -169,7 +169,7 @@ function TelaGestaoInscricoes() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
-  const { eventoAtual, editarEvento, inscricoes, atletas, equipes, excluirInscricao, adicionarInscricao, atualizarInscricao, numeracaoPeito } = useEvento();
+  const { eventoAtual, atualizarCamposEvento, inscricoes, atletas, equipes, excluirInscricao, adicionarInscricao, atualizarInscricao, numeracaoPeito } = useEvento();
   const { setTela, registrarAcao, organizadores, gtLogo } = useApp();
   const confirmar = useConfirm();
 
@@ -294,7 +294,7 @@ function TelaGestaoInscricoes() {
       data: new Date().toISOString(),
       inscritoPor: usuarioLogado?.nome || "—",
     };
-    editarEvento({ ...eventoAtual, preInscricoes: [...preInscricoes, novaPreInsc] });
+    atualizarCamposEvento(eventoAtual.id, { preInscricoes: [...preInscricoes, novaPreInsc] });
     setInserirAtletaId("");
     setInserirProvasIds(new Set());
     setFeedback(`Pré-inscrição: ${atl.nome} adicionado(a) sem provas.`);
@@ -302,7 +302,7 @@ function TelaGestaoInscricoes() {
   };
 
   const handleRemoverPreInscricao = (atletaId) => {
-    editarEvento({ ...eventoAtual, preInscricoes: preInscricoes.filter(p => p.atletaId !== atletaId) });
+    atualizarCamposEvento(eventoAtual.id, { preInscricoes: preInscricoes.filter(p => p.atletaId !== atletaId) });
   };
 
   const todosAtletas = useMemo(() => {
@@ -652,7 +652,7 @@ function TelaGestaoInscricoes() {
       const preInscAtual = eventoAtual.preInscricoes || [];
       const preInscRestantes = preInscAtual.filter(p => !atletasNoCarrinho.has(p.atletaId));
       if (preInscRestantes.length !== preInscAtual.length) {
-        editarEvento({ ...eventoAtual, preInscricoes: preInscRestantes });
+        atualizarCamposEvento(eventoAtual.id, { preInscricoes: preInscRestantes });
       }
       if (registrarAcao) registrarAcao(
         usuarioLogado?.id, usuarioLogado?.nome,

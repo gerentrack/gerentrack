@@ -115,7 +115,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
   const t = useTema();
   const s = useStylesResponsivos(getS(t));
   const { usuarioLogado, setUsuarioLogado, logout, atualizarSenha, perfisDisponiveis } = useAuth();
-  const { equipes, atualizarEquipePerfil, atletas, inscricoes, resultados, atualizarAtleta, eventos, editarEvento, excluirInscricao } = useEvento();
+  const { equipes, atualizarEquipePerfil, atletas, inscricoes, resultados, atualizarAtleta, eventos, atualizarCamposEvento, excluirInscricao } = useEvento();
   const { setTela, registrarAcao, organizadores, atletasUsuarios, funcionarios, treinadores, siteBranding, setSiteBranding, exportarDados, importarDados, solicitacoesPortabilidade, adicionarSolicitacaoPortabilidade, editarOrganizadorAdmin, selecionarOrganizador } = useApp();
   const [aba, setAba]           = useState("dados");
   const [feedback, setFeedback] = useState("");
@@ -912,7 +912,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                   corAccent="#ff4444"
                   btnLabel="💣 Excluir Todos os Perfis e Sair do Sistema..."
                   confirmWord="EXCLUIR TUDO"
-                  onConfirmar={excluirTodosOsPerfis || (() => logout())}
+                  onConfirmar={() => logout()}
                 />
               </div>
             )}
@@ -2146,7 +2146,7 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(ts => `   • ${ts}`).joi
                         for (const item of falhas) {
                           if (item.tipo === "Evento") {
                             const ev = (eventos || []).find(e => (e.nome || e.id) === item.nome);
-                            if (ev) { editarEvento({ ...ev, [item.campo]: "" }); corrigidos++; }
+                            if (ev) { atualizarCamposEvento(ev.id, { [item.campo]: "" }); corrigidos++; }
                           } else if (item.tipo === "Organizador") {
                             const org = (organizadores || []).find(o => (o.nome || o.id) === item.nome);
                             if (org && editarOrganizadorAdmin) { editarOrganizadorAdmin({ ...org, [item.campo]: "" }); corrigidos++; }

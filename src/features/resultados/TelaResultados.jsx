@@ -167,7 +167,7 @@ const _nomeProvaMatch = (a, b) => {
 
 function TelaResultados() {
   const { usuarioLogado } = useAuth();
-  const { inscricoes, atletas, resultados, eventoAtual, numeracaoPeito, equipes, getClubeAtleta, editarEvento, recordes } = useEvento();
+  const { inscricoes, atletas, resultados, eventoAtual, numeracaoPeito, equipes, getClubeAtleta, atualizarCamposEvento, recordes } = useEvento();
   const { setTela } = useApp();
   const { marchaData } = useMarchaJuizes(eventoAtual?.id);
   const t = useTema();
@@ -1935,7 +1935,7 @@ function TelaResultados() {
                         value={obsTexto}
                         onChange={(e) => {
                           const novasObs = { ...(eventoAtual.observacoesProvas || {}), [chaveObs]: e.target.value };
-                          editarEvento({ ...eventoAtual, observacoesProvas: novasObs });
+                          atualizarCamposEvento(eventoAtual.id, { observacoesProvas: novasObs });
                         }}
                       />
                     </div>

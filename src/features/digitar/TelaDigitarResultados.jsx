@@ -190,7 +190,7 @@ const getSty = (t) => ({
    CondicoesProvaPanel — painel de condições (horário/umidade/temp) com estado
    local para evitar re-render a cada keystroke. Salva no blur.
    ════════════════════════════════════════════════════════════════════════════ */
-function CondicoesProvaPanel({ eid, filtroProva, catId, filtroSexo, eventoAtual, editarEvento }) {
+function CondicoesProvaPanel({ eid, filtroProva, catId, filtroSexo, eventoAtual, atualizarCamposEvento }) {
   const t = useTema();
   const condKey = `${eid}_${filtroProva}_${catId}_${filtroSexo}`;
   const condAll = eventoAtual.condicoesProva || {};
@@ -211,7 +211,7 @@ function CondicoesProvaPanel({ eid, filtroProva, catId, filtroSexo, eventoAtual,
     const novoLocal = { ...local, [campo]: val };
     setLocal(novoLocal);
     const novas = { ...(eventoAtual.condicoesProva || {}), [condKey]: novoLocal };
-    editarEvento({ ...eventoAtual, condicoesProva: novas });
+    atualizarCamposEvento(eventoAtual.id, { condicoesProva: novas });
   };
 
   const handleChange = (campo, val) => {
@@ -277,7 +277,7 @@ function BlocoDigitarCategoria({
   catId, filtroProva, filtroSexo, filtroFase,
   eid, eventoAtual, inscricoes, atletas, resultados, equipes,
   atualizarResultado, atualizarResultadosEmLote, limparResultado, limparTodosResultados,
-  editarEvento, numeracaoPeito, getClubeAtleta, recordes,
+  atualizarCamposEvento, numeracaoPeito, getClubeAtleta, recordes,
   usuarioLogado, registrarAcao, setTela,
   todasProvasComCombinadas, inscDoEvento, getPresencaProva,
   marchaHook,
@@ -427,7 +427,7 @@ function BlocoDigitarCategoria({
   const regraAtual = regraKeyAtual ? (regrasPontuacaoEvento[regraKeyAtual] || null) : null;
   const alternarRegraPontuacao = (chave) => {
     const prev = eventoAtual.regrasPontuacao || {};
-    editarEvento({ ...eventoAtual, regrasPontuacao: { ...prev, [regraKeyAtual]: chave } });
+    atualizarCamposEvento(eventoAtual.id, { regrasPontuacao: { ...prev, [regraKeyAtual]: chave } });
   };
   const temSeriesParaCrono = _serDigitar?.series?.length > 1;
 
@@ -452,7 +452,7 @@ function BlocoDigitarCategoria({
   const alternarCronometragem = (valor) => {
     setCronometragem(valor);
     const prev = eventoAtual.cronometragemProvas || {};
-    editarEvento({ ...eventoAtual, cronometragemProvas: { ...prev, [filtroProva]: valor } });
+    atualizarCamposEvento(eventoAtual.id, { cronometragemProvas: { ...prev, [filtroProva]: valor } });
   };
 
   // Salvar cronometragem por série
@@ -460,7 +460,7 @@ function BlocoDigitarCategoria({
     setCronoSeries(prev => ({ ...prev, [serieNum]: valor }));
     const prev = eventoAtual.cronometragemProvas || {};
     const chS = `${filtroProva}__S${serieNum}`;
-    editarEvento({ ...eventoAtual, cronometragemProvas: { ...prev, [chS]: valor } });
+    atualizarCamposEvento(eventoAtual.id, { cronometragemProvas: { ...prev, [chS]: valor } });
   };
 
 
@@ -861,7 +861,7 @@ function BlocoDigitarCategoria({
       </div>
 
       {/* ── Condições da Prova: Horário / Umidade / Temperatura ── */}
-      <CondicoesProvaPanel eid={eid} filtroProva={filtroProva} catId={catId} filtroSexo={filtroSexo} eventoAtual={eventoAtual} editarEvento={editarEvento} />
+      <CondicoesProvaPanel eid={eid} filtroProva={filtroProva} catId={catId} filtroSexo={filtroSexo} eventoAtual={eventoAtual} atualizarCamposEvento={atualizarCamposEvento} />
 
       {/* Banner de resultados existentes */}
       {atletasNaProva.some(a => resExistentes[a.id] != null) && Object.keys(marcas).length === 0 && (
@@ -2581,7 +2581,7 @@ function TelaDigitarResultados({ getPresencaProva }) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
-  const { inscricoes, atletas, resultados, atualizarResultado, atualizarResultadosEmLote, limparResultado, limparTodosResultados, eventoAtual, editarEvento, numeracaoPeito, getClubeAtleta, equipes, recordes } = useEvento();
+  const { inscricoes, atletas, resultados, atualizarResultado, atualizarResultadosEmLote, limparResultado, limparTodosResultados, eventoAtual, atualizarCamposEvento, numeracaoPeito, getClubeAtleta, equipes, recordes } = useEvento();
   const { setTela, registrarAcao } = useApp();
   const marchaHook = useMarchaJuizes(eventoAtual?.id);
   // Guard: apenas admin, organizador dono ou funcionário com permissão
@@ -2799,7 +2799,7 @@ function TelaDigitarResultados({ getPresencaProva }) {
             atualizarResultadosEmLote={atualizarResultadosEmLote}
             limparResultado={limparResultado}
             limparTodosResultados={limparTodosResultados}
-            editarEvento={editarEvento}
+            atualizarCamposEvento={atualizarCamposEvento}
             numeracaoPeito={numeracaoPeito}
             getClubeAtleta={getClubeAtleta}
             recordes={recordes}

@@ -289,7 +289,7 @@ function TelaTreinadores({ abaInicial } = {}) {
 
   const abrirEditar = (tr) => {
     setEditando(tr);
-    setForm({ nome:tr.nome, email:tr.email, cpf:tr.cpf||"", cargo:tr.cargo||"", permissoes:tr.permissoes||[], senha:tr.senha });
+    setForm({ nome:tr.nome||"", email:tr.email||"", cpf:tr.cpf||"", cargo:tr.cargo||"", permissoes:tr.permissoes||[], senha:tr.senha||"" });
     setErros({});
     setAba("novo");
   };
@@ -298,7 +298,7 @@ function TelaTreinadores({ abaInicial } = {}) {
     const e = {};
     if (!form.nome)  e.nome  = "Nome obrigatório";
     if (!form.email) e.email = "E-mail obrigatório";
-    if (!editando && emailJaCadastrado(form.email, { organizadores, equipes, atletasUsuarios, funcionarios, treinadores }))
+    if (!editando && docModo !== "vincular" && emailJaCadastrado(form.email, { organizadores, equipes, atletasUsuarios, funcionarios, treinadores }))
       e.email = "E-mail já cadastrado em outra conta.";
     return e;
   };
@@ -346,28 +346,30 @@ function TelaTreinadores({ abaInicial } = {}) {
             email: form.email || docExistente.email,
             ativo: true }
         : (() => { const { senha: _s, ...formSemSenha } = form; return { ...formSemSenha, id: genId(), tipo: "treinador", equipeId, organizadorId: meuOrgId, ativo: true, dataCadastro: new Date().toISOString(), senhaTemporaria: true }; })();
-      // Sempre tentar criar conta Auth — se já existir, email-already-in-use trata
+      // Criar conta Auth apenas se for cadastro novo (não vinculação)
       let authAviso = "";
-      try {
-        const cred = await createUserWithEmailAndPassword(secondaryAuth, form.email.trim(), form.senha);
-        try { await sendEmailVerification(cred.user); } catch {}
-        await firebaseSignOut(secondaryAuth).catch(() => {});
-      } catch (err) {
-        if (err.code === "auth/email-already-in-use") {
-          authAviso = "⚠️ Este e-mail já possui conta. O treinador deve usar a senha existente ou redefinir pelo 'Esqueci minha senha'.";
-        } else {
-          setFeedback(`❌ Erro ao criar conta: ${err.message}`);
-          setTimeout(() => setFeedback(""), 5000);
-          return;
+      if (!docExistente) {
+        try {
+          const cred = await createUserWithEmailAndPassword(secondaryAuth, form.email.trim(), form.senha);
+          try { await sendEmailVerification(cred.user); } catch {}
+          await firebaseSignOut(secondaryAuth).catch(() => {});
+        } catch (err) {
+          if (err.code === "auth/email-already-in-use") {
+            authAviso = "⚠️ Este e-mail já possui conta. O treinador deve usar a senha existente ou redefinir pelo 'Esqueci minha senha'.";
+          } else {
+            setFeedback(`❌ Erro ao criar conta: ${err.message}`);
+            setTimeout(() => setFeedback(""), 5000);
+            return;
+          }
         }
       }
-      novo.senhaTemporaria = !authAviso;
+      novo.senhaTemporaria = !docExistente && !authAviso;
       adicionarTreinador(novo);
       registrarAcao(usuarioLogado.id, usuarioLogado.nome,
         "Adicionou treinador", `${form.nome} (${form.email}) — cargo: ${form.cargo||"—"}`,
         null, { equipeId, modulo: "treinadores" });
       setFeedback(authAviso || (docExistente
-        ? "✅ Treinador vinculado! Senha temporária definida."
+        ? "✅ Treinador vinculado ao perfil existente!"
         : "✅ Treinador cadastrado! Senha temporária definida."));
     }
     setTimeout(() => { setFeedback(""); setTela(painelDestino(usuarioLogado)); }, 2000);
@@ -406,9 +408,12 @@ function TelaTreinadores({ abaInicial } = {}) {
     <div style={s.page}>
       <div style={s.painelHeader}>
         <div>
-          <h1 style={s.pageTitle}>👨‍🏫 {editando ? "Editar Treinador" : "Novo Treinador"}</h1>
+          <h1 style={s.pageTitle}>👨‍🏫 {aba === "lista" && !editando ? "Gerenciar Treinadores" : editando ? "Editar Treinador" : "Novo Treinador"}</h1>
         </div>
-        <button style={s.btnGhost} onClick={() => setTela(painelDestino(usuarioLogado))}>← Voltar</button>
+        <button style={s.btnGhost} onClick={() => {
+          if (editando) { setEditando(null); setAba("lista"); }
+          else setTela(painelDestino(usuarioLogado));
+        }}>← Voltar</button>
       </div>
 
       {feedback && (
@@ -419,8 +424,68 @@ function TelaTreinadores({ abaInicial } = {}) {
       )}
 
       {/* ── LISTA ─────────────────────────────────────────────────── */}
+      {aba === "lista" && !editando && (
+        <div>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16, flexWrap:"wrap", gap:10 }}>
+            <span style={{ color: t.textMuted, fontSize:13 }}>{meusTreinadores.length} treinador(es)</span>
+            <button style={s.btnPrimary} onClick={abrirNovo}>+ Novo Treinador</button>
+          </div>
+          {meusTreinadores.length === 0 ? (
+            <div style={s.emptyState}>
+              <span style={{ fontSize:48 }}>👨‍🏫</span>
+              <p>Nenhum treinador cadastrado</p>
+            </div>
+          ) : (
+            <div style={s.tableWrap}>
+              <table style={s.table}>
+                <thead><tr>
+                  <Th>Nome</Th><Th>E-mail</Th><Th>Cargo</Th><Th>Permissões</Th><Th>Status</Th><Th style={{ textAlign:"center" }}>Ações</Th>
+                </tr></thead>
+                <tbody>
+                  {meusTreinadores.map(tr => (
+                    <tr key={tr.id} style={{ ...s.tr, opacity: tr.ativo === false ? 0.5 : 1 }}>
+                      <Td><strong style={{ color: t.textPrimary }}>{tr.nome}</strong></Td>
+                      <Td style={{ fontSize:12 }}>{tr.email || "—"}</Td>
+                      <Td style={{ fontSize:12, color: t.textTertiary }}>{tr.cargo || "—"}</Td>
+                      <Td>
+                        <div style={{ display:"flex", flexWrap:"wrap", gap:3 }}>
+                          {(tr.permissoes || []).length === 0
+                            ? <span style={{ color: t.textDisabled, fontSize:10 }}>Sem permissões</span>
+                            : (tr.permissoes || []).map(pid => (
+                              <span key={pid} style={{ background:`${t.success}18`, color:t.success, fontSize:9, padding:"1px 6px", borderRadius:3, fontWeight:600 }}>
+                                {PERMISSOES_TREINADOR.find(p => p.id === pid)?.label || pid.replace(/_/g," ")}
+                              </span>
+                            ))
+                          }
+                        </div>
+                      </Td>
+                      <Td>
+                        <span style={{ fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:4,
+                          background: tr.ativo === false ? `${t.danger}18` : `${t.success}10`,
+                          color: tr.ativo === false ? t.danger : t.success }}>
+                          {tr.ativo === false ? "Inativo" : "Ativo"}
+                        </span>
+                      </Td>
+                      <Td>
+                        <div style={{ display:"flex", gap:6, justifyContent:"center" }}>
+                          <button style={s.btnIconSm} onClick={() => abrirEditar(tr)} title="Editar">✏️</button>
+                          <button style={s.btnIconSm} onClick={() => handleToggleAtivo(tr)} title={tr.ativo === false ? "Reativar" : "Desativar"}>
+                            {tr.ativo === false ? "✅" : "⏸️"}
+                          </button>
+                          <button style={s.btnIconSmDanger} onClick={() => handleRemover(tr)} title="Remover">🗑️</button>
+                        </div>
+                      </Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── FORMULÁRIO NOVO / EDITAR ──────────────────────────────── */}
-      {(aba === "novo" || aba === "lista") && (
+      {(aba === "novo" || editando) && (
         <div style={{ maxWidth:620 }}>
 
           {/* CPF primeiro — para verificar se já existe */}

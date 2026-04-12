@@ -1236,6 +1236,13 @@ function App() {
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Editou competição", ev.nome || "", usuarioLogado.organizadorId || usuarioLogado.id, { equipeId: usuarioLogado.equipeId, modulo: "competicoes" });
   };
 
+  // Merge parcial — atualiza apenas os campos passados, sem sobrescrever o resto.
+  // Usar em vez de editarEvento({ ...eventoAtual, campo: valor }) para evitar
+  // sobrescrever campos alterados por outro usuário (closure stale).
+  const atualizarCamposEvento = async (eventoId, campos) => {
+    await _atualizarCamposEvento(eventoId, campos);
+  };
+
   // ── Equipes via Firestore ─────────────────────────────────────────────────
   const {
     equipes,
@@ -1793,7 +1800,7 @@ function App() {
     adicionarInscricao, excluirInscricao, atualizarInscricao,
     atualizarResultado, atualizarResultadosEmLote, limparResultado, limparTodosResultados,
     numeracaoPeito, setNumeracaoEvento,
-    adicionarEvento, editarEvento, excluirEvento, alterarStatusEvento, limparTodosDados,
+    adicionarEvento, editarEvento, atualizarCamposEvento, excluirEvento, alterarStatusEvento, limparTodosDados,
     getClubeAtleta,
     recordes, setRecordes,
     pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes,

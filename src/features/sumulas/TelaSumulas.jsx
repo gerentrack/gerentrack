@@ -49,7 +49,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
   const s = useStylesResponsivos(getStyles(t));
   const confirmar = useConfirm();
   const { usuarioLogado } = useAuth();
-  const { inscricoes, atletas, eventoAtual, resultados, numeracaoPeito, getClubeAtleta, equipes, editarEvento, alterarStatusEvento, recordes } = useEvento();
+  const { inscricoes, atletas, eventoAtual, resultados, numeracaoPeito, getClubeAtleta, equipes, atualizarCamposEvento, alterarStatusEvento, recordes } = useEvento();
   const { setTela, registrarAcao } = useApp();
   const isFinalizado = !!eventoAtual?.competicaoFinalizada;
   const [filtroProva, setFiltroProva] = useState("todas");
@@ -385,7 +385,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
             const prevObj = (!prev) ? {} : (typeof prev === "string") ? { modo: prev } : { ...prev };
             cfgAtual[p.id] = { ...prevObj, [campo]: valor };
           });
-          editarEvento({ ...eventoAtual, configSeriacao: cfgAtual });
+          atualizarCamposEvento(eventoAtual.id, { configSeriacao: cfgAtual });
         };
 
         // Provas de pista com inscritos — expandidas por fase baseado no modo da seriação
@@ -666,7 +666,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
             tipoLargada: seriacaoPreview.tipoLargada || "raias",
             regraAplicada: seriacaoPreview.regraAplicada || "",
           };
-          editarEvento({ ...eventoAtual, seriacao: novasSer });
+          atualizarCamposEvento(eventoAtual.id, { seriacao: novasSer });
           setSeriacaoPreview(null);
           setSeriacaoChaveAtiva(null);
           setSeriacaoProvaId(null);
@@ -676,7 +676,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
           if (isFinalizado) return;
           const novasSer = { ...seriacaoSalva };
           delete novasSer[chave];
-          editarEvento({ ...eventoAtual, seriacao: novasSer });
+          atualizarCamposEvento(eventoAtual.id, { seriacao: novasSer });
         };
 
         const itemAtivo = provasPista.find(pp => pp.chave === seriacaoChaveAtiva);
@@ -796,7 +796,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                                 const prevObj = (!prev) ? {} : (typeof prev === "string") ? { modo: prev } : { ...prev };
                                 cfgAtual[pv.id] = { ...prevObj, ...updates };
                               });
-                              editarEvento({ ...eventoAtual, configSeriacao: cfgAtual });
+                              atualizarCamposEvento(eventoAtual.id, { configSeriacao: cfgAtual });
                             }}
                           >{lbl}</button>
                           );
@@ -825,7 +825,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                             const prevObj = (!prev) ? {} : (typeof prev === "string") ? { modo: prev } : { ...prev };
                             cfgAtual[pv.id] = { ...prevObj, [campo]: p, [tCampo]: tAuto };
                           });
-                          editarEvento({ ...eventoAtual, configSeriacao: cfgAtual });
+                          atualizarCamposEvento(eventoAtual.id, { configSeriacao: cfgAtual });
                         };
 
                         const renderProgressao = (label, cor, pCampo, tCampo, pVal, tVal, nSeries, totalAtlFase, nSeriesProx) => (
@@ -1676,7 +1676,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                   const atlUn = sum.atletas.filter((a, i, arr) => arr.findIndex(x => x.id === a.id) === i);
                   const ids = atlUn.map(a => a.id);
                   for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; }
-                  editarEvento({ ...eventoAtual, sorteioCampo: { ...(eventoAtual.sorteioCampo || {}), [_chS]: { ordem: ids, timestamp: Date.now() } } });
+                  atualizarCamposEvento(eventoAtual.id, { sorteioCampo: { ...(eventoAtual.sorteioCampo || {}), [_chS]: { ordem: ids, timestamp: Date.now() } } });
                 };
                 return (
                   <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10, flexWrap:"wrap" }}>
