@@ -912,7 +912,41 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                   corAccent="#ff4444"
                   btnLabel="💣 Excluir Todos os Perfis e Sair do Sistema..."
                   confirmWord="EXCLUIR TUDO"
-                  onConfirmar={() => logout()}
+                  onConfirmar={() => {
+                    const agora = new Date().toISOString();
+                    const idAnon = usuarioLogado.id.slice(-6).toUpperCase();
+                    const email = usuarioLogado?.email?.toLowerCase();
+                    const cpf = usuarioLogado?.cpf?.replace(/\D/g, "");
+
+                    // Remover de todos os stores por id, email ou cpf
+                    const match = (u) =>
+                      u.id === usuarioLogado.id ||
+                      (email && u.email && u.email.toLowerCase() === email) ||
+                      (cpf && u.cpf && u.cpf.replace(/\D/g, "") === cpf);
+
+                    Object.values(stores).forEach(st => {
+                      if (st?.set) {
+                        try { st.set(arr => Array.isArray(arr) ? arr.filter(u => !match(u)) : arr); } catch {}
+                      }
+                    });
+
+                    // Anonimizar atleta base se existir
+                    if (atletaBase && atualizarAtleta) {
+                      atualizarAtleta({
+                        ...atletaBase,
+                        nome: `Atleta Anônimo ${idAnon}`,
+                        email: "", cpf: "", fone: "", dataNasc: "",
+                        lgpdConsentimentoRevogado: true,
+                        lgpdRevogadoEm: agora,
+                      });
+                    }
+
+                    if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome,
+                      "Excluiu todos os perfis", "Todos os perfis removidos",
+                      usuarioLogado.organizadorId || null, { modulo: "lgpd" });
+
+                    logout();
+                  }}
                 />
               </div>
             )}

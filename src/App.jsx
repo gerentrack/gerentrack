@@ -1297,6 +1297,22 @@ function App() {
     importarNumeracao,
   } = useNumeracaoPeito();
 
+  // ── Guard: perfil deletado no Firestore mas ainda no localStorage ────────
+  useEffect(() => {
+    if (!usuarioLogado || !firebaseAuthed) return;
+    const tipo = usuarioLogado.tipo;
+    if (tipo === "admin") return;
+    const listas = { organizador: organizadores, equipe: equipes, funcionario: funcionarios, treinador: treinadores, atleta: atletasUsuarios };
+    const lista = listas[tipo];
+    if (!lista || lista.length === 0) return;
+    if (!lista.some(u => u.id === usuarioLogado.id)) {
+      console.warn(`[App] Perfil ${tipo} id=${usuarioLogado.id} não encontrado — logout automático`);
+      setUsuarioLogado(null);
+      setPerfisDisponiveis([]);
+      setTela("login");
+    }
+  }, [usuarioLogado, firebaseAuthed, organizadores, equipes, funcionarios, treinadores, atletasUsuarios]);
+
   const atletasRef_app = React.useRef(atletas);
   React.useEffect(() => { atletasRef_app.current = atletas; }, [atletas]);
 
