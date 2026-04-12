@@ -69,5 +69,12 @@ service cloud.firestore {
       allow write: if request.auth != null;
     }
 
+    // ── Atletas Usuários (contas de atleta) ─────────────────────────────────
+    // Migrado de state/atl_atletas_usuarios para coleção individual
+    match /atletasUsuarios/{docId} {
+      allow read:  if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
   }
 }
