@@ -1727,11 +1727,14 @@ function TelaGestaoInscricoes() {
                     grupos[g].push(p);
                   });
 
-                  // Calcular limite e quanto já foi usado
+                  // Calcular limite e quanto já foi usado (alinhado com validarLimiteProvas)
                   const limite = getLimiteCat(eventoAtual, cat?.id || null);
-                  const jaInscritas = inscsEvt.filter(i => i.atletaId === inserirAtletaId && !i.combinadaId && i.tipo !== "revezamento").length;
-                  const jaNoLoteAtleta = carrinho.filter(c => c.atletaId === inserirAtletaId).length;
-                  const selecionadas = inserirProvasIds.size;
+                  const excecoesLimite = new Set(eventoAtual?.provasExcetoLimite || []);
+                  const jaInscritas = inscsEvt.filter(i =>
+                    i.atletaId === inserirAtletaId && !i.combinadaId && i.tipo !== "revezamento" && !excecoesLimite.has(i.provaId)
+                  ).length;
+                  const jaNoLoteAtleta = carrinho.filter(c => c.atletaId === inserirAtletaId && !excecoesLimite.has(c.provaId)).length;
+                  const selecionadas = [...inserirProvasIds].filter(pId => !excecoesLimite.has(pId)).length;
                   const usadas = jaInscritas + jaNoLoteAtleta + selecionadas;
                   const restam = limite > 0 ? limite - jaInscritas - jaNoLoteAtleta : Infinity;
                   const limiteAtingido = limite > 0 && (jaInscritas + jaNoLoteAtleta + selecionadas) >= limite;
