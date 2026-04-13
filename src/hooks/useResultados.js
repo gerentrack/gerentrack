@@ -20,6 +20,7 @@ import {
   deleteDoc,
   onSnapshot,
   writeBatch,
+  runTransaction,
 } from "../firebase";
 import { sanitize } from "../lib/utils/sanitize";
 import { todasAsProvas } from "../shared/athletics/provasDef";
@@ -201,23 +202,26 @@ export function useResultados({ eventos = [], recordes = [], editarEvento, _atua
           )
         : tentativas;
 
-      // Lê estado mais recente do Firestore (evita race condition entre fiscais)
+      // Transação atômica: lê + modifica + grava sem risco de sobrescrever
+      // resultado que outro fiscal gravou entre o read e o write.
       const docRef = doc(db, COLLECTION, chave);
-      const snap = await getDoc(docRef);
-      const docAtual = snap.exists() ? snap.data() : {};
-      const prev = docAtual[atletaId];
-      const entry = typeof prev === "object" && prev !== null ? prev : { marca: prev };
+      await runTransaction(db, async (transaction) => {
+        const snap = await transaction.get(docRef);
+        const docAtual = snap.exists() ? snap.data() : {};
+        const prev = docAtual[atletaId];
+        const entry = typeof prev === "object" && prev !== null ? prev : { marca: prev };
 
-      const novoEntry = sanitize({
-        ...entry,
-        marca: normMarca,
-        ...(raia      !== undefined ? { raia }            : {}),
-        ...(normVento !== undefined ? { vento: normVento } : {}),
-        ...(normTent  !== undefined ? normTent             : {}),
+        const novoEntry = sanitize({
+          ...entry,
+          marca: normMarca,
+          ...(raia      !== undefined ? { raia }            : {}),
+          ...(normVento !== undefined ? { vento: normVento } : {}),
+          ...(normTent  !== undefined ? normTent             : {}),
+        });
+
+        const docComPosicoes = calcularPosicoes({ ...docAtual, [atletaId]: novoEntry }, provId);
+        transaction.set(docRef, sanitize(docComPosicoes));
       });
-
-      const docComPosicoes = calcularPosicoes({ ...docAtual, [atletaId]: novoEntry }, provId);
-      await setDoc(docRef, sanitize(docComPosicoes));
 
       // ── Snapshot de recordes (lazy: cria na primeira digitação se não existir) ──
       try {
@@ -255,49 +259,55 @@ export function useResultados({ eventos = [], recordes = [], editarEvento, _atua
   const limparResultado = useCallback(
     async (eventoId, provId, catId, sexo, atletaId, faseSufixo) => {
       const chave = resKey(eventoId, provId, catId, sexo, faseSufixo || "");
-      const docAtual = { ...(resultadosRef.current[chave] || {}) };
-      delete docAtual[atletaId];
       const docRef = doc(db, COLLECTION, chave);
-      await setDoc(docRef, sanitize(docAtual));
+      await runTransaction(db, async (transaction) => {
+        const snap = await transaction.get(docRef);
+        const docAtual = snap.exists() ? { ...snap.data() } : {};
+        delete docAtual[atletaId];
+        transaction.set(docRef, sanitize(docAtual));
+      });
     },
     []
   );
 
-  // ── Grava resultados de MÚLTIPLOS atletas de uma vez (evita race condition) ──
+  // ── Grava resultados de MÚLTIPLOS atletas de uma vez (transação atômica) ──
   const atualizarResultadosEmLote = useCallback(
     async (eventoId, provId, catId, sexo, faseSufixo, entradas) => {
       // entradas = [{ atletaId, marca, tentData, statusData }]
       if (!entradas || entradas.length === 0) return;
       const chave = resKey(eventoId, provId, catId, sexo, faseSufixo || "");
       const docRef = doc(db, COLLECTION, chave);
-      const snap = await getDoc(docRef);
-      const docAtual = snap.exists() ? { ...snap.data() } : {};
 
-      entradas.forEach(({ atletaId, marca, tentData, statusData, raia, vento }) => {
-        const normMarca = marca != null ? String(marca).replace(",", ".") : marca;
-        const normVento = vento != null ? String(vento).replace(",", ".") : undefined;
-        const normTent = tentData
-          ? Object.fromEntries(
-              Object.entries(tentData).map(([k, v]) => {
-                if (v == null || typeof v === "object") return [k, v];
-                return [k, String(v).replace(",", ".")];
-              })
-            )
-          : {};
-        const prev = docAtual[atletaId];
-        const entry = typeof prev === "object" && prev !== null ? prev : {};
-        docAtual[atletaId] = sanitize({
-          ...entry,
-          marca: normMarca,
-          ...normTent,
-          ...(statusData || {}),
-          ...(raia !== undefined ? { raia } : {}),
-          ...(normVento !== undefined ? { vento: normVento } : {}),
+      await runTransaction(db, async (transaction) => {
+        const snap = await transaction.get(docRef);
+        const docAtual = snap.exists() ? { ...snap.data() } : {};
+
+        entradas.forEach(({ atletaId, marca, tentData, statusData, raia, vento }) => {
+          const normMarca = marca != null ? String(marca).replace(",", ".") : marca;
+          const normVento = vento != null ? String(vento).replace(",", ".") : undefined;
+          const normTent = tentData
+            ? Object.fromEntries(
+                Object.entries(tentData).map(([k, v]) => {
+                  if (v == null || typeof v === "object") return [k, v];
+                  return [k, String(v).replace(",", ".")];
+                })
+              )
+            : {};
+          const prev = docAtual[atletaId];
+          const entry = typeof prev === "object" && prev !== null ? prev : {};
+          docAtual[atletaId] = sanitize({
+            ...entry,
+            marca: normMarca,
+            ...normTent,
+            ...(statusData || {}),
+            ...(raia !== undefined ? { raia } : {}),
+            ...(normVento !== undefined ? { vento: normVento } : {}),
+          });
         });
-      });
 
-      const docComPosicoes = calcularPosicoes(docAtual, provId);
-      await setDoc(docRef, sanitize(docComPosicoes));
+        const docComPosicoes = calcularPosicoes(docAtual, provId);
+        transaction.set(docRef, sanitize(docComPosicoes));
+      });
     },
     []
   );

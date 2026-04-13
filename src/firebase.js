@@ -9,6 +9,7 @@ import {
   deleteDoc,
   onSnapshot,
   writeBatch,
+  runTransaction,
 } from "firebase/firestore";
 import {
   getAuth,
@@ -53,7 +54,7 @@ export {
   // Firestore — existentes
   db, doc, setDoc, onSnapshot,
   // Firestore — novos
-  collection, getDoc, deleteDoc, writeBatch,
+  collection, getDoc, deleteDoc, writeBatch, runTransaction,
   // Auth
   auth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
   signOut, sendPasswordResetEmail, updatePassword, onAuthStateChanged, sendEmailVerification,

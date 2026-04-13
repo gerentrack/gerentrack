@@ -1296,6 +1296,22 @@ function App() {
   // Usar em vez de editarEvento({ ...eventoAtual, campo: valor }) para evitar
   // sobrescrever campos alterados por outro usuário (closure stale).
   const atualizarCamposEvento = async (eventoId, campos) => {
+    // Gera slug para eventos legados que ainda não têm
+    const evt = eventosRef.current.find(e => e.id === eventoId);
+    if (evt && !evt.slug && (campos.nome || evt.nome)) {
+      const nomeFonte = campos.nome || evt.nome;
+      const base = (nomeFonte || "competicao")
+        .toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s-]/g, "")
+        .trim()
+        .replace(/\s+/g, "-")
+        .slice(0, 60);
+      const ano = (campos.data || evt.data || "").slice(0, 4) || new Date().getFullYear();
+      const slugBase = `${base}-${ano}`;
+      const jaExiste = eventosRef.current.some(e => e.slug === slugBase && e.id !== eventoId);
+      campos = { ...campos, slug: jaExiste ? `${slugBase}-${eventoId.slice(-4)}` : slugBase };
+    }
     await _atualizarCamposEvento(eventoId, campos);
   };
 

@@ -202,8 +202,8 @@ function TelaCadastroEvento() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
-  const { adicionarEvento, editarEvento, eventoAtual, eventoAtualId, selecionarEvento, recordes, equipes, inscricoes, atletas, eventos } = useEvento();
-  const { setTela, organizadores, cadEventoGoStep, setCadEventoGoStep } = useApp();
+  const { adicionarEvento, editarEvento, atualizarCamposEvento, eventoAtual, eventoAtualId, selecionarEvento, recordes, equipes, inscricoes, atletas, eventos } = useEvento();
+  const { setTela, organizadores, cadEventoGoStep, setCadEventoGoStep, registrarAcao } = useApp();
   const editando = eventoAtual && eventoAtualId && true;
   const tipoEvt = usuarioLogado?.tipo;
   if (tipoEvt !== "admin" && tipoEvt !== "organizador" && tipoEvt !== "funcionario") return (
@@ -316,6 +316,8 @@ function TelaCadastroEvento() {
     if (!("modoMedalhas" in base)) base.modoMedalhas = base.medalhasApenasParticipacao ? "apenas_participacao" : "classificacao_participacao";
     return base;
   });
+  // Snapshot inicial para diff — ao editar, salva apenas campos alterados
+  const [formOriginal] = useState(() => editando ? { ...eventoAtual } : null);
   const [erros, setErros] = useState({});
   // Steps: 1=Dados | 2=Configurações | 3=Provas | 4=Horários (editing only)
   const [step, setStep] = useState(1);
@@ -380,7 +382,30 @@ function TelaCadastroEvento() {
     if (!dadosParaSalvar.dataEncerramentoInscricoes) delete dadosParaSalvar.dataEncerramentoInscricoes;
     if (!dadosParaSalvar.horaEncerramentoInscricoes) delete dadosParaSalvar.horaEncerramentoInscricoes;
     if (editando) {
-      await editarEvento(dadosParaSalvar);
+      // Merge parcial: envia apenas campos que realmente mudaram,
+      // evitando sobrescrever alterações feitas por outro organizador.
+      if (formOriginal) {
+        const camposAlterados = {};
+        const chaves = new Set([...Object.keys(dadosParaSalvar), ...Object.keys(formOriginal)]);
+        chaves.forEach(k => {
+          if (k === "id") return;
+          const valorAtual = dadosParaSalvar[k];
+          const valorOriginal = formOriginal[k];
+          if (valorAtual === valorOriginal) return;
+          // Comparação profunda para objetos/arrays
+          if (typeof valorAtual === "object" && typeof valorOriginal === "object"
+              && valorAtual !== null && valorOriginal !== null) {
+            if (JSON.stringify(valorAtual) === JSON.stringify(valorOriginal)) return;
+          }
+          camposAlterados[k] = valorAtual;
+        });
+        if (Object.keys(camposAlterados).length > 0) {
+          await atualizarCamposEvento(eventoAtualId, camposAlterados);
+          if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Editou competição", form.nome || "", usuarioLogado.organizadorId || usuarioLogado.id, { equipeId: usuarioLogado.equipeId, modulo: "competicoes" });
+        }
+      } else {
+        await editarEvento(dadosParaSalvar);
+      }
       selecionarEvento(dadosParaSalvar.id);
     } else {
       const novo = adicionarEvento(dadosParaSalvar, usuarioLogado);
