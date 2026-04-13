@@ -196,14 +196,12 @@ function TelaGestaoInscricoes() {
   const [assinaturaUrl, setAssinaturaUrl] = useState("");
   const [marcarComoPago, setMarcarComoPago] = useState(false);
 
-  if (!eventoAtual) return <div style={s.page}><div style={s.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
-
   const tipoUser   = usuarioLogado?.tipo;
   const isPrivileg = tipoUser === "admin"
-    || (tipoUser === "organizador" && eventoAtual.organizadorId === usuarioLogado?.id)
-    || (tipoUser === "funcionario" && eventoAtual.organizadorId === usuarioLogado?.organizadorId);
+    || (tipoUser === "organizador" && eventoAtual?.organizadorId === usuarioLogado?.id)
+    || (tipoUser === "funcionario" && eventoAtual?.organizadorId === usuarioLogado?.organizadorId);
 
-  const eid = eventoAtual.id;
+  const eid = eventoAtual?.id;
 
   // Se for equipe/treinador, filtra apenas atletas e inscrições da própria equipe
   const isEquipeUsuario = usuarioLogado?.tipo === "equipe" || usuarioLogado?.tipo === "treinador";
@@ -221,8 +219,8 @@ function TelaGestaoInscricoes() {
       })
     : inscsEvtTodas;
 
-  const provasProg = todasAsProvas().filter(p => (eventoAtual.provasPrograma || []).includes(p.id));
-  const anoComp = eventoAtual.data ? parseInt(eventoAtual.data.slice(0, 4)) : new Date().getFullYear();
+  const provasProg = todasAsProvas().filter(p => (eventoAtual?.provasPrograma || []).includes(p.id));
+  const anoComp = eventoAtual?.data ? parseInt(eventoAtual.data.slice(0, 4)) : new Date().getFullYear();
 
   // Helper: nome atual da equipe (prioriza equipe cadastrada, ignora snapshots antigos)
   const getNomeEquipeAtual = (atl, inscFallback) => {
@@ -249,7 +247,7 @@ function TelaGestaoInscricoes() {
   // ── Carrinho ─────────────────────────────────────────────────────────────
 
   // ── Pré-inscrições (atletas sem provas definidas) ──────────────────────────
-  const preInscricoes = eventoAtual.preInscricoes || [];
+  const preInscricoes = eventoAtual?.preInscricoes || [];
 
   const handlePreInscricao = () => {
     if (!inserirAtletaId) { alert("Selecione um atleta."); return; }
@@ -1169,6 +1167,8 @@ function TelaGestaoInscricoes() {
 
 
   // ── Guards movidos para depois de todos os hooks (regra dos Hooks) ──────
+  if (!eventoAtual) return <div style={s.page}><div style={s.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
+
   if (!isPrivileg && isInscricaoEncerradaAgora(eventoAtual)) return (
     <div style={s.page}>
       <div style={s.emptyState}>
