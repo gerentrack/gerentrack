@@ -460,7 +460,7 @@ function TelaGestaoInscricoes() {
 
   const totalGeral = resumoCarrinho.reduce((acc, r) => acc + r.valorCobrar, 0);
   const temPreco   = true; // sempre mostrar coluna valor (exibe "Gratuito" quando sem preço)
-  const temPrecoConfig = !!(eventoAtual.regrasPreco?.length > 0 || eventoAtual.valorInscricao);
+  const temPrecoConfig = !!(eventoAtual?.regrasPreco?.length > 0 || eventoAtual?.valorInscricao);
 
   // ── Impressão do lote de inscrições ────────────────────────────────────────
   const imprimirLote = () => {
