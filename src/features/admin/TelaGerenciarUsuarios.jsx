@@ -153,7 +153,7 @@ function TelaGerenciarUsuarios() {
   const [tipoUsuario, setTipoUsuario] = useState("organizadores"); // organizadores | equipes | atletas
   const [modo, setModo] = useState("lista"); // lista | novo | editar
   const [usuarioSelecionado, setUsuarioSelecionado] = useState(null);
-  const [form, setForm] = useState({ nome: "", email: "", senha: "", tipo: "organizador", entidade: "", cnpj: "", fone: "", equipeId: "", cpf: "", dataNasc: "", sexo: "M", organizadorId: "" });
+  const [form, setForm] = useState({ nome: "", email: "", senha: "", tipo: "organizador", entidade: "", cnpj: "", fone: "", equipeId: "", cpf: "", dataNasc: "", sexo: "M", organizadorId: "", cidade: "", estado: "" });
   const [erros, setErros] = useState({});
   const [filtro, setFiltro] = useState("");
   const [filtroOrgUsuario, setFiltroOrgUsuario] = useState("");
@@ -339,6 +339,8 @@ function TelaGerenciarUsuarios() {
         dataNasc: form.dataNasc || "",
         sexo: form.sexo || "M",
         organizadorId: form.organizadorId || "",
+        cidade: form.cidade || "",
+        estado: form.estado || "",
       };
 
       // Se email mudou, criar nova conta Auth com o novo email
@@ -372,7 +374,7 @@ function TelaGerenciarUsuarios() {
     }
 
     setModo("lista");
-    setForm({ nome: "", email: "", senha: "", tipo: "organizador", entidade: "", cnpj: "", fone: "", equipeId: "", cpf: "", dataNasc: "", sexo: "M", organizadorId: "" });
+    setForm({ nome: "", email: "", senha: "", tipo: "organizador", entidade: "", cnpj: "", fone: "", equipeId: "", cpf: "", dataNasc: "", sexo: "M", organizadorId: "", cidade: "", estado: "" });
     setUsuarioSelecionado(null);
     setErros({});
     setPerfilExistente(null);
@@ -392,6 +394,8 @@ function TelaGerenciarUsuarios() {
       dataNasc: usuario.dataNasc || "",
       sexo: usuario.sexo || "M",
       organizadorId: usuario.organizadorId || "",
+      cidade: usuario.cidade || "",
+      estado: usuario.estado || "",
     });
     setModo("editar");
   };
@@ -626,6 +630,22 @@ function TelaGerenciarUsuarios() {
             </div>
           )}
 
+          {tipoUsuario === "organizadores" && (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 100px", gap: 12, marginBottom: 16 }}>
+              <div>
+                <label style={{ display: "block", color: t.textTertiary, fontSize: 13, marginBottom: 6 }}>Cidade</label>
+                <input type="text" value={form.cidade || ""} onChange={e => setForm({ ...form, cidade: e.target.value })} placeholder="Cidade" style={s.input} />
+              </div>
+              <div>
+                <label style={{ display: "block", color: t.textTertiary, fontSize: 13, marginBottom: 6 }}>UF</label>
+                <select style={s.input} value={form.estado || ""} onChange={e => setForm({ ...form, estado: e.target.value })}>
+                  <option value="">—</option>
+                  {["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"].map(uf => <option key={uf} value={uf}>{uf}</option>)}
+                </select>
+              </div>
+            </div>
+          )}
+
           {tipoUsuario === "equipes" && (
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: "block", color: t.textTertiary, fontSize: 13, marginBottom: 6 }}>
@@ -725,7 +745,7 @@ function TelaGerenciarUsuarios() {
           <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
             <button style={s.btnGhost} onClick={async () => {
               setModo("lista");
-              setForm({ nome: "", email: "", senha: "", tipo: "organizador", entidade: "", cnpj: "", fone: "", equipeId: "", cpf: "", dataNasc: "", sexo: "M", organizadorId: "" });
+              setForm({ nome: "", email: "", senha: "", tipo: "organizador", entidade: "", cnpj: "", fone: "", equipeId: "", cpf: "", dataNasc: "", sexo: "M", organizadorId: "", cidade: "", estado: "" });
               setErros({});
             }}>
               Cancelar

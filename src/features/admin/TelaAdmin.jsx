@@ -166,7 +166,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
   const [showOrgForm, setShowOrgForm] = useState(false);
   const [senhasVisiveis, setSenhasVisiveis] = useState(new Set());
   const [resetFeedback, setResetFeedback] = useState({}); // { [solId]: "ok" | "erro" | "enviando" } // IDs de senhas reveladas
-  const [formOrg,  setFormOrg]  = useState({ nome:"", email:"", senha:"", entidade:"", fone:"", cnpj:"" });
+  const [formOrg,  setFormOrg]  = useState({ nome:"", email:"", senha:"", entidade:"", fone:"", cnpj:"", cidade:"", estado:"" });
   const [errosOrg, setErrosOrg] = useState({});
   const [salvoOrg, setSalvoOrg] = useState(false);
 
@@ -186,7 +186,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
       await firebaseSignOut(secondaryAuth).catch(() => {});
     } catch (_) {}
     adicionarOrganizador({ ...formOrg, id:Date.now().toString(), status:"aprovado", dataCadastro:new Date().toISOString(), tipo:"organizador" });
-    setFormOrg({ nome:"", email:"", senha:"", entidade:"", fone:"", cnpj:"" });
+    setFormOrg({ nome:"", email:"", senha:"", entidade:"", fone:"", cnpj:"", cidade:"", estado:"" });
     setErrosOrg({}); setSalvoOrg(true); setTimeout(() => setSalvoOrg(false), 3000); setShowOrgForm(false);
   };
 
@@ -678,6 +678,15 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
                   <FormField label="Telefone"               value={formOrg.fone}     onChange={v=>setFormOrg({...formOrg,fone:v})} />
                   <FormField label="Senha *"                value={formOrg.senha}    onChange={v=>setFormOrg({...formOrg,senha:v})}    type="password" error={errosOrg.senha} />
                   <FormField label="CNPJ *"                 value={formOrg.cnpj}     onChange={v=>setFormOrg({...formOrg,cnpj:v})}     placeholder="00.000.000/0001-00" error={errosOrg.cnpj} />
+                  <FormField label="Cidade"                  value={formOrg.cidade}   onChange={v=>setFormOrg({...formOrg,cidade:v})} />
+                  <div>
+                    <label style={{ display:"block", fontSize:12, fontWeight:600, color:t.textMuted, letterSpacing:1, marginBottom:6, textTransform:"uppercase" }}>UF</label>
+                    <select style={{ width:"100%", background:t.bgInput, border:`1px solid ${t.borderInput}`, borderRadius:8, padding:"10px 14px", color:t.textSecondary, fontSize:14 }}
+                      value={formOrg.estado || ""} onChange={e => setFormOrg({...formOrg, estado:e.target.value})}>
+                      <option value="">—</option>
+                      {["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"].map(uf => <option key={uf} value={uf}>{uf}</option>)}
+                    </select>
+                  </div>
                 </div>
                 <div style={{ display:"flex", gap:8, marginTop:8 }}>
                   <button onClick={handleCriarOrg} style={s.btnPrimary}>Criar Organizador (aprovado)</button>

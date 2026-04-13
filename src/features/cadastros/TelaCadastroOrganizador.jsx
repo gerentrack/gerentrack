@@ -105,7 +105,14 @@ function TelaCadastroOrganizador() {
         <FormField label="Senha *"              value={form.senha}     onChange={v=>setForm({...form,senha:v})}     type="password" error={erros.senha} />
         <FormField label="CNPJ *"                value={form.cnpj}      onChange={v=>setForm({...form,cnpj:v})} placeholder="00.000.000/0001-00" error={erros.cnpj} />
         <FormField label="Cidade"               value={form.cidade}    onChange={v=>setForm({...form,cidade:v})} />
-        <FormField label="Estado (UF)"          value={form.estado}    onChange={v=>setForm({...form,estado:v})} placeholder="SP" />
+        <div>
+          <label style={{ display:"block", fontSize:12, fontWeight:600, color:t.textMuted, letterSpacing:1, marginBottom:6, textTransform:"uppercase" }}>Estado (UF)</label>
+          <select style={{ width:"100%", background:t.bgInput, border:`1px solid ${t.borderInput}`, borderRadius:8, padding:"10px 14px", color:t.textSecondary, fontSize:14, fontFamily:"'Barlow', sans-serif" }}
+            value={form.estado || ""} onChange={e => setForm({...form, estado:e.target.value})}>
+            <option value="">Selecione...</option>
+            {["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"].map(uf => <option key={uf} value={uf}>{uf}</option>)}
+          </select>
+        </div>
       </div>
       <BlocoLGPD aceite={lgpdAceite} onChange={setLgpdAceite} erro={erros.lgpd} />
       <button style={{ ...s.btnPrimary, marginTop: 16 }} onClick={handleSubmit}>Criar Conta</button>
