@@ -1230,7 +1230,7 @@ function TelaRecordes() {
               { ...pend, observacao: obs || pend.observacao }, recordes, usuarioLogado?.nome || "admin"
             );
             setRecordes(recordesAtualizados);
-            setHistoricoRecordes(prev => [...prev, novoHistorico]);
+            setHistoricoRecordes(prev => [...prev, novoHistorico].slice(-500));
           }
           const acaoNome = status === "homologado" ? "Homologou recorde" : status === "nao_homologado" ? "Rejeitou recorde" : "Resolveu recorde";
           if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, acaoNome, `${pend.atletaNome} — ${pend.provaNome} (${pend.recordeTipoSigla})`, null, { modulo: "recordes" });
@@ -1248,7 +1248,7 @@ function TelaRecordes() {
             novosHist.push(novoHistorico);
           });
           setRecordes(recsAtual);
-          setHistoricoRecordes(prev => [...prev, ...novosHist]);
+          setHistoricoRecordes(prev => [...prev, ...novosHist].slice(-500));
           setPendenciasRecorde(prev => prev.map(p => ids.includes(p.id) ? {
             ...p, status: "homologado", resolvidoPor: usuarioLogado?.nome || "admin", resolvidoEm: Date.now(), observacao: obs
           } : p));
@@ -1653,7 +1653,7 @@ function TelaRecordes() {
                         { ...pend, observacao: texto || pend.observacao }, recordes, usuarioLogado?.nome || "admin"
                       );
                       setRecordes(recordesAtualizados);
-                      setHistoricoRecordes(prev => [...prev, novoHistorico]);
+                      setHistoricoRecordes(prev => [...prev, novoHistorico].slice(-500));
                     }
                     const acaoNome = st === "homologado" ? "Homologou recorde" : st === "nao_homologado" ? "Rejeitou recorde" : "Resolveu recorde";
                     if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, acaoNome, `${pend.atletaNome} — ${pend.provaNome} (${pend.recordeTipoSigla})`, null, { modulo: "recordes" });

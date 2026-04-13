@@ -134,20 +134,20 @@ export default function TelaRanking() {
   // ── Ações de homologação ──
   const homologar = (entrada) => {
     setRanking(prev => prev.map(r => r.id === entrada.id ? { ...r, status: "homologado", resolvidoPor: usuarioLogado?.nome, resolvidoEm: Date.now() } : r));
-    setHistoricoRanking(prev => [...prev, { tipo: "homologado", entradaId: entrada.id, atletaNome: entrada.atletaNome, provaNome: entrada.provaNome, marca: entrada.marca, adminNome: usuarioLogado?.nome, data: Date.now() }]);
+    setHistoricoRanking(prev => [...prev, { tipo: "homologado", entradaId: entrada.id, atletaNome: entrada.atletaNome, provaNome: entrada.provaNome, marca: entrada.marca, adminNome: usuarioLogado?.nome, data: Date.now() }].slice(-500));
     if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Homologou ranking", `${entrada.atletaNome} · ${entrada.provaNome} · ${entrada.marca}`, null, { modulo: "ranking" });
   };
 
   const rejeitar = (entrada) => {
     setRanking(prev => prev.map(r => r.id === entrada.id ? { ...r, status: "rejeitado", resolvidoPor: usuarioLogado?.nome, resolvidoEm: Date.now() } : r));
-    setHistoricoRanking(prev => [...prev, { tipo: "rejeitado", entradaId: entrada.id, atletaNome: entrada.atletaNome, provaNome: entrada.provaNome, marca: entrada.marca, adminNome: usuarioLogado?.nome, data: Date.now() }]);
+    setHistoricoRanking(prev => [...prev, { tipo: "rejeitado", entradaId: entrada.id, atletaNome: entrada.atletaNome, provaNome: entrada.provaNome, marca: entrada.marca, adminNome: usuarioLogado?.nome, data: Date.now() }].slice(-500));
     if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Rejeitou ranking", `${entrada.atletaNome} · ${entrada.provaNome} · ${entrada.marca}`, null, { modulo: "ranking" });
   };
 
   const homologarTodos = (entradas) => {
     const ids = new Set(entradas.map(r => r.id));
     setRanking(prev => prev.map(r => ids.has(r.id) ? { ...r, status: "homologado", resolvidoPor: usuarioLogado?.nome, resolvidoEm: Date.now() } : r));
-    setHistoricoRanking(prev => [...prev, ...entradas.map(r => ({ tipo: "homologado", entradaId: r.id, atletaNome: r.atletaNome, provaNome: r.provaNome, marca: r.marca, adminNome: usuarioLogado?.nome, data: Date.now() }))]);
+    setHistoricoRanking(prev => [...prev, ...entradas.map(r => ({ tipo: "homologado", entradaId: r.id, atletaNome: r.atletaNome, provaNome: r.provaNome, marca: r.marca, adminNome: usuarioLogado?.nome, data: Date.now() }))].slice(-500));
     if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Homologou ranking (lote)", `${entradas.length} entradas`, null, { modulo: "ranking" });
   };
 
