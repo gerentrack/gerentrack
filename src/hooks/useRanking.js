@@ -1,16 +1,18 @@
 /**
  * useRanking.js
- * Substitui useLocalStorage("atl_ranking") por coleção Firestore por UF.
+ * Ranking separado por UF — cada estado tem seu próprio documento.
  *
  * Estrutura Firestore:
  *   ranking/
- *     BR → { entradas: [...] }   ← todas as entradas (nacional)
- *     MG → { entradas: [...] }   ← entradas de competições em MG
- *     SP → { entradas: [...] }   ← entradas de competições em SP
- *     ...
+ *     MG → { entradas: [...] }
+ *     SP → { entradas: [...] }
+ *     MS → { entradas: [...] }
  *
- * Na leitura: carrega BR (nacional) por padrão. Filtra por UF no cliente.
- * Na escrita: salva em ranking/BR e no ranking/{UF} da competição.
+ * NÃO existe documento BR — o nacional é a junção de todos os estados
+ * feita no cliente (evita duplicação e limite de 1MB).
+ *
+ * Na leitura: escuta toda a coleção, junta todas as entradas em memória.
+ * Na escrita: agrupa por eventoUf e salva em cada ranking/{UF}.
  */
 
 import { useEffect, useState, useCallback, useRef } from "react";
@@ -19,6 +21,7 @@ import {
   collection,
   doc,
   setDoc,
+  deleteDoc,
   onSnapshot,
   writeBatch,
 } from "../firebase";
@@ -33,17 +36,19 @@ export function useRanking() {
   const ref = useRef(ranking);
   ref.current = ranking;
 
-  // ── Escuta ranking/BR (nacional — contém todas as entradas) ─────────────
+  // ── Escuta toda a coleção ranking/ e junta todas as entradas ────────────
   useEffect(() => {
     const unsub = onSnapshot(
-      doc(db, COLLECTION, "BR"),
+      collection(db, COLLECTION),
       (snap) => {
-        if (snap.exists()) {
-          const data = snap.data();
-          setLocal(data.entradas || []);
-        } else {
-          setLocal([]);
-        }
+        const todas = [];
+        snap.forEach(d => {
+          const data = d.data();
+          if (Array.isArray(data.entradas)) {
+            todas.push(...data.entradas);
+          }
+        });
+        setLocal(todas);
         setCarregando(false);
       },
       (err) => {
@@ -54,49 +59,53 @@ export function useRanking() {
     return () => unsub();
   }, []);
 
-  // ── Salvar ranking (atualiza BR + UF específico) ────────────────────────
+  // ── Salvar ranking (agrupa por UF e salva em cada documento) ────────────
   const setRanking = useCallback(async (updaterOrValue) => {
     const current = ref.current;
     const newValue = typeof updaterOrValue === "function" ? updaterOrValue(current) : updaterOrValue;
     if (!Array.isArray(newValue)) return;
 
-    // Salvar no BR (nacional)
-    await setDoc(doc(db, COLLECTION, "BR"), sanitize({ entradas: newValue }));
-
-    // Agrupar por UF e salvar em cada ranking/{UF}
+    // Agrupar por UF
     const porUf = {};
     newValue.forEach(e => {
-      const uf = (e.eventoUf || "").toUpperCase();
-      if (uf && uf !== "BR") {
-        if (!porUf[uf]) porUf[uf] = [];
-        porUf[uf].push(e);
-      }
+      const uf = (e.eventoUf || "").toUpperCase() || "OUTROS";
+      if (!porUf[uf]) porUf[uf] = [];
+      porUf[uf].push(e);
     });
 
+    // UFs que tinham dados antes mas agora não (precisam ser limpas)
+    const ufsAntigas = new Set(current.map(e => (e.eventoUf || "").toUpperCase() || "OUTROS"));
+    const ufsNovas = new Set(Object.keys(porUf));
+
     const batch = writeBatch(db);
+    // Salvar UFs com dados
     Object.entries(porUf).forEach(([uf, entradas]) => {
       batch.set(doc(db, COLLECTION, uf), sanitize({ entradas }));
     });
-    if (Object.keys(porUf).length > 0) await batch.commit();
+    // Limpar UFs que ficaram sem dados
+    ufsAntigas.forEach(uf => {
+      if (!ufsNovas.has(uf)) batch.set(doc(db, COLLECTION, uf), { entradas: [] });
+    });
+    await batch.commit();
   }, []);
 
   // ── Reset total ─────────────────────────────────────────────────────────
   const resetRanking = useCallback(async () => {
-    // Lê todas as UFs e deleta
-    const batch = writeBatch(db);
-    batch.set(doc(db, COLLECTION, "BR"), { entradas: [] });
-    // UFs conhecidas
     const ufs = [...new Set(ref.current.map(e => (e.eventoUf || "").toUpperCase()).filter(Boolean))];
-    ufs.forEach(uf => batch.set(doc(db, COLLECTION, uf), { entradas: [] }));
+    if (ufs.length === 0) return;
+    const batch = writeBatch(db);
+    ufs.forEach(uf => batch.delete(doc(db, COLLECTION, uf)));
     await batch.commit();
   }, []);
 
   // ── Importar backup ─────────────────────────────────────────────────────
   const importarRanking = useCallback(async (lista) => {
     if (!Array.isArray(lista)) return;
+    // Limpar tudo e regravar
+    await resetRanking();
     ref.current = lista;
     await setRanking(lista);
-  }, [setRanking]);
+  }, [setRanking, resetRanking]);
 
   return {
     ranking,
