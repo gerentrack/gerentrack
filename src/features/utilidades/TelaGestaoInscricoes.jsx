@@ -169,7 +169,7 @@ function TelaGestaoInscricoes() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
-  const { eventoAtual, atualizarCamposEvento, inscricoes, atletas, equipes, excluirInscricao, adicionarInscricao, atualizarInscricao, atualizarAtleta, numeracaoPeito } = useEvento();
+  const { eventoAtual, atualizarCamposEvento, inscricoes, atletas, equipes, excluirInscricao, adicionarInscricao, atualizarInscricao, numeracaoPeito } = useEvento();
   const { setTela, registrarAcao, organizadores, gtLogo } = useApp();
   const confirmar = useConfirm();
 
@@ -195,8 +195,6 @@ function TelaGestaoInscricoes() {
   const [selecionadosRecibo, setSelecionadosRecibo] = useState(new Set());
   const [assinaturaUrl, setAssinaturaUrl] = useState("");
   const [marcarComoPago, setMarcarComoPago] = useState(false);
-  const [modalTransf, setModalTransf] = useState(null);
-  const [transfEquipeId, setTransfEquipeId] = useState("");
 
   const tipoUser   = usuarioLogado?.tipo;
   const isPrivileg = tipoUser === "admin"
@@ -1168,21 +1166,6 @@ function TelaGestaoInscricoes() {
   };
 
 
-  const executarTransferencia = async () => {
-    if (!modalTransf) return;
-    if (transfEquipeId === (modalTransf.atleta?.equipeId || "")) { setModalTransf(null); return; }
-    const atl = modalTransf.atleta;
-    const novaEquipe = transfEquipeId ? equipes.find(eq => eq.id === transfEquipeId) : null;
-    const equipeOrigem = equipes.find(eq => eq.id === atl?.equipeId)?.nome || "Sem equipe";
-    await atualizarAtleta({ ...atl, equipeId: transfEquipeId || null, clube: novaEquipe?.nome || "" });
-    if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, "Transferiu atleta",
-      `${atl?.nome}: ${equipeOrigem} → ${novaEquipe?.nome || "Sem equipe"}`, usuarioLogado?.organizadorId || usuarioLogado?.id, { modulo: "inscricoes" });
-    setFeedback(`${atl?.nome} transferido(a) para ${novaEquipe?.nome || "Sem equipe"}`);
-    setTimeout(() => setFeedback(""), 3000);
-    setModalTransf(null);
-    setTransfEquipeId("");
-  };
-
   // ── Guards movidos para depois de todos os hooks (regra dos Hooks) ──────
   if (!eventoAtual) return <div style={s.page}><div style={s.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
 
@@ -1318,44 +1301,6 @@ function TelaGestaoInscricoes() {
             <button onClick={() => setModoRecibo(null)} style={{ marginTop: 20, background: "none", border: "none", color: t.textDimmed, cursor: "pointer", fontSize: 13, width: "100%", textAlign: "center" }}>
               Cancelar
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* ── Modal de Transferência ── */}
-      {modalTransf && (
-        <div style={{ position: "fixed", inset: 0, background: "#000a", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}
-          onClick={() => setModalTransf(null)}>
-          <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 14, padding: 28, width: 420, maxWidth: "95vw" }}
-            onClick={ev => ev.stopPropagation()}>
-            <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.textPrimary, marginBottom: 4 }}>
-              Transferir Atleta
-            </h3>
-            <p style={{ color: t.textMuted, fontSize: 13, marginBottom: 20 }}>{modalTransf.atleta?.nome}</p>
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ color: t.textTertiary, fontSize: 12, display: "block", marginBottom: 4 }}>Equipe atual</label>
-              <div style={{ color: t.textPrimary, fontSize: 14, padding: "8px 12px", background: t.bgInput, borderRadius: 6, border: `1px solid ${t.borderInput}` }}>
-                {equipes.find(eq => eq.id === modalTransf.atleta?.equipeId)?.nome || <span style={{ color: t.textDimmed }}>Sem equipe</span>}
-              </div>
-            </div>
-            <div style={{ marginBottom: 20 }}>
-              <label style={{ color: t.textTertiary, fontSize: 12, display: "block", marginBottom: 4 }}>Nova equipe</label>
-              <select value={transfEquipeId} onChange={ev => setTransfEquipeId(ev.target.value)}
-                style={{ width: "100%", background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 6, color: t.textPrimary, padding: "8px 12px", fontSize: 13 }}>
-                <option value="">Sem equipe (avulso)</option>
-                {[...equipes]
-                  .filter(eq => eq.id !== modalTransf.atleta?.equipeId && (eq.status === "ativa" || eq.status === "aprovado" || !eq.status))
-                  .sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR"))
-                  .map(eq => <option key={eq.id} value={eq.id}>{eq.nome} ({eq.sigla || "—"})</option>)
-                }
-              </select>
-            </div>
-            <div style={{ display: "flex", gap: 10 }}>
-              <button style={{ ...s.btnPrimary, flex: 1 }} onClick={executarTransferencia}>
-                Confirmar Transferência
-              </button>
-              <button style={{ ...s.btnGhost }} onClick={() => setModalTransf(null)}>Cancelar</button>
-            </div>
           </div>
         </div>
       )}
@@ -1577,13 +1522,6 @@ function TelaGestaoInscricoes() {
                                     borderColor: isPago(inscs) ? `${t.success}44` : t.borderLight,
                                     background: isPago(inscs) ? t.bgCardAlt : "transparent" }}>
                                   {isPago(inscs) ? "Pago" : "Pendente"}
-                                </button>
-                              )}
-                              {/* Transferir equipe — admin/org */}
-                              {isPrivileg && (
-                                <button onClick={() => { setModalTransf({ atleta: atl }); setTransfEquipeId(""); }}
-                                  style={{ ...s.btnGhost, fontSize: 11, padding: "3px 10px", color: "#e6c430", borderColor: "#5a4a00" }}>
-                                  Transferir
                                 </button>
                               )}
                               {/* Excluir — admin/org sempre; equipe só com inscrições abertas; bloqueado se finalizado */}
