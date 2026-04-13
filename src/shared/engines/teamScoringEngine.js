@@ -93,7 +93,7 @@ const TeamScoringEngine = {
   // Calcula classificação geral das equipes agregando todos os pontos
   // eventoAtual, inscricoes, resultados, atletas, equipes — dados do sistema
   // Retorna: { classificacao: [{ equipeId, nome, sigla, totalPontos, pontosPorProva }], totalProvasComResultado, totalProvas }
-  calcularClassificacaoEquipes(eventoAtual, inscricoes, resultados, atletas, equipes, recordes) {
+  calcularClassificacaoEquipes(eventoAtual, inscricoes, resultados, atletas, equipes, recordes, filtroSexo) {
     const config = eventoAtual.pontuacaoEquipes;
     if (!config || !config.ativo) return { classificacao: [], totalProvasComResultado: 0, totalProvas: 0 };
 
@@ -147,6 +147,7 @@ const TeamScoringEngine = {
     const todasProvasComComb = [...todasProvas, ...provasComponentes];
 
     // Calcular pontos de provas normais (não-combinadas, não-revezamentos e não-componentes)
+    const _sexos = filtroSexo ? [filtroSexo] : ["M", "F"];
     const configSeriacaoEvt = eventoAtual.configSeriacao || {};
     provasPrograma.forEach(provaId => {
       const prova = todasProvas.find(p => p.id === provaId);
@@ -154,7 +155,7 @@ const TeamScoringEngine = {
       totalProvas++;
 
       // Verificar cada combinação sexo × categoria
-      ["M", "F"].forEach(sexo => {
+      _sexos.forEach(sexo => {
         CATEGORIAS.forEach(cat => {
           // Buscar resultado: priorizar FIN de multi-fase, depois chave base (só se sem fases)
           const fasesConf = getFasesModo(provaId, configSeriacaoEvt);
@@ -255,7 +256,7 @@ const TeamScoringEngine = {
     provasRevezamentos.forEach(function(prova) {
       totalProvas++;
 
-      ["M", "F"].forEach(sexo => {
+      _sexos.forEach(sexo => {
         CATEGORIAS.forEach(cat => {
           // Buscar resultado: priorizar FIN de multi-fase, depois chave base (só se sem fases)
           const fasesConfR = getFasesModo(prova.id, configSeriacaoEvt);
@@ -324,6 +325,7 @@ const TeamScoringEngine = {
     provasCombinadas.forEach(function(prova) {
       totalProvas++;
       var sexoProva = prova.id.startsWith("F_") ? "F" : "M";
+      if (filtroSexo && sexoProva !== filtroSexo) return;
       var catId = prova.id.split("_")[1] || "";
       var cat = CATEGORIAS.find(function(c) { return c.id === catId; });
       if (!cat) return;
@@ -415,6 +417,7 @@ const TeamScoringEngine = {
           const lastUnd = chaveBase.lastIndexOf("_");
           if (lastUnd < 0) return;
           const sexo = chaveBase.substring(lastUnd + 1);
+          if (filtroSexo && sexo !== filtroSexo) return;
           const rest = chaveBase.substring(0, lastUnd);
           const lastUnd2 = rest.lastIndexOf("_");
           if (lastUnd2 < 0) return;

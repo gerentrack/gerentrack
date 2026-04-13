@@ -176,6 +176,7 @@ function TelaResultados() {
   const [filtroCat, setFiltroCat] = useState("todas");
   const [filtroSexo, setFiltroSexo] = useState("todos");
   const [filtroEtapa, setFiltroEtapa] = useState("todas");
+  const [abaClassifEquipe, setAbaClassifEquipe] = useState("geral");
 
   if (!eventoAtual) return (
     <div style={s.page}><div style={s.emptyState}><p>Selecione uma competição primeiro.</p>
@@ -510,6 +511,10 @@ function TelaResultados() {
 
   // Classificação por equipes
   const classifEquipes = TeamScoringEngine.calcularClassificacaoEquipes(eventoAtual, inscricoes, resultados, atletas, equipes, recordes);
+  const _cfgPontEq = eventoAtual.pontuacaoEquipes || {};
+  const classifPorSexoAtivo = !!_cfgPontEq.classificacaoPorSexo && !!_cfgPontEq.ativo;
+  const classifEquipesM = classifPorSexoAtivo ? TeamScoringEngine.calcularClassificacaoEquipes(eventoAtual, inscricoes, resultados, atletas, equipes, recordes, "M") : null;
+  const classifEquipesF = classifPorSexoAtivo ? TeamScoringEngine.calcularClassificacaoEquipes(eventoAtual, inscricoes, resultados, atletas, equipes, recordes, "F") : null;
 
   const isAdmin = usuarioLogado?.tipo === "admin";
   const isOrg = usuarioLogado?.tipo === "organizador";
@@ -766,7 +771,14 @@ function TelaResultados() {
       </div>
 
       {/* Classificação por Equipes */}
-      {classifEquipes.classificacao.length > 0 && (
+      {classifEquipes.classificacao.length > 0 && (() => {
+        const _classifAtiva = abaClassifEquipe === "masc" && classifEquipesM ? classifEquipesM
+          : abaClassifEquipe === "fem" && classifEquipesF ? classifEquipesF
+          : classifEquipes;
+        const _tituloAba = abaClassifEquipe === "masc" ? "Classificação por Equipes — Masculino"
+          : abaClassifEquipe === "fem" ? "Classificação por Equipes — Feminino"
+          : "Classificação por Equipes" + (classifPorSexoAtivo ? " — Geral" : "");
+        return (
         <div style={{
           background: t.bgCard, border:`1px solid ${t.accentBorder}`,
           borderRadius:12, marginBottom:24, overflow:"hidden",
@@ -774,62 +786,54 @@ function TelaResultados() {
           <div style={{ padding:"14px 20px", background:t.bgHeaderSolid, borderBottom:`1px solid ${t.border}`, display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12 }}>
             <div>
               <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:22, fontWeight:800, color: t.textPrimary, marginBottom:4, display: "flex", alignItems: "center", gap: 10 }}>
-                <span>{"Classificação por Equipes"}</span>
+                <span>{_tituloAba}</span>
                 <span style={{
                   fontSize: 11, padding: "2px 10px", borderRadius: 4, fontWeight: 600,
-                  background: classifEquipes.totalProvasComResultado >= classifEquipes.totalProvas ? `${t.success}15` : `${t.accent}15`,
-                  color: classifEquipes.totalProvasComResultado >= classifEquipes.totalProvas ? t.success : t.accent,
+                  background: _classifAtiva.totalProvasComResultado >= _classifAtiva.totalProvas ? `${t.success}15` : `${t.accent}15`,
+                  color: _classifAtiva.totalProvasComResultado >= _classifAtiva.totalProvas ? t.success : t.accent,
                 }}>
-                  {classifEquipes.totalProvasComResultado >= classifEquipes.totalProvas ? "CLASSIFICAÇÃO FINAL" : "CLASSIFICAÇÃO PARCIAL"}
+                  {_classifAtiva.totalProvasComResultado >= _classifAtiva.totalProvas ? "CLASSIFICAÇÃO FINAL" : "CLASSIFICAÇÃO PARCIAL"}
                 </span>
               </div>
               <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap", marginTop:6 }}>
                 <span style={{ color: t.textTertiary, fontSize: 13 }}>
-                  {classifEquipes.totalProvasComResultado}/{classifEquipes.totalProvas} provas com resultado
+                  {_classifAtiva.totalProvasComResultado}/{_classifAtiva.totalProvas} provas com resultado
                 </span>
               </div>
             </div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             {isAmplo && (
               <button
                 style={{ ...s.btnGhost, fontSize: 12, padding: "6px 12px", whiteSpace: "nowrap" }}
                 onClick={() => {
-                  const isFinal = classifEquipes.totalProvasComResultado >= classifEquipes.totalProvas;
                   const _br = (() => { try { return JSON.parse(localStorage.getItem("gt_branding")) || {}; } catch { return {}; } })();
                   const _gl = _br.logo || GT_DEFAULT_LOGO;
                   const _dg = new Date().toLocaleString("pt-BR");
                   const _de = new Date(eventoAtual.data + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
-                  const htmlEq = `<html><head><meta charset="utf-8"><title>Classificação por Equipes</title>
-                    <style>body{font-family:Arial,sans-serif;margin:0;padding:12mm 14mm 30mm;font-size:11px;min-height:297mm;display:flex;flex-direction:column;position:relative}
-                    table{width:100%;border-collapse:collapse}th,td{padding:6px 8px;border-bottom:1px solid #ddd}
-                    th{text-align:left;border-bottom:2px solid #333}
-                    .top3{background:#f9f9f0}
-                    .cab{display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:7px;margin-bottom:7px;border-bottom:3px solid #111;gap:10px;}
-                    .cab-left{display:flex;align-items:center;min-width:45mm;}.cab-left img{max-height:28mm;max-width:45mm;object-fit:contain;}
-                    .cab-c{flex:1;text-align:center;}.cab-ev{font-size:14px;font-weight:800;color:#111;text-transform:uppercase;letter-spacing:.5px;line-height:1.2;}
-                    .cab-dt{font-size:10px;color:#555;margin-top:3px;}
-                    .rod-wrap{position:absolute;bottom:0;left:0;right:0;padding:0 14mm 10mm;}
-                    .rod{display:flex;justify-content:space-between;align-items:flex-end;margin-top:10px;padding-top:8px;border-top:1px solid #ccc;gap:10px;}
-                    .rod-ass{flex:1;text-align:center;}.rod-ln{border-bottom:1px solid #333;margin-bottom:3px;height:30px;}.rod-lb{font-size:9px;color:#555;}
-                    .rod-info{text-align:center;font-size:8px;color:#888;min-width:100px;}
-                    @media print{@page{margin:10mm}body{height:100vh}}</style></head><body>
+
+                  const _gerarPagina = (dados, titulo, isLast) => {
+                    if (!dados || dados.classificacao.length === 0) return "";
+                    const isFin = dados.totalProvasComResultado >= dados.totalProvas;
+                    return `<div class="pg"${!isLast ? ` style="page-break-after:always;"` : ""}>
+                    <div class="pg-content">
                     <div class="cab">
                       <div class="cab-left">${eventoAtual.logoCabecalho ? `<img src="${eventoAtual.logoCabecalho}" alt=""/>` : ""}</div>
                       <div class="cab-c"><div class="cab-ev">${eventoAtual.nome}</div><div class="cab-dt">\u{1F4C5} ${_de} \u00a0\u00b7\u00a0 \u{1F4CD} ${_getLocalEventoDisplay(eventoAtual)}</div></div>
                       <div style="text-align:right;">${eventoAtual.logoCabecalhoDireito ? `<img src="${eventoAtual.logoCabecalhoDireito}" alt="" style="max-height:24mm;max-width:45mm;object-fit:contain;" />` : ""}</div>
                     </div>
-                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;margin-top:10px">
-                      <span style="font-size:16px;font-weight:800">Classificação por Equipes</span>
-                      <span style="font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700;border:1px solid ${isFinal ? "#2a8a2a" : "#8a7a00"};color:${isFinal ? "#2a8a2a" : "#8a7a00"}">${isFinal ? "CLASSIFICAÇÃO FINAL" : "CLASSIFICAÇÃO PARCIAL"}</span>
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;margin-top:10px">
+                      <span style="font-size:13px;font-weight:800">${titulo}</span>
+                      <span style="font-size:8px;padding:2px 6px;border-radius:4px;font-weight:700;border:1px solid ${isFin ? "#2a8a2a" : "#8a7a00"};color:${isFin ? "#2a8a2a" : "#8a7a00"}">${isFin ? "CLASSIFICAÇÃO FINAL" : "CLASSIFICAÇÃO PARCIAL"}</span>
                     </div>
-                    <div style="font-size:10px;color:#666;margin-bottom:8px">${eventoAtual.nome} — ${classifEquipes.totalProvasComResultado}/${classifEquipes.totalProvas} provas com resultado</div>
+                    <div style="font-size:8px;color:#666;margin-bottom:6px">${eventoAtual.nome} — ${dados.totalProvasComResultado}/${dados.totalProvas} provas com resultado</div>
                     <table><thead><tr>
                       <th style="width:40px">Pos</th><th>Equipe</th><th style="width:60px">Sigla</th>
                       <th style="text-align:center;width:80px">Provas</th>
-                      ${classifEquipes.totalBonusRecordes > 0 ? `<th style="text-align:center;width:70px">Bônus Rec.</th>` : ""}
-                      ${classifEquipes.totalPenalidades > 0 ? `<th style="text-align:center;width:70px">Penal.</th>` : ""}
+                      ${dados.totalBonusRecordes > 0 ? `<th style="text-align:center;width:70px">Bônus Rec.</th>` : ""}
+                      ${dados.totalPenalidades > 0 ? `<th style="text-align:center;width:70px">Penal.</th>` : ""}
                       <th style="text-align:center;width:70px;font-weight:800">Total</th>
                     </tr></thead><tbody>
-                    ${classifEquipes.classificacao.map((eq, idx) => {
+                    ${dados.classificacao.map((eq, idx) => {
                       const nProvas = Object.keys(eq.pontosPorProva).length;
                       const totalBonus = (eq.bonusRecordes || []).reduce((acc, b) => acc + b.pontos, 0);
                       const bonusDetail = (eq.bonusRecordes || []).map(b => `${b.tipoSigla} ${b.provaNome} (+${b.pontos})`).join(", ");
@@ -837,27 +841,53 @@ function TelaResultados() {
                       const penDetail = (eq.penalidades || []).map(p => `${p.motivo}${p.obs ? " — " + p.obs : ""} (-${p.pontos})`).join(", ");
                       return `<tr${idx < 3 ? ` class="top3"` : ""}>
                         <td style="font-weight:700">${(idx+1)+"º"}</td>
-                        <td style="font-weight:600">${eq.nome}${bonusDetail ? `<div style="font-size:8px;color:#996600;margin-top:2px">${bonusDetail}</div>` : ""}${penDetail ? `<div style="font-size:8px;color:#cc0000;margin-top:2px">${penDetail}</div>` : ""}</td>
+                        <td style="font-weight:600">${eq.nome}${bonusDetail ? `<div style="font-size:7px;color:#996600;margin-top:1px">${bonusDetail}</div>` : ""}${penDetail ? `<div style="font-size:7px;color:#cc0000;margin-top:1px">${penDetail}</div>` : ""}</td>
                         <td style="font-weight:600">${eq.sigla}</td>
                         <td style="text-align:center;color:#666">${nProvas}</td>
-                        ${classifEquipes.totalBonusRecordes > 0 ? `<td style="text-align:center;color:#996600;font-weight:700">${totalBonus > 0 ? "+" + totalBonus : "—"}</td>` : ""}
-                        ${classifEquipes.totalPenalidades > 0 ? `<td style="text-align:center;color:#cc0000;font-weight:700">${totalPenPrint > 0 ? "-" + totalPenPrint : "—"}</td>` : ""}
-                        <td style="text-align:center;font-weight:800;font-size:16px">${eq.totalPontos}</td>
+                        ${dados.totalBonusRecordes > 0 ? `<td style="text-align:center;color:#996600;font-weight:700">${totalBonus > 0 ? "+" + totalBonus : "—"}</td>` : ""}
+                        ${dados.totalPenalidades > 0 ? `<td style="text-align:center;color:#cc0000;font-weight:700">${totalPenPrint > 0 ? "-" + totalPenPrint : "—"}</td>` : ""}
+                        <td style="text-align:center;font-weight:800;font-size:13px">${eq.totalPontos}</td>
                       </tr>`;
                     }).join("")}
                     </tbody></table>
+                    </div>
                     <div class="rod-wrap">
-                      <div style="text-align:center;font-size:8px;color:#888;margin-top:10px;padding-top:8px;border-top:1px solid #ccc;">
+                      <div style="text-align:center;font-size:8px;color:#888;padding-top:8px;border-top:1px solid #ccc;">
                         <div>Gerado em: ${_dg}</div>
                         <div>Plataforma de Competi\u00e7\u00f5es - GERENTRACK</div>
                       </div>
-                      ${eventoAtual.logoRodape ? `<div style="margin-top:10px;text-align:center;"><img src="${eventoAtual.logoRodape}" alt="" style="max-width:100%;max-height:18mm;object-fit:contain;"/></div>` : ""}
-                      <div style="margin-top:12px;text-align:center;padding-top:6px;border-top:1px solid #e0e0e0;">
+                      ${eventoAtual.logoRodape ? `<div style="margin-top:8px;text-align:center;"><img src="${eventoAtual.logoRodape}" alt="" style="max-width:100%;max-height:18mm;object-fit:contain;"/></div>` : ""}
+                      <div style="margin-top:8px;text-align:center;padding-top:6px;border-top:1px solid #e0e0e0;">
                         <div style="font-size:7px;color:#999;letter-spacing:1px;margin-bottom:3px;">Desenvolvido por:</div>
                         <img src="${_gl}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7;" />
                       </div>
                     </div>
-                    <script>window.addEventListener('load',function(){document.querySelectorAll('.pg').forEach(function(pg){var rod=pg.querySelector('.rod-wrap');if(!rod)return;var pgH=pg.offsetHeight;var rodH=rod.offsetHeight;var dH=pgH-rodH;var cH=0;for(var i=0;i<pg.children.length;i++){var c=pg.children[i];if(c===rod)continue;cH+=c.offsetHeight+(parseFloat(getComputedStyle(c).marginTop)||0)+(parseFloat(getComputedStyle(c).marginBottom)||0);}if(cH>dH){var s=Math.max(0.55,dH/cH);for(var j=0;j<pg.children.length;j++){if(pg.children[j]===rod)continue;pg.children[j].style.fontSize=(s*100)+'%';pg.children[j].querySelectorAll('table').forEach(function(t){t.style.fontSize=(s*100)+'%';});}}});});<\/script>
+                    </div>`;
+                  };
+
+                  let paginasHtml;
+                  if (classifPorSexoAtivo) {
+                    paginasHtml = _gerarPagina(classifEquipes, "Classificação por Equipes — Geral", false)
+                      + _gerarPagina(classifEquipesM, "Classificação por Equipes — Masculino", false)
+                      + _gerarPagina(classifEquipesF, "Classificação por Equipes — Feminino", true);
+                  } else {
+                    paginasHtml = _gerarPagina(classifEquipes, "Classificação por Equipes", true);
+                  }
+
+                  const htmlEq = `<html><head><meta charset="utf-8"><title>Classificação por Equipes</title>
+                    <style>body{font-family:Arial,sans-serif;margin:0;padding:0;font-size:9px}
+                    .pg{display:flex;flex-direction:column;min-height:297mm;padding:12mm 14mm 10mm;box-sizing:border-box}
+                    .pg-content{flex:1}
+                    .rod-wrap{flex-shrink:0;margin-top:auto;padding-top:10px}
+                    table{width:100%;border-collapse:collapse}th,td{padding:4px 6px;border-bottom:1px solid #ddd}
+                    th{text-align:left;border-bottom:2px solid #333}
+                    .top3{background:#f9f9f0}
+                    .cab{display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:7px;margin-bottom:7px;border-bottom:3px solid #111;gap:10px;}
+                    .cab-left{display:flex;align-items:center;min-width:45mm;}.cab-left img{max-height:28mm;max-width:45mm;object-fit:contain;}
+                    .cab-c{flex:1;text-align:center;}.cab-ev{font-size:12px;font-weight:800;color:#111;text-transform:uppercase;letter-spacing:.5px;line-height:1.2;}
+                    .cab-dt{font-size:8px;color:#555;margin-top:2px;}
+                    @media print{@page{margin:0}.pg{min-height:100vh;padding:10mm 12mm 8mm}}</style></head><body>
+                    ${paginasHtml}
                     </body></html>`;
                   const win = window.open("", "_blank", "width=900,height=700");
                   if (!win) { alert("Permita pop-ups."); return; }
@@ -868,8 +898,34 @@ function TelaResultados() {
                 Imprimir
               </button>
             )}
+            </div>
           </div>
 
+          {/* Abas Geral / Masculino / Feminino */}
+          {classifPorSexoAtivo && (
+            <div style={{ display: "flex", gap: 0, background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}` }}>
+              {[{ key: "geral", label: "Geral" }, { key: "masc", label: "Masculino" }, { key: "fem", label: "Feminino" }].map(function(aba) {
+                var sel = abaClassifEquipe === aba.key;
+                return (
+                  <button key={aba.key} onClick={function() { setAbaClassifEquipe(aba.key); }}
+                    style={{
+                      background: sel ? t.bgCard : "transparent", border: "none", borderBottom: sel ? `2px solid ${t.accent}` : "2px solid transparent",
+                      color: sel ? t.accent : t.textMuted, padding: "10px 20px", cursor: "pointer",
+                      fontSize: 13, fontWeight: sel ? 700 : 400, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5,
+                      transition: "all 0.2s",
+                    }}>
+                    {aba.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {_classifAtiva.classificacao.length === 0 ? (
+            <div style={{ padding: "24px 16px", textAlign: "center", color: t.textDisabled, fontSize: 13 }}>
+              Nenhuma equipe pontuou nesta classificação.
+            </div>
+          ) : (
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
               <thead>
@@ -878,17 +934,17 @@ function TelaResultados() {
                   <th style={{ padding: "8px", textAlign: "left", color: t.textMuted, fontSize: 11 }}>Equipe</th>
                   <th style={{ padding: "8px", textAlign: "left", color: t.textMuted, fontSize: 11 }}>Sigla</th>
                   <th style={{ padding: "8px", textAlign: "center", color: t.textMuted, fontSize: 11 }}>Provas Pontuadas</th>
-                  {classifEquipes.totalBonusRecordes > 0 && (
+                  {_classifAtiva.totalBonusRecordes > 0 && (
                     <th style={{ padding: "8px", textAlign: "center", color: t.warning, fontSize: 11 }}>Bônus Rec.</th>
                   )}
-                  {classifEquipes.totalPenalidades > 0 && (
+                  {_classifAtiva.totalPenalidades > 0 && (
                     <th style={{ padding: "8px", textAlign: "center", color: t.danger, fontSize: 11 }}>Penal.</th>
                   )}
                   <th style={{ padding: "8px", textAlign: "center", color: t.accent, fontWeight: 700, fontSize: 13 }}>Total</th>
                 </tr>
               </thead>
               <tbody>
-                {classifEquipes.classificacao.map(function(eq, idx) {
+                {_classifAtiva.classificacao.map(function(eq, idx) {
                   var nProvasPontuadas = Object.keys(eq.pontosPorProva).length;
                   var totalBonus = (eq.bonusRecordes || []).reduce(function(acc, b) { return acc + b.pontos; }, 0);
                   return (
@@ -906,12 +962,12 @@ function TelaResultados() {
                       <td style={{ padding: "10px 8px", color: t.textPrimary, fontWeight: 600 }}>{eq.nome}</td>
                       <td style={{ padding: "10px 8px", color: t.accent, fontWeight: 600 }}>{eq.sigla}</td>
                       <td style={{ padding: "10px 8px", textAlign: "center", color: t.textTertiary }}>{nProvasPontuadas}</td>
-                      {classifEquipes.totalBonusRecordes > 0 && (
+                      {_classifAtiva.totalBonusRecordes > 0 && (
                         <td style={{ padding: "10px 8px", textAlign: "center", color: totalBonus > 0 ? t.warning : t.textDisabled, fontWeight: 700 }}>
                           {totalBonus > 0 ? "+" + totalBonus : "—"}
                         </td>
                       )}
-                      {classifEquipes.totalPenalidades > 0 && (() => {
+                      {_classifAtiva.totalPenalidades > 0 && (() => {
                         var totalPen = (eq.penalidades || []).reduce(function(acc, p) { return acc + p.pontos; }, 0);
                         return (
                           <td style={{ padding: "10px 8px", textAlign: "center", color: totalPen > 0 ? t.danger : t.textDisabled, fontWeight: 700 }}>
@@ -923,7 +979,7 @@ function TelaResultados() {
                     </tr>
                     {eq.bonusRecordes && eq.bonusRecordes.length > 0 && (
                       <tr style={{ borderBottom: (eq.penalidades && eq.penalidades.length > 0) ? "none" : `1px solid ${t.border}`, background: idx === 0 ? t.bgMarca : idx < 3 ? t.trTop : "transparent" }}>
-                        <td colSpan={5 + (classifEquipes.totalBonusRecordes > 0 ? 1 : 0) + (classifEquipes.totalPenalidades > 0 ? 1 : 0)} style={{ padding: "0 8px 8px 44px" }}>
+                        <td colSpan={5 + (_classifAtiva.totalBonusRecordes > 0 ? 1 : 0) + (_classifAtiva.totalPenalidades > 0 ? 1 : 0)} style={{ padding: "0 8px 8px 44px" }}>
                           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                             {eq.bonusRecordes.map(function(b, bi) {
                               return (
@@ -938,7 +994,7 @@ function TelaResultados() {
                     )}
                     {eq.penalidades && eq.penalidades.length > 0 && (
                       <tr style={{ borderBottom: `1px solid ${t.border}`, background: idx === 0 ? t.bgMarca : idx < 3 ? t.trTop : "transparent" }}>
-                        <td colSpan={5 + (classifEquipes.totalBonusRecordes > 0 ? 1 : 0) + (classifEquipes.totalPenalidades > 0 ? 1 : 0)} style={{ padding: "0 8px 8px 44px" }}>
+                        <td colSpan={5 + (_classifAtiva.totalBonusRecordes > 0 ? 1 : 0) + (_classifAtiva.totalPenalidades > 0 ? 1 : 0)} style={{ padding: "0 8px 8px 44px" }}>
                           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                             {eq.penalidades.map(function(pen, pi) {
                               return (
@@ -957,14 +1013,16 @@ function TelaResultados() {
               </tbody>
             </table>
           </div>
+          )}
 
-          {classifEquipes.totalProvasComResultado < classifEquipes.totalProvas && (
+          {_classifAtiva.totalProvasComResultado < _classifAtiva.totalProvas && (
             <div style={{ padding: "10px 16px", fontSize: 11, color: t.textMuted, borderTop: `1px solid ${t.border}` }}>
-              Classificação parcial — faltam resultados em {classifEquipes.totalProvas - classifEquipes.totalProvasComResultado} prova(s)
+              Classificação parcial — faltam resultados em {_classifAtiva.totalProvas - _classifAtiva.totalProvasComResultado} prova(s)
             </div>
           )}
         </div>
-      )}
+        );
+      })()}
 
       {blocosFiltrados.length === 0 && blocosCombinadas.length === 0 ? (
         <div style={s.emptyState}>

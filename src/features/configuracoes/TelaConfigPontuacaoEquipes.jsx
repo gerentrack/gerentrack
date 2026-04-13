@@ -117,6 +117,7 @@ function TelaConfigPontuacaoEquipes() {
   });
   const [salvo, setSalvo] = useState(false);
   const [atletasPorEquipe, setAtletasPorEquipe] = useState(config.atletasPorEquipePorProva || 1);
+  const [classificacaoPorSexo, setClassificacaoPorSexo] = useState(!!config.classificacaoPorSexo);
   const [bonusRecordes, setBonusRecordes] = useState(config.bonusRecordes || {});
   const [penalidades, setPenalidades] = useState(config.penalidades || []);
   const [novaPen, setNovaPen] = useState({ equipeId: "", pontos: "", motivo: "atraso", obs: "" });
@@ -203,6 +204,7 @@ function TelaConfigPontuacaoEquipes() {
     atualizarCamposEvento(eventoAtual.id, {
       pontuacaoEquipes: {
         ativo: ativo,
+        classificacaoPorSexo: classificacaoPorSexo,
         equipesParticipantes: equipeSel,
         tabelaPontuacao: tabelaObj,
         tabelaPontuacaoRevezamentos: temRevezamentos ? tabelaRevezObj : {},
@@ -240,6 +242,18 @@ function TelaConfigPontuacaoEquipes() {
 
         {ativo && (
           <>
+            {/* Classificação por sexo */}
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24, padding: "12px 16px", background: classificacaoPorSexo ? `${t.accent}12` : t.bgHeaderSolid, border: `1px solid ${classificacaoPorSexo ? t.accentBorder : t.border}`, borderRadius: 8 }}>
+              <input type="checkbox" checked={classificacaoPorSexo} onChange={function() { setClassificacaoPorSexo(!classificacaoPorSexo); }}
+                style={{ width: 20, height: 20, accentColor: t.accent, cursor: "pointer" }} />
+              <div>
+                <div style={{ fontWeight: 700, color: classificacaoPorSexo ? t.accent : t.textMuted, fontSize: 15 }}>
+                  Classificação por Sexo
+                </div>
+                <div style={{ fontSize: 12, color: t.textMuted }}>Além da classificação geral, exibir classificação separada para masculino e feminino</div>
+              </div>
+            </div>
+
             {/* Seleção de equipes */}
             <div style={{ marginBottom: 24 }}>
               <h3 style={{ color: t.accent, fontSize: 15, marginBottom: 10 }}>Equipes Participantes</h3>
