@@ -136,6 +136,7 @@ import { useOrganizadores }   from "./hooks/useOrganizadores";
 import { useFuncionarios }    from "./hooks/useFuncionarios";
 import { useTreinadores }    from "./hooks/useTreinadores";
 import { useRanking }        from "./hooks/useRanking";
+import { useRecordes }       from "./hooks/useRecordes";
 import { useNumeracaoPeito } from "./hooks/useNumeracaoPeito";
 import { useEquipes }    from "./hooks/useEquipes";
 import { useEventos }    from "./hooks/useEventos";
@@ -249,6 +250,8 @@ function App() {
   const { funcionarios, setFuncionarios, resetFuncionarios, importarFuncionarios } = useFuncionarios();
   const { treinadores, setTreinadores, resetTreinadores, importarTreinadores } = useTreinadores();
   const { ranking, setRanking, resetRanking, importarRanking } = useRanking();
+  const { recordes, setRecordes, resetRecordes, importarRecordes } = useRecordes();
+
 
   // ⚠️ Arrays grandes — useLocalOnly evita limite de 1MB do Firestore
   const [solicitacoesVinculo, setSolicitacoesVinculo] = useLocalStorage("atl_vinculo_sol",   []);
@@ -266,7 +269,8 @@ function App() {
 
   // Multi-evento: cada evento tem { id, nome, data, local, permissividadeNorma, provasPrograma: Set de provaIds }
   // atl_eventos migrado para coleção Firestore própria via useEventos (ver abaixo)
-  const [recordes, setRecordes] = useLocalStorage("atl_recordes", []);
+  // recordes migrado para coleção Firestore individual (useRecordes)
+  // const [recordes, setRecordes] = useLocalStorage("atl_recordes", []);
   const [pendenciasRecorde, setPendenciasRecorde] = useLocalStorage("atl_pendencias_recorde", []);
   const [historicoRecordes, setHistoricoRecordes] = useLocalStorage("atl_historico_recordes", []);
   // ranking migrado para coleção Firestore por UF (useRanking)
@@ -1459,7 +1463,7 @@ function App() {
     resetInscricoes();
     resetResultados();
     await resetNumeracao();
-    setRecordes([]);
+    resetRecordes();
     setPendenciasRecorde([]);
     setHistoricoRecordes([]);
     resetRanking();
@@ -1527,7 +1531,7 @@ function App() {
         if (dados.solicitacoesEquipe)    setSolicitacoesEquipe(dados.solicitacoesEquipe);
         if (dados.solicitacoesRelatorio) setSolicitacoesRelatorio(dados.solicitacoesRelatorio);
         if (dados.historicoAcoes)          setHistoricoAcoes(dados.historicoAcoes);
-        if (dados.recordes)                setRecordes(dados.recordes);
+        if (dados.recordes)                await importarRecordes(dados.recordes);
         if (dados.pendenciasRecorde)       setPendenciasRecorde(dados.pendenciasRecorde);
         if (dados.historicoRecordes)       setHistoricoRecordes(dados.historicoRecordes);
         if (dados.ranking)                 await importarRanking(dados.ranking);

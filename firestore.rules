@@ -93,8 +93,14 @@ service cloud.firestore {
       allow write: if request.auth != null;
     }
 
-    // ── Ranking (por UF: BR, MG, SP, etc.) ──────────────────────────────────
+    // ── Ranking (por UF: MG, SP, etc.) ──────────────────────────────────────
     match /ranking/{docId} {
+      allow read:  if true;
+      allow write: if request.auth != null;
+    }
+
+    // ── Recordes (tipos de recorde com registros) ───────────────────────────
+    match /recordes/{docId} {
       allow read:  if true;
       allow write: if request.auth != null;
     }

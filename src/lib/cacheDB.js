@@ -8,8 +8,8 @@
  */
 
 const DB_NAME = "gerentrack_cache";
-const DB_VERSION = 5;
-const STORES = ["cache_atletas", "cache_equipes", "cache_inscricoes", "cache_eventos", "cache_resultados", "cache_numeracaoPeito", "cache_atletasUsuarios", "cache_organizadores", "cache_funcionarios", "cache_treinadores"];
+const DB_VERSION = 6;
+const STORES = ["cache_atletas", "cache_equipes", "cache_inscricoes", "cache_eventos", "cache_resultados", "cache_numeracaoPeito", "cache_atletasUsuarios", "cache_organizadores", "cache_funcionarios", "cache_treinadores", "cache_recordes"];
 const DICT_STORES = new Set(["cache_resultados", "cache_numeracaoPeito"]);
 
 let dbPromise = null;
