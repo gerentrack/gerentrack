@@ -43,7 +43,7 @@ const PLANOS = [
     nome: "Avulso",
     preco: "400,00",
     periodo: "competição",
-    destaque: false,
+    destaque: true,
     desconto: null,
     herda: null,
     recursos: [
@@ -64,13 +64,12 @@ const PLANOS = [
   {
     id: "trimestral",
     nome: "Trimestral",
-    preco: "474,90",
-    periodo: "mês",
-    destaque: false,
+    preco: null,
+    periodo: null,
+    destaque: true,
     desconto: null,
     herda: "Tudo do Avulso",
     recursos: [
-      "3 competições por período",
       "Manutenção dos dados de atletas e equipes",
       "Manutenção da página pública da entidade",
       "Histórico de competições anteriores",
@@ -79,17 +78,17 @@ const PLANOS = [
   {
     id: "anual",
     nome: "Anual",
-    preco: "449,90",
-    periodo: "mês",
+    preco: null,
+    periodo: null,
     destaque: true,
     desconto: null,
     herda: "Tudo do Trimestral",
     recursos: [
-      "Competições ilimitadas",
       "Ranking e recordes com atualização automática",
       "Suporte prioritário (até 24h úteis)",
       "Atendimento por e-mail + WhatsApp",
       "Canal direto com equipe técnica",
+      "Condições sob consulta",
     ],
   },
 ];
@@ -117,13 +116,18 @@ function TelaPlanos() {
       <div style={s.planosGrid}>
         {PLANOS.map(plano => (
           <div key={plano.id} style={s.planoCard(plano.destaque)}>
-            {plano.destaque && <div style={s.planoBadge}>Melhor custo-benefício</div>}
             <div style={s.planoNome}>{plano.nome}</div>
-            <div style={s.planoPreco}>R$ {plano.preco}</div>
-            <div style={s.planoPrecoSub}>
-              por {plano.periodo}
-              {plano.desconto && <span style={{ color: t.success, marginLeft: 8, fontWeight: 700 }}>-{plano.desconto}</span>}
-            </div>
+            {plano.preco ? (
+              <>
+                <div style={s.planoPreco}>R$ {plano.preco}</div>
+                <div style={s.planoPrecoSub}>
+                  por {plano.periodo}
+                  {plano.desconto && <span style={{ color: t.success, marginLeft: 8, fontWeight: 700 }}>-{plano.desconto}</span>}
+                </div>
+              </>
+            ) : (
+              <div style={{ ...s.planoPreco, fontSize: 20, marginBottom: 18 }}>Sob consulta</div>
+            )}
             <ul style={s.planoLista}>
               {plano.herda && (
                 <li style={{ ...s.planoItem, color: t.accent, fontWeight: 700, borderBottom: `1px solid ${t.border}22` }}>
