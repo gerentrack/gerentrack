@@ -202,32 +202,6 @@ function TelaGestaoInscricoes() {
   const isPrivileg = tipoUser === "admin"
     || (tipoUser === "organizador" && eventoAtual.organizadorId === usuarioLogado?.id)
     || (tipoUser === "funcionario" && eventoAtual.organizadorId === usuarioLogado?.organizadorId);
-  if (!isPrivileg && isInscricaoEncerradaAgora(eventoAtual)) return (
-    <div style={s.page}>
-      <div style={s.emptyState}>
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <p style={{ fontWeight: 700, color: t.textPrimary, fontSize: 18 }}>Inscrições Encerradas</p>
-        <p style={{ color: t.textDimmed, fontSize: 14 }}>
-          As inscrições para <strong>{eventoAtual.nome}</strong> estão encerradas.
-        </p>
-        <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
-      </div>
-    </div>
-  );
-
-  if (!isPrivileg && usuarioLogado?.lgpdConsentimentoRevogado) return (
-    <div style={s.page}>
-      <div style={s.emptyState}>
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
-        <p style={{ fontWeight: 700, color: t.danger, fontSize: 18 }}>Consentimento Revogado</p>
-        <p style={{ color: t.textMuted, fontSize: 14, maxWidth: 420, textAlign: "center", lineHeight: 1.6 }}>
-          Você revogou seu consentimento LGPD. Novas inscrições não são permitidas.<br/>
-          Para voltar a se inscrever em competições, realize um novo cadastro.
-        </p>
-        <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar ao Início</button>
-      </div>
-    </div>
-  );
 
   const eid = eventoAtual.id;
 
@@ -1193,6 +1167,34 @@ function TelaGestaoInscricoes() {
     setModoRecibo(null);
   };
 
+
+  // ── Guards movidos para depois de todos os hooks (regra dos Hooks) ──────
+  if (!isPrivileg && isInscricaoEncerradaAgora(eventoAtual)) return (
+    <div style={s.page}>
+      <div style={s.emptyState}>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <p style={{ fontWeight: 700, color: t.textPrimary, fontSize: 18 }}>Inscrições Encerradas</p>
+        <p style={{ color: t.textDimmed, fontSize: 14 }}>
+          As inscrições para <strong>{eventoAtual.nome}</strong> estão encerradas.
+        </p>
+        <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
+      </div>
+    </div>
+  );
+
+  if (!isPrivileg && usuarioLogado?.lgpdConsentimentoRevogado) return (
+    <div style={s.page}>
+      <div style={s.emptyState}>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+        <p style={{ fontWeight: 700, color: t.danger, fontSize: 18 }}>Consentimento Revogado</p>
+        <p style={{ color: t.textMuted, fontSize: 14, maxWidth: 420, textAlign: "center", lineHeight: 1.6 }}>
+          Você revogou seu consentimento LGPD. Novas inscrições não são permitidas.<br/>
+          Para voltar a se inscrever em competições, realize um novo cadastro.
+        </p>
+        <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar ao Início</button>
+      </div>
+    </div>
+  );
 
   return (
     <div style={s.page}>
