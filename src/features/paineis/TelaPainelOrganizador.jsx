@@ -205,6 +205,7 @@ function TelaPainelOrganizador() {
   const [relAtletasSel, setRelAtletasSel] = useState([]);
   const [relAssinatura, setRelAssinatura] = useState("");
   const [auditPagina, setAuditPagina] = useState(1);
+  const [vincPagina, setVincPagina] = useState(1);
   const [buscaAtleta, setBuscaAtleta] = useState("");
   const [buscaEquipe, setBuscaEquipe] = useState("");
 
@@ -849,7 +850,10 @@ function TelaPainelOrganizador() {
       {aba === "atletas" && (<>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
           <h2 style={s.sectionTitle}>Atletas ({meusAtletas.length})</h2>
-          <button style={s.btnPrimary} onClick={() => setTela("cadastrar-atleta")}>Cadastrar Atleta</button>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <button style={s.btnSecondary} onClick={() => setTela("importar-atletas")}>Importar Planilha</button>
+            <button style={s.btnPrimary} onClick={() => setTela("cadastrar-atleta")}>Cadastrar Atleta</button>
+          </div>
         </div>
         <div style={{ position: "relative", maxWidth: 400, marginBottom: 16 }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={t.textDimmed} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ position: "absolute", left: 12, top: 12 }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -943,10 +947,10 @@ function TelaPainelOrganizador() {
 
       {/* ── Gerar Relatório de Participação ── */}
       {meusEventos.length > 0 && (
-        <details style={{ background: t.bgCardAlt, border: `1px solid ${t.border}`, borderRadius: 12, padding: "16px 20px", marginBottom: 16 }}>
-          <summary style={{ cursor: "pointer", fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 800, color: t.accent, letterSpacing: 1 }}>
+        <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "24px 24px", marginBottom: 16 }}>
+          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 800, color: t.accent, letterSpacing: 1, marginBottom: 16 }}>
             Relatório Oficial de Participação
-          </summary>
+          </div>
           <div style={{ marginTop: 14 }}>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 14, alignItems: "flex-end" }}>
               <div>
@@ -1063,7 +1067,7 @@ function TelaPainelOrganizador() {
               Gerar Relatório
             </button>
           </div>
-        </details>
+        </div>
       )}
 
       {/* ── Histórico de Relatórios ── */}
@@ -1117,126 +1121,95 @@ function TelaPainelOrganizador() {
       {/* ═══════════════════════════════════════════════════════════════
           ABA: AUDITORIA
          ═══════════════════════════════════════════════════════════════ */}
-      {aba === "auditoria" && (<>
-
-      <h2 style={s.sectionTitle}>Auditoria</h2>
-
-      {/* ── Auditoria de Ações ── */}
-      {(() => {
-        const POR_PAG = 10;
+      {aba === "auditoria" && (() => {
         const auditoriaOrg = (historicoAcoes || [])
           .filter(a => a.organizadorId === orgId)
           .sort((a, b) => new Date(b.data) - new Date(a.data));
-        if (auditoriaOrg.length === 0) return null;
-        const totalPags = Math.ceil(auditoriaOrg.length / POR_PAG);
-        const pag = Math.min(auditPagina, totalPags);
-        const pagina = auditoriaOrg.slice((pag - 1) * POR_PAG, pag * POR_PAG);
-        const getModuloIcon = (mod) => ({ equipes:"EQ", atletas:"AT", competicoes:"CP", inscricoes:"IN", resultados:"RS", sumulas:"SM", recordes:"RC", numeracao:"NR", membros:"MB", treinadores:"TR", funcionarios:"FN", auth:"AU", sistema:"SI", secretaria:"SC" }[mod] || mod?.toUpperCase()?.slice(0,2) || "—");
-        const formatarDt = (ts) => {
-          const d = new Date(ts);
-          const hoje = new Date();
-          const hora = d.toLocaleTimeString("pt-BR", { hour:"2-digit", minute:"2-digit" });
-          if (d.toDateString() === hoje.toDateString()) return `Hoje ${hora}`;
-          const ontem = new Date(hoje); ontem.setDate(hoje.getDate() - 1);
-          if (d.toDateString() === ontem.toDateString()) return `Ontem ${hora}`;
-          return `${d.toLocaleDateString("pt-BR")} ${hora}`;
-        };
-        return (
-          <details style={{ marginTop: 32 }}>
-            <summary style={{ ...s.sectionTitle, cursor: "pointer", userSelect: "none" }}>
-              Auditoria de Ações ({auditoriaOrg.length})
-            </summary>
-            <p style={{ color: t.textDimmed, fontSize: 13, marginBottom: 16 }}>
-              Ações realizadas por você e seus funcionários
-            </p>
-            <div style={{ display: "grid", gap: 6 }}>
-              {pagina.map(reg => (
-                <div key={reg.id} style={{ background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 8, padding: "10px 14px", display: "flex", gap: 10, alignItems: "center" }}>
-                  <span style={{ fontSize: 18, flexShrink: 0 }}>{getModuloIcon(reg.modulo)}</span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ color: t.textPrimary, fontSize: 13, fontWeight: 600 }}>{reg.acao}</div>
-                    {reg.detalhe && <div style={{ color: t.textMuted, fontSize: 11, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{reg.detalhe}</div>}
-                  </div>
-                  <div style={{ textAlign: "right", flexShrink: 0 }}>
-                    <div style={{ color: t.accent, fontSize: 11, fontWeight: 600 }}>{reg.nomeUsuario || "—"}</div>
-                    <div style={{ color: t.textDimmed, fontSize: 10 }}>{formatarDt(reg.data)}</div>
-                  </div>
-                  {reg.metodo === "qr" && <span style={{ padding: "2px 6px", borderRadius: 4, fontSize: 9, background: t.accent + "18", color: t.accent, border: `1px solid ${t.accent}44`, flexShrink: 0 }}>QR</span>}
-                  {reg.modulo && <span style={{ padding: "2px 6px", borderRadius: 4, fontSize: 9, background: t.bgInput, color: t.textDimmed, border: `1px solid ${t.border}`, flexShrink: 0 }}>{reg.modulo}</span>}
-                </div>
-              ))}
-            </div>
-            {totalPags > 1 && (
-              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginTop: 14 }}>
-                <button disabled={pag <= 1} onClick={() => setAuditPagina(pag - 1)} style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, color: pag <= 1 ? t.textDisabled : t.textSecondary, borderRadius: 6, padding: "6px 14px", cursor: pag <= 1 ? "default" : "pointer", fontSize: 13 }}>Anterior</button>
-                <span style={{ color: t.textMuted, fontSize: 12 }}>{pag} / {totalPags}</span>
-                <button disabled={pag >= totalPags} onClick={() => setAuditPagina(pag + 1)} style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, color: pag >= totalPags ? t.textDisabled : t.textSecondary, borderRadius: 6, padding: "6px 14px", cursor: pag >= totalPags ? "default" : "pointer", fontSize: 13 }}>Próxima</button>
-              </div>
-            )}
-            <div style={{ marginTop: 12, padding: 12, background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 8, textAlign: "center", color: t.textDimmed, fontSize: 11 }}>
-              {auditoriaOrg.length} registro(s) · Página {pag} de {totalPags}
-            </div>
-          </details>
-        );
-      })()}
-
-      {/* ── Histórico de Vínculos ── */}
-      {(() => {
         const meuOrgId = usuarioLogado?.tipo === "organizador" ? usuarioLogado?.id : usuarioLogado?.organizadorId;
         const minhasEquipesIds = new Set((equipes||[]).filter(e => e.organizadorId === meuOrgId).map(e => e.id));
-        const pertenceAoOrg = (sol) =>
-          sol.organizadorId === meuOrgId ||
-          minhasEquipesIds.has(sol.equipeId) ||
-          minhasEquipesIds.has(sol.equipeAtualId);
         const historico = (solicitacoesVinculo||[]).filter(sol =>
-          sol.status !== "pendente" && pertenceAoOrg(sol)
-        ).sort((a,b) => new Date(b.resolvidoEm||b.data) - new Date(a.resolvidoEm||a.data)).slice(0,30);
-        if (historico.length === 0) return null;
-        return (
-          <details style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:10, padding:"12px 18px", marginBottom:16 }}>
-            <summary style={{ cursor:"pointer", color: t.textDimmed, fontSize:13, fontWeight:600 }}>
-              Histórico de vínculos ({historico.length})
-            </summary>
-            <div style={{ marginTop:12, overflowX:"auto" }}>
+          sol.status !== "pendente" && (sol.organizadorId === meuOrgId || minhasEquipesIds.has(sol.equipeId) || minhasEquipesIds.has(sol.equipeAtualId))
+        ).sort((a,b) => new Date(b.resolvidoEm||b.data) - new Date(a.resolvidoEm||a.data));
+        return (<>
+          <h2 style={s.sectionTitle}>Auditoria de Ações ({auditoriaOrg.length})</h2>
+          <p style={{ color: t.textDimmed, fontSize: 13, marginBottom: 16 }}>Ações realizadas por você e seus funcionários</p>
+          {auditoriaOrg.length === 0 ? (
+            <div style={s.emptyState}><p>Nenhuma ação registrada.</p></div>
+          ) : (
+            <>
+              <div style={s.tableWrap}>
+                <table style={s.table}>
+                  <thead><tr><Th>Data/Hora</Th><Th>Usuário</Th><Th>Ação</Th><Th>Detalhe</Th><Th>Módulo</Th></tr></thead>
+                  <tbody>
+                    {auditoriaOrg.slice((auditPagina - 1) * 20, auditPagina * 20).map((h, idx) => (
+                      <tr key={`h_${h.id}_${idx}`} style={s.tr}>
+                        <Td style={{ fontSize: 11, color: t.textDimmed, whiteSpace: "nowrap" }}>
+                          {new Date(h.data).toLocaleString("pt-BR", { day:"2-digit", month:"2-digit", year:"2-digit", hour:"2-digit", minute:"2-digit" })}
+                        </Td>
+                        <Td><span style={{ color: t.accent, fontSize: 12 }}>{h.nomeUsuario || "—"}</span></Td>
+                        <Td><strong style={{ color: t.textPrimary, fontSize: 12 }}>{h.acao}</strong></Td>
+                        <Td style={{ fontSize: 12, color: t.textMuted, maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{h.detalhe || "—"}</Td>
+                        <Td><span style={{ color: t.textDimmed, fontSize: 10 }}>{h.modulo || "—"}</span></Td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {auditoriaOrg.length > 20 && (
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginTop: 14 }}>
+                  <button disabled={auditPagina <= 1} onClick={() => setAuditPagina(p => p - 1)} style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, color: auditPagina <= 1 ? t.textDisabled : t.textSecondary, borderRadius: 6, padding: "6px 14px", cursor: auditPagina <= 1 ? "default" : "pointer", fontSize: 13 }}>Anterior</button>
+                  <span style={{ color: t.textMuted, fontSize: 12 }}>{auditPagina} / {Math.ceil(auditoriaOrg.length / 20)}</span>
+                  <button disabled={auditPagina >= Math.ceil(auditoriaOrg.length / 20)} onClick={() => setAuditPagina(p => p + 1)} style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, color: auditPagina >= Math.ceil(auditoriaOrg.length / 20) ? t.textDisabled : t.textSecondary, borderRadius: 6, padding: "6px 14px", cursor: auditPagina >= Math.ceil(auditoriaOrg.length / 20) ? "default" : "pointer", fontSize: 13 }}>Próxima</button>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ── Histórico de Vínculos ── */}
+          {historico.length > 0 && (() => {
+            const vincTotalPags = Math.ceil(historico.length / 10);
+            const vincPag = Math.min(vincPagina, vincTotalPags);
+            const vincPaginado = historico.slice((vincPag - 1) * 10, vincPag * 10);
+            return (<>
+            <h2 style={{ ...s.sectionTitle, marginTop: 32 }}>Histórico de Vínculos ({historico.length})</h2>
+            <div style={s.tableWrap}>
               <table style={s.table}>
                 <thead><tr>
-                  <Th>Atleta</Th><Th>Solicitante</Th><Th>Equipe de Origem</Th><Th>Equipe de Destino</Th><Th>Status</Th><Th>Resolvido por</Th><Th>Data</Th>
+                  <Th>Atleta</Th><Th>Origem</Th><Th>Destino</Th><Th>Status</Th><Th>Resolvido por</Th><Th>Data</Th>
                 </tr></thead>
                 <tbody>
-                  {historico.map(sol => {
+                  {vincPaginado.map(sol => {
                     const statusColor = sol.status === "aceito" ? t.success : t.danger;
                     const equipeNova = equipes?.find(e => e.id === sol.equipeId);
                     return (
                       <tr key={sol.id} style={s.tr}>
                         <Td><strong style={{ color: t.textPrimary }}>{sol.atletaNome}</strong></Td>
-                        <Td style={{ fontSize:12, color: t.textTertiary }}>{sol.solicitanteNome || equipeNova?.nome || sol.clube || "—"}</Td>
-                        <Td style={{ fontSize:12, color:t.warning }}>{sol.equipeAtualNome || (sol.equipeAtualId ? (equipes?.find(eq => eq.id === sol.equipeAtualId)?.nome || "—") : "Sem equipe")}</Td>
-                        <Td style={{ fontSize:12, color:t.accent }}>{equipeNova?.nome || sol.clube || "—"}</Td>
+                        <Td style={{ fontSize: 12, color: t.warning }}>{sol.equipeAtualNome || (sol.equipeAtualId ? (equipes?.find(eq => eq.id === sol.equipeAtualId)?.nome || "—") : "Sem equipe")}</Td>
+                        <Td style={{ fontSize: 12, color: t.accent }}>{equipeNova?.nome || sol.clube || "—"}</Td>
                         <Td>
-                          <span style={{ background:statusColor+"22", color:statusColor,
-                            border:`1px solid ${statusColor}44`, borderRadius:4,
-                            padding:"2px 8px", fontSize:11, fontWeight:700 }}>
-                            {sol.status === "aceito" ? "✓ Aceito" : "✗ Recusado"}
+                          <span style={{ background: statusColor + "22", color: statusColor, border: `1px solid ${statusColor}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
+                            {sol.status === "aceito" ? "Aceito" : "Recusado"}
                           </span>
                         </Td>
-                        <Td style={{ fontSize:11, color: t.textMuted }}>
-                          {sol.resolvidoPorNome || "—"} {sol.resolvidoPorTipo ? `(${sol.resolvidoPorTipo})` : ""}
-                        </Td>
-                        <Td style={{ fontSize:10, color: t.textDimmed, lineHeight: 1.6 }}>
-                          <div>Solicitado: {new Date(sol.data).toLocaleString("pt-BR")}</div>
-                          {sol.resolvidoEm && <div>Resolvido: {new Date(sol.resolvidoEm).toLocaleString("pt-BR")}</div>}
-                        </Td>
+                        <Td style={{ fontSize: 11, color: t.textMuted }}>{sol.resolvidoPorNome || "—"}</Td>
+                        <Td style={{ fontSize: 10, color: t.textDimmed }}>{new Date(sol.resolvidoEm || sol.data).toLocaleString("pt-BR")}</Td>
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
             </div>
-          </details>
-        );
+            {vincTotalPags > 1 && (
+              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginTop: 14 }}>
+                <button disabled={vincPag <= 1} onClick={() => setVincPagina(p => p - 1)} style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, color: vincPag <= 1 ? t.textDisabled : t.textSecondary, borderRadius: 6, padding: "6px 14px", cursor: vincPag <= 1 ? "default" : "pointer", fontSize: 13 }}>Anterior</button>
+                <span style={{ color: t.textMuted, fontSize: 12 }}>{vincPag} / {vincTotalPags}</span>
+                <button disabled={vincPag >= vincTotalPags} onClick={() => setVincPagina(p => p + 1)} style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, color: vincPag >= vincTotalPags ? t.textDisabled : t.textSecondary, borderRadius: 6, padding: "6px 14px", cursor: vincPag >= vincTotalPags ? "default" : "pointer", fontSize: 13 }}>Próxima</button>
+              </div>
+            )}
+          </>);
+          })()}
+        </>);
       })()}
-
-      </>)}
 
     </div>
   );
