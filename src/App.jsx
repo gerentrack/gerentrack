@@ -1313,6 +1313,22 @@ function App() {
     equipesRef,
   } = useEquipes();
 
+  // ── Guard: perfil deletado — força logout se equipe/treinador/org/func não existe mais ──
+  useEffect(() => {
+    if (!usuarioLogado || !firebaseAuthed) return;
+    const tipo = usuarioLogado.tipo;
+    if (tipo === "admin" || tipo === "atleta") return;
+    const listas = { organizador: organizadores, equipe: equipes, funcionario: funcionarios, treinador: treinadores };
+    const lista = listas[tipo];
+    if (!lista || lista.length === 0) return; // dados ainda carregando
+    if (!lista.some(u => u.id === usuarioLogado.id)) {
+      console.warn(`[App] Perfil ${tipo} id=${usuarioLogado.id} deletado — logout`);
+      setUsuarioLogado(null);
+      setPerfisDisponiveis([]);
+      setTela("login");
+    }
+  }, [equipes, organizadores, funcionarios, treinadores]);
+
   // ── Migração: garantir tipo e organizadorId em treinadores legados ────
   const treinSemTipoIds = treinadores.filter(tr => !tr.tipo || !tr.organizadorId).map(tr => tr.id).join(",");
   useEffect(() => {
