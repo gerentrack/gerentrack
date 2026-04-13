@@ -1641,19 +1641,21 @@ function TelaGestaoInscricoes() {
                       <option value="todas">Todas as categorias</option>
                       {CATEGORIAS.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
                     </select>
-                    <select value={filtroEquipeLote} onChange={ev => { setFiltroEquipeLote(ev.target.value); setInserirAtletaId(""); setInserirProvasIds(new Set()); }}
-                      style={{ ...s.input, marginBottom: 0, width: "auto", minWidth: 160 }}>
-                      <option value="todas">Todas as equipes</option>
-                      {[...new Set([
-                        ...equipes.filter(eq => {
-                          const evOrg = eventoAtual?.organizadorId;
-                          if (!evOrg) return true;
-                          if (eq.organizadorId === evOrg) return true;
-                          return Array.isArray(eventoAtual?.orgsAutorizadas) && eventoAtual.orgsAutorizadas.includes(eq.organizadorId);
-                        }).map(eq => eq.nome),
-                        ...atletas.map(a => a.clube).filter(Boolean),
-                      ])].sort((a, b) => a.localeCompare(b, "pt-BR")).map(eq => <option key={eq} value={eq}>{eq}</option>)}
-                    </select>
+                    {isPrivileg && (
+                      <select value={filtroEquipeLote} onChange={ev => { setFiltroEquipeLote(ev.target.value); setInserirAtletaId(""); setInserirProvasIds(new Set()); }}
+                        style={{ ...s.input, marginBottom: 0, width: "auto", minWidth: 160 }}>
+                        <option value="todas">Todas as equipes</option>
+                        {[...new Set([
+                          ...equipes.filter(eq => {
+                            const evOrg = eventoAtual?.organizadorId;
+                            if (!evOrg) return true;
+                            if (eq.organizadorId === evOrg) return true;
+                            return Array.isArray(eventoAtual?.orgsAutorizadas) && eventoAtual.orgsAutorizadas.includes(eq.organizadorId);
+                          }).map(eq => eq.nome),
+                          ...atletas.map(a => a.clube).filter(Boolean),
+                        ])].sort((a, b) => a.localeCompare(b, "pt-BR")).map(eq => <option key={eq} value={eq}>{eq}</option>)}
+                      </select>
+                    )}
                   </div>
                   <select
                     value={inserirAtletaId}
