@@ -135,6 +135,7 @@ import { useAtletasUsuarios } from "./hooks/useAtletasUsuarios";
 import { useOrganizadores }   from "./hooks/useOrganizadores";
 import { useFuncionarios }    from "./hooks/useFuncionarios";
 import { useTreinadores }    from "./hooks/useTreinadores";
+import { useRanking }        from "./hooks/useRanking";
 import { useNumeracaoPeito } from "./hooks/useNumeracaoPeito";
 import { useEquipes }    from "./hooks/useEquipes";
 import { useEventos }    from "./hooks/useEventos";
@@ -247,6 +248,8 @@ function App() {
   const { atletasUsuarios, setAtletasUsuarios, resetAtletasUsuarios, importarAtletasUsuarios, adicionarAtletaUsuario: _adicionarAtletaUsuario, atualizarAtletaUsuario: _atualizarAtletaUsuario } = useAtletasUsuarios();
   const { funcionarios, setFuncionarios, resetFuncionarios, importarFuncionarios } = useFuncionarios();
   const { treinadores, setTreinadores, resetTreinadores, importarTreinadores } = useTreinadores();
+  const { ranking, setRanking, resetRanking, importarRanking } = useRanking();
+
   // ⚠️ Arrays grandes — useLocalOnly evita limite de 1MB do Firestore
   const [solicitacoesVinculo, setSolicitacoesVinculo] = useLocalStorage("atl_vinculo_sol",   []);
   const [notificacoes, _setNotificacoes] = useLocalStorage("atl_notificacoes", []);
@@ -266,7 +269,8 @@ function App() {
   const [recordes, setRecordes] = useLocalStorage("atl_recordes", []);
   const [pendenciasRecorde, setPendenciasRecorde] = useLocalStorage("atl_pendencias_recorde", []);
   const [historicoRecordes, setHistoricoRecordes] = useLocalStorage("atl_historico_recordes", []);
-  const [ranking, setRanking] = useLocalStorage("atl_ranking", []);
+  // ranking migrado para coleção Firestore por UF (useRanking)
+  // const [ranking, setRanking] = useLocalStorage("atl_ranking", []);
   const [historicoRanking, setHistoricoRanking] = useLocalStorage("atl_historico_ranking", []);
   const [eventoAtualId, setEventoAtualId] = useLocalOnly("atl_eventoAtualId", null);
   const [organizadorPerfilId, setOrganizadorPerfilId] = React.useState(null);
@@ -1458,7 +1462,7 @@ function App() {
     setRecordes([]);
     setPendenciasRecorde([]);
     setHistoricoRecordes([]);
-    setRanking([]);
+    resetRanking();
     setHistoricoRanking([]);
     setPerfisDisponiveis([]);
     setAdminConfig(prev => ({ ...prev, configurado: true }));
@@ -1526,7 +1530,7 @@ function App() {
         if (dados.recordes)                setRecordes(dados.recordes);
         if (dados.pendenciasRecorde)       setPendenciasRecorde(dados.pendenciasRecorde);
         if (dados.historicoRecordes)       setHistoricoRecordes(dados.historicoRecordes);
-        if (dados.ranking)                 setRanking(dados.ranking);
+        if (dados.ranking)                 await importarRanking(dados.ranking);
         if (dados.historicoRanking)        setHistoricoRanking(dados.historicoRanking);
         if (dados.auditoria)               setAuditoria(dados.auditoria);
         if (dados.solicitacoesVinculo)     setSolicitacoesVinculo(dados.solicitacoesVinculo);
