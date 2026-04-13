@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
+import { usePagination, PaginaControles } from "../../lib/hooks/usePagination.jsx";
 import { _getLocalEventoDisplay } from "../../shared/formatters/utils";
 import { StatCard } from "../ui/StatCard";
 import { getUsage, getEncerramento } from "../../shared/engines/planEngine";
@@ -181,6 +182,7 @@ function TelaPainelOrganizador() {
     : _todosEventosOrg;
   const isPendente    = meuOrg?.status === "pendente";
   const [vinculoFeedback, setVinculoFeedback] = useState(null);
+  const [aba, setAba] = useState("visao-geral");
 
   const handleResponderVinculo = (solId, aceitar) => {
     const sol = (solicitacoesVinculo || []).find(sv => sv.id === solId);
@@ -203,6 +205,35 @@ function TelaPainelOrganizador() {
   const [relAtletasSel, setRelAtletasSel] = useState([]);
   const [relAssinatura, setRelAssinatura] = useState("");
   const [auditPagina, setAuditPagina] = useState(1);
+  const [buscaAtleta, setBuscaAtleta] = useState("");
+  const [buscaEquipe, setBuscaEquipe] = useState("");
+
+  // Dados para abas Equipes e Atletas (hooks devem ficar fora de condicionais)
+  const minhasEquipes = useMemo(() => (equipes || []).filter(e => e.organizadorId === orgId).sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR")), [equipes, orgId]);
+  const meusAtletas = useMemo(() => atletas.filter(a => a.organizadorId === orgId).sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR")), [atletas, orgId]);
+  const meusFuncs = useMemo(() => (funcionarios || []).filter(f => f.organizadorId === orgId), [funcionarios, orgId]);
+
+  const equipesFiltradas = useMemo(() => {
+    if (!buscaEquipe) return minhasEquipes;
+    const b = buscaEquipe.toLowerCase();
+    return minhasEquipes.filter(e => (e.nome || "").toLowerCase().includes(b) || (e.sigla || "").toLowerCase().includes(b) || (e.cidade || "").toLowerCase().includes(b));
+  }, [minhasEquipes, buscaEquipe]);
+
+  const atletasFiltrados = useMemo(() => {
+    if (!buscaAtleta) return meusAtletas;
+    const b = buscaAtleta.toLowerCase();
+    return meusAtletas.filter(a => (a.nome || "").toLowerCase().includes(b) || (a.clube || "").toLowerCase().includes(b) || (a.cpf || "").includes(b));
+  }, [meusAtletas, buscaAtleta]);
+
+  const compFiltradas = useMemo(() => {
+    if (!buscaComp) return meusEventos;
+    const b = buscaComp.toLowerCase();
+    return meusEventos.filter(ev => (ev.nome || "").toLowerCase().includes(b) || (_getLocalEventoDisplay(ev) || "").toLowerCase().includes(b));
+  }, [meusEventos, buscaComp]);
+
+  const { paginado: eqPag, infoPage: eqInfo } = usePagination(equipesFiltradas, 20);
+  const { paginado: atlPag, infoPage: atlInfo } = usePagination(atletasFiltrados, 20);
+  const { paginado: compPag, infoPage: compInfo } = usePagination(compFiltradas, 10);
 
   return (
     <div style={s.page}>
@@ -238,16 +269,47 @@ function TelaPainelOrganizador() {
             usuarioId={usuarioLogado?.id}
             marcarNotifLida={marcarNotifLida}
           />
-          {(!isFuncionario || temPerm("funcionarios_ver")) &&
-            <button style={s.btnSecondary} onClick={() => setTela("funcionarios")}>Funcionários</button>}
-          {(!isFuncionario || temPerm("inscricoes")) &&
-            <button style={s.btnSecondary} onClick={() => setTela("gerenciar-equipes")}>Equipes</button>}
-          {(!isFuncionario || temPerm("atletas")) &&
-            <button style={s.btnSecondary} onClick={() => setTela("cadastrar-atleta")}>Atletas</button>}
-          {temPerm("editar_competições") &&
-            <button style={s.btnPrimary} onClick={() => { selecionarEvento(null); setTela("novo-evento"); }}>+ Nova Competição</button>}
         </div>
       </div>
+
+      {/* ── TAB BAR ── */}
+      {(() => {
+        const tabStyle = (id) => ({
+          padding: "10px 20px",
+          background: aba === id ? t.accent : "transparent",
+          color: aba === id ? "#fff" : t.textMuted,
+          border: "none",
+          cursor: "pointer",
+          fontSize: 13,
+          fontWeight: aba === id ? 700 : 400,
+          fontFamily: "'Barlow Condensed', sans-serif",
+          letterSpacing: 0.5,
+          transition: "all 0.15s",
+        });
+        const tabs = [
+          { id: "visao-geral", label: "Visao Geral", show: true },
+          { id: "competicoes", label: "Competicoes", show: true },
+          { id: "equipes", label: "Equipes", show: !isFuncionario || temPerm("inscricoes") },
+          { id: "atletas", label: "Atletas", show: !isFuncionario || temPerm("atletas") },
+          { id: "funcionarios", label: "Funcionarios", show: !isFuncionario || temPerm("funcionarios_ver") },
+          { id: "relatorios", label: "Relatorios", show: temPerm("inscricoes") },
+          { id: "auditoria", label: "Auditoria", show: !isFuncionario },
+        ];
+        return (
+          <div style={{ display: "flex", background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 12, overflow: "hidden", marginBottom: 28, flexWrap: "wrap" }}>
+            {tabs.filter(tab => tab.show).map(tab => (
+              <button key={tab.id} onClick={() => setAba(tab.id)} style={tabStyle(tab.id)}>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        );
+      })()}
+
+      {/* ═══════════════════════════════════════════════════════════════
+          ABA: VISAO GERAL
+         ═══════════════════════════════════════════════════════════════ */}
+      {aba === "visao-geral" && (<>
 
       {/* Banner de conta pendente (não deveria acontecer — login bloqueia — mas por segurança) */}
       {isPendente && (
@@ -518,30 +580,35 @@ function TelaPainelOrganizador() {
         );
       })()}
 
-      {/* ═══════════════════════════════════════════════════════════════
-          SEÇÃO 2: COMPETIÇÕES — Core operacional
-         ═══════════════════════════════════════════════════════════════ */}
+      </>)}
 
-      <h2 style={s.sectionTitle}>Competições</h2>
+      {/* ═══════════════════════════════════════════════════════════════
+          ABA: COMPETICOES
+         ═══════════════════════════════════════════════════════════════ */}
+      {aba === "competicoes" && (<>
+
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
+        <h2 style={s.sectionTitle}>Competições</h2>
+        {temPerm("editar_competições") &&
+          <button style={s.btnPrimary} onClick={() => { selecionarEvento(null); setTela("novo-evento"); }}>+ Nova Competição</button>}
+      </div>
       {meusEventos.length === 0 ? (
         <div style={s.emptyState}>
           <span style={{ fontSize:16, fontWeight:800, color: t.textDimmed }}>SEM COMPETIÇÕES</span>
-          <p>Nenhum competição criado ainda.</p>
+          <p>Nenhuma competição criada ainda.</p>
           {temPerm("editar_competições") &&
             <button style={s.btnPrimary} onClick={() => { selecionarEvento(null); setTela("novo-evento"); }}>Criar Competição</button>}
         </div>
-      ) : (
+      ) : (<>
+        <div style={{ position: "relative", maxWidth: 400, marginBottom: 16 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={t.textDimmed} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ position: "absolute", left: 12, top: 12 }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" value={buscaComp} onChange={e => setBuscaComp(e.target.value)} placeholder="Buscar competição..." style={{ width: "100%", background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 14px 10px 36px", color: t.textSecondary, fontSize: 14, outline: "none" }} />
+        </div>
         <div style={s.tableWrap}>
-          <input type="text" value={buscaComp} onChange={e => setBuscaComp(e.target.value)} placeholder="Buscar competição..." style={{ ...s.input, padding:"6px 12px", fontSize:12, marginBottom:8, maxWidth:350 }} />
-          <div style={{ maxHeight:320, overflowY:"auto" }}>
           <table style={s.table}>
             <thead><tr><Th>Competição</Th><Th>Data</Th><Th>Local</Th><Th>Inscrições</Th><Th>Status</Th><Th>Ações</Th></tr></thead>
             <tbody>
-              {meusEventos.filter(ev => {
-                if (!buscaComp) return true;
-                const b = buscaComp.toLowerCase();
-                return (ev.nome||"").toLowerCase().includes(b) || (_getLocalEventoDisplay(ev)||"").toLowerCase().includes(b);
-              }).map(ev => {
+              {compPag.map(ev => {
                 const nInsc = inscricoes.filter(i=>i.eventoId===ev.id).length;
                 return (
                   <tr key={ev.id} style={s.tr}>
@@ -623,9 +690,9 @@ function TelaPainelOrganizador() {
               })}
             </tbody>
           </table>
-          </div>
         </div>
-      )}
+        <PaginaControles {...compInfo} />
+      </>)}
 
       {/* ── Competições Cruzadas: eventos de outros orgs onde somos autorizados ── */}
       {!isFuncionario && (() => {
@@ -723,12 +790,159 @@ function TelaPainelOrganizador() {
         );
       })()}
 
+      </>)}
+
       {/* ═══════════════════════════════════════════════════════════════
-          SEÇÃO 3: FERRAMENTAS — Colapsáveis, uso menos frequente
+          ABA: EQUIPES
          ═══════════════════════════════════════════════════════════════ */}
+      {aba === "equipes" && (<>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
+          <h2 style={s.sectionTitle}>Equipes ({minhasEquipes.length})</h2>
+          <button style={s.btnPrimary} onClick={() => setTela("gerenciar-equipes")}>Gerenciar Equipes</button>
+        </div>
+        <div style={{ position: "relative", maxWidth: 400, marginBottom: 16 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={t.textDimmed} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ position: "absolute", left: 12, top: 12 }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" value={buscaEquipe} onChange={e => setBuscaEquipe(e.target.value)}
+            placeholder="Buscar equipe..." style={{ width: "100%", background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 14px 10px 36px", color: t.textSecondary, fontSize: 14, outline: "none" }} />
+        </div>
+        {equipesFiltradas.length === 0 ? (
+          <div style={s.emptyState}>
+            <p>{minhasEquipes.length === 0 ? "Nenhuma equipe cadastrada" : "Nenhuma equipe encontrada"}</p>
+          </div>
+        ) : (
+          <>
+            <div style={s.tableWrap}>
+              <table style={s.table}>
+                <thead><tr><Th>Equipe</Th><Th>Sigla</Th><Th>Cidade</Th><Th>Atletas</Th><Th>Inscrições</Th><Th>Status</Th></tr></thead>
+                <tbody>
+                  {eqPag.map(eq => {
+                    const nAtl = atletas.filter(a => a.equipeId === eq.id || a.clube === eq.nome).length;
+                    const nInsc = (inscricoes || []).filter(i => i.equipeId === eq.id || i.equipeCadastro === eq.nome).length;
+                    return (
+                      <tr key={eq.id} style={s.tr}>
+                        <Td><strong style={{ color: t.textPrimary }}>{eq.nome}</strong></Td>
+                        <Td style={{ fontSize: 12 }}>{eq.sigla || "—"}</Td>
+                        <Td style={{ fontSize: 12 }}>{eq.cidade || "—"}{eq.estado ? `/${eq.estado}` : ""}</Td>
+                        <Td style={{ textAlign: "center" }}><strong style={{ color: t.accent }}>{nAtl}</strong></Td>
+                        <Td style={{ textAlign: "center" }}>{nInsc}</Td>
+                        <Td>
+                          <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4,
+                            background: eq.status === "ativa" ? `${t.success}15` : eq.status === "pendente" ? `${t.warning}15` : `${t.danger}15`,
+                            color: eq.status === "ativa" ? t.success : eq.status === "pendente" ? t.warning : t.danger }}>
+                            {eq.status === "ativa" ? "Ativa" : eq.status === "pendente" ? "Pendente" : eq.status || "—"}
+                          </span>
+                        </Td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <PaginaControles {...eqInfo} />
+          </>
+        )}
+      </>)}
+
+      {/* ═══════════════════════════════════════════════════════════════
+          ABA: FUNCIONARIOS
+         ═══════════════════════════════════════════════════════════════ */}
+      {aba === "atletas" && (<>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
+          <h2 style={s.sectionTitle}>Atletas ({meusAtletas.length})</h2>
+          <button style={s.btnPrimary} onClick={() => setTela("cadastrar-atleta")}>Cadastrar Atleta</button>
+        </div>
+        <div style={{ position: "relative", maxWidth: 400, marginBottom: 16 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={t.textDimmed} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ position: "absolute", left: 12, top: 12 }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" value={buscaAtleta} onChange={e => setBuscaAtleta(e.target.value)}
+            placeholder="Buscar por nome, equipe ou CPF..." style={{ width: "100%", background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 14px 10px 36px", color: t.textSecondary, fontSize: 14, outline: "none" }} />
+        </div>
+        {atletasFiltrados.length === 0 ? (
+          <div style={s.emptyState}>
+            <p>{meusAtletas.length === 0 ? "Nenhum atleta cadastrado" : "Nenhum atleta encontrado"}</p>
+          </div>
+        ) : (
+          <>
+            <div style={s.tableWrap}>
+              <table style={s.table}>
+                <thead><tr><Th>Nome</Th><Th>Equipe</Th><Th>Sexo</Th><Th>Ano Nasc.</Th><Th>CPF</Th><Th>Ações</Th></tr></thead>
+                <tbody>
+                  {atlPag.map(a => (
+                    <tr key={a.id} style={s.tr}>
+                      <Td><strong style={{ color: t.textPrimary }}>{a.nome}</strong></Td>
+                      <Td style={{ fontSize: 12, color: t.accent }}>{a.clube || "—"}</Td>
+                      <Td style={{ fontSize: 12 }}>{a.sexo === "M" ? "Masc" : "Fem"}</Td>
+                      <Td style={{ fontSize: 12 }}>{a.anoNasc || "—"}</Td>
+                      <Td style={{ fontSize: 11, color: t.textDimmed }}>{a.cpf || "—"}</Td>
+                      <Td>
+                        <button style={s.btnIconSm} onClick={() => { setAtletaEditandoId(a.id); setTela("editar-atleta"); }} title="Editar">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                      </Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <PaginaControles {...atlInfo} />
+          </>
+        )}
+      </>)}
+
+      {aba === "funcionarios" && (<>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
+          <h2 style={s.sectionTitle}>Funcionários ({meusFuncs.length})</h2>
+          <button style={s.btnPrimary} onClick={() => setTela("funcionarios")}>Gerenciar Funcionários</button>
+        </div>
+        {meusFuncs.length === 0 ? (
+          <div style={s.emptyState}>
+            <p>Nenhum funcionário cadastrado</p>
+            <button style={s.btnPrimary} onClick={() => setTela("funcionarios")}>Cadastrar Funcionário</button>
+          </div>
+        ) : (
+          <div style={s.tableWrap}>
+            <table style={s.table}>
+              <thead><tr><Th>Nome</Th><Th>E-mail</Th><Th>Cargo</Th><Th>Permissões</Th><Th>Status</Th></tr></thead>
+              <tbody>
+                {meusFuncs.map(f => (
+                  <tr key={f.id} style={{ ...s.tr, opacity: f.ativo === false ? 0.5 : 1 }}>
+                    <Td><strong style={{ color: t.textPrimary }}>{f.nome}</strong></Td>
+                    <Td style={{ fontSize: 12 }}>{f.email || "—"}</Td>
+                    <Td style={{ fontSize: 12, color: t.textTertiary }}>{f.cargo || "—"}</Td>
+                    <Td>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
+                        {(f.permissoes || []).length === 0
+                          ? <span style={{ color: t.textDisabled, fontSize: 10 }}>Sem permissões</span>
+                          : (f.permissoes || []).map(pid => {
+                              const p = PERMISSOES.find(x => x.id === pid);
+                              return <span key={pid} style={{ background: `${t.success}18`, color: t.success, fontSize: 9, padding: "1px 6px", borderRadius: 3, fontWeight: 600 }}>{p?.label || pid}</span>;
+                            })
+                        }
+                      </div>
+                    </Td>
+                    <Td>
+                      <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4,
+                        background: f.ativo === false ? `${t.danger}15` : `${t.success}15`,
+                        color: f.ativo === false ? t.danger : t.success }}>
+                        {f.ativo === false ? "Inativo" : "Ativo"}
+                      </span>
+                    </Td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </>)}
+
+      {/* ═══════════════════════════════════════════════════════════════
+          ABA: RELATORIOS
+         ═══════════════════════════════════════════════════════════════ */}
+      {aba === "relatorios" && (<>
+
+      <h2 style={s.sectionTitle}>Relatórios</h2>
 
       {/* ── Gerar Relatório de Participação ── */}
-      {temPerm("inscricoes") && meusEventos.length > 0 && (
+      {meusEventos.length > 0 && (
         <details style={{ background: t.bgCardAlt, border: `1px solid ${t.border}`, borderRadius: 12, padding: "16px 20px", marginBottom: 16 }}>
           <summary style={{ cursor: "pointer", fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 800, color: t.accent, letterSpacing: 1 }}>
             Relatório Oficial de Participação
@@ -853,7 +1067,7 @@ function TelaPainelOrganizador() {
       )}
 
       {/* ── Histórico de Relatórios ── */}
-      {temPerm("inscricoes") && (() => {
+      {(() => {
         const relHistorico = (solicitacoesRelatorio || []).filter(sol => {
           if (sol.status === "pendente") return false;
           const evt = eventos.find(e => e.id === sol.eventoId);
@@ -898,8 +1112,17 @@ function TelaPainelOrganizador() {
         );
       })()}
 
+      </>)}
+
+      {/* ═══════════════════════════════════════════════════════════════
+          ABA: AUDITORIA
+         ═══════════════════════════════════════════════════════════════ */}
+      {aba === "auditoria" && (<>
+
+      <h2 style={s.sectionTitle}>Auditoria</h2>
+
       {/* ── Auditoria de Ações ── */}
-      {!isFuncionario && (() => {
+      {(() => {
         const POR_PAG = 10;
         const auditoriaOrg = (historicoAcoes || [])
           .filter(a => a.organizadorId === orgId)
@@ -958,7 +1181,7 @@ function TelaPainelOrganizador() {
       })()}
 
       {/* ── Histórico de Vínculos ── */}
-      {temPerm("inscricoes") && (() => {
+      {(() => {
         const meuOrgId = usuarioLogado?.tipo === "organizador" ? usuarioLogado?.id : usuarioLogado?.organizadorId;
         const minhasEquipesIds = new Set((equipes||[]).filter(e => e.organizadorId === meuOrgId).map(e => e.id));
         const pertenceAoOrg = (sol) =>
@@ -1012,6 +1235,8 @@ function TelaPainelOrganizador() {
           </details>
         );
       })()}
+
+      </>)}
 
     </div>
   );
