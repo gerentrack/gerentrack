@@ -267,6 +267,7 @@ function TelaGestaoInscricoes() {
   const togglePago = (inscs, atl) => {
     const novoStatus = !isPago(inscs);
     inscs.forEach(i => atualizarInscricao({ ...i, pago: novoStatus }));
+    if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, novoStatus ? "Marcou pagamento" : "Desmarcou pagamento", `${atl?.nome || "atleta"} — ${inscs.length} inscrição(ões)`, usuarioLogado?.organizadorId || usuarioLogado?.id, { modulo: "inscricoes" });
     setFeedback(`${novoStatus ? "Pago" : "Pendente"}: ${atl?.nome || "atleta"}`);
     setTimeout(() => setFeedback(""), 3000);
   };
@@ -654,11 +655,16 @@ function TelaGestaoInscricoes() {
       if (preInscRestantes.length !== preInscAtual.length) {
         atualizarCamposEvento(eventoAtual.id, { preInscricoes: preInscRestantes });
       }
-      if (registrarAcao) registrarAcao(
-        usuarioLogado?.id, usuarioLogado?.nome,
-        "Inscreveu atletas em lote", `${carrinho.length} inscrição(ões)`,
-        usuarioLogado?.organizadorId || usuarioLogado?.id, { modulo: "inscricoes" }
-      );
+      if (registrarAcao) {
+        const atletasUnicos = [...new Set(carrinho.map(c => c.atletaNome || c.atletaId))];
+        const nomes = atletasUnicos.slice(0, 5).join(", ");
+        const extra = atletasUnicos.length > 5 ? ` +${atletasUnicos.length - 5} mais` : "";
+        registrarAcao(
+          usuarioLogado?.id, usuarioLogado?.nome,
+          "Inscreveu atletas em lote", `${carrinho.length} inscrição(ões) · ${atletasUnicos.length} atleta(s): ${nomes}${extra}`,
+          usuarioLogado?.organizadorId || usuarioLogado?.id, { modulo: "inscricoes" }
+        );
+      }
       setEtapa("concluido");
     } catch (err) {
       console.error("[GestaoInscricoes] Erro ao confirmar lote:", err);
@@ -1075,6 +1081,11 @@ function TelaGestaoInscricoes() {
     // Marcar como pago se opção ativada
     if (marcarComoPago) {
       atletasSelecionados.forEach(([, inscs]) => inscs.forEach(i => atualizarInscricao({ ...i, pago: true })));
+      if (registrarAcao) {
+        const nomes = atletasSelecionados.slice(0, 5).map(([id]) => { const a = atletas.find(x => x.id === id); return a?.nome || "?"; }).join(", ");
+        const extra = atletasSelecionados.length > 5 ? ` +${atletasSelecionados.length - 5} mais` : "";
+        registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, "Marcou pagamento (lote)", `${atletasSelecionados.length} atleta(s): ${nomes}${extra}`, usuarioLogado?.organizadorId || usuarioLogado?.id, { modulo: "inscricoes" });
+      }
     }
 
     const _scriptAutoScale = `<script>function autoScale(){document.querySelectorAll('.recibo,.pg').forEach(function(pg){var rod=pg.querySelector('.rod-wrap');if(!rod)return;for(var r=0;r<pg.children.length;r++){if(pg.children[r]===rod)continue;pg.children[r].style.fontSize='';pg.children[r].querySelectorAll('table').forEach(function(t){t.style.fontSize='';});}var pgH=pg.offsetHeight;var rodH=rod.offsetHeight;var dH=pgH-rodH;var cH=0;for(var i=0;i<pg.children.length;i++){var c=pg.children[i];if(c===rod)continue;cH+=c.offsetHeight+(parseFloat(getComputedStyle(c).marginTop)||0)+(parseFloat(getComputedStyle(c).marginBottom)||0);}if(cH>dH){var s=Math.max(0.55,dH/cH);for(var j=0;j<pg.children.length;j++){if(pg.children[j]===rod)continue;pg.children[j].style.fontSize=(s*100)+'%';pg.children[j].querySelectorAll('table').forEach(function(t){t.style.fontSize=(s*100)+'%';});}}});}window.addEventListener('load',autoScale);window.addEventListener('beforeprint',autoScale);</scrip` + `t>`;

@@ -645,7 +645,11 @@ function BlocoDigitarCategoria({
       await atualizarResultadosEmLote(eid, filtroProva, catId, filtroSexo, faseEfetiva, entradas);
     }
     console.log("handleSalvarAltura: salvou", atletasNaProva.length, "atletas com alturas:", alturas);
-    if (usuarioLogado && registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Digitou resultados", `${provaSel?.nome || filtroProva} — ${atletasNaProva.length} atleta(s)`, usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "resultados" });
+    if (usuarioLogado && registrarAcao) {
+      const det = entradas.slice(0, 5).map(e => { const a = atletasNaProva.find(x => x.id === e.atletaId); return `${a?.nome || "?"}: ${e.marca}`; }).join(", ");
+      const extra = entradas.length > 5 ? ` +${entradas.length - 5} mais` : "";
+      registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Digitou resultados", `${provaSel?.nome || filtroProva} — ${catId} ${filtroSexo === "M" ? "Masc" : "Fem"} — ${entradas.length} atleta(s): ${det}${extra}`, usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "resultados" });
+    }
     setSalvo(true);
     setTimeout(() => setSalvo(false), 2500);
   };
@@ -726,7 +730,13 @@ function BlocoDigitarCategoria({
       }
     }
     console.log("handleSalvar: salvou", atletasSalvar.length, "atletas");
-    if (usuarioLogado && registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Digitou resultados", `${provaSel?.nome || filtroProva} — ${atletasSalvar.length} atleta(s)`, usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "resultados" });
+    if (usuarioLogado && registrarAcao) {
+      const det = atletasSalvar.slice(0, 5).map(a => {
+        const m = marcas[a.id]; const marca = m?.status || m?.marca || ""; return `${a.nome || "?"}: ${marca}`;
+      }).join(", ");
+      const extra = atletasSalvar.length > 5 ? ` +${atletasSalvar.length - 5} mais` : "";
+      registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Digitou resultados", `${provaSel?.nome || filtroProva} — ${catId} ${filtroSexo === "M" ? "Masc" : "Fem"} — ${atletasSalvar.length} atleta(s): ${det}${extra}`, usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "resultados" });
+    }
     setSalvo(true);
     setTimeout(() => setSalvo(false), 2000);
   };
@@ -996,7 +1006,7 @@ function BlocoDigitarCategoria({
             if (nSalvos > 0) {
               await atualizarResultadosEmLote(eid, filtroProva, catId, filtroSexo, faseEfetiva, entradas);
             }
-            if (usuarioLogado && registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Digitou resultados (revezamento)", `${provaSel?.nome || filtroProva} — ${nSalvos} equipe(s)`, usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "resultados" });
+            if (usuarioLogado && registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Digitou resultados (revezamento)", `${provaSel?.nome || filtroProva} — ${catId} ${filtroSexo === "M" ? "Masc" : "Fem"} — ${nSalvos} equipe(s)`, usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "resultados" });
             setSalvo(true); setTimeout(() => setSalvo(false), 3000);
             setMarcas({});
           };

@@ -148,7 +148,11 @@ export default function TelaRanking() {
     const ids = new Set(entradas.map(r => r.id));
     setRanking(prev => prev.map(r => ids.has(r.id) ? { ...r, status: "homologado", resolvidoPor: usuarioLogado?.nome, resolvidoEm: Date.now() } : r));
     setHistoricoRanking(prev => [...prev, ...entradas.map(r => ({ tipo: "homologado", entradaId: r.id, atletaNome: r.atletaNome, provaNome: r.provaNome, marca: r.marca, adminNome: usuarioLogado?.nome, data: Date.now() }))].slice(-500));
-    if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Homologou ranking (lote)", `${entradas.length} entradas`, null, { modulo: "ranking" });
+    if (registrarAcao) {
+      const det = entradas.slice(0, 5).map(r => `${r.atletaNome}: ${r.provaNome} ${r.marca}`).join(", ");
+      const extra = entradas.length > 5 ? ` +${entradas.length - 5} mais` : "";
+      registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Homologou ranking (lote)", `${entradas.length} entradas: ${det}${extra}`, null, { modulo: "ranking" });
+    }
   };
 
   // ── Inserção manual ──
@@ -433,7 +437,11 @@ export default function TelaRanking() {
     // Remover campo auxiliar _linha
     const entradas = importPreview.map(({ _linha, ...rest }) => rest);
     setRanking(prev => [...prev, ...entradas]);
-    if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Importou ranking (planilha)", `${entradas.length} entradas`, null, { modulo: "ranking" });
+    if (registrarAcao) {
+      const det = entradas.slice(0, 5).map(r => `${r.atletaNome}: ${r.provaNome} ${r.marca}`).join(", ");
+      const extra = entradas.length > 5 ? ` +${entradas.length - 5} mais` : "";
+      registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Importou ranking (planilha)", `${entradas.length} entradas: ${det}${extra}`, null, { modulo: "ranking" });
+    }
     setImportStatus("importado");
     setImportPreview(null);
   };

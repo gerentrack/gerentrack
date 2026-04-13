@@ -624,11 +624,11 @@ function App() {
   // ── CRUD Equipes ──────────────────────────────────────────────────
   const adicionarEquipeFiliada     = (eq) => {
     _adicionarEquipe(eq);
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Cadastrou equipe", eq.nome || "", usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "equipes" });
+    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Cadastrou equipe", `${eq.nome || ""}${eq.sigla ? " (" + eq.sigla + ")" : ""}${eq.cidade ? " — " + eq.cidade : ""}${eq.estado || eq.uf ? "/" + (eq.estado || eq.uf) : ""}`, usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "equipes" });
   };
   const editarEquipeFiliada        = async (eq) => {
     await _atualizarEquipe(eq);
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Editou equipe", eq.nome || "", usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "equipes" });
+    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Editou equipe", `${eq.nome || ""}${eq.sigla ? " (" + eq.sigla + ")" : ""}`, usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "equipes" });
   };
   // ── Exclusão de Usuários (Admin) ──────────────────────────────────────────
   const excluirOrganizador = async (id) => {
@@ -940,7 +940,10 @@ function App() {
     ));
     adicionarNotificacao(equipeId, "aprovacao_equipe",
       `Sua equipe "${eq?.nome || ""}" foi aprovada! Você já pode gerenciar atletas e realizar inscrições.`);
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Aprovou equipe", eq?.nome || equipeId, null, { modulo: "sistema" });
+    if (usuarioLogado) {
+      const orgVinc = organizadores.find(o => o.id === (novoOrgId || eq?.organizadorId));
+      registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Aprovou equipe", `${eq?.nome || equipeId}${eq?.sigla ? " (" + eq.sigla + ")" : ""}${orgVinc ? " — " + (orgVinc.entidade || orgVinc.nome) : ""}`, null, { modulo: "sistema" });
+    }
   };
   const recusarEquipe = async (equipeId) => {
     const eq = equipes.find(e => e.id === equipeId);
@@ -950,21 +953,25 @@ function App() {
       ? { ...s, status: "recusada", dataResposta: new Date().toISOString() }
       : s
     ));
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Recusou equipe", eq?.nome || equipeId, null, { modulo: "sistema" });
+    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Recusou equipe", `${eq?.nome || equipeId}${eq?.sigla ? " (" + eq.sigla + ")" : ""}${eq?.email ? " · " + eq.email : ""}`, null, { modulo: "sistema" });
   };
   const adicionarAtletaUsuario = (u) => _adicionarAtletaUsuario(u);
   const atualizarAtletaUsuario = (u) => _atualizarAtletaUsuario(u);
   const adicionarAtleta  = (a) => {
     _adicionarAtleta(a);
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Cadastrou atleta", a.nome || "", usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "atletas" });
+    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Cadastrou atleta", `${a.nome || ""}${a.clube ? " — " + a.clube : ""}${a.sexo ? " · " + (a.sexo === "M" ? "Masc" : "Fem") : ""}`, usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "atletas" });
   };
   const adicionarAtletasEmLote = async (lista) => {
     await _adicionarAtletasEmLote(lista);
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Importou atletas em lote", `${lista.length} atleta(s)`, usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "atletas" });
+    if (usuarioLogado) {
+      const nomes = lista.slice(0, 10).map(a => a.nome || "?").join(", ");
+      const extra = lista.length > 10 ? ` +${lista.length - 10} mais` : "";
+      registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Importou atletas em lote", `${lista.length} atleta(s): ${nomes}${extra}`, usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "atletas" });
+    }
   };
   const atualizarAtleta  = (a) => {
     _atualizarAtleta(a);
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Editou atleta", a.nome || "", usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "atletas" });
+    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Editou atleta", `${a.nome || ""}${a.clube ? " — " + a.clube : ""}`, usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "atletas" });
   };
 
   // origem: "atleta" (atleta pede para equipe) | "equipe" (equipe pede ao atleta ou à equipe atual)
@@ -1145,7 +1152,7 @@ function App() {
     const atleta = atletas.find(a => a.id === atletaId);
     const nomeAtleta = atleta?.nome || "atleta";
     excluirAtletaPorId(atletaId);
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Excluiu atleta", nomeAtleta, usuarioLogado.organizadorId || null, { equipeId: usuarioLogado.equipeId, modulo: "atletas" });
+    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Excluiu atleta", `${nomeAtleta}${atleta?.clube ? " — " + atleta.clube : ""}`, usuarioLogado.organizadorId || null, { equipeId: usuarioLogado.equipeId, modulo: "atletas" });
     if (atleta) {
       setAtletasUsuarios(p => p.filter(u => {
         if (atleta.atletaUsuarioId && u.id === atleta.atletaUsuarioId) return false;
@@ -1176,7 +1183,11 @@ function App() {
       return true;
     }));
     excluirInscricoesPorAtletas(idsSet);
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Excluiu atletas em massa", `${idsSet.size} atleta(s)`, usuarioLogado.organizadorId || null, { modulo: "atletas" });
+    if (usuarioLogado) {
+      const nomes = atletasRemovidos.slice(0, 10).map(a => a.nome || "?").join(", ");
+      const extra = atletasRemovidos.length > 10 ? ` +${atletasRemovidos.length - 10} mais` : "";
+      registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Excluiu atletas em massa", `${idsSet.size} atleta(s): ${nomes}${extra}`, usuarioLogado.organizadorId || null, { modulo: "atletas" });
+    }
   };
 
   const desvincularAtleta = (atletaId) => {

@@ -688,8 +688,11 @@ function TelaSecretaria() {
                                   estado === "confirmado" ? t.success : t.textDisabled,
                                   estado === "confirmado" ? `${t.success}18` : t.bgCardAlt
                                 )}
-                                onClick={() => atualizarPresenca(prova.id, cat.id, sexo, atl.id,
-                                  estado === "confirmado" ? null : "confirmado")}
+                                onClick={() => {
+                                  const novoEstado = estado === "confirmado" ? null : "confirmado";
+                                  atualizarPresenca(prova.id, cat.id, sexo, atl.id, novoEstado);
+                                  if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, novoEstado ? "Confirmou presença" : "Removeu presença", `${atl.nome} — ${prova.nome} ${cat.nome} ${sexo === "M" ? "Masc" : "Fem"}`, usuarioLogado?.organizadorId, { modulo: "secretaria" });
+                                }}
                               >
                                 ✓ Conf.
                               </button>
@@ -698,8 +701,11 @@ function TelaSecretaria() {
                                   estado === "dns" ? t.danger : t.textDisabled,
                                   estado === "dns" ? `${t.danger}18` : t.bgCardAlt
                                 )}
-                                onClick={() => atualizarPresenca(prova.id, cat.id, sexo, atl.id,
-                                  estado === "dns" ? null : "dns")}
+                                onClick={() => {
+                                  const novoEstado = estado === "dns" ? null : "dns";
+                                  atualizarPresenca(prova.id, cat.id, sexo, atl.id, novoEstado);
+                                  if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, novoEstado ? "Marcou DNS" : "Removeu DNS", `${atl.nome} — ${prova.nome} ${cat.nome} ${sexo === "M" ? "Masc" : "Fem"}`, usuarioLogado?.organizadorId, { modulo: "secretaria" });
+                                }}
                               >
                                 DNS
                               </button>
@@ -1061,10 +1067,10 @@ function TelaSecretaria() {
                                       ),
                                       minWidth: 120,
                                     }}
-                                    onClick={() => marcarEntrega(
-                                      prova.id, cat.id, sexo, atl.id, tipo,
-                                      usuarioLogado?.id, usuarioLogado?.nome
-                                    )}
+                                    onClick={() => {
+                                      marcarEntrega(prova.id, cat.id, sexo, atl.id, tipo, usuarioLogado?.id, usuarioLogado?.nome);
+                                      if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, medalha.entregue ? "Desfez entrega de medalha" : "Entregou medalha", `${atl.nome} — ${tipo} — ${prova.nome} ${cat.nome} ${sexo === "M" ? "Masc" : "Fem"}`, usuarioLogado?.organizadorId, { modulo: "secretaria" });
+                                    }}
                                   >
                                     {medalha.entregue ? "✓ Entregue" : "— Entregar"}
                                   </button>
