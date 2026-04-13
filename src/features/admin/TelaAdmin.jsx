@@ -74,7 +74,7 @@ function getStyles(t) {
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
-function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditoria, auditoria=[] }) {
+function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes }) {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado, solicitacoesRecuperacao, resolverSolicitacaoRecuperacao, aplicarSenhaTemp, gerarSenhaTemp } = useAuth();
@@ -1481,34 +1481,6 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes, setAuditori
               </div>
             </div>
 
-            {/* Auditoria de equipes/organizadores */}
-            {auditoria.length > 0 && (
-              <div style={{ background:`${t.success}08`, border:`1px solid ${t.success}33`, borderRadius:8, padding:"10px 14px", marginBottom:14, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
-                <span style={{ fontSize:12, color: t.success }}>
-                  Auditoria de equipes/organizadores: <strong>{auditoria.length}</strong> entrada(s)
-                </span>
-                {setAuditoria && (
-                  <div style={{ display:"flex", gap:8 }}>
-                    <button
-                      onClick={() => {
-                        if (!window.confirm(`Manter apenas as 100 entradas mais recentes da auditoria?`)) return;
-                        setAuditoria(p => p.slice(0, 100));
-                      }}
-                      style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px", color:"#e67e22", borderColor:`${t.warning}44` }}>
-                      Manter 100
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (!window.confirm(`Apagar TODA a auditoria de equipes/organizadores?`)) return;
-                        setAuditoria([]);
-                      }}
-                      style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px", color: t.danger, borderColor:`${t.danger}44` }}>
-                      Apagar tudo
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
 
             {todas.length === 0 ? (
               <div style={s.empty}>Nenhuma ação registrada.</div>

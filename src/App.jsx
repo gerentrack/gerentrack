@@ -238,12 +238,9 @@ function App() {
     if (meta) meta.setAttribute("content", temaClaro ? "#FFFFFF" : "#0D0E12");
   }, [temaClaro]);
 
-  const [auditoria, _setAuditoria] = useLocalStorage("atl_auditoria", []);
+  // auditoria removida — redundante com historicoAcoes
+  // const [auditoria, _setAuditoria] = useLocalStorage("atl_auditoria", []);
   // Wrapper com limite de 500 entradas — protege o documento Firestore de ultrapassar 1MB
-  const setAuditoria = (fn) => _setAuditoria(prev => {
-    const novo = typeof fn === "function" ? fn(prev) : fn;
-    return Array.isArray(novo) ? novo.slice(0, 500) : novo;
-  });
   // ── Coleções individuais Firestore (migradas de state/) ──────────────────
   const { organizadores, setOrganizadores, resetOrganizadores, importarOrganizadores } = useOrganizadores();
   const { atletasUsuarios, setAtletasUsuarios, resetAtletasUsuarios, importarAtletasUsuarios, adicionarAtletaUsuario: _adicionarAtletaUsuario, atualizarAtletaUsuario: _atualizarAtletaUsuario } = useAtletasUsuarios();
@@ -1455,7 +1452,6 @@ function App() {
     setHistoricoAcoes([]);
     setSolicitacoesVinculo([]);
     setNotificacoes([]);
-    setAuditoria([]);
     resetEquipes();
     resetAtletas();
     await resetEventos();
@@ -1482,7 +1478,7 @@ function App() {
       solicitacoesRecuperacao, solicitacoesEquipe, solicitacoesRelatorio, historicoAcoes,
       recordes, pendenciasRecorde, historicoRecordes,
       ranking, historicoRanking,
-      auditoria, solicitacoesVinculo, notificacoes,
+      solicitacoesVinculo, notificacoes,
       solicitacoesPortabilidade,
       siteBranding, perfisDisponiveis,
       adminConfig,
@@ -1536,7 +1532,6 @@ function App() {
         if (dados.historicoRecordes)       setHistoricoRecordes(dados.historicoRecordes);
         if (dados.ranking)                 await importarRanking(dados.ranking);
         if (dados.historicoRanking)        setHistoricoRanking(dados.historicoRanking);
-        if (dados.auditoria)               setAuditoria(dados.auditoria);
         if (dados.solicitacoesVinculo)     setSolicitacoesVinculo(dados.solicitacoesVinculo);
         if (dados.notificacoes)            setNotificacoes(dados.notificacoes);
         if (dados.solicitacoesPortabilidade) setSolicitacoesPortabilidade(dados.solicitacoesPortabilidade);
@@ -2077,7 +2072,7 @@ function App() {
         {tela === "planos"            && <TelaPlanos />}
         {tela === "privacidade"       && <TelaPrivacidade />}
         {tela === "termos"            && <TelaTermos />}
-        {tela === "admin"             && <TelaAdmin adminConfig={adminConfig} setAdminConfig={setAdminConfig} setHistoricoAcoes={setHistoricoAcoes} setAuditoria={setAuditoria} auditoria={auditoria} />}
+        {tela === "admin"             && <TelaAdmin adminConfig={adminConfig} setAdminConfig={setAdminConfig} setHistoricoAcoes={setHistoricoAcoes} />}
         {tela === "gerenciar-equipes" && <TelaGerenciarEquipes />}
         {tela === "gerenciar-usuarios" && <TelaGerenciarUsuarios />}
         {tela === "importar-atletas"  && <TelaImportarAtletas />}
