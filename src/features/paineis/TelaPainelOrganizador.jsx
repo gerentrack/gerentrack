@@ -208,6 +208,8 @@ function TelaPainelOrganizador() {
   const [vincPagina, setVincPagina] = useState(1);
   const [buscaAtleta, setBuscaAtleta] = useState("");
   const [buscaEquipe, setBuscaEquipe] = useState("");
+  const [modalTransf, setModalTransf] = useState(null);
+  const [transfEquipeId, setTransfEquipeId] = useState("");
 
   // Dados para abas Equipes e Atletas (hooks devem ficar fora de condicionais)
   const minhasEquipes = useMemo(() => (equipes || []).filter(e => e.organizadorId === orgId).sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR")), [equipes, orgId]);
@@ -878,9 +880,16 @@ function TelaPainelOrganizador() {
                       <Td style={{ fontSize: 12 }}>{a.anoNasc || "—"}</Td>
                       <Td style={{ fontSize: 11, color: t.textDimmed }}>{a.cpf || "—"}</Td>
                       <Td>
-                        <button style={s.btnIconSm} onClick={() => { setAtletaEditandoId(a.id); setTela("editar-atleta"); }} title="Editar">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                        </button>
+                        <div style={{ display: "flex", gap: 5 }}>
+                          <button style={s.btnIconSm} onClick={() => { setAtletaEditandoId(a.id); setTela("editar-atleta"); }} title="Editar">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                          </button>
+                          <button style={{ ...s.btnIconSm, color: "#e6c430", borderColor: "#5a4a00" }}
+                            onClick={() => { setModalTransf({ atleta: a }); setTransfEquipeId(""); }}
+                            title="Transferir equipe">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 3 21 3 21 9"/><line x1="21" y1="3" x2="14" y2="10"/><polyline points="9 21 3 21 3 15"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                          </button>
+                        </div>
                       </Td>
                     </tr>
                   ))}
@@ -1210,6 +1219,52 @@ function TelaPainelOrganizador() {
           })()}
         </>);
       })()}
+
+      {/* ── Modal de Transferência de Atleta ── */}
+      {modalTransf && (
+        <div style={{ position: "fixed", inset: 0, background: "#000a", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}
+          onClick={() => setModalTransf(null)}>
+          <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 14, padding: 28, width: 420, maxWidth: "95vw" }}
+            onClick={ev => ev.stopPropagation()}>
+            <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.textPrimary, marginBottom: 4 }}>
+              Transferir Atleta
+            </h3>
+            <p style={{ color: t.textMuted, fontSize: 13, marginBottom: 20 }}>{modalTransf.atleta?.nome}</p>
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ color: t.textTertiary, fontSize: 12, display: "block", marginBottom: 4 }}>Equipe atual</label>
+              <div style={{ color: t.textPrimary, fontSize: 14, padding: "8px 12px", background: t.bgInput, borderRadius: 6, border: `1px solid ${t.borderInput}` }}>
+                {equipes.find(eq => eq.id === modalTransf.atleta?.equipeId)?.nome || modalTransf.atleta?.clube || <span style={{ color: t.textDimmed }}>Sem equipe</span>}
+              </div>
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ color: t.textTertiary, fontSize: 12, display: "block", marginBottom: 4 }}>Nova equipe</label>
+              <select value={transfEquipeId} onChange={ev => setTransfEquipeId(ev.target.value)}
+                style={{ width: "100%", background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 6, color: t.textPrimary, padding: "8px 12px", fontSize: 13 }}>
+                <option value="">Sem equipe (avulso)</option>
+                {[...equipes]
+                  .filter(eq => eq.id !== modalTransf.atleta?.equipeId && (eq.status === "ativa" || eq.status === "aprovado" || !eq.status))
+                  .sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR"))
+                  .map(eq => <option key={eq.id} value={eq.id}>{eq.nome} ({eq.sigla || "—"})</option>)
+                }
+              </select>
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button style={{ ...s.btnPrimary, flex: 1 }} onClick={async () => {
+                const atl = modalTransf.atleta;
+                if (transfEquipeId === (atl?.equipeId || "")) { setModalTransf(null); return; }
+                const novaEquipe = transfEquipeId ? equipes.find(eq => eq.id === transfEquipeId) : null;
+                const equipeOrigem = equipes.find(eq => eq.id === atl?.equipeId)?.nome || atl?.clube || "Sem equipe";
+                await atualizarAtleta({ ...atl, equipeId: transfEquipeId || null, clube: novaEquipe?.nome || "" });
+                if (registrarAcao) registrarAcao(usuarioLogado?.id, usuarioLogado?.nome, "Transferiu atleta",
+                  `${atl?.nome}: ${equipeOrigem} → ${novaEquipe?.nome || "Sem equipe"}`, usuarioLogado?.organizadorId || usuarioLogado?.id, { modulo: "atletas" });
+                setModalTransf(null);
+                setTransfEquipeId("");
+              }}>Confirmar Transferência</button>
+              <button style={s.btnGhost} onClick={() => setModalTransf(null)}>Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
