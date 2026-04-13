@@ -183,7 +183,7 @@ function TelaGestaoInscricoes() {
   const [feedback, setFeedback]       = useState("");
   const [carrinho, setCarrinho]           = useState([]);
   const [confirmando, setConfirmando]     = useState(false);
-  const [modoCarrinho, setModoCarrinho]   = useState(false);
+  const [modoCarrinho, setModoCarrinho]   = useState(true);
   const [inserirAtletaId, setInserirAtletaId] = useState("");
   const [inserirProvasIds, setInserirProvasIds] = useState(new Set());
   const [etapa, setEtapa]                 = useState("montagem");
@@ -1304,14 +1304,9 @@ function TelaGestaoInscricoes() {
       )}
 
       {/* Tabs */}
-      <div style={s.modoSwitch}>
+      <div style={{ ...s.modoSwitch, border: `2px solid ${t.accent}44` }}>
         <button
-          style={{ ...s.modoBtn, ...(!modoCarrinho ? s.modoBtnActive : {}) }}
-          onClick={() => setModoCarrinho(false)}>
-          Inscricoes Salvas
-        </button>
-        <button
-          style={{ ...s.modoBtn, ...(modoCarrinho ? s.modoBtnActive : {}) }}
+          style={{ ...s.modoBtn, fontWeight: 700, ...(modoCarrinho ? { ...s.modoBtnActive, background: `${t.accent}18`, color: t.accent } : {}) }}
           onClick={async () => { setModoCarrinho(true); setEtapa("montagem"); }}>
           Realizar Inscricoes
           {carrinho.length > 0 && (
@@ -1319,6 +1314,11 @@ function TelaGestaoInscricoes() {
               {carrinho.length}
             </span>
           )}
+        </button>
+        <button
+          style={{ ...s.modoBtn, ...(!modoCarrinho ? s.modoBtnActive : {}) }}
+          onClick={() => setModoCarrinho(false)}>
+          Inscricoes Salvas
         </button>
       </div>
 
