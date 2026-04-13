@@ -1557,8 +1557,50 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
 
   // ── Modo ──────────────────────────────────────────────────────────────────
   const modoHorario = form.modoHorario || "detalhado";
-  const setModoHorario = (modo) => {
-    setForm(f => ({ ...f, modoHorario: modo, programaHorario: {}, programaOrdem: [] }));
+  const [confirmModo, setConfirmModo] = useState(null); // "agrupado" | "detalhado" | null
+
+  const temHorariosPreenchidos = Object.values(prog).some(entries =>
+    entries.some(e => e.horario)
+  );
+
+  const pedirTrocaModo = (modo) => {
+    if (modo === modoHorario) return; // já está nesse modo
+    if (!temHorariosPreenchidos) {
+      executarTrocaModo(modo);
+    } else {
+      setConfirmModo(modo);
+    }
+  };
+
+  const executarTrocaModo = (modo) => {
+    setForm(f => {
+      const progAtual = f.programaHorario || {};
+      const provasIds = f.provasPrograma || [];
+      let novoProg = {};
+
+      if (modo === "agrupado") {
+        // detalhado → agrupado: para cada grupoKey, herda horário/fase da primeira prova
+        const grupoMap = new Map();
+        provasIds.forEach(id => {
+          const gk = getGrupoKeyLocal(id);
+          if (!grupoMap.has(gk) && progAtual[id]) {
+            grupoMap.set(gk, progAtual[id].map(e => ({ ...e })));
+          }
+        });
+        grupoMap.forEach((entries, gk) => { novoProg[gk] = entries; });
+      } else {
+        // agrupado → detalhado: para cada provaId, herda horário/fase do grupoKey
+        provasIds.forEach(id => {
+          const gk = getGrupoKeyLocal(id);
+          if (progAtual[gk]) {
+            novoProg[id] = progAtual[gk].map(e => ({ ...e }));
+          }
+        });
+      }
+
+      return { ...f, modoHorario: modo, programaHorario: novoProg, programaOrdem: [] };
+    });
+    setConfirmModo(null);
   };
 
   // ── Drag state ────────────────────────────────────────────────────────────
@@ -1882,13 +1924,13 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
 
         {/* Toggle + limpeza */}
         <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap", alignItems: "center" }}>
-          <button onClick={() => setModoHorario("agrupado")} style={{
-            padding: "7px 16px", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer", border: "none",
+          <button onClick={() => pedirTrocaModo("agrupado")} style={{
+            padding: "7px 16px", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: modoHorario === "agrupado" ? "default" : "pointer", border: "none",
             background: modoHorario === "agrupado" ? t.accent : t.bgInput,
             color: modoHorario === "agrupado" ? "#fff" : t.textDimmed,
           }}>Por modalidade/sexo</button>
-          <button onClick={() => setModoHorario("detalhado")} style={{
-            padding: "7px 16px", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer", border: "none",
+          <button onClick={() => pedirTrocaModo("detalhado")} style={{
+            padding: "7px 16px", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: modoHorario === "detalhado" ? "default" : "pointer", border: "none",
             background: modoHorario === "detalhado" ? t.accent : t.bgInput,
             color: modoHorario === "detalhado" ? "#fff" : t.textDimmed,
           }}>Detalhado por categoria</button>
@@ -1941,6 +1983,24 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
                 </div>
               </>
             )}
+          </div>
+        )}
+
+        {/* Modal confirmação troca de modo */}
+        {confirmModo && (
+          <div style={{ background: t.accent + "11", border: `1px solid ${t.accent}44`, borderRadius: 8, padding: "16px 18px", marginBottom: 14 }}>
+            <div style={{ color: t.accent, fontWeight: 700, fontSize: 13, marginBottom: 8 }}>Trocar modo do programa horário?</div>
+            <p style={{ color: t.textMuted, fontSize: 12, margin: "0 0 12px", lineHeight: 1.6 }}>
+              Os horários preenchidos serão <strong style={{ color: t.accent }}>convertidos</strong> para o modo {confirmModo === "agrupado" ? "agrupado (por modalidade/sexo)" : "detalhado (por categoria)"}. Verifique os horários após a conversão.
+            </p>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={() => executarTrocaModo(confirmModo)} style={{ background: t.accent, color: "#fff", border: "none", borderRadius: 6, padding: "7px 18px", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
+                Converter e trocar
+              </button>
+              <button onClick={() => setConfirmModo(null)} style={{ background: t.bgInput, color: t.textMuted, border: `1px solid ${t.borderLight}`, borderRadius: 6, padding: "7px 16px", cursor: "pointer", fontSize: 12 }}>
+                Cancelar
+              </button>
+            </div>
           </div>
         )}
 
