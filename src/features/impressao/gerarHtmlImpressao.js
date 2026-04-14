@@ -1,4 +1,4 @@
-import { _getClubeAtleta, _getLocalEventoDisplay, _getNascDisplay, _getCbat, nomeProvaHtml, formatarMarca, formatarMarcaExibicaoHtml, _marcasComEmpateCentesimal, resolverAtleta } from "../../shared/formatters/utils";
+import { _getClubeAtleta, _getLocalEventoDisplay, _getNascDisplay, _getCbat, nomeProvaHtml, formatarMarca, formatarMarcaExibicaoHtml, _marcasComEmpateCentesimal, resolverAtleta, formatarPeito } from "../../shared/formatters/utils";
 import { GT_DEFAULT_LOGO } from "../../shared/branding";
 import { getFasesModo, buscarSeriacao, serKey, FASE_ORDEM, getEntradasProva } from "../../shared/constants/fases";
 import { calcularEtapa, getEtapaLabel } from "../../shared/constants/etapas";
@@ -634,7 +634,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
       const linhaVazia = (a, j, serieNum) => `
         <tr class="${j%2===0?"par":"imp"}">
           <td class="tdn">${j+1}</td>
-          <td class="tdn" style="font-weight:700;color:#333">${numPeito[a.id]||""}</td>
+          <td class="tdn" style="font-weight:700;color:#333">${formatarPeito(numPeito[a.id])}</td>
           <td class="tdcbat">${_getCbat(a)}</td>
           <td class="tdal"><span class="anome">${a.nome}</span>${excTag(getInsc(a))}</td>
           <td class="tdat">${fmtNasc(a)}</td><td class="tdcl">${getSiglaEquipe(a)}</td>
@@ -646,7 +646,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
         return `
         <tr class="${j%2===0?"par":"imp"}">
           <td class="tdn">${j+1}</td>
-          <td class="tdn" style="font-weight:700;color:#333">${numPeito[a.id]||""}</td>
+          <td class="tdn" style="font-weight:700;color:#333">${formatarPeito(numPeito[a.id])}</td>
           <td class="tdcbat">${_getCbat(a)}</td>
           <td class="tdal"><span class="anome">${a.nome}</span>${excTag(getInsc(a))}</td>
           <td class="tdat">${fmtNasc(a)}</td><td class="tdcl">${getSiglaEquipe(a)}</td>
@@ -758,7 +758,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
                 <table><thead>${thCor}</thead><tbody>${atletasSerie.map(({atleta:a, raia}, j) => `
                   <tr class="${j%2===0?"par":"imp"}">
                     <td class="tdn">${j+1}</td>
-                    <td class="tdn" style="font-weight:700;color:#333">${numPeito[a.id]||""}</td>
+                    <td class="tdn" style="font-weight:700;color:#333">${formatarPeito(numPeito[a.id])}</td>
                     <td class="tdcbat">${_getCbat(a)}</td>
                     <td class="tdal"><span class="anome">${a.nome}</span>${excTag(getInsc(a))}</td>
                     <td class="tdat">${fmtNasc(a)}</td><td class="tdcl">${getSiglaEquipe(a)}</td>
@@ -860,7 +860,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
         const linhaStatus = (a, status, j) => `
           <tr class="${j%2===0?"par":"imp"}">
             <td class="tdn"></td>
-            <td class="tdn" style="font-weight:700;color:#333">${numPeito[a.id]||""}</td>
+            <td class="tdn" style="font-weight:700;color:#333">${formatarPeito(numPeito[a.id])}</td>
             <td class="tdcbat">${_getCbat(a)}</td>
             <td class="tdal"><span class="anome">${a.nome}</span></td>
             <td class="tdat">${fmtNasc(a)}</td><td class="tdcl">${getSiglaEquipe(a)}</td>
@@ -898,7 +898,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
                   const jj = serieOrd.length + j;
                   return `<tr class="${jj%2===0?"par":"imp"}">
                     <td class="tdn"></td>
-                    <td class="tdn" style="font-weight:700;color:#333">${numPeito[a.id]||""}</td>
+                    <td class="tdn" style="font-weight:700;color:#333">${formatarPeito(numPeito[a.id])}</td>
                     <td class="tdcbat">${_getCbat(a)}</td>
                     <td class="tdal"><span class="anome">${a.nome}</span></td>
                     <td class="tdat">${fmtNasc(a)}</td><td class="tdcl">${getSiglaEquipe(a)}</td>
@@ -1051,7 +1051,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
         // Col count row1: 3 + 8×3=24 + 2 + 2 + 2 + 3 = 36  (with rowspans from row1 occupying row2)
         // Col count row2: 8×1=8 + 2 = 10  (rest from rowspans)
         const duasLinhasAtleta = (a, idx) => {
-          const dorsal = a ? (numPeito[a.id] || "") : "";
+          const dorsal = a ? formatarPeito(numPeito[a.id]) : "";
           const bg = idx % 2 === 0 ? "#fff" : "#f6f6f6";
           const sty = `${_b}height:9px;background:${bg};font-size:7px;text-align:center;`;
           const ad = a ? (marchaDados[a.id] || {}) : {};
@@ -1311,7 +1311,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
         const linhaAlturaVazia = (a, j) => `
           <tr class="${j%2===0?"par":"imp"}">
             <td class="tdn">${j+1}</td>
-            <td class="tdn" style="font-weight:700;color:#333">${numPeito[a.id]||""}</td>
+            <td class="tdn" style="font-weight:700;color:#333">${formatarPeito(numPeito[a.id])}</td>
             <td class="tdcbat">${_getCbat(a)}</td>
             <td class="tdal"><span class="anome">${a.nome}</span>${excTag(getInsc(a))}</td>
             <td class="tdat">${fmtNasc(a)}</td>
@@ -1448,7 +1448,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
             return `
             <tr class="${j%2===0?"par":"imp"}"${trStyle}>
               <td class="tdn">${j+1}</td>
-              <td class="tdn" style="font-weight:700;color:#333">${numPeito[a.id]||""}</td>
+              <td class="tdn" style="font-weight:700;color:#333">${formatarPeito(numPeito[a.id])}</td>
               <td class="tdcbat">${_getCbat(a)}</td>
               <td class="tdal"><span class="anome">${a.nome}</span>${excTag(getInsc(a))}</td>
               <td class="tdat">${fmtNasc(a)}</td>
@@ -1524,7 +1524,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
         const linhaCampoVazia = (a, j) => `
           <tr class="${j%2===0?"par":"imp"}">
             <td class="tdn">${j+1}</td>
-            <td class="tdn" style="font-weight:700;color:#333">${numPeito[a.id]||""}</td>
+            <td class="tdn" style="font-weight:700;color:#333">${formatarPeito(numPeito[a.id])}</td>
             <td class="tdcbat">${_getCbat(a)}</td>
             <td class="tdal"><span class="anome">${a.nome}</span>${excTag(getInsc(a))}</td>
             <td class="tdat">${fmtNasc(a)}</td>
@@ -1555,7 +1555,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
           return `
           <tr class="${j%2===0?"par":"imp"}" style="${estilo}">
             <td class="tdn">${j+1}</td>
-            <td class="tdn" style="font-weight:700;color:#333">${numPeito[a.id]||""}</td>
+            <td class="tdn" style="font-weight:700;color:#333">${formatarPeito(numPeito[a.id])}</td>
             <td class="tdcbat">${_getCbat(a)}</td>
             <td class="tdal"><span class="anome">${a.nome}</span>${excTag(getInsc(a))}</td>
             <td class="tdat">${fmtNasc(a)}</td>
@@ -1645,7 +1645,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
                   }).join("")}${gi === totalGrupos - 1 ? statusCampoPrint.map(({a,status},j) => `
                   <tr class="${(classGeral.length+j)%2===0?"par":"imp"}" style="opacity:.5">
                     <td class="tdn"></td>
-                    <td class="tdn" style="font-weight:700;color:#333">${numPeito[a.id]||""}</td>
+                    <td class="tdn" style="font-weight:700;color:#333">${formatarPeito(numPeito[a.id])}</td>
                     <td class="tdcbat">${_getCbat(a)}</td>
                     <td class="tdal"><span class="anome">${a.nome}</span></td>
                     <td class="tdat">${fmtNasc(a)}</td>

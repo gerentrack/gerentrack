@@ -521,7 +521,15 @@ function aplicarMascaraTempo(digits, metros) {
   return result;
 }
 
+/** Formata número de peito com zero à esquerda (01–09, 10, 11…) */
+function formatarPeito(n) {
+  if (n === "" || n == null) return "";
+  const v = Number(n);
+  return isNaN(v) ? "" : String(v).padStart(2, "0");
+}
+
 export {
+  formatarPeito,
   formatarTempo, formatarTempoMs, autoFormatTempo,
   getMascaraTempo, aplicarMascaraTempo,
   parseTempoPista, _parseDigitsPuros, _parseMinSeg, _marcaParaMs, msParaDigitos,

@@ -1,4 +1,4 @@
-import { _getClubeAtleta, _getCbat, _getNascDisplay, _getLocalEventoDisplay } from "../../shared/formatters/utils";
+import { _getClubeAtleta, _getCbat, _getNascDisplay, _getLocalEventoDisplay, formatarPeito } from "../../shared/formatters/utils";
 import { GT_DEFAULT_LOGO } from "../../shared/branding";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/constants/categorias";
@@ -245,7 +245,7 @@ export function gerarHtmlRelatorioParticipacao(evento, atletasFiltrados, inscric
     const gruposHtml = grupos.map(g => {
       const rows = g.atletas.map((d, idx) => {
         const a = d.atleta;
-        const nPeito = numPeito[a.id] || "";
+        const nPeito = formatarPeito(numPeito[a.id]);
         const cbat = _getCbat(a) || "";
         const nasc = fmtNasc(a);
 

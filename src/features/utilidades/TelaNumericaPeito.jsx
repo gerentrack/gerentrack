@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
-import { _getCbat } from "../../shared/formatters/utils";
+import { _getCbat, formatarPeito } from "../../shared/formatters/utils";
 import { getCategoria } from "../../shared/constants/categorias";
 import { Th, Td } from "../ui/TableHelpers";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
@@ -152,7 +152,7 @@ function TelaNumericaPeito() {
     atletasOrdenados.forEach((a, i) => { novo[a.id] = inicio + i; });
     setEditNum(novo);
     setErroNum({});
-    setFeedback(`Numeração automática gerada a partir do nº ${inicio} — salve para aplicar.`);
+    setFeedback(`Numeração automática gerada a partir do nº ${formatarPeito(inicio)} — salve para aplicar.`);
     setTimeout(() => setFeedback(""), 3000);
   };
 
@@ -277,7 +277,7 @@ function TelaNumericaPeito() {
 
         const rowNum = idx + 2;
         const row = ws.addRow({
-          peito: peito || "",
+          peito: formatarPeito(peito) || "",
           cbat: _getCbat(a) || "",
           nome: a.nome || "",
           cat: cat?.nome || "",
@@ -380,7 +380,7 @@ function TelaNumericaPeito() {
 
   const exportarCsv = () => {
     const linhas = atletasOrdenados.map(a => ({
-      "Nº Peito": editNum[a.id] ?? numMap[a.id] ?? "",
+      "Nº Peito": formatarPeito(editNum[a.id] ?? numMap[a.id] ?? ""),
       "CBAt": _getCbat(a),
       "Atleta": a.nome || "",
       "Categoria": getCategoria(a.anoNasc, anoComp)?.nome || "",
@@ -419,7 +419,7 @@ function TelaNumericaPeito() {
         <tr><td colspan="7" style="background:#1b5e20;color:#fff;padding:6px 12px;font-weight:700;font-size:11px;letter-spacing:1px;">${eqNome}</td></tr>` : "";
       return `${separador}
         <tr>
-          <td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:center;font-weight:900;font-size:15px;color:#e67e00;">${peito || "—"}</td>
+          <td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:center;font-weight:900;font-size:15px;color:#e67e00;">${formatarPeito(peito) || "—"}</td>
           <td style="padding:6px 10px;border-bottom:1px solid #eee;font-size:11px;color:#555;">${_getCbat(a) || "—"}</td>
           <td style="padding:6px 10px;border-bottom:1px solid #eee;font-weight:600;">${a.nome || "—"}</td>
           <td style="padding:6px 10px;border-bottom:1px solid #eee;"><span style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:3px;padding:1px 6px;font-size:10px;">${cat?.nome || "—"}</span></td>
@@ -581,7 +581,7 @@ function TelaNumericaPeito() {
                   novaEquipe && <tr key={"eq_"+a.id}><td colSpan={7} style={{ background: t.bgCardAlt, padding: "6px 12px", fontWeight: 700, color: t.accent, fontSize: 12, borderTop: `2px solid ${t.accentBorder}` }}>{eqNome}</td></tr>,
                   <tr key={`num_${a.id}`} style={{ ...s.tr, background: erroNum[a.id] ? t.bgCardAlt : undefined }}>
                     <td style={{ ...s.td, width: 80 }}>
-                      <input type="number" min={1} value={editNum[a.id] ?? ""} onChange={e => handleChangeNum(a.id, e.target.value)}
+                      <input type="text" inputMode="numeric" value={editNum[a.id] != null && editNum[a.id] !== "" ? formatarPeito(editNum[a.id]) : ""} onChange={e => { const v = e.target.value.replace(/\D/g, ""); handleChangeNum(a.id, v); }}
                         style={{ ...s.input, width: 65, textAlign: "center", padding: "4px 6px", fontSize: 14, fontWeight: 700, borderColor: erroNum[a.id] ? t.danger : undefined }} />
                       {erroNum[a.id] && <div style={{ color: t.danger, fontSize: 9, marginTop: 2 }}>{erroNum[a.id]}</div>}
                     </td>
