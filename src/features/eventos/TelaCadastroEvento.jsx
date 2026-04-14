@@ -1804,46 +1804,61 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
   // Lista congelada no momento em que o modal abre — execução usa essa mesma lista,
   // evitando divergência se inscricoesMap reprocessar entre render e clique.
   const [removidosConfirmados, setRemovidosConfirmados] = useState([]);
+  const [selecionadosRemover, setSelecionadosRemover] = useState(new Set());
 
   const abrirConfirmLimpar = () => {
-    setRemovidosConfirmados(calcRemovidos());
+    const lista = calcRemovidos();
+    setRemovidosConfirmados(lista);
+    setSelecionadosRemover(new Set(lista));
     setConfirmLimpar(true);
   };
 
+  const toggleSelecionado = (id) => {
+    setSelecionadosRemover(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
   const executarLimpeza = () => {
-    // Segurança dupla: refiltra a lista congelada mantendo apenas ids que ainda
-    // não têm inscrição NO MOMENTO da execução — nunca remove prova com inscrição.
+    // Só remove as provas selecionadas pelo usuário que ainda não têm inscrição
     const aRemover = new Set(
-      removidosConfirmados.filter(id => !provaTemInscricao(id))
+      [...selecionadosRemover].filter(id => !provaTemInscricao(id))
     );
-    // Guard: se algum id da lista congelada agora tem inscrição, aborta com aviso
-    const comInscricaoAgora = removidosConfirmados.filter(id => provaTemInscricao(id));
+    // Guard: se algum id selecionado agora tem inscrição, aborta com aviso
+    const comInscricaoAgora = [...selecionadosRemover].filter(id => provaTemInscricao(id));
     if (comInscricaoAgora.length > 0) {
       setConfirmLimpar(false);
       setRemovidosConfirmados([]);
+      setSelecionadosRemover(new Set());
       alert(`Dados de inscrição foram atualizados desde que o painel foi aberto.\n\n${comInscricaoAgora.length} prova(s) passaram a ter inscrições e foram mantidas.\n\nReabra o painel para ver a lista atualizada.`);
       return;
     }
     if (aRemover.size === 0) { setConfirmLimpar(false); return; }
-    const novasProvas = (form.provasPrograma || []).filter(id => !aRemover.has(id));
-    const novoProg = { ...(form.programaHorario || {}) };
-    if (modoHorario === "agrupado") {
-      Object.keys(novoProg).forEach(chave => {
-        if (!novasProvas.some(id => getGrupoKeyLocal(id) === chave)) delete novoProg[chave];
-      });
-    } else {
-      aRemover.forEach(id => { delete novoProg[id]; });
-    }
-    setForm(f => ({
-      ...f,
-      provasPrograma: novasProvas,
-      programaHorario: novoProg,
-      programaOrdem: (f.programaOrdem || []).filter(k =>
-        novasProvas.some(id => getGrupoKeyLocal(id) === k)
-      ),
-    }));
+    setForm(f => {
+      const novasProvas = (f.provasPrograma || []).filter(id => !aRemover.has(id));
+      const novoProg = { ...(f.programaHorario || {}) };
+      if (modoHorario === "agrupado") {
+        // Só remove chaves cujo grupo NÃO tem mais nenhuma prova restante
+        Object.keys(novoProg).forEach(chave => {
+          if (!novasProvas.some(id => getGrupoKeyLocal(id) === chave)) delete novoProg[chave];
+        });
+      } else {
+        aRemover.forEach(id => { delete novoProg[id]; });
+      }
+      return {
+        ...f,
+        provasPrograma: novasProvas,
+        programaHorario: novoProg,
+        programaOrdem: (f.programaOrdem || []).filter(k =>
+          novasProvas.some(id => getGrupoKeyLocal(id) === k)
+        ),
+      };
+    });
     setConfirmLimpar(false);
     setRemovidosConfirmados([]);
+    setSelecionadosRemover(new Set());
   };
 
   const podeVerificar = form.inscricoesEncerradas && temInscricoes;
@@ -1984,25 +1999,42 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
               <>
                 <div style={{ color: t.warning, fontWeight: 700, fontSize: 13, marginBottom: 8 }}>{removidosConfirmados.length} prova(s) sem inscrição</div>
                 <p style={{ color: t.textMuted, fontSize: 12, margin: "0 0 10px" }}>
-                  Serão <strong style={{ color: t.danger }}>removidas da competição</strong>, propagando para súmulas, resultados e secretaria. Provas com inscrições <strong style={{ color: t.success }}>nunca serão removidas</strong>.
+                  Selecione as provas que deseja remover. Provas desmarcadas serão mantidas na competição.
                 </p>
-                <div style={{ maxHeight: 160, overflowY: "auto", marginBottom: 12, display: "flex", flexDirection: "column", gap: 3 }}>
+                <div style={{ display: "flex", gap: 10, marginBottom: 8 }}>
+                  <button onClick={() => setSelecionadosRemover(new Set(removidosConfirmados))} style={{
+                    background: "transparent", border: "none", color: t.accent, fontSize: 11, fontWeight: 700, cursor: "pointer", padding: 0,
+                  }}>Marcar todas</button>
+                  <button onClick={() => setSelecionadosRemover(new Set())} style={{
+                    background: "transparent", border: "none", color: t.textDimmed, fontSize: 11, fontWeight: 700, cursor: "pointer", padding: 0,
+                  }}>Desmarcar todas</button>
+                </div>
+                <div style={{ maxHeight: 200, overflowY: "auto", marginBottom: 12, display: "flex", flexDirection: "column", gap: 3 }}>
                   {removidosConfirmados.map(id => {
                     const p = todasProvas.find(x => x.id === id);
                     const catNome = CATEGORIAS.find(c => id.endsWith(`_${c.id}`) || id.includes(`_${c.id}_`))?.nome || "";
                     const sexoLabel = id.startsWith("M_") ? "Masc" : "Fem";
+                    const checked = selecionadosRemover.has(id);
                     return (
-                      <div key={id} style={{ fontSize: 12, color: t.warning, padding: "3px 8px", background: t.warning + "11", borderRadius: 4 }}>
-                        {p?.nome || id} <span style={{ color: t.textDimmed }}>— {sexoLabel} · {catNome}</span>
-                      </div>
+                      <label key={id} style={{
+                        fontSize: 12, padding: "4px 8px", borderRadius: 4, cursor: "pointer", display: "flex", alignItems: "center", gap: 8,
+                        background: checked ? t.warning + "11" : t.bgCardAlt, color: checked ? t.warning : t.textDimmed,
+                      }}>
+                        <input type="checkbox" checked={checked} onChange={() => toggleSelecionado(id)}
+                          style={{ accentColor: t.warning, cursor: "pointer" }} />
+                        <span>{p?.nome || id} <span style={{ color: t.textDimmed }}>— {sexoLabel} · {catNome}</span></span>
+                      </label>
                     );
                   })}
                 </div>
                 <div style={{ display: "flex", gap: 10 }}>
-                  <button onClick={executarLimpeza} style={{ background: t.warning, color: "#fff", border: "none", borderRadius: 6, padding: "7px 18px", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
-                    Remover {removidosConfirmados.length} prova(s)
+                  <button onClick={executarLimpeza} disabled={selecionadosRemover.size === 0} style={{
+                    background: selecionadosRemover.size > 0 ? t.warning : t.bgInput, color: selecionadosRemover.size > 0 ? "#fff" : t.textDimmed,
+                    border: "none", borderRadius: 6, padding: "7px 18px", cursor: selecionadosRemover.size > 0 ? "pointer" : "not-allowed", fontSize: 12, fontWeight: 700,
+                  }}>
+                    Remover {selecionadosRemover.size > 0 ? `${selecionadosRemover.size} prova(s)` : ""}
                   </button>
-                  <button onClick={() => { setConfirmLimpar(false); setRemovidosConfirmados([]); }} style={{ background: t.bgInput, color: t.textMuted, border: `1px solid ${t.borderLight}`, borderRadius: 6, padding: "7px 16px", cursor: "pointer", fontSize: 12 }}>
+                  <button onClick={() => { setConfirmLimpar(false); setRemovidosConfirmados([]); setSelecionadosRemover(new Set()); }} style={{ background: t.bgInput, color: t.textMuted, border: `1px solid ${t.borderLight}`, borderRadius: 6, padding: "7px 16px", cursor: "pointer", fontSize: 12 }}>
                     Cancelar
                   </button>
                 </div>
