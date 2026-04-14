@@ -1722,7 +1722,7 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
   // ── Mapa de inscrições: "provaId_catId_sexo" → contagem ──────────────────
   const inscricoesMap = React.useMemo(() => {
     const eid = eventoAtualId;
-    if (!eid || !inscricoes?.length || !atletas?.length) return new Map();
+    if (!eid || !inscricoes?.length) return new Map();
     const anoComp = form.data ? new Date(form.data + "T12:00:00").getFullYear() : new Date().getFullYear();
     const map = new Map();
     inscricoes
@@ -1733,6 +1733,14 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
         const cat = getCategoria(atl.anoNasc, anoComp);
         if (!cat) return;
         const chave = `${i.provaId}_${cat.id}_${i.sexo || atl.sexo}`;
+        map.set(chave, (map.get(chave) || 0) + 1);
+      });
+    // Revezamentos: já têm provaId, categoriaId e sexo diretamente na inscrição
+    inscricoes
+      .filter(i => i.eventoId === eid && i.tipo === "revezamento")
+      .forEach(i => {
+        if (!i.categoriaId || !i.sexo) return;
+        const chave = `${i.provaId}_${i.categoriaId}_${i.sexo}`;
         map.set(chave, (map.get(chave) || 0) + 1);
       });
     return map;
