@@ -9,6 +9,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useTema } from "../../shared/TemaContext";
 import { calcMarchaTotals } from "../../hooks/useMarchaJuizes";
+import { formatarPeito } from "../../shared/formatters/utils";
 
 export default function MarchaJuizesPanel({
   eid, filtroProva, catId, filtroSexo,
@@ -251,7 +252,7 @@ export default function MarchaJuizesPanel({
             </thead>
             <tbody>
               {atletasNaProva.map((a, aIdx) => {
-                const dorsal = (numeracaoPeito?.[eid] || {})[a.id] || "";
+                const dorsal = formatarPeito((numeracaoPeito?.[eid] || {})[a.id]);
                 const ad = localDados[a.id] || {};
                 const totals = calcMarchaTotals(ad);
                 const isDq = totals.dqs >= 3;

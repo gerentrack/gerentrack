@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { todasAsProvas, getComposicaoCombinada } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/constants/categorias";
-import { _getLocalEventoDisplay, NomeProvaComImplemento, abreviarProva, formatarMarca, formatarMarcaExibicao, _marcasComEmpateCentesimal, _marcaParaMs, resolverAtleta } from "../../shared/formatters/utils";
+import { _getLocalEventoDisplay, NomeProvaComImplemento, abreviarProva, formatarMarca, formatarMarcaExibicao, _marcasComEmpateCentesimal, _marcaParaMs, resolverAtleta, formatarPeito } from "../../shared/formatters/utils";
 import { RecordHelper } from "../../shared/engines/recordHelper";
 import { TeamScoringEngine } from "../../shared/engines/teamScoringEngine";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
@@ -639,7 +639,7 @@ function TelaResultados() {
                 const pos = (idx+1)+"º";
                 const atl = r.atleta || resolverAtleta(r.atletaId, atletas, eventoAtual);
                 const clube = atl ? (getExibicaoEquipe(atl, equipes) || "—") : "—";
-                const numP = (numeracaoPeito?.[eid]||{})[r.atletaId] || "";
+                const numP = formatarPeito((numeracaoPeito?.[eid]||{})[r.atletaId]);
                 return `<tr style="border-bottom:1px solid #ddd;${idx < 3 ? "background:#f9f9f0" : ""}">
                   <td style="padding:6px 8px;font-weight:700">${pos}</td>
                   <td style="padding:6px 8px;text-align:center;color:#888;font-size:10px">${numP}</td>
@@ -1103,7 +1103,7 @@ function TelaResultados() {
                           const clube = atl ? (getExibicaoEquipe(atl, equipes) || "") : "";
                           return `<tr${idx < 3 ? ` class="top3"` : ""}>
                             <td style="font-weight:700">${(idx+1)+"º"}</td>
-                            <td style="text-align:center;color:#888;font-size:10px">${(numeracaoPeito?.[eid]||{})[r.atletaId] || ""}</td>
+                            <td style="text-align:center;color:#888;font-size:10px">${formatarPeito((numeracaoPeito?.[eid]||{})[r.atletaId])}</td>
                             <td>${r.nome}</td><td style="color:#666;font-size:9px">${clube}</td>
                             ${r.porProva.map(pp => `<td style="text-align:center;font-size:9px">${pp.marca != null && pp.marca !== "" ? `<div>${formatarMarca(pp.marca, pp.unidade, 2)}</div><div style="font-weight:700;color:#8a7000">${pp.pts}</div>` : "—"}</td>`).join("")}
                             <td style="text-align:center;font-weight:800;font-size:13px;color:#8a7000">${r.total}</td>
@@ -1179,7 +1179,7 @@ function TelaResultados() {
                             {(idx + 1) + "º"}
                           </td>
                           <td style={{ padding: "8px", textAlign: "center", color: t.textDimmed, fontSize: 12, fontWeight: 600 }}>
-                            {(numeracaoPeito?.[eid]||{})[r.atletaId] || ""}
+                            {formatarPeito((numeracaoPeito?.[eid]||{})[r.atletaId])}
                           </td>
                           <td style={{ padding: "8px", color: t.textPrimary, fontWeight: 500, whiteSpace: "nowrap" }}>
                             {r.nome}
@@ -1693,7 +1693,7 @@ function TelaResultados() {
                           <Td><strong style={{ color: item.isStatus ? t.textDimmed : (isSerieFinal && j<3?t.accent:t.textPrimary), fontSize:15 }}>
                             {item.isStatus ? "" : posLabel}
                           </strong></Td>
-                          <Td><strong style={{ color: t.textTertiary, fontSize:13 }}>{(numeracaoPeito?.[eventoAtual?.id]||{})[item.atleta.id]||""}</strong></Td>
+                          <Td><strong style={{ color: t.textTertiary, fontSize:13 }}>{formatarPeito((numeracaoPeito?.[eventoAtual?.id]||{})[item.atleta.id])}</strong></Td>
                           <Td><strong style={{ color: isSerieFinal && j<3?t.accent:t.textPrimary }}>{item.atleta.contaExcluida ? <span style={{ color: t.textDimmed, fontStyle: "italic", fontWeight: 400 }} title="Conta excluída — histórico preservado de forma anônima">Atleta Excluído</span> : item.atleta.nome}</strong></Td>
                           <Td>{getExibicaoEquipe(item.atleta, equipes)||"—"}</Td>
                           {temSerieBlk && <Td>{serieDoAtletaBlk[item.atleta.id] || "—"}</Td>}

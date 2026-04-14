@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas, getComposicaoCombinada, nPernasRevezamento } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/constants/categorias";
-import { NomeProvaComImplemento, abreviarProva, formatarMarca, normalizarMarca, exibirMarcaInput, formatarTempo, autoFormatTempo, aplicarMascaraTempo, getMascaraTempo, parseTempoPista, msParaDigitos, resolverAtleta } from "../../shared/formatters/utils";
+import { NomeProvaComImplemento, abreviarProva, formatarMarca, normalizarMarca, exibirMarcaInput, formatarTempo, autoFormatTempo, aplicarMascaraTempo, getMascaraTempo, parseTempoPista, msParaDigitos, resolverAtleta, formatarPeito } from "../../shared/formatters/utils";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { CombinedScoringEngine, temDuasCronometragens } from "../../shared/engines/combinedScoringEngine";
 import { getFasesModo, buscarSeriacao, resKey, FASE_NOME, resolverCronometragem } from "../../shared/constants/fases";
@@ -1241,7 +1241,7 @@ function BlocoDigitarCategoria({
                       <td style={{ padding:"8px 12px", borderBottom:`1px solid ${t.border}`, whiteSpace:"nowrap", position:"sticky", left:0, zIndex:1, background: ai%2===0 ? t.bgCard : t.bgCardAlt }}>
                         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                           {(numeracaoPeito?.[eventoAtual?.id]||{})[a.id] && (
-                            <span style={{ fontWeight:700, color: t.textTertiary, fontSize:12, minWidth:24 }}>{(numeracaoPeito[eventoAtual.id])[a.id]}</span>
+                            <span style={{ fontWeight:700, color: t.textTertiary, fontSize:12, minWidth:24 }}>{formatarPeito((numeracaoPeito[eventoAtual.id])[a.id])}</span>
                           )}
                           <div>
                             <div style={{ fontWeight:700, color: t.textPrimary, fontSize:13 }}>{a.nome}<ChamadaBadge atletaId={a.id} provaId={filtroProva} catId={catId} sexo={filtroSexo} getPresencaProva={getPresencaProva} t={t} /></div>
@@ -1818,7 +1818,7 @@ function BlocoDigitarCategoria({
                                       opacity: isEliminado ? 0.5 : 1,
                                       background: atletaInativo ? t.bgHeaderSolid : atletaNM ? t.bgHeaderSolid : isEliminado ? t.bgHeaderSolid : undefined,
                                     }}>
-                                    <Td><strong style={{ color: t.textTertiary, fontSize:12 }}>{(numeracaoPeito?.[eventoAtual?.id]||{})[a.id]||""}</strong></Td>
+                                    <Td><strong style={{ color: t.textTertiary, fontSize:12 }}>{formatarPeito((numeracaoPeito?.[eventoAtual?.id]||{})[a.id])}</strong></Td>
                                     <Td><strong style={{ color: t.textPrimary }}>{a.nome}</strong><ChamadaBadge atletaId={a.id} provaId={filtroProva} catId={catId} sexo={filtroSexo} getPresencaProva={getPresencaProva} t={t} /></Td>
                                     <Td>{getExibicaoEquipe(a, equipes)||"—"}</Td>
                                     {["t1","t2","t3"].map(tk => {
@@ -2034,7 +2034,7 @@ function BlocoDigitarCategoria({
                             </td></tr>
                           )}
                           <tr style={{ ...s.tr, opacity: isStatusInativo(a) ? 0.4 : 1 }}>
-                            <Td><strong style={{ color: t.textTertiary, fontSize:12 }}>{(numeracaoPeito?.[eventoAtual?.id]||{})[a.id]||""}</strong></Td>
+                            <Td><strong style={{ color: t.textTertiary, fontSize:12 }}>{formatarPeito((numeracaoPeito?.[eventoAtual?.id]||{})[a.id])}</strong></Td>
                             <Td><strong style={{ color: t.textPrimary }}>{a.nome}</strong><ChamadaBadge atletaId={a.id} provaId={filtroProva} catId={catId} sexo={filtroSexo} getPresencaProva={getPresencaProva} t={t} /></Td>
                             <Td>{getExibicaoEquipe(a, equipes)||"—"}</Td>
                             {_serDigitar?.series?.length > 0 && <Td><span style={{ color: t.accent, fontWeight:700 }}>{_si.serie||"—"}</span></Td>}

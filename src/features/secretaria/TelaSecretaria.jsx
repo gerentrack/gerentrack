@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback } from "react";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { CATEGORIAS, getCategoria } from "../../shared/constants/categorias";
 import { resKey, getFasesModo, FASE_ORDEM } from "../../shared/constants/fases";
-import { abreviarProva } from "../../shared/formatters/utils";
+import { abreviarProva, formatarPeito } from "../../shared/formatters/utils";
 import { useMedalhasChamada } from "../../hooks/useMedalhasChamada";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
@@ -368,7 +368,7 @@ function TelaSecretaria() {
     const atl = atletas.find(a => a.id === atletaId);
     if (!atl) { beepInvalido(); vibrarInvalido(); return { status: "erro", msg: "Atleta não encontrado", cor: "vermelho" }; }
 
-    const peito = peitos[atletaId] || "";
+    const peito = formatarPeito(peitos[atletaId]);
     const nomeDisplay = `${peito ? "#" + peito + " " : ""}${atl.nome}`;
 
     // Se tem prova selecionada, confirmar nessa prova
@@ -483,7 +483,7 @@ function TelaSecretaria() {
     const atl = atletas.find(a => a.id === atletaId);
     if (!atl) { beepInvalido(); vibrarInvalido(); return { status: "erro", msg: "Atleta não encontrado", cor: "vermelho" }; }
 
-    const peito = peitos[atletaId] || "";
+    const peito = formatarPeito(peitos[atletaId]);
     const nomeDisplay = `${peito ? "#" + peito + " " : ""}${atl.nome}`;
 
     const provasDoAtleta = calcularMedalhasAtleta(atletaId);
@@ -673,7 +673,7 @@ function TelaSecretaria() {
                     {[...atlsFiltrados].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR")).map(atl => {
                       const estado = getPresenca(prova.id, cat.id, sexo, atl.id);
                       const rowBg = estado === "confirmado" ? `${t.success}08` : estado === "dns" ? `${t.danger}08` : undefined;
-                      const peito = peitos[atl.id] || "";
+                      const peito = formatarPeito(peitos[atl.id]);
                       return (
                         <tr key={`${prova.id}_${cat.id}_${sexo}_${atl.id}`} style={{ background: rowBg }}>
                           <td style={{ ...s.td, textAlign: "center", fontWeight: 700, color: t.warning, fontSize: 14, fontFamily: "'Barlow Condensed', sans-serif" }}>{peito || "—"}</td>
@@ -1015,7 +1015,7 @@ function TelaSecretaria() {
                           <td style={{ ...s.td, textAlign: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 18, color: conf ? conf.cor : t.textDisabled }}>
                             {posicao ? `${posicao}º` : "—"}
                           </td>
-                          <td style={{ ...s.td, textAlign: "center", fontWeight: 700, color: t.warning, fontSize: 14, fontFamily: "'Barlow Condensed', sans-serif" }}>{peitos[atl.id] || "—"}</td>
+                          <td style={{ ...s.td, textAlign: "center", fontWeight: 700, color: t.warning, fontSize: 14, fontFamily: "'Barlow Condensed', sans-serif" }}>{formatarPeito(peitos[atl.id]) || "—"}</td>
                           <td style={s.td}>
                             <span style={s.nomeAtleta}>{atl.nome}</span>
                           </td>

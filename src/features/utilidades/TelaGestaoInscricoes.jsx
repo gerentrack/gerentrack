@@ -3,7 +3,7 @@ import React, { useState, useMemo } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { CATEGORIAS, getCategoria, getPermissividade, podeCategoriaSuperior } from "../../shared/constants/categorias";
-import { _getClubeAtleta, _getCbat } from "../../shared/formatters/utils";
+import { _getClubeAtleta, _getCbat, formatarPeito } from "../../shared/formatters/utils";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { calcularPrecoInscricao, formatarPreco, validarLimiteProvas, validarNorma12Sub14, getRestricoesNorma12, getLimiteCat } from "../../shared/engines/inscricaoEngine";
 import { Th, Td } from "../ui/TableHelpers";
@@ -705,7 +705,7 @@ function TelaGestaoInscricoes() {
       const provas = inscs.filter(i => !i.combinadaId)
         .map(i => todasAsProvas().find(p => p.id === i.provaId)?.nome || i.provaId).join(", ");
       return {
-        "Nº Peito":   peito,
+        "Nº Peito":   formatarPeito(peito),
         "CBAt":       _getCbat(atl),
         "Atleta":     atl?.nome || "",
         "Equipe":     equipe,
@@ -764,7 +764,7 @@ function TelaGestaoInscricoes() {
         <tr><td colspan="${mostrarEquipe ? (mostrarPago ? 8 : 7) : (mostrarPago ? 7 : 6)}" style="background:#1b5e20;color:#fff;padding:5px 10px;font-weight:700;font-size:10px;letter-spacing:1px;">${equipeNome}</td></tr>` : "";
 
       return `${separador}<tr>
-        <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:900;color:#e67e00;font-size:14px;">${peito || "—"}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:900;color:#e67e00;font-size:14px;">${formatarPeito(peito) || "—"}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #eee;font-size:10px;color:#888;">${_getCbat(atl) || "—"}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #eee;font-weight:600;">${atl?.nome || "—"}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #eee;font-size:10px;"><span style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:3px;padding:1px 5px;">${cat?.nome || "—"}</span></td>
@@ -798,7 +798,7 @@ function TelaGestaoInscricoes() {
         ? `<span style="color:#1a6b1a;font-weight:700;">Pago</span>`
         : `<span style="color:#888;">Pendente</span>`;
       return `<tr>
-        <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:900;color:#e67e00;font-size:14px;">${peito || "—"}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:900;color:#e67e00;font-size:14px;">${formatarPeito(peito) || "—"}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #eee;font-size:10px;color:#888;">${_getCbat(atl) || "—"}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #eee;font-weight:600;">${atl?.nome || "—"}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #eee;font-size:10px;"><span style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:3px;padding:1px 5px;">${cat?.nome || "—"}</span></td>
@@ -925,7 +925,7 @@ function TelaGestaoInscricoes() {
         ? "padding:5px 8px;border-bottom:1px solid #eee;white-space:nowrap;overflow:hidden;max-width:200px;"
         : "padding:7px 10px;border-bottom:1px solid #eee;";
       return `<tr>
-        <td style="padding:${isEquipe?"5px 6px":"6px 6px"};border-bottom:1px solid #eee;text-align:center;font-weight:700;color:#555;white-space:nowrap;">${peito || "—"}</td>
+        <td style="padding:${isEquipe?"5px 6px":"6px 6px"};border-bottom:1px solid #eee;text-align:center;font-weight:700;color:#555;white-space:nowrap;">${formatarPeito(peito) || "—"}</td>
         <td style="padding:${isEquipe?"5px 6px":"6px 6px"};border-bottom:1px solid #eee;color:#888;font-size:${isEquipe?"9px":"10px"};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${_getCbat(atl) || "—"}</td>
         <td style="padding:${isEquipe?"5px 6px":"6px 6px"};border-bottom:1px solid #eee;font-weight:600;font-size:${isEquipe?"10px":"11px"};overflow:hidden;">${atl?.nome || "—"}</td>
         <td style="padding:${isEquipe?"5px 6px":"6px 6px"};border-bottom:1px solid #eee;color:#555;font-size:${isEquipe?"9px":"10px"};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${cat?.nome || "—"}</td>
@@ -1374,7 +1374,7 @@ function TelaGestaoInscricoes() {
                       display: "flex", alignItems: "center", gap: 10, padding: "8px 12px",
                       background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 8, flexWrap: "wrap",
                     }}>
-                      {peito && <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: t.accent, minWidth: 40 }}>#{peito}</span>}
+                      {peito && <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: t.accent, minWidth: 40 }}>#{formatarPeito(peito)}</span>}
                       <span style={{ fontWeight: 600, color: t.textPrimary, flex: "1 1 180px" }}>{atl?.nome || pre.atletaNome || "—"}</span>
                       <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 4, background: `${t.gold}12`, color: t.gold, border: `1px solid ${t.gold}33` }}>{pre.categoria || "—"}</span>
                       <span style={{ fontSize: 11, color: pre.sexo === "M" ? "#1a6ef5" : "#e54f9b" }}>{pre.sexo === "M" ? "Masc" : "Fem"}</span>
@@ -1465,7 +1465,7 @@ function TelaGestaoInscricoes() {
                           )}
                           <td style={{ ...s.td, textAlign: "center", verticalAlign: "top" }}>
                             {peito
-                              ? <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 18, color: t.warning }}>{peito}</span>
+                              ? <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 18, color: t.warning }}>{formatarPeito(peito)}</span>
                               : <span style={{ color: t.textDisabled, fontSize: 11 }}>—</span>}
                           </td>
                           <td style={{ ...s.td, verticalAlign: "top", fontSize: 12, color: t.textMuted, fontFamily: "'Barlow Condensed', sans-serif" }}>

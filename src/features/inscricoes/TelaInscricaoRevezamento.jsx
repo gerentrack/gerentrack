@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas, nPernasRevezamento, isRevezamentoMisto } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/constants/categorias";
+import { formatarPeito } from "../../shared/formatters/utils";
 import { ProvaSelector } from "../ui/ProvaSelector";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
@@ -504,7 +505,7 @@ function TelaInscricaoRevezamento() {
                           <span style={{ color: t.textPrimary, fontWeight: 600, fontSize: 13 }}>{atletaSel.nome}</span>
                           <span style={{ color: atletaSel.sexo === "M" ? "#1a6ef5" : "#e54f9b", fontSize: 10 }}>{atletaSel.sexo}</span>
                           {atletaSel.cbat && <span style={{ color: t.textDimmed, fontSize: 10 }}>CBAt: {atletaSel.cbat}</span>}
-                          {numPeito[atletaSel.id] && <span style={{ color: t.textMuted, fontSize: 10 }}>Nº {numPeito[atletaSel.id]}</span>}
+                          {numPeito[atletaSel.id] && <span style={{ color: t.textMuted, fontSize: 10 }}>Nº {formatarPeito(numPeito[atletaSel.id])}</span>}
                           <button onClick={async () => {
                             setRevezForm(f => { const ids = [...f.atletasIds]; ids[idx] = ""; return { ...f, atletasIds: ids }; });
                             setRevezBusca(prev => { const n = [...prev]; n[idx] = ""; return n; });
@@ -535,7 +536,7 @@ function TelaInscricaoRevezamento() {
                                     <span style={{ color: a.sexo === "M" ? "#1a6ef5" : "#e54f9b", fontSize: 10, marginLeft: 8 }}>{a.sexo}</span>
                                     {a._cruzado && <span style={{ color: t.accent, fontSize: 10, marginLeft: 6, background: t.accentBg, border: `1px solid ${t.accentBorder}`, borderRadius: 4, padding: "0 5px" }}>cruzado</span>}
                                     {a.cbat && <span style={{ color: t.textDimmed, fontSize: 10, marginLeft: 8 }}>CBAt: {a.cbat}</span>}
-                                    {numPeito[a.id] && <span style={{ color: t.textMuted, fontSize: 10, marginLeft: 8 }}>Nº {numPeito[a.id]}</span>}
+                                    {numPeito[a.id] && <span style={{ color: t.textMuted, fontSize: 10, marginLeft: 8 }}>Nº {formatarPeito(numPeito[a.id])}</span>}
                                     {jaEscolhido && <span style={{ color: t.accent, fontSize: 10, marginLeft: 8 }}>(já selecionado)</span>}
                                   </div>
                                 );

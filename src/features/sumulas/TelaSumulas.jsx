@@ -7,7 +7,7 @@ import { calcularEtapa, getEtapaLabel, ETAPA_LABELS } from "../../shared/constan
 import { gerarHtmlImpressao } from "../impressao/gerarHtmlImpressao";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { SeriacaoEngine } from "../../shared/engines/seriacaoEngine";
-import { _getNascDisplay, NomeProvaComImplemento, formatarTempo, resolverAtleta } from "../../shared/formatters/utils";
+import { _getNascDisplay, NomeProvaComImplemento, formatarTempo, resolverAtleta, formatarPeito } from "../../shared/formatters/utils";
 import { Th, Td } from "../ui/TableHelpers";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useAuth } from "../../contexts/AuthContext";
@@ -1751,7 +1751,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                           return (
                             <tr key={`${si}-${a.id}-${sai}`} style={s.tr}>
                               <Td>{idx}</Td>
-                              <Td><strong style={{ color: t.textTertiary, fontSize:12 }}>{(numeracaoPeito?.[eventoAtual?.id]||{})[a.id]||""}</strong></Td>
+                              <Td><strong style={{ color: t.textTertiary, fontSize:12 }}>{formatarPeito((numeracaoPeito?.[eventoAtual?.id]||{})[a.id])}</strong></Td>
                               <Td>
                                 <strong style={{ color: t.textPrimary }}>{a.nome}</strong>
                                 {getPresencaProva && (() => {
@@ -1799,7 +1799,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                       return (
                         <tr key={`std-${a.id}-${j}`} style={s.tr}>
                           <Td>{j + 1}</Td>
-                          <Td><strong style={{ color: t.textTertiary, fontSize:12 }}>{(numeracaoPeito?.[eventoAtual?.id]||{})[a.id]||""}</strong></Td>
+                          <Td><strong style={{ color: t.textTertiary, fontSize:12 }}>{formatarPeito((numeracaoPeito?.[eventoAtual?.id]||{})[a.id])}</strong></Td>
                           <Td>
                             <strong style={{ color: t.textPrimary }}>{a.nome}</strong>
                             {getPresencaProva && (() => {
