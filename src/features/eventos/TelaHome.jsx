@@ -490,18 +490,34 @@ export default function TelaHome() {
             {eventosPassados.map(ev => {
               const dataFmt = ev.data ? new Date(ev.data + "T12:00:00").toLocaleDateString("pt-BR") : "—";
               const local = _getLocalEventoDisplay(ev);
+              const tpU = usuarioLogado?.tipo;
+              const temSumula = tpU === "admin" || tpU === "organizador" ||
+                (tpU === "funcionario" && (usuarioLogado?.permissoes?.includes("sumulas") || usuarioLogado?.permissoes?.includes("resultados"))) ||
+                (ev.sumulaLiberada && usuarioLogado);
               return (
                 <div key={ev.id}
-                  onClick={() => { selecionarEvento(ev.id); setTela("evento-detalhe"); }}
-                  style={{ display:"flex", flexDirection:"column", gap:2, padding:"12px 16px", background:t.bgCard, border:`1px solid ${t.border}`, borderRadius:10, cursor:"pointer", transition:"border-color 0.15s" }}
+                  style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 16px", background:t.bgCard, border:`1px solid ${t.border}`, borderRadius:10, cursor:"pointer", transition:"border-color 0.15s" }}
                   onMouseEnter={e => e.currentTarget.style.borderColor = t.accent}
                   onMouseLeave={e => e.currentTarget.style.borderColor = t.border}>
-                  <div style={{ fontSize:14, fontWeight:700, color:t.textPrimary }}>
-                    <span style={{ color:t.textDimmed, fontWeight:600 }}>{dataFmt}</span>
-                    <span style={{ margin:"0 8px", color:t.textDisabled }}>—</span>
-                    {ev.nome}
+                  <div style={{ flex:1 }}
+                    onClick={() => { selecionarEvento(ev.id); setTela("evento-detalhe"); }}>
+                    <div style={{ fontSize:14, fontWeight:700, color:t.textPrimary }}>
+                      <span style={{ color:t.textDimmed, fontWeight:600 }}>{dataFmt}</span>
+                      <span style={{ margin:"0 8px", color:t.textDisabled }}>—</span>
+                      {ev.nome}
+                    </div>
+                    {local && <div style={{ fontSize:12, color:t.textMuted }}>{IcoPin()} {local}</div>}
                   </div>
-                  {local && <div style={{ fontSize:12, color:t.textMuted }}>{IcoPin()} {local}</div>}
+                  <div style={{ display:"flex", gap:6, flexShrink:0 }}>
+                    {temSumula && (
+                      <button style={{...s.btnSecondary, padding:"5px 12px", fontSize:12}} onClick={() => { selecionarEvento(ev.id); setTela("sumulas"); }}>
+                        Súmulas
+                      </button>
+                    )}
+                    <button style={{...s.btnSecondary, padding:"5px 12px", fontSize:12}} onClick={() => { selecionarEvento(ev.id); setTela("resultados"); }}>
+                      Resultados
+                    </button>
+                  </div>
                 </div>
               );
             })}

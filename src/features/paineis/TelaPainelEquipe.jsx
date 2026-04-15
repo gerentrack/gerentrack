@@ -294,13 +294,21 @@ export default function TelaPainelEquipe() {
                   const nInscs = minhasInscs.filter(i => i.eventoId === ev.id).length;
                   const status = getStatusEvento(ev);
                   return (
-                    <div key={ev.id} onClick={() => { selecionarEvento(ev.id); setTela("gestao-inscricoes"); }}
-                      style={{ background: t.bgCardAlt, border: `1px solid ${t.border}`, borderRadius: 8, padding: "12px 16px", cursor: "pointer", minWidth: 200 }}>
-                      <div style={{ color: t.textPrimary, fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{ev.nome}</div>
-                      <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                        <span style={s.eventoStatusBadge(status)}>{labelStatusEvento(status)}</span>
-                        <span style={{ color: t.success, fontSize: 11 }}>{nInscs} inscrição(ões)</span>
+                    <div key={ev.id} style={{ background: t.bgCardAlt, border: `1px solid ${t.border}`, borderRadius: 8, padding: "12px 16px", minWidth: 200 }}>
+                      <div onClick={() => { selecionarEvento(ev.id); setTela("evento-detalhe"); }}
+                        style={{ cursor: "pointer" }}>
+                        <div style={{ color: t.textPrimary, fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{ev.nome}</div>
+                        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                          <span style={s.eventoStatusBadge(status)}>{labelStatusEvento(status)}</span>
+                          <span style={{ color: t.success, fontSize: 11 }}>{nInscs} inscrição(ões)</span>
+                        </div>
                       </div>
+                      {ev.sumulaLiberada && (
+                        <button onClick={() => { selecionarEvento(ev.id); setTela("sumulas"); }}
+                          style={{ ...s.btnSec, fontSize: 11, padding: "4px 12px", marginTop: 8 }}>
+                          Súmulas
+                        </button>
+                      )}
                     </div>
                   );
                 })}
@@ -489,10 +497,18 @@ export default function TelaPainelEquipe() {
                     <span style={{ color: t.textDimmed, fontSize: 11, fontWeight: 400 }}>
                       {ev.data ? new Date(ev.data + "T12:00:00").toLocaleDateString("pt-BR") : ""}
                     </span>
-                    <button onClick={async (e) => { e.preventDefault(); e.stopPropagation(); selecionarEvento(ev.id); setTela("gestao-inscricoes"); }}
-                      style={{ ...s.btnSec, fontSize: 11, padding: "3px 12px", marginLeft: "auto" }}>
-                      Gerenciar →
-                    </button>
+                    <div style={{ display: "flex", gap: 6, marginLeft: "auto" }}>
+                      {ev.sumulaLiberada && (
+                        <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); selecionarEvento(ev.id); setTela("sumulas"); }}
+                          style={{ ...s.btnSec, fontSize: 11, padding: "3px 12px" }}>
+                          Súmulas
+                        </button>
+                      )}
+                      <button onClick={async (e) => { e.preventDefault(); e.stopPropagation(); selecionarEvento(ev.id); setTela("gestao-inscricoes"); }}
+                        style={{ ...s.btnSec, fontSize: 11, padding: "3px 12px" }}>
+                        Gerenciar →
+                      </button>
+                    </div>
                   </summary>
                   <div style={{ padding: "0 18px 16px" }}>
                     {atletaIds.map(aId => {
@@ -562,6 +578,12 @@ export default function TelaPainelEquipe() {
                         style={{ ...s.btn, padding: "7px 16px", fontSize: 12 }}>
                         Inscrever atletas
                       </button>
+                      {ev.sumulaLiberada && (
+                        <button onClick={() => { selecionarEvento(ev.id); setTela("sumulas"); }}
+                          style={{ ...s.btnSec, padding: "7px 14px", fontSize: 12 }}>
+                          Súmulas
+                        </button>
+                      )}
                       <button onClick={() => { selecionarEvento(ev.id); setTela("evento-detalhe"); }}
                         style={{ ...s.btnGhost, padding: "7px 14px", fontSize: 12 }}>
                         Ver detalhes
