@@ -108,19 +108,25 @@ function TelaNumericaPeito() {
   const { eventoAtual, inscricoes, atletas, equipes, numeracaoPeito, setNumeracaoEvento } = useEvento();
   const { setTela, registrarAcao } = useApp();
   const confirmar = useConfirm();
-  if (!eventoAtual) return <div style={s.page}><div style={s.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
 
-  const eid = eventoAtual.id;
-  const anoComp = eventoAtual.data ? parseInt(eventoAtual.data.slice(0, 4)) : new Date().getFullYear();
-  const numMap = numeracaoPeito[eid] || {};
-  const inscsEvt = inscricoes.filter(i => i.eventoId === eid);
-  const atletaIds = [...new Set(inscsEvt.map(i => i.atletaId))];
-  const atletasEvt = atletaIds.map(id => atletas.find(a => a.id === id)).filter(Boolean);
+  const eid = eventoAtual?.id;
+  const numMap = eid ? (numeracaoPeito[eid] || {}) : {};
 
   const [editNum, setEditNum] = useState({ ...numMap });
   const [filtro, setFiltro] = useState("");
   const [feedback, setFeedback] = useState("");
   const [erroNum, setErroNum] = useState({});
+  const [gerandoQr, setGerandoQr] = useState(false);
+  const [qrProgresso, setQrProgresso] = useState("");
+  const [testeQrAberto, setTesteQrAberto] = useState(false);
+  const [testeQrPreview, setTesteQrPreview] = useState(null);
+
+  if (!eventoAtual) return <div style={s.page}><div style={s.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
+
+  const anoComp = eventoAtual.data ? parseInt(eventoAtual.data.slice(0, 4)) : new Date().getFullYear();
+  const inscsEvt = inscricoes.filter(i => i.eventoId === eid);
+  const atletaIds = [...new Set(inscsEvt.map(i => i.atletaId))];
+  const atletasEvt = atletaIds.map(id => atletas.find(a => a.id === id)).filter(Boolean);
 
   const getEquipeNome = (a) => {
     if (a.equipeId) {
@@ -201,46 +207,43 @@ function TelaNumericaPeito() {
   };
 
   // ── Exportação com QR Codes ────────────────────────────────────────────────
-  const [gerandoQr, setGerandoQr] = useState(false);
-  const [qrProgresso, setQrProgresso] = useState("");
 
-  const exportarComQr = async () => {
+  const exportarComQr = async (modo) => {
     if (!eventoAtual?.slug) {
       alert("Defina um slug para a competição antes de exportar com QR.\n\nO slug é necessário para o QR público funcionar corretamente.\n\nVá em: Cadastrar/Editar Competição → Dados da competição → Slug.");
       return;
     }
 
+    const comImagem = modo === "imagem";
     setGerandoQr(true);
-    setQrProgresso("Gerando QR público...");
 
     try {
-      // QR público — um só para todo o evento
-      const qrPubDataUrl = await gerarQrPublico(eventoAtual.slug);
+      let qrPubDataUrl, qrSecs = {};
+      const dataUrlToBase64 = (dataUrl) => dataUrl.split(",")[1];
+      const urlPub = `https://gerentrack.com.br/competicao/${eventoAtual.slug}/resultados`;
 
-      // QR secretaria — um por atleta
-      const qrSecs = {};
-      const total = atletasOrdenados.length;
-      for (let i = 0; i < total; i++) {
-        const a = atletasOrdenados[i];
-        const peito = editNum[a.id] ?? numMap[a.id] ?? "";
-        if (peito) {
-          qrSecs[a.id] = await gerarQrSecretaria(eventoAtual.id, a.id, peito);
-        }
-        if (i % 10 === 0) {
-          setQrProgresso(`Gerando QR codes... ${i + 1}/${total}`);
-          await new Promise(r => setTimeout(r, 0));
+      if (comImagem) {
+        setQrProgresso("Gerando QR público...");
+        qrPubDataUrl = await gerarQrPublico(eventoAtual.slug);
+        const total = atletasOrdenados.length;
+        for (let i = 0; i < total; i++) {
+          const a = atletasOrdenados[i];
+          const peito = editNum[a.id] ?? numMap[a.id] ?? "";
+          if (peito) {
+            qrSecs[a.id] = await gerarQrSecretaria(eventoAtual.id, a.id, peito);
+          }
+          if (i % 10 === 0) {
+            setQrProgresso(`Gerando QR codes... ${i + 1}/${total}`);
+            await new Promise(r => setTimeout(r, 0));
+          }
         }
       }
       setQrProgresso("Montando planilha XLSX...");
 
-      // Extrair base64 puro de data URL
-      const dataUrlToBase64 = (dataUrl) => dataUrl.split(",")[1];
-
       const wb = new ExcelJS.Workbook();
       const ws = wb.addWorksheet("Numeração de Peito");
 
-      // Colunas (mesmos dados do CSV + QR codes)
-      ws.columns = [
+      const colsBase = [
         { header: "Nº Peito", key: "peito", width: 10 },
         { header: "CBAt", key: "cbat", width: 12 },
         { header: "Atleta", key: "nome", width: 30 },
@@ -250,21 +253,28 @@ function TelaNumericaPeito() {
         { header: "Data Nasc.", key: "dataNasc", width: 12 },
         { header: "Sexo", key: "sexo", width: 6 },
         { header: "Provas", key: "provas", width: 35 },
-        { header: "QR Público", key: "qrPub", width: 16 },
-        { header: "QR Staff", key: "qrSec", width: 16 },
       ];
+      if (comImagem) {
+        colsBase.push({ header: "QR Público", key: "qrPub", width: 16 });
+        colsBase.push({ header: "QR Staff", key: "qrSec", width: 16 });
+      } else {
+        colsBase.push({ header: "Link QR Público", key: "linkPub", width: 50 });
+        colsBase.push({ header: "Dados QR Staff", key: "linkSec", width: 55 });
+      }
+      ws.columns = colsBase;
 
       // Estilo do header
       ws.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" }, size: 10 };
       ws.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1B5E20" } };
       ws.getRow(1).alignment = { vertical: "middle", horizontal: "center" };
 
-      // Adicionar QR público como imagem reutilizável
-      const qrPubImageId = wb.addImage({ base64: dataUrlToBase64(qrPubDataUrl), extension: "png" });
+      let qrPubImageId;
+      if (comImagem) {
+        qrPubImageId = wb.addImage({ base64: dataUrlToBase64(qrPubDataUrl), extension: "png" });
+      }
 
-      // Linhas de dados
-      const qrSize = 90; // pixels na célula
-      const rowHeightPt = 72; // ~96px
+      const qrSize = 90;
+      const rowHeightPt = comImagem ? 72 : 20;
 
       atletasOrdenados.forEach((a, idx) => {
         const eqNome = getEquipeNome(a) === "ZZZ_SEM_EQUIPE" ? "" : getEquipeNome(a);
@@ -276,48 +286,56 @@ function TelaNumericaPeito() {
         }).join(", ");
 
         const rowNum = idx + 2;
-        const row = ws.addRow({
+        const rowData = {
           peito: formatarPeito(peito) || "",
           cbat: _getCbat(a) || "",
           nome: a.nome || "",
           cat: cat?.nome || "",
           equipe: eqNome,
           cpf: a.cpf || "",
-          dataNasc: a.dataNasc || "",
+          dataNasc: a.dataNasc ? a.dataNasc.split("-").reverse().join("/") : "",
           sexo: a.sexo || "",
           provas,
-          qrPub: "",
-          qrSec: "",
-        });
+        };
+        if (comImagem) {
+          rowData.qrPub = "";
+          rowData.qrSec = "";
+        } else {
+          rowData.linkPub = urlPub;
+          rowData.linkSec = peito ? JSON.stringify({ t: "sec", e: eventoAtual.id, a: a.id, n: Number(peito) }) : "";
+        }
+        const row = ws.addRow(rowData);
 
         row.height = rowHeightPt;
         row.alignment = { vertical: "middle", wrapText: true };
         row.getCell("peito").font = { bold: true, size: 14 };
         row.getCell("peito").alignment = { vertical: "middle", horizontal: "center" };
 
-        // QR público (mesmo para todos) — coluna 10 (índice 9)
-        ws.addImage(qrPubImageId, {
-          tl: { col: 9, row: rowNum - 1 },
-          ext: { width: qrSize, height: qrSize },
-        });
-
-        // QR secretaria (individual) — coluna 11 (índice 10)
-        if (qrSecs[a.id]) {
-          const qrSecImageId = wb.addImage({ base64: dataUrlToBase64(qrSecs[a.id]), extension: "png" });
-          ws.addImage(qrSecImageId, {
-            tl: { col: 10, row: rowNum - 1 },
+        if (comImagem) {
+          // QR público (mesmo para todos) — coluna 10 (índice 9)
+          ws.addImage(qrPubImageId, {
+            tl: { col: 9, row: rowNum - 1 },
             ext: { width: qrSize, height: qrSize },
           });
+          // QR secretaria (individual) — coluna 11 (índice 10)
+          if (qrSecs[a.id]) {
+            const qrSecImageId = wb.addImage({ base64: dataUrlToBase64(qrSecs[a.id]), extension: "png" });
+            ws.addImage(qrSecImageId, {
+              tl: { col: 10, row: rowNum - 1 },
+              ext: { width: qrSize, height: qrSize },
+            });
+          }
         }
       });
 
       // Gerar e baixar
+      const sufixo = comImagem ? "qr-imagem" : "qr-link";
       const buffer = await wb.xlsx.writeBuffer();
       const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `numeracao-peito-qr-${eventoAtual.nome.replace(/\s+/g, "_")}.xlsx`;
+      link.download = `numeracao-peito-${sufixo}-${eventoAtual.nome.replace(/\s+/g, "_")}.xlsx`;
       link.click();
       URL.revokeObjectURL(url);
     } catch (err) {
@@ -329,9 +347,6 @@ function TelaNumericaPeito() {
   };
 
   // ── Preview / Teste de QR ──────────────────────────────────────────────────
-  const [testeQrAberto, setTesteQrAberto] = useState(false);
-  const [testeQrPreview, setTesteQrPreview] = useState(null); // { qrPub, qrSec, atleta, peito }
-
   const gerarPreviewQr = async () => {
     if (!eventoAtual?.slug) {
       alert("Defina um slug para a competição antes de testar QR.");
@@ -376,30 +391,6 @@ function TelaNumericaPeito() {
     }
     beepInvalido(); vibrarInvalido();
     return { status: "erro", msg: `QR não reconhecido: ${raw.slice(0, 50)}`, cor: "vermelho" };
-  };
-
-  const exportarCsv = () => {
-    const linhas = atletasOrdenados.map(a => ({
-      "Nº Peito": formatarPeito(editNum[a.id] ?? numMap[a.id] ?? ""),
-      "CBAt": _getCbat(a),
-      "Atleta": a.nome || "",
-      "Categoria": getCategoria(a.anoNasc, anoComp)?.nome || "",
-      "Equipe": getEquipeNome(a) === "ZZZ_SEM_EQUIPE" ? "" : getEquipeNome(a),
-      "CPF": a.cpf || "",
-      "Data Nasc.": a.dataNasc || "",
-      "Sexo": a.sexo || "",
-      "Provas": inscsEvt.filter(i => i.atletaId === a.id && !i.combinadaId).map(i => {
-        const p = todasAsProvas().find(pp => pp.id === i.provaId);
-        return p?.nome || i.provaId;
-      }).join(", "),
-    }));
-    const headers = Object.keys(linhas[0] || {});
-    const csv = [headers.join(";"), ...linhas.map(r => headers.map(h => `"${r[h]}"`).join(";"))].join("\n");
-    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = `numeracao-peito-${eventoAtual.nome.replace(/\s+/g, "_")}.csv`; a.click();
-    URL.revokeObjectURL(url);
   };
 
   const exportarPDF = () => {
@@ -549,10 +540,12 @@ function TelaNumericaPeito() {
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 20 }}>
         <button style={s.btnPrimary} onClick={numerarAuto}>Numerar Automaticamente</button>
         <button style={s.btnSecondary} onClick={salvar}>Salvar Numeração</button>
-        <button style={s.btnSecondary} onClick={exportarCsv}>Exportar CSV</button>
         <button style={s.btnSecondary} onClick={exportarPDF}>Exportar PDF</button>
-        <button style={s.btnSecondary} onClick={exportarComQr} disabled={gerandoQr}>
-          {gerandoQr ? `${qrProgresso || "Gerando..."}` : "Exportar com QR"}
+        <button style={s.btnSecondary} onClick={() => exportarComQr("imagem")} disabled={gerandoQr}>
+          {gerandoQr ? `${qrProgresso || "Gerando..."}` : "Exportar QR (Imagem)"}
+        </button>
+        <button style={s.btnSecondary} onClick={() => exportarComQr("link")} disabled={gerandoQr}>
+          Exportar QR (Link)
         </button>
         <button style={s.btnSecondary} onClick={gerarPreviewQr} disabled={gerandoQr}>Testar QR</button>
         <button style={s.btnGhost} onClick={limparTudo}>Limpar</button>
