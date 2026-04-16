@@ -29,17 +29,21 @@ function slugifyPath(str) {
 }
 
 // Faz upload da imagem para Firebase Storage e retorna a URL pública
+// IMPORTANTE: deleta o arquivo anterior SOMENTE após upload bem-sucedido,
+// para não perder a imagem se o upload falhar.
 async function uploadLogo(file, pastaEvento, campo, urlAnterior) {
-  // Deletar arquivo anterior se existir (evita órfãos ao trocar extensão)
-  if (urlAnterior) {
-    const pathAnt = extrairPathDoUrl(urlAnterior);
-    if (pathAnt) { try { await deleteObject(storageRef(storage, pathAnt)); } catch {} }
-  }
   const ext = file.name?.split(".")?.pop() || "png";
   const path = `logos/${pastaEvento}/${campo}.${ext}`;
   const ref = storageRef(storage, path);
   await uploadBytes(ref, file);
-  return await getDownloadURL(ref);
+  const url = await getDownloadURL(ref);
+  // Só deleta o anterior após upload confirmado
+  if (urlAnterior) {
+    const pathAnt = extrairPathDoUrl(urlAnterior);
+    // Não deletar se é o mesmo path (mesma extensão → mesmo arquivo sobrescrito)
+    if (pathAnt && pathAnt !== path) { try { await deleteObject(storageRef(storage, pathAnt)); } catch {} }
+  }
+  return url;
 }
 
 function getStyles(t) {
@@ -381,39 +385,44 @@ function TelaCadastroEvento() {
     if (!dadosParaSalvar.horaAberturaInscricoes) delete dadosParaSalvar.horaAberturaInscricoes;
     if (!dadosParaSalvar.dataEncerramentoInscricoes) delete dadosParaSalvar.dataEncerramentoInscricoes;
     if (!dadosParaSalvar.horaEncerramentoInscricoes) delete dadosParaSalvar.horaEncerramentoInscricoes;
-    if (editando) {
-      // Merge parcial: envia apenas campos que realmente mudaram,
-      // evitando sobrescrever alterações feitas por outro organizador.
-      if (formOriginal) {
-        const camposAlterados = {};
-        const chaves = new Set([...Object.keys(dadosParaSalvar), ...Object.keys(formOriginal)]);
-        chaves.forEach(k => {
-          if (k === "id") return;
-          const valorAtual = dadosParaSalvar[k];
-          const valorOriginal = formOriginal[k];
-          if (valorAtual === valorOriginal) return;
-          // Comparação profunda para objetos/arrays
-          if (typeof valorAtual === "object" && typeof valorOriginal === "object"
-              && valorAtual !== null && valorOriginal !== null) {
-            if (JSON.stringify(valorAtual) === JSON.stringify(valorOriginal)) return;
+    try {
+      if (editando) {
+        // Merge parcial: envia apenas campos que realmente mudaram,
+        // evitando sobrescrever alterações feitas por outro organizador.
+        if (formOriginal) {
+          const camposAlterados = {};
+          const chaves = new Set([...Object.keys(dadosParaSalvar), ...Object.keys(formOriginal)]);
+          chaves.forEach(k => {
+            if (k === "id") return;
+            const valorAtual = dadosParaSalvar[k];
+            const valorOriginal = formOriginal[k];
+            if (valorAtual === valorOriginal) return;
+            // Comparação profunda para objetos/arrays
+            if (typeof valorAtual === "object" && typeof valorOriginal === "object"
+                && valorAtual !== null && valorOriginal !== null) {
+              if (JSON.stringify(valorAtual) === JSON.stringify(valorOriginal)) return;
+            }
+            camposAlterados[k] = valorAtual;
+          });
+          if (Object.keys(camposAlterados).length > 0) {
+            await atualizarCamposEvento(eventoAtualId, camposAlterados);
+            if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Editou competição", form.nome || "", usuarioLogado.organizadorId || usuarioLogado.id, { equipeId: usuarioLogado.equipeId, modulo: "competicoes" });
           }
-          camposAlterados[k] = valorAtual;
-        });
-        if (Object.keys(camposAlterados).length > 0) {
-          await atualizarCamposEvento(eventoAtualId, camposAlterados);
-          if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Editou competição", form.nome || "", usuarioLogado.organizadorId || usuarioLogado.id, { equipeId: usuarioLogado.equipeId, modulo: "competicoes" });
+        } else {
+          await editarEvento(dadosParaSalvar);
         }
+        selecionarEvento(dadosParaSalvar.id);
       } else {
-        await editarEvento(dadosParaSalvar);
+        const novo = adicionarEvento(dadosParaSalvar, usuarioLogado);
+        if (novo?.blocked) {
+          setErros({ _plano: novo.reason });
+          return;
+        }
+        selecionarEvento(novo.id);
       }
-      selecionarEvento(dadosParaSalvar.id);
-    } else {
-      const novo = adicionarEvento(dadosParaSalvar, usuarioLogado);
-      if (novo?.blocked) {
-        setErros({ _plano: novo.reason });
-        return;
-      }
-      selecionarEvento(novo.id);
+    } catch (err) {
+      console.error("[TelaCadastroEvento] Erro ao salvar:", err);
+      alert(`Erro ao salvar competição: ${err.code || err.message || "verifique a conexão e tente novamente."}`);
     }
   };
 
@@ -1223,9 +1232,6 @@ function TelaCadastroEvento() {
                           setUploadandoRegulamento(true);
                           try {
                             const pathAnterior = form.regulamentoPath || extrairPathDoUrl(form.regulamentoUrl);
-                            if (pathAnterior) {
-                              try { await deleteObject(storageRef(storage, pathAnterior)); } catch {}
-                            }
                             const orgId = form.organizadorId || (tipoEvt === "organizador" ? usuarioLogado?.id : usuarioLogado?.organizadorId);
                             const orgNome = organizadores?.find(o => o.id === orgId)?.nome;
                             const pasta = `${slugifyPath(orgNome)}/${slugifyPath(form.nome)}`;
@@ -1234,7 +1240,11 @@ function TelaCadastroEvento() {
                             await uploadBytes(ref, file);
                             const url = await getDownloadURL(ref);
                             setForm(prev => ({ ...prev, regulamentoUrl: url, regulamentoNome: file.name, regulamentoPath: path }));
-                          } catch { alert("Erro ao enviar PDF. Tente novamente."); }
+                            // Deletar anterior SOMENTE após upload bem-sucedido
+                            if (pathAnterior && pathAnterior !== path) {
+                              try { await deleteObject(storageRef(storage, pathAnterior)); } catch {}
+                            }
+                          } catch (err) { alert(`Erro ao enviar PDF: ${err.code || err.message || "tente novamente"}`); }
                           finally { setUploadandoRegulamento(false); e.target.value = ""; }
                         }}
                       />
@@ -1351,12 +1361,7 @@ function TelaCadastroEvento() {
             const campo = cropModal.campo;
             setCropModal(null);
             try {
-              // Deletar arquivo anterior se existir
               const urlAnt = form[campo];
-              if (urlAnt) {
-                const pathAnt = extrairPathDoUrl(urlAnt);
-                if (pathAnt) { try { await deleteObject(storageRef(storage, pathAnt)); } catch {} }
-              }
               const orgId = form.organizadorId || (tipoEvt === "organizador" ? usuarioLogado?.id : usuarioLogado?.organizadorId);
               const orgNome = organizadores?.find(o => o.id === orgId)?.nome;
               const pasta = `${slugifyPath(orgNome)}/${slugifyPath(form.nome)}`;
@@ -1366,7 +1371,12 @@ function TelaCadastroEvento() {
               await uploadBytes(ref, blob);
               const url = await getDownloadURL(ref);
               setForm(prev => ({ ...prev, [campo]: url }));
-            } catch { alert("Erro ao enviar imagem. Tente novamente."); }
+              // Deletar arquivo anterior SOMENTE após upload bem-sucedido
+              if (urlAnt) {
+                const pathAnt = extrairPathDoUrl(urlAnt);
+                if (pathAnt && pathAnt !== path) { try { await deleteObject(storageRef(storage, pathAnt)); } catch {} }
+              }
+            } catch (err) { alert(`Erro ao enviar imagem: ${err.code || err.message || "tente novamente"}`); }
           }}
         />
       )}

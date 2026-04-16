@@ -320,19 +320,20 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
     if (!meuOrgPerfil || !editarOrganizadorAdmin) return;
     setPerfilUploading(true);
     try {
-      // Deletar arquivo anterior se existir (evita órfãos ao trocar extensão)
-      if (meuOrgPerfil[tipo]) {
-        try {
-          const urlAntiga = meuOrgPerfil[tipo];
-          const pathAntigo = decodeURIComponent(urlAntiga.split("/o/")[1]?.split("?")[0] || "");
-          if (pathAntigo) await deleteObject(storageRef(storage, pathAntigo));
-        } catch {}
-      }
+      const urlAntiga = meuOrgPerfil[tipo] || null;
       const ext = file.name ? file.name.split(".").pop() : "png";
-      const ref = storageRef(storage, `organizadores/${meuOrgPerfil.id}/${tipo}.${ext}`);
+      const newPath = `organizadores/${meuOrgPerfil.id}/${tipo}.${ext}`;
+      const ref = storageRef(storage, newPath);
       await uploadBytes(ref, file);
       const url = await getDownloadURL(ref);
       editarOrganizadorAdmin({ ...meuOrgPerfil, [tipo]: url });
+      // Deletar anterior SOMENTE após upload bem-sucedido
+      if (urlAntiga) {
+        try {
+          const pathAntigo = decodeURIComponent(urlAntiga.split("/o/")[1]?.split("?")[0] || "");
+          if (pathAntigo && pathAntigo !== newPath) await deleteObject(storageRef(storage, pathAntigo));
+        } catch {}
+      }
       setPerfilUploading(false);
     } catch (err) {
       console.error("Erro upload:", err);
