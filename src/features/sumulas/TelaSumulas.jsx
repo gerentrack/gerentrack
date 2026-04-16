@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas, nPernasRevezamento } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/constants/categorias";
@@ -49,7 +49,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
   const s = useStylesResponsivos(getStyles(t));
   const confirmar = useConfirm();
   const { usuarioLogado } = useAuth();
-  const { inscricoes, atletas, eventoAtual, resultados, numeracaoPeito, getClubeAtleta, equipes, atualizarCamposEvento, alterarStatusEvento, recordes } = useEvento();
+  const { inscricoes, atletas, eventoAtual, resultados, numeracaoPeito, getClubeAtleta, equipes, atualizarCamposEvento, alterarStatusEvento, recordes, adicionarInscricao } = useEvento();
   const { setTela, registrarAcao } = useApp();
   const isFinalizado = !!eventoAtual?.competicaoFinalizada;
   const [filtroProva, setFiltroProva] = useState("todas");
@@ -69,6 +69,52 @@ function TelaSumulas({ chamada, getPresencaProva }) {
   const [seriacaoFase, setSeriacaoFase] = useState("eliminatoria"); // "eliminatoria" | "semifinal" | "final"
   const [seriacao800m, setSeriacao800m] = useState("raias"); // "raias" | "grupo"
   const [seriacaoChaveAtiva, setSeriacaoChaveAtiva] = useState(null); // chave completa do item ativo (com sufixo de fase)
+
+  // ── Reparo: criar inscrições componentes faltantes de combinadas ──────────
+  const inscDoEventoAll = inscricoes.filter((i) => i.eventoId === eventoAtual?.id);
+  const reparoIds = useRef(new Set()); // atletaIds já reparados — evita duplicação
+  useEffect(() => {
+    if (!eventoAtual?.id || !adicionarInscricao || isFinalizado) return;
+    if (inscDoEventoAll.length === 0) return; // inscrições ainda não carregaram
+    const eid = eventoAtual.id;
+    const allProvas = todasAsProvas();
+    const provasCombi = (eventoAtual.provasPrograma || []).filter(pid => {
+      const pInfo = allProvas.find(p => p.id === pid);
+      return pInfo && pInfo.tipo === "combinada";
+    });
+    if (provasCombi.length === 0) return;
+    const faltantes = [];
+    provasCombi.forEach(combinadaId => {
+      const inscsPai = inscDoEventoAll.filter(i => i.provaId === combinadaId && !i.origemCombinada);
+      const componentes = CombinedEventEngine.gerarProvasComponentes(combinadaId, eid);
+      if (inscsPai.length === 0 || componentes.length === 0) return;
+      inscsPai.forEach(pai => {
+        const chave = `${pai.atletaId}_${combinadaId}`;
+        if (reparoIds.current.has(chave)) return;
+        const temComponentes = inscDoEventoAll.some(i =>
+          i.atletaId === pai.atletaId && i.combinadaId === combinadaId && i.origemCombinada
+        );
+        if (temComponentes) return;
+        reparoIds.current.add(chave);
+        faltantes.push(...CombinedEventEngine.inscreverAtletaNasComponentes(
+          pai.atletaId, combinadaId, eid,
+          {
+            categoria: pai.categoria, categoriaId: pai.categoriaId,
+            categoriaOficial: pai.categoriaOficial, categoriaOficialId: pai.categoriaOficialId,
+            sexo: pai.sexo,
+            inscritoPorId: pai.inscritoPorId, inscritoPorNome: pai.inscritoPorNome,
+            inscritoPorTipo: pai.inscritoPorTipo,
+            equipeCadastro: pai.equipeCadastro || "", equipeCadastroId: pai.equipeCadastroId || null,
+          },
+          componentes
+        ));
+      });
+    });
+    if (faltantes.length > 0) {
+      console.log(`[Súmulas] Reparo: criando ${faltantes.length} inscrições componentes para ${reparoIds.current.size} atleta(s)`);
+      faltantes.forEach(ic => adicionarInscricao(ic));
+    }
+  }, [eventoAtual?.id, inscDoEventoAll.length, isFinalizado]);
 
   if (!eventoAtual) return (
     <div style={s.page}><div style={s.emptyState}><p>Selecione uma competição primeiro.</p>
@@ -99,7 +145,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
   );
 
   const todasProvas = todasAsProvas();
-  const inscDoEvento = inscricoes.filter((i) => i.eventoId === eventoAtual.id);
+  const inscDoEvento = inscDoEventoAll;
 
   const pausaHorario = (eventoAtual.programaPausa || {}).horario || "";
   const temEtapas = !!pausaHorario;
@@ -156,13 +202,17 @@ function TelaSumulas({ chamada, getPresencaProva }) {
           return [{ prova, sexo, categoria: cat, isRevezamento: true, equipesRevez, inscs: inscsRevez, resultados: resProva }];
         }
 
-        const inscs = inscDoEvento.filter(
-          (i) => i.provaId === prova.id &&
-            (i.categoriaId || i.categoriaOficialId) === cat.id &&
-            i.sexo === sexo && i.tipo !== "revezamento"
-        );
+        // Componente de combinada: incluir atletas da inscrição pai (combinadaId)
+        // pois podem não ter inscrições componentes individuais
+        const inscs = inscDoEvento.filter((i) => {
+          if ((i.categoriaId || i.categoriaOficialId) !== cat.id || i.sexo !== sexo || i.tipo === "revezamento") return false;
+          if (i.provaId === prova.id) return true;
+          if (prova.origemCombinada && (i.provaId === prova.combinadaId || i.combinadaId === prova.combinadaId)) return true;
+          if (prova.tipo === "combinada" && i.combinadaId === prova.id) return true;
+          return false;
+        });
         if (inscs.length === 0) return [];
-        // Deduplicar por atletaId — atleta inscrito 2x na mesma prova não duplica na súmula
+        // Deduplicar por atletaId — atleta com inscrição pai + componente não duplica
         const atletasInsc = inscs
           .map((i) => resolverAtleta(i.atletaId, atletas, eventoAtual))
           .filter(Boolean)
@@ -215,8 +265,10 @@ function TelaSumulas({ chamada, getPresencaProva }) {
 
   const sumuFiltradas = (() => {
     const filtered = sumulas.filter((sum) => {
-      if (sum.prova.tipo === "combinada") return false;
-      if (filtroProva !== "todas" && sum.prova.nome !== filtroProva) return false;
+      if (filtroProva !== "todas" && sum.prova.nome !== filtroProva) {
+        // Se filtro é uma combinada, aceitar componentes dessa combinada
+        if (!(sum.prova.origemCombinada && sum.prova.nomeCombinada === filtroProva)) return false;
+      }
       if (filtroCat !== "todas" && sum.categoria.id !== filtroCat) return false;
       if (filtroSexo !== "todos" && sum.sexo !== filtroSexo) return false;
       if (filtroEtapa !== "todas") {
