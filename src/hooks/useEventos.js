@@ -81,6 +81,8 @@ export function useEventos() {
   // (ex: logoCompeticao, dataEncerramentoInscricoes quando form não os inclui)
   const _editarEvento = useCallback(async (ev) => {
     const docRef = doc(db, COLLECTION, ev.id);
+    const camposEnviados = Object.keys(ev).filter(k => k !== "id");
+    console.warn(`[useEventos] _editarEvento id=${ev.id} campos=[${camposEnviados.join(",")}]`, new Error().stack?.split("\n").slice(1, 4).join(" ← "));
     await setDoc(docRef, sanitize(ev), { merge: true });
   }, []);
 
@@ -89,6 +91,8 @@ export function useEventos() {
   // sem sobrescrever campos alterados por outro dispositivo/aba.
   const _atualizarCamposEvento = useCallback(async (id, campos) => {
     const docRef = doc(db, COLLECTION, id);
+    const camposEnviados = Object.keys(campos);
+    console.warn(`[useEventos] _atualizarCamposEvento id=${id} campos=[${camposEnviados.join(",")}]`, new Error().stack?.split("\n").slice(1, 4).join(" ← "));
     await setDoc(docRef, sanitize(campos), { merge: true });
   }, []);
 
