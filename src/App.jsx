@@ -403,7 +403,7 @@ function App() {
       slugsUsados.add(slug);
       return { id: ev.id, slug };
     });
-    _atualizarEventosEmLote(atualizacoes.map(u => ({ ...eventos.find(e => e.id === u.id), slug: u.slug })));
+    atualizacoes.forEach(u => _atualizarCamposEvento(u.id, { slug: u.slug }));
     console.log(`[App] Slugs gerados para ${atualizacoes.length} evento(s) legado(s)`);
   }, [eventos.length]);
 
@@ -1620,25 +1620,27 @@ function App() {
   // ── Auto-gestão de inscrições por data ─────────────────────────────────────
   useEffect(() => {
     if (!usuarioLogado || !firebaseAuthed) return; // só roda autenticado
-    const hoje = new Date().toISOString().slice(0, 10);
     const agora = new Date();
-    const atualizados = [];
+    const updates = []; // { id, campos } — apenas campos que mudaram
     eventosRef.current.forEach(ev => {
       const dtAbEv  = _dtInscricoes(ev.dataAberturaInscricoes,    ev.horaAberturaInscricoes);
       const dtEncEv = _dtInscricoes(ev.dataEncerramentoInscricoes, ev.horaEncerramentoInscricoes);
-      let novo = ev;
+      const campos = {};
       // Auto-abrir
       if (dtAbEv && agora >= dtAbEv && ev.inscricoesEncerradas && !ev.inscricoesForceEncerradas)
-        novo = { ...novo, inscricoesEncerradas: false };
-      // Auto-encerrar
-      if (dtEncEv && agora > dtEncEv && !novo.inscricoesEncerradas)
-        novo = { ...novo, inscricoesEncerradas: true };
+        campos.inscricoesEncerradas = false;
+      // Auto-encerrar (reavalia sobre o estado já modificado acima)
+      const encerradoApos = "inscricoesEncerradas" in campos ? campos.inscricoesEncerradas : ev.inscricoesEncerradas;
+      if (dtEncEv && agora > dtEncEv && !encerradoApos)
+        campos.inscricoesEncerradas = true;
       // Antes da abertura
-      if (dtAbEv && agora < dtAbEv && !novo.inscricoesEncerradas && !novo.inscricoesForceAbertas)
-        novo = { ...novo, inscricoesEncerradas: true };
-      if (novo !== ev) atualizados.push(novo);
+      if (dtAbEv && agora < dtAbEv && !encerradoApos && !ev.inscricoesForceAbertas)
+        campos.inscricoesEncerradas = true;
+      if (Object.keys(campos).length > 0) updates.push({ id: ev.id, campos });
     });
-    if (atualizados.length > 0) _atualizarEventosEmLote(atualizados);
+    if (updates.length > 0) {
+      updates.forEach(({ id, campos }) => _atualizarCamposEvento(id, campos));
+    }
   }, [eventos.length]); // roda ao montar e quando nº de eventos muda
 
   const excluirEvento = async (id) => {
