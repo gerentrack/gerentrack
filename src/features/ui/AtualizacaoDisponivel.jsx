@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import { useTema } from "../../shared/TemaContext";
 
@@ -7,6 +8,16 @@ export default function AtualizacaoDisponivel() {
     needRefresh: [needRefresh],
     updateServiceWorker,
   } = useRegisterSW();
+
+  const disparou = useRef(false);
+
+  // Auto-reload 3s após detectar nova versão
+  useEffect(() => {
+    if (!needRefresh || disparou.current) return;
+    disparou.current = true;
+    const timer = setTimeout(() => updateServiceWorker(true), 3000);
+    return () => clearTimeout(timer);
+  }, [needRefresh, updateServiceWorker]);
 
   if (!needRefresh) return null;
 
@@ -18,7 +29,7 @@ export default function AtualizacaoDisponivel() {
       boxShadow: "0 -2px 12px rgba(0,0,0,0.3)",
     }}>
       <span style={{ color: "#fff", fontSize: 14, fontWeight: 600, fontFamily: "'Barlow', sans-serif" }}>
-        Nova versão disponível
+        Atualizando para nova versão...
       </span>
       <button
         onClick={() => updateServiceWorker(true)}
@@ -27,7 +38,7 @@ export default function AtualizacaoDisponivel() {
           padding: "6px 16px", cursor: "pointer", fontSize: 13, fontWeight: 700,
           fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5,
         }}>
-        Atualizar
+        Atualizar agora
       </button>
     </div>
   );
