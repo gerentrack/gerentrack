@@ -496,10 +496,7 @@ function TelaResultados() {
       Object.keys(pontosComb).forEach(eqId => {
         const info = pontosComb[eqId];
         (info.atletas || []).forEach(atlInfo => {
-          const atlPont = classificadosComb.find((item, idx) => {
-            return item.atleta && item.atleta.id === atlInfo.atletaId && (idx + 1) === atlInfo.posicao;
-          });
-          if (atlPont) ptsEqCombMap[atlPont.atleta.id] = atlInfo.pontos;
+          if (atlInfo.atletaId) ptsEqCombMap[atlInfo.atletaId] = atlInfo.pontos;
         });
       });
     }
