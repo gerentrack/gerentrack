@@ -1657,6 +1657,7 @@ function TelaResultados() {
                     <tr>
                       <Th>Pos.</Th>
                       <Th>Nº</Th>
+                      <Th>CBAt</Th>
                       <Th>Atleta</Th>
                       <Th>Clube/Equipe</Th>
                       {temSerieBlk && <Th>Sér.</Th>}
@@ -1713,6 +1714,7 @@ function TelaResultados() {
                             {item.isStatus ? "" : posLabel}
                           </strong></Td>
                           <Td><strong style={{ color: t.textTertiary, fontSize:13 }}>{formatarPeito((numeracaoPeito?.[eventoAtual?.id]||{})[item.atleta.id])}</strong></Td>
+                          <Td style={{ fontSize: 11, color: t.textDimmed }}>{item.atleta.cbat || ""}</Td>
                           <Td><strong style={{ color: isSerieFinal && j<3?t.accent:t.textPrimary }}>{item.atleta.contaExcluida ? <span style={{ color: t.textDimmed, fontStyle: "italic", fontWeight: 400 }} title="Conta excluída — histórico preservado de forma anônima">Atleta Excluído</span> : item.atleta.nome}</strong></Td>
                           <Td>{getExibicaoEquipe(item.atleta, equipes)||"—"}{(() => {
                             const aOrgId = item.atleta.organizadorId;
