@@ -716,7 +716,41 @@ function TelaEventoDetalhe() {
         <StatCard value={nAtletas}    label="Atletas" />
         <StatCard value={nInscs}      label="Inscrições" />
         <StatCard value={nResultados} label="Resultados" />
+        {(() => {
+          const orgIds = new Set();
+          inscsEvt.forEach(i => {
+            const atl = atletas.find(a => a.id === i.atletaId);
+            const oId = i.organizadorOrigem || atl?.organizadorId;
+            if (oId && oId !== eventoAtual.organizadorId) orgIds.add(oId);
+          });
+          return orgIds.size > 0 ? <StatCard value={orgIds.size + 1} label="Federações" /> : null;
+        })()}
       </div>
+      {(() => {
+        const fedMap = {};
+        inscsEvt.forEach(i => {
+          const atl = atletas.find(a => a.id === i.atletaId);
+          const oId = i.organizadorOrigem || atl?.organizadorId;
+          if (oId && oId !== eventoAtual.organizadorId) {
+            if (!fedMap[oId]) fedMap[oId] = new Set();
+            fedMap[oId].add(i.atletaId);
+          }
+        });
+        const feds = Object.entries(fedMap);
+        if (feds.length === 0) return null;
+        return (
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
+            {feds.map(([oId, atlIds]) => {
+              const org = organizadores.find(o => o.id === oId);
+              return (
+                <span key={oId} style={{ fontSize: 12, padding: "4px 10px", borderRadius: 6, background: t.bgCardAlt, border: `1px solid ${t.border}`, color: t.textSecondary }}>
+                  {org?.entidade || org?.nome || "Outra"}: <strong style={{ color: t.accent }}>{atlIds.size}</strong> atleta(s)
+                </span>
+              );
+            })}
+          </div>
+        );
+      })()}
 
       {/* ══ BANNER COMPETIÇÃO FINALIZADA ════════════════════════════════════ */}
       {eventoAtual.competicaoFinalizada && isDonoOuAdmin && (

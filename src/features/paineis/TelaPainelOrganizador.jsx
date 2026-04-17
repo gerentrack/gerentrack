@@ -216,6 +216,32 @@ function TelaPainelOrganizador() {
   const meusAtletas = useMemo(() => atletas.filter(a => a.organizadorId === orgId).sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR")), [atletas, orgId]);
   const meusFuncs = useMemo(() => (funcionarios || []).filter(f => f.organizadorId === orgId), [funcionarios, orgId]);
 
+  // Inscrições dos meus atletas em eventos de OUTRAS federações
+  const meusAtletaIds = useMemo(() => new Set(atletas.filter(a => a.organizadorId === orgId).map(a => a.id)), [atletas, orgId]);
+  const inscsExternas = useMemo(() =>
+    (inscricoes || []).filter(i => {
+      // Inscrição de um atleta meu...
+      if (i.organizadorOrigem === orgId) return true;
+      // Fallback: atleta meu sem campo organizadorOrigem
+      if (meusAtletaIds.has(i.atletaId)) {
+        const ev = eventos.find(e => e.id === i.eventoId);
+        return ev && ev.organizadorId !== orgId; // ...em evento de outra federação
+      }
+      return false;
+    }),
+    [inscricoes, orgId, meusAtletaIds, eventos]
+  );
+  const eventosExternos = useMemo(() => {
+    const evIds = [...new Set(inscsExternas.map(i => i.eventoId))];
+    return evIds.map(evId => {
+      const ev = eventos.find(e => e.id === evId);
+      const org = ev ? organizadores.find(o => o.id === ev.organizadorId) : null;
+      const inscsEv = inscsExternas.filter(i => i.eventoId === evId);
+      const atletaIds = [...new Set(inscsEv.map(i => i.atletaId))];
+      return { evento: ev, orgNome: org?.entidade || org?.nome || "—", inscsCount: inscsEv.length, atletasCount: atletaIds.length, inscricoes: inscsEv, atletaIds };
+    }).filter(item => item.evento).sort((a, b) => (b.evento.data || "").localeCompare(a.evento.data || ""));
+  }, [inscsExternas, eventos, organizadores]);
+
   const equipesFiltradas = useMemo(() => {
     if (!buscaEquipe) return minhasEquipes;
     const b = buscaEquipe.toLowerCase();
@@ -296,6 +322,7 @@ function TelaPainelOrganizador() {
           { id: "atletas", label: "Atletas", show: !isFuncionario || temPerm("atletas") },
           { id: "funcionarios", label: "Funcionarios", show: !isFuncionario || temPerm("funcionarios_ver") },
           { id: "relatorios", label: "Relatorios", show: temPerm("inscricoes") },
+          { id: "eventos-externos", label: "Eventos Externos", show: !isFuncionario },
           { id: "auditoria", label: "Auditoria", show: !isFuncionario },
         ];
         return (
@@ -582,6 +609,34 @@ function TelaPainelOrganizador() {
           </div>
         );
       })()}
+
+      {/* Card Eventos Externos na visão geral */}
+      {eventosExternos.length > 0 && (
+        <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "18px 24px", marginBottom: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+            <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 800, color: t.accent, margin: 0 }}>
+              Seus atletas em eventos de outras federações
+            </h3>
+            <button style={{ ...s.btnGhost, fontSize: 12, padding: "4px 12px" }} onClick={() => setAba("eventos-externos")}>
+              Ver detalhes
+            </button>
+          </div>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+            <div style={{ textAlign: "center", minWidth: 80 }}>
+              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 28, fontWeight: 900, color: t.accent }}>{eventosExternos.length}</div>
+              <div style={{ fontSize: 11, color: t.textMuted }}>evento(s)</div>
+            </div>
+            <div style={{ textAlign: "center", minWidth: 80 }}>
+              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 28, fontWeight: 900, color: t.accent }}>{[...new Set(inscsExternas.map(i => i.atletaId))].length}</div>
+              <div style={{ fontSize: 11, color: t.textMuted }}>atleta(s)</div>
+            </div>
+            <div style={{ textAlign: "center", minWidth: 80 }}>
+              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 28, fontWeight: 900, color: t.accent }}>{inscsExternas.length}</div>
+              <div style={{ fontSize: 11, color: t.textMuted }}>inscrição(ões)</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       </>)}
 
@@ -1136,6 +1191,70 @@ function TelaPainelOrganizador() {
         );
       })()}
 
+      </>)}
+
+      {/* ═══════════════════════════════════════════════════════════════
+          ABA: EVENTOS EXTERNOS
+         ═══════════════════════════════════════════════════════════════ */}
+      {aba === "eventos-externos" && (<>
+        <h2 style={s.sectionTitle}>Seus atletas em eventos de outras federações</h2>
+        <p style={{ color: t.textDimmed, fontSize: 13, marginBottom: 20 }}>
+          Inscrições e resultados dos seus atletas que participam de competições organizadas por outras federações.
+        </p>
+        {eventosExternos.length === 0 ? (
+          <div style={s.emptyState}>
+            <p>Nenhum atleta seu inscrito em eventos de outras federações.</p>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {eventosExternos.map(item => {
+              const ev = item.evento;
+              const dataEv = ev.data ? new Date(ev.data + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }) : "";
+              return (
+                <div key={ev.id} style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "16px 20px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 12 }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 15, color: t.textPrimary }}>{ev.nome}</div>
+                      <div style={{ fontSize: 12, color: t.textDimmed }}>{item.orgNome} {dataEv ? `· ${dataEv}` : ""} · {ev.local || ""}{ev.cidade ? `, ${ev.cidade}` : ""}</div>
+                    </div>
+                    <div style={{ textAlign: "right", flexShrink: 0 }}>
+                      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 900, color: t.accent }}>{item.atletasCount}</div>
+                      <div style={{ fontSize: 10, color: t.textMuted }}>atleta(s)</div>
+                    </div>
+                  </div>
+                  <div style={s.tableWrap}>
+                    <table style={s.table}>
+                      <thead><tr><Th>Atleta</Th><Th>Prova</Th><Th>Categoria</Th><Th>Resultado</Th></tr></thead>
+                      <tbody>
+                        {item.inscricoes.map(insc => {
+                          const atl = atletas.find(a => a.id === insc.atletaId);
+                          // Buscar resultado
+                          const resKey = `${ev.id}_${insc.provaId}_${insc.categoriaId || insc.categoriaOficialId}_${insc.sexo}`;
+                          const resDoc = resultados[resKey] || {};
+                          const raw = resDoc[insc.atletaId];
+                          const marca = raw ? (typeof raw === "object" ? raw.marca : raw) : null;
+                          const status = raw && typeof raw === "object" ? raw.status : null;
+                          const posicao = raw && typeof raw === "object" ? raw.posicao : null;
+                          const resultado = status || (marca != null ? String(marca) : "—");
+                          return (
+                            <tr key={insc.id} style={s.tr}>
+                              <Td><strong style={{ color: t.textPrimary }}>{atl?.nome || insc.atletaId}</strong></Td>
+                              <Td style={{ fontSize: 12 }}>{insc.provaNome || insc.provaId}</Td>
+                              <Td style={{ fontSize: 12 }}>{insc.categoria || "—"} {insc.sexo === "M" ? "M" : "F"}</Td>
+                              <Td style={{ fontSize: 12, fontWeight: marca != null ? 700 : 400, color: marca != null ? t.accent : t.textDimmed }}>
+                                {posicao ? `${posicao}° · ` : ""}{resultado}
+                              </Td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </>)}
 
       {/* ═══════════════════════════════════════════════════════════════
