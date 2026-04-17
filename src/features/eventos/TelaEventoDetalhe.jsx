@@ -334,7 +334,8 @@ function TelaEventoDetalhe() {
       );
     }
 
-    switch (abaEfetiva) {
+    // Usar abaAtiva para sub-abas (func_acesso) que não estão em tabs
+    switch (abaAtiva === "func_acesso" ? abaAtiva : abaEfetiva) {
 
       // ── Atleta ────────────────────────────────────────────────────────────
       case "participacao":
