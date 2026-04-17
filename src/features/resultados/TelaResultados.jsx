@@ -1114,7 +1114,7 @@ function TelaResultados() {
                         </div>
                         <div style="font-size:10px;color:#666;margin-bottom:4px">${eventoAtual.nome} — ${bc.categoria.nome} — ${bc.sexo === "M" ? "Masculino" : "Feminino"}</div>
                         <table><thead><tr>
-                          <th style="width:30px">Pos.</th><th style="width:30px;text-align:center">Nº</th><th>Atleta</th><th>Clube/Equipe</th>
+                          <th style="width:30px">Pos.</th><th style="width:30px;text-align:center">Nº</th><th style="width:52px;text-align:center">CBAt</th><th>Atleta</th><th>Clube/Equipe</th>
                           ${bc.todasCompDaCombinada.map(pc => `<th style="text-align:center;font-size:8px">${abreviarProva(pc.nome)}</th>`).join("")}
                           <th style="text-align:center;font-weight:800">Total</th>
                           ${pontEqAtivo ? `<th style="text-align:center;font-weight:800;background:#fffde0">Pts Eq.</th>` : ""}
@@ -1125,6 +1125,7 @@ function TelaResultados() {
                           return `<tr${idx < 3 ? ` class="top3"` : ""}>
                             <td style="font-weight:700">${_posLabelsComb[idx]}</td>
                             <td style="text-align:center;color:#888;font-size:10px">${formatarPeito((numeracaoPeito?.[eid]||{})[r.atletaId])}</td>
+                            <td style="text-align:center;color:#888;font-size:9px">${atl?.cbat || ""}</td>
                             <td>${r.nome}</td><td style="color:#666;font-size:9px">${clube}</td>
                             ${r.porProva.map(pp => `<td style="text-align:center;font-size:9px">${pp.marca != null && pp.marca !== "" ? `<div>${formatarMarca(pp.marca, pp.unidade, 2)}</div><div style="font-weight:700;color:#8a7000">${pp.pts}</div>` : "—"}</td>`).join("")}
                             <td style="text-align:center;font-weight:800;font-size:13px;color:#8a7000">${r.total}</td>
@@ -1164,6 +1165,7 @@ function TelaResultados() {
                     <tr style={{ borderBottom: `2px solid ${t.border}` }}>
                       <th style={{ padding: "8px", textAlign: "left", color: t.textMuted, fontSize: 11 }}>Pos.</th>
                       <th style={{ padding: "8px", textAlign: "center", color: t.textMuted, fontSize: 11 }}>Nº</th>
+                      <th style={{ padding: "8px", textAlign: "center", color: t.textMuted, fontSize: 11 }}>CBAt</th>
                       <th style={{ padding: "8px", textAlign: "left", color: t.textMuted, fontSize: 11 }}>Atleta</th>
                       <th style={{ padding: "8px", textAlign: "left", color: t.textMuted, fontSize: 11 }}>Clube/Equipe</th>
                       {bc.todasCompDaCombinada.map(function(pc) {
@@ -1201,6 +1203,9 @@ function TelaResultados() {
                           </td>
                           <td style={{ padding: "8px", textAlign: "center", color: t.textDimmed, fontSize: 12, fontWeight: 600 }}>
                             {formatarPeito((numeracaoPeito?.[eid]||{})[r.atletaId])}
+                          </td>
+                          <td style={{ padding: "8px", textAlign: "center", color: t.textDimmed, fontSize: 11 }}>
+                            {r.atleta?.cbat || ""}
                           </td>
                           <td style={{ padding: "8px", color: t.textPrimary, fontWeight: 500, whiteSpace: "nowrap" }}>
                             {r.nome}
