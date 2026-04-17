@@ -463,17 +463,28 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
         return _marcasComEmpateCentesimal(marcasMs);
       })();
 
+      let _posFedRevezImp = 0;
       const linhas = classif.map((eq, j) => {
         const atlNomes = eq.atletas.map(a => a.nome).join(" · ");
         const marcaStr = eq.isStatus ? `<span style="color:#c33">${eq.status}</span>` : eq.marca != null ? formatarMarcaExibicaoHtml(eq.marca, "s", _msEmpatadosRevez, false) : "";
+        // Posição: federados apenas quando flag ativo (equipe federada + todos atletas com CBAt)
+        let posRevezImp = "";
+        if (eq.marca != null && !eq.isStatus) {
+          if (!_fedAtivoImp) { _posFedRevezImp++; posRevezImp = _posFedRevezImp + "\u00b0"; }
+          else {
+            const eqFedImp = _fedSetImp && _fedSetImp.has(eq.equipeId);
+            const todosComCbatImp = eq.atletas.length > 0 && eq.atletas.every(a => a.cbat && String(a.cbat).trim() !== "");
+            if (eqFedImp && todosComCbatImp) { _posFedRevezImp++; posRevezImp = _posFedRevezImp + "\u00b0"; }
+          }
+        }
         return `<tr class="${j%2===0?"par":"imp"}">
-          <td class="tdn">${j+1}</td>
+          <td class="tdn">${posRevezImp || (j+1)}</td>
           ${temSeriacao ? `<td class="tdn">${eq.serie || ""}</td><td class="tdn" style="font-weight:700;color:#000">${eq.raia || ""}</td>` : ""}
           <td class="tdal" style="font-weight:700">${eq.nomeEquipe}${eq.sigla ? ` <span style="color:#888;font-size:8px">(${eq.sigla})</span>` : ""}</td>
           <td class="tdal" style="font-size:8px;color:#444">${atlNomes}</td>
           ${temVento ? `<td class="tdv">${eq.vento || "\u2014"}</td>` : ""}
           <td class="${temRes?"tdmbd":"tdmb"}">${marcaStr || ""}</td>
-          <td class="${temRes?"tdpf":"tdp"}">${eq.marca != null ? (j+1)+"\u00b0" : ""}</td>
+          <td class="${temRes?"tdpf":"tdp"}">${posRevezImp}</td>
         </tr>`;
       }).join("");
 

@@ -102,7 +102,15 @@ const TeamScoringEngine = {
       const eqId = item.equipeId || _getEquipeIdAtleta(item.atleta, equipes);
       if (!eqId || (equipesSet !== null && !equipesSet.has(eqId))) return;
       // Pular equipes não-federadas quando flag ativo
-      if (apenasFedR && !fedSetR.has(eqId)) return;
+      // Revezamento: equipe federada + TODOS os atletas com CBAt
+      if (apenasFedR) {
+        if (!fedSetR.has(eqId)) return;
+        const atletasRevezIds = item.atletasIds || (item.atletasRevez || []).map(a => a.id);
+        if (atletasRevezIds.length > 0) {
+          const todosComCbatR = atletasRevezIds.every(aId => { const a = atletas.find(aa => aa.id === aId); return a && a.cbat && String(a.cbat).trim() !== ""; });
+          if (!todosComCbatR) return;
+        }
+      }
       posicaoFedR++;
       const posicao = apenasFedR ? posicaoFedR : (idx + 1);
       const pontos = tabela[posicao] || 0;
@@ -341,7 +349,14 @@ const TeamScoringEngine = {
             var eqId = item.equipeId;
             if (!eqId || !equipesSet.has(eqId)) return;
             // Pular equipes não-federadas quando flag ativo
-            if (apenasFedRevez && !fedSetRevez.has(eqId)) return;
+            // Revezamento: equipe federada + TODOS os atletas com CBAt
+            if (apenasFedRevez) {
+              if (!fedSetRevez.has(eqId)) return;
+              var inscRevez = inscDoEvento.find(function(i) { return i.tipo === "revezamento" && i.equipeId === eqId && i.provaId === prova.id && (i.categoriaId || i.categoriaOficialId) === cat.id && i.sexo === sexo; });
+              var atletasRevezIds = inscRevez?.atletasIds || [];
+              var todosComCbat = atletasRevezIds.length > 0 && atletasRevezIds.every(function(aId) { var a = atletas.find(function(aa) { return aa.id === aId; }); return a && a.cbat && String(a.cbat).trim() !== ""; });
+              if (!todosComCbat) return;
+            }
             posicaoFedRevez++;
             var posicao = apenasFedRevez ? posicaoFedRevez : (idx + 1);
             var pontos = tabela[posicao] || 0;

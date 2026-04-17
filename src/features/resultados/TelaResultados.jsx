@@ -1623,7 +1623,24 @@ function TelaResultados() {
                         {pontuacaoAtiva && <Th style={{ background: t.bgCardAlt, color: t.accent }}>Pts Eq.</Th>}
                       </tr></thead>
                       <tbody>
-                        {b.classificados.map((item, j) => {
+                        {(() => {
+                          // Gerar posLabels para revezamento com filtro de federados
+                          const _cfgRevez = { ...(eventoAtual.pontuacaoEquipes || {}), equipeIdsFederados: eventoAtual.equipeIdsFederados || [] };
+                          const _fedAtivoRevez = _cfgRevez.classificacaoApenasFederados
+                            && Array.isArray(_cfgRevez.equipeIdsFederados) && _cfgRevez.equipeIdsFederados.length > 0;
+                          const _fedSetRevez = _fedAtivoRevez ? new Set(_cfgRevez.equipeIdsFederados) : null;
+                          let _posFedRevez = 0;
+                          const _posLabelsRevez = b.classificados.map(item => {
+                            if (item.isStatus) return "";
+                            if (!_fedAtivoRevez) { _posFedRevez++; return `${_posFedRevez}º`; }
+                            // Equipe federada + TODOS os atletas do revezamento com CBAt
+                            const eqFed = item.equipeId && _fedSetRevez.has(item.equipeId);
+                            const todosComCbat = (item.atletasRevez || []).length > 0
+                              && (item.atletasRevez || []).every(a => a.cbat && String(a.cbat).trim() !== "");
+                            if (eqFed && todosComCbat) { _posFedRevez++; return `${_posFedRevez}º`; }
+                            return "";
+                          });
+                          return b.classificados.map((item, j) => {
                           const raw = item.raw;
                           const getTent = (r, k) => r && typeof r === "object" ? (r[k] ?? "") : "";
                           const atlNomes = item.atletasRevez ? item.atletasRevez.map(a => a.nome).join(" · ") : "";
@@ -1639,7 +1656,7 @@ function TelaResultados() {
                           return (
                             <tr key={item.equipeId} style={{ ...s.tr, ...(item.isStatus ? {} : j===0?s.trOuro:j===1?s.trPrata:j===2?s.trBronze:{}) }}>
                               <Td><strong style={{ color: item.isStatus ? t.textDimmed : j<3?t.accent:t.textPrimary, fontSize:15 }}>
-                                {item.isStatus ? "" : `${j+1}º`}
+                                {_posLabelsRevez[j]}
                               </strong></Td>
                               <Td><strong style={{ color: j<3?t.accent:t.textPrimary }}>{item.nomeEquipe}</strong></Td>
                               <Td><span style={{ fontSize: 11, color: t.textTertiary }}>{atlNomes}</span></Td>
@@ -1655,7 +1672,8 @@ function TelaResultados() {
                               {pontuacaoAtiva && <Td><span style={{ color: t.accent, fontWeight:700 }}>{ptsRevez || ""}</span></Td>}
                             </tr>
                           );
-                        })}
+                        });
+                        })()}
                       </tbody>
                     </table>
                     </div>
