@@ -1456,11 +1456,8 @@ function TelaResultados() {
                 Object.keys(pontosEquipeBlk).forEach(eqId => {
                   const info = pontosEquipeBlk[eqId];
                   (info.atletas || []).forEach(atlInfo => {
-                    const atletaPontuante = b.classificados.find((item, idx) => {
-                      if (!item.atleta || item.isStatus) return false;
-                      return item.atleta.id === atlInfo.atletaId && (idx + 1) === atlInfo.posicao;
-                    });
-                    if (atletaPontuante) ptsEqPorAtleta[atletaPontuante.atleta.id] = atlInfo.pontos;
+                    // Buscar por atletaId (posição pode diferir quando classificacaoApenasFederados ativo)
+                    if (atlInfo.atletaId) ptsEqPorAtleta[atlInfo.atletaId] = atlInfo.pontos;
                   });
                 });
               }
