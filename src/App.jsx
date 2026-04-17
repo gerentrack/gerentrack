@@ -1614,6 +1614,24 @@ function App() {
       equipeIds.forEach(eqId => adicionarNotificacao(eqId, "sumulas_liberadas",
         `As súmulas da competição "${nomeEv}" foram liberadas. Acesse o evento para visualizar.`));
     }
+    // Notificar federações de origem quando inscrições encerram
+    if (campos.inscricoesEncerradas === true) {
+      const ev = eventosRef.current.find(e => e.id === id);
+      const evOrgId = ev?.organizadorId;
+      if (evOrgId) {
+        const inscsEv = (inscricoes || []).filter(i => i.eventoId === id);
+        const orgContagem = {};
+        inscsEv.forEach(i => {
+          const atl = atletas.find(a => a.id === i.atletaId);
+          const oId = i.organizadorOrigem || atl?.organizadorId;
+          if (oId && oId !== evOrgId) orgContagem[oId] = (orgContagem[oId] || 0) + 1;
+        });
+        Object.entries(orgContagem).forEach(([oId, count]) => {
+          adicionarNotificacao(oId, "inscricoes_externas",
+            `${count} inscrição(ões) de seus atletas na competição "${nomeEv}". Inscrições encerradas.`);
+        });
+      }
+    }
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Alterou status competição", detalhe, usuarioLogado.organizadorId || usuarioLogado.id, { equipeId: usuarioLogado.equipeId, modulo: "competicoes" });
   };
 
