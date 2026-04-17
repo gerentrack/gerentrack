@@ -68,13 +68,24 @@ function TelaSecretaria() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
-  const { eventoAtual, inscricoes, atletas, resultados, numeracaoPeito } = useEvento();
+  const { eventoAtual, inscricoes, atletas, equipes, resultados, numeracaoPeito } = useEvento();
   const { setTela, registrarAcao } = useApp();
   const MEDALHA_CONFIG = getMedalhaConfig(t);
   // Modo de medalhas: retrocompatível com campo boolean antigo
   const modoMedalhas = eventoAtual?.modoMedalhas || (eventoAtual?.medalhasApenasParticipacao ? "apenas_participacao" : "classificacao_participacao");
   const apenasParticipacao = modoMedalhas === "apenas_participacao";
   const apenasClassificacao = modoMedalhas === "apenas_classificacao";
+  // Classificação apenas federados — afeta posição de medalha
+  const _fedAtivoMed = (eventoAtual?.pontuacaoEquipes?.classificacaoApenasFederados)
+    && Array.isArray(eventoAtual?.equipeIdsFederados) && eventoAtual.equipeIdsFederados.length > 0;
+  const _fedSetMed = _fedAtivoMed ? new Set(eventoAtual.equipeIdsFederados) : null;
+  const _ehFedMed = (atletaId) => {
+    if (!_fedAtivoMed) return true;
+    const atl = atletas.find(a => a.id === atletaId);
+    if (!atl) return false;
+    const eqId = atl.equipeId || (equipes || []).find(eq => eq.nome === atl.clube)?.id;
+    return eqId && _fedSetMed.has(eqId) && atl.cbat && String(atl.cbat).trim() !== "";
+  };
   const [aba, setAba] = useState("chamada");
   const [filtroProva, setFiltroProva] = useState("");
   const [buscaChamada, setBuscaChamada] = useState("");
@@ -417,8 +428,14 @@ function TelaSecretaria() {
       .forEach(g => {
         const classificados = getClassificados(g.prova, g.cat, g.sexo);
         const idx = classificados.findIndex(c => c.aId === atletaId);
-        const posicao = idx >= 0 ? idx + 1 : null;
-        const tipoCalculado = posicao ? getTipoMedalha(posicao) : (apenasClassificacao ? null : "participacao");
+        // Posição renumerada para federados: conta apenas federados antes deste atleta
+        let posicao;
+        if (idx < 0) { posicao = null; }
+        else if (!_fedAtivoMed) { posicao = idx + 1; }
+        else if (_ehFedMed(atletaId)) {
+          posicao = classificados.slice(0, idx + 1).filter(c => _ehFedMed(c.aId)).length;
+        } else { posicao = null; } // não-federado: sem classificação
+        const tipoCalculado = posicao ? getTipoMedalha(posicao) : (_fedAtivoMed && !_ehFedMed(atletaId) ? (apenasClassificacao ? null : "participacao") : (apenasClassificacao ? null : "participacao"));
         const medalha = getMedalha(g.prova.id, g.cat.id, g.sexo, atletaId);
         const tipo = apenasParticipacao ? "participacao" : (medalha.tipo || tipoCalculado);
         const conf = tipo ? MEDALHA_CONFIG[tipo] : null;
@@ -444,9 +461,23 @@ function TelaSecretaria() {
         // Encontrar a equipe do atleta nesta prova
         const equipe = g.equipes.find(eq => eq.atletasIds.includes(atletaId));
         if (!equipe) return;
-        // Posição da equipe nos resultados
+        // Posição da equipe nos resultados — renumerada para federados
         const idx = classificados.findIndex(c => c.aId === equipe.equipeId);
-        const posicao = idx >= 0 ? idx + 1 : null;
+        let posicao;
+        if (idx < 0) { posicao = null; }
+        else if (!_fedAtivoMed) { posicao = idx + 1; }
+        else {
+          // Equipe federada + todos atletas com CBAt
+          const eqFed = _fedSetMed && _fedSetMed.has(equipe.equipeId);
+          const todosComCbat = equipe.atletasIds.length > 0 && equipe.atletasIds.every(aId => { const a = atletas.find(aa => aa.id === aId); return a && a.cbat && String(a.cbat).trim() !== ""; });
+          if (eqFed && todosComCbat) {
+            posicao = classificados.slice(0, idx + 1).filter(c => {
+              const inscR = inscricoes.find(i => i.tipo === "revezamento" && i.equipeId === c.aId && i.provaId === g.prova.id);
+              const aIds = inscR?.atletasIds || [];
+              return _fedSetMed.has(c.aId) && aIds.length > 0 && aIds.every(aId => { const a = atletas.find(aa => aa.id === aId); return a && a.cbat && String(a.cbat).trim() !== ""; });
+            }).length;
+          } else { posicao = null; }
+        }
         const tipoCalculado = posicao ? getTipoMedalha(posicao) : (apenasClassificacao ? null : "participacao");
         const medalha = getMedalha(g.prova.id, g.cat.id, g.sexo, atletaId);
         const tipo = apenasParticipacao ? "participacao" : (medalha.tipo || tipoCalculado);
@@ -457,7 +488,8 @@ function TelaSecretaria() {
     return resultado;
   }, [provasComAtletas, provasRevezamento, getClassificados, getTipoMedalha, getMedalha, MEDALHA_CONFIG,
       apenasParticipacao, apenasClassificacao, atletaSomenteDns, contarParticipacoes,
-      classificacaoBloqueiaParticipacao, temClassificacaoEntregue, provasPendentes, limiteParticipacao]);
+      classificacaoBloqueiaParticipacao, temClassificacaoEntregue, provasPendentes, limiteParticipacao,
+      _fedAtivoMed, _ehFedMed, _fedSetMed, inscricoes]);
 
   // Recalcular modal quando medalhas mudam (ex: após entrega)
   React.useEffect(() => {
