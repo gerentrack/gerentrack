@@ -568,8 +568,8 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
           if (isTempo) return a.marca - b.marca;
           return b.marca - a.marca;
         });
-      const _cfgPontImp = { ...(evento.pontuacaoEquipes || {}), equipeIdsFederados: evento.equipeIdsFederados || [] };
-      const pontosBlk = TeamScoringEngine.calcularPontosProva(classificados, _cfgPontImp, _atletas, equipes);
+      const _cfgPontImpInner = { ...(evento.pontuacaoEquipes || {}), equipeIdsFederados: evento.equipeIdsFederados || [] };
+      const pontosBlk = TeamScoringEngine.calcularPontosProva(classificados, _cfgPontImpInner, _atletas, equipes);
       Object.keys(pontosBlk).forEach(eqId => {
         const info = pontosBlk[eqId];
         (info.atletas || []).forEach(atlInfo => {
@@ -578,8 +578,9 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
       });
     }
     // Classificação apenas federados: posição vazia para não-federados na impressão
-    const _fedAtivoImp = _cfgPontImp?.classificacaoApenasFederados
-      && Array.isArray(_cfgPontImp?.equipeIdsFederados) && _cfgPontImp.equipeIdsFederados.length > 0;
+    const _cfgPontImp = { ...(evento.pontuacaoEquipes || {}), equipeIdsFederados: evento.equipeIdsFederados || [] };
+    const _fedAtivoImp = _cfgPontImp.classificacaoApenasFederados
+      && Array.isArray(_cfgPontImp.equipeIdsFederados) && _cfgPontImp.equipeIdsFederados.length > 0;
     const _fedSetImp = _fedAtivoImp ? new Set(_cfgPontImp.equipeIdsFederados) : null;
     const _ehFedImp = (atl) => {
       if (!_fedAtivoImp) return true;
