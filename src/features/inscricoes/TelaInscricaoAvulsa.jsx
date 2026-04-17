@@ -239,7 +239,7 @@ function TelaInscricaoAvulsa() {
     return orgsAutorizadas.length > 0
       ? atletas.filter(a => a.organizadorId && orgsAutorizadas.includes(a.organizadorId))
       : [];
-  }, [atletas, eventoParaInscricao, eventoAberto, orgsAutorizadas.join(",")]);
+  }, [atletas, eventoParaInscricao, orgsAutorizadas.join(",")]);
   const atletasCruzadosIds = new Set(atletasCruzados.map(a => a.id));
 
   const atletasFiltrados = useMemo(() => {
