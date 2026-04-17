@@ -718,7 +718,7 @@ function TelaEventoDetalhe() {
         <StatCard value={nResultados} label="Resultados" />
         {(() => {
           const orgIds = new Set();
-          inscsEvt.forEach(i => {
+          inscricoes.filter(i => i.eventoId === eventoAtual.id).forEach(i => {
             const atl = atletas.find(a => a.id === i.atletaId);
             const oId = i.organizadorOrigem || atl?.organizadorId;
             if (oId && oId !== eventoAtual.organizadorId) orgIds.add(oId);
@@ -728,7 +728,7 @@ function TelaEventoDetalhe() {
       </div>
       {(() => {
         const fedMap = {};
-        inscsEvt.forEach(i => {
+        inscricoes.filter(i => i.eventoId === eventoAtual.id).forEach(i => {
           const atl = atletas.find(a => a.id === i.atletaId);
           const oId = i.organizadorOrigem || atl?.organizadorId;
           if (oId && oId !== eventoAtual.organizadorId) {
