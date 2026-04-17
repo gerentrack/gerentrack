@@ -1033,7 +1033,27 @@ function TelaResultados() {
       ) : (
         <div>
           {/* Classificação das Combinadas */}
-          {blocosCombinadas.map((bc, bcIdx) => (
+          {blocosCombinadas.map((bc, bcIdx) => {
+            // Classificação apenas federados para combinadas
+            const _cfgFedComb = { ...(eventoAtual.pontuacaoEquipes || {}), equipeIdsFederados: eventoAtual.equipeIdsFederados || [] };
+            const _fedAtivoComb = _cfgFedComb.classificacaoApenasFederados
+              && Array.isArray(_cfgFedComb.equipeIdsFederados) && _cfgFedComb.equipeIdsFederados.length > 0;
+            const _fedSetComb = _fedAtivoComb ? new Set(_cfgFedComb.equipeIdsFederados) : null;
+            const _ehFedComb = (atl) => {
+              if (!_fedAtivoComb) return true;
+              const eqId = atl?.equipeId || equipes.find(eq => eq.nome === atl?.clube)?.id;
+              return eqId && _fedSetComb.has(eqId) && atl?.cbat && String(atl.cbat).trim() !== "";
+            };
+            const _posLabelsComb = (() => {
+              if (!_fedAtivoComb) return bc.rows.map((r, j) => `${j+1}º`);
+              let pf = 0;
+              return bc.rows.map(r => {
+                const atl = r.atleta || atletas.find(a => a.id === r.atletaId);
+                if (_ehFedComb(atl)) { pf++; return `${pf}º`; }
+                return "";
+              });
+            })();
+            return (
             <div key={"comb" + bcIdx} style={{
               background: t.bgCard, border:`1px solid ${t.border}`,
               borderRadius:12, marginBottom:20, overflow:"hidden",
@@ -1103,7 +1123,7 @@ function TelaResultados() {
                           const atl = r.atleta || resolverAtleta(r.atletaId, atletas, eventoAtual);
                           const clube = atl ? (getExibicaoEquipe(atl, equipes) || "") : "";
                           return `<tr${idx < 3 ? ` class="top3"` : ""}>
-                            <td style="font-weight:700">${(idx+1)+"º"}</td>
+                            <td style="font-weight:700">${_posLabelsComb[idx]}</td>
                             <td style="text-align:center;color:#888;font-size:10px">${formatarPeito((numeracaoPeito?.[eid]||{})[r.atletaId])}</td>
                             <td>${r.nome}</td><td style="color:#666;font-size:9px">${clube}</td>
                             ${r.porProva.map(pp => `<td style="text-align:center;font-size:9px">${pp.marca != null && pp.marca !== "" ? `<div>${formatarMarca(pp.marca, pp.unidade, 2)}</div><div style="font-weight:700;color:#8a7000">${pp.pts}</div>` : "—"}</td>`).join("")}
@@ -1177,7 +1197,7 @@ function TelaResultados() {
                             padding: "8px", fontWeight: 700, fontSize: 14,
                             color: idx === 0 ? t.gold : idx === 1 ? "#C0C0C0" : idx === 2 ? "#CD7F32" : t.textMuted
                           }}>
-                            {(idx + 1) + "º"}
+                            {_posLabelsComb[idx]}
                           </td>
                           <td style={{ padding: "8px", textAlign: "center", color: t.textDimmed, fontSize: 12, fontWeight: 600 }}>
                             {formatarPeito((numeracaoPeito?.[eid]||{})[r.atletaId])}
@@ -1228,7 +1248,7 @@ function TelaResultados() {
                 </div>
               )}
             </div>
-          ))}
+          ); })}
 
           {/* Resultados normais das provas individuais */}
           {blocosFiltrados.map((b, i) => {
