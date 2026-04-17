@@ -578,25 +578,14 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
       });
     }
     // Classificação apenas federados: posição vazia para não-federados na impressão
-    const _cfgPontImp = { ...(evento.pontuacaoEquipes || {}), equipeIdsFederados: evento.equipeIdsFederados || [] };
-    const _fedAtivoImp = _cfgPontImp.classificacaoApenasFederados
-      && Array.isArray(_cfgPontImp.equipeIdsFederados) && _cfgPontImp.equipeIdsFederados.length > 0;
-    const _fedSetImp = _fedAtivoImp ? new Set(_cfgPontImp.equipeIdsFederados) : null;
+    const _fedAtivoImp = (evento.pontuacaoEquipes || {}).classificacaoApenasFederados
+      && Array.isArray(evento.equipeIdsFederados) && evento.equipeIdsFederados.length > 0;
+    const _fedSetImp = _fedAtivoImp ? new Set(evento.equipeIdsFederados) : null;
     const _ehFedImp = (atl) => {
       if (!_fedAtivoImp) return true;
       const eqId = atl?.equipeId || equipes.find(eq => eq.nome === atl?.clube)?.id;
       return eqId && _fedSetImp.has(eqId) && atl?.cbat && String(atl.cbat).trim() !== "";
     };
-    // Gerar posLabels para impressão
-    const _posLabelsImp = (() => {
-      if (!_fedAtivoImp) return classificados.map((item, j) => item.isStatus ? "" : `${j+1}`);
-      let posFed = 0;
-      return classificados.map(item => {
-        if (item.isStatus) return "";
-        if (_ehFedImp(item.atleta)) { posFed++; return `${posFed}`; }
-        return "";
-      });
-    })();
     const _tdPtsEqVal = (aId) => mostrarPtsEq ? tdPtsEqVal(ptsEqMap[aId] || "") : "";
 
     // Headers dinâmicos com coluna PTS EQ. e/ou CLASS. quando aplicável
@@ -648,9 +637,11 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
       const tdSerie = (serieNum) => isProvaLonga ? "" : `<td class="tdm">${serieNum != null ? serieNum : ""}</td>`;
       const tdSerieRes = (serieNum) => isProvaLonga ? "" : `<td class="tdm">${serieNum != null ? serieNum : "\u2014"}</td>`;
 
+      let _posFedContador = 0;
       const _posImp = (a, j) => {
         if (!_fedAtivoImp) return j + 1;
-        return _ehFedImp(a) ? (_posLabelsImp[classificados.findIndex(c => c.atleta?.id === a.id)] || "") : "";
+        if (_ehFedImp(a)) { _posFedContador++; return _posFedContador; }
+        return "";
       };
       const linhaVazia = (a, j, serieNum) => `
         <tr class="${j%2===0?"par":"imp"}">
