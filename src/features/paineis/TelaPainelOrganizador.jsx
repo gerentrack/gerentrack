@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { usePagination, PaginaControles } from "../../lib/hooks/usePagination.jsx";
-import { _getLocalEventoDisplay } from "../../shared/formatters/utils";
+import { _getLocalEventoDisplay, formatarMarca } from "../../shared/formatters/utils";
+import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { StatCard } from "../ui/StatCard";
 import { getUsage, getEncerramento } from "../../shared/engines/planEngine";
 import { Th, Td } from "../ui/TableHelpers";
@@ -1235,13 +1236,15 @@ function TelaPainelOrganizador() {
                           const marca = raw ? (typeof raw === "object" ? raw.marca : raw) : null;
                           const status = raw && typeof raw === "object" ? raw.status : null;
                           const posicao = raw && typeof raw === "object" ? raw.posicao : null;
-                          const resultado = status || (marca != null ? String(marca) : "—");
+                          const prv = todasAsProvas().find(p => p.id === insc.provaId);
+                          const marcaFmt = marca != null ? formatarMarca(marca, prv?.unidade || "m", 2) : null;
+                          const resultado = status || marcaFmt || "—";
                           return (
                             <tr key={insc.id} style={s.tr}>
                               <Td><strong style={{ color: t.textPrimary }}>{atl?.nome || insc.atletaId}</strong></Td>
                               <Td style={{ fontSize: 12 }}>{insc.provaNome || insc.provaId}</Td>
                               <Td style={{ fontSize: 12 }}>{insc.categoria || "—"} {insc.sexo === "M" ? "M" : "F"}</Td>
-                              <Td style={{ fontSize: 12, fontWeight: marca != null ? 700 : 400, color: marca != null ? t.accent : t.textDimmed }}>
+                              <Td style={{ fontSize: 12, fontWeight: marcaFmt ? 700 : 400, color: marcaFmt ? t.accent : t.textDimmed }}>
                                 {posicao ? `${posicao}° · ` : ""}{resultado}
                               </Td>
                             </tr>
