@@ -168,7 +168,7 @@ const _nomeProvaMatch = (a, b) => {
 function TelaResultados() {
   const { usuarioLogado } = useAuth();
   const { inscricoes, atletas, resultados, eventoAtual, numeracaoPeito, equipes, getClubeAtleta, atualizarCamposEvento, recordes } = useEvento();
-  const { setTela } = useApp();
+  const { setTela, organizadores } = useApp();
   const { marchaData } = useMarchaJuizes(eventoAtual?.id);
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
@@ -1698,7 +1698,12 @@ function TelaResultados() {
                           </strong></Td>
                           <Td><strong style={{ color: t.textTertiary, fontSize:13 }}>{formatarPeito((numeracaoPeito?.[eventoAtual?.id]||{})[item.atleta.id])}</strong></Td>
                           <Td><strong style={{ color: isSerieFinal && j<3?t.accent:t.textPrimary }}>{item.atleta.contaExcluida ? <span style={{ color: t.textDimmed, fontStyle: "italic", fontWeight: 400 }} title="Conta excluída — histórico preservado de forma anônima">Atleta Excluído</span> : item.atleta.nome}</strong></Td>
-                          <Td>{getExibicaoEquipe(item.atleta, equipes)||"—"}</Td>
+                          <Td>{getExibicaoEquipe(item.atleta, equipes)||"—"}{(() => {
+                            const aOrgId = item.atleta.organizadorId;
+                            if (!aOrgId || aOrgId === eventoAtual.organizadorId) return null;
+                            const orgA = organizadores.find(o => o.id === aOrgId);
+                            return <span style={{ fontSize: 10, color: t.textDimmed, marginLeft: 4 }} title={orgA?.entidade || orgA?.nome || ""}>{orgA?.siglaFederacao || orgA?.entidade?.slice(0,3)?.toUpperCase() || ""}</span>;
+                          })()}</Td>
                           {temSerieBlk && <Td>{serieDoAtletaBlk[item.atleta.id] || "—"}</Td>}
                           {temRaiaBlk  && <Td>{getTent(raw,"raia") || raiaDoAtletaBlk[item.atleta.id] || "—"}</Td>}
                           {temVentoBlk && <Td>{getTent(raw,"vento")||"—"}</Td>}
