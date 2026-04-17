@@ -43,15 +43,30 @@ const TeamScoringEngine = {
       : null; // null = aceita todos
     const maxPorEquipe = Math.max(1, parseInt(config.atletasPorEquipePorProva) || 1);
 
+    // Classificação apenas federados: pular não-federados na atribuição de posição
+    const apenasFed = config.classificacaoApenasFederados
+      && Array.isArray(config.equipeIdsFederados) && config.equipeIdsFederados.length > 0;
+    const fedSet = apenasFed ? new Set(config.equipeIdsFederados) : null;
+
     // Contador de quantos atletas de cada equipe já pontuaram
     const contadorEq = {};
+    let posicaoFed = 0;
 
     classificados.forEach((item, idx) => {
-      const posicao = idx + 1;
-      const pontos = tabela[posicao] || 0;
-      if (pontos === 0) return;
       const atl = item.atleta;
       if (!atl) return;
+
+      // Quando classificacaoApenasFederados: pular atletas não-federados
+      if (apenasFed) {
+        const eqIdFed = _getEquipeIdAtleta(atl, equipes);
+        const temCbat = atl.cbat && String(atl.cbat).trim() !== "";
+        if (!eqIdFed || !fedSet.has(eqIdFed) || !temCbat) return;
+      }
+
+      posicaoFed++;
+      const posicao = apenasFed ? posicaoFed : (idx + 1);
+      const pontos = tabela[posicao] || 0;
+      if (pontos === 0) return;
       const eqId = _getEquipeIdAtleta(atl, equipes);
       if (!eqId || (equipesSet !== null && !equipesSet.has(eqId))) return;
       contadorEq[eqId] = contadorEq[eqId] || 0;
@@ -76,13 +91,22 @@ const TeamScoringEngine = {
     const participantesR = config.equipesParticipantes || [];
     const equipesSet = participantesR.length > 0 ? new Set(participantesR) : null;
 
+    // Classificação apenas federados: pular equipes não-federadas
+    const apenasFedR = config.classificacaoApenasFederados
+      && Array.isArray(config.equipeIdsFederados) && config.equipeIdsFederados.length > 0;
+    const fedSetR = apenasFedR ? new Set(config.equipeIdsFederados) : null;
+    let posicaoFedR = 0;
+
     classificados.forEach((item, idx) => {
-      const posicao = idx + 1;
-      const pontos = tabela[posicao] || 0;
-      if (pontos === 0) return;
       // Para revezamentos, equipeId vem direto do item (não do "atleta")
       const eqId = item.equipeId || _getEquipeIdAtleta(item.atleta, equipes);
       if (!eqId || (equipesSet !== null && !equipesSet.has(eqId))) return;
+      // Pular equipes não-federadas quando flag ativo
+      if (apenasFedR && !fedSetR.has(eqId)) return;
+      posicaoFedR++;
+      const posicao = apenasFedR ? posicaoFedR : (idx + 1);
+      const pontos = tabela[posicao] || 0;
+      if (pontos === 0) return;
       if (!resultado[eqId]) {
         resultado[eqId] = { pontos, atletaNome: item.nomeEquipe || item.atleta?.nome || "—", posicao, atletas: [{ atletaNome: item.nomeEquipe || item.atleta?.nome || "—", atletaId: eqId, posicao, pontos }] };
       }
@@ -94,8 +118,10 @@ const TeamScoringEngine = {
   // eventoAtual, inscricoes, resultados, atletas, equipes — dados do sistema
   // Retorna: { classificacao: [{ equipeId, nome, sigla, totalPontos, pontosPorProva }], totalProvasComResultado, totalProvas }
   calcularClassificacaoEquipes(eventoAtual, inscricoes, resultados, atletas, equipes, recordes, filtroSexo) {
-    const config = eventoAtual.pontuacaoEquipes;
-    if (!config || !config.ativo) return { classificacao: [], totalProvasComResultado: 0, totalProvas: 0 };
+    const _configRaw = eventoAtual.pontuacaoEquipes;
+    if (!_configRaw || !_configRaw.ativo) return { classificacao: [], totalProvasComResultado: 0, totalProvas: 0 };
+    // Injetar equipeIdsFederados do evento no config para calcularPontosProva
+    const config = { ..._configRaw, equipeIdsFederados: eventoAtual.equipeIdsFederados || [] };
 
     const eid = eventoAtual.id;
     const todasProvas = todasAsProvas();
@@ -305,13 +331,21 @@ const TeamScoringEngine = {
           // Atribuir pontos diretamente por equipeId
           const tabela = config.tabelaPontuacaoRevezamentos || {};
           const equipesSet = new Set(config.equipesParticipantes || []);
+          // Classificação apenas federados: pular equipes não-federadas no revezamento
+          const apenasFedRevez = config.classificacaoApenasFederados
+            && Array.isArray(config.equipeIdsFederados) && config.equipeIdsFederados.length > 0;
+          const fedSetRevez = apenasFedRevez ? new Set(config.equipeIdsFederados) : null;
           var provaLabel = prova.nome + " " + cat.nome + " " + (sexo === "M" ? "M" : "F");
+          let posicaoFedRevez = 0;
           classificados.forEach(function(item, idx) {
-            var posicao = idx + 1;
-            var pontos = tabela[posicao] || 0;
-            if (pontos === 0) return;
             var eqId = item.equipeId;
             if (!eqId || !equipesSet.has(eqId)) return;
+            // Pular equipes não-federadas quando flag ativo
+            if (apenasFedRevez && !fedSetRevez.has(eqId)) return;
+            posicaoFedRevez++;
+            var posicao = apenasFedRevez ? posicaoFedRevez : (idx + 1);
+            var pontos = tabela[posicao] || 0;
+            if (pontos === 0) return;
             if (equipesMap[eqId]) {
               equipesMap[eqId].totalPontos += pontos;
               equipesMap[eqId].pontosPorProva[provaLabel] = { pontos: pontos, posicao: posicao, atletas: [{ atletaNome: "Equipe", atletaId: eqId, posicao: posicao, pontos: pontos }] };

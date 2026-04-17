@@ -568,7 +568,8 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
           if (isTempo) return a.marca - b.marca;
           return b.marca - a.marca;
         });
-      const pontosBlk = TeamScoringEngine.calcularPontosProva(classificados, evento.pontuacaoEquipes, _atletas, equipes);
+      const _cfgPontImp = { ...(evento.pontuacaoEquipes || {}), equipeIdsFederados: evento.equipeIdsFederados || [] };
+      const pontosBlk = TeamScoringEngine.calcularPontosProva(classificados, _cfgPontImp, _atletas, equipes);
       Object.keys(pontosBlk).forEach(eqId => {
         const info = pontosBlk[eqId];
         (info.atletas || []).forEach(atlInfo => {

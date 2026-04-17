@@ -118,6 +118,7 @@ function TelaConfigPontuacaoEquipes() {
   const [salvo, setSalvo] = useState(false);
   const [atletasPorEquipe, setAtletasPorEquipe] = useState(config.atletasPorEquipePorProva || 1);
   const [classificacaoPorSexo, setClassificacaoPorSexo] = useState(!!config.classificacaoPorSexo);
+  const [classificacaoApenasFederados, setClassificacaoApenasFederados] = useState(!!config.classificacaoApenasFederados);
   const [bonusRecordes, setBonusRecordes] = useState(config.bonusRecordes || {});
   const [penalidades, setPenalidades] = useState(config.penalidades || []);
   const [novaPen, setNovaPen] = useState({ equipeId: "", pontos: "", motivo: "atraso", obs: "" });
@@ -205,6 +206,7 @@ function TelaConfigPontuacaoEquipes() {
       pontuacaoEquipes: {
         ativo: ativo,
         classificacaoPorSexo: classificacaoPorSexo,
+        classificacaoApenasFederados: classificacaoApenasFederados,
         equipesParticipantes: equipeSel,
         tabelaPontuacao: tabelaObj,
         tabelaPontuacaoRevezamentos: temRevezamentos ? tabelaRevezObj : {},
@@ -251,6 +253,29 @@ function TelaConfigPontuacaoEquipes() {
                   Classificação por Sexo
                 </div>
                 <div style={{ fontSize: 12, color: t.textMuted }}>Além da classificação geral, exibir classificação separada para masculino e feminino</div>
+              </div>
+            </div>
+
+            {/* Classificação apenas federados */}
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24, padding: "12px 16px", background: classificacaoApenasFederados ? `${t.accent}12` : t.bgHeaderSolid, border: `1px solid ${classificacaoApenasFederados ? t.accentBorder : t.border}`, borderRadius: 8 }}>
+              <input type="checkbox" checked={classificacaoApenasFederados} onChange={function() { setClassificacaoApenasFederados(!classificacaoApenasFederados); }}
+                style={{ width: 20, height: 20, accentColor: t.accent, cursor: "pointer" }} />
+              <div>
+                <div style={{ fontWeight: 700, color: classificacaoApenasFederados ? t.accent : t.textMuted, fontSize: 15 }}>
+                  Classificar apenas atletas federados
+                </div>
+                <div style={{ fontSize: 12, color: t.textMuted, lineHeight: 1.5 }}>
+                  Apenas atletas que atendam <strong>ambas</strong> as condições pontuam e classificam:
+                  a equipe do atleta deve estar marcada como federada <strong>e</strong> o atleta deve ter N° CBAt cadastrado.
+                  Atletas sem CBAt ou de equipes não federadas aparecem no resultado na posição obtida, mas não recebem classificação nem pontos.
+                  <br/>
+                  <span style={{ color: t.textDimmed, fontStyle: "italic" }}>
+                    Ex: se o 1° lugar não tem CBAt, o 2° lugar (com CBAt) classifica como 1° e recebe os pontos do 1° lugar.
+                  </span>
+                  {(eventoAtual.equipeIdsFederados || []).length === 0 && (
+                    <div style={{ color: t.warning, fontWeight: 600, marginTop: 4 }}>Nenhuma equipe federada configurada nesta competição. Configure no Painel do Organizador, aba Equipes.</div>
+                  )}
+                </div>
               </div>
             </div>
 

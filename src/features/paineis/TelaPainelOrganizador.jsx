@@ -157,7 +157,7 @@ function getStyles(t) {
 function TelaPainelOrganizador() {
   const { usuarioLogado } = useAuth();
   const { eventos, inscricoes, atletas, selecionarEvento, adicionarEvento, editarEvento, excluirEvento, alterarStatusEvento, equipes, atualizarAtleta, responderVinculo, resultados, sincronizarNomesEquipes, numeracaoPeito } = useEvento();
-  const { setTela, organizadores, funcionarios, solicitacoesVinculo, solicitacoesEquipe, aprovarEquipe, recusarEquipe, registrarAcao, setAtletaEditandoId, notificacoes, marcarNotifLida, solicitacoesRelatorio, resolverRelatorio, excluirRelatorio, historicoAcoes } = useApp();
+  const { setTela, organizadores, funcionarios, solicitacoesVinculo, solicitacoesEquipe, aprovarEquipe, recusarEquipe, registrarAcao, setAtletaEditandoId, notificacoes, marcarNotifLida, solicitacoesRelatorio, resolverRelatorio, excluirRelatorio, historicoAcoes, editarOrganizadorAdmin } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const tipoOrg = usuarioLogado?.tipo;
@@ -816,11 +816,18 @@ function TelaPainelOrganizador() {
           <>
             <div style={s.tableWrap}>
               <table style={s.table}>
-                <thead><tr><Th>Equipe</Th><Th>Sigla</Th><Th>Cidade</Th><Th>Atletas</Th><Th>Inscrições</Th><Th>Status</Th></tr></thead>
+                <thead><tr><Th>Equipe</Th><Th>Sigla</Th><Th>Cidade</Th><Th>Atletas</Th><Th>Inscrições</Th><Th>Federada</Th><Th>Status</Th></tr></thead>
                 <tbody>
                   {eqPag.map(eq => {
                     const nAtl = atletas.filter(a => a.equipeId === eq.id || a.clube === eq.nome).length;
                     const nInsc = (inscricoes || []).filter(i => i.equipeId === eq.id || i.equipeCadastro === eq.nome).length;
+                    const fedIds = meuOrg?.equipeIdsFederados || [];
+                    const ehFederada = fedIds.includes(eq.id);
+                    const toggleFederada = () => {
+                      if (!meuOrg || !editarOrganizadorAdmin) return;
+                      const novo = ehFederada ? fedIds.filter(id => id !== eq.id) : [...fedIds, eq.id];
+                      editarOrganizadorAdmin({ ...meuOrg, equipeIdsFederados: novo });
+                    };
                     return (
                       <tr key={eq.id} style={s.tr}>
                         <Td><strong style={{ color: t.textPrimary }}>{eq.nome}</strong></Td>
@@ -828,6 +835,10 @@ function TelaPainelOrganizador() {
                         <Td style={{ fontSize: 12 }}>{eq.cidade || "—"}{eq.estado ? `/${eq.estado}` : ""}</Td>
                         <Td style={{ textAlign: "center" }}><strong style={{ color: t.accent }}>{nAtl}</strong></Td>
                         <Td style={{ textAlign: "center" }}>{nInsc}</Td>
+                        <Td style={{ textAlign: "center" }}>
+                          <input type="checkbox" checked={ehFederada} onChange={toggleFederada}
+                            style={{ width: 18, height: 18, accentColor: t.accent, cursor: "pointer" }} />
+                        </Td>
                         <Td>
                           <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4,
                             background: eq.status === "ativa" ? `${t.success}15` : eq.status === "pendente" ? `${t.warning}15` : `${t.danger}15`,

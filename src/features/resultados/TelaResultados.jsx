@@ -491,7 +491,8 @@ function TelaResultados() {
       const classificadosComb = rows
         .filter(r => r.total > 0 && r.atleta)
         .map(r => ({ atleta: r.atleta, marca: r.total }));
-      const pontosComb = TeamScoringEngine.calcularPontosProva(classificadosComb, eventoAtual.pontuacaoEquipes, atletas, equipes);
+      const _cfgPontComb = { ...(eventoAtual.pontuacaoEquipes || {}), equipeIdsFederados: eventoAtual.equipeIdsFederados || [] };
+      const pontosComb = TeamScoringEngine.calcularPontosProva(classificadosComb, _cfgPontComb, atletas, equipes);
       Object.keys(pontosComb).forEach(eqId => {
         const info = pontosComb[eqId];
         (info.atletas || []).forEach(atlInfo => {
@@ -1445,8 +1446,9 @@ function TelaResultados() {
                 provaCompletaBlk = entradasBrutas >= inscsBlkPont.length;
               }
               const pontuacaoAtiva = eventoAtual.pontuacaoEquipes?.ativo === true && !b.prova.origemCombinada && isFaseFinal && provaCompletaBlk;
+              const _cfgPontBlk = { ...(eventoAtual.pontuacaoEquipes || {}), equipeIdsFederados: eventoAtual.equipeIdsFederados || [] };
               const pontosEquipeBlk = pontuacaoAtiva
-                ? TeamScoringEngine.calcularPontosProva(b.classificados, eventoAtual.pontuacaoEquipes, atletas, equipes)
+                ? TeamScoringEngine.calcularPontosProva(b.classificados, _cfgPontBlk, atletas, equipes)
                 : {};
               // Mapear atletaId → pontos (respeita limite de atletas por equipe)
               const ptsEqPorAtleta = {};
@@ -1589,9 +1591,10 @@ function TelaResultados() {
                           const atlNomes = item.atletasRevez ? item.atletasRevez.map(a => a.nome).join(" · ") : "";
                           // Pontuação de revezamento
                           const ptsRevez = pontuacaoAtiva ? (() => {
+                            const _cfgPontRevez = { ...(eventoAtual.pontuacaoEquipes || {}), equipeIdsFederados: eventoAtual.equipeIdsFederados || [] };
                             const ptsR = TeamScoringEngine.calcularPontosRevezamento(
                               b.classificados.filter(x => !x.isStatus),
-                              eventoAtual.pontuacaoEquipes, atletas, equipes
+                              _cfgPontRevez, atletas, equipes
                             );
                             return ptsR[item.equipeId]?.pontos || 0;
                           })() : 0;

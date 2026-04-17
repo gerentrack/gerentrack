@@ -313,7 +313,12 @@ function TelaCadastroEvento() {
     if (!("limitesProvasCat"    in base)) base.limitesProvasCat    = {};
     if (!("usarLimiteCat"       in base)) base.usarLimiteCat       = false;
     if (!("regrasPreco"         in base)) base.regrasPreco         = [];
-    if (!("equipeIdsFederados"  in base)) base.equipeIdsFederados  = [];
+    if (!("equipeIdsFederados" in base)) {
+      // Pré-preencher do organizador (config global) — apenas se campo nunca foi definido
+      const _orgId = base.organizadorId || (usuarioLogado?.tipo === "organizador" ? usuarioLogado?.id : usuarioLogado?.organizadorId);
+      const _org = _orgId ? organizadores?.find(o => o.id === _orgId) : null;
+      base.equipeIdsFederados = _org?.equipeIdsFederados || [];
+    }
     if (!("valorInscricao"      in base)) base.valorInscricao      = "";
     if (!("formaPagamento"      in base)) base.formaPagamento      = "";
     if (!("orientacaoPagamento" in base)) base.orientacaoPagamento = "";
