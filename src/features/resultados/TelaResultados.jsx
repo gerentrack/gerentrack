@@ -1452,6 +1452,25 @@ function TelaResultados() {
                 : {};
               // Mapear atletaId → pontos (respeita limite de atletas por equipe)
               const ptsEqPorAtleta = {};
+              // Quando classificacaoApenasFederados: posição vazia para não-federados
+              const _fedAtivo = _cfgPontBlk.classificacaoApenasFederados
+                && Array.isArray(_cfgPontBlk.equipeIdsFederados) && _cfgPontBlk.equipeIdsFederados.length > 0;
+              const _fedSet = _fedAtivo ? new Set(_cfgPontBlk.equipeIdsFederados) : null;
+              const _ehFederado = (atl) => {
+                if (!_fedAtivo) return true;
+                const eqId = atl?.equipeId || equipes.find(eq => eq.nome === atl?.clube)?.id;
+                return eqId && _fedSet.has(eqId) && atl?.cbat && String(atl.cbat).trim() !== "";
+              };
+              // Gerar posLabel: quando federados ativo, não-federados ficam sem posição
+              const _gerarPosLabels = (classificadosList) => {
+                if (!_fedAtivo) return classificadosList.map((item, j) => item.isStatus ? "" : `${j+1}º`);
+                let posFed = 0;
+                return classificadosList.map(item => {
+                  if (item.isStatus) return "";
+                  if (_ehFederado(item.atleta)) { posFed++; return `${posFed}º`; }
+                  return "";
+                });
+              };
               if (pontuacaoAtiva) {
                 Object.keys(pontosEquipeBlk).forEach(eqId => {
                   const info = pontosEquipeBlk[eqId];
@@ -1964,12 +1983,14 @@ function TelaResultados() {
                             </td>
                           </tr>
                         );
-                        b.classificados.forEach((item, j) => rows.push(renderRow(item, j, item.isStatus ? "" : `${j+1}º`, true)));
+                        const _posLabelsCg = _gerarPosLabels(b.classificados);
+                        b.classificados.forEach((item, j) => rows.push(renderRow(item, j, _posLabelsCg[j], true)));
                         return rows;
                       } else {
                         // Renderização unificada (série única ou legado)
+                        const _posLabels = _gerarPosLabels(b.classificados);
                         return b.classificados.map((item, j) =>
-                          renderRow(item, j, item.isStatus ? "" : `${j+1}º`, true)
+                          renderRow(item, j, _posLabels[j], true)
                         );
                       }
                     })()}
