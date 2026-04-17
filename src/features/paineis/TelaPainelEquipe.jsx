@@ -131,12 +131,14 @@ export default function TelaPainelEquipe() {
   // Eventos com inscrições da equipe
   const eventosComInsc = useMemo(() => (eventos||[]).filter(ev => minhasInscs.some(i => i.eventoId === ev.id)), [eventos, minhasInscs]);
 
-  // Eventos abertos para inscrição (apenas do meu organizador ou com participação cruzada)
+  // Eventos abertos para inscrição — padrão: visível para todas as federações
+  // Só filtra quando evento tem inscricaoRestrita = true
   const meuOrgId = equipe?.organizadorId || null;
   const eventosAbertos = useMemo(() =>
     (eventos||[]).filter(ev => {
       if (ev.inscricoesEncerradas) return false;
-      if (!meuOrgId) return true;
+      if (!ev.inscricaoRestrita) return true; // aberto para todas as federações
+      if (!meuOrgId) return false;
       if (ev.organizadorId === meuOrgId) return true;
       if ((ev.orgsAutorizadas || []).includes(meuOrgId)) return true;
       return false;

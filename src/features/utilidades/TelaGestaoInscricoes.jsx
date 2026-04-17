@@ -180,6 +180,7 @@ function TelaGestaoInscricoes() {
   const [filtroNome, setFiltroNome]   = useState("");
   const [filtroPago, setFiltroPago]   = useState("");
   const [filtroEquipe, setFiltroEquipe] = useState("");
+  const [filtroFederacao, setFiltroFederacao] = useState("");
   const [feedback, setFeedback]       = useState("");
   const [carrinho, setCarrinho]           = useState([]);
   const [confirmando, setConfirmando]     = useState(false);
@@ -318,6 +319,15 @@ function TelaGestaoInscricoes() {
     );
     inscsFiltradas = inscsFiltradas.filter(i => idsPagos.has(i.atletaId));
   }
+  if (filtroFederacao) {
+    const idsFed = new Set(
+      inscsEvt.filter(i => {
+        const atl = atletas.find(a => a.id === i.atletaId);
+        return atl?.organizadorId === filtroFederacao || i.organizadorOrigem === filtroFederacao;
+      }).map(i => i.atletaId)
+    );
+    inscsFiltradas = inscsFiltradas.filter(i => idsFed.has(i.atletaId));
+  }
   if (filtroEquipe) {
     const idsEquipe = new Set(
       inscsEvt.filter(i => {
@@ -351,6 +361,19 @@ function TelaGestaoInscricoes() {
     return { id: pid, nome: p?.nome || pid };
   });
   const catsUnicas = [...new Set(inscsEvt.map(i => i.categoriaId || i.categoria))].filter(Boolean);
+  // Federações com atletas inscritos (para filtro)
+  const federacoesUnicas = useMemo(() => {
+    const orgIds = new Set();
+    inscsEvt.forEach(i => {
+      const atl = atletas.find(a => a.id === i.atletaId);
+      const orgId = i.organizadorOrigem || atl?.organizadorId;
+      if (orgId) orgIds.add(orgId);
+    });
+    return [...orgIds].map(id => {
+      const org = (organizadores || []).find(o => o.id === id);
+      return { id, nome: org?.entidade || org?.nome || id };
+    }).sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+  }, [inscsEvt, atletas, organizadores]);
 
   // ── Ações tabela existente ───────────────────────────────────────────────
   const isFinalizado = eventoAtual?.competicaoFinalizada || eventoAtual?.competicaoEncerrada;
@@ -579,6 +602,10 @@ function TelaGestaoInscricoes() {
         const catProvaId = item.provaId.split("_")[1] || "";
         const catProva = CATEGORIAS.find(c => c.id === catProvaId) || catOficial;
         const precoInfoInsc = calcularPrecoInscricao(atl, catOficial?.id || null, eventoAtual);
+        // Marcar organizadorOrigem quando atleta é de outra federação
+        const evOrgId = eventoAtual?.organizadorId;
+        const atlOrgId = atl.organizadorId || null;
+        const ehOutraFed = atlOrgId && evOrgId && atlOrgId !== evOrgId;
         const inscBase = {
           id: genId(),
           eventoId: eid,
@@ -597,6 +624,7 @@ function TelaGestaoInscricoes() {
           equipeCadastro: atl.clube || _getClubeAtleta(atl, equipes) || "",
           equipeCadastroId: atl.equipeId || null,
           precoInfo: precoInfoInsc,
+          ...(ehOutraFed ? { organizadorOrigem: atlOrgId } : {}),
         };
         todosInscDocs.push(inscBase);
         if (prv.tipo === "combinada") {
@@ -1344,6 +1372,12 @@ function TelaGestaoInscricoes() {
               <option value="F">Fem</option>
             </select>
             <input style={{ ...s.input, maxWidth: 220 }} placeholder="Nome ou N. Peito" value={filtroNome} onChange={e => setFiltroNome(e.target.value)} />
+            {isPrivileg && federacoesUnicas.length > 1 && (
+              <select value={filtroFederacao} onChange={e => { setFiltroFederacao(e.target.value); setFiltroEquipe(""); }} style={{ ...s.input, maxWidth: 200 }}>
+                <option value="">Todas as federações</option>
+                {federacoesUnicas.map(fed => <option key={fed.id} value={fed.id}>{fed.nome}</option>)}
+              </select>
+            )}
             {isPrivileg && equipesUnicas.length > 0 && (
               <select value={filtroEquipe} onChange={e => setFiltroEquipe(e.target.value)} style={{ ...s.input, maxWidth: 200 }}>
                 <option value="">Todas as equipes</option>
@@ -1649,6 +1683,7 @@ function TelaGestaoInscricoes() {
                           ...equipes.filter(eq => {
                             const evOrg = eventoAtual?.organizadorId;
                             if (!evOrg) return true;
+                            if (!eventoAtual?.inscricaoRestrita) return true; // evento aberto: todas as equipes
                             if (eq.organizadorId === evOrg) return true;
                             return Array.isArray(eventoAtual?.orgsAutorizadas) && eventoAtual.orgsAutorizadas.includes(eq.organizadorId);
                           }).map(eq => eq.nome),

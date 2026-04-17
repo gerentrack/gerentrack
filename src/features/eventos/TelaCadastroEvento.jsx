@@ -564,46 +564,63 @@ function TelaCadastroEvento() {
             )}
           </div>
 
-          {/* ── Participação Cruzada (admin only) ── */}
-          {tipoEvt === "admin" && (organizadores || []).filter(o => o.id !== form.organizadorId && o.status === "aprovado").length > 0 && (
-            <div style={{ background: t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:10, padding:"16px 20px", marginBottom:16 }}>
-              <div style={{ color: t.accent, fontWeight:700, fontSize:14, marginBottom:8 }}>Participação Cruzada entre Organizadores</div>
-              <p style={{ color: t.textDimmed, fontSize:12, marginBottom:12, lineHeight:1.6 }}>
-                Selecione os organizadores cujos atletas poderão se inscrever nesta competição.<br/>
-                Os atletas participarão com seu perfil e vínculo de origem — nenhum novo vínculo será criado.
-              </p>
-              <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-                {(organizadores || [])
-                  .filter(o => o.id !== form.organizadorId && o.status === "aprovado")
-                  .map(o => {
-                    const sel = (form.orgsAutorizadas || []).includes(o.id);
-                    return (
-                      <button key={o.id} type="button"
-                        onClick={() => setForm(f => ({
-                          ...f,
-                          orgsAutorizadas: sel
-                            ? (f.orgsAutorizadas || []).filter(id => id !== o.id)
-                            : [...(f.orgsAutorizadas || []), o.id]
-                        }))}
-                        style={{
-                          background: sel ? t.accentBg : t.bgHeaderSolid,
-                          border: `1px solid ${sel ? t.accentBorder : t.borderInput}`,
-                          color: sel ? t.accent : t.textDimmed,
-                          borderRadius: 8, padding: "8px 14px", cursor: "pointer",
-                          fontSize: 13, fontFamily: "'Barlow', sans-serif",
-                          display: "flex", alignItems: "center", gap: 6, transition: "all 0.15s"
-                        }}>
-                        {sel ? "✓" : "—"} {o.entidade || o.nome}
-                      </button>
-                    );
-                  })}
-              </div>
-              {(form.orgsAutorizadas || []).length > 0 && (
-                <div style={{ marginTop:10, fontSize:12, color: t.accent }}>
-                  {(form.orgsAutorizadas || []).length} organizador(es) autorizado(s) para participação cruzada.
+          {/* ── Competição Interna (restringir inscrições) — apenas organizador/admin/funcionário ── */}
+          {(tipoEvt === "admin" || tipoEvt === "organizador" || tipoEvt === "funcionario") && (
+          <div style={{ background: form.inscricaoRestrita ? `${t.warning}10` : t.bgHeaderSolid, border:`1px solid ${form.inscricaoRestrita ? `${t.warning}44` : t.border}`, borderRadius:10, padding:"16px 20px", marginBottom:16 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom: form.inscricaoRestrita ? 12 : 0 }}>
+              <input type="checkbox" checked={!!form.inscricaoRestrita}
+                onChange={() => setForm(f => ({ ...f, inscricaoRestrita: !f.inscricaoRestrita }))}
+                style={{ width:18, height:18, accentColor: t.warning, cursor:"pointer" }} />
+              <div>
+                <div style={{ fontWeight:700, fontSize:14, color: form.inscricaoRestrita ? t.warning : t.textMuted }}>
+                  Competição interna
                 </div>
-              )}
+                <div style={{ fontSize:12, color: t.textDimmed }}>
+                  {form.inscricaoRestrita
+                    ? "Apenas a sua federação (e as selecionadas abaixo) poderá inscrever atletas."
+                    : "Todas as federações podem ver e inscrever atletas nesta competição."}
+                </div>
+              </div>
             </div>
+            {form.inscricaoRestrita && (organizadores || []).filter(o => o.id !== form.organizadorId && o.status === "aprovado").length > 0 && (
+              <>
+                <div style={{ fontSize:12, color: t.textDimmed, marginBottom:8 }}>
+                  Selecione as federações que também poderão participar:
+                </div>
+                <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+                  {(organizadores || [])
+                    .filter(o => o.id !== form.organizadorId && o.status === "aprovado")
+                    .map(o => {
+                      const sel = (form.orgsAutorizadas || []).includes(o.id);
+                      return (
+                        <button key={o.id} type="button"
+                          onClick={() => setForm(f => ({
+                            ...f,
+                            orgsAutorizadas: sel
+                              ? (f.orgsAutorizadas || []).filter(id => id !== o.id)
+                              : [...(f.orgsAutorizadas || []), o.id]
+                          }))}
+                          style={{
+                            background: sel ? t.accentBg : t.bgHeaderSolid,
+                            border: `1px solid ${sel ? t.accentBorder : t.borderInput}`,
+                            color: sel ? t.accent : t.textDimmed,
+                            borderRadius: 8, padding: "8px 14px", cursor: "pointer",
+                            fontSize: 13, fontFamily: "'Barlow', sans-serif",
+                            display: "flex", alignItems: "center", gap: 6, transition: "all 0.15s"
+                          }}>
+                          {sel ? "✓" : "—"} {o.entidade || o.nome}
+                        </button>
+                      );
+                    })}
+                </div>
+                {(form.orgsAutorizadas || []).length > 0 && (
+                  <div style={{ marginTop:10, fontSize:12, color: t.accent }}>
+                    {(form.orgsAutorizadas || []).length} federação(ões) autorizada(s).
+                  </div>
+                )}
+              </>
+            )}
+          </div>
           )}
 
           {/* ── Período de Inscrições ── */}

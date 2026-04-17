@@ -197,9 +197,9 @@ function TelaInscricaoAvulsa() {
 
   const eventosAbertos = (eventos || []).filter(ev => {
     if (isInscricaoEncerradaAgora(ev)) return false;
+    if (!ev.inscricaoRestrita) return true; // aberto para todas as federações
     if (!isAtleta) return true;
-    // Atleta: só vê evento do próprio org OU onde org foi autorizado
-    if (!atletaOrgId) return ev.organizadorId === null || !ev.organizadorId; // sem org: só vê eventos sem org
+    if (!atletaOrgId) return false;
     if (ev.organizadorId === atletaOrgId) return true;
     return Array.isArray(ev.orgsAutorizadas) && ev.orgsAutorizadas.includes(atletaOrgId);
   });
@@ -224,10 +224,22 @@ function TelaInscricaoAvulsa() {
   }, []);
 
   // ── useMemo: devem ficar ANTES de qualquer return condicional (regra de hooks) ──
+  const eventoAberto = eventoParaInscricao && !eventoParaInscricao.inscricaoRestrita;
   const orgsAutorizadas = eventoParaInscricao?.orgsAutorizadas || [];
-  const atletasCruzados = useMemo(() => orgsAutorizadas.length > 0
-    ? atletas.filter(a => a.organizadorId && orgsAutorizadas.includes(a.organizadorId))
-    : [], [atletas, orgsAutorizadas.join(",")]);
+  // Atletas de outras federações: quando evento aberto, todos são elegíveis;
+  // quando restrito, apenas os de orgsAutorizadas
+  const atletasCruzados = useMemo(() => {
+    if (!eventoParaInscricao) return [];
+    const evOrgId = eventoParaInscricao.organizadorId;
+    if (eventoAberto) {
+      // Evento aberto: todos os atletas de OUTRAS federações
+      return atletas.filter(a => a.organizadorId && a.organizadorId !== evOrgId);
+    }
+    // Evento restrito: apenas orgsAutorizadas
+    return orgsAutorizadas.length > 0
+      ? atletas.filter(a => a.organizadorId && orgsAutorizadas.includes(a.organizadorId))
+      : [];
+  }, [atletas, eventoParaInscricao, eventoAberto, orgsAutorizadas.join(",")]);
   const atletasCruzadosIds = new Set(atletasCruzados.map(a => a.id));
 
   const atletasFiltrados = useMemo(() => {
@@ -293,14 +305,14 @@ function TelaInscricaoAvulsa() {
             return (
               <div key={ev.id}
                 onClick={() => {
-                  const eCruzado = atletaOrgId && ev.organizadorId && ev.organizadorId !== atletaOrgId &&
-                    Array.isArray(ev.orgsAutorizadas) && ev.orgsAutorizadas.includes(atletaOrgId);
-                  if (eCruzado) {
-                    // Participação cruzada autorizada → vai direto
+                  // Evento aberto ou mesmo org → inscrição direta (sem modal de nova org)
+                  if (!ev.inscricaoRestrita || (atletaOrgId && ev.organizadorId === atletaOrgId) ||
+                      (atletaOrgId && Array.isArray(ev.orgsAutorizadas) && ev.orgsAutorizadas.includes(atletaOrgId))) {
                     setEventoSelecionadoAtleta(ev.id); setProvasSel([]);
                   } else if (isAtleta && usuarioLogado?.organizadorId && ev.organizadorId && ev.organizadorId !== usuarioLogado.organizadorId) {
+                    // Evento restrito e org não autorizada → modal de confirmação
                     const org = organizadores.find(o => o.id === ev.organizadorId);
-                    setModalNovoOrg({ eventoId: ev.id, orgId: ev.organizadorId, orgNome: org?.entidade || org?.nome || "outro organizador" });
+                    setModalNovoOrg({ eventoId: ev.id, orgId: ev.organizadorId, orgNome: org?.entidade || org?.nome || "outra federação" });
                   } else {
                     if (isAtleta && !usuarioLogado?.organizadorId && ev.organizadorId) {
                       atualizarAtletaUsuario && atualizarAtletaUsuario({ ...usuarioLogado, organizadorId: ev.organizadorId });
@@ -887,6 +899,7 @@ function TelaInscricaoAvulsa() {
                 {equipes.filter(eq => {
                   const evOrg = eventoParaInscricao?.organizadorId;
                   if (!evOrg) return true;
+                  if (!eventoParaInscricao?.inscricaoRestrita) return true; // evento aberto: todas as equipes
                   if (eq.organizadorId === evOrg) return true;
                   const cruzadas = eventoParaInscricao?.orgsAutorizadas || [];
                   return cruzadas.includes(eq.organizadorId);

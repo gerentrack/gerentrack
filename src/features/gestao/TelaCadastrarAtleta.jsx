@@ -1111,6 +1111,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
                       {equipes?.filter(eq => {
                         if (eq.status !== "ativa" && eq.status !== "aprovado") return false;
                         if (isAdmin) return true;
+                        if (eventoAtual && !eventoAtual.inscricaoRestrita) return true; // evento aberto: todas as equipes
                         const _meuOrgId = usuarioLogado?.tipo === "organizador" ? usuarioLogado.id : usuarioLogado?.organizadorId || null;
                         if (!_meuOrgId) return true;
                         if (eq.organizadorId === _meuOrgId) return true;
