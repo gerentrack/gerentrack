@@ -308,16 +308,30 @@ function BlocoDigitarCategoria({
     .filter((a, idx, arr) => arr.findIndex(x => x.id === a.id) === idx); // deduplicar por atletaId
 
   // Para revezamentos: equipes inscritas
+  // Inclui inscrições nas variantes M_/F_ de mesma prova lógica (match por nome),
+  // dedup por equipeId — casa o mesmo dedup feito nas súmulas.
   const equipesRevezNaProva = isRevezamento
-    ? inscricoes
-        .filter(i => i.tipo === "revezamento" && i.eventoId === eid && i.provaId === filtroProva &&
-          (i.categoriaId || i.categoriaOficialId) === catId && i.sexo === filtroSexo)
-        .map(i => {
+    ? (() => {
+        const inscsRelevantes = inscricoes.filter(i => {
+          if (i.tipo !== "revezamento" || i.eventoId !== eid) return false;
+          if ((i.categoriaId || i.categoriaOficialId) !== catId) return false;
+          if (i.sexo !== filtroSexo) return false;
+          if (i.provaId === filtroProva) return true;
+          const provaDaInsc = todasProvasComCombinadas.find(p => p.id === i.provaId);
+          return !!(provaDaInsc && provaSel && provaDaInsc.nome === provaSel.nome);
+        });
+        const vistosEq = new Set();
+        const lista = [];
+        for (const i of inscsRelevantes) {
+          if (vistosEq.has(i.equipeId)) continue;
+          vistosEq.add(i.equipeId);
           const eq = equipes.find(e => e.id === i.equipeId);
           const nomeEq = eq ? (eq.clube || eq.nome || "—") : (i.equipeId?.startsWith("clube_") ? i.equipeId.substring(6) : "—");
           const atlsObj = (i.atletasIds || []).map(aid => resolverAtleta(aid, atletas, eventoAtual)).filter(Boolean);
-          return { equipeId: i.equipeId, nomeEquipe: nomeEq, sigla: eq?.sigla || "", atletasIds: i.atletasIds || [], atletas: atlsObj };
-        })
+          lista.push({ equipeId: i.equipeId, nomeEquipe: nomeEq, sigla: eq?.sigla || "", atletasIds: i.atletasIds || [], atletas: atlsObj });
+        }
+        return lista;
+      })()
     : [];
 
   // Detectar fases da prova selecionada

@@ -1013,10 +1013,16 @@ function TelaResultados() {
           </div>
           )}
 
-          {_classifAtiva.totalProvasComResultado < _classifAtiva.totalProvas && (
-            <div style={{ padding: "10px 16px", fontSize: 11, color: t.textMuted, borderTop: `1px solid ${t.border}` }}>
-              Classificação parcial — faltam resultados em {_classifAtiva.totalProvas - _classifAtiva.totalProvasComResultado} prova(s)
-            </div>
+          {_classifAtiva.provasPendentes && _classifAtiva.provasPendentes.length > 0 && (
+            <details style={{ padding: "10px 16px", borderTop: `1px solid ${t.border}` }}>
+              <summary style={{ fontSize: 11, color: t.textMuted, cursor: "pointer", listStyle: "none", display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ fontSize: 9 }}>▸</span>
+                <span>Classificação parcial — faltam resultados em {_classifAtiva.provasPendentes.length} prova(s) · clique para ver</span>
+              </summary>
+              <ul style={{ margin: "8px 0 0 18px", padding: 0, fontSize: 11, color: t.textMuted, lineHeight: 1.6 }}>
+                {_classifAtiva.provasPendentes.map(function(p, i) { return <li key={i}>{p.label}</li>; })}
+              </ul>
+            </details>
           )}
         </div>
         );
