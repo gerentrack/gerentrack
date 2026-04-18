@@ -333,14 +333,10 @@ function TelaInscricaoRevezamento() {
       return atletas.find(a => a.id === aid) ? aid : "";
     });
     const nInvalidos = (insc.atletasIds || []).filter(aid => aid && !atletas.find(a => a.id === aid)).length;
-    // Normalizar sexo em provas não-mistas: o prefixo do provaId é canônico
-    const provaDaInsc = todasAsProvas().find(p => p.id === insc.provaId);
-    const ehMistoInsc = provaDaInsc ? isRevezamentoMisto(provaDaInsc) : false;
-    const sexoNorm = ehMistoInsc ? insc.sexo : (insc.provaId?.startsWith("F_") ? "F" : "M");
     setRevezForm({
       editId: insc.id, provaId: insc.provaId,
       catId: insc.categoriaId || insc.categoriaOficialId,
-      sexo: sexoNorm, equipeId: insc.equipeId,
+      sexo: insc.sexo, equipeId: insc.equipeId,
       atletasIds: idsLimpos,
     });
     setRevezBusca(idsLimpos.map(() => ""));
@@ -462,10 +458,7 @@ function TelaInscricaoRevezamento() {
               <select style={{ ...s.input, minWidth: 200 }} value={revezForm.provaId}
                 onChange={e => {
                   const newId = e.target.value;
-                  const novaProva = todasAsProvas().find(p => p.id === newId);
-                  const ehMistoNova = novaProva ? isRevezamentoMisto(novaProva) : false;
-                  // Prova não-mista: sexo derivado do prefixo do ID (evita inscrição com sexo ≠ prefixo)
-                  const sexo = ehMistoNova ? (revezForm.sexo || "M") : (newId.startsWith("F_") ? "F" : "M");
+                  const sexo = newId.startsWith("F_") ? "F" : "M";
                   setRevezForm(f => ({ ...f, provaId: newId, sexo, atletasIds: [] }));
                 }}>
                 <option value="">Selecione a prova...</option>
@@ -478,9 +471,7 @@ function TelaInscricaoRevezamento() {
             </div>
             <div>
               <div style={{ fontSize: 11, color: t.textMuted, marginBottom: 4 }}>Sexo</div>
-              <select style={{ ...s.input, minWidth: 120, opacity: !isMisto && revezForm.provaId ? 0.6 : 1, cursor: !isMisto && revezForm.provaId ? "not-allowed" : "pointer" }}
-                value={revezForm.sexo}
-                disabled={!isMisto && !!revezForm.provaId}
+              <select style={{ ...s.input, minWidth: 120 }} value={revezForm.sexo}
                 onChange={e => setRevezForm(f => ({ ...f, sexo: e.target.value, atletasIds: [] }))}>
                 <option value="M">Masculino</option>
                 <option value="F">Feminino</option>
