@@ -286,24 +286,52 @@ const TeamScoringEngine = {
       });
     });
 
+    // ── Revezamento: agrupa variantes M_/F_ do mesmo nome para evitar duplicação ──
+    // Helpers que mesclam resultados e inscrições de todas as variantes.
+    var mergeResRevez = function(provaRef, catId, sexo, faseSufixo) {
+      var vars = provasRevezamentos.filter(function(p) { return p.nome === provaRef.nome; });
+      var merged = {};
+      vars.forEach(function(v) {
+        var k = faseSufixo
+          ? eid + "_" + v.id + "_" + catId + "_" + sexo + "__" + faseSufixo
+          : eid + "_" + v.id + "_" + catId + "_" + sexo;
+        var r = resultados[k];
+        if (r) Object.keys(r).forEach(function(eqId) { if (!(eqId in merged)) merged[eqId] = r[eqId]; });
+      });
+      return merged;
+    };
+    var mergeInscsRevez = function(provaRef, catId, sexo) {
+      var varIds = provasRevezamentos.filter(function(p) { return p.nome === provaRef.nome; }).map(function(p) { return p.id; });
+      var vistosEq = new Set();
+      return inscDoEvento.filter(function(i) {
+        if (i.tipo !== "revezamento") return false;
+        if (varIds.indexOf(i.provaId) < 0) return false;
+        if ((i.categoriaId || i.categoriaOficialId) !== catId) return false;
+        if (i.sexo !== sexo) return false;
+        if (vistosEq.has(i.equipeId)) return false;
+        vistosEq.add(i.equipeId);
+        return true;
+      });
+    };
+    // Dedup provas revezamento por nome: se programa tem M_ e F_, iteramos 1 vez.
+    var provasRevezUnicas = [];
+    var _nomesRevezVistos = new Set();
+    provasRevezamentos.forEach(function(p) {
+      if (_nomesRevezVistos.has(p.nome)) return;
+      _nomesRevezVistos.add(p.nome);
+      provasRevezUnicas.push(p);
+    });
+
     // Calcular pontos de revezamentos (tabela diferenciada)
-    provasRevezamentos.forEach(function(prova) {
+    provasRevezUnicas.forEach(function(prova) {
       totalProvas++;
 
       _sexos.forEach(sexo => {
         CATEGORIAS.forEach(cat => {
-          // Buscar resultado: priorizar FIN de multi-fase, depois chave base (só se sem fases)
+          // Buscar resultado mesclado entre todas as variantes com mesmo nome
           const fasesConfR = getFasesModo(prova.id, configSeriacaoEvt);
-          let res = null;
-          if (fasesConfR.length > 1) {
-            if (fasesConfR.includes("FIN")) {
-              const keyFin = eid + "_" + prova.id + "_" + cat.id + "_" + sexo + "__FIN";
-              res = resultados[keyFin];
-            }
-          } else {
-            const keyBase = eid + "_" + prova.id + "_" + cat.id + "_" + sexo;
-            res = resultados[keyBase];
-          }
+          const _faseSufRLookup = fasesConfR.length > 1 ? (fasesConfR.indexOf("FIN") >= 0 ? "FIN" : "") : "";
+          let res = mergeResRevez(prova, cat.id, sexo, _faseSufRLookup);
           if (!res || Object.keys(res).length === 0) return;
 
           // Só pontua quando todos os inscritos nesse revezamento/cat/sexo têm resultado
@@ -311,11 +339,7 @@ const TeamScoringEngine = {
           const _serPontR = _faseSufR ? buscarSeriacao(eventoAtual.seriacao, prova.id, cat.id, sexo, _faseSufR) : null;
           var inscsRevezEng = (_serPontR?.series && _serPontR.series.length > 0)
             ? _serPontR.series.flatMap(ser => ser.atletas.map(a => ({ atletaId: a.id || a.atletaId })))
-            : inscDoEvento.filter(function(i) {
-                return i.tipo === "revezamento" && i.provaId === prova.id &&
-                  (i.categoriaId || i.categoriaOficialId) === cat.id &&
-                  i.sexo === sexo;
-              });
+            : mergeInscsRevez(prova, cat.id, sexo);
           var revezCompleto = inscsRevezEng.length === 0 || Object.keys(res).length >= inscsRevezEng.length;
 
           // Revezamento: chaves são equipeId (não atletaId)
@@ -352,7 +376,9 @@ const TeamScoringEngine = {
             // Revezamento: equipe federada + TODOS os atletas com CBAt
             if (apenasFedRevez) {
               if (!fedSetRevez.has(eqId)) return;
-              var inscRevez = inscDoEvento.find(function(i) { return i.tipo === "revezamento" && i.equipeId === eqId && i.provaId === prova.id && (i.categoriaId || i.categoriaOficialId) === cat.id && i.sexo === sexo; });
+              // Busca em qualquer variante M_/F_ com mesmo nome da prova
+              var _varIdsRev = provasRevezamentos.filter(function(pr) { return pr.nome === prova.nome; }).map(function(pr) { return pr.id; });
+              var inscRevez = inscDoEvento.find(function(i) { return i.tipo === "revezamento" && i.equipeId === eqId && _varIdsRev.indexOf(i.provaId) >= 0 && (i.categoriaId || i.categoriaOficialId) === cat.id && i.sexo === sexo; });
               var atletasRevezIds = inscRevez?.atletasIds || [];
               var todosComCbat = atletasRevezIds.length > 0 && atletasRevezIds.every(function(aId) { var a = atletas.find(function(aa) { return aa.id === aId; }); return a && a.cbat && String(a.cbat).trim() !== ""; });
               if (!todosComCbat) return;
@@ -563,24 +589,25 @@ const TeamScoringEngine = {
       var fasesPend = getFasesModo(provaId, configSeriacaoEvt);
       _sexos.forEach(function(sexo) {
         CATEGORIAS.forEach(function(cat) {
-          var inscsNessa = inscDoEvento.filter(function(i) {
-            if (prova.tipo === "revezamento") {
-              if (i.tipo !== "revezamento") return false;
-            } else {
-              if (i.tipo === "revezamento") return false;
-            }
-            return i.provaId === prova.id
-              && (i.categoriaId || i.categoriaOficialId) === cat.id
-              && i.sexo === sexo;
-          });
-          if (inscsNessa.length === 0) return;
-          var resPend = null;
-          if (fasesPend.length > 1) {
-            if (fasesPend.indexOf("FIN") >= 0) {
-              resPend = resultados[eid + "_" + prova.id + "_" + cat.id + "_" + sexo + "__FIN"];
-            }
+          var inscsNessa, resPend;
+          if (prova.tipo === "revezamento") {
+            // Revezamento: busca em qualquer variante M_/F_ de mesmo nome
+            inscsNessa = mergeInscsRevez(prova, cat.id, sexo);
+            if (inscsNessa.length === 0) return;
+            resPend = mergeResRevez(prova, cat.id, sexo, fasesPend.length > 1 && fasesPend.indexOf("FIN") >= 0 ? "FIN" : "");
           } else {
-            resPend = resultados[eid + "_" + prova.id + "_" + cat.id + "_" + sexo];
+            inscsNessa = inscDoEvento.filter(function(i) {
+              if (i.tipo === "revezamento") return false;
+              return i.provaId === prova.id
+                && (i.categoriaId || i.categoriaOficialId) === cat.id
+                && i.sexo === sexo;
+            });
+            if (inscsNessa.length === 0) return;
+            if (fasesPend.length > 1) {
+              resPend = fasesPend.indexOf("FIN") >= 0 ? resultados[eid + "_" + prova.id + "_" + cat.id + "_" + sexo + "__FIN"] : null;
+            } else {
+              resPend = resultados[eid + "_" + prova.id + "_" + cat.id + "_" + sexo];
+            }
           }
           if (!resPend || Object.keys(resPend).length === 0) {
             pushPendente({
