@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { CATEGORIAS, getCategoria } from "../../shared/constants/categorias";
-import { resKey, getFasesModo, FASE_ORDEM } from "../../shared/constants/fases";
+import { resKey, getFasesModo } from "../../shared/constants/fases";
 import { abreviarProva, formatarPeito } from "../../shared/formatters/utils";
 import { useMedalhasChamada } from "../../hooks/useMedalhasChamada";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
@@ -214,36 +214,32 @@ function TelaSecretaria() {
     , [provasComAtletas]);
 
   // ── Calcular classificação por prova para medalhas ────────────────────────
+  // Medalhas são definidas SEMPRE pela fase final. Se a prova tem múltiplas fases
+  // (semifinal+final), só considera FIN — nunca cai de volta para SEM/ELI.
   const getClassificados = (prova, cat, sexo) => {
-    // Busca a fase final (FIN) ou fase única
     const fases = getFasesModo(prova.id, eventoAtual?.configSeriacao || {});
-    const fasesOrdenadas = fases.length > 1
-      ? [...fases].sort((a, b) => (FASE_ORDEM[b] || 0) - (FASE_ORDEM[a] || 0))
-      : [null];
+    const fase = fases.length > 1 ? "FIN" : null;
 
-    for (const fase of fasesOrdenadas) {
-      const key = resKey(eid, prova.id, cat.id, sexo, fase);
-      const res = resultados?.[key];
-      if (!res || Object.keys(res).length === 0) continue;
+    const key = resKey(eid, prova.id, cat.id, sexo, fase);
+    const res = resultados?.[key];
+    if (!res || Object.keys(res).length === 0) return [];
 
-      const isMenor = prova.unidade === "s";
-      const items = Object.entries(res)
-        .map(([aId, raw]) => {
-          const marca = typeof raw === "object" ? raw.marca : raw;
-          const status = typeof raw === "object" ? (raw.status || "") : "";
-          return { aId, marca, status };
-        })
-        .filter(({ marca, status }) => marca != null && !STATUS_DNS.includes(String(marca).toUpperCase()) && !STATUS_DNS.includes(status));
+    const isMenor = prova.unidade === "s";
+    const items = Object.entries(res)
+      .map(([aId, raw]) => {
+        const marca = typeof raw === "object" ? raw.marca : raw;
+        const status = typeof raw === "object" ? (raw.status || "") : "";
+        return { aId, marca, status };
+      })
+      .filter(({ marca, status }) => marca != null && !STATUS_DNS.includes(String(marca).toUpperCase()) && !STATUS_DNS.includes(status));
 
-      items.sort((a, b) => {
-        const va = parseFloat(String(a.marca).replace(",", "."));
-        const vb = parseFloat(String(b.marca).replace(",", "."));
-        return isMenor ? va - vb : vb - va;
-      });
+    items.sort((a, b) => {
+      const va = parseFloat(String(a.marca).replace(",", "."));
+      const vb = parseFloat(String(b.marca).replace(",", "."));
+      return isMenor ? va - vb : vb - va;
+    });
 
-      return items;
-    }
-    return [];
+    return items;
   };
 
   const getTipoMedalha = (posicao) => {
