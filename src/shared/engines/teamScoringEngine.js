@@ -575,14 +575,22 @@ const TeamScoringEngine = {
       });
     });
 
-    // ── Provas pendentes: combinações prova×categoria×sexo que TÊM inscrições mas NÃO têm resultado ──
-    // Usada para o organizador saber exatamente o que ainda precisa digitar.
-    // Deduplica por nome+cat+sexo (provas com variantes M_/F_ de mesmo nome viram 1 entrada).
-    var provasPendentesMap = new Map();
-    var pushPendente = function(item) {
-      var key = item.provaNome + "_" + item.categoriaId + "_" + item.sexo;
-      if (!provasPendentesMap.has(key)) provasPendentesMap.set(key, item);
+    // ── Provas pendentes + recontagem consistente de totais ──
+    // Source-of-truth único: combinações (nome+categoria+sexo) com inscrições.
+    // Total = nº de combinações; Completas = combinações com pelo menos 1 resultado.
+    // Dedup por nome cobre variantes M_/F_ da mesma prova lógica.
+    var combinacoesMap = new Map(); // key → { completa: bool, pendente: {..} | null }
+    var registrarCombo = function(nome, catId, sexo, completa, itemPendente) {
+      var key = nome + "_" + catId + "_" + sexo;
+      var prev = combinacoesMap.get(key);
+      if (!prev) {
+        combinacoesMap.set(key, { completa: !!completa, pendente: completa ? null : itemPendente });
+      } else if (!prev.completa && completa) {
+        // Achou resultado em alguma variante — promove para completa
+        combinacoesMap.set(key, { completa: true, pendente: null });
+      }
     };
+
     provasPrograma.forEach(function(provaId) {
       var prova = todasProvas.find(function(p) { return p.id === provaId; });
       if (!prova || prova.tipo === "combinada") return;
@@ -591,7 +599,6 @@ const TeamScoringEngine = {
         CATEGORIAS.forEach(function(cat) {
           var inscsNessa, resPend;
           if (prova.tipo === "revezamento") {
-            // Revezamento: busca em qualquer variante M_/F_ de mesmo nome
             inscsNessa = mergeInscsRevez(prova, cat.id, sexo);
             if (inscsNessa.length === 0) return;
             resPend = mergeResRevez(prova, cat.id, sexo, fasesPend.length > 1 && fasesPend.indexOf("FIN") >= 0 ? "FIN" : "");
@@ -609,20 +616,20 @@ const TeamScoringEngine = {
               resPend = resultados[eid + "_" + prova.id + "_" + cat.id + "_" + sexo];
             }
           }
-          if (!resPend || Object.keys(resPend).length === 0) {
-            pushPendente({
-              provaId: prova.id,
-              provaNome: prova.nome,
-              categoriaId: cat.id,
-              categoriaNome: cat.nome,
-              sexo: sexo,
-              label: prova.nome + " — " + cat.nome + " (" + (sexo === "M" ? "Masc" : "Fem") + ")",
-            });
-          }
+          var completa = !!(resPend && Object.keys(resPend).length > 0);
+          var item = completa ? null : {
+            provaId: prova.id,
+            provaNome: prova.nome,
+            categoriaId: cat.id,
+            categoriaNome: cat.nome,
+            sexo: sexo,
+            label: prova.nome + " — " + cat.nome + " (" + (sexo === "M" ? "Masc" : "Fem") + ")",
+          };
+          registrarCombo(prova.nome, cat.id, sexo, completa, item);
         });
       });
     });
-    // Combinadas: adicionar se faltam provas componentes (tenta múltiplos catIds — legados usam "COMB")
+    // Combinadas: 1 combinação por prova×cat (sexo derivado do ID)
     provasCombinadas.forEach(function(prova) {
       var sexoProva = prova.id.startsWith("F_") ? "F" : "M";
       if (filtroSexo && sexoProva !== filtroSexo) return;
@@ -633,7 +640,6 @@ const TeamScoringEngine = {
         return (i.combinadaId === prova.id || i.provaId === prova.id);
       });
       if (inscsDaComb.length === 0) return;
-      // Coleta catIds usadas nas inscrições (legados usam "COMB" em vez de "sub14")
       var catIdsInscs = [];
       inscsDaComb.forEach(function(i) {
         var c = i.categoriaId || i.categoriaOficialId;
@@ -642,25 +648,32 @@ const TeamScoringEngine = {
       var catIdsTentar = [catIdC].concat(catIdsInscs.filter(function(c) { return c !== catIdC; }));
       var compsC = CombinedEventEngine.gerarProvasComponentes(prova.id, eid);
       var faltam = compsC.filter(function(pc) {
-        // Prova componente está "OK" se QUALQUER catId candidato tem resultado
         return !catIdsTentar.some(function(cid) {
           var rk = eid + "_" + pc.id + "_" + cid + "_" + sexoProva;
           return resultados[rk] && Object.keys(resultados[rk]).length > 0;
         });
       });
-      if (faltam.length > 0) {
-        pushPendente({
-          provaId: prova.id,
-          provaNome: prova.nome,
-          categoriaId: catIdC,
-          categoriaNome: catC.nome,
-          sexo: sexoProva,
-          label: prova.nome + " — " + catC.nome + " (" + (sexoProva === "M" ? "Masc" : "Fem") + ") — "
-            + faltam.length + " prova(s) componente(s) pendente(s)",
-        });
-      }
+      var completa = faltam.length === 0;
+      var item = completa ? null : {
+        provaId: prova.id,
+        provaNome: prova.nome,
+        categoriaId: catIdC,
+        categoriaNome: catC.nome,
+        sexo: sexoProva,
+        label: prova.nome + " — " + catC.nome + " (" + (sexoProva === "M" ? "Masc" : "Fem") + ") — "
+          + faltam.length + " prova(s) componente(s) pendente(s)",
+      };
+      registrarCombo(prova.nome, catIdC, sexoProva, completa, item);
     });
-    var provasPendentes = Array.from(provasPendentesMap.values());
+    var provasPendentes = [];
+    var combsCompletasCount = 0;
+    combinacoesMap.forEach(function(v) {
+      if (v.completa) combsCompletasCount++;
+      else if (v.pendente) provasPendentes.push(v.pendente);
+    });
+    // Sobrescreve contadores para alinhar com provasPendentes
+    totalProvas = combinacoesMap.size;
+    totalProvasComResultado = combsCompletasCount;
 
     // Gerar classificação ordenada
     var classificacao = Object.values(equipesMap).sort(function(a, b) { return b.totalPontos - a.totalPontos; });
