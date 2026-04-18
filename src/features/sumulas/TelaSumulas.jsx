@@ -796,7 +796,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                             value={cfgP.nRaias || 8}
                             onChange={(e) => salvarConfigProva(provas[0].id, "nRaias", parseInt(e.target.value))}
                           >
-                            {[4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n}</option>)}
+                            {[3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n}</option>)}
                           </select>
                         )}
                       </div>
