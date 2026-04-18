@@ -246,6 +246,29 @@ function TelaSumulas({ chamada, getPresencaProva }) {
     }).flat();
   }).flat().filter(Boolean);
 
+  // Deduplicar súmulas de revezamento com mesmo nome+categoria+sexo.
+  // Necessário porque inscrições podem estar espalhadas em provaIds diferentes
+  // (ex: equipe fem em M_sub14_5x60m e outra em F_sub14_5x60m — mesma prova lógica).
+  // Mantém a primeira prova encontrada como canônica (para preservar lookups de
+  // seriação/programaHorario/configSeriacao), apenas mescla equipes e inscrições.
+  (() => {
+    const mapa = new Map();
+    for (let i = 0; i < sumulas.length; i++) {
+      const s = sumulas[i];
+      if (!s.isRevezamento) continue;
+      const key = `${s.prova.nome}_${s.categoria.id}_${s.sexo}`;
+      if (mapa.has(key)) {
+        const canon = mapa.get(key);
+        canon.equipesRevez = [...canon.equipesRevez, ...s.equipesRevez];
+        canon.inscs = [...canon.inscs, ...s.inscs];
+        sumulas.splice(i, 1);
+        i--;
+      } else {
+        mapa.set(key, s);
+      }
+    }
+  })();
+
   const provasDoPrograma = todasProvas.filter((p) =>
     (eventoAtual.provasPrograma || []).includes(p.id)
   );
