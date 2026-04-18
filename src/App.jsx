@@ -1761,9 +1761,21 @@ function App() {
     const configSeriacaoEvt = eventoAtual.configSeriacao || {};
     let novasSer = null;
 
-    (eventoAtual.provasPrograma || []).forEach(provaId => {
-      const p = todasP.find(pp => pp.id === provaId);
-      if (!p || p.unidade !== "s" || p.tipo === "combinada" || p.tipo === "revezamento") return;
+    // Expande provasPrograma incluindo sub-provas de pista de combinadas
+    const provasParaAutoGen = [];
+    (eventoAtual.provasPrograma || []).forEach(pid => {
+      const pp = todasP.find(x => x.id === pid);
+      if (!pp) return;
+      if (pp.tipo === "combinada") {
+        const comps = CombinedEventEngine.gerarProvasComponentes(pid, eventoAtual.id);
+        comps.forEach(c => { if (c.unidade === "s") provasParaAutoGen.push({ provaId: c.id, p: c }); });
+      } else {
+        provasParaAutoGen.push({ provaId: pid, p: pp });
+      }
+    });
+
+    provasParaAutoGen.forEach(({ provaId, p }) => {
+      if (!p || p.unidade !== "s" || p.tipo === "revezamento") return;
 
       const fasesConf = getFasesModo(provaId, configSeriacaoEvt);
       if (fasesConf.length <= 1) return;
@@ -1827,6 +1839,15 @@ function App() {
               const a = atletas.find(aa => aa.id === c.atletaId);
               return a ? { ...a, atletaId: a.id, marcaRef: c.marcaRef, origemClassif: c.origemClassif, ranking: c.ranking } : null;
             }).filter(Boolean);
+
+            // Se a próxima fase já é auto-gerada com os MESMOS classificados, preservar raias
+            // (evita re-sortear toda vez que resultados mudam — bug "alternando seriação da final")
+            if (serProxima?.series && serProxima.autoGerada) {
+              const idsAtuais = new Set(serProxima.series.flatMap(s => s.atletas.map(a => a.id || a.atletaId)));
+              const idsNovos = new Set(atletasClassif.map(a => a.id));
+              const mesmoConjunto = idsAtuais.size === idsNovos.size && [...idsNovos].every(id => idsAtuais.has(id));
+              if (mesmoConjunto) return;
+            }
 
             // Gerar seriação com regra RT 20.4.x adequada
             const result = SeriacaoEngine.seriarProva(atletasClassif, p, {

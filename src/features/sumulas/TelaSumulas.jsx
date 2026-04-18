@@ -401,6 +401,25 @@ function TelaSumulas({ chamada, getPresencaProva }) {
 
         const _metrosFromId = (id) => { const m = id.match(/[_x]?(\d+)m/); return m ? parseInt(m[1]) : 0; };
 
+        // Expande provasPrograma incluindo sub-provas de pista das combinadas.
+        // Componentes virtuais não vivem em todasP — carregam o próprio prova def junto.
+        const provasProgramaExpandidas = (() => {
+          const out = [];
+          (eventoAtual.provasPrograma || []).forEach(provaId => {
+            const p = todasP.find(pp => pp.id === provaId);
+            if (!p) return;
+            if (p.tipo === "combinada") {
+              const componentes = CombinedEventEngine.gerarProvasComponentes(provaId, eid);
+              componentes.forEach(comp => {
+                if (comp.unidade === "s") out.push({ provaId: comp.id, prova: comp, isCombinadaComp: true });
+              });
+            } else {
+              out.push({ provaId, prova: p, isCombinadaComp: false });
+            }
+          });
+          return out;
+        })();
+
         // Helper para extrair config por prova (suporta formato antigo string e novo objeto)
         // Retrocompat: "final_tempo" → "final", "semifinal_final" → "semi_final"
         const normalizarModo = (m) => {
@@ -431,8 +450,13 @@ function TelaSumulas({ chamada, getPresencaProva }) {
           if (isFinalizado) return;
           const cfgAtual = { ...configSeriacao };
           const base = todasP.find(p => p.id === provaId);
-          const mesmoNome = todasP.filter(p => p.nome === base?.nome && (eventoAtual.provasPrograma || []).includes(p.id));
-          mesmoNome.forEach(p => {
+          // Componentes de combinada são virtuais (não estão em todasP) → salvar direto pelo id
+          // Propagação restrita ao mesmo sexo (M e F têm configurações independentes)
+          const sxBase = base?.id?.[0];
+          const alvos = base
+            ? todasP.filter(p => p.nome === base.nome && p.id?.[0] === sxBase && (eventoAtual.provasPrograma || []).includes(p.id))
+            : [{ id: provaId }];
+          alvos.forEach(p => {
             const prev = cfgAtual[p.id];
             const prevObj = (!prev) ? {} : (typeof prev === "string") ? { modo: prev } : { ...prev };
             cfgAtual[p.id] = { ...prevObj, [campo]: valor };
@@ -447,9 +471,8 @@ function TelaSumulas({ chamada, getPresencaProva }) {
           "eli_semi_final": ["ELI", "SEM", "FIN"],
         };
         const provasPista = [];
-        (eventoAtual.provasPrograma || []).forEach(provaId => {
-          const p = todasP.find(pp => pp.id === provaId);
-          if (!p || p.unidade !== "s" || p.tipo === "combinada" || p.tipo === "revezamento") return;
+        provasProgramaExpandidas.forEach(({ provaId, prova: p, isCombinadaComp }) => {
+          if (!p || p.unidade !== "s" || p.tipo === "revezamento") return;
           const metros = _metrosFromId(provaId);
           if (metros === 0) return;
           const cfgP = getConfigProva(provaId);
@@ -460,7 +483,8 @@ function TelaSumulas({ chamada, getPresencaProva }) {
           CATEGORIAS.forEach(cat => {
             ["M","F"].forEach(sexo => {
               const inscs = inscDoEvento.filter(i =>
-                i.provaId === provaId && (i.categoriaId || i.categoriaOficialId) === cat.id && i.sexo === sexo && !i.origemCombinada
+                i.provaId === provaId && (i.categoriaId || i.categoriaOficialId) === cat.id && i.sexo === sexo &&
+                (isCombinadaComp ? !!i.origemCombinada : !i.origemCombinada)
               );
               if (inscs.length <= 0) return;
 
@@ -734,21 +758,28 @@ function TelaSumulas({ chamada, getPresencaProva }) {
         const itemAtivo = provasPista.find(pp => pp.chave === seriacaoChaveAtiva);
         const itemAtivoRevez = provasRevezPista.find(pp => pp.chave === `${seriacaoProvaId}_${seriacaoCat}_${seriacaoSexo}`);
 
-        // Agrupar provas por nome para config (inclui revezamentos)
+        // Sexo da prova: regular usa prefixo do id; componente de combinada usa o id da combinada pai
+        const _getSexoProva = (p) => p?.origemCombinada ? (p.combinadaId?.[0] || "?") : (p?.id?.[0] || "?");
+
+        // Agrupar provas por nome+sexo para config (inclui revezamentos) — M e F são linhas distintas
         const nomesConfig = {};
-        (eventoAtual.provasPrograma || []).forEach(provaId => {
-          const p = todasP.find(pp => pp.id === provaId);
-          if (!p || p.unidade !== "s" || p.tipo === "combinada") return;
+        provasProgramaExpandidas.forEach(({ provaId, prova: p }) => {
+          if (!p || p.unidade !== "s") return;
+          const sx = _getSexoProva(p);
           if (p.tipo === "revezamento") {
             // Revezamentos: config simplificada (só raias)
-            if (!nomesConfig[p.nome]) nomesConfig[p.nome] = { provas: [], metros: _metrosFromId(provaId), isLonga: false, isRevez: true };
-            nomesConfig[p.nome].provas.push(p);
+            const key = `${p.nome} · ${sx}`;
+            if (!nomesConfig[key]) nomesConfig[key] = { provas: [], metros: _metrosFromId(provaId), isLonga: false, isRevez: true, sexo: sx, displayNome: p.nome };
+            nomesConfig[key].provas.push(p);
             return;
           }
           const m = _metrosFromId(provaId);
           if (m === 0) return;
-          if (!nomesConfig[p.nome]) nomesConfig[p.nome] = { provas: [], metros: m, isLonga: m > 800 };
-          nomesConfig[p.nome].provas.push(p);
+          // Componentes de combinada agrupam separadamente (ex: "100m Rasos · Decatlo")
+          const baseLabel = p.origemCombinada ? `${p.nome} · ${p.nomeCombinada}` : p.nome;
+          const groupKey = `${baseLabel} · ${sx}`;
+          if (!nomesConfig[groupKey]) nomesConfig[groupKey] = { provas: [], metros: m, isLonga: m > 800, isCombinadaComp: !!p.origemCombinada, sexo: sx, displayNome: baseLabel };
+          nomesConfig[groupKey].provas.push(p);
         });
 
         return (
@@ -775,11 +806,15 @@ function TelaSumulas({ chamada, getPresencaProva }) {
               <div style={{ color: t.textTertiary, fontWeight:700, fontSize:12, marginBottom:8 }}>Configuração por Prova</div>
               <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
                 {Object.keys(nomesConfig).map(nome => {
-                  const { provas, metros: mt, isLonga } = nomesConfig[nome];
+                  const { provas, metros: mt, isLonga, sexo: sxRow, displayNome } = nomesConfig[nome];
                   const cfgP = getConfigProva(provas[0].id);
+                  const sxCor = sxRow === "M" ? "#1a6ef5" : sxRow === "F" ? "#e54f9b" : t.textMuted;
                   return (
                     <div key={nome} style={{ display:"flex", alignItems:"center", gap:10, padding:"6px 10px", background:t.bgHeaderSolid, borderRadius:6, border:`1px solid ${t.border}`, flexWrap:"wrap" }}>
-                      <span style={{ color: t.textPrimary, fontWeight:600, fontSize:12, minWidth:130 }}>{nome}</span>
+                      <span style={{ color: t.textPrimary, fontWeight:600, fontSize:12, minWidth:130 }}>{displayNome || nome}</span>
+                      <span style={{ fontSize:10, fontWeight:700, padding:"2px 6px", borderRadius:4, background:`${sxCor}22`, color: sxCor, border:`1px solid ${sxCor}44` }}>
+                        {sxRow === "M" ? "M" : sxRow === "F" ? "F" : "?"}
+                      </span>
                       <span style={{ fontSize:9, color: t.textDimmed, minWidth:40 }}>{mt}m</span>
                       <div style={{ display:"flex", alignItems:"center", gap:4 }}>
                         <span style={{ color: t.textMuted, fontSize:10 }}>{isLonga ? "Atl/série:" : "Raias:"}</span>
@@ -842,8 +877,11 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                               // Salvar tudo numa única operação
                               const cfgAtual = { ...configSeriacao };
                               const base = todasP.find(pv => pv.id === provas[0].id);
-                              const mesmoNome = todasP.filter(pv => pv.nome === base?.nome && (eventoAtual.provasPrograma || []).includes(pv.id));
-                              mesmoNome.forEach(pv => {
+                              const sxBase = base?.id?.[0];
+                              const alvos = base
+                                ? todasP.filter(pv => pv.nome === base.nome && pv.id?.[0] === sxBase && (eventoAtual.provasPrograma || []).includes(pv.id))
+                                : [{ id: provas[0].id }];
+                              alvos.forEach(pv => {
                                 const prev = cfgAtual[pv.id];
                                 const prevObj = (!prev) ? {} : (typeof prev === "string") ? { modo: prev } : { ...prev };
                                 cfgAtual[pv.id] = { ...prevObj, ...updates };
@@ -871,8 +909,11 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                           // Salvar P e T numa única operação para evitar race condition
                           const cfgAtual = { ...configSeriacao };
                           const base = todasP.find(pv => pv.id === provas[0].id);
-                          const mesmoNome = todasP.filter(pv => pv.nome === base?.nome && (eventoAtual.provasPrograma || []).includes(pv.id));
-                          mesmoNome.forEach(pv => {
+                          const sxBase = base?.id?.[0];
+                          const alvos = base
+                            ? todasP.filter(pv => pv.nome === base.nome && pv.id?.[0] === sxBase && (eventoAtual.provasPrograma || []).includes(pv.id))
+                            : [{ id: provas[0].id }];
+                          alvos.forEach(pv => {
                             const prev = cfgAtual[pv.id];
                             const prevObj = (!prev) ? {} : (typeof prev === "string") ? { modo: prev } : { ...prev };
                             cfgAtual[pv.id] = { ...prevObj, [campo]: p, [tCampo]: tAuto };
@@ -961,7 +1002,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                     onClick={() => executarSeriacao(item)}
                     title={`${item.nInscritos} atletas · ${nSeries} série(s) · ${item.isLonga ? item.atlPorSerie + " atl/sér" : item.nRaias + " raias"} · ${item.faseNome || "Final"}`}
                   >
-                    {item.prova.nome} · {item.cat.nome} · {item.sexo === "M" ? "M" : "F"}
+                    {item.prova.nome}{item.prova.origemCombinada ? ` (${item.prova.nomeCombinada})` : ""} · {item.cat.nome} · {item.sexo === "M" ? "M" : "F"}
                     {item.multiFases && (
                       <span style={{ fontSize:8, marginLeft:3, padding:"1px 5px", borderRadius:3, fontWeight:700, background: item.faseSufixo === "ELI" ? `${t.warning}15` : item.faseSufixo === "SEM" ? t.accentBg : `${t.success}15`, color: faseColor, border:`1px solid ${faseColor}33` }}>
                         {item.faseNome}

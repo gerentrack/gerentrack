@@ -13,6 +13,7 @@ import { CATEGORIAS } from "../constants/categorias";
 import { getFasesModo, buscarSeriacao } from "../constants/fases";
 import { _getClubeAtleta } from "../formatters/utils";
 import { getSufixoProva } from "../constants/gruposNorma12";
+import { CombinedEventEngine } from "./combinedEventEngine";
 
 // ─── TIPOS DE PROVA EXPORTÁVEIS (pista) ─────────────────────────────────────
 
@@ -79,8 +80,8 @@ function separarNome(nomeCompleto) {
   return { sobrenome, nome };
 }
 
-function nomeLynx(provaId) {
-  const sufixo = getSufixoProva(provaId);
+function nomeLynx(provaId, sufixoExplicit) {
+  const sufixo = sufixoExplicit || getSufixoProva(provaId);
   return NOMES_LYNX[sufixo] || removerAcentos(sufixo).toUpperCase();
 }
 
@@ -96,8 +97,11 @@ function labelCategoria(catId) {
 /**
  * Monta o nome completo do evento para o .evt
  */
-function labelEvento(provaId, sexo, catId, faseSufixo, serieNum, totalSeries) {
-  const partes = [nomeLynx(provaId), labelSexo(sexo), labelCategoria(catId)];
+function labelEvento(provaId, sexo, catId, faseSufixo, serieNum, totalSeries, opts = {}) {
+  const { sufixoExplicit, nomeCombinada } = opts;
+  const partes = [nomeLynx(provaId, sufixoExplicit)];
+  if (nomeCombinada) partes.push(removerAcentos(nomeCombinada).toUpperCase());
+  partes.push(labelSexo(sexo), labelCategoria(catId));
   const faseNome = FASE_LABEL[faseSufixo] || "FINAL";
 
   if (totalSeries > 1) {
@@ -135,21 +139,35 @@ export function gerarMapeamentoEventos(eventoAtual, inscricoes) {
   const inscEvento = inscricoes.filter(i => i.eventoId === eid);
   const todas = todasAsProvas();
 
-  const provasPista = provasPrograma
-    .map(pId => todas.find(p => p.id === pId))
-    .filter(p => p && TIPOS_PISTA.has(p.tipo));
+  // Expande provasPrograma: provas regulares de pista + sub-provas de pista (unidade="s") das combinadas
+  const provasPista = [];
+  for (const pId of provasPrograma) {
+    const p = todas.find(pp => pp.id === pId);
+    if (!p) continue;
+    if (p.tipo === "combinada") {
+      const componentes = CombinedEventEngine.gerarProvasComponentes(pId, eid);
+      for (const comp of componentes) {
+        if (comp.unidade === "s") provasPista.push(comp);
+      }
+    } else if (TIPOS_PISTA.has(p.tipo)) {
+      provasPista.push(p);
+    }
+  }
 
   const mapeamento = new Map();
   let eventoNum = 0;
 
   for (const prova of provasPista) {
-    const sexo = prova.id[0];
-    const catId = prova.id.split("_")[1];
+    const isCombinadaComp = !!prova.origemCombinada;
+    // Para componentes virtuais, sexo/catId saem do id da combinada pai (formato SEXO_CATEGORIA_sufixo)
+    const idParaMetadados = isCombinadaComp ? prova.combinadaId : prova.id;
+    const sexo = idParaMetadados[0];
+    const catId = idParaMetadados.split("_")[1];
     const isRevezamento = prova.tipo === "revezamento";
 
     const inscProva = inscEvento.filter(i =>
       i.provaId === prova.id &&
-      !i.origemCombinada &&
+      (isCombinadaComp ? !!i.origemCombinada : !i.origemCombinada) &&
       (isRevezamento ? i.tipo === "revezamento" : i.tipo !== "revezamento")
     );
 
@@ -157,6 +175,10 @@ export function gerarMapeamentoEventos(eventoAtual, inscricoes) {
 
     let fases = getFasesModo(prova.id, configSeriacaoEvt);
     if (fases.length === 0) fases = [""]; // fase única: sem sufixo (label mostra "FINAL" via fallback)
+
+    const labelOpts = isCombinadaComp
+      ? { sufixoExplicit: prova.provaOriginalSufixo, nomeCombinada: prova.nomeCombinada }
+      : {};
 
     for (const faseSufixo of fases) {
       const seriacao = buscarSeriacao(seriacaoObj, prova.id, catId, sexo, faseSufixo);
@@ -171,14 +193,15 @@ export function gerarMapeamentoEventos(eventoAtual, inscricoes) {
             eventoNum,
             heat,
             provaId: prova.id,
-            provaNome: prova.nome,
+            provaNome: isCombinadaComp ? `${prova.nome} (${prova.nomeCombinada})` : prova.nome,
             catId,
             sexo,
             faseSufixo,
             isRevezamento,
+            isCombinadaComp,
             serieNum: serie.numero,
             totalSeries,
-            label: labelEvento(prova.id, sexo, catId, faseSufixo, serie.numero, totalSeries),
+            label: labelEvento(prova.id, sexo, catId, faseSufixo, serie.numero, totalSeries, labelOpts),
           });
         }
       } else {
@@ -186,14 +209,15 @@ export function gerarMapeamentoEventos(eventoAtual, inscricoes) {
           eventoNum,
           heat: 0,
           provaId: prova.id,
-          provaNome: prova.nome,
+          provaNome: isCombinadaComp ? `${prova.nome} (${prova.nomeCombinada})` : prova.nome,
           catId,
           sexo,
           faseSufixo,
           isRevezamento,
+          isCombinadaComp,
           serieNum: 1,
           totalSeries: 1,
-          label: labelEvento(prova.id, sexo, catId, faseSufixo, 1, 1),
+          label: labelEvento(prova.id, sexo, catId, faseSufixo, 1, 1, labelOpts),
         });
       }
     }
@@ -254,7 +278,7 @@ export function gerarEvt(eventoAtual, inscricoes, atletas, equipes, numeracaoPei
   let totalAtletasExportados = 0;
 
   for (const [, info] of mapeamento) {
-    const { eventoNum, heat, provaId, catId, sexo, faseSufixo, isRevezamento, serieNum, totalSeries, label } = info;
+    const { eventoNum, heat, provaId, catId, sexo, faseSufixo, isRevezamento, isCombinadaComp, serieNum, totalSeries, label } = info;
     if (filtroChaves && !filtroChaves.has(`${provaId}__${faseSufixo || ""}`)) continue;
     const linhas = [`${eventoNum},1,${heat},${label}`];
 
@@ -287,7 +311,7 @@ export function gerarEvt(eventoAtual, inscricoes, atletas, equipes, numeracaoPei
     } else {
       const inscProva = inscEvento.filter(i =>
         i.provaId === provaId &&
-        !i.origemCombinada &&
+        (isCombinadaComp ? !!i.origemCombinada : !i.origemCombinada) &&
         (isRevezamento ? i.tipo === "revezamento" : i.tipo !== "revezamento")
       );
 

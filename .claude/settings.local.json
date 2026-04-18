@@ -108,7 +108,8 @@
       "Bash(gcloud firestore backups schedules:*)",
       "Bash(where gcloud:*)",
       "Bash(gcloud.cmd firestore:*)",
-      "Bash(sort -t'|' -k1 -rn)"
+      "Bash(sort -t'|' -k1 -rn)",
+      "Bash(git pull *)"
     ]
   }
 }
