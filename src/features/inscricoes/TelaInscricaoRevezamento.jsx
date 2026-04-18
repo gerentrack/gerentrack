@@ -169,6 +169,12 @@ function TelaInscricaoRevezamento() {
   const { eventoAtual, inscricoes, atletas, equipes, excluirInscricao, adicionarInscricao, atualizarInscricao, numeracaoPeito } = useEvento();
   const { setTela, registrarAcao } = useApp();
   const confirmar = useConfirm();
+  // Hooks de estado antes de qualquer early return (Rules of Hooks do React)
+  const [revezForm, setRevezForm] = useState(null);
+  const [revezBusca, setRevezBusca] = useState(["","","","",""]);
+  const [feedback, setFeedback] = useState("");
+  const [focusIdx, setFocusIdx] = useState(-1);
+
   if (!eventoAtual) return <div style={s.page}><div style={s.emptyState}><p>Nenhuma competição selecionada.</p></div></div>;
 
   const tipoUser = usuarioLogado?.tipo;
@@ -206,11 +212,6 @@ function TelaInscricaoRevezamento() {
   const inscsRevez = inscsEvt.filter(i => i.tipo === "revezamento");
   const numPeito = numeracaoPeito?.[eid] || {};
 
-  const [revezForm, setRevezForm] = useState(null);
-  const [revezBusca, setRevezBusca] = useState(["","","","",""]);
-  const [feedback, setFeedback] = useState("");
-  const [focusIdx, setFocusIdx] = useState(-1);
-
   // Todas as equipes que possuem atletas cadastrados (não exige inscrição individual prévia)
   const equipesComInscritos = (() => {
     const eqSet = new Set();
@@ -245,10 +246,33 @@ function TelaInscricaoRevezamento() {
     const pool = [];
     const vistos = new Set();
     const orgsAutorizadas = new Set(eventoAtual?.orgsAutorizadas || []);
+    // Aliases da equipe selecionada: inclui id da equipe, campo clube, nome e sigla.
+    // Cobre atletas importados que têm só a.clube (texto) sem a.equipeId.
+    const eqSelObj = equipes.find(e => e.id === revezForm.equipeId);
+    const aliasesEquipe = new Set([
+      revezForm.equipeId,
+      eqSelObj?.clube,
+      eqSelObj?.nome,
+      eqSelObj?.sigla,
+      revezForm.equipeId?.startsWith("clube_") ? revezForm.equipeId.substring(6) : null,
+    ].filter(Boolean).map(s => String(s).trim().toLowerCase()));
+    const matchEquipe = (a) => {
+      const eqIdDireto = a.equipeId || (a.clube ? "clube_" + a.clube : "");
+      if (eqIdDireto === revezForm.equipeId) return true;
+      if (a.clube && aliasesEquipe.has(String(a.clube).trim().toLowerCase())) return true;
+      if (a.equipeId) {
+        const eqDoAtleta = equipes.find(e => e.id === a.equipeId);
+        if (eqDoAtleta) {
+          if (eqDoAtleta.clube && aliasesEquipe.has(String(eqDoAtleta.clube).trim().toLowerCase())) return true;
+          if (eqDoAtleta.nome && aliasesEquipe.has(String(eqDoAtleta.nome).trim().toLowerCase())) return true;
+          if (eqDoAtleta.sigla && aliasesEquipe.has(String(eqDoAtleta.sigla).trim().toLowerCase())) return true;
+        }
+      }
+      return false;
+    };
     for (const a of (atletas || [])) {
       if (vistos.has(a.id)) continue;
-      const eqId = a.equipeId || (a.clube ? "clube_" + a.clube : "");
-      const ehDaEquipe = eqId === revezForm.equipeId;
+      const ehDaEquipe = matchEquipe(a);
       const ehCruzado = orgsAutorizadas.size > 0 && a.organizadorId && orgsAutorizadas.has(a.organizadorId);
       if ((ehDaEquipe || ehCruzado) && (isMisto || a.sexo === revezForm.sexo)) {
         vistos.add(a.id);
@@ -259,14 +283,15 @@ function TelaInscricaoRevezamento() {
   })();
 
   const buscarAtleta = (query) => {
-    if (!query || query.trim().length === 0) return atletasPool.slice(0, 15); // mostra todos ao focar
+    // Lista com scroll interno (maxHeight + overflowY) — sem limite artificial
+    if (!query || query.trim().length === 0) return atletasPool;
     const q = query.trim().toLowerCase();
     return atletasPool.filter(a => {
       if (a.nome?.toLowerCase().includes(q)) return true;
       if (a.cbat && a.cbat.includes(q)) return true;
       if (numPeito[a.id] && String(numPeito[a.id]).includes(q)) return true;
       return false;
-    }).slice(0, 15);
+    });
   };
 
   const handleSalvar = () => {
