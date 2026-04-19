@@ -266,8 +266,9 @@ const TeamScoringEngine = {
             })
             .filter(function(x) { return x.atleta && x.marca != null && !isNaN(x.marca); })
             .sort(function(a, b) {
-              if (prova.unidade === "s") return a.marca - b.marca;
-              return b.marca - a.marca;
+              var diff = prova.unidade === "s" ? a.marca - b.marca : b.marca - a.marca;
+              if (diff !== 0) return diff;
+              return (a.atleta?.id || "").localeCompare(b.atleta?.id || "");
             });
 
           if (classificados.length === 0) return;
@@ -354,7 +355,10 @@ const TeamScoringEngine = {
               return { equipeId: eqId, marca: (marcaNumR != null && !isNaN(marcaNumR)) ? marcaNumR : null, isStatus: isStatus };
             })
             .filter(function(x) { return x.marca != null && !isNaN(x.marca); })
-            .sort(function(a, b) { return a.marca - b.marca; });
+            .sort(function(a, b) {
+              if (a.marca !== b.marca) return a.marca - b.marca;
+              return (a.equipeId || "").localeCompare(b.equipeId || "");
+            });
 
           if (classificados.length === 0) return;
           totalProvasComResultado++;
@@ -434,7 +438,10 @@ const TeamScoringEngine = {
           total += Number(pts) || 0;
         });
         return { atletaId: aId, nome: atl ? atl.nome : "—", total: total, provasRealizadas: provasRealizadas };
-      }).sort(function(a, b) { return b.total - a.total; });
+      }).sort(function(a, b) {
+        if (a.total !== b.total) return b.total - a.total;
+        return (a.atletaId || "").localeCompare(b.atletaId || "");
+      });
 
       // Só pontua se classificação final (todas provas componentes têm resultado)
       var provasJulgadas = todasCompDaCombinada.filter(function(pc) {
@@ -676,7 +683,10 @@ const TeamScoringEngine = {
     totalProvasComResultado = combsCompletasCount;
 
     // Gerar classificação ordenada
-    var classificacao = Object.values(equipesMap).sort(function(a, b) { return b.totalPontos - a.totalPontos; });
+    var classificacao = Object.values(equipesMap).sort(function(a, b) {
+      if (a.totalPontos !== b.totalPontos) return b.totalPontos - a.totalPontos;
+      return (a.equipeId || "").localeCompare(b.equipeId || "");
+    });
     classificacao.forEach(function(c, idx) { c.posicao = idx + 1; });
     return { classificacao: classificacao, totalProvasComResultado: totalProvasComResultado, totalProvas: totalProvas, totalBonusRecordes: totalBonusRecordes, totalPenalidades: totalPenalidades, provasPendentes: provasPendentes };
   },
