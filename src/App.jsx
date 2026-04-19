@@ -360,6 +360,19 @@ function App() {
 
   const eventoAtual = eventos.find((e) => e.id === eventoAtualId) || null;
 
+  // ── Validar que o evento pertence ao usuário logado ──────────────────────
+  useEffect(() => {
+    if (!eventoAtual || !usuarioLogado) return;
+    const tipo = usuarioLogado.tipo;
+    if (tipo === "admin") return; // admin acessa tudo
+    const orgId = tipo === "funcionario" ? usuarioLogado.organizadorId : usuarioLogado.id;
+    if (tipo === "organizador" || tipo === "funcionario") {
+      if (eventoAtual.organizadorId && eventoAtual.organizadorId !== orgId) {
+        setEventoAtualId(null);
+      }
+    }
+  }, [eventoAtual, usuarioLogado, setEventoAtualId]);
+
   // ── Routing via React Router Bridge (substitui pushState/popstate manual) ──
   const eventoAtualIdRef = useRef(eventoAtualId);
   eventoAtualIdRef.current = eventoAtualId;
@@ -1881,6 +1894,12 @@ function App() {
   }, [resultados]);
 
   const selecionarEvento = (id) => {
+    // Validar que o evento pertence ao usuário logado
+    if (usuarioLogado && usuarioLogado.tipo !== "admin") {
+      const ev = eventos.find(e => e.id === id);
+      const orgId = usuarioLogado.tipo === "funcionario" ? usuarioLogado.organizadorId : usuarioLogado.id;
+      if (ev && ev.organizadorId && ev.organizadorId !== orgId) return;
+    }
     setEventoAtualId(id);
     eventoAtualIdRef.current = id;
     setTela("evento-detalhe");
