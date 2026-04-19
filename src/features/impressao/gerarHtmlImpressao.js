@@ -110,10 +110,10 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
     .badge-tot{background:#1976D222;color:#1976D2;border:1px solid #1976D244;
       border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;}
     .conteudo{padding-top:74px;}
-    .pg{background:#fff;width:210mm;min-height:297mm;margin:16px auto;
-      padding:12mm 15mm 38mm;display:flex;flex-direction:column;
-      box-shadow:0 4px 24px rgba(0,0,0,.2);position:relative;}
-    .pg.landscape{width:297mm;min-height:210mm;padding:10mm 12mm 28mm;}
+    .pg{background:#fff;width:210mm;height:297mm;margin:16px auto;
+      padding:12mm 15mm 8mm;display:flex;flex-direction:column;
+      box-shadow:0 4px 24px rgba(0,0,0,.2);overflow:hidden;}
+    .pg.landscape{width:297mm;height:210mm;padding:10mm 12mm 6mm;}
     .cab{display:flex;align-items:flex-start;justify-content:space-between;
       padding-bottom:4px;margin-bottom:4px;border-bottom:2px solid #111;gap:6px;
       font-size:initial;}
@@ -179,8 +179,9 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
     .cond-campo-hr{min-width:40px;}
     .cond-unidade{font-size:7.5px;color:#666;}
     .cond-sep{width:1px;background:#ccc;align-self:stretch;margin:0 4px;}
-    .rod-wrap{position:absolute;bottom:0;left:0;right:0;padding:0 15mm 8mm;}
-    .pg.landscape .rod-wrap{padding:0 12mm 4mm;}
+    .rod-wrap{margin-top:auto;padding-top:4mm;}
+    .rod-logo{height:15mm;display:flex;align-items:center;justify-content:center;}
+    .rod-logo img{max-width:100%;max-height:15mm;object-fit:contain;}
     .rod{padding-top:4px;}
     .rod-assinaturas{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:6px;}
     .rod-ass{flex:1;max-width:185px;}
@@ -193,9 +194,9 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
       body{background:#fff;}
       .barra{display:none!important;}
       .conteudo{padding-top:0;}
-      .pg{margin:0;border:none;box-shadow:none;width:100%;height:100vh;padding:12mm 15mm 38mm;overflow:hidden;}
+      .pg{margin:0;border:none;box-shadow:none;width:100%;height:100vh;padding:12mm 15mm 8mm;overflow:hidden;}
       .pg:not(:last-child){page-break-after:always;}
-      .pg.landscape{page:landscape-page;padding:8mm 12mm 5mm;}
+      .pg.landscape{page:landscape-page;padding:8mm 12mm 6mm;}
     }
   `;
 
@@ -233,7 +234,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
         </div>
       </div>
     </div>
-    ${evento.logoRodape ? `<div style="margin-top:1px;text-align:center;"><img src="${evento.logoRodape}" alt="" style="max-width:100%;max-height:18mm;object-fit:contain;"/></div>` : ""}
+    <div class="rod-logo">${evento.logoRodape ? `<img src="${evento.logoRodape}" alt=""/>` : ""}</div>
     </div>`;
   };
 
@@ -362,7 +363,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
   let numPag = 0;
   const pags = [];
   const MAX_TOP8 = 8;  // Regra técnica: top 8 avançam para T4-T6
-  const MAX = 30;      // Limite de exibição por página
+  const MAX_LAND = 18; // Limite para páginas landscape (campo) — 210mm tem menos altura que portrait
 
   // ── Escala de fonte proporcional ao número de atletas por página ───────────
   // Quanto menos atletas, maior a fonte — preenche melhor a página.
@@ -388,7 +389,12 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
     return orientMap[key] || (s.prova.unidade !== "s" ? "landscape" : "portrait");
   };
   const pgClass = (s) => getOrient(s) === "landscape" ? "pg landscape" : "pg";
-  const pgStyle = (s) => getOrient(s) === "landscape" ? ' style="padding:10mm 12mm 8mm"' : "";
+  const pgStyle = (s) => getOrient(s) === "landscape" ? ' style="padding:10mm 12mm 6mm"' : "";
+
+  // Classificação apenas federados: posição vazia para não-federados na impressão
+  const _fedAtivoImp = (evento.pontuacaoEquipes || {}).classificacaoApenasFederados
+    && Array.isArray(evento.equipeIdsFederados) && evento.equipeIdsFederados.length > 0;
+  const _fedSetImp = _fedAtivoImp ? new Set(evento.equipeIdsFederados) : null;
 
   sumulas.forEach((s) => {
     const isTempo = s.prova.unidade === "s";
@@ -588,10 +594,6 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
         });
       });
     }
-    // Classificação apenas federados: posição vazia para não-federados na impressão
-    const _fedAtivoImp = (evento.pontuacaoEquipes || {}).classificacaoApenasFederados
-      && Array.isArray(evento.equipeIdsFederados) && evento.equipeIdsFederados.length > 0;
-    const _fedSetImp = _fedAtivoImp ? new Set(evento.equipeIdsFederados) : null;
     const _ehFedImp = (atl) => {
       if (!_fedAtivoImp) return true;
       const eqId = atl?.equipeId || equipes.find(eq => eq.nome === atl?.clube)?.id;
@@ -1347,13 +1349,13 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
             <td class="tdp"></td>
           </tr>`;
 
-        const totalGrupos = Math.ceil(atl.length / MAX);
-        
+        const totalGrupos = Math.ceil(atl.length / MAX_LAND);
+
         if (!temRes) {
           // Sem resultados — súmula em branco para preenchimento manual
           for (let gi = 0; gi < totalGrupos; gi++) {
             numPag++;
-            const grp  = atl.slice(gi*MAX, (gi+1)*MAX);
+            const grp  = atl.slice(gi*MAX_LAND, (gi+1)*MAX_LAND);
             const lblG = totalGrupos > 1 ? `GRUPO ${gi+1} / ${totalGrupos}` : null;
             pags.push(`
               <div class="${pgClass(s)}">
@@ -1365,7 +1367,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
                 </div>
                 <table style="table-layout:fixed">
                   <thead>${thAltura}</thead>
-                  <tbody>${grp.map((a,j) => linhaAlturaVazia(a, gi*MAX + j)).join("")}</tbody>
+                  <tbody>${grp.map((a,j) => linhaAlturaVazia(a, gi*MAX_LAND + j)).join("")}</tbody>
                 </table>
                 ${rodape(s)}
               </div>`);
@@ -1498,11 +1500,11 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
             ...classAltura.map((c,i) => ({ a: c.a, pos: i+1, su: c.su, fp: c.fp, status: null })),
             ...semRes.map(a => ({ a, pos: null, su: 0, fp: 0, status: getStatusAltura(a) }))
           ];
-          const totalGruposR = Math.ceil(todosOrdenados.length / MAX);
+          const totalGruposR = Math.ceil(todosOrdenados.length / MAX_LAND);
 
           for (let gi = 0; gi < totalGruposR; gi++) {
             numPag++;
-            const grp  = todosOrdenados.slice(gi*MAX, (gi+1)*MAX);
+            const grp  = todosOrdenados.slice(gi*MAX_LAND, (gi+1)*MAX_LAND);
             const lblG = totalGruposR > 1 ? `GRUPO ${gi+1} / ${totalGruposR}` : null;
             pags.push(`
               <div class="${pgClass(s)}">
@@ -1512,7 +1514,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
                 ${avisoDesempateAlt}
                 <table style="table-layout:fixed">
                   <thead>${thAlturaRes}</thead>
-                  <tbody>${grp.map(({a, pos, su, fp, status}, j) => linhaAlturaRes(a, pos, gi*MAX + j, su, fp, status)).join("")}</tbody>
+                  <tbody>${grp.map(({a, pos, su, fp, status}, j) => linhaAlturaRes(a, pos, gi*MAX_LAND + j, su, fp, status)).join("")}</tbody>
                 </table>
                 ${rodape(s)}
               </div>`);
@@ -1598,12 +1600,12 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
           </tr>`;
         };
 
-        const totalGrupos = Math.ceil(atl.length / MAX);
+        const totalGrupos = Math.ceil(atl.length / MAX_LAND);
 
         if (!temRes) {
           for (let gi = 0; gi < totalGrupos; gi++) {
             numPag++;
-            const grp  = atl.slice(gi*MAX, (gi+1)*MAX);
+            const grp  = atl.slice(gi*MAX_LAND, (gi+1)*MAX_LAND);
             const lblG = totalGrupos > 1 ? `GRUPO ${gi+1} / ${totalGrupos}` : null;
             pags.push(`
               <div class="${pgClass(s)}">
@@ -1613,7 +1615,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
                   T1\u2013T3: ordem por sorteio (RT 25.5) \u00b7 T4\u2013T6: ordem inversa da CP (RT 25.6.1) \u00b7 Empate na CP: mesma ordem do sorteio (RT 25.6.2) \u00b7 Desempate: RT 25.22
                 </div>
                 <table><thead>${thCampoUnico}</thead><tbody>
-                  ${grp.map((a,j) => linhaCampoVazia(a, gi*MAX + j)).join("")}
+                  ${grp.map((a,j) => linhaCampoVazia(a, gi*MAX_LAND + j)).join("")}
                 </tbody></table>
                 ${rodape(s)}
               </div>`);
@@ -1654,7 +1656,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
 
           for (let gi = 0; gi < totalGrupos; gi++) {
             numPag++;
-            const grp      = atl.slice(gi*MAX, (gi+1)*MAX);
+            const grp      = atl.slice(gi*MAX_LAND, (gi+1)*MAX_LAND);
             const lblG     = totalGrupos > 1 ? `GRUPO ${gi+1} / ${totalGrupos}` : null;
             const grpClass = classGeral.filter((c) => grp.some((a) => a.id === c.a.id));
             pags.push(`
@@ -1665,7 +1667,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
                 <table><thead>${thCampoUnico}</thead><tbody>
                   ${grpClass.map(({a,m,raw}, j) => {
                     const posG = classGeral.findIndex((c) => c.a.id === a.id) + 1;
-                    return linhaCampoRes(a, m, gi*MAX + j, posG, raw);
+                    return linhaCampoRes(a, m, gi*MAX_LAND + j, posG, raw);
                   }).join("")}${gi === totalGrupos - 1 ? statusCampoPrint.map(({a,status},j) => `
                   <tr class="${(classGeral.length+j)%2===0?"par":"imp"}" style="opacity:.5">
                     <td class="tdn"></td>
@@ -1703,33 +1705,24 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
       document.querySelectorAll('.pg').forEach(function(pg) {
         var tbl = pg.querySelector('table');
         if (!tbl) return;
-        var rows = tbl.querySelectorAll('tbody tr').length;
-        if (rows === 0) return;
+        var rod = pg.querySelector('.rod-wrap');
+        if (!rod) return;
 
-        // Abordagem iterativa: reduzir fontSize até o conteúdo caber na página
-        // A4 portrait: 297mm; landscape: 210mm
-        var isLand = pg.classList.contains('landscape');
-        var pgStyleH = isLand ? 210 : 297; // mm
-        var padTop = isLand ? 10 : 12; // mm (do CSS .pg padding)
-        var padBot = isLand ? 8 : 10;
-        var availMm = pgStyleH - padTop - padBot;
-        var pxPerMm = 96 / 25.4; // ~3.78 px/mm
-        var availPx = availMm * pxPerMm;
+        // Usa a altura real do elemento (height fixo = 297mm ou 210mm)
+        var pgH = pg.clientHeight;
+        var rodH = rod.offsetHeight;
+        var contentAvail = pgH - rodH;
 
-        // Reservar 10% da página para o rodapé fixo
-        var rodapeMm = pgStyleH * 0.10;
-        availPx -= rodapeMm * pxPerMm;
-
+        // Reduzir fontSize até o conteúdo caber
         var scale = 100;
         for (var i = 0; i < 30; i++) {
           pg.style.fontSize = scale + '%';
-          // Medir tudo EXCETO o rod-wrap (que tem margin-top:auto)
           var totalH = 0;
           for (var c = 0; c < pg.children.length; c++) {
-            if (pg.children[c].classList && pg.children[c].classList.contains('rod-wrap')) continue;
+            if (pg.children[c] === rod) continue;
             totalH += pg.children[c].offsetHeight;
           }
-          if (totalH <= availPx) break;
+          if (totalH <= contentAvail) break;
           scale -= 2;
           if (scale < 40) { scale = 40; break; }
         }

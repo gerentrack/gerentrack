@@ -212,7 +212,7 @@ export function gerarHtmlRelatorioParticipacao(evento, atletasFiltrados, inscric
           <img src="${_gtLogo}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7;vertical-align:middle;" />
         </div>
       </div>
-      ${evento.logoRodape ? `<div style="margin-top:6px;text-align:center;"><img src="${evento.logoRodape}" alt="" style="max-width:100%;max-height:18mm;object-fit:contain;"/></div>` : ""}
+      ${evento.logoRodape ? `<div style="margin-top:6px;text-align:center;"><img src="${evento.logoRodape}" alt="" style="max-width:100%;max-height:15mm;object-fit:contain;"/></div>` : ""}
     </div>
   `;
 

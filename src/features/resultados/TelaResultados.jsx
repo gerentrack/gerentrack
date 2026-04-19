@@ -602,7 +602,7 @@ function TelaResultados() {
           </div>
         </div>
       </div>
-      ${eventoAtual.logoRodape ? `<div style="margin-top:1px;text-align:center;"><img src="${eventoAtual.logoRodape}" alt="" style="max-width:100%;max-height:18mm;object-fit:contain;"/></div>` : ""}`;
+      ${eventoAtual.logoRodape ? `<div style="margin-top:1px;text-align:center;"><img src="${eventoAtual.logoRodape}" alt="" style="max-width:100%;max-height:15mm;object-fit:contain;"/></div>` : ""}`;
 
     // ── Classificação final das Combinadas ──
     blocosCombinadas.forEach(bc => {
@@ -854,7 +854,7 @@ function TelaResultados() {
                         <div>Gerado em: ${_dg}</div>
                         <div>Plataforma de Competi\u00e7\u00f5es - GERENTRACK</div>
                       </div>
-                      ${eventoAtual.logoRodape ? `<div style="margin-top:8px;text-align:center;"><img src="${eventoAtual.logoRodape}" alt="" style="max-width:100%;max-height:18mm;object-fit:contain;"/></div>` : ""}
+                      ${eventoAtual.logoRodape ? `<div style="margin-top:8px;text-align:center;"><img src="${eventoAtual.logoRodape}" alt="" style="max-width:100%;max-height:15mm;object-fit:contain;"/></div>` : ""}
                       <div style="margin-top:8px;text-align:center;padding-top:6px;border-top:1px solid #e0e0e0;">
                         <div style="font-size:7px;color:#999;letter-spacing:1px;margin-bottom:3px;">Desenvolvido por:</div>
                         <img src="${_gl}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7;" />
@@ -1148,7 +1148,7 @@ function TelaResultados() {
                             </div>
                           </div>
                         </div>
-                        ${eventoAtual.logoRodape ? `<div style="margin-top:1px;text-align:center;"><img src="${eventoAtual.logoRodape}" alt="" style="max-width:100%;max-height:18mm;object-fit:contain;"/></div>` : ""}
+                        ${eventoAtual.logoRodape ? `<div style="margin-top:1px;text-align:center;"><img src="${eventoAtual.logoRodape}" alt="" style="max-width:100%;max-height:15mm;object-fit:contain;"/></div>` : ""}
                         <script>window.addEventListener('load',function(){document.querySelectorAll('.pg').forEach(function(pg){var rod=pg.querySelector('.rod-wrap');if(!rod)return;var pgH=pg.offsetHeight;var rodH=rod.offsetHeight;var dH=pgH-rodH;var cH=0;for(var i=0;i<pg.children.length;i++){var c=pg.children[i];if(c===rod)continue;cH+=c.offsetHeight+(parseFloat(getComputedStyle(c).marginTop)||0)+(parseFloat(getComputedStyle(c).marginBottom)||0);}if(cH>dH){var s=Math.max(0.55,dH/cH);for(var j=0;j<pg.children.length;j++){if(pg.children[j]===rod)continue;pg.children[j].style.fontSize=(s*100)+'%';pg.children[j].querySelectorAll('table').forEach(function(t){t.style.fontSize=(s*100)+'%';});}}});});<\/script>
                         </body></html>`;
                       const win = window.open("", "_blank", "width=900,height=700");
