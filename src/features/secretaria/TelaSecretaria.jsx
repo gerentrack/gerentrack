@@ -88,6 +88,8 @@ function TelaSecretaria() {
   };
   const [aba, setAba] = useState("chamada");
   const [filtroProva, setFiltroProva] = useState("");
+  const [filtroSexo, setFiltroSexo] = useState("");
+  const [filtroCategoria, setFiltroCategoria] = useState("");
   const [buscaChamada, setBuscaChamada] = useState("");
   const [scannerAberto, setScannerAberto] = useState(false);
   const [scannerMedalhaAberto, setScannerMedalhaAberto] = useState(false);
@@ -196,22 +198,35 @@ function TelaSecretaria() {
   }, [eventoAtual, inscricoes, atletas, eid]);
 
   const provasFiltradas = useMemo(() => {
-    if (!filtroProva) return provasComAtletas;
-    return provasComAtletas.filter(g => g.prova.nome === filtroProva);
-  }, [provasComAtletas, filtroProva]);
+    return provasComAtletas.filter(g => {
+      if (filtroProva && g.prova.nome !== filtroProva) return false;
+      if (filtroSexo && g.sexo !== filtroSexo) return false;
+      if (filtroCategoria && g.cat.id !== filtroCategoria) return false;
+      return true;
+    });
+  }, [provasComAtletas, filtroProva, filtroSexo, filtroCategoria]);
 
   // Medalhas: excluir provas componentes de combinada + incluir revezamento
   const provasFiltradasMedalhas = useMemo(() => {
     const individuais = provasFiltradas.filter(g => !g.prova.origemCombinada);
-    const revezFiltradas = filtroProva
-      ? provasRevezamento.filter(g => g.prova.nome === filtroProva)
-      : provasRevezamento;
+    const revezFiltradas = provasRevezamento.filter(g => {
+      if (filtroProva && g.prova.nome !== filtroProva) return false;
+      if (filtroSexo && g.sexo !== filtroSexo) return false;
+      if (filtroCategoria && g.cat.id !== filtroCategoria) return false;
+      return true;
+    });
     return [...individuais, ...revezFiltradas];
-  }, [provasFiltradas, provasRevezamento, filtroProva]);
+  }, [provasFiltradas, provasRevezamento, filtroProva, filtroSexo, filtroCategoria]);
 
   const provasUnicas = useMemo(() =>
     [...new Map(provasComAtletas.map(g => [g.prova.nome, g.prova])).values()]
     , [provasComAtletas]);
+
+  const categoriasUnicas = useMemo(() => {
+    const catOrdem = CATEGORIAS.reduce((acc, c, i) => { acc[c.id] = i; return acc; }, {});
+    return [...new Map(provasComAtletas.map(g => [g.cat.id, g.cat])).values()]
+      .sort((a, b) => (catOrdem[a.id] ?? 99) - (catOrdem[b.id] ?? 99));
+  }, [provasComAtletas]);
 
   // ── Calcular classificação por prova para medalhas ────────────────────────
   // Medalhas são definidas SEMPRE pela fase final. Se a prova tem múltiplas fases
@@ -531,7 +546,7 @@ function TelaSecretaria() {
   // Contador para o scanner
   const contadorScanLabel = useMemo(() => {
     if (!filtroProva) return null;
-    const grupos = provasComAtletas.filter(g => g.prova.nome === filtroProva);
+    const grupos = provasFiltradas.filter(g => g.prova.nome === filtroProva);
     if (grupos.length === 0) return null;
     let totalAtletas = 0, totalConf = 0;
     grupos.forEach(g => {
@@ -540,12 +555,12 @@ function TelaSecretaria() {
       totalConf += Object.values(presenca).filter(v => v === "confirmado").length;
     });
     return `✓ ${totalConf}/${totalAtletas} confirmados — ${filtroProva}`;
-  }, [filtroProva, provasComAtletas, getPresencaProva]);
+  }, [filtroProva, provasFiltradas, getPresencaProva]);
 
   // ── Estatísticas rápidas ──────────────────────────────────────────────────
   const statsPresenca = useMemo(() => {
     let confirmado = 0, dns = 0, total = 0;
-    provasComAtletas.forEach(({ prova, cat, sexo, atletas: atls }) => {
+    provasFiltradas.forEach(({ prova, cat, sexo, atletas: atls }) => {
       atls.forEach(atl => {
         total++;
         const estado = getPresenca(prova.id, cat.id, sexo, atl.id);
@@ -554,7 +569,7 @@ function TelaSecretaria() {
       });
     });
     return { confirmado, dns, total };
-  }, [provasComAtletas, getPresenca]);
+  }, [provasFiltradas, getPresenca]);
 
   if (!eventoAtual) return (
     <div style={s.page}>
@@ -570,7 +585,7 @@ function TelaSecretaria() {
           <h1 style={s.title}>SECRETARIA</h1>
           <div style={s.sub}>{eventoAtual.nome}</div>
         </div>
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
           <select
             value={filtroProva}
             onChange={e => setFiltroProva(e.target.value)}
@@ -579,6 +594,31 @@ function TelaSecretaria() {
             <option value="">Todas as provas</option>
             {provasUnicas.map(p => <option key={p.nome} value={p.nome}>{p.nome}</option>)}
           </select>
+          <select
+            value={filtroCategoria}
+            onChange={e => setFiltroCategoria(e.target.value)}
+            style={s.selectEvento}
+          >
+            <option value="">Todas as categorias</option>
+            {categoriasUnicas.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
+          </select>
+          <select
+            value={filtroSexo}
+            onChange={e => setFiltroSexo(e.target.value)}
+            style={s.selectEvento}
+          >
+            <option value="">Ambos os sexos</option>
+            <option value="M">Masculino</option>
+            <option value="F">Feminino</option>
+          </select>
+          {(filtroProva || filtroSexo || filtroCategoria) && (
+            <button
+              onClick={() => { setFiltroProva(""); setFiltroSexo(""); setFiltroCategoria(""); }}
+              style={{ ...s.btnGhost, padding: "10px 14px", fontSize: 12 }}
+            >
+              Limpar filtros
+            </button>
+          )}
           <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
         </div>
       </div>
@@ -983,6 +1023,10 @@ function TelaSecretaria() {
               ).filter(({ atl }) => !buscaLower || (atl && filtradosIds.has(atl.id)));
             }
 
+            // Contar apenas atletas elegíveis (no modo apenas_classificacao, só top 3)
+            const elegiveisCount = apenasClassificacao
+              ? atletasOrdenados.filter(({ tipoCalculado }) => tipoCalculado && tipoCalculado !== "participacao").length
+              : atletasOrdenados.filter(({ atl }) => atl).length;
             const entregues = atletasOrdenados.filter(({ atl }) =>
               atl && getMedalha(prova.id, cat.id, sexo, atl.id).entregue
             ).length;
@@ -1000,7 +1044,7 @@ function TelaSecretaria() {
                     {!temResultados && (
                       <span style={s.pill(t.textMuted, t.bgCard)}>Aguardando resultados</span>
                     )}
-                    <span style={s.pill(t.success, t.bgCardAlt)}>{entregues}/{atls.length} entregues</span>
+                    <span style={s.pill(t.success, t.bgCardAlt)}>{entregues}/{elegiveisCount} entregues</span>
                   </div>
                 </div>
                 <div style={{ overflowX: "auto" }}>
@@ -1170,12 +1214,14 @@ function TelaSecretaria() {
             const atletasOrdenados = temRes
               ? [
                   ...classificados.map(({ aId }, idx) => ({ aId, tipo: getTipoMedalha(idx + 1) })),
-                  ...atls.filter(a => !classificados.some(c => c.aId === a.id)).map(a => ({ aId: a.id, tipo: "participacao" })),
+                  ...(apenasClassificacao ? [] : atls.filter(a => !classificados.some(c => c.aId === a.id)).map(a => ({ aId: a.id, tipo: "participacao" }))),
                 ]
-              : atls.map(a => ({ aId: a.id, tipo: "participacao" }));
+              : (apenasClassificacao ? [] : atls.map(a => ({ aId: a.id, tipo: "participacao" })));
 
             atletasOrdenados.forEach(({ aId, tipo }) => {
               if (!tipo) return;
+              // No modo apenas_classificacao, ignorar participação
+              if (apenasClassificacao && tipo === "participacao") return;
               const medalha = getMedalha(prova.id, cat.id, sexo, aId);
               const atl = atletas.find(a => a.id === aId);
               const equipe = atl?.clube || "Sem equipe";
