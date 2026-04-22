@@ -763,7 +763,8 @@ function TelaSumulas({ chamada, getPresencaProva }) {
 
         const salvarSeriacao = () => {
           if (isFinalizado || !seriacaoPreview) return;
-          const item = provasPista.find(pp => pp.chave === seriacaoChaveAtiva);
+          const item = provasPista.find(pp => pp.chave === seriacaoChaveAtiva)
+            || provasRevezPista.find(pp => pp.chave === seriacaoChaveAtiva);
           const novasSer = { ...seriacaoSalva };
           novasSer[seriacaoChaveAtiva] = {
             series: seriacaoPreview.series,
