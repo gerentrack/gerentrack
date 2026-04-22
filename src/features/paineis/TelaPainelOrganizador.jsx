@@ -701,10 +701,10 @@ function TelaPainelOrganizador() {
                         <button style={{ ...s.btnSecondary, fontSize:12, padding:"4px 10px" }} onClick={()=>{ selecionarEvento(ev.id, "resultados"); }} title="Ver resultados">
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:"middle"}}><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
                         </button>
-                        <button style={{ ...s.btnGhost, fontSize:12, padding:"4px 10px" }} onClick={()=>{ selecionarEvento(ev.id); setTela("evento-detalhe"); }}>Abrir</button>
+                        <button style={{ ...s.btnGhost, fontSize:12, padding:"4px 10px" }} onClick={()=>{ selecionarEvento(ev.id); }}>Abrir</button>
                         {temPerm("editar_competições") && (
                           <button style={{ ...s.btnGhost, fontSize:12, padding:"4px 10px", color:t.accent, borderColor:`${t.accent}66` }}
-                            onClick={()=>{ selecionarEvento(ev.id); setTela("novo-evento"); }}>
+                            onClick={()=>{ selecionarEvento(ev.id, "novo-evento"); }}>
                             Editar
                           </button>
                         )}
@@ -824,16 +824,16 @@ function TelaPainelOrganizador() {
                             <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
                               {!ev.inscricoesEncerradas && (
                                 <button style={{ ...s.btnPrimary, fontSize:12, padding:"4px 10px" }}
-                                  onClick={() => { selecionarEvento(ev.id); setTela("inscricao-avulsa"); }}>
+                                  onClick={() => { selecionarEvento(ev.id, "inscricao-avulsa"); }}>
                                   + Inscrever
                                 </button>
                               )}
                               <button style={{ ...s.btnSecondary, fontSize:12, padding:"4px 10px" }}
-                                onClick={() => { selecionarEvento(ev.id); setTela("resultados"); }}>
+                                onClick={() => { selecionarEvento(ev.id, "resultados"); }}>
                                 Resultados
                               </button>
                               <button style={{ ...s.btnGhost, fontSize:12, padding:"4px 10px" }}
-                                onClick={() => { selecionarEvento(ev.id); setTela("evento-detalhe"); }}>
+                                onClick={() => { selecionarEvento(ev.id); }}>
                                 Abrir
                               </button>
                             </div>

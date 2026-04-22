@@ -492,13 +492,13 @@ function TelaEventoDetalhe() {
         return (
           <div style={s.eventoAcoesGrid}>
             <button style={{ ...s.eventoAcaoBtn, borderColor: t.accent + "66" }}
-                    onClick={async () => { selecionarEvento(eventoAtual.id); setTela("novo-evento"); }}>
+                    onClick={async () => { selecionarEvento(eventoAtual.id, "novo-evento"); }}>
               {IcoSettings(28)}
               <strong>Editar Competição</strong>
               <span style={{ color: t.textDimmed, fontSize: 13 }}>Alterar dados, provas e configurações</span>
             </button>
             <button style={{ ...s.eventoAcaoBtn, borderColor: t.gold + "66" }}
-                    onClick={async () => { selecionarEvento(eventoAtual.id); setCadEventoGoStep("step3"); setTela("novo-evento"); }}>
+                    onClick={async () => { selecionarEvento(eventoAtual.id, "novo-evento"); setCadEventoGoStep("step3"); }}>
               {IcoClock(28)}
               <strong>Programa Horário</strong>
               <span style={{ color: t.textDimmed, fontSize: 13 }}>Definir horários e fases das provas</span>
