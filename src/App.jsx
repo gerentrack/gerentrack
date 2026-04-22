@@ -1396,6 +1396,9 @@ function App() {
   const atletasRef_app = React.useRef(atletas);
   React.useEffect(() => { atletasRef_app.current = atletas; }, [atletas]);
 
+  const eventoAtualRef_app = React.useRef(eventoAtual);
+  React.useEffect(() => { eventoAtualRef_app.current = eventoAtual; }, [eventoAtual]);
+
   const solicitacoesVinculoRef = React.useRef(solicitacoesVinculo);
   React.useEffect(() => { solicitacoesVinculoRef.current = solicitacoesVinculo; }, [solicitacoesVinculo]);
 
@@ -1761,19 +1764,22 @@ function App() {
   // RT 20.3.2(a) para classificação e RT 20.4.x para distribuição de raias.
   useEffect(() => {
     const timer = setTimeout(() => {
-    if (!eventoAtual) return;
+    // Lê do ref para evitar stale closure — este efeito depende apenas de [resultados],
+    // mas precisa do eventoAtual mais recente para não sobrescrever séries recém-configuradas.
+    const evtAtual = eventoAtualRef_app.current;
+    if (!evtAtual) return;
     const todasP = todasAsProvas();
-    const seriacaoSalva = eventoAtual.seriacao || {};
-    const configSeriacaoEvt = eventoAtual.configSeriacao || {};
+    const seriacaoSalva = evtAtual.seriacao || {};
+    const configSeriacaoEvt = evtAtual.configSeriacao || {};
     let novasSer = null;
 
     // Expande provasPrograma incluindo sub-provas de pista de combinadas
     const provasParaAutoGen = [];
-    (eventoAtual.provasPrograma || []).forEach(pid => {
+    (evtAtual.provasPrograma || []).forEach(pid => {
       const pp = todasP.find(x => x.id === pid);
       if (!pp) return;
       if (pp.tipo === "combinada") {
-        const comps = CombinedEventEngine.gerarProvasComponentes(pid, eventoAtual.id);
+        const comps = CombinedEventEngine.gerarProvasComponentes(pid, evtAtual.id);
         comps.forEach(c => { if (c.unidade === "s") provasParaAutoGen.push({ provaId: c.id, p: c }); });
       } else {
         provasParaAutoGen.push({ provaId: pid, p: pp });
@@ -1806,7 +1812,7 @@ function App() {
             if (serProxima?.series && !serProxima.autoGerada) return;
 
             // Verificar se TODOS os atletas da fase atual têm resultado
-            const chaveRes = resKey(eventoAtual.id, provaId, cat.id, sexo, faseSuf);
+            const chaveRes = resKey(evtAtual.id, provaId, cat.id, sexo, faseSuf);
             const resAtual = resultados[chaveRes] || {};
             const atletaIds = serAtual.series.flatMap(s => s.atletas.map(a => a.id || a.atletaId));
             if (atletaIds.length === 0) return;
@@ -1842,7 +1848,7 @@ function App() {
 
             // Mapear atletas classificados
             const atletasClassif = classificados.map(c => {
-              const a = atletas.find(aa => aa.id === c.atletaId);
+              const a = atletasRef_app.current.find(aa => aa.id === c.atletaId);
               return a ? { ...a, atletaId: a.id, marcaRef: c.marcaRef, origemClassif: c.origemClassif, ranking: c.ranking } : null;
             }).filter(Boolean);
 
@@ -1878,8 +1884,8 @@ function App() {
       });
     });
 
-    if (novasSer && eventoAtual?.id) {
-      _atualizarCamposEvento(eventoAtual.id, { seriacao: novasSer });
+    if (novasSer && evtAtual?.id) {
+      _atualizarCamposEvento(evtAtual.id, { seriacao: novasSer });
     }
     }, 800); // debounce — espera 800ms sem mudanças antes de processar
     return () => clearTimeout(timer);
