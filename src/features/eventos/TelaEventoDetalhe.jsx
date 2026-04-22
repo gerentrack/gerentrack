@@ -3,6 +3,7 @@ import DOMPurify from "dompurify";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { getStatusEvento, getStatusInscricoes, labelStatusEvento } from "./eventoHelpers";
 import { _getLocalEventoDisplay, _getClubeAtleta as _getClubeAtletaUtil, _getCbat } from "../../shared/formatters/utils";
+import { TeamScoringEngine } from "../../shared/engines/teamScoringEngine";
 import { todasAsProvas, getComposicaoCombinada } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/constants/categorias";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
@@ -797,7 +798,7 @@ function TelaEventoDetalhe() {
               <button style={{ padding:"8px 18px", borderRadius:8, border:`1px solid ${t.danger}44`, background: t.accentBg, color: t.danger, fontWeight:700, fontSize:12, cursor:"pointer" }}
                 onClick={async () => { 
                   if (await confirmar("Desbloquear esta competição para edição? Isso removerá a finalização."))
-                    alterarStatusEvento(eventoAtual.id, { competicaoFinalizada: false, competicaoFinalizadaEm: null, competicaoFinalizadaPor: null, snapshotAtletas: null });
+                    alterarStatusEvento(eventoAtual.id, { competicaoFinalizada: false, competicaoFinalizadaEm: null, competicaoFinalizadaPor: null, snapshotAtletas: null, snapshotClassifEquipes: null, snapshotClassifEquipesM: null, snapshotClassifEquipesF: null });
                 }}>
                 Desbloquear (Admin)
               </button>
@@ -1309,12 +1310,29 @@ function TelaEventoDetalhe() {
                       cbat: _getCbat(atl) || "",
                     };
                   });
+                  // ── Snapshot de classificação por equipes ──
+                  let snapshotClassifEquipes = null;
+                  let snapshotClassifEquipesM = null;
+                  let snapshotClassifEquipesF = null;
+                  try {
+                    if (eventoAtual.pontuacaoEquipes?.ativo) {
+                      snapshotClassifEquipes = TeamScoringEngine.calcularClassificacaoEquipes(eventoAtual, inscricoes, resultados, atletas, equipes, recordes);
+                      const cfgPont = eventoAtual.pontuacaoEquipes || {};
+                      if (cfgPont.classificacaoPorSexo) {
+                        snapshotClassifEquipesM = TeamScoringEngine.calcularClassificacaoEquipes(eventoAtual, inscricoes, resultados, atletas, equipes, recordes, "M");
+                        snapshotClassifEquipesF = TeamScoringEngine.calcularClassificacaoEquipes(eventoAtual, inscricoes, resultados, atletas, equipes, recordes, "F");
+                      }
+                    }
+                  } catch (e) { console.error("Erro ao gerar snapshot de classificação por equipes:", e); }
                   alterarStatusEvento(eventoAtual.id, {
                     competicaoFinalizada:    true,
                     competicaoFinalizadaEm:  Date.now(),
                     competicaoFinalizadaPor: usuarioLogado?.nome || "—",
                     competicaoEncerrada:     true,
                     snapshotAtletas,
+                    snapshotClassifEquipes,
+                    snapshotClassifEquipesM,
+                    snapshotClassifEquipesF,
                   });
                 }
               }}>

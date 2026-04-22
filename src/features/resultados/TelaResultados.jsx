@@ -507,12 +507,19 @@ function TelaResultados() {
     });
   });
 
-  // Classificação por equipes
-  const classifEquipes = TeamScoringEngine.calcularClassificacaoEquipes(eventoAtual, inscricoes, resultados, atletas, equipes, recordes);
+  // Classificação por equipes — usar snapshot se competição finalizada
+  const _usarSnapshotEquipes = eventoAtual?.competicaoFinalizada && eventoAtual?.snapshotClassifEquipes;
+  const classifEquipes = _usarSnapshotEquipes
+    ? eventoAtual.snapshotClassifEquipes
+    : TeamScoringEngine.calcularClassificacaoEquipes(eventoAtual, inscricoes, resultados, atletas, equipes, recordes);
   const _cfgPontEq = eventoAtual.pontuacaoEquipes || {};
   const classifPorSexoAtivo = !!_cfgPontEq.classificacaoPorSexo && !!_cfgPontEq.ativo;
-  const classifEquipesM = classifPorSexoAtivo ? TeamScoringEngine.calcularClassificacaoEquipes(eventoAtual, inscricoes, resultados, atletas, equipes, recordes, "M") : null;
-  const classifEquipesF = classifPorSexoAtivo ? TeamScoringEngine.calcularClassificacaoEquipes(eventoAtual, inscricoes, resultados, atletas, equipes, recordes, "F") : null;
+  const classifEquipesM = _usarSnapshotEquipes && eventoAtual.snapshotClassifEquipesM
+    ? eventoAtual.snapshotClassifEquipesM
+    : classifPorSexoAtivo ? TeamScoringEngine.calcularClassificacaoEquipes(eventoAtual, inscricoes, resultados, atletas, equipes, recordes, "M") : null;
+  const classifEquipesF = _usarSnapshotEquipes && eventoAtual.snapshotClassifEquipesF
+    ? eventoAtual.snapshotClassifEquipesF
+    : classifPorSexoAtivo ? TeamScoringEngine.calcularClassificacaoEquipes(eventoAtual, inscricoes, resultados, atletas, equipes, recordes, "F") : null;
 
   const isAdmin = usuarioLogado?.tipo === "admin";
   const isOrg = usuarioLogado?.tipo === "organizador";
