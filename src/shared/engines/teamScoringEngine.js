@@ -273,7 +273,7 @@ const TeamScoringEngine = {
 
           if (classificados.length === 0) return;
           totalProvasComResultado++;
-          if (!provaCompleta) return; // aguarda todos os resultados antes de pontuar
+          if (!provaCompleta) return;
           var pontosProva = TeamScoringEngine.calcularPontosProva(classificados, config, atletas, equipes);
           var provaLabel = prova.nome + " " + cat.nome + " " + (sexo === "M" ? "M" : "F");
           Object.keys(pontosProva).forEach(function(eqId) {
@@ -420,13 +420,29 @@ const TeamScoringEngine = {
       });
       if (atletaIds.length === 0) return;
 
+      // Coletar categorias alternativas das inscrições (inclui "COMB" de dados legados)
+      var catIdsInscs = [];
+      var _seenCat = {};
+      inscDoEvento.forEach(function(i) {
+        if (i.combinadaId === prova.id) {
+          var c = i.categoriaId || i.categoriaOficialId;
+          if (c && !_seenCat[c]) { _seenCat[c] = true; catIdsInscs.push(c); }
+        }
+      });
+      var catIdsTentar = [catId];
+      catIdsInscs.forEach(function(c) { if (c !== catId) catIdsTentar.push(c); });
+
       // Calcular pontuação
       var rows = atletaIds.map(function(aId) {
         var atl = atletas.find(function(a) { return a.id === aId; });
         var total = 0, provasRealizadas = 0;
         todasCompDaCombinada.forEach(function(pc) {
-          var chaveR = eid + "_" + pc.id + "_" + catId + "_" + sexoProva;
-          var res = resultados[chaveR] ? resultados[chaveR][aId] : null;
+          // Procurar resultado em todas as categorias possíveis (sub14, COMB, etc.)
+          var res = null;
+          for (var ci = 0; ci < catIdsTentar.length; ci++) {
+            var chaveR = eid + "_" + pc.id + "_" + catIdsTentar[ci] + "_" + sexoProva;
+            if (resultados[chaveR] && resultados[chaveR][aId] != null) { res = resultados[chaveR][aId]; break; }
+          }
           var marca = res ? (typeof res === "object" ? res.marca : res) : null;
           var ptsManuais = res ? (typeof res === "object" ? res.pontosTabela : null) : null;
           var marcaNum = marca != null ? parseFloat(String(marca).replace(",", ".")) : NaN;
@@ -445,8 +461,10 @@ const TeamScoringEngine = {
 
       // Só pontua se classificação final (todas provas componentes têm resultado)
       var provasJulgadas = todasCompDaCombinada.filter(function(pc) {
-        var chaveR = eventoAtual.id + "_" + pc.id + "_" + catId + "_" + sexoProva;
-        return resultados[chaveR] && Object.keys(resultados[chaveR]).length > 0;
+        return catIdsTentar.some(function(cid) {
+          var chaveR = eventoAtual.id + "_" + pc.id + "_" + cid + "_" + sexoProva;
+          return resultados[chaveR] && Object.keys(resultados[chaveR]).length > 0;
+        });
       }).length;
       var todasCompletas = provasJulgadas >= todasCompDaCombinada.length;
       if (!todasCompletas) return;
