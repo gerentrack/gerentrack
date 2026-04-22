@@ -83,4 +83,14 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false,
   },
+  test: {
+    globals: true,
+    environment: 'node',
+    include: ['src/**/__tests__/**/*.test.{js,jsx}'],
+    coverage: {
+      provider: 'v8',
+      include: ['src/shared/engines/**/*.js'],
+      exclude: ['src/shared/engines/__tests__/**', 'src/shared/engines/index.js'],
+    },
+  },
 })
