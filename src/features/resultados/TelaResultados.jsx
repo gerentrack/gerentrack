@@ -611,8 +611,8 @@ function TelaResultados() {
       </div>
       ${eventoAtual.logoRodape ? `<div style="margin-top:1px;text-align:center;"><img src="${eventoAtual.logoRodape}" alt="" style="max-width:100%;max-height:15mm;object-fit:contain;"/></div>` : ""}`;
 
-    // ── Classificação final das Combinadas ──
-    blocosCombinadas.forEach(bc => {
+    // ── Classificação final das Combinadas — só quando sem filtro de prova ──
+    if (filtroProva === "todas") blocosCombinadas.forEach(bc => {
       if (!bc.todasCompletas && bc.rows.length === 0) return;
       const labelStatus = bc.todasCompletas ? "CLASSIFICAÇÃO FINAL" : "CLASSIFICAÇÃO PARCIAL";
       const corStatus = bc.todasCompletas ? "#2a8a2a" : "#8a7a00";
@@ -662,8 +662,8 @@ function TelaResultados() {
         </div>`;
     });
 
-    // ── Classificação por Equipes ──
-    if (classifEquipes.classificacao.length > 0) {
+    // ── Classificação por Equipes — só quando sem filtro de prova ──
+    if (filtroProva === "todas" && classifEquipes.classificacao.length > 0) {
       const labelEq = classifEquipes.totalProvasComResultado >= classifEquipes.totalProvas ? "CLASSIFICAÇÃO FINAL" : "CLASSIFICAÇÃO PARCIAL";
       const corEq = classifEquipes.totalProvasComResultado >= classifEquipes.totalProvas ? "#2a8a2a" : "#8a7a00";
       htmlExtra += `

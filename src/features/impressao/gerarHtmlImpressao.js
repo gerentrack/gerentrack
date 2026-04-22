@@ -653,11 +653,11 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
       const atlPorSerieConf = cfgProvaObj.atlPorSerie || 12;
       const nRaiasConf = cfgProvaObj.nRaias || 8;
 
-      // Provas longas mostram série quando há seriação com múltiplas séries
-      const _temMultiSeries = _serSalvaCheck?.series?.length > 1;
+      // Sempre mostrar coluna de série para provas longas (mesmo com série única)
+      const _temSeriacao = !!_serSalvaCheck?.series;
       const thCor  = metros <= 200 ? thCor200 : metros <= 400 ? thCor400
-        : (_temMultiSeries ? thCorLongSerie : thCorLong);
-      const _ocultarSerie = isProvaLonga && !_temMultiSeries;
+        : (_temSeriacao ? thCorLongSerie : thCorLong);
+      const _ocultarSerie = isProvaLonga && !_temSeriacao;
       const tdSerie = (serieNum) => _ocultarSerie ? "" : `<td class="tdm">${serieNum != null ? serieNum : ""}</td>`;
       const tdSerieRes = (serieNum) => _ocultarSerie ? "" : `<td class="tdm">${serieNum != null ? serieNum : "\u2014"}</td>`;
 
