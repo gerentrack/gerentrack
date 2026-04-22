@@ -1481,8 +1481,6 @@ function TelaResultados() {
                 provaCompletaBlk = entradasBrutas >= inscsBlkPont.length;
               }
               const pontuacaoAtiva = eventoAtual.pontuacaoEquipes?.ativo === true && !b.prova.origemCombinada && isFaseFinal && provaCompletaBlk;
-              // Quando há séries + classificação geral, mostrar pts inline (badge) em vez de coluna separada
-              const ptsEqInline = pontuacaoAtiva && temSerieBlk && _serBlk?.series?.length > 1;
               const _cfgPontBlk = { ...(eventoAtual.pontuacaoEquipes || {}), equipeIdsFederados: eventoAtual.equipeIdsFederados || [] };
               const pontosEquipeBlk = pontuacaoAtiva
                 ? TeamScoringEngine.calcularPontosProva(b.classificados, _cfgPontBlk, atletas, equipes)
@@ -1730,7 +1728,7 @@ function TelaResultados() {
                       {isAlturaVara && <Th style={{ background:t.bgHeaderSolid, color: t.accent }}>Barras</Th>}
                       <Th>Melhor</Th>
                       {isFaseComSeries && <Th style={{ background: t.bgCardAlt, color: t.success }}>Class.</Th>}
-                      {pontuacaoAtiva && !ptsEqInline && <Th style={{ background: t.bgCardAlt, color: t.accent }}>Pts Eq.</Th>}
+                      {pontuacaoAtiva && <Th style={{ background: t.bgCardAlt, color: t.accent }}>Pts Eq.</Th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -1898,11 +1896,6 @@ function TelaResultados() {
                             }
                             return formatarMarcaExibicao(item.marca, b.prova.unidade, _msEmpatadosBloco, _superouRec);
                           })()}</strong>
-                          {/* Badge de pontuação por equipe inline (quando séries + classificação geral) */}
-                          {ptsEqInline && isSerieFinal && ptsEqPorAtleta[item.atleta?.id] && (
-                            <span style={{ display:"inline-block", fontSize:11, padding:"1px 6px", borderRadius:4, marginLeft:6, fontWeight:700,
-                              background: t.accentBg, color: t.accent }}>{ptsEqPorAtleta[item.atleta.id]} pts</span>
-                          )}
                           {/* Badge de recorde (compara com snapshot ou recordes atuais) */}
                           {!item.isStatus && item.atleta && (() => {
                             const snapshot = eventoAtual.recordesSnapshot || {};
@@ -1967,7 +1960,7 @@ function TelaResultados() {
                               return <strong style={{ color: t.accent, fontSize:14 }}>{qq}</strong>;
                             })()}
                           </Td>}
-                          {pontuacaoAtiva && !ptsEqInline && (isSerieFinal ? <Td style={{ background: t.bgCardAlt, textAlign:"center" }}>
+                          {pontuacaoAtiva && (isSerieFinal ? <Td style={{ background: t.bgCardAlt, textAlign:"center" }}>
                             {ptsEqPorAtleta[item.atleta?.id] ? (
                               <span style={{ color: t.accent, fontWeight:700, fontSize:14 }}>{ptsEqPorAtleta[item.atleta.id]}</span>
                             ) : <span style={{ color: t.textDisabled }}>—</span>}
@@ -2014,7 +2007,7 @@ function TelaResultados() {
                         const nColsFt = 4 + (temSerieBlk ? 1 : 0)
                           + (temRaiaBlk ? 1 : 0) + (temVentoBlk ? 1 : 0)
                           + (isCampoBlk ? 7 : 0) + (isAlturaVara ? 1 : 0) + 1
-                          + (pontuacaoAtiva && !ptsEqInline ? 1 : 0);
+                          + (pontuacaoAtiva ? 1 : 0);
                         const seriesOrdFt = [..._serBlk.series].sort((a2, b2) => a2.numero - b2.numero);
                         const rows = [];
                         for (const serie of seriesOrdFt) {
