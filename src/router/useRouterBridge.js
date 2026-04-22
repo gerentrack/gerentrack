@@ -201,6 +201,7 @@ export function useRouterBridge({
   tela, _setTela,
   eventos, organizadores,
   eventoAtualId, setEventoAtualId,
+  eventoAtualIdRef,
   organizadorPerfilId, setOrganizadorPerfilId,
   atletaEditandoId, setAtletaEditandoId,
 }) {
@@ -208,6 +209,16 @@ export function useRouterBridge({
   const location = useLocation();
   const inicializado = useRef(false);
   const navegandoPorTela = useRef(false);
+
+  // Refs para evitar stale closures no setTela callback
+  const organizadorPerfilIdRef = useRef(organizadorPerfilId);
+  organizadorPerfilIdRef.current = organizadorPerfilId;
+  const atletaEditandoIdRef = useRef(atletaEditandoId);
+  atletaEditandoIdRef.current = atletaEditandoId;
+  const eventosRef = useRef(eventos);
+  eventosRef.current = eventos;
+  const organizadoresRef = useRef(organizadores);
+  organizadoresRef.current = organizadores;
 
   // ── URL → tela (inicialização + back/forward) ──
   useEffect(() => {
@@ -237,19 +248,23 @@ export function useRouterBridge({
   }, [location.pathname, eventos.length, organizadores.length]);
 
   // ── setTela wrapper: tela → URL ──
+  // Usa refs para ler valores mais recentes (evita stale closure quando
+  // selecionarEvento chama setEventoAtualId + setTela no mesmo tick)
   const setTela = useCallback((novaTela, { replace = false } = {}) => {
     _setTela(novaTela);
     navegandoPorTela.current = true;
 
-    // Construir contexto para URL
-    const eventoAtual = eventos.find(ev => ev.id === eventoAtualId);
-    const orgItem = organizadores.find(o => o.id === organizadorPerfilId);
+    const evId = eventoAtualIdRef.current;
+    const evList = eventosRef.current;
+    const orgList = organizadoresRef.current;
+    const eventoAtual = evList.find(ev => ev.id === evId);
+    const orgItem = orgList.find(o => o.id === organizadorPerfilIdRef.current);
 
     const url = buildUrlForTela(novaTela, {
-      eventoSlug: eventoAtual?.slug || eventoAtualId,
-      eventoId: eventoAtualId,
+      eventoSlug: eventoAtual?.slug || evId,
+      eventoId: evId,
       slug: orgItem?.slug,
-      id: atletaEditandoId || undefined,
+      id: atletaEditandoIdRef.current || undefined,
     });
 
     if (url) {
@@ -259,7 +274,7 @@ export function useRouterBridge({
         navigate(url);
       }
     }
-  }, [_setTela, navigate, eventos, eventoAtualId, organizadores, organizadorPerfilId, atletaEditandoId]);
+  }, [_setTela, navigate]);
 
   return { setTela };
 }

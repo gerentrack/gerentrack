@@ -234,7 +234,7 @@ export default function TelaHome() {
           </div>
           {usuarioLogado?.tipo === "admin" && (
             <div style={{ position:"absolute", top:8, right:10, display:"flex", gap:6 }}>
-              <button style={{ ...s.btnIconSm, background:"rgba(0,0,0,0.5)", backdropFilter:"blur(4px)" }} onClick={() => { selecionarEvento(ev.id); setTela("novo-evento"); }} title="Editar">{IcoEdit(14)}</button>
+              <button style={{ ...s.btnIconSm, background:"rgba(0,0,0,0.5)", backdropFilter:"blur(4px)" }} onClick={() => selecionarEvento(ev.id, "novo-evento")} title="Editar">{IcoEdit(14)}</button>
               <button style={{ ...s.btnIconSmDanger, background:"rgba(0,0,0,0.5)", backdropFilter:"blur(4px)" }} onClick={() => excluirEvento(ev.id)} title="Excluir">{IcoTrash(14)}</button>
             </div>
           )}
@@ -268,13 +268,13 @@ export default function TelaHome() {
                 (tpU === "funcionario" && (usuarioLogado?.permissoes?.includes("sumulas") || usuarioLogado?.permissoes?.includes("resultados"))) ||
                 (ev.sumulaLiberada && usuarioLogado);
               return temAcessoSumula && (
-                <button style={{...s.btnSecondary, flex:1}} onClick={() => { selecionarEvento(ev.id); setTela("sumulas"); }}>
+                <button style={{...s.btnSecondary, flex:1}} onClick={() => selecionarEvento(ev.id, "sumulas")}>
                   Súmulas
                 </button>
               );
             })()}
             {(status === "ao_vivo" || status === "encerrado" || status === "hoje_pre") && (
-              <button style={{...s.btnSecondary, flex:1}} onClick={() => { selecionarEvento(ev.id); setTela("resultados"); }}>
+              <button style={{...s.btnSecondary, flex:1}} onClick={() => selecionarEvento(ev.id, "resultados")}>
                 Resultados
               </button>
             )}
@@ -437,7 +437,7 @@ export default function TelaHome() {
           <span style={{ fontSize:20, color: t.textDisabled, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>SEM COMPETIÇÕES</span>
           <p>Nenhuma competição cadastrada ainda.</p>
           {usuarioLogado?.tipo === "admin" && (
-            <button style={{ ...s.btnPrimary, width:"auto" }} onClick={() => { selecionarEvento(null); setTela("novo-evento"); }}>
+            <button style={{ ...s.btnPrimary, width:"auto" }} onClick={() => selecionarEvento(null, "novo-evento")}>
               Cadastrar primeira competição
             </button>
           )}
@@ -500,7 +500,7 @@ export default function TelaHome() {
                   onMouseEnter={e => e.currentTarget.style.borderColor = t.accent}
                   onMouseLeave={e => e.currentTarget.style.borderColor = t.border}>
                   <div style={{ flex:1 }}
-                    onClick={() => { selecionarEvento(ev.id); setTela("evento-detalhe"); }}>
+                    onClick={() => selecionarEvento(ev.id)}>
                     <div style={{ fontSize:14, fontWeight:700, color:t.textPrimary }}>
                       <span style={{ color:t.textDimmed, fontWeight:600 }}>{dataFmt}</span>
                       <span style={{ margin:"0 8px", color:t.textDisabled }}>—</span>
@@ -510,11 +510,11 @@ export default function TelaHome() {
                   </div>
                   <div style={{ display:"flex", gap:6, flexShrink:0 }}>
                     {temSumula && (
-                      <button style={{...s.btnSecondary, padding:"5px 12px", fontSize:12}} onClick={() => { selecionarEvento(ev.id); setTela("sumulas"); }}>
+                      <button style={{...s.btnSecondary, padding:"5px 12px", fontSize:12}} onClick={() => selecionarEvento(ev.id, "sumulas")}>
                         Súmulas
                       </button>
                     )}
-                    <button style={{...s.btnSecondary, padding:"5px 12px", fontSize:12}} onClick={() => { selecionarEvento(ev.id); setTela("resultados"); }}>
+                    <button style={{...s.btnSecondary, padding:"5px 12px", fontSize:12}} onClick={() => selecionarEvento(ev.id, "resultados")}>
                       Resultados
                     </button>
                   </div>

@@ -515,7 +515,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes }) {
             <div style={s.sectionHd}>Ações Rápidas</div>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))", gap:10 }}>
               {[
-                { label:"Criar Competição",   action:() => { selecionarEvento(null); setTela("novo-evento"); }, primary:true },
+                { label:"Criar Competição",   action:() => { selecionarEvento(null, "novo-evento"); }, primary:true },
                 { label:"Cadastrar Atleta",   action:() => setTela("cadastrar-atleta") },
                 { label:"Gerenciar Equipes",  action:() => setTela("gerenciar-equipes") },
                 { label:"Gerenciar Usuários", action:() => setTela("gerenciar-usuarios") },
@@ -751,7 +751,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes }) {
           <div style={s.card}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:14 }}>
               <div style={s.sectionHd}>Todas as Competições ({eventos.length})</div>
-              <button style={s.btnPrimary} onClick={async () => { selecionarEvento(null); setTela("novo-evento"); }}>+ Nova Competição</button>
+              <button style={s.btnPrimary} onClick={async () => { selecionarEvento(null, "novo-evento"); }}>+ Nova Competição</button>
             </div>
             <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
               <input type="text" value={buscaComp} onChange={e=>setBuscaComp(e.target.value)}
@@ -782,9 +782,9 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes }) {
                         </div>
                         <div style={{ display:"flex", gap:5 }}>
                           <button style={{ ...s.btnSecondary, fontSize:11, padding:"3px 10px" }}
-                            onClick={async () => { selecionarEvento(ev.id); setTela("evento-detalhe"); }}>Acessar</button>
+                            onClick={async () => { selecionarEvento(ev.id); }}>Acessar</button>
                           <button style={{ ...s.btnGhost, fontSize:11, padding:"3px 10px" }}
-                            onClick={async () => { selecionarEvento(ev.id); setTela("novo-evento"); }}>Editar</button>
+                            onClick={async () => { selecionarEvento(ev.id, "novo-evento"); }}>Editar</button>
                           <button style={{ ...s.btnGhost, fontSize:11, padding:"3px 9px", color: t.danger, borderColor:`${t.danger}44` }}
                             onClick={() => excluirEvento(ev.id)}>✕</button>
                         </div>

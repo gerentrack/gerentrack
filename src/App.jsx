@@ -360,18 +360,10 @@ function App() {
 
   const eventoAtual = eventos.find((e) => e.id === eventoAtualId) || null;
 
-  // ── Validar que o evento pertence ao usuário logado ──────────────────────
-  useEffect(() => {
-    if (!eventoAtual || !usuarioLogado) return;
-    const tipo = usuarioLogado.tipo;
-    if (tipo === "admin") return; // admin acessa tudo
-    const orgId = tipo === "funcionario" ? usuarioLogado.organizadorId : usuarioLogado.id;
-    if (tipo === "organizador" || tipo === "funcionario") {
-      if (eventoAtual.organizadorId && eventoAtual.organizadorId !== orgId) {
-        setEventoAtualId(null);
-      }
-    }
-  }, [eventoAtual, usuarioLogado, setEventoAtualId]);
+  // Controle de acesso a competições é feito nas telas individuais:
+  // - TelaCadastroEvento bloqueia edição de eventos de outro organizador
+  // - Demais telas de gestão verificam permissões conforme necessário
+  // selecionarEvento permite visualizar qualquer competição (resultados, detalhes, súmulas)
 
   // ── Routing via React Router Bridge (substitui pushState/popstate manual) ──
   const eventoAtualIdRef = useRef(eventoAtualId);
@@ -385,6 +377,7 @@ function App() {
     tela, _setTela,
     eventos, organizadores,
     eventoAtualId, setEventoAtualId,
+    eventoAtualIdRef,
     organizadorPerfilId, setOrganizadorPerfilId,
     atletaEditandoId, setAtletaEditandoId,
   });
@@ -1893,16 +1886,12 @@ function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resultados]);
 
-  const selecionarEvento = (id) => {
-    // Validar que o evento pertence ao usuário logado
-    if (usuarioLogado && usuarioLogado.tipo !== "admin") {
-      const ev = eventos.find(e => e.id === id);
-      const orgId = usuarioLogado.tipo === "funcionario" ? usuarioLogado.organizadorId : usuarioLogado.id;
-      if (ev && ev.organizadorId && ev.organizadorId !== orgId) return;
-    }
+  const selecionarEvento = (id, targetTela = "evento-detalhe") => {
+    // Controle de acesso é feito nas telas individuais (TelaCadastroEvento, etc.)
+    // selecionarEvento apenas navega — qualquer usuário pode visualizar qualquer competição
     setEventoAtualId(id);
     eventoAtualIdRef.current = id;
-    setTela("evento-detalhe");
+    setTela(targetTela);
   };
 
   const selecionarOrganizador = useCallback((orgId) => {
