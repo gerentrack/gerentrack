@@ -342,6 +342,12 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
     <th style="width:66px">NASCIMENTO</th><th class="thal">EQUIPE</th>
     <th style="width:68px">MARCA</th><th style="width:32px">POS.</th>`;
 
+  const thCorLongSerieBase = `
+    <th style="width:24px">#</th><th style="width:34px">Nº</th><th style="width:52px">CBAt</th><th class="thal">ATLETA</th>
+    <th style="width:66px">NASCIMENTO</th><th class="thal">EQUIPE</th>
+    <th style="width:34px">SÉR.</th>
+    <th style="width:68px">MARCA</th><th style="width:32px">POS.</th>`;
+
   const thCampoParBase = `
     <th style="width:24px">#</th><th style="width:34px">Nº</th><th style="width:52px">CBAt</th><th class="thal">ATLETA</th>
     <th style="width:68px">NASCIMENTO</th><th class="thal">EQUIPE</th>
@@ -605,6 +611,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
     const thCor200 = `<tr>${thCor200Base}${_thClassif}${_thPtsEq}</tr>`;
     const thCor400 = `<tr>${thCor400Base}${_thClassif}${_thPtsEq}</tr>`;
     const thCorLong = `<tr>${thCorLongBase}${_thClassif}${_thPtsEq}</tr>`;
+    const thCorLongSerie = `<tr>${thCorLongSerieBase}${_thClassif}${_thPtsEq}</tr>`;
     const thCampoPar = `<tr>${thCampoParBase}</tr>`;
     const thCampoFin = `<tr>${thCampoFinBase}${_thClassif}${_thPtsEq}</tr>`;
 
@@ -624,7 +631,6 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
     if (isTempo) {
       // escolhe th e monta tds de resultado de acordo com a distância
       const metros = metrosProva(s.prova);
-      const thCor  = metros <= 200 ? thCor200 : metros <= 400 ? thCor400 : thCorLong;
 
       // células de raia e vento (condicionais)
       const tdRaiaVazio  = metros <= 400 ? `<td class="tdm"></td>` : "";
@@ -647,8 +653,13 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
       const atlPorSerieConf = cfgProvaObj.atlPorSerie || 12;
       const nRaiasConf = cfgProvaObj.nRaias || 8;
 
-      const tdSerie = (serieNum) => isProvaLonga ? "" : `<td class="tdm">${serieNum != null ? serieNum : ""}</td>`;
-      const tdSerieRes = (serieNum) => isProvaLonga ? "" : `<td class="tdm">${serieNum != null ? serieNum : "\u2014"}</td>`;
+      // Provas longas mostram série quando há seriação com múltiplas séries
+      const _temMultiSeries = _serSalvaCheck?.series?.length > 1;
+      const thCor  = metros <= 200 ? thCor200 : metros <= 400 ? thCor400
+        : (_temMultiSeries ? thCorLongSerie : thCorLong);
+      const _ocultarSerie = isProvaLonga && !_temMultiSeries;
+      const tdSerie = (serieNum) => _ocultarSerie ? "" : `<td class="tdm">${serieNum != null ? serieNum : ""}</td>`;
+      const tdSerieRes = (serieNum) => _ocultarSerie ? "" : `<td class="tdm">${serieNum != null ? serieNum : "\u2014"}</td>`;
 
       let _posFedContador = 0;
       const _posImp = (a, j) => {
