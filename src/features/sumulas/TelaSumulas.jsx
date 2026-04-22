@@ -503,7 +503,11 @@ function TelaSumulas({ chamada, getPresencaProva }) {
           const fasesConf = MODO_FASES[cfgP.modo] || [];
           const multiFases = fasesConf.length > 1;
 
-          CATEGORIAS.forEach(cat => {
+          // Para componentes de combinada, incluir pseudo-categoria "COMB" além das padrão
+          const catsIterar = isCombinadaComp
+            ? [...CATEGORIAS, ...([...new Set(inscDoEvento.filter(i => i.provaId === provaId && i.origemCombinada).map(i => i.categoriaId || i.categoriaOficialId))].filter(c => !CATEGORIAS.some(cc => cc.id === c)).map(c => ({ id: c, nome: c })))]
+            : CATEGORIAS;
+          catsIterar.forEach(cat => {
             ["M","F"].forEach(sexo => {
               const inscs = inscDoEvento.filter(i =>
                 i.provaId === provaId && (i.categoriaId || i.categoriaOficialId) === cat.id && i.sexo === sexo &&
