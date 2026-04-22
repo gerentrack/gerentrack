@@ -453,10 +453,11 @@ const TeamScoringEngine = {
       totalProvasComResultado++;
 
       // Montar classificados no formato esperado por calcularPontosProva
+      // Filtrar atletas sem total válido (total > 0) — análogo ao filtro de provas individuais
       var classificados = rows.map(function(r) {
         var atl = atletas.find(function(a) { return a.id === r.atletaId; });
         return { atleta: atl, marca: r.total };
-      }).filter(function(x) { return x.atleta; });
+      }).filter(function(x) { return x.atleta && x.marca != null && !isNaN(x.marca) && x.marca > 0; });
 
       var pontosProva = TeamScoringEngine.calcularPontosProva(classificados, config, atletas, equipes);
       var comp = getComposicaoCombinada(prova.id);
