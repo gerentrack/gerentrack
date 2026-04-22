@@ -543,19 +543,30 @@ function TelaSumulas({ chamada, getPresencaProva }) {
         });
 
         // Provas de REVEZAMENTO com inscrições
+        // Dedup por nome: variantes M_/F_ do mesmo revezamento são a mesma prova lógica
         const provasRevezPista = [];
+        const _revezVistos = new Set();
         (eventoAtual.provasPrograma || []).forEach(provaId => {
           const p = todasP.find(pp => pp.id === provaId);
           if (!p || p.tipo !== "revezamento") return;
           const metros = _metrosFromId(provaId);
           const cfgP = getConfigProva(provaId);
+          // IDs de todas as variantes com o mesmo nome (ex: M_sub14_5x60m e F_sub14_5x60m)
+          const variantesIds = (eventoAtual.provasPrograma || []).filter(pid => {
+            const pp = todasP.find(x => x.id === pid);
+            return pp && pp.tipo === "revezamento" && pp.nome === p.nome;
+          });
           CATEGORIAS.forEach(cat => {
             ["M","F"].forEach(sexo => {
+              const chaveDedup = `${p.nome}_${cat.id}_${sexo}`;
+              if (_revezVistos.has(chaveDedup)) return;
+              // Buscar inscrições em TODAS as variantes com mesmo nome
               const inscs = inscDoEvento.filter(i =>
-                i.tipo === "revezamento" && i.provaId === provaId &&
+                i.tipo === "revezamento" && variantesIds.includes(i.provaId) &&
                 (i.categoriaId || i.categoriaOficialId) === cat.id && i.sexo === sexo
               );
               if (inscs.length <= 0) return;
+              _revezVistos.add(chaveDedup);
               const chave = `${provaId}_${cat.id}_${sexo}`;
               const jaSeriada = !!seriacaoSalva[chave];
               // Revezamentos: mapear equipes
