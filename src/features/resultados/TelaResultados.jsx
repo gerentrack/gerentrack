@@ -1483,7 +1483,7 @@ function TelaResultados() {
               const pontuacaoAtiva = eventoAtual.pontuacaoEquipes?.ativo === true && !b.prova.origemCombinada && isFaseFinal && provaCompletaBlk;
               const _cfgPontBlk = { ...(eventoAtual.pontuacaoEquipes || {}), equipeIdsFederados: eventoAtual.equipeIdsFederados || [] };
               const pontosEquipeBlk = pontuacaoAtiva
-                ? TeamScoringEngine.calcularPontosProva(b.classificados, _cfgPontBlk, atletas, equipes)
+                ? TeamScoringEngine.calcularPontosProva(b.classificados.filter(item => !item.isStatus && item.marca != null), _cfgPontBlk, atletas, equipes)
                 : {};
               // Mapear atletaId → pontos (respeita limite de atletas por equipe)
               const ptsEqPorAtleta = {};
