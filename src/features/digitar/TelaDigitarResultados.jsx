@@ -1049,20 +1049,33 @@ function BlocoDigitarCategoria({
                   <th style={s.th}>ATUAL</th>
                 </tr></thead>
                 <tbody>
-                  {equipesRevezNaProva.map((eq, j) => {
-                    const m = marcas[eq.equipeId] || {};
-                    const existMarca = getExistEq(eq.equipeId, "marca", null);
-                    const existStatus = getExistEq(eq.equipeId, "status", "");
+                  {(() => {
+                    // Pré-calcular série/raia de cada equipe a partir da seriação salva
                     const serChave = `${filtroProva}_${catId}_${filtroSexo}`;
-                    const serSalva = eventoAtual.seriacao?.[serChave];
-                    const serInfo = (() => {
-                      if (!serSalva?.series) return { serie: "", raia: "" };
-                      for (const ser of serSalva.series) {
-                        const found = ser.atletas.find(a => (a.id || a.equipeId) === eq.equipeId);
+                    const serSalvaRevez = eventoAtual.seriacao?.[serChave];
+                    const _getSerInfoRevez = (eqId) => {
+                      if (!serSalvaRevez?.series) return { serie: "", raia: "" };
+                      for (const ser of serSalvaRevez.series) {
+                        const found = ser.atletas.find(a => (a.id || a.equipeId) === eqId);
                         if (found) return { serie: String(ser.numero), raia: found.raia ? String(found.raia) : "" };
                       }
                       return { serie: "", raia: "" };
-                    })();
+                    };
+                    // Ordenar por série e raia para agrupar visualmente
+                    const eqsOrdenadas = [...equipesRevezNaProva].sort((ea, eb) => {
+                      const sa = _getSerInfoRevez(ea.equipeId), sb = _getSerInfoRevez(eb.equipeId);
+                      const sn = (parseInt(sa.serie) || 99) - (parseInt(sb.serie) || 99);
+                      if (sn !== 0) return sn;
+                      return (parseInt(sa.raia) || 99) - (parseInt(sb.raia) || 99);
+                    });
+                    const temSeriesRevez = serSalvaRevez?.series?.length > 1;
+                    const nColsRevez = 3 + 1 + (temRaia ? 1 : 0) + (temVento ? 1 : 0) + 3;
+                    let _prevSerieRevez = "";
+                    return eqsOrdenadas.map((eq, j) => {
+                    const m = marcas[eq.equipeId] || {};
+                    const existMarca = getExistEq(eq.equipeId, "marca", null);
+                    const existStatus = getExistEq(eq.equipeId, "status", "");
+                    const serInfo = _getSerInfoRevez(eq.equipeId);
                     const existRaia = getExistEq(eq.equipeId, "raia", "") || serInfo.raia;
                     const existSerie = getExistEq(eq.equipeId, "serie", "") || serInfo.serie;
                     const existVento = getExistEq(eq.equipeId, "vento", "");
@@ -1072,8 +1085,16 @@ function BlocoDigitarCategoria({
                     const valSerie = m.serie !== undefined ? m.serie : existSerie;
                     const valVento = m.vento !== undefined ? m.vento : existVento;
                     const isStatusAtivo = !!valStatus;
+                    const showSerieHeaderRevez = temSeriesRevez && serInfo.serie && serInfo.serie !== _prevSerieRevez;
+                    if (serInfo.serie) _prevSerieRevez = serInfo.serie;
                     return (
-                      <tr key={eq.equipeId} style={{ ...s.tr, ...(j < 3 ? { background: t.bgCardAlt } : {}) }}>
+                      <React.Fragment key={eq.equipeId}>
+                      {showSerieHeaderRevez && (
+                        <tr><td colSpan={nColsRevez} style={{ padding:"8px 12px", background: t.accentBg, borderBottom:`2px solid ${t.accentBorder}`, color: t.accent, fontWeight:700, fontSize:12 }}>
+                          Série {serInfo.serie}
+                        </td></tr>
+                      )}
+                      <tr style={{ ...s.tr, ...(j < 3 && !temSeriesRevez ? { background: t.bgCardAlt } : {}) }}>
                         <Td><strong style={{ color: t.textTertiary }}>{j + 1}</strong></Td>
                         <Td><strong style={{ color: t.accent }}>{eq.nomeEquipe}{eq.sigla ? ` (${eq.sigla})` : ""}</strong></Td>
                         <Td>{eq.atletas.length > 0
@@ -1127,8 +1148,10 @@ function BlocoDigitarCategoria({
                           ) : <span style={{ color: t.textDisabled }}>—</span>}
                         </Td>
                       </tr>
+                      </React.Fragment>
                     );
-                  })}
+                  });
+                  })()}
                 </tbody>
               </table>
               <div style={{ display: "flex", gap: 10, marginTop: 16, flexWrap: "wrap", alignItems: "center" }}>
