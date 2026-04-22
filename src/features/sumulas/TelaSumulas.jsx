@@ -476,23 +476,9 @@ function TelaSumulas({ chamada, getPresencaProva }) {
           // Componentes de combinada são virtuais (não estão em todasP) → salvar direto pelo id
           // Propagação restrita ao mesmo sexo (M e F têm configurações independentes)
           const sxBase = base?.id?.[0];
-          let alvos;
-          if (base) {
-            alvos = todasP.filter(p => p.nome === base.nome && p.id?.[0] === sxBase && (eventoAtual.provasPrograma || []).includes(p.id));
-          } else {
-            // Componente de combinada: propagar para a contraparte M/F do mesmo sufixo
-            // ID: evt1_COMB_M_sub14_tetratlo_0_60mB → contraparte: evt1_COMB_F_sub14_tetratlo_0_60mB
-            alvos = [{ id: provaId }];
-            const combMatch = provaId.match(/^(.+_COMB_)([MF])(_.*)/);
-            if (combMatch) {
-              const outraLetra = combMatch[2] === "M" ? "F" : "M";
-              const outraId = combMatch[1] + outraLetra + combMatch[3];
-              // Só adicionar se a combinada do outro sexo existe no programa expandido
-              if (provasProgramaExpandidas.some(pp => pp.provaId === outraId)) {
-                alvos.push({ id: outraId });
-              }
-            }
-          }
+          const alvos = base
+            ? todasP.filter(p => p.nome === base.nome && p.id?.[0] === sxBase && (eventoAtual.provasPrograma || []).includes(p.id))
+            : [{ id: provaId }];
           alvos.forEach(p => {
             const prev = cfgAtual[p.id];
             const prevObj = (!prev) ? {} : (typeof prev === "string") ? { modo: prev } : { ...prev };
