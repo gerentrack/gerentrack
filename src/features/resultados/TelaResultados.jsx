@@ -775,8 +775,8 @@ function TelaResultados() {
         )}
       </div>
 
-      {/* Classificação por Equipes */}
-      {classifEquipes.classificacao.length > 0 && (() => {
+      {/* Classificação por Equipes — oculta quando filtro de prova ativo */}
+      {filtroProva === "todas" && classifEquipes.classificacao.length > 0 && (() => {
         const _classifAtiva = abaClassifEquipe === "masc" && classifEquipesM ? classifEquipesM
           : abaClassifEquipe === "fem" && classifEquipesF ? classifEquipesF
           : classifEquipes;
@@ -1042,8 +1042,8 @@ function TelaResultados() {
         </div>
       ) : (
         <div>
-          {/* Classificação das Combinadas */}
-          {blocosCombinadas.map((bc, bcIdx) => {
+          {/* Classificação das Combinadas — oculta quando filtro de prova ativo */}
+          {filtroProva === "todas" && blocosCombinadas.map((bc, bcIdx) => {
             // Classificação apenas federados para combinadas
             const _cfgFedComb = { ...(eventoAtual.pontuacaoEquipes || {}), equipeIdsFederados: eventoAtual.equipeIdsFederados || [] };
             const _fedAtivoComb = _cfgFedComb.classificacaoApenasFederados
