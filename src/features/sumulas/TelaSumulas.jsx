@@ -1080,6 +1080,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                           setSeriacaoProvaId(item.provaId);
                           setSeriacaoCat(item.cat.id);
                           setSeriacaoSexo(item.sexo);
+                          setSeriacaoChaveAtiva(item.chave);
                           const salva = seriacaoSalva[item.chave];
                           const mSer = {};
                           item.equipesRevez.forEach(eq => {
