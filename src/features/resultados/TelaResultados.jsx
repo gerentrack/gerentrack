@@ -611,8 +611,8 @@ function TelaResultados() {
       </div>
       ${eventoAtual.logoRodape ? `<div style="margin-top:1px;text-align:center;"><img src="${eventoAtual.logoRodape}" alt="" style="max-width:100%;max-height:15mm;object-fit:contain;"/></div>` : ""}`;
 
-    // ── Classificação final das Combinadas — só quando sem filtro de prova ──
-    if (filtroProva === "todas") blocosCombinadas.forEach(bc => {
+    // ── Classificação final das Combinadas — mostra quando filtro é "todas" ou é a combinada filtrada ──
+    blocosCombinadas.filter(bc => filtroProva === "todas" || bc.comp.nome === filtroProva || bc.provaInfo.nome === filtroProva).forEach(bc => {
       if (!bc.todasCompletas && bc.rows.length === 0) return;
       const labelStatus = bc.todasCompletas ? "CLASSIFICAÇÃO FINAL" : "CLASSIFICAÇÃO PARCIAL";
       const corStatus = bc.todasCompletas ? "#2a8a2a" : "#8a7a00";
@@ -1042,8 +1042,8 @@ function TelaResultados() {
         </div>
       ) : (
         <div>
-          {/* Classificação das Combinadas — oculta quando filtro de prova ativo */}
-          {filtroProva === "todas" && blocosCombinadas.map((bc, bcIdx) => {
+          {/* Classificação das Combinadas — mostra quando filtro é "todas" ou é a combinada filtrada */}
+          {blocosCombinadas.filter(bc => filtroProva === "todas" || bc.comp.nome === filtroProva || bc.provaInfo.nome === filtroProva).map((bc, bcIdx) => {
             // Classificação apenas federados para combinadas
             const _cfgFedComb = { ...(eventoAtual.pontuacaoEquipes || {}), equipeIdsFederados: eventoAtual.equipeIdsFederados || [] };
             const _fedAtivoComb = _cfgFedComb.classificacaoApenasFederados
