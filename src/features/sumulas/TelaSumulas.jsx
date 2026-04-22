@@ -1198,6 +1198,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                         <thead>
                           <tr style={{ borderBottom:`2px solid ${t.border}` }}>
                             <th style={{ padding:"4px 8px", textAlign:"left", color: t.textMuted, fontSize:10 }}>#</th>
+                            <th style={{ padding:"4px 8px", textAlign:"center", color: t.textMuted, fontSize:10 }}>Nº</th>
                             <th style={{ padding:"4px 8px", textAlign:"left", color: t.textMuted, fontSize:10 }}>Atleta</th>
                             <th style={{ padding:"4px 8px", textAlign:"left", color: t.textMuted, fontSize:10 }}>Clube/Equipe</th>
                             <th style={{ padding:"4px 8px", textAlign:"center", color: t.accent, fontSize:10, width:120 }}>Marca Ref. (s)</th>
@@ -1210,6 +1211,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                             return (
                               <tr key={insc.id || `ref-${idx}`} style={{ borderBottom:`1px solid ${t.border}` }}>
                                 <td style={{ padding:"4px 8px", color: t.textDimmed }}>{idx+1}</td>
+                                <td style={{ padding:"4px 8px", textAlign:"center", color: t.textTertiary, fontWeight:600, fontSize:11 }}>{formatarPeito((numeracaoPeito?.[eventoAtual?.id]||{})[a.id])}</td>
                                 <td style={{ padding:"4px 8px", color: t.textPrimary, fontWeight:500 }}>{a.nome}</td>
                                 <td style={{ padding:"4px 8px", color: t.textDimmed, fontSize:11 }}>{getExibicaoEquipe(a, equipes)||"—"}</td>
                                 <td style={{ padding:"4px 8px", textAlign:"center" }}>
@@ -1249,6 +1251,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                         <thead>
                           <tr style={{ borderBottom:`2px solid ${t.border}` }}>
                             <th style={{ padding:"4px 8px", textAlign:"left", color: t.textMuted, fontSize:10 }}>#</th>
+                            <th style={{ padding:"4px 8px", textAlign:"center", color: t.textMuted, fontSize:10 }}>Nº</th>
                             <th style={{ padding:"4px 8px", textAlign:"left", color: t.textMuted, fontSize:10 }}>Atleta</th>
                             <th style={{ padding:"4px 8px", textAlign:"left", color: t.textMuted, fontSize:10 }}>Clube/Equipe</th>
                             <th style={{ padding:"4px 8px", textAlign:"center", color: t.accent, fontSize:10, width:60 }}>Série</th>
@@ -1263,6 +1266,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                             return (
                               <tr key={insc.id || `manual-${idx}`} style={{ borderBottom:`1px solid ${t.border}` }}>
                                 <td style={{ padding:"4px 8px", color: t.textDimmed }}>{idx+1}</td>
+                                <td style={{ padding:"4px 8px", textAlign:"center", color: t.textTertiary, fontWeight:600, fontSize:11 }}>{formatarPeito((numeracaoPeito?.[eventoAtual?.id]||{})[a.id])}</td>
                                 <td style={{ padding:"4px 8px", color: t.textPrimary, fontWeight:500 }}>{a.nome}</td>
                                 <td style={{ padding:"4px 8px", color: t.textDimmed, fontSize:11 }}>{getExibicaoEquipe(a, equipes)||"—"}</td>
                                 <td style={{ padding:"4px 4px", textAlign:"center" }}>
