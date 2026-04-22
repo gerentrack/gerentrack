@@ -326,42 +326,42 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
 
   // th templates — PTS EQ. column is added dynamically per sumula via _thPtsEq
   const thCor200Base = `
-    <th style="width:24px">#</th><th style="width:34px">Nº</th><th style="width:52px">CBAt</th><th class="thal">ATLETA</th>
+    <th style="width:34px">Nº</th><th style="width:52px">CBAt</th><th class="thal">ATLETA</th>
     <th style="width:66px">NASCIMENTO</th><th class="thal">EQUIPE</th>
     <th style="width:40px">SÉR.</th><th style="width:34px">RAIA</th>
     <th style="width:38px">VENTO</th><th style="width:68px">MARCA</th><th style="width:32px">POS.</th>`;
 
   const thCor400Base = `
-    <th style="width:24px">#</th><th style="width:34px">Nº</th><th style="width:52px">CBAt</th><th class="thal">ATLETA</th>
+    <th style="width:34px">Nº</th><th style="width:52px">CBAt</th><th class="thal">ATLETA</th>
     <th style="width:66px">NASCIMENTO</th><th class="thal">EQUIPE</th>
     <th style="width:40px">SÉR.</th><th style="width:34px">RAIA</th>
     <th style="width:68px">MARCA</th><th style="width:32px">POS.</th>`;
 
   const thCorLongBase = `
-    <th style="width:24px">#</th><th style="width:34px">Nº</th><th style="width:52px">CBAt</th><th class="thal">ATLETA</th>
+    <th style="width:34px">Nº</th><th style="width:52px">CBAt</th><th class="thal">ATLETA</th>
     <th style="width:66px">NASCIMENTO</th><th class="thal">EQUIPE</th>
     <th style="width:68px">MARCA</th><th style="width:32px">POS.</th>`;
 
   const thCorLongSerieBase = `
-    <th style="width:24px">#</th><th style="width:34px">Nº</th><th style="width:52px">CBAt</th><th class="thal">ATLETA</th>
+    <th style="width:34px">Nº</th><th style="width:52px">CBAt</th><th class="thal">ATLETA</th>
     <th style="width:66px">NASCIMENTO</th><th class="thal">EQUIPE</th>
     <th style="width:34px">SÉR.</th>
     <th style="width:68px">MARCA</th><th style="width:32px">POS.</th>`;
 
   const thCampoParBase = `
-    <th style="width:24px">#</th><th style="width:34px">Nº</th><th style="width:52px">CBAt</th><th class="thal">ATLETA</th>
+    <th style="width:34px">Nº</th><th style="width:52px">CBAt</th><th class="thal">ATLETA</th>
     <th style="width:68px">NASCIMENTO</th><th class="thal">EQUIPE</th>
     <th style="width:46px">T1</th><th style="width:46px">T2</th><th style="width:46px">T3</th>
     <th style="width:60px">MELHOR</th><th style="width:46px">CL.PARC.</th><th style="width:34px">\u2192FIN.</th>`;
 
   const thCampoFinBase = `
-    <th style="width:24px">#</th><th style="width:34px">Nº</th><th style="width:52px">CBAt</th><th class="thal">ATLETA</th>
+    <th style="width:34px">Nº</th><th style="width:52px">CBAt</th><th class="thal">ATLETA</th>
     <th style="width:68px">NASCIMENTO</th><th class="thal">EQUIPE</th>
     <th style="width:46px">T4</th><th style="width:46px">T5</th><th style="width:46px">T6</th>
     <th style="width:60px">MELHOR</th><th style="width:34px">POS.</th>`;
 
   const thExc = `<tr>
-    <th style="width:24px">#</th><th style="width:34px">Nº</th><th style="width:52px">CBAt</th><th class="thal">ATLETA</th>
+    <th style="width:34px">Nº</th><th style="width:52px">CBAt</th><th class="thal">ATLETA</th>
     <th style="width:68px">NASCIMENTO</th><th class="thal">EQUIPE</th>
     <th style="width:60px">MELHOR T1-T3</th><th style="width:34px">CLASS.</th>
   </tr>`;
@@ -490,7 +490,6 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
           }
         }
         return `<tr class="${j%2===0?"par":"imp"}">
-          <td class="tdn">${posRevezImp || (j+1)}</td>
           ${temSeriacao ? `<td class="tdn">${eq.serie || ""}</td><td class="tdn" style="font-weight:700;color:#000">${eq.raia || ""}</td>` : ""}
           <td class="tdal" style="font-weight:700">${eq.nomeEquipe}${eq.sigla ? ` <span style="color:#888;font-size:8px">(${eq.sigla})</span>` : ""}</td>
           <td class="tdal" style="font-size:8px;color:#444">${atlNomes}</td>
@@ -500,8 +499,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
         </tr>`;
       }).join("");
 
-      const thRevez = `<th style="width:24px">#</th>
-        ${temSeriacao ? `<th style="width:30px">SÉR.</th><th style="width:30px">RAIA</th>` : ""}
+      const thRevez = `${temSeriacao ? `<th style="width:30px">SÉR.</th><th style="width:30px">RAIA</th>` : ""}
         <th class="thal" style="min-width:120px">EQUIPE</th>
         <th class="thal" style="min-width:180px">ATLETAS (${nPernas})</th>
         ${temVento ? `<th style="width:38px">VENTO</th>` : ""}
@@ -669,7 +667,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
       };
       const linhaVazia = (a, j, serieNum) => `
         <tr class="${j%2===0?"par":"imp"}">
-          <td class="tdn">${j+1}</td>
+
           <td class="tdn" style="font-weight:700;color:#333">${formatarPeito(numPeito[a.id])}</td>
           <td class="tdcbat">${_getCbat(a)}</td>
           <td class="tdal"><span class="anome">${a.nome}</span>${excTag(getInsc(a))}</td>
@@ -682,7 +680,6 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
         const posDisp = isFin ? _posImp(a, j) : (j + 1);
         return `
         <tr class="${j%2===0?"par":"imp"}">
-          <td class="tdn">${posDisp}</td>
           <td class="tdn" style="font-weight:700;color:#333">${formatarPeito(numPeito[a.id])}</td>
           <td class="tdcbat">${_getCbat(a)}</td>
           <td class="tdal"><span class="anome">${a.nome}</span>${excTag(getInsc(a))}</td>
@@ -794,7 +791,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
                 ${infoBarreiras}
                 <table><thead>${thCor}</thead><tbody>${atletasSerie.map(({atleta:a, raia}, j) => `
                   <tr class="${j%2===0?"par":"imp"}">
-                    <td class="tdn">${j+1}</td>
+          
                     <td class="tdn" style="font-weight:700;color:#333">${formatarPeito(numPeito[a.id])}</td>
                     <td class="tdcbat">${_getCbat(a)}</td>
                     <td class="tdal"><span class="anome">${a.nome}</span>${excTag(getInsc(a))}</td>
@@ -817,7 +814,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
                 ${infoBarreiras}
                 <table><thead>${thCor}</thead><tbody>${Array.from({length:nRaias}).map((_,j)=>`
                   <tr class="${j%2===0?"par":"imp"}">
-                    <td class="tdn">${j+1}</td><td class="tdn"></td><td class="tdcbat"></td><td class="tdal"></td><td class="tdat"></td><td class="tdcl"></td>
+                    <td class="tdn"></td><td class="tdcbat"></td><td class="tdal"></td><td class="tdat"></td><td class="tdcl"></td>
                     <td class="tdm"></td>${tdRaiaVazio}${tdVentoVazio}<td class="tdmb"></td><td class="tdp"></td>${_tdClassifVazio}${_tdPtsEqVazio}
                   </tr>`).join("")}</tbody></table>
                 ${rodape(s)}
@@ -849,7 +846,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
                 ${infoBarreiras}
                 <table><thead>${thCor}</thead><tbody>${Array.from({length:8}).map((_,j)=>`
                   <tr class="${j%2===0?"par":"imp"}">
-                    <td class="tdn">${j+1}</td><td class="tdn"></td><td class="tdcbat"></td><td class="tdal"></td><td class="tdat"></td><td class="tdcl"></td>
+                    <td class="tdn"></td><td class="tdcbat"></td><td class="tdal"></td><td class="tdat"></td><td class="tdcl"></td>
                     <td class="tdm"></td>${tdRaiaVazio}${tdVentoVazio}<td class="tdmb"></td><td class="tdp"></td>${_tdClassifVazio}${_tdPtsEqVazio}
                   </tr>`).join("")}</tbody></table>
                 ${rodape(s)}
@@ -1319,7 +1316,6 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
         `;
 
         const thAltura = `<tr>
-          <th style="width:22px">#</th>
           <th style="width:30px">Nº</th>
           <th style="width:50px">CBAt</th>
           <th style="width:110px" class="thal">ATLETA</th>
@@ -1347,7 +1343,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
 
         const linhaAlturaVazia = (a, j) => `
           <tr class="${j%2===0?"par":"imp"}">
-            <td class="tdn">${j+1}</td>
+  
             <td class="tdn" style="font-weight:700;color:#333">${formatarPeito(numPeito[a.id])}</td>
             <td class="tdcbat">${_getCbat(a)}</td>
             <td class="tdal"><span class="anome">${a.nome}</span>${excTag(getInsc(a))}</td>
@@ -1461,8 +1457,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
           };
 
           const thAlturaRes = `<tr>
-            <th style="width:22px">#</th>
-            <th style="width:30px">Nº</th>
+              <th style="width:30px">Nº</th>
             <th style="width:50px">CBAt</th>
             <th style="width:110px" class="thal">ATLETA</th>
             <th style="width:64px">NASCIMENTO</th>
@@ -1484,7 +1479,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
             const trStyle = hasStatus ? ' style="opacity:.5"' : '';
             return `
             <tr class="${j%2===0?"par":"imp"}"${trStyle}>
-              <td class="tdn">${j+1}</td>
+    
               <td class="tdn" style="font-weight:700;color:#333">${formatarPeito(numPeito[a.id])}</td>
               <td class="tdcbat">${_getCbat(a)}</td>
               <td class="tdal"><span class="anome">${a.nome}</span>${excTag(getInsc(a))}</td>
@@ -1539,7 +1534,6 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
         // ════════════════════════════════════════════════════════════════════
 
         const thCampoUnico = `<tr>
-          <th style="width:22px">#</th>
           <th style="width:30px">Nº</th>
           <th style="width:52px">CBAt</th>
           <th class="thal">ATLETA</th>
@@ -1560,7 +1554,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
 
         const linhaCampoVazia = (a, j) => `
           <tr class="${j%2===0?"par":"imp"}">
-            <td class="tdn">${j+1}</td>
+  
             <td class="tdn" style="font-weight:700;color:#333">${formatarPeito(numPeito[a.id])}</td>
             <td class="tdcbat">${_getCbat(a)}</td>
             <td class="tdal"><span class="anome">${a.nome}</span>${excTag(getInsc(a))}</td>
@@ -1591,7 +1585,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
           const hasTent = d.t1 != null || d.t2 != null || d.t3 != null;
           return `
           <tr class="${j%2===0?"par":"imp"}" style="${estilo}">
-            <td class="tdn">${j+1}</td>
+  
             <td class="tdn" style="font-weight:700;color:#333">${formatarPeito(numPeito[a.id])}</td>
             <td class="tdcbat">${_getCbat(a)}</td>
             <td class="tdal"><span class="anome">${a.nome}</span>${excTag(getInsc(a))}</td>
