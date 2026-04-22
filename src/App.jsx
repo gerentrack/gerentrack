@@ -1890,7 +1890,7 @@ function App() {
     }, 800); // debounce — espera 800ms sem mudanças antes de processar
     return () => clearTimeout(timer);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resultados]);
+  }, [resultados, eventoAtual?.seriacao]);
 
   const selecionarEvento = (id, targetTela = "evento-detalhe") => {
     // Controle de acesso é feito nas telas individuais (TelaCadastroEvento, etc.)
