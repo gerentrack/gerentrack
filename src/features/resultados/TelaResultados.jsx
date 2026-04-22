@@ -1631,6 +1631,8 @@ function TelaResultados() {
                         <Th>Pos.</Th>
                         <Th>Equipe</Th>
                         <Th>Atletas</Th>
+                        {temSerieBlk && <Th>Sér.</Th>}
+                        {temRaiaBlk && <Th>Raia</Th>}
                         {temVentoBlk && <Th>Vento</Th>}
                         <Th>Marca</Th>
                         {pontuacaoAtiva && <Th style={{ background: t.bgCardAlt, color: t.accent }}>Pts Eq.</Th>}
@@ -1673,6 +1675,8 @@ function TelaResultados() {
                               </strong></Td>
                               <Td><strong style={{ color: j<3?t.accent:t.textPrimary }}>{item.nomeEquipe}</strong></Td>
                               <Td><span style={{ fontSize: 11, color: t.textTertiary }}>{atlNomes}</span></Td>
+                              {temSerieBlk && <Td>{serieDoAtletaBlk[item.equipeId] || "—"}</Td>}
+                              {temRaiaBlk && <Td>{getTent(raw,"raia") || raiaDoAtletaBlk[item.equipeId] || "—"}</Td>}
                               {temVentoBlk && <Td>{getTent(raw,"vento")||"—"}</Td>}
                               <Td>
                                 {item.isStatus
