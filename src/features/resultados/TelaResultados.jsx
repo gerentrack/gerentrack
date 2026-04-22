@@ -1960,11 +1960,11 @@ function TelaResultados() {
                               return <strong style={{ color: t.accent, fontSize:14 }}>{qq}</strong>;
                             })()}
                           </Td>}
-                          {pontuacaoAtiva && <Td style={{ background: t.bgCardAlt, textAlign:"center" }}>
+                          {pontuacaoAtiva && (isSerieFinal ? <Td style={{ background: t.bgCardAlt, textAlign:"center" }}>
                             {ptsEqPorAtleta[item.atleta?.id] ? (
                               <span style={{ color: t.accent, fontWeight:700, fontSize:14 }}>{ptsEqPorAtleta[item.atleta.id]}</span>
                             ) : <span style={{ color: t.textDisabled }}>—</span>}
-                          </Td>}
+                          </Td> : <Td />)}
                         </tr>
                       );
                       }; // end renderRow
