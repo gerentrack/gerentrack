@@ -928,7 +928,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
                 ${cabPrv(s, numPag, null)}
                 <div class="blk blk-semi">${lbl}${_cronoSerieRes}<span class="blk-s">${serie.atletas.length} atleta${serie.atletas.length!==1?"s":""}</span></div>
                 ${infoBarreiras}
-                <table><thead>${thCor}</thead><tbody>${serieOrd.map(({a,m},j)=>linhaRes(a,j,m,false,res[a.id])).join("")}${statusLinhas.map(({a,status},j)=>{
+                <table><thead>${thCor}</thead><tbody>${serieOrd.map(({a,m},j)=>linhaRes(a,j,m,false,res[a.id],serie.numero)).join("")}${statusLinhas.map(({a,status},j)=>{
                   const jj = serieOrd.length + j;
                   return `<tr class="${jj%2===0?"par":"imp"}">
                     <td class="tdn"></td>
@@ -970,7 +970,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
                   ${cabPrv(s, numPag, null)}
                   <div class="blk blk-semi">S\u00c9RIE ${serie.numero} / ${seriesOrdFt.length}<span class="blk-s">${classifSerie.length + statusSerie.length} atleta${(classifSerie.length + statusSerie.length) !== 1 ? "s" : ""}</span></div>
                   ${infoBarreiras}
-                  <table><thead>${thCor}</thead><tbody>${classifSerie.map(({a,m},j) => linhaRes(a, j, m, false, res[a.id])).join("")}${statusSerie.map(({a,status},j) => linhaStatus(a, status, classifSerie.length+j)).join("")}</tbody></table>
+                  <table><thead>${thCor}</thead><tbody>${classifSerie.map(({a,m},j) => linhaRes(a, j, m, false, res[a.id], serie.numero)).join("")}${statusSerie.map(({a,status},j) => linhaStatus(a, status, classifSerie.length+j)).join("")}</tbody></table>
                   ${rodape(s)}
                 </div>`);
             }
