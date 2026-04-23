@@ -354,7 +354,7 @@ const TeamScoringEngine = {
               var marcaNumR = (!isStatus && marca != null) ? parseFloat(marca) : null;
               return { equipeId: eqId, marca: (marcaNumR != null && !isNaN(marcaNumR)) ? marcaNumR : null, isStatus: isStatus };
             })
-            .filter(function(x) { return x.marca != null && !isNaN(x.marca); })
+            .filter(function(x) { return x.marca != null && !isNaN(x.marca) && x.marca > 0; })
             .sort(function(a, b) {
               if (a.marca !== b.marca) return a.marca - b.marca;
               return (a.equipeId || "").localeCompare(b.equipeId || "");
