@@ -366,7 +366,8 @@ const TeamScoringEngine = {
           if (!revezCompleto) return; // aguarda todos os resultados antes de pontuar
           // Atribuir pontos diretamente por equipeId
           const tabela = config.tabelaPontuacaoRevezamentos || {};
-          const equipesSet = new Set(config.equipesParticipantes || []);
+          const participantesR2 = config.equipesParticipantes || [];
+          const equipesSet = participantesR2.length > 0 ? new Set(participantesR2) : null;
           // Classificação apenas federados: pular equipes não-federadas no revezamento
           const apenasFedRevez = config.classificacaoApenasFederados
             && Array.isArray(config.equipeIdsFederados) && config.equipeIdsFederados.length > 0;
@@ -375,7 +376,7 @@ const TeamScoringEngine = {
           let posicaoFedRevez = 0;
           classificados.forEach(function(item, idx) {
             var eqId = item.equipeId;
-            if (!eqId || !equipesSet.has(eqId)) return;
+            if (!eqId || (equipesSet !== null && !equipesSet.has(eqId))) return;
             // Pular equipes não-federadas quando flag ativo
             // Revezamento: equipe federada + TODOS os atletas com CBAt
             if (apenasFedRevez) {
