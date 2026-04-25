@@ -1412,6 +1412,7 @@ function FiltroProvasStep({ todasProvas, form, setForm, toggleProva, toggleGrupo
   const s = useStylesResponsivos(getStyles(t));
   const [filtroSexo, setFiltroSexo] = useState("todos");   // "todos" | "M" | "F"
   const [filtroCats, setFiltroCats] = useState([]);        // [] = todas; senão array de catIds ativos
+  const [mostrarOpcionais, setMostrarOpcionais] = useState(false);
 
   const toggleFiltroCat = (catId) =>
     setFiltroCats((prev) =>
@@ -1420,6 +1421,7 @@ function FiltroProvasStep({ todasProvas, form, setForm, toggleProva, toggleGrupo
 
   // Provas visíveis conforme filtros ativos
   const provasFiltradas = todasProvas.filter((p) => {
+    if (p.opcional && !mostrarOpcionais && !form.provasPrograma.includes(p.id)) return false;
     const sexoOk = filtroSexo === "todos" || (filtroSexo === "M" ? p.id.startsWith("M_") : p.id.startsWith("F_"));
     const catOk = filtroCats.length === 0 || filtroCats.some((cId) => p.id.includes(`_${cId}_`) || p.id.endsWith(`_${cId}`));
     return sexoOk && catOk;
@@ -1475,6 +1477,18 @@ function FiltroProvasStep({ todasProvas, form, setForm, toggleProva, toggleGrupo
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Provas opcionais */}
+        <div style={s.filtroProvasBloco}>
+          <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+            <input type="checkbox" checked={mostrarOpcionais} onChange={(e) => setMostrarOpcionais(e.target.checked)}
+              style={{ width: 16, height: 16, accentColor: t.accent, cursor: "pointer" }} />
+            <span style={{ color: mostrarOpcionais ? t.accent : t.textMuted, fontWeight: 600, fontSize: 13 }}>
+              Mostrar provas opcionais
+            </span>
+            <span style={{ color: t.textDimmed, fontSize: 11 }}>(ex: 5.000m Marcha em categorias alternativas)</span>
+          </label>
         </div>
       </div>
 

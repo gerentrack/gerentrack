@@ -91,8 +91,6 @@ export function useEventos() {
   // sem sobrescrever campos alterados por outro dispositivo/aba.
   const _atualizarCamposEvento = useCallback(async (id, campos) => {
     const docRef = doc(db, COLLECTION, id);
-    const camposEnviados = Object.keys(campos);
-    console.warn(`[useEventos] _atualizarCamposEvento id=${id} campos=[${camposEnviados.join(",")}]`, new Error().stack?.split("\n").slice(1, 4).join(" ← "));
     await setDoc(docRef, sanitize(campos), { merge: true });
   }, []);
 
