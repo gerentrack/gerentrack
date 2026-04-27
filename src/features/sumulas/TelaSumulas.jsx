@@ -69,6 +69,8 @@ function TelaSumulas({ chamada, getPresencaProva }) {
   const [seriacaoFase, setSeriacaoFase] = useState("eliminatoria"); // "eliminatoria" | "semifinal" | "final"
   const [seriacao800m, setSeriacao800m] = useState("raias"); // "raias" | "grupo"
   const [seriacaoChaveAtiva, setSeriacaoChaveAtiva] = useState(null); // chave completa do item ativo (com sufixo de fase)
+  const [configSeriacaoLocal, setConfigSeriacaoLocal] = useState(null); // estado local da configSeriacao (só persiste ao salvar)
+  const [configSeriacaoDirty, setConfigSeriacaoDirty] = useState(false); // indica se há mudanças não salvas
 
   // ── Reparo: criar inscrições componentes faltantes de combinadas ──────────
   const inscDoEventoAll = inscricoes.filter((i) => i.eventoId === eventoAtual?.id);
@@ -386,7 +388,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
           )}
           {isAmplo && (
             <button style={{ ...s.btnSecondary, background: t.accentBg, borderColor: t.accentBorder, color: t.accent }}
-              onClick={() => setShowSeriar(!showSeriar)}>
+              onClick={() => { if (!showSeriar) { setConfigSeriacaoLocal(eventoAtual.configSeriacao || {}); setConfigSeriacaoDirty(false); } setShowSeriar(!showSeriar); }}>
               Seriar Provas
             </button>
           )}
@@ -417,7 +419,8 @@ function TelaSumulas({ chamada, getPresencaProva }) {
       {/* ── PAINEL DE SERIAÇÃO ── */}
       {showSeriar && isAmplo && (() => {
         const eid = eventoAtual.id;
-        const configSeriacao = eventoAtual.configSeriacao || {};
+        // Usa estado local para configSeriacao — só persiste ao clicar "Salvar Configuração"
+        const configSeriacao = configSeriacaoLocal ?? eventoAtual.configSeriacao ?? {};
         const seriacaoSalva = eventoAtual.seriacao || {};
         const todasP = todasAsProvas();
         const inscDoEvento = inscricoes.filter(i => i.eventoId === eid);
@@ -468,13 +471,11 @@ function TelaSumulas({ chamada, getPresencaProva }) {
           };
         };
 
-        // Salvar config de uma prova no evento
+        // Atualizar config de uma prova localmente (sem persistir)
         const salvarConfigProva = (provaId, campo, valor) => {
           if (isFinalizado) return;
           const cfgAtual = { ...configSeriacao };
           const base = todasP.find(p => p.id === provaId);
-          // Componentes de combinada são virtuais (não estão em todasP) → salvar direto pelo id
-          // Propagação restrita ao mesmo sexo (M e F têm configurações independentes)
           const sxBase = base?.id?.[0];
           const alvos = base
             ? todasP.filter(p => p.nome === base.nome && p.id?.[0] === sxBase && (eventoAtual.provasPrograma || []).includes(p.id))
@@ -484,7 +485,15 @@ function TelaSumulas({ chamada, getPresencaProva }) {
             const prevObj = (!prev) ? {} : (typeof prev === "string") ? { modo: prev } : { ...prev };
             cfgAtual[p.id] = { ...prevObj, [campo]: valor };
           });
-          atualizarCamposEvento(eventoAtual.id, { configSeriacao: cfgAtual });
+          setConfigSeriacaoLocal(cfgAtual);
+          setConfigSeriacaoDirty(true);
+        };
+
+        // Persistir configSeriacao no Firestore
+        const persistirConfigSeriacao = () => {
+          if (isFinalizado) return;
+          atualizarCamposEvento(eventoAtual.id, { configSeriacao });
+          setConfigSeriacaoDirty(false);
         };
 
         // Provas de pista com inscritos — expandidas por fase baseado no modo da seriação
@@ -837,7 +846,14 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                   {isFinalizado ? "Visualização da seriação configurada" : "Configure modo e capacidade por prova, depois serie cada prova individualmente"}
                 </div>
               </div>
-              <button style={s.btnGhost} onClick={() => setShowSeriar(false)}>✕ Fechar</button>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                {configSeriacaoDirty && (
+                  <button style={{ ...s.btnPrimary, padding: "8px 20px", fontSize: 12 }} onClick={persistirConfigSeriacao}>
+                    Salvar Configuração
+                  </button>
+                )}
+                <button style={s.btnGhost} onClick={() => { if (configSeriacaoDirty) { setConfigSeriacaoLocal(eventoAtual.configSeriacao || {}); setConfigSeriacaoDirty(false); } setShowSeriar(false); }}>✕ Fechar</button>
+              </div>
             </div>
 
             {/* \u2500\u2500 CONFIGURAÇÃO POR PROVA \u2500\u2500 */}
@@ -913,7 +929,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                                 updates.porPosicaoSemFin = pSemFin2;
                                 updates.porTempoSemFin = tSemFin2;
                               }
-                              // Salvar tudo numa única operação
+                              // Atualizar localmente (persiste só ao salvar)
                               const cfgAtual = { ...configSeriacao };
                               const base = todasP.find(pv => pv.id === provas[0].id);
                               const sxBase = base?.id?.[0];
@@ -925,7 +941,8 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                                 const prevObj = (!prev) ? {} : (typeof prev === "string") ? { modo: prev } : { ...prev };
                                 cfgAtual[pv.id] = { ...prevObj, ...updates };
                               });
-                              atualizarCamposEvento(eventoAtual.id, { configSeriacao: cfgAtual });
+                              setConfigSeriacaoLocal(cfgAtual);
+                              setConfigSeriacaoDirty(true);
                             }}
                           >{lbl}</button>
                           );
@@ -945,7 +962,6 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                           if (isFinalizado) return;
                           const p = Math.max(0, Math.min(8, parseInt(val) || 0));
                           const tAuto = autoCalcT(p, nSeries);
-                          // Salvar P e T numa única operação para evitar race condition
                           const cfgAtual = { ...configSeriacao };
                           const base = todasP.find(pv => pv.id === provas[0].id);
                           const sxBase = base?.id?.[0];
@@ -957,7 +973,8 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                             const prevObj = (!prev) ? {} : (typeof prev === "string") ? { modo: prev } : { ...prev };
                             cfgAtual[pv.id] = { ...prevObj, [campo]: p, [tCampo]: tAuto };
                           });
-                          atualizarCamposEvento(eventoAtual.id, { configSeriacao: cfgAtual });
+                          setConfigSeriacaoLocal(cfgAtual);
+                          setConfigSeriacaoDirty(true);
                         };
 
                         const renderProgressao = (label, cor, pCampo, tCampo, pVal, tVal, nSeries, totalAtlFase, nSeriesProx) => (
