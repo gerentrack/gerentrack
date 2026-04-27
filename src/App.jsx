@@ -18,7 +18,6 @@ import { RecordHelper }                    from "./shared/engines/recordHelper";
 import { CombinedEventEngine }             from "./shared/engines/combinedEventEngine";
 import { CombinedScoringEngine }           from "./shared/engines/combinedScoringEngine";
 import { TeamScoringEngine }               from "./shared/engines/teamScoringEngine";
-import { SeriacaoEngine }                  from "./shared/engines/seriacaoEngine";
 import { RecordDetectionEngine }           from "./shared/engines/recordDetectionEngine";
 import RankingExtractionEngine             from "./shared/engines/rankingExtractionEngine";
 import { canCreateEvent, consumirCredito, getUsage } from "./shared/engines/planEngine";
@@ -27,9 +26,7 @@ import { GT_DEFAULT_ICON, GT_DEFAULT_LOGO } from "./shared/branding";
 // ── Shared — Constants — Etapa 3 ──────────────────────────────────
 import { ESTADOS_BR, CATEGORIAS, getCategoria,
          getPermissividade, podeCategoriaSuperior } from "./shared/constants/categorias";
-import { FASE_SUFIXOS, FASE_ORDEM, FASE_ANTERIOR, FASE_NOME,
-         faseToSufixo, serKey, resKey, getFasesProva, getFasesModo,
-         temMultiFases, buscarSeriacao, buscarResultado } from "./shared/constants/fases";
+import { resKey, getFasesModo } from "./shared/constants/fases";
 
 // ── Shared — Formatters — Etapa 3 ─────────────────────────────────
 import {
@@ -1763,141 +1760,6 @@ function App() {
     return { arqs, backupUrl };
   };
 
-  // ── AUTO-GERAÇÃO DA SERIAÇÃO DA PRÓXIMA FASE ──────────────────────────────
-  // Quando todos os resultados de uma fase (Eliminatória/Semifinal) são preenchidos,
-  // gera automaticamente a seriação da próxima fase (Semifinal/Final) usando
-  // RT 20.3.2(a) para classificação e RT 20.4.x para distribuição de raias.
-  useEffect(() => {
-    const timer = setTimeout(() => {
-    // Lê do ref para evitar stale closure — este efeito depende apenas de [resultados],
-    // mas precisa do eventoAtual mais recente para não sobrescrever séries recém-configuradas.
-    const evtAtual = eventoAtualRef_app.current;
-    if (!evtAtual) return;
-    const todasP = todasAsProvas();
-    const seriacaoSalva = evtAtual.seriacao || {};
-    const configSeriacaoEvt = evtAtual.configSeriacao || {};
-    let novasSer = null;
-
-    // Expande provasPrograma incluindo sub-provas de pista de combinadas
-    const provasParaAutoGen = [];
-    (evtAtual.provasPrograma || []).forEach(pid => {
-      const pp = todasP.find(x => x.id === pid);
-      if (!pp) return;
-      if (pp.tipo === "combinada") {
-        const comps = CombinedEventEngine.gerarProvasComponentes(pid, evtAtual.id);
-        comps.forEach(c => { if (c.unidade === "s") provasParaAutoGen.push({ provaId: c.id, p: c }); });
-      } else {
-        provasParaAutoGen.push({ provaId: pid, p: pp });
-      }
-    });
-
-    provasParaAutoGen.forEach(({ provaId, p }) => {
-      if (!p || p.unidade !== "s" || p.tipo === "revezamento") return;
-
-      const fasesConf = getFasesModo(provaId, configSeriacaoEvt);
-      if (fasesConf.length <= 1) return;
-
-      CATEGORIAS.forEach(cat => {
-        ["M", "F"].forEach(sexo => {
-          fasesConf.forEach(faseSuf => {
-            if (faseSuf === "FIN") return; // Fase final não gera próxima
-            const idxAtual = FASE_ORDEM.indexOf(faseSuf);
-            const proximaFase = FASE_ORDEM[idxAtual + 1];
-            if (!proximaFase || !fasesConf.includes(proximaFase)) return;
-
-            // Verificar se a fase atual tem seriação salva
-            const chaveSerAtual = serKey(provaId, cat.id, sexo, faseSuf);
-            const baseSerObj = novasSer || seriacaoSalva;
-            const serAtual = baseSerObj[chaveSerAtual];
-            if (!serAtual?.series || serAtual.series.length === 0) return;
-
-            // Se a próxima fase já tem seriação NÃO auto-gerada, não sobrescrever
-            const chaveSerProxima = serKey(provaId, cat.id, sexo, proximaFase);
-            const serProxima = baseSerObj[chaveSerProxima];
-            if (serProxima?.series && !serProxima.autoGerada) return;
-
-            // Verificar se TODOS os atletas da fase atual têm resultado
-            const chaveRes = resKey(evtAtual.id, provaId, cat.id, sexo, faseSuf);
-            const resAtual = resultados[chaveRes] || {};
-            const atletaIds = serAtual.series.flatMap(s => s.atletas.map(a => a.id || a.atletaId));
-            if (atletaIds.length === 0) return;
-
-            const todosTemResultado = atletaIds.every(aid => {
-              const r = resAtual[aid];
-              if (!r) return false;
-              const marca = typeof r === "object" ? r.marca : r;
-              const status = typeof r === "object" ? (r.status || "") : "";
-              return (marca != null && String(marca).trim() !== "") || ["DNS", "DNF", "DQ"].includes(status);
-            });
-
-            if (!todosTemResultado) return;
-
-            // ── Todos os resultados presentes → auto-gerar próxima fase ──
-            const cfg = configSeriacaoEvt[provaId];
-            const pFallback = (cfg && typeof cfg === "object") ? (cfg.porPosicao ?? 3) : 3;
-            const tFallback = (cfg && typeof cfg === "object") ? (cfg.porTempo ?? 2) : 2;
-            const cfgP = !cfg ? { nRaias: 8, atlPorSerie: 12 }
-              : typeof cfg === "string" ? { nRaias: 8, atlPorSerie: 12 }
-              : { nRaias: cfg.nRaias || 8, atlPorSerie: cfg.atlPorSerie || 12 };
-
-            // Determinar qual par P+T usar baseado na transição de fase
-            const isEliParaSem = faseSuf === "ELI" && proximaFase === "SEM";
-            const progressao = isEliParaSem
-              ? { porPosicao: (cfg && typeof cfg === "object") ? (cfg.porPosicaoEliSem ?? pFallback) : pFallback, porTempo: (cfg && typeof cfg === "object") ? (cfg.porTempoEliSem ?? tFallback) : tFallback }
-              : { porPosicao: (cfg && typeof cfg === "object") ? (cfg.porPosicaoSemFin ?? pFallback) : pFallback, porTempo: (cfg && typeof cfg === "object") ? (cfg.porTempoSemFin ?? tFallback) : tFallback };
-            const classificados = SeriacaoEngine.rankearRT20_3_2a(serAtual, resAtual, progressao);
-            if (classificados.length === 0) return;
-
-            const metros = ((provaId.match(/[_x]?(\d+)m/) || [])[1]);
-            const m = metros ? parseInt(metros) : 0;
-
-            // Mapear atletas classificados
-            const atletasClassif = classificados.map(c => {
-              const a = atletasRef_app.current.find(aa => aa.id === c.atletaId);
-              return a ? { ...a, atletaId: a.id, marcaRef: c.marcaRef, origemClassif: c.origemClassif, ranking: c.ranking } : null;
-            }).filter(Boolean);
-
-            // Se a próxima fase já é auto-gerada com os MESMOS classificados, preservar raias
-            // (evita re-sortear toda vez que resultados mudam — bug "alternando seriação da final")
-            if (serProxima?.series && serProxima.autoGerada) {
-              const idsAtuais = new Set(serProxima.series.flatMap(s => s.atletas.map(a => a.id || a.atletaId)));
-              const idsNovos = new Set(atletasClassif.map(a => a.id));
-              const mesmoConjunto = idsAtuais.size === idsNovos.size && [...idsNovos].every(id => idsAtuais.has(id));
-              if (mesmoConjunto) return;
-            }
-
-            // Gerar seriação com regra RT 20.4.x adequada
-            const result = SeriacaoEngine.seriarProva(atletasClassif, p, {
-              nRaias: cfgP.nRaias,
-              fase: proximaFase === "FIN" ? "final" : "semifinal",
-              atlPorSerie: cfgP.atlPorSerie,
-              modo800: "raias",
-            });
-
-            if (!novasSer) novasSer = {};
-            const nClassP = classificados.filter(c => c.origemClassif === "posicao").length;
-            const nClassT = classificados.filter(c => c.origemClassif === "tempo").length;
-            novasSer[chaveSerProxima] = {
-              series: result.series,
-              ordemSeries: result.ordemSeries,
-              modo: cfgP.modo || "semi_final",
-              regraAplicada: `${result.regraAplicada} · RT 20.3.2(a) · Classificados: ${nClassP}P + ${nClassT}T = ${classificados.length}`,
-              autoGerada: true,
-            };
-          });
-        });
-      });
-    });
-
-    if (novasSer && evtAtual?.id) {
-      // Merge pontual: atualiza apenas as chaves auto-geradas, preservando toda a seriação existente
-      const seriacaoAtual = eventoAtualRef_app.current?.seriacao || {};
-      _atualizarCamposEvento(evtAtual.id, { seriacao: { ...seriacaoAtual, ...novasSer } });
-    }
-    }, 800); // debounce — espera 800ms sem mudanças antes de processar
-    return () => clearTimeout(timer);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resultados, eventoAtual?.seriacao]);
 
   const selecionarEvento = (id, targetTela = "evento-detalhe") => {
     // Controle de acesso é feito nas telas individuais (TelaCadastroEvento, etc.)
