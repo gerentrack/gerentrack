@@ -16,6 +16,45 @@ const SearchIcon = (size = 18) => (
   </svg>
 );
 
+// ── Animated counter hook ──
+function useAnimatedCount(target, duration = 1200) {
+  const [count, setCount] = React.useState(0);
+  React.useEffect(() => {
+    if (target === 0) { setCount(0); return; }
+    let start = 0;
+    const startTime = performance.now();
+    const step = (now) => {
+      const progress = Math.min((now - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.round(eased * target));
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }, [target, duration]);
+  return count;
+}
+
+// ── Skeleton placeholder ──
+function SkeletonCard({ t }) {
+  const shimmer = {
+    background: `linear-gradient(90deg, ${t.bgCardAlt} 25%, ${t.bgCard} 50%, ${t.bgCardAlt} 75%)`,
+    backgroundSize: "200% 100%",
+    animation: "shimmer 1.5s infinite",
+    borderRadius: 8,
+  };
+  return (
+    <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, overflow: "hidden" }}>
+      <div style={{ ...shimmer, width: "100%", aspectRatio: "1/1", borderRadius: 0 }} />
+      <div style={{ padding: "16px 20px 20px", display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ ...shimmer, height: 18, width: "80%" }} />
+        <div style={{ ...shimmer, height: 14, width: "60%" }} />
+        <div style={{ ...shimmer, height: 14, width: "40%" }} />
+        <div style={{ ...shimmer, height: 34, width: 120, marginTop: 4 }} />
+      </div>
+    </div>
+  );
+}
+
 const getStyles = (t) => ({
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
   pageTitle: { fontFamily: t.fontTitle, fontSize: 36, fontWeight: 800, color: t.textPrimary, marginBottom: 24, letterSpacing: 1 },
@@ -124,8 +163,8 @@ const getStyles = (t) => ({
   provaCheckBtn: { background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: t.fontBody, lineHeight: 1.4, userSelect: "none" },
   provaCheckBtnSel: { background: t.bgHover, borderColor: t.accent, color: t.accent },
 
-  // ── Hero (novo) ──
-  heroSection: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "60px 48px", gap: 48, background: `linear-gradient(135deg, ${t.bgCardAlt} 0%, ${t.bgCard} 50%, ${t.accent}15 100%)`, borderRadius: 16, marginBottom: 48, position: "relative", overflow: "hidden", border: `1px solid ${t.border}` },
+  // ── Hero ──
+  heroSection: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "60px 48px", gap: 48, background: `linear-gradient(135deg, ${t.bgCardAlt} 0%, ${t.bgCard} 50%, ${t.accent}15 100%)`, borderRadius: 16, marginBottom: 40, position: "relative", overflow: "hidden", border: `1px solid ${t.border}` },
   heroTitle: { fontFamily: t.fontTitle, fontSize: 42, fontWeight: 900, color: t.textPrimary, lineHeight: 1.1, marginBottom: 16, letterSpacing: 1, maxWidth: 560 },
   heroSubtitle: { fontSize: 16, color: t.textMuted, lineHeight: 1.6, marginBottom: 28, maxWidth: 480 },
   heroBtns: { display: "flex", justifyContent: "flex-start", gap: 12, flexWrap: "wrap" },
@@ -136,15 +175,15 @@ const getStyles = (t) => ({
   searchIcon: { position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: t.textDimmed, pointerEvents: "none", display: "flex" },
   searchInput: { width: "100%", background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "14px 20px 14px 48px", color: t.textPrimary, fontSize: 16, fontFamily: t.fontBody, outline: "none", transition: "border-color 0.15s" },
 
-  // ── Event cards (redesign) ──
+  // ── Event cards ──
   eventosGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(320px, 100%), 1fr))", gap: 20, marginBottom: 48 },
-  eventoCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "20px 24px", display: "flex", flexDirection: "column", gap: 12, transition: "border-color 0.15s, transform 0.15s", cursor: "pointer" },
+  eventoCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "20px 24px", display: "flex", flexDirection: "column", gap: 12, transition: "border-color 0.15s, transform 0.15s, box-shadow 0.3s", cursor: "pointer" },
   eventoCardHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 },
   eventoCardNome: { fontFamily: t.fontTitle, fontSize: 18, fontWeight: 800, color: t.textPrimary, lineHeight: 1.2, minHeight: "2.4em", maxHeight: "2.4em", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" },
   eventoCardMeta: { display: "flex", gap: 16, fontSize: 13, color: t.textMuted, flexWrap: "wrap", alignItems: "center" },
   eventoCardStats: { display: "flex", gap: 16, fontSize: 13, color: t.textMuted, flexWrap: "wrap", borderTop: `1px solid ${t.border}`, paddingTop: 10, marginTop: 4 },
   eventoStatusBadge: (status) => ({
-    display: "inline-block", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700, letterSpacing: 0.5,
+    display: "inline-flex", alignItems: "center", gap: 6, borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700, letterSpacing: 0.5,
     background: status === "ao_vivo" ? t.accentBg : status === "hoje_pre" ? t.accentBg : status === "futuro" ? t.accentBg : t.bgCardAlt,
     color: status === "ao_vivo" ? t.danger : status === "hoje_pre" ? t.accent : status === "futuro" ? t.success : t.textMuted,
     border: `1px solid ${status === "ao_vivo" ? t.danger+"44" : status === "hoje_pre" ? t.accentBorder : status === "futuro" ? t.success+"44" : t.border}`,
@@ -153,7 +192,31 @@ const getStyles = (t) => ({
   // ── Dashboard mockup ──
   dashboardMockup: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 14, padding: 20, boxShadow: t.shadowLg, minWidth: 320, maxWidth: 420 },
   dashboardStat: { background: t.bgCardAlt, borderRadius: 10, padding: "14px 16px", border: `1px solid ${t.border}` },
+
+  // ── Live status bar ──
+  liveBar: { display: "flex", alignItems: "center", justifyContent: "center", gap: 32, flexWrap: "wrap", padding: "14px 24px", background: t.bgCard, border: `1px solid ${t.border}`, borderTop: "none", borderRadius: "0 0 16px 16px", marginBottom: 40, fontSize: 13, color: t.textMuted },
+
+  // ── Platform numbers ──
+  platformSection: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 20, marginBottom: 48, padding: "32px 0" },
+  platformCard: { textAlign: "center", padding: "24px 16px" },
+
+  // ── Powered footer ──
+  poweredBar: { textAlign: "center", padding: "24px 0 0", borderTop: `1px solid ${t.border}`, marginTop: 16, fontSize: 11, color: t.textDisabled, letterSpacing: 1 },
 });
+
+// ── CSS keyframes (injected once) ──
+const STYLE_ID = "gt-home-animations";
+function injectAnimations() {
+  if (typeof document === "undefined" || document.getElementById(STYLE_ID)) return;
+  const style = document.createElement("style");
+  style.id = STYLE_ID;
+  style.textContent = `
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+    @keyframes pulse-live { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
+    @keyframes gradient-border { 0%{border-color:var(--gb-from)} 50%{border-color:var(--gb-to)} 100%{border-color:var(--gb-from)} }
+  `;
+  document.head.appendChild(style);
+}
 
 export default function TelaHome() {
   const { usuarioLogado } = useAuth();
@@ -162,13 +225,25 @@ export default function TelaHome() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { mobile } = useResponsivo();
+
+  // Inject CSS animations on mount
+  React.useEffect(() => { injectAnimations(); }, []);
+
   const totalResultados = resultados && typeof resultados === "object"
     ? Object.values(resultados).reduce((a, b) => a + (b && typeof b === "object" ? Object.keys(b).length : 0), 0)
     : 0;
 
+  const isLoading = !eventos || eventos.length === undefined;
+
   const [maisEventosPag, setMaisEventosPag] = React.useState(0);
   const MAIS_POR_PAG = 9;
   const eventosRef = React.useRef(null);
+
+  // ── Animated counters ──
+  const animComp = useAnimatedCount(eventos?.length || 0);
+  const animAtl = useAnimatedCount(atletas?.length || 0);
+  const animEq = useAnimatedCount(equipes?.length || 0);
+  const animRes = useAnimatedCount(totalResultados);
 
   // ── Busca ──
   const [busca, setBusca] = React.useState("");
@@ -198,7 +273,7 @@ export default function TelaHome() {
   const mesAtual = hoje.getMonth();
   const anoAtual = hoje.getFullYear();
 
-  const aprovados = eventos;
+  const aprovados = eventos || [];
 
   const proximosEventos = aprovados
     .filter(ev => {
@@ -228,6 +303,9 @@ export default function TelaHome() {
   const totalPagsMais = Math.ceil(maisEventos.length / MAIS_POR_PAG);
   const maisEventosPagAtual = maisEventos.slice(maisEventosPag * MAIS_POR_PAG, (maisEventosPag + 1) * MAIS_POR_PAG);
 
+  // Eventos ao vivo
+  const eventosAoVivo = aprovados.filter(ev => getStatusEvento(ev, resultados) === "ao_vivo").length;
+
   // ── CTA dinâmico ──
   const getCtaEvento = (ev, status) => {
     if (status === "futuro") return { label: "Inscrever-se", action: () => selecionarEvento(ev.id) };
@@ -235,14 +313,27 @@ export default function TelaHome() {
     return { label: "Ver Resultados", action: () => selecionarEvento(ev.id, "resultados") };
   };
 
+  // ── Agrupar finalizadas por mês ──
+  const finalizadasPorMes = React.useMemo(() => {
+    const grupos = {};
+    eventosPassados.forEach(ev => {
+      const d = ev.data ? new Date(ev.data + "T12:00:00") : null;
+      const chave = d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}` : "sem-data";
+      const label = d ? d.toLocaleDateString("pt-BR", { month: "long", year: "numeric" }) : "Sem data";
+      if (!grupos[chave]) grupos[chave] = { label, eventos: [] };
+      grupos[chave].eventos.push(ev);
+    });
+    return Object.entries(grupos).sort((a, b) => b[0].localeCompare(a[0]));
+  }, [eventosPassados]);
+
   // ── Dashboard Mockup ──
   function DashboardMockup() {
     if (mobile) return null;
     const stats = [
-      { value: eventos.length, label: "Competições", color: t.accent },
-      { value: atletas.length, label: "Atletas", color: t.success },
-      { value: equipes?.length || 0, label: "Equipes", color: t.warning },
-      { value: totalResultados, label: "Resultados", color: t.gold || t.accent },
+      { value: animComp, label: "Competições", color: t.accent },
+      { value: animAtl, label: "Atletas", color: t.success },
+      { value: animEq, label: "Equipes", color: t.warning },
+      { value: animRes, label: "Resultados", color: t.gold || t.accent },
     ];
     return (
       <div style={s.dashboardMockup}>
@@ -250,7 +341,7 @@ export default function TelaHome() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           {stats.map((item, i) => (
             <div key={i} style={s.dashboardStat}>
-              <div style={{ fontFamily: t.fontTitle, fontSize: 24, fontWeight: 900, color: item.color, lineHeight: 1 }}>{item.value}</div>
+              <div style={{ fontFamily: t.fontTitle, fontSize: 24, fontWeight: 900, color: item.color, lineHeight: 1 }}>{item.value.toLocaleString("pt-BR")}</div>
               <div style={{ fontSize: 11, color: t.textDimmed, marginTop: 4 }}>{item.label}</div>
             </div>
           ))}
@@ -279,11 +370,12 @@ export default function TelaHome() {
     const dataEv = new Date(ev.data + "T12:00:00");
     const status = getStatusEvento(ev, resultados);
     const cta = getCtaEvento(ev, status);
+    const isLive = status === "ao_vivo";
 
     return (
       <div key={ev.id} style={{ ...s.eventoCard, padding: 0, overflow: "hidden" }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = t.accent; e.currentTarget.style.transform = "translateY(-2px)"; }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.transform = "translateY(0)"; }}>
+        onMouseEnter={e => { e.currentTarget.style.borderColor = t.accent; e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = `0 8px 30px ${t.accent}22`; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
         {/* Imagem da competição */}
         <div style={{ position: "relative", width: "100%", aspectRatio: "1/1", minHeight: 200, background: t.bgCardAlt, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
           {ev.logoCompeticao ? (
@@ -292,7 +384,10 @@ export default function TelaHome() {
             <span style={{ opacity: 0.15 }}>{IcoTarget(40)}</span>
           )}
           <div style={{ position: "absolute", top: 10, left: 10 }}>
-            <div style={s.eventoStatusBadge(status)}>{labelStatusEvento(status, ev)}</div>
+            <div style={s.eventoStatusBadge(status)}>
+              {isLive && <span style={{ display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: t.danger, animation: "pulse-live 1.5s ease-in-out infinite" }} />}
+              {labelStatusEvento(status, ev)}
+            </div>
           </div>
           {usuarioLogado?.tipo === "admin" && (
             <div style={{ position: "absolute", top: 8, right: 10, display: "flex", gap: 6 }}>
@@ -362,8 +457,8 @@ export default function TelaHome() {
             placeholder="Buscar eventos, cidades ou organizadores..."
             value={busca}
             onChange={e => { setBusca(e.target.value); setMaisEventosPag(0); }}
-            onFocus={e => { e.target.style.borderColor = t.accent; }}
-            onBlur={e => { e.target.style.borderColor = t.border; }}
+            onFocus={e => { e.target.style.borderColor = t.accent; e.target.style.boxShadow = `0 0 0 3px ${t.accent}22`; }}
+            onBlur={e => { e.target.style.borderColor = t.border; e.target.style.boxShadow = "none"; }}
           />
         </div>
       </div>
@@ -439,7 +534,15 @@ export default function TelaHome() {
 
       {/* ── EVENTOS ── */}
       <div ref={eventosRef}>
-        {buscaAtiva ? (
+        {isLoading ? (
+          /* Skeleton loading */
+          <div style={{ marginBottom: 48 }}>
+            <div style={{ ...s.sectionTitle, background: t.bgCardAlt, width: 200, height: 26, borderRadius: 8, marginBottom: 20 }} />
+            <div style={s.eventosGrid}>
+              {[1,2,3].map(i => <SkeletonCard key={i} t={t} />)}
+            </div>
+          </div>
+        ) : buscaAtiva ? (
           /* Resultados da busca */
           <div style={{ marginBottom: 48 }}>
             <h2 style={s.sectionTitle}>
@@ -514,36 +617,50 @@ export default function TelaHome() {
         )}
       </div>
 
-      {/* ── COMPETIÇÕES FINALIZADAS ── */}
-      {!buscaAtiva && eventosPassados.length > 0 && (
+      {/* ── COMPETIÇÕES FINALIZADAS (agrupadas por mês) ── */}
+      {!buscaAtiva && finalizadasPorMes.length > 0 && (
         <div style={{ marginBottom: 48 }}>
           <h2 style={s.sectionTitle}>Competições Finalizadas</h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {eventosPassados.map(ev => {
-              const dataFmt = ev.data ? new Date(ev.data + "T12:00:00").toLocaleDateString("pt-BR") : "—";
-              const local = _getLocalEventoDisplay(ev);
-              return (
-                <div key={ev.id}
-                  style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 10, cursor: "pointer", transition: "border-color 0.15s" }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = t.accent}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = t.border}>
-                  <div style={{ flex: 1 }} onClick={() => selecionarEvento(ev.id)}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: t.textPrimary }}>
-                      <span style={{ color: t.textDimmed, fontWeight: 600 }}>{dataFmt}</span>
-                      <span style={{ margin: "0 8px", color: t.textDisabled }}>—</span>
-                      {ev.nome}
+          {finalizadasPorMes.map(([chave, grupo]) => (
+            <div key={chave} style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: t.textDimmed, fontFamily: t.fontTitle, letterSpacing: 0.5, textTransform: "capitalize", marginBottom: 8, paddingLeft: 4 }}>
+                {grupo.label}
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {grupo.eventos.map(ev => {
+                  const dataFmt = ev.data ? new Date(ev.data + "T12:00:00").toLocaleDateString("pt-BR") : "—";
+                  const local = _getLocalEventoDisplay(ev);
+                  return (
+                    <div key={ev.id}
+                      style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 10, cursor: "pointer", transition: "border-color 0.15s, box-shadow 0.2s" }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = t.accent; e.currentTarget.style.boxShadow = `0 2px 12px ${t.accent}15`; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.boxShadow = "none"; }}>
+                      <div style={{ flex: 1 }} onClick={() => selecionarEvento(ev.id)}>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: t.textPrimary }}>
+                          <span style={{ color: t.textDimmed, fontWeight: 600 }}>{dataFmt}</span>
+                          <span style={{ margin: "0 8px", color: t.textDisabled }}>—</span>
+                          {ev.nome}
+                        </div>
+                        {local && <div style={{ fontSize: 12, color: t.textMuted }}>{IcoPin()} {local}</div>}
+                      </div>
+                      <button style={{ ...s.btnSecondary, padding: "5px 12px", fontSize: 12, flexShrink: 0 }} onClick={() => selecionarEvento(ev.id, "resultados")}>
+                        Ver Resultados
+                      </button>
                     </div>
-                    {local && <div style={{ fontSize: 12, color: t.textMuted }}>{IcoPin()} {local}</div>}
-                  </div>
-                  <button style={{ ...s.btnSecondary, padding: "5px 12px", fontSize: 12, flexShrink: 0 }} onClick={() => selecionarEvento(ev.id, "resultados")}>
-                    Ver Resultados
-                  </button>
-                </div>
-              );
-            })}
-          </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       )}
+
+      {/* ── POWERED BY ── */}
+      <div style={s.poweredBar}>
+        <span style={{ fontFamily: t.fontTitle, fontWeight: 700 }}>GERENTRACK</span>
+        <span style={{ margin: "0 6px" }}>·</span>
+        Plataforma de gerenciamento de competições
+      </div>
     </div>
   );
 }

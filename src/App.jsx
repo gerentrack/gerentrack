@@ -313,7 +313,8 @@ function App() {
     }
   }, []);
   const gtIcon = siteBranding.icon || GT_DEFAULT_ICON;
-  const gtLogo = siteBranding.logo || GT_DEFAULT_LOGO;
+  const gtLogo = siteBranding.logo || null;
+  const gtLogoFull = siteBranding.logo || GT_DEFAULT_LOGO;
   const gtNome = siteBranding.nome || "GERENTRACK";
   const gtSlogan = siteBranding.slogan || "COMPETIÇÃO COM PRECISÃO";
 

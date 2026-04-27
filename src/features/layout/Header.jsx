@@ -72,7 +72,7 @@ function NavBtn({ onClick, label, active, mobile, styles }) {
   );
 }
 
-function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDisponiveis, gtIcon, gtNome, gtSlogan, pendenciasRecorde, ranking, temaClaro, setTemaClaro, online, pendentesOffline }) {
+function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDisponiveis, gtIcon, gtLogo, gtNome, gtSlogan, pendenciasRecorde, ranking, temaClaro, setTemaClaro, online, pendentesOffline }) {
   const t = useTema();
   const styles = getStyles(t);
   const [menuAberto, setMenuAberto] = useState(false);
@@ -199,11 +199,17 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
       <header style={styles.header}>
         <div style={mobile ? styles.headerInnerMobile : styles.headerInner}>
           <button style={mobile ? styles.logoMobile : styles.logo} onClick={() => setTela("home")}>
-            <img src={gtIcon} alt="GT" style={{ width: mobile ? 34 : 44, height: mobile ? 34 : 44, objectFit: "contain", borderRadius: 6 }} />
-            <div>
-              <div style={mobile ? styles.logoTitleMobile : styles.logoTitle}>{gtNome || "GERENTRACK"}</div>
-              {!mobile && <div style={styles.logoSub}>{gtSlogan || "COMPETIÇÃO COM PRECISÃO"}</div>}
-            </div>
+            {gtLogo ? (
+              <img src={gtLogo} alt={gtNome || "GERENTRACK"} style={{ height: mobile ? 34 : 44, maxWidth: mobile ? 180 : 280, objectFit: "contain" }} />
+            ) : (
+              <>
+                <img src={gtIcon} alt="GT" style={{ width: mobile ? 34 : 44, height: mobile ? 34 : 44, objectFit: "contain", borderRadius: 6 }} />
+                <div>
+                  <div style={mobile ? styles.logoTitleMobile : styles.logoTitle}>{gtNome || "GERENTRACK"}</div>
+                  {!mobile && <div style={styles.logoSub}>{gtSlogan || "COMPETIÇÃO COM PRECISÃO"}</div>}
+                </div>
+              </>
+            )}
           </button>
 
           {mobile ? (

@@ -150,9 +150,6 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
     cpf: meuRegistro?.cpf || "", cnpj: meuRegistro?.cnpj || "", fone: meuRegistro?.fone || "",
   });
   const [formSenha, setFormSenha] = useState({ atual: "", nova: "", confirmar: "" });
-  const [heroBgUrl, setHeroBgUrl] = useState(siteBranding?.heroBg || "");
-  const [heroBgPreview, setHeroBgPreview] = useState(siteBranding?.heroBg || "");
-  const [uploadandoHero, setUploadandoHero] = useState(false);
 
   // ── Perfil Público do Organizador ──────────────────────────────────────────
   const meuOrgPerfil = isOrg ? organizadores?.find(o => o.id === usuarioLogado?.id) : null;
@@ -219,7 +216,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
       }
     }
     if (siteBranding) {
-      for (const campo of ["logoFooter", "heroBg"]) {
+      for (const campo of ["logoFooter"]) {
         if (siteBranding[campo] && typeof siteBranding[campo] === "string" && siteBranding[campo].startsWith("http")) {
           const res = await testarUrl(siteBranding[campo]);
           itens.push({ tipo: "Branding", nome: "Site", campo, url: siteBranding[campo], ...res });
@@ -1261,317 +1258,29 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
               </div>
             </div>
 
-            {/* Mostrar título no Hero */}
-            <div style={{ marginBottom:14 }}>
-              <button
-                onClick={() => setSiteBranding(prev => ({ ...prev, heroMostrarTitulo: !(prev.heroMostrarTitulo !== false) }))}
-                style={{
-                  padding:"7px 14px", borderRadius:6, fontSize:12, fontWeight:600, cursor:"pointer",
-                  border: `1px solid ${(siteBranding?.heroMostrarTitulo !== false) ? t.accent : t.borderInput}`,
-                  background: (siteBranding?.heroMostrarTitulo !== false) ? t.accentBg : t.bgInput,
-                  color: (siteBranding?.heroMostrarTitulo !== false) ? t.accent : t.textDisabled,
-                }}
-              >
-                {(siteBranding?.heroMostrarTitulo !== false) ? "✓" : "○"} Mostrar nome do site no Hero
-              </button>
-              <div style={{ fontSize:10, color:t.textDisabled, marginTop:4 }}>Se desativado, o título "{siteBranding?.nome || "GERENTRACK"}" não aparece no hero (fica só na barra superior)</div>
-            </div>
-
-            {/* Badge + Subtítulo do Hero */}
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:14 }}>
-              <div>
-                <label style={s.label}>Badge do Hero</label>
-                <input style={s.input} value={siteBranding?.heroBadge ?? "PLATAFORMA DE COMPETIÇÕES"} placeholder="PLATAFORMA DE COMPETIÇÕES"
-                  onChange={e => setSiteBranding(prev => ({ ...prev, heroBadge: e.target.value.toUpperCase() }))} />
-                <div style={{ fontSize:10, color:t.textDisabled }}>Deixe vazio para ocultar</div>
-              </div>
-              <div>
-                <label style={s.label}>Subtítulo do Hero</label>
-                <input style={s.input} value={siteBranding?.heroSubtitulo ?? "Gerencie competições, inscrições, súmulas e resultados em um só lugar."} placeholder="Subtítulo da página inicial"
-                  onChange={e => setSiteBranding(prev => ({ ...prev, heroSubtitulo: e.target.value }))} />
-                <div style={{ fontSize:10, color:t.textDisabled }}>Deixe vazio para ocultar</div>
-              </div>
-            </div>
-
-            {/* Cards de estatísticas */}
-            <div style={{ marginBottom:14 }}>
-              <label style={s.label}>Cards de Estatísticas no Hero</label>
-              <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-                {[
-                  { key: "competicoes", label: "Competições" },
-                  { key: "organizadores", label: "Organizadores" },
-                  { key: "equipes", label: "Equipes" },
-                  { key: "atletas", label: "Atletas" },
-                ].map(item => {
-                  const hs = siteBranding?.heroStats || { competicoes: true, organizadores: true, equipes: true, atletas: true };
-                  const ativo = hs[item.key] !== false;
-                  return (
-                    <button key={item.key}
-                      onClick={() => setSiteBranding(prev => ({
-                        ...prev,
-                        heroStats: { ...(prev.heroStats || { competicoes: true, organizadores: true, equipes: true, atletas: true }), [item.key]: !ativo },
-                      }))}
-                      style={{
-                        padding:"7px 14px", borderRadius:6, fontSize:12, fontWeight:600, cursor:"pointer",
-                        border: `1px solid ${ativo ? t.accent : t.borderInput}`,
-                        background: ativo ? t.accentBg : t.bgInput,
-                        color: ativo ? t.accent : t.textDisabled,
-                      }}
-                    >
-                      {ativo ? "✓" : "○"} {item.label}
-                    </button>
-                  );
-                })}
-              </div>
-              <div style={{ fontSize:10, color:t.textDisabled, marginTop:4 }}>Clique para mostrar/ocultar cada card</div>
-            </div>
-
             {/* Preview header */}
             <div style={{ padding:"10px 14px", background:t.bgHeader, borderRadius:8, border:`1px solid ${t.border}` }}>
               <div style={{ fontSize:10, color:t.textDisabled, marginBottom:5 }}>Preview do header:</div>
               <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                {siteBranding?.icon && <img src={siteBranding.icon} alt="" style={{ width:28, height:28, objectFit:"contain", borderRadius:4 }} />}
-                <div>
-                  <div style={{ fontFamily: t.fontTitle, fontSize:16, fontWeight:900, color: t.accent, letterSpacing:2 }}>
-                    {siteBranding?.nome || "GERENTRACK"}
-                  </div>
-                  <div style={{ fontSize:10, color:t.textDimmed }}>{siteBranding?.slogan || "COMPETIÇÃO COM PRECISÃO"}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ── Imagem de Fundo do Hero ──────────────────────────────────────── */}
-          <div style={s.card}>
-            <h3 style={s.sectionTitle}>Imagem de Fundo do Hero</h3>
-            <p style={{ color: t.textDimmed, fontSize: 13, marginBottom: 20, lineHeight: 1.6 }}>
-              Esta imagem aparecerá no fundo da seção principal da página inicial.<br />
-              <strong style={{ color: t.textMuted }}>Tamanho recomendado:</strong> 1920 × 560px · JPG ou WebP · até 2MB.
-            </p>
-
-            {/* Preview interativo do Hero — drag livre */}
-            <div style={{ marginBottom: 20 }}>
-              <label style={s.label}>Prévia do Hero (arraste os elementos para posicionar)</label>
-              <div
-                ref={el => { if (el) el._heroPreviewRef = el; }}
-                style={{
-                  width: "100%", height: 260, borderRadius: 10,
-                  border: `1px solid ${t.borderInput}`,
-                  background: heroBgPreview
-                    ? `url(${heroBgPreview}) center/cover no-repeat`
-                    : "linear-gradient(180deg, #0D1018 0%, #141720 100%)",
-                  position: "relative", overflow: "hidden",
-                  userSelect: "none",
-                }}
-                onMouseMove={e => {
-                  const drag = window._heroDrag;
-                  if (!drag) return;
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
-                  setSiteBranding(prev => ({
-                    ...prev,
-                    heroPosicoes: {
-                      ...(prev.heroPosicoes || {}),
-                      [drag.key]: { x: 50, y: Math.round(y * 10) / 10 },
-                    },
-                  }));
-                }}
-                onMouseUp={() => { window._heroDrag = null; }}
-                onMouseLeave={() => { window._heroDrag = null; }}
-              >
-                {heroBgPreview && <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", pointerEvents:"none" }} />}
-                {(() => {
-                  const tam = siteBranding?.heroTamanhos || { badge: 1, titulo: 1, subtitulo: 1, stats: 1 };
-                  const pos = siteBranding?.heroPosicoes || { badge:{x:50,y:8}, titulo:{x:50,y:28}, subtitulo:{x:50,y:48}, stats:{x:50,y:72} };
-                  const hs = siteBranding?.heroStats || { competicoes: true, organizadores: true, equipes: true, atletas: true };
-                  const labels = { badge: "Badge", titulo: "Título", subtitulo: "Subtítulo", stats: "Cards" };
-
-                  const mudarTamPreview = (key, valor) => {
-                    const v = Math.max(0.3, Math.min(3, valor));
-                    setSiteBranding(prev => ({
-                      ...prev,
-                      heroTamanhos: { ...(prev.heroTamanhos || { badge: 1, titulo: 1, subtitulo: 1, stats: 1 }), [key]: Math.round(v * 100) / 100 },
-                    }));
-                  };
-
-                  const renderEl = {
-                    badge: (siteBranding?.heroBadge ?? "PLATAFORMA DE COMPETIÇÕES") ? (
-                      <span style={{
-                        display:"inline-block", background:t.accent, color:"#fff",
-                        fontFamily: t.fontTitle, fontWeight:800,
-                        fontSize: Math.round(10 * (tam.badge || 1)), letterSpacing:2,
-                        padding:`${Math.round(4*(tam.badge||1))}px ${Math.round(10*(tam.badge||1))}px`,
-                        borderRadius:14,
-                      }}>
-                        {siteBranding?.heroBadge || "PLATAFORMA DE COMPETIÇÕES"}
-                      </span>
-                    ) : null,
-                    titulo: (siteBranding?.heroMostrarTitulo !== false) ? (
-                      <div style={{
-                        fontFamily: t.fontTitle,
-                        fontSize: Math.round(24 * (tam.titulo || 1)),
-                        fontWeight:900, color:"#fff", lineHeight:1.1,
-                      }}>
+                {siteBranding?.logo ? (
+                  <img src={siteBranding.logo} alt={siteBranding?.nome || "GERENTRACK"} style={{ height: 32, maxWidth: 200, objectFit: "contain" }} />
+                ) : (
+                  <>
+                    {siteBranding?.icon && <img src={siteBranding.icon} alt="" style={{ width:28, height:28, objectFit:"contain", borderRadius:4 }} />}
+                    <div>
+                      <div style={{ fontFamily: t.fontTitle, fontSize:16, fontWeight:900, color: t.accent, letterSpacing:2 }}>
                         {siteBranding?.nome || "GERENTRACK"}
                       </div>
-                    ) : null,
-                    subtitulo: (siteBranding?.heroSubtitulo ?? "Gerencie competições...") ? (
-                      <div style={{
-                        color:"rgba(255,255,255,0.7)",
-                        fontSize: Math.round(10 * (tam.subtitulo || 1)),
-                      }}>
-                        {siteBranding?.heroSubtitulo || "Gerencie competições, inscrições, súmulas e resultados em um só lugar."}
-                      </div>
-                    ) : null,
-                    stats: (() => {
-                      const items = [];
-                      if (hs.competicoes) items.push("12 COMP.");
-                      if (hs.organizadores) items.push("1 ORG.");
-                      if (hs.equipes) items.push("30 EQ.");
-                      if (hs.atletas) items.push("2551 ATL.");
-                      if (items.length === 0) return null;
-                      return (
-                        <div style={{ display:"flex", justifyContent:"center", gap:6, flexWrap:"nowrap" }}>
-                          {items.map((v, i) => (
-                            <div key={i} style={{
-                              background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.2)",
-                              borderRadius:6, padding:`${Math.round(5*(tam.stats||1))}px ${Math.round(10*(tam.stats||1))}px`,
-                              fontSize: Math.round(9 * (tam.stats || 1)), fontWeight:700, color:t.accent,
-                              fontFamily: t.fontTitle,
-                            }}>{v}</div>
-                          ))}
-                        </div>
-                      );
-                    })(),
-                  };
-
-                  return ["badge", "titulo", "subtitulo", "stats"].map(key => {
-                    const el = renderEl[key];
-                    if (!el) return null;
-                    const p = pos[key] || { x: 50, y: 50 };
-                    return (
-                      <div
-                        key={key}
-                        onMouseDown={e => { e.preventDefault(); window._heroDrag = { key }; }}
-                        style={{
-                          position:"absolute",
-                          left:`${p.x}%`, top:`${p.y}%`,
-                          transform:"translate(-50%, -50%)",
-                          cursor:"ns-resize", zIndex:2,
-                          border:"1px dashed transparent",
-                          borderRadius:6, padding:"2px 6px",
-                          transition:"border-color 0.15s",
-                          textAlign:"center",
-                          whiteSpace: key === "stats" ? "nowrap" : "nowrap",
-                        }}
-                        onMouseEnter={e => { e.currentTarget.style.borderColor = t.accent + "88"; }}
-                        onMouseLeave={e => { e.currentTarget.style.borderColor = "transparent"; }}
-                      >
-                        {el}
-                        {/* Label + slider de tamanho */}
-                        <div
-                          style={{
-                            position:"absolute", top:-18, left:"50%", transform:"translateX(-50%)",
-                            background:"rgba(0,0,0,0.8)", borderRadius:4, padding:"1px 6px",
-                            fontSize:8, color:t.accent, whiteSpace:"nowrap",
-                            display:"flex", alignItems:"center", gap:4,
-                            pointerEvents:"auto",
-                          }}
-                          onMouseDown={e => e.stopPropagation()}
-                        >
-                          {labels[key]}
-                          <input type="range" min="30" max="200" step="5"
-                            value={Math.round((tam[key] || 1) * 100)}
-                            onChange={e => mudarTamPreview(key, parseInt(e.target.value) / 100)}
-                            style={{ width:40, accentColor:t.accent, height:8 }}
-                          />
-                          <span style={{ fontSize:7, color:"rgba(255,255,255,0.5)" }}>{Math.round((tam[key]||1)*100)}%</span>
-                        </div>
-                      </div>
-                    );
-                  });
-                })()}
+                      <div style={{ fontSize:10, color:t.textDimmed }}>{siteBranding?.slogan || "COMPETIÇÃO COM PRECISÃO"}</div>
+                    </div>
+                  </>
+                )}
               </div>
-              <div style={{ fontSize:10, color:t.textDisabled, marginTop:4 }}>Arraste para cima/baixo para posicionar (sempre centralizado). Use o slider para ajustar tamanho.</div>
-            </div>
-
-            {/* Upload */}
-            <div style={{ marginBottom: 16 }}>
-              <label style={s.label}>Upload de Imagem</label>
-              <input type="file" accept="image/jpeg,image/png,image/webp" style={{ display: "none" }} id="heroBgUpload"
-                onChange={async e => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  if (file.size > 2 * 1024 * 1024) { setErro("Imagem muito grande. Use no máximo 2MB."); e.target.value = ""; return; }
-                  setErro("");
-                  setUploadandoHero(true);
-                  try {
-                    const ref = storageRef(storage, "branding/hero-bg");
-                    await uploadBytes(ref, file);
-                    const url = await getDownloadURL(ref);
-                    setHeroBgUrl(url);
-                    setHeroBgPreview(url);
-                  } catch (err) {
-                    setErro("Erro ao enviar imagem: " + err.message);
-                  } finally {
-                    setUploadandoHero(false);
-                    e.target.value = "";
-                  }
-                }}
-              />
-              <label htmlFor="heroBgUpload" style={{
-                display: "inline-flex", alignItems: "center", gap: 8,
-                background: uploadandoHero ? t.accentBg : t.bgInput,
-                border: `1px solid ${uploadandoHero ? t.accent : t.borderInput}`,
-                borderRadius: 7, padding: "9px 18px",
-                cursor: uploadandoHero ? "not-allowed" : "pointer",
-                fontSize: 13, color: uploadandoHero ? t.accent : t.textTertiary,
-                fontFamily: t.fontBody, transition: "all 0.2s",
-              }}>
-                {uploadandoHero ? "Enviando para Firebase Storage..." : "Escolher arquivo (JPG, PNG, WebP — máx. 2MB)"}
-              </label>
-            </div>
-
-            {/* URL */}
-            <div style={{ marginBottom: 20 }}>
-              <label style={s.label}>Ou cole a URL da imagem</label>
-              <input
-                style={{ ...s.input, marginBottom: 0 }}
-                value={typeof heroBgUrl === "string" && heroBgUrl.startsWith("http") ? heroBgUrl : ""}
-                onChange={e => { setHeroBgUrl(e.target.value); setHeroBgPreview(e.target.value); }}
-                placeholder="https://exemplo.com/imagem.jpg"
-              />
-              <div style={{ fontSize: 11, color: t.textDimmed, marginTop: 5 }}>
-                Dica: use Firebase Storage, ImgBB ou qualquer host de imagens.
-              </div>
-            </div>
-
-            {/* Botões */}
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <button
-                style={{ ...s.btnPrimary, opacity: uploadandoHero ? 0.5 : 1, cursor: uploadandoHero ? "not-allowed" : "pointer" }}
-                disabled={uploadandoHero}
-                onClick={() => {
-                  if (!setSiteBranding || uploadandoHero) return;
-                  setSiteBranding(prev => ({ ...prev, heroBg: heroBgUrl }));
-                  if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Alterou imagem do hero", "", null, { modulo: "aparencia" });
-                  ok("Imagem de fundo salva com sucesso!");
-                }}
-              >
-                Salvar Imagem
-              </button>
-              {(siteBranding?.heroBg || heroBgPreview) && (
-                <button style={s.btnGhost} onClick={() => {
-                  setHeroBgUrl(""); setHeroBgPreview("");
-                  if (setSiteBranding) setSiteBranding(prev => ({ ...prev, heroBg: "" }));
-                  if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Removeu imagem do hero", "", null, { modulo: "aparencia" });
-                  ok("Imagem de fundo removida.");
-                }}>
-                  Remover Imagem
-                </button>
-              )}
             </div>
           </div>
+
+          {/* ── Seção "Imagem de Fundo do Hero" removida (hero agora é fixo) ── */}
+          {null}
 
           {/* ── Assinaturas de Federações (Ranking) ─────────────────────────── */}
           <div style={s.card}>
