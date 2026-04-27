@@ -247,37 +247,6 @@ function TelaGestaoInscricoes() {
 
   // ── Carrinho ─────────────────────────────────────────────────────────────
 
-  // ── Pré-inscrições (atletas sem provas definidas) ──────────────────────────
-  const preInscricoes = eventoAtual?.preInscricoes || [];
-
-  const handlePreInscricao = () => {
-    if (!inserirAtletaId) { alert("Selecione um atleta."); return; }
-    if (preInscricoes.some(p => p.atletaId === inserirAtletaId)) { alert("Atleta já possui pré-inscrição."); return; }
-    if (inscsEvt.some(i => i.atletaId === inserirAtletaId)) { alert("Atleta já possui inscrições neste evento."); return; }
-    const atl = atletas.find(a => a.id === inserirAtletaId);
-    if (!atl) return;
-    const cat = getCategoria(atl.anoNasc, anoComp);
-    const novaPreInsc = {
-      atletaId: inserirAtletaId,
-      atletaNome: atl.nome,
-      sexo: atl.sexo,
-      categoriaId: cat?.id || "",
-      categoria: cat?.nome || "—",
-      equipeId: atl.equipeId || null,
-      equipeCadastro: atl.clube || _getClubeAtleta(atl, equipes) || "",
-      data: new Date().toISOString(),
-      inscritoPor: usuarioLogado?.nome || "—",
-    };
-    atualizarCamposEvento(eventoAtual.id, { preInscricoes: [...preInscricoes, novaPreInsc] });
-    setInserirAtletaId("");
-    setInserirProvasIds(new Set());
-    setFeedback(`Pré-inscrição: ${atl.nome} adicionado(a) sem provas.`);
-    setTimeout(() => setFeedback(""), 3000);
-  };
-
-  const handleRemoverPreInscricao = (atletaId) => {
-    atualizarCamposEvento(eventoAtual.id, { preInscricoes: preInscricoes.filter(p => p.atletaId !== atletaId) });
-  };
 
   const todosAtletas = useMemo(() => {
     // Equipe/treinador: mostrar apenas atletas da própria equipe no carrinho
@@ -648,13 +617,6 @@ function TelaGestaoInscricoes() {
         await batch.commit();
       }
 
-      // 3. Remover pré-inscrições dos atletas que acabaram de receber provas
-      const atletasNoCarrinho = new Set(carrinho.map(c => c.atletaId));
-      const preInscAtual = eventoAtual.preInscricoes || [];
-      const preInscRestantes = preInscAtual.filter(p => !atletasNoCarrinho.has(p.atletaId));
-      if (preInscRestantes.length !== preInscAtual.length) {
-        atualizarCamposEvento(eventoAtual.id, { preInscricoes: preInscRestantes });
-      }
       if (registrarAcao) {
         const atletasUnicos = [...new Set(carrinho.map(c => c.atletaNome || c.atletaId))];
         const nomes = atletasUnicos.slice(0, 5).join(", ");
@@ -1393,57 +1355,6 @@ function TelaGestaoInscricoes() {
             )}
           </div>
 
-          {/* Pré-inscrições (sem provas) */}
-          {isPrivileg && preInscricoes.length > 0 && (
-            <div style={{ marginBottom: 16, padding: "14px 18px", background: `${t.warning}08`, border: `1px solid ${t.warning}33`, borderRadius: 10 }}>
-              <div style={{ fontFamily: t.fontTitle, fontSize: 15, fontWeight: 700, color: t.warning, marginBottom: 10 }}>
-                Pre-inscricoes — Sem provas definidas ({preInscricoes.length})
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {preInscricoes.map(pre => {
-                  const atl = atletas.find(a => a.id === pre.atletaId);
-                  const peito = numeracaoPeito?.[eid]?.[pre.atletaId];
-                  return (
-                    <div key={pre.atletaId} style={{
-                      display: "flex", alignItems: "center", gap: 10, padding: "8px 12px",
-                      background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 8, flexWrap: "wrap",
-                    }}>
-                      {peito && <span style={{ fontFamily: t.fontTitle, fontWeight: 800, fontSize: 16, color: t.accent, minWidth: 40 }}>#{formatarPeito(peito)}</span>}
-                      <span style={{ fontWeight: 600, color: t.textPrimary, flex: "1 1 180px" }}>{atl?.nome || pre.atletaNome || "—"}</span>
-                      <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 4, background: `${t.gold}12`, color: t.gold, border: `1px solid ${t.gold}33` }}>{pre.categoria || "—"}</span>
-                      <span style={{ fontSize: 11, color: pre.sexo === "M" ? "#1a6ef5" : "#e54f9b" }}>{pre.sexo === "M" ? "Masc" : "Fem"}</span>
-                      <span style={{ fontSize: 11, color: t.textDimmed }}>{pre.equipeCadastro || "Sem equipe"}</span>
-                      <div style={{ display: "flex", gap: 6, marginLeft: "auto" }}>
-                        <button
-                          style={{ ...s.btnPrimary, padding: "5px 14px", fontSize: 12 }}
-                          onClick={() => {
-                            setFiltroSexoLote("todos");
-                            setFiltroCatLote("todas");
-                            setFiltroEquipeLote("todas");
-                            setModoCarrinho(true);
-                            setEtapa("montagem");
-                            setInserirAtletaId(pre.atletaId);
-                            setInserirProvasIds(new Set());
-                            setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 100);
-                          }}>
-                          Definir Provas
-                        </button>
-                        <button
-                          style={{ background: "none", border: `1px solid ${t.danger}44`, color: t.danger, borderRadius: 6, cursor: "pointer", fontSize: 11, padding: "5px 10px" }}
-                          onClick={async () => {
-                            const ok = await confirmar("Remover pré-inscrição de " + (atl?.nome || "atleta") + "?");
-                            if (ok) handleRemoverPreInscricao(pre.atletaId);
-                          }}>
-                          Remover
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
           <div style={s.tableWrap}>
             <table style={s.table}>
               <thead>
@@ -1722,14 +1633,6 @@ function TelaGestaoInscricoes() {
                       );
                     })}
                   </select>
-                  {isPrivileg && inserirAtletaId && (
-                    <button
-                      style={{ ...s.btnGhost, fontSize: 12, padding: "7px 16px", whiteSpace: "nowrap", color: t.warning, borderColor: `${t.warning}55` }}
-                      onClick={handlePreInscricao}
-                      title="Registrar atleta sem definir provas agora">
-                      Pre-inscricao (sem provas)
-                    </button>
-                  )}
                 </div>
 
                 {/* Chips de provas — só aparecem após selecionar atleta */}
