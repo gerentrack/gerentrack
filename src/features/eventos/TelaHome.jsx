@@ -2,12 +2,19 @@ import React from "react";
 import { getStatusEvento, labelStatusEvento } from "./eventoHelpers";
 import { _getLocalEventoDisplay } from "../../shared/formatters/utils";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
+import { useResponsivo } from "../../hooks/useResponsivo";
 import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvento } from "../../contexts/EventoContext";
 import { useApp } from "../../contexts/AppContext";
 
 import { IcoCalendar, IcoClock, IcoPin, IcoList, IcoTarget, IcoUsers, IcoEdit, IcoPen, IcoTrash } from "../../shared/icons";
+
+const SearchIcon = (size = 18) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+  </svg>
+);
 
 const getStyles = (t) => ({
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
@@ -69,28 +76,6 @@ const getStyles = (t) => ({
   digitarHeader: { padding: "16px 20px", background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 },
   digitarDica: { color: t.textDimmed, fontSize: 12 },
   inputMarca: { background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 6, padding: "8px 12px", color: t.accent, fontSize: 16, fontFamily: t.fontTitle, fontWeight: 700, width: 120, outline: "none" },
-  infoCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: 24 },
-  infoCardTitle: { fontFamily: t.fontTitle, fontSize: 20, fontWeight: 700, color: t.accent, marginBottom: 16, letterSpacing: 1 },
-  infoList: { listStyle: "none" },
-  infoItem: { padding: "6px 0", borderBottom: `1px solid ${t.border}`, fontSize: 14, color: t.textSecondary, display: "flex", alignItems: "center", gap: 8 },
-  infoItemDot: { color: t.accent, fontWeight: 700 },
-  heroSection: { textAlign: "center", padding: "60px 20px 40px", background: t.bgHeader, borderRadius: 16, marginBottom: 48, position: "relative", overflow: "hidden" },
-  heroOverlay: { position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.45) 100%)", zIndex: 0, borderRadius: 16, pointerEvents: "none" },
-  heroContent: { position: "relative", zIndex: 1 },
-  heroBadge: { display: "inline-block", background: t.accent, color: "#fff", fontFamily: t.fontTitle, fontWeight: 800, fontSize: 12, letterSpacing: 3, padding: "6px 16px", borderRadius: 20, marginBottom: 20 },
-  heroTitle: { fontFamily: t.fontTitle, fontSize: 56, fontWeight: 900, color: t.textPrimary, lineHeight: 1.1, marginBottom: 16, letterSpacing: 1 },
-  heroBtns: { display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" },
-  eventosGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(320px, 100%), 1fr))", gap: 20, marginBottom: 48, overflowX: "auto" },
-  eventoCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 14, padding: 24, display: "flex", flexDirection: "column", gap: 10 },
-  eventoCardNome: { fontFamily: t.fontTitle, fontSize: 18, fontWeight: 800, color: t.textPrimary, lineHeight: 1.2, minHeight: "2.4em", maxHeight: "2.4em", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" },
-  eventoCardMeta: { fontSize: 13, color: t.textDimmed },
-  eventoCardStats: { display: "flex", gap: 16, fontSize: 13, color: t.textMuted, flexWrap: "wrap", borderTop: `1px solid ${t.border}`, paddingTop: 10, marginTop: 4 },
-  eventoStatusBadge: (status) => ({
-    display: "inline-block", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700, letterSpacing: 0.5,
-    background: status === "ao_vivo" ? t.accentBg : status === "hoje_pre" ? t.accentBg : status === "futuro" ? t.accentBg : t.bgCardAlt,
-    color: status === "ao_vivo" ? t.danger : status === "hoje_pre" ? t.accent : status === "futuro" ? t.success : t.textMuted,
-    border: `1px solid ${status === "ao_vivo" ? t.danger+"44" : status === "hoje_pre" ? t.accentBorder : status === "futuro" ? t.success+"44" : t.border}`,
-  }),
   eventoAcoesGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16, marginBottom: 40 },
   eventoAcaoBtn: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "20px 16px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, textAlign: "center", color: t.textPrimary, fontFamily: t.fontBody, fontSize: 15, fontWeight: 700, transition: "border-color 0.2s" },
   statusBar: { display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap", background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, padding: "12px 18px", marginBottom: 24 },
@@ -138,48 +123,76 @@ const getStyles = (t) => ({
   grupoProvasHeader: { background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`, padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" },
   provaCheckBtn: { background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: t.fontBody, lineHeight: 1.4, userSelect: "none" },
   provaCheckBtnSel: { background: t.bgHover, borderColor: t.accent, color: t.accent },
+
+  // ── Hero (novo) ──
+  heroSection: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "60px 48px", gap: 48, background: `linear-gradient(135deg, ${t.bgCardAlt} 0%, ${t.bgCard} 50%, ${t.accent}15 100%)`, borderRadius: 16, marginBottom: 48, position: "relative", overflow: "hidden", border: `1px solid ${t.border}` },
+  heroTitle: { fontFamily: t.fontTitle, fontSize: 42, fontWeight: 900, color: t.textPrimary, lineHeight: 1.1, marginBottom: 16, letterSpacing: 1, maxWidth: 560 },
+  heroSubtitle: { fontSize: 16, color: t.textMuted, lineHeight: 1.6, marginBottom: 28, maxWidth: 480 },
+  heroBtns: { display: "flex", justifyContent: "flex-start", gap: 12, flexWrap: "wrap" },
+
+  // ── Search ──
+  searchSection: { marginBottom: 40 },
+  searchWrap: { position: "relative" },
+  searchIcon: { position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: t.textDimmed, pointerEvents: "none", display: "flex" },
+  searchInput: { width: "100%", background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "14px 20px 14px 48px", color: t.textPrimary, fontSize: 16, fontFamily: t.fontBody, outline: "none", transition: "border-color 0.15s" },
+
+  // ── Event cards (redesign) ──
+  eventosGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(320px, 100%), 1fr))", gap: 20, marginBottom: 48 },
+  eventoCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "20px 24px", display: "flex", flexDirection: "column", gap: 12, transition: "border-color 0.15s, transform 0.15s", cursor: "pointer" },
+  eventoCardHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 },
+  eventoCardNome: { fontFamily: t.fontTitle, fontSize: 18, fontWeight: 800, color: t.textPrimary, lineHeight: 1.2, minHeight: "2.4em", maxHeight: "2.4em", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" },
+  eventoCardMeta: { display: "flex", gap: 16, fontSize: 13, color: t.textMuted, flexWrap: "wrap", alignItems: "center" },
+  eventoCardStats: { display: "flex", gap: 16, fontSize: 13, color: t.textMuted, flexWrap: "wrap", borderTop: `1px solid ${t.border}`, paddingTop: 10, marginTop: 4 },
+  eventoStatusBadge: (status) => ({
+    display: "inline-block", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700, letterSpacing: 0.5,
+    background: status === "ao_vivo" ? t.accentBg : status === "hoje_pre" ? t.accentBg : status === "futuro" ? t.accentBg : t.bgCardAlt,
+    color: status === "ao_vivo" ? t.danger : status === "hoje_pre" ? t.accent : status === "futuro" ? t.success : t.textMuted,
+    border: `1px solid ${status === "ao_vivo" ? t.danger+"44" : status === "hoje_pre" ? t.accentBorder : status === "futuro" ? t.success+"44" : t.border}`,
+  }),
+
+  // ── Dashboard mockup ──
+  dashboardMockup: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 14, padding: 20, boxShadow: t.shadowLg, minWidth: 320, maxWidth: 420 },
+  dashboardStat: { background: t.bgCardAlt, borderRadius: 10, padding: "14px 16px", border: `1px solid ${t.border}` },
 });
-
-function StatCard({ value, label, escala = 1 }) {
-  const t = useTema();
-  return (
-    <div style={{ background:t.bgCard+"cc", border:`1px solid ${t.border}`, borderRadius:10, padding:`${Math.round(12*escala)}px ${Math.round(20*escala)}px`, textAlign:"center" }}>
-      <div style={{ fontFamily: t.fontTitle, fontSize:Math.round(28*escala), fontWeight:900, color: t.accent, lineHeight:1 }}>{value}</div>
-      <div style={{ color: t.textDimmed, fontSize:Math.round(11*escala), letterSpacing:1, textTransform:"uppercase", marginTop:4 }}>{label}</div>
-    </div>
-  );
-}
-
-function InfoCard({ icon, title, items }) {
-  const t = useTema();
-  const s = useStylesResponsivos(getStyles(t));
-  return (
-    <div style={s.infoCard}>
-      <div style={s.infoCardTitle}>{icon ? `${icon} ` : ""}{title}</div>
-      <ul style={s.infoList}>
-        {items.map((item, i) => (
-          <li key={i} style={s.infoItem}>
-            <span style={s.infoItemDot}>›</span> {item}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
 
 export default function TelaHome() {
   const { usuarioLogado } = useAuth();
   const { eventos, inscricoes, atletas, resultados, selecionarEvento, excluirEvento, equipes } = useEvento();
-  const { setTela, organizadores, selecionarOrganizador, siteBranding } = useApp();
+  const { setTela, organizadores, selecionarOrganizador } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
+  const { mobile } = useResponsivo();
   const totalResultados = resultados && typeof resultados === "object"
     ? Object.values(resultados).reduce((a, b) => a + (b && typeof b === "object" ? Object.keys(b).length : 0), 0)
     : 0;
 
   const [maisEventosPag, setMaisEventosPag] = React.useState(0);
   const MAIS_POR_PAG = 9;
+  const eventosRef = React.useRef(null);
 
+  // ── Busca ──
+  const [busca, setBusca] = React.useState("");
+  const [buscaDebounced, setBuscaDebounced] = React.useState("");
+  React.useEffect(() => {
+    const timer = setTimeout(() => setBuscaDebounced(busca), 250);
+    return () => clearTimeout(timer);
+  }, [busca]);
+
+  const buscaAtiva = buscaDebounced.trim().length >= 2;
+  const eventosFiltrados = buscaAtiva
+    ? eventos.filter(ev => {
+        const q = buscaDebounced.toLowerCase();
+        if (ev.nome?.toLowerCase().includes(q)) return true;
+        if (ev.cidade?.toLowerCase().includes(q)) return true;
+        if (ev.local?.toLowerCase().includes(q)) return true;
+        const org = organizadores?.find(o => o.id === ev.organizadorId);
+        if (org?.entidade?.toLowerCase().includes(q)) return true;
+        if (org?.nome?.toLowerCase().includes(q)) return true;
+        return false;
+      })
+    : [];
+
+  // ── Datas e categorização ──
   const hoje = new Date();
   hoje.setHours(0,0,0,0);
   const mesAtual = hoje.getMonth();
@@ -215,149 +228,143 @@ export default function TelaHome() {
   const totalPagsMais = Math.ceil(maisEventos.length / MAIS_POR_PAG);
   const maisEventosPagAtual = maisEventos.slice(maisEventosPag * MAIS_POR_PAG, (maisEventosPag + 1) * MAIS_POR_PAG);
 
+  // ── CTA dinâmico ──
+  const getCtaEvento = (ev, status) => {
+    if (status === "futuro") return { label: "Inscrever-se", action: () => selecionarEvento(ev.id) };
+    if (status === "ao_vivo" || status === "hoje_pre") return { label: "Acompanhar", action: () => selecionarEvento(ev.id) };
+    return { label: "Ver Resultados", action: () => selecionarEvento(ev.id, "resultados") };
+  };
+
+  // ── Dashboard Mockup ──
+  function DashboardMockup() {
+    if (mobile) return null;
+    const stats = [
+      { value: eventos.length, label: "Competições", color: t.accent },
+      { value: atletas.length, label: "Atletas", color: t.success },
+      { value: equipes?.length || 0, label: "Equipes", color: t.warning },
+      { value: totalResultados, label: "Resultados", color: t.gold || t.accent },
+    ];
+    return (
+      <div style={s.dashboardMockup}>
+        <div style={{ fontSize: 11, color: t.textDimmed, fontWeight: 700, letterSpacing: 1.5, marginBottom: 12, textTransform: "uppercase", fontFamily: t.fontTitle }}>Dashboard</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          {stats.map((item, i) => (
+            <div key={i} style={s.dashboardStat}>
+              <div style={{ fontFamily: t.fontTitle, fontSize: 24, fontWeight: 900, color: item.color, lineHeight: 1 }}>{item.value}</div>
+              <div style={{ fontSize: 11, color: t.textDimmed, marginTop: 4 }}>{item.label}</div>
+            </div>
+          ))}
+        </div>
+        {proximosEventos.length > 0 && (
+          <div style={{ marginTop: 14, borderTop: `1px solid ${t.border}`, paddingTop: 12 }}>
+            <div style={{ fontSize: 10, color: t.textDimmed, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8, fontFamily: t.fontTitle }}>Próximos</div>
+            {proximosEventos.slice(0, 3).map(ev => {
+              const st = getStatusEvento(ev, resultados);
+              return (
+                <div key={ev.id} style={{ fontSize: 12, color: t.textMuted, padding: "5px 0", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, borderBottom: `1px solid ${t.border}22` }}>
+                  <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{ev.nome}</span>
+                  <span style={{ ...s.eventoStatusBadge(st), fontSize: 9, padding: "2px 8px", flexShrink: 0 }}>{labelStatusEvento(st, ev)}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ── Render card de evento ──
   const renderEvCard = (ev) => {
-    const nInscs = inscricoes.filter((i) => i.eventoId === ev.id).length;
     const nAtletas = [...new Set(inscricoes.filter((i) => i.eventoId === ev.id).map((i) => i.atletaId))].length;
-    const nProvas = (ev.provasPrograma || []).length;
     const dataEv = new Date(ev.data + "T12:00:00");
     const status = getStatusEvento(ev, resultados);
+    const cta = getCtaEvento(ev, status);
+
     return (
-      <div key={ev.id} style={{ ...s.eventoCard, padding:0, overflow:"hidden" }}>
-        <div style={{ position:"relative", width:"100%", aspectRatio:"1/1", minHeight:200, background: t.bgCard, borderBottom:`1px solid ${t.border}`, overflow:"hidden", display:"flex", alignItems:"center", justifyContent:"center" }}>
-          {ev.logoCompeticao && !ev.competicaoFinalizada ? (
-            <img src={ev.logoCompeticao} alt="" style={{ maxWidth:"100%", maxHeight:"100%", display:"block", objectFit:"contain" }} />
+      <div key={ev.id} style={{ ...s.eventoCard, padding: 0, overflow: "hidden" }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = t.accent; e.currentTarget.style.transform = "translateY(-2px)"; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.transform = "translateY(0)"; }}>
+        {/* Imagem da competição */}
+        <div style={{ position: "relative", width: "100%", aspectRatio: "1/1", minHeight: 200, background: t.bgCardAlt, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {ev.logoCompeticao ? (
+            <img src={ev.logoCompeticao} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
           ) : (
-            <span style={{ opacity:0.3 }}>{IcoTarget(28)}</span>
+            <span style={{ opacity: 0.15 }}>{IcoTarget(40)}</span>
           )}
-          <div style={{ position:"absolute", top:10, left:12, display:"flex", flexDirection:"column", gap:4 }}>
+          <div style={{ position: "absolute", top: 10, left: 10 }}>
             <div style={s.eventoStatusBadge(status)}>{labelStatusEvento(status, ev)}</div>
           </div>
           {usuarioLogado?.tipo === "admin" && (
-            <div style={{ position:"absolute", top:8, right:10, display:"flex", gap:6 }}>
-              <button style={{ ...s.btnIconSm, background:"rgba(0,0,0,0.5)", backdropFilter:"blur(4px)" }} onClick={() => selecionarEvento(ev.id, "novo-evento")} title="Editar">{IcoEdit(14)}</button>
-              <button style={{ ...s.btnIconSmDanger, background:"rgba(0,0,0,0.5)", backdropFilter:"blur(4px)" }} onClick={() => excluirEvento(ev.id)} title="Excluir">{IcoTrash(14)}</button>
+            <div style={{ position: "absolute", top: 8, right: 10, display: "flex", gap: 6 }}>
+              <button style={{ ...s.btnIconSm, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", color: "#fff" }} onClick={(e) => { e.stopPropagation(); selecionarEvento(ev.id, "novo-evento"); }} title="Editar">{IcoEdit(14)}</button>
+              <button style={{ ...s.btnIconSmDanger, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }} onClick={(e) => { e.stopPropagation(); excluirEvento(ev.id); }} title="Excluir">{IcoTrash(14)}</button>
             </div>
           )}
         </div>
-        <div style={{ padding:"14px 20px 20px" }}>
+        <div style={{ padding: "16px 20px 20px", display: "flex", flexDirection: "column", gap: 10 }}>
           <div style={s.eventoCardNome}>{ev.nome}</div>
           <div style={s.eventoCardMeta}>
-            <span>{IcoCalendar()} {dataEv.toLocaleDateString("pt-BR", { day:"2-digit", month:"long", year:"numeric" })}
-              {ev.horaInicio && <> · {IcoClock()} {ev.horaInicio}h</>}
-            </span>
+            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>{IcoCalendar()} {dataEv.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}{ev.horaInicio && <> · {ev.horaInicio}h</>}</span>
+            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>{IcoPin()} {ev.cidade || _getLocalEventoDisplay(ev)}{ev.uf ? ` - ${ev.uf}` : ""}</span>
           </div>
-          <div style={s.eventoCardMeta}><span>{IcoPin()} {_getLocalEventoDisplay(ev)}</span></div>
-          {(ev.dataAberturaInscricoes || ev.dataEncerramentoInscricoes) && (
-            <div style={s.eventoCardMeta}>
-              <span>{IcoList()} Inscrições:&nbsp;
-                {ev.dataAberturaInscricoes && <>{new Date(ev.dataAberturaInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}</>}
-                {ev.dataAberturaInscricoes && ev.dataEncerramentoInscricoes && " a "}
-                {ev.dataEncerramentoInscricoes && <>{new Date(ev.dataEncerramentoInscricoes + "T12:00:00").toLocaleDateString("pt-BR")}</>}
-              </span>
-            </div>
-          )}
-          <div style={s.eventoCardStats}>
-            <span>{IcoTarget()} {nProvas} prova{nProvas !== 1 ? "s" : ""}</span>
-            <span>{IcoUsers()} {nAtletas} atleta{nAtletas !== 1 ? "s" : ""}</span>
-            <span>{IcoPen()} {nInscs} {nInscs !== 1 ? "inscrições" : "inscrição"}</span>
+          <div style={s.eventoCardMeta}>
+            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>{IcoUsers()} {nAtletas} atleta{nAtletas !== 1 ? "s" : ""}</span>
           </div>
-          <div style={{ display:"flex", gap:6, marginBottom:10 }}>
-            {(() => {
-              const tpU = usuarioLogado?.tipo;
-              const temAcessoSumula = tpU === "admin" || tpU === "organizador" ||
-                (tpU === "funcionario" && (usuarioLogado?.permissoes?.includes("sumulas") || usuarioLogado?.permissoes?.includes("resultados"))) ||
-                (ev.sumulaLiberada && usuarioLogado);
-              return temAcessoSumula && (
-                <button style={{...s.btnSecondary, flex:1}} onClick={() => selecionarEvento(ev.id, "sumulas")}>
-                  Súmulas
-                </button>
-              );
-            })()}
-            {(status === "ao_vivo" || status === "encerrado" || status === "hoje_pre") && (
-              <button style={{...s.btnSecondary, flex:1}} onClick={() => selecionarEvento(ev.id, "resultados")}>
-                Resultados
-              </button>
-            )}
-          </div>
-          <button style={s.btnPrimary} onClick={() => selecionarEvento(ev.id)}>
-            Acessar Competição →
+          <button style={{ ...s.btnPrimary, alignSelf: "flex-start", padding: "9px 22px", fontSize: 13 }} onClick={() => cta.action()}>
+            {cta.label}
           </button>
         </div>
       </div>
     );
   };
 
+  // ── Hero CTA ──
+  const handleCriarCompetição = () => {
+    const tp = usuarioLogado?.tipo;
+    if (tp === "admin" || tp === "organizador") {
+      selecionarEvento(null, "novo-evento");
+    } else {
+      setTela("planos");
+    }
+  };
 
   return (
     <div style={s.page}>
-      <div style={{
-        ...s.heroSection,
-        height: siteBranding?.heroAltura || 400,
-        minHeight: siteBranding?.heroAltura || 400,
-        padding: 0,
-        ...(siteBranding?.heroBg ? {
-          backgroundImage: `url(${siteBranding.heroBg})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          background: undefined,
-        } : {}),
-      }}>
-        {siteBranding?.heroBg && <div style={s.heroOverlay} />}
-        <div style={{ position:"relative", zIndex:1, width:"100%", height:"100%" }}>
-        {(() => {
-          const tam = siteBranding?.heroTamanhos || { badge: 1, titulo: 1, subtitulo: 1, stats: 1 };
-          const pos = siteBranding?.heroPosicoes || { badge:{x:50,y:8}, titulo:{x:50,y:28}, subtitulo:{x:50,y:48}, stats:{x:50,y:72} };
-          const hs = siteBranding?.heroStats || { competicoes: true, organizadores: true, equipes: true, atletas: true };
+      {/* ── HERO ── */}
+      <div style={{ ...s.heroSection, ...(mobile ? { flexDirection: "column", textAlign: "center", padding: "40px 20px 32px" } : {}) }}>
+        <div style={{ flex: 1, maxWidth: mobile ? "100%" : 560 }}>
+          <h1 style={{ ...s.heroTitle, ...(mobile ? { fontSize: 28, maxWidth: "100%" } : {}) }}>
+            Gerencie competições do cadastro ao resultado final
+          </h1>
+          <p style={{ ...s.heroSubtitle, ...(mobile ? { maxWidth: "100%" } : {}) }}>
+            Inscrições, arbitragem, súmulas e resultados em um único sistema.
+          </p>
+          <div style={{ ...s.heroBtns, ...(mobile ? { justifyContent: "center" } : {}) }}>
+            <button style={s.btnPrimary} onClick={handleCriarCompetição}>
+              Criar competição
+            </button>
+            <button style={s.btnSecondary} onClick={() => eventosRef.current?.scrollIntoView({ behavior: "smooth" })}>
+              Ver eventos
+            </button>
+          </div>
+        </div>
+        <div style={{ flex: 1, display: "flex", justifyContent: "flex-end", maxWidth: mobile ? "100%" : 420 }}>
+          <DashboardMockup />
+        </div>
+      </div>
 
-          const wrap = (key, child) => child ? (
-            <div key={key} style={{
-              position:"absolute",
-              left: `${pos[key]?.x ?? 50}%`,
-              top: `${pos[key]?.y ?? 50}%`,
-              transform: "translate(-50%, -50%)",
-              textAlign: "center",
-              whiteSpace: key === "stats" ? "normal" : "nowrap",
-              maxWidth: key === "stats" ? "90%" : undefined,
-            }}>
-              {child}
-            </div>
-          ) : null;
-
-          return [
-            wrap("badge", (siteBranding?.heroBadge ?? "PLATAFORMA DE COMPETIÇÕES") ? (
-              <div style={{ ...s.heroBadge, fontSize: 12 * (tam.badge || 1), padding: `${6*(tam.badge||1)}px ${16*(tam.badge||1)}px` }}>
-                {siteBranding?.heroBadge || "PLATAFORMA DE COMPETIÇÕES"}
-              </div>
-            ) : null),
-
-            wrap("titulo", (siteBranding?.heroMostrarTitulo !== false) ? (
-              <h1 style={{ ...s.heroTitle, fontSize: 56 * (tam.titulo || 1), margin: 0 }}>
-                {siteBranding?.nome || "GERENTRACK"}
-              </h1>
-            ) : null),
-
-            wrap("subtitulo", (siteBranding?.heroSubtitulo ?? "Gerencie competições, inscrições, súmulas e resultados em um só lugar.") ? (
-              <p style={{ color: t.textMuted, fontSize: 16 * (tam.subtitulo || 1), margin: 0 }}>
-                {siteBranding?.heroSubtitulo || "Gerencie competições, inscrições, súmulas e resultados em um só lugar."}
-              </p>
-            ) : null),
-
-            wrap("stats", (() => {
-              const cards = [];
-              if (hs.competicoes) cards.push(<StatCard key="comp" value={eventos.length} label="Competições" escala={tam.stats || 1} />);
-              if (hs.organizadores) cards.push(<StatCard key="org" value={organizadores?.filter(o => !o.status || o.status === "aprovado").length || 0} label="Organizadores" escala={tam.stats || 1} />);
-              if (hs.equipes) cards.push(<StatCard key="eq" value={equipes?.length || 0} label="Equipes" escala={tam.stats || 1} />);
-              if (hs.atletas) cards.push(<StatCard key="atl" value={atletas.length} label="Atletas" escala={tam.stats || 1} />);
-              if (cards.length === 0) return null;
-              return (
-                <div style={{ display:"flex", justifyContent:"center", gap:14, flexWrap:"wrap" }}>
-                  {cards}
-                </div>
-              );
-            })()),
-          ].filter(Boolean);
-        })()}
+      {/* ── BUSCA ── */}
+      <div style={s.searchSection}>
+        <div style={s.searchWrap}>
+          <span style={s.searchIcon}>{SearchIcon(18)}</span>
+          <input
+            style={s.searchInput}
+            placeholder="Buscar eventos, cidades ou organizadores..."
+            value={busca}
+            onChange={e => { setBusca(e.target.value); setMaisEventosPag(0); }}
+            onFocus={e => { e.target.style.borderColor = t.accent; }}
+            onBlur={e => { e.target.style.borderColor = t.border; }}
+          />
         </div>
       </div>
 
@@ -372,7 +379,7 @@ export default function TelaHome() {
               Planos a partir de R$ 400,00 por competição. Todos os módulos inclusos.
             </div>
           </div>
-          <button onClick={() => setTela("planos")} style={{ background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: t.fontTitle, letterSpacing: 1, whiteSpace: "nowrap" }}>
+          <button onClick={() => setTela("planos")} style={{ ...s.btnPrimary, whiteSpace: "nowrap" }}>
             Conheça os Nossos Planos
           </button>
         </div>
@@ -394,19 +401,18 @@ export default function TelaHome() {
                 const corPri = org.corPrimaria || t.accent;
                 return (
                   <div key={org.id}
-                    onClick={() => {
-                      if (selecionarOrganizador) selecionarOrganizador(org.id);
-                    }}
+                    onClick={() => { if (selecionarOrganizador) selecionarOrganizador(org.id); }}
                     style={{
-                      flex: "0 0 auto", width: 160, background: t.bgCard,
+                      flex: "0 0 auto", width: 168, background: t.bgCard,
                       border: `1px solid ${t.border}`, borderRadius: 14,
                       padding: "18px 14px", textAlign: "center", cursor: "pointer",
-                      transition: "border-color 0.2s, transform 0.15s",
+                      transition: "border-color 0.2s, transform 0.15s, box-shadow 0.2s",
+                      boxShadow: t.shadow,
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = corPri; e.currentTarget.style.transform = "translateY(-2px)"; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.transform = "translateY(0)"; }}>
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = corPri; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = t.shadowLg; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = t.shadow; }}>
                     <div style={{
-                      width: 56, height: 56, borderRadius: 12, margin: "0 auto 10px",
+                      width: 64, height: 64, borderRadius: 14, margin: "0 auto 10px",
                       overflow: "hidden", background: t.bgCardAlt,
                       display: "flex", alignItems: "center", justifyContent: "center",
                       border: `2px solid ${corPri}33`,
@@ -431,105 +437,113 @@ export default function TelaHome() {
         );
       })()}
 
-      {/* ── PRÓXIMOS EVENTOS (mês atual) ── */}
-      {aprovados.length === 0 ? (
-        <div style={s.emptyState}>
-          <span style={{ fontSize:20, color: t.textDisabled, fontFamily: t.fontTitle, fontWeight: 700 }}>SEM COMPETIÇÕES</span>
-          <p>Nenhuma competição cadastrada ainda.</p>
-          {usuarioLogado?.tipo === "admin" && (
-            <button style={{ ...s.btnPrimary, width:"auto" }} onClick={() => selecionarEvento(null, "novo-evento")}>
-              Cadastrar primeira competição
-            </button>
-          )}
-        </div>
-      ) : (
-        <>
-          {proximosEventos.length > 0 && (
-            <div style={{ marginBottom:48 }}>
-              <h2 style={s.sectionTitle}>Próximos Eventos</h2>
-              <div style={s.eventosGrid}>
-                {proximosEventos.map(ev => renderEvCard(ev))}
+      {/* ── EVENTOS ── */}
+      <div ref={eventosRef}>
+        {buscaAtiva ? (
+          /* Resultados da busca */
+          <div style={{ marginBottom: 48 }}>
+            <h2 style={s.sectionTitle}>
+              Resultados da busca
+              <span style={{ color: t.textDimmed, fontSize: 16, fontWeight: 400, marginLeft: 10 }}>({eventosFiltrados.length})</span>
+            </h2>
+            {eventosFiltrados.length === 0 ? (
+              <div style={s.emptyState}>
+                <span style={{ fontSize: 18, color: t.textDisabled, fontFamily: t.fontTitle, fontWeight: 700 }}>Nenhum evento encontrado</span>
+                <p>Tente buscar por outro nome, cidade ou organizador.</p>
               </div>
-            </div>
-          )}
-
-          {maisEventos.length > 0 && (
-            <div style={{ marginBottom:48 }}>
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:24 }}>
-                <h2 style={{ ...s.sectionTitle, margin:0 }}>
-                  Mais Eventos
-                  {totalPagsMais > 1 && <span style={{ color: t.textDimmed, fontSize:16, fontWeight:400, marginLeft:10 }}>— Seção {maisEventosPag + 1} de {totalPagsMais}</span>}
-                </h2>
-                {totalPagsMais > 1 && (
-                  <div style={{ display:"flex", gap:8 }}>
-                    <button disabled={maisEventosPag === 0}
-                      onClick={() => setMaisEventosPag(p => p - 1)}
-                      style={{ ...s.btnGhost, opacity: maisEventosPag === 0 ? 0.3 : 1, cursor: maisEventosPag === 0 ? "default" : "pointer" }}>
-                      ‹ Anterior
-                    </button>
-                    <button disabled={maisEventosPag >= totalPagsMais - 1}
-                      onClick={() => setMaisEventosPag(p => p + 1)}
-                      style={{ ...s.btnGhost, opacity: maisEventosPag >= totalPagsMais - 1 ? 0.3 : 1, cursor: maisEventosPag >= totalPagsMais - 1 ? "default" : "pointer" }}>
-                      Próximo ›
-                    </button>
-                  </div>
+            ) : (
+              <div style={s.eventosGrid}>
+                {eventosFiltrados.map(ev => renderEvCard(ev))}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Listagem normal */
+          <>
+            {aprovados.length === 0 ? (
+              <div style={s.emptyState}>
+                <span style={{ fontSize: 20, color: t.textDisabled, fontFamily: t.fontTitle, fontWeight: 700 }}>SEM COMPETIÇÕES</span>
+                <p>Nenhuma competição cadastrada ainda.</p>
+                {usuarioLogado?.tipo === "admin" && (
+                  <button style={{ ...s.btnPrimary, width: "auto" }} onClick={() => selecionarEvento(null, "novo-evento")}>
+                    Cadastrar primeira competição
+                  </button>
                 )}
               </div>
-              <div style={s.eventosGrid}>
-                {maisEventosPagAtual.map(ev => renderEvCard(ev))}
-              </div>
-            </div>
-          )}
-        </>
-      )}
+            ) : (
+              <>
+                {proximosEventos.length > 0 && (
+                  <div style={{ marginBottom: 48 }}>
+                    <h2 style={s.sectionTitle}>Próximos Eventos</h2>
+                    <div style={s.eventosGrid}>
+                      {proximosEventos.map(ev => renderEvCard(ev))}
+                    </div>
+                  </div>
+                )}
 
-      {eventosPassados.length > 0 && (
-        <div style={{ marginBottom:48 }}>
+                {maisEventos.length > 0 && (
+                  <div style={{ marginBottom: 48 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 24 }}>
+                      <h2 style={{ ...s.sectionTitle, margin: 0 }}>
+                        Mais Eventos
+                        {totalPagsMais > 1 && <span style={{ color: t.textDimmed, fontSize: 16, fontWeight: 400, marginLeft: 10 }}>— Seção {maisEventosPag + 1} de {totalPagsMais}</span>}
+                      </h2>
+                      {totalPagsMais > 1 && (
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <button disabled={maisEventosPag === 0}
+                            onClick={() => setMaisEventosPag(p => p - 1)}
+                            style={{ ...s.btnGhost, opacity: maisEventosPag === 0 ? 0.3 : 1, cursor: maisEventosPag === 0 ? "default" : "pointer" }}>
+                            ‹ Anterior
+                          </button>
+                          <button disabled={maisEventosPag >= totalPagsMais - 1}
+                            onClick={() => setMaisEventosPag(p => p + 1)}
+                            style={{ ...s.btnGhost, opacity: maisEventosPag >= totalPagsMais - 1 ? 0.3 : 1, cursor: maisEventosPag >= totalPagsMais - 1 ? "default" : "pointer" }}>
+                            Próximo ›
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <div style={s.eventosGrid}>
+                      {maisEventosPagAtual.map(ev => renderEvCard(ev))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* ── COMPETIÇÕES FINALIZADAS ── */}
+      {!buscaAtiva && eventosPassados.length > 0 && (
+        <div style={{ marginBottom: 48 }}>
           <h2 style={s.sectionTitle}>Competições Finalizadas</h2>
-          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {eventosPassados.map(ev => {
               const dataFmt = ev.data ? new Date(ev.data + "T12:00:00").toLocaleDateString("pt-BR") : "—";
               const local = _getLocalEventoDisplay(ev);
-              const tpU = usuarioLogado?.tipo;
-              const temSumula = tpU === "admin" || tpU === "organizador" ||
-                (tpU === "funcionario" && (usuarioLogado?.permissoes?.includes("sumulas") || usuarioLogado?.permissoes?.includes("resultados"))) ||
-                (ev.sumulaLiberada && usuarioLogado);
               return (
                 <div key={ev.id}
-                  style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 16px", background:t.bgCard, border:`1px solid ${t.border}`, borderRadius:10, cursor:"pointer", transition:"border-color 0.15s" }}
+                  style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 10, cursor: "pointer", transition: "border-color 0.15s" }}
                   onMouseEnter={e => e.currentTarget.style.borderColor = t.accent}
                   onMouseLeave={e => e.currentTarget.style.borderColor = t.border}>
-                  <div style={{ flex:1 }}
-                    onClick={() => selecionarEvento(ev.id)}>
-                    <div style={{ fontSize:14, fontWeight:700, color:t.textPrimary }}>
-                      <span style={{ color:t.textDimmed, fontWeight:600 }}>{dataFmt}</span>
-                      <span style={{ margin:"0 8px", color:t.textDisabled }}>—</span>
+                  <div style={{ flex: 1 }} onClick={() => selecionarEvento(ev.id)}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: t.textPrimary }}>
+                      <span style={{ color: t.textDimmed, fontWeight: 600 }}>{dataFmt}</span>
+                      <span style={{ margin: "0 8px", color: t.textDisabled }}>—</span>
                       {ev.nome}
                     </div>
-                    {local && <div style={{ fontSize:12, color:t.textMuted }}>{IcoPin()} {local}</div>}
+                    {local && <div style={{ fontSize: 12, color: t.textMuted }}>{IcoPin()} {local}</div>}
                   </div>
-                  <div style={{ display:"flex", gap:6, flexShrink:0 }}>
-                    {temSumula && (
-                      <button style={{...s.btnSecondary, padding:"5px 12px", fontSize:12}} onClick={() => selecionarEvento(ev.id, "sumulas")}>
-                        Súmulas
-                      </button>
-                    )}
-                    <button style={{...s.btnSecondary, padding:"5px 12px", fontSize:12}} onClick={() => selecionarEvento(ev.id, "resultados")}>
-                      Resultados
-                    </button>
-                  </div>
+                  <button style={{ ...s.btnSecondary, padding: "5px 12px", fontSize: 12, flexShrink: 0 }} onClick={() => selecionarEvento(ev.id, "resultados")}>
+                    Ver Resultados
+                  </button>
                 </div>
               );
             })}
           </div>
         </div>
       )}
-
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(280px, 1fr))", gap:24, marginTop:48 }}>
-        <InfoCard title="Provas de Pista" items={["Corridas Rasas","Corridas c/ Barreiras","Corrida c/ Obstáculos","Marcha Atlética","Revezamentos"]} />
-        <InfoCard title="Provas de Campo" items={["Salto em Distância","Salto em Altura","Salto Triplo","Salto com Vara","Arremesso do Peso","Lançamento do Disco","Lançamento do Dardo","Lançamento do Martelo"]} />
-        <InfoCard title="Provas Combinadas" items={["Decatlo (10 provas)","Heptatlo (7 provas)","Hexatlo Masc. (6 provas)","Pentatlo Fem. (5 provas)","Tetratlo (4 provas)"]} />
-      </div>
     </div>
   );
 }
