@@ -408,9 +408,13 @@ export default function TelaHome() {
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>{IcoCalendar()} {dataEv.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}{ev.horaInicio && <> · {ev.horaInicio}h</>}</span>
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>{IcoPin()} {ev.cidade || _getLocalEventoDisplay(ev)}{ev.uf ? ` - ${ev.uf}` : ""}</span>
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>{IcoUsers()} {nAtletas} atleta{nAtletas !== 1 ? "s" : ""}</span>
-            {ev.dataEncerramentoInscricoes && status === "futuro" && (
-              <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}>
-                {IcoCalendar()} Inscrições até <strong style={{ color: t.danger, marginLeft: 2 }}>{new Date(ev.dataEncerramentoInscricoes + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}</strong>
+            {(ev.dataAberturaInscricoes || ev.dataEncerramentoInscricoes) && status === "futuro" && (
+              <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, flexWrap: "wrap" }}>
+                {IcoCalendar()} Inscrições{ev.dataAberturaInscricoes && (
+                  <>{" "}de <strong style={{ color: t.success, marginLeft: 2 }}>{new Date(ev.dataAberturaInscricoes + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}{ev.horaAberturaInscricoes ? ` ${ev.horaAberturaInscricoes}` : ""}</strong></>
+                )}{ev.dataEncerramentoInscricoes && (
+                  <>{" "}até <strong style={{ color: t.danger, marginLeft: 2 }}>{new Date(ev.dataEncerramentoInscricoes + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}{ev.horaEncerramentoInscricoes ? ` ${ev.horaEncerramentoInscricoes}` : ""}</strong></>
+                )}
               </span>
             )}
           </div>
