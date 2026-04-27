@@ -308,6 +308,11 @@ function TelaCadastroEvento() {
       base.programaHorario = prog;
     }
     if (!("programaPausa" in base)) base.programaPausa = { horario: "", retorno: "", descricao: "" };
+    // Migrar formato legado para per-day quando evento tem 2 dias
+    if (base.programaPausa && base.programaPausa.horario && !base.programaPausa.dia1 && base.dataFim && base.dataFim !== base.data) {
+      const legado = { horario: base.programaPausa.horario, retorno: base.programaPausa.retorno || "", descricao: base.programaPausa.descricao || "" };
+      base.programaPausa = { ...base.programaPausa, dia1: { ...legado }, dia2: { ...legado } };
+    }
     if (!("modoHorario" in base)) base.modoHorario = "detalhado";
     if (!("programaOrdem" in base)) base.programaOrdem = [];
     if (!("limitesProvasCat"    in base)) base.limitesProvasCat    = {};
@@ -2300,32 +2305,80 @@ function ProgramaHorarioStep({ todasProvas, form, setForm, editando, handleSalva
       <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 8 }}>
         <div style={{ color: t.accent, fontWeight: 700, fontSize: 13, marginBottom: 10 }}>Intervalo / Pausa</div>
         <p style={{ color: t.textMuted, fontSize: 12, marginBottom: 12, lineHeight: 1.5 }}>
-          Defina um intervalo entre os períodos da manhã e da tarde. As provas serão automaticamente divididas pelo horário da pausa em etapas{temDoisDias ? " (4 etapas: manhã/tarde × 2 dias)" : " (1ª Etapa — Manhã, 2ª Etapa — Tarde)"}.
+          Defina um intervalo entre os períodos da manhã e da tarde. As provas serão automaticamente divididas pelo horário da pausa em etapas{temDoisDias ? " (configuração independente por dia)" : " (1ª Etapa — Manhã, 2ª Etapa — Tarde)"}.
         </p>
-        <div style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
-          <div>
-            <label style={{ color: t.textMuted, fontSize: 11, display: "block", marginBottom: 4 }}>Início da pausa</label>
-            <input type="time" value={(form.programaPausa || {}).horario || ""}
-              onChange={(e) => setForm(f => ({ ...f, programaPausa: { ...(f.programaPausa || {}), horario: e.target.value } }))}
-              style={{ background: t.bgHeaderSolid, color: t.textPrimary, border: `1px solid ${t.border}`, borderRadius: 4, padding: "6px 10px", fontSize: 13, width: 110, fontFamily: "monospace" }}
-            />
+        {temDoisDias ? [1, 2].map(dia => {
+          const key = `dia${dia}`;
+          const pausaDia = (form.programaPausa || {})[key] || {};
+          const setPausaDia = (campo, valor) => setForm(f => ({
+            ...f,
+            programaPausa: {
+              ...(f.programaPausa || {}),
+              [key]: { ...((f.programaPausa || {})[key] || {}), [campo]: valor }
+            }
+          }));
+          const dataLabel = dia === 1 && form.data
+            ? new Date(form.data + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" })
+            : dia === 2 && form.dataFim
+            ? new Date(form.dataFim + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" })
+            : "";
+          return (
+            <div key={key} style={{ marginBottom: dia === 1 ? 12 : 0 }}>
+              <div style={{ color: t.textSecondary, fontSize: 12, fontWeight: 700, marginBottom: 6 }}>
+                Dia {dia}{dataLabel ? ` — ${dataLabel}` : ""}
+              </div>
+              <div style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
+                <div>
+                  <label style={{ color: t.textMuted, fontSize: 11, display: "block", marginBottom: 4 }}>Início da pausa</label>
+                  <input type="time" value={pausaDia.horario || ""}
+                    onChange={(e) => setPausaDia("horario", e.target.value)}
+                    style={{ background: t.bgHeaderSolid, color: t.textPrimary, border: `1px solid ${t.border}`, borderRadius: 4, padding: "6px 10px", fontSize: 13, width: 110, fontFamily: "monospace" }}
+                  />
+                </div>
+                <div>
+                  <label style={{ color: t.textMuted, fontSize: 11, display: "block", marginBottom: 4 }}>Retorno</label>
+                  <input type="time" value={pausaDia.retorno || ""}
+                    onChange={(e) => setPausaDia("retorno", e.target.value)}
+                    style={{ background: t.bgHeaderSolid, color: t.textPrimary, border: `1px solid ${t.border}`, borderRadius: 4, padding: "6px 10px", fontSize: 13, width: 110, fontFamily: "monospace" }}
+                  />
+                </div>
+                <div style={{ flex: 1, minWidth: 200 }}>
+                  <label style={{ color: t.textMuted, fontSize: 11, display: "block", marginBottom: 4 }}>Descrição</label>
+                  <input type="text" value={pausaDia.descricao || ""}
+                    onChange={(e) => setPausaDia("descricao", e.target.value)}
+                    placeholder="Ex: Horário de Almoço"
+                    style={{ background: t.bgHeaderSolid, color: t.textPrimary, border: `1px solid ${t.border}`, borderRadius: 4, padding: "6px 10px", fontSize: 13, width: "100%" }}
+                  />
+                </div>
+              </div>
+            </div>
+          );
+        }) : (
+          <div style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
+            <div>
+              <label style={{ color: t.textMuted, fontSize: 11, display: "block", marginBottom: 4 }}>Início da pausa</label>
+              <input type="time" value={(form.programaPausa || {}).horario || ""}
+                onChange={(e) => setForm(f => ({ ...f, programaPausa: { ...(f.programaPausa || {}), horario: e.target.value } }))}
+                style={{ background: t.bgHeaderSolid, color: t.textPrimary, border: `1px solid ${t.border}`, borderRadius: 4, padding: "6px 10px", fontSize: 13, width: 110, fontFamily: "monospace" }}
+              />
+            </div>
+            <div>
+              <label style={{ color: t.textMuted, fontSize: 11, display: "block", marginBottom: 4 }}>Retorno</label>
+              <input type="time" value={(form.programaPausa || {}).retorno || ""}
+                onChange={(e) => setForm(f => ({ ...f, programaPausa: { ...(f.programaPausa || {}), retorno: e.target.value } }))}
+                style={{ background: t.bgHeaderSolid, color: t.textPrimary, border: `1px solid ${t.border}`, borderRadius: 4, padding: "6px 10px", fontSize: 13, width: 110, fontFamily: "monospace" }}
+              />
+            </div>
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <label style={{ color: t.textMuted, fontSize: 11, display: "block", marginBottom: 4 }}>Descrição</label>
+              <input type="text" value={(form.programaPausa || {}).descricao || ""}
+                onChange={(e) => setForm(f => ({ ...f, programaPausa: { ...(f.programaPausa || {}), descricao: e.target.value } }))}
+                placeholder="Ex: Horário de Almoço"
+                style={{ background: t.bgHeaderSolid, color: t.textPrimary, border: `1px solid ${t.border}`, borderRadius: 4, padding: "6px 10px", fontSize: 13, width: "100%" }}
+              />
+            </div>
           </div>
-          <div>
-            <label style={{ color: t.textMuted, fontSize: 11, display: "block", marginBottom: 4 }}>Retorno</label>
-            <input type="time" value={(form.programaPausa || {}).retorno || ""}
-              onChange={(e) => setForm(f => ({ ...f, programaPausa: { ...(f.programaPausa || {}), retorno: e.target.value } }))}
-              style={{ background: t.bgHeaderSolid, color: t.textPrimary, border: `1px solid ${t.border}`, borderRadius: 4, padding: "6px 10px", fontSize: 13, width: 110, fontFamily: "monospace" }}
-            />
-          </div>
-          <div style={{ flex: 1, minWidth: 200 }}>
-            <label style={{ color: t.textMuted, fontSize: 11, display: "block", marginBottom: 4 }}>Descrição</label>
-            <input type="text" value={(form.programaPausa || {}).descricao || ""}
-              onChange={(e) => setForm(f => ({ ...f, programaPausa: { ...(f.programaPausa || {}), descricao: e.target.value } }))}
-              placeholder="Ex: Horário de Almoço"
-              style={{ background: t.bgHeaderSolid, color: t.textPrimary, border: `1px solid ${t.border}`, borderRadius: 4, padding: "6px 10px", fontSize: 13, width: "100%" }}
-            />
-          </div>
-        </div>
+        )}
       </div>
 
       <div style={{ display: "flex", gap: 12, marginTop: 8 }}>

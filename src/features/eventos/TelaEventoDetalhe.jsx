@@ -963,7 +963,7 @@ function TelaEventoDetalhe() {
           }
           entries = entries || [{ fase: "", horario: "" }];
           entries.forEach((entry, ei) => {
-            linhas.push({ ...p, _entryIdx: ei, _fase: entry.fase || "", _horario: entry.horario || "" });
+            linhas.push({ ...p, _entryIdx: ei, _fase: entry.fase || "", _horario: entry.horario || "", _dia: entry.dia || 1 });
           });
         });
 
@@ -971,23 +971,50 @@ function TelaEventoDetalhe() {
         // Ex: "Arremesso do Peso (3kg)" → "Arremesso do Peso"
         const modoAgrupado = (eventoAtual.modoHorario || "detalhado") === "agrupado";
 
-        const comHorario   = linhas.filter(l => l._horario).sort((a, b) => a._horario.localeCompare(b._horario));
-        const semHorario   = linhas.filter(l => !l._horario).sort((a, b) => {
-          if (a._isComp && b._isComp && a._parentId === b._parentId) return a.ordem - b.ordem;
-          return (a.nome || "").localeCompare(b.nome || "");
-        });
-        const linhasOrdenadas = [...comHorario, ...semHorario];
+        // Detectar se evento tem 2 dias
+        const temDoisDias = !!(eventoAtual.dataFim && eventoAtual.dataFim !== eventoAtual.data);
+        const diasDistintos = temDoisDias ? [...new Set(linhas.map(l => l._dia))].sort() : [1];
+        const usarDivisaoDias = temDoisDias && diasDistintos.length > 1;
 
-        const pausa       = eventoAtual.programaPausa || {};
-        const pausaHorario = pausa.horario || "";
-        const pausaRetorno = pausa.retorno || "";
-        const pausaDesc    = pausa.descricao || "";
+        const ordenarLinhas = (lista) => {
+          const comH = lista.filter(l => l._horario).sort((a, b) => a._horario.localeCompare(b._horario));
+          const semH = lista.filter(l => !l._horario).sort((a, b) => {
+            if (a._isComp && b._isComp && a._parentId === b._parentId) return a.ordem - b.ordem;
+            return (a.nome || "").localeCompare(b.nome || "");
+          });
+          return [...comH, ...semH];
+        };
+
+        const linhasOrdenadas = ordenarLinhas(linhas);
+
+        const pausaRaw = eventoAtual.programaPausa || {};
+        // Resolver pausa por dia — retrocompatível com formato antigo { horario, retorno, descricao }
+        const getPausaDia = (dia) => {
+          const porDia = pausaRaw[`dia${dia}`];
+          if (porDia && porDia.horario) return porDia;
+          // Fallback: formato legado (pausa única)
+          if (pausaRaw.horario) return pausaRaw;
+          return { horario: "", retorno: "", descricao: "" };
+        };
+
+        // Pausa global (para eventos de 1 dia)
+        const pausaGlobal = getPausaDia(1);
+        const pausaHorario = pausaGlobal.horario || "";
+        const pausaRetorno = pausaGlobal.retorno || "";
+        const pausaDesc    = pausaGlobal.descricao || "";
         const temPausa     = !!pausaHorario;
 
-        const manha        = temPausa ? linhasOrdenadas.filter(l => l._horario && l._horario < pausaHorario) : [];
-        const tarde        = temPausa ? linhasOrdenadas.filter(l => l._horario && l._horario >= (pausaRetorno || pausaHorario)) : [];
-        const semHorarioList = linhasOrdenadas.filter(l => !l._horario);
-        const usarDivisao  = temPausa && (manha.length > 0 || tarde.length > 0);
+        // Helpers para dividir manhã/tarde dentro de uma lista (recebe pausa específica)
+        const getManhaP = (lista, ph) => ph ? lista.filter(l => l._horario && l._horario < ph) : [];
+        const getTardeP = (lista, ph, pr) => ph ? lista.filter(l => l._horario && l._horario >= (pr || ph)) : [];
+        const getManha = (lista) => getManhaP(lista, pausaHorario);
+        const getTarde = (lista) => getTardeP(lista, pausaHorario, pausaRetorno);
+        const getSemHorario = (lista) => lista.filter(l => !l._horario);
+
+        const manha        = getManha(linhasOrdenadas);
+        const tarde        = getTarde(linhasOrdenadas);
+        const semHorarioList = getSemHorario(linhasOrdenadas);
+        const usarDivisao  = !usarDivisaoDias && temPausa && (manha.length > 0 || tarde.length > 0);
 
         const thStyle = { textAlign:"left", padding:"8px 10px", color: t.textMuted, fontWeight:600 };
 
@@ -1098,7 +1125,10 @@ function TelaEventoDetalhe() {
                 <span style={{ fontSize:12, color: t.textDimmed }}>{linhasOrdenadas.length} entrada(s)</span>
                 {(tpU === "admin" || tpU === "organizador" || tpU === "funcionario") && (
                   <button onClick={async () => {
-                    const dataEvt = new Date(eventoAtual.data + "T12:00:00").toLocaleDateString("pt-BR", { weekday:"long", day:"2-digit", month:"long", year:"numeric" });
+                    const _fmtData = (d) => new Date(d + "T12:00:00").toLocaleDateString("pt-BR", { weekday:"long", day:"2-digit", month:"long", year:"numeric" });
+                    const dataEvt = eventoAtual.dataFim && eventoAtual.dataFim !== eventoAtual.data
+                      ? `${_fmtData(eventoAtual.data)} a ${_fmtData(eventoAtual.dataFim)}`
+                      : _fmtData(eventoAtual.data);
                     const logoComp = eventoAtual.logoCompeticao || "";
                     const logoCabEsq = eventoAtual.logoCabecalho || eventoAtual.logoCompeticao || "";
                     const logoCabDir = eventoAtual.logoCabecalhoDireito || "";
@@ -1106,19 +1136,50 @@ function TelaEventoDetalhe() {
                     const thPrint  = `<tr><th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;font-size:10px;color:#555;font-weight:700;width:55px">Horário</th><th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;font-size:10px;color:#555;font-weight:700">Prova</th><th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;font-size:10px;color:#555;font-weight:700;width:70px">Sexo</th><th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;font-size:10px;color:#555;font-weight:700">Categorias</th><th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;font-size:10px;color:#555;font-weight:700">Fase</th></tr>`;
                     const pausaPrint = temPausa ? `<tr><td colspan="5" style="padding:10px;text-align:center;background:#f0f0f0;border-bottom:1px solid #ddd"><strong style="color:#b88a00">${pausaDesc || "Intervalo"}</strong><span style="color:#666;margin-left:8px;font-size:11px">${pausaHorario}${pausaRetorno ? " — " + pausaRetorno : ""}</span></td></tr>` : "";
                     const secLabel = (label) => `<tr><td colspan="5" style="padding:8px 10px 4px;font-weight:800;font-size:12px;color:#b88a00;border-bottom:1px solid #ccc;letter-spacing:1px">${label}</td></tr>`;
-                    let tableBody = "";
-                    if (usarDivisao) {
-                      tableBody += secLabel("MANHÃ");
-                      agruparLinhas(manha).forEach((p,i) => { tableBody += printRow(p,i); });
-                      tableBody += pausaPrint;
-                      tableBody += secLabel("TARDE");
-                      agruparLinhas(tarde).forEach((p,i) => { tableBody += printRow(p,i); });
-                      if (semHorarioList.length > 0) {
-                        tableBody += secLabel("A DEFINIR");
-                        agruparLinhas(semHorarioList).forEach((p,i) => { tableBody += printRow(p,i); });
+                    const buildDayBody = (dayLinhas, dia) => {
+                      const dp = getPausaDia(dia || 1);
+                      const dpH = dp.horario || "";
+                      const dpR = dp.retorno || "";
+                      const dpD = dp.descricao || "";
+                      const dpTemPausa = !!dpH;
+                      const dayOrdenadas = ordenarLinhas(dayLinhas);
+                      const dayManha = getManhaP(dayOrdenadas, dpH);
+                      const dayTarde = getTardeP(dayOrdenadas, dpH, dpR);
+                      const daySem   = getSemHorario(dayOrdenadas);
+                      const dayDivisao = dpTemPausa && (dayManha.length > 0 || dayTarde.length > 0);
+                      const dpPausaPrint = dpTemPausa ? `<tr><td colspan="5" style="padding:10px;text-align:center;background:#f0f0f0;border-bottom:1px solid #ddd"><strong style="color:#b88a00">${dpD || "Intervalo"}</strong><span style="color:#666;margin-left:8px;font-size:11px">${dpH}${dpR ? " — " + dpR : ""}</span></td></tr>` : "";
+                      let body = "";
+                      if (dayDivisao) {
+                        body += secLabel("MANHÃ");
+                        agruparLinhas(dayManha).forEach((p,i) => { body += printRow(p,i); });
+                        body += dpPausaPrint;
+                        body += secLabel("TARDE");
+                        agruparLinhas(dayTarde).forEach((p,i) => { body += printRow(p,i); });
+                        if (daySem.length > 0) {
+                          body += secLabel("A DEFINIR");
+                          agruparLinhas(daySem).forEach((p,i) => { body += printRow(p,i); });
+                        }
+                      } else {
+                        agruparLinhas(dayOrdenadas).forEach((p,i) => { body += printRow(p,i); });
                       }
+                      return body;
+                    };
+
+                    const _fmtDia = (dataStr) => {
+                      if (!dataStr) return "";
+                      return new Date(dataStr + "T12:00:00").toLocaleDateString("pt-BR", { weekday:"long", day:"2-digit", month:"long" });
+                    };
+
+                    let tableBody = "";
+                    if (usarDivisaoDias) {
+                      diasDistintos.forEach(dia => {
+                        const diaLinhas = linhas.filter(l => l._dia === dia);
+                        const dataLabel = dia === 1 ? _fmtDia(eventoAtual.data) : _fmtDia(eventoAtual.dataFim);
+                        tableBody += `<tr><td colspan="5" style="padding:12px 10px 6px;font-weight:900;font-size:14px;color:#1976D2;border-bottom:2px solid #1976D2;letter-spacing:1px">DIA ${dia}${dataLabel ? ` — ${dataLabel}` : ""}</td></tr>`;
+                        tableBody += buildDayBody(diaLinhas, dia);
+                      });
                     } else {
-                      agruparLinhas(linhasOrdenadas).forEach((p,i) => { tableBody += printRow(p,i); });
+                      tableBody = buildDayBody(linhas, 1);
                     }
                     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Programa Horário — ${eventoAtual.nome}</title>
                     <style>
@@ -1162,7 +1223,53 @@ function TelaEventoDetalhe() {
               <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
                 <thead>{tHead}</thead>
                 <tbody>
-                  {usarDivisao ? (<>
+                  {usarDivisaoDias ? (<>
+                    {diasDistintos.map(dia => {
+                      const dp = getPausaDia(dia);
+                      const dpH = dp.horario || "";
+                      const dpR = dp.retorno || "";
+                      const dpD = dp.descricao || "";
+                      const dpTemPausa = !!dpH;
+                      const diaLinhas = ordenarLinhas(linhas.filter(l => l._dia === dia));
+                      const diaM = getManhaP(diaLinhas, dpH);
+                      const diaT = getTardeP(diaLinhas, dpH, dpR);
+                      const diaS = getSemHorario(diaLinhas);
+                      const diaDivisao = dpTemPausa && (diaM.length > 0 || diaT.length > 0);
+                      const dataLabel = dia === 1
+                        ? new Date(eventoAtual.data + "T12:00:00").toLocaleDateString("pt-BR", { weekday:"long", day:"2-digit", month:"long" })
+                        : eventoAtual.dataFim ? new Date(eventoAtual.dataFim + "T12:00:00").toLocaleDateString("pt-BR", { weekday:"long", day:"2-digit", month:"long" }) : "";
+                      const diaPausaRow = () => (
+                        <tr key={`_pausa_dia${dia}`} style={{ background: t.bgCardAlt }}>
+                          <td colSpan={5} style={{ padding:"10px 14px", textAlign:"center" }}>
+                            <span style={{ color: t.accent, fontWeight:700, fontSize:13 }}>{dpD || "Intervalo"}</span>
+                            <span style={{ color: t.textMuted, fontSize:12, marginLeft:10 }}>
+                              {dpH}{dpR ? ` — ${dpR}` : ""}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                      return (
+                        <React.Fragment key={`dia_${dia}`}>
+                          <tr><td colSpan={5} style={{ padding:"12px 10px 6px", fontWeight:900, fontSize:14, color: t.accent, borderBottom:`2px solid ${t.accent}`, letterSpacing:1 }}>
+                            DIA {dia}{dataLabel ? ` — ${dataLabel}` : ""}
+                          </td></tr>
+                          {diaDivisao ? (<>
+                            {sectionLabel("MANHÃ")}
+                            {agruparLinhas(diaM).map((p, i) => renderRow(p, i))}
+                            {diaPausaRow()}
+                            {sectionLabel("TARDE")}
+                            {agruparLinhas(diaT).map((p, i) => renderRow(p, i))}
+                            {diaS.length > 0 && (<>
+                              {sectionLabel("A DEFINIR")}
+                              {agruparLinhas(diaS).map((p, i) => renderRow(p, i))}
+                            </>)}
+                          </>) : (
+                            agruparLinhas(diaLinhas).map((p, i) => renderRow(p, i))
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
+                  </>) : usarDivisao ? (<>
                     {sectionLabel("MANHÃ")}
                     {agruparLinhas(manha).map((p, i) => renderRow(p, i))}
                     {pausaRow()}
