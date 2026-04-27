@@ -1244,6 +1244,36 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
               )}
             </div>
 
+            {/* Logo da Plataforma (rodapé dos documentos impressos) */}
+            <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, padding:12, marginBottom:16 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
+                {siteBranding?.logoPlataforma
+                  ? <img src={siteBranding.logoPlataforma} alt="" style={{ height:28, objectFit:"contain", borderRadius:3, background:"#fff", padding:2 }} />
+                  : <div style={{ width:36, height:36, background:t.bgHover, borderRadius:5, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, color:t.textDisabled }}>—</div>}
+                <div>
+                  <div style={{ fontWeight:700, fontSize:12, color:t.textPrimary }}>Logo da Plataforma (Impressão)</div>
+                  <div style={{ fontSize:10, color:t.textDisabled }}>Exibida ao lado de "Plataforma de Competições" no rodapé dos documentos · 400×100px · máx. 300KB</div>
+                </div>
+              </div>
+              <label style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 10px",
+                background:t.accentBg, border:`1px solid ${t.accentBorder}`, borderRadius:5, cursor:"pointer", fontSize:11, color:t.accent }}>
+                {siteBranding?.logoPlataforma ? "Trocar" : "Enviar"}
+                <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display:"none" }}
+                  onChange={e => {
+                    const f = e.target.files?.[0]; if (!f) return;
+                    if (f.size > 300*1024) { setErro("Máx. 300KB para a logo."); return; }
+                    const r = new FileReader();
+                    r.onload = ev => setSiteBranding(prev => ({ ...prev, logoPlataforma: ev.target.result }));
+                    r.readAsDataURL(f);
+                    e.target.value = "";
+                  }} />
+              </label>
+              {siteBranding?.logoPlataforma && (
+                <button style={{ fontSize:10, color:t.textMuted, background:"transparent", border:"none", cursor:"pointer", marginLeft:6 }}
+                  onClick={() => setSiteBranding(prev => ({ ...prev, logoPlataforma: "" }))}>↩ Padrão</button>
+              )}
+            </div>
+
             {/* Nome + Slogan */}
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:14 }}>
               <div>

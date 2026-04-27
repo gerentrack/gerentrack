@@ -5,6 +5,7 @@ import { calcularEtapa, getEtapaLabel } from "../../shared/constants/etapas";
 import { RecordHelper } from "../../shared/engines/recordHelper";
 import { nPernasRevezamento } from "../../shared/athletics/provasDef";
 import { TeamScoringEngine } from "../../shared/engines/teamScoringEngine";
+import { SeriacaoEngine } from "../../shared/engines/seriacaoEngine";
 
 const _nomeProvaMatch = (a, b) => {
   if (!a || !b) return false;
@@ -28,6 +29,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
   // Ler branding personalizado (ou usar padrão)
   const _branding = (() => { try { return JSON.parse(localStorage.getItem("gt_branding")) || {}; } catch { return {}; } })();
   const _gtLogo = _branding.logo || GT_DEFAULT_LOGO;
+  const _gtLogoPlataforma = _branding.logoPlataforma || _gtLogo;
   const dataGeracao = new Date().toLocaleString("pt-BR");
   const dataEvento  = new Date(evento.data + "T12:00:00").toLocaleDateString("pt-BR", {
     weekday: "long", day: "2-digit", month: "long", year: "numeric",
@@ -187,7 +189,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
     .rod-ass{flex:1;max-width:185px;}
     .rod-ln{border-bottom:1px solid #aaa;margin-bottom:4px;height:22px;}
     .rod-lb{font-size:9px;color:#888;text-align:center;font-style:italic;}
-    .rod-info{font-size:9px;color:#aaa;text-align:center;line-height:0.5;margin-bottom:0;padding-bottom:0;}
+    .rod-info{font-size:9px;color:#aaa;text-align:center;line-height:1.6;margin-top:6px;margin-bottom:0;padding-bottom:0;}
     @media print{
       @page{size:A4 portrait;margin:0;}
       @page landscape-page{size:A4 landscape;margin:0;}
@@ -233,7 +235,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
         <div>Gerado em: ${dataGeracao}</div>
         <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:0;margin-bottom:0;">
           <span>Plataforma de Competições -</span>
-          <img src="${_gtLogo}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7;vertical-align:middle;" />
+          <img src="${_gtLogoPlataforma}" alt="GERENTRACK" style="max-height:5mm;object-fit:contain;opacity:0.7;vertical-align:middle;" />
         </div>
       </div>
     </div>
@@ -436,9 +438,18 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
       const serChave = `${s.prova.id}_${s.categoria.id}_${s.sexo}`;
       let serSalva = evento.seriacao?.[serChave];
       // Fallback para revezamentos: tentar variante de sexo oposto no provaId
-      if (!serSalva?.series && s.isRevezamento && evento.seriacao) {
+      if (!serSalva?.series && evento.seriacao) {
         const altId = s.prova.id.startsWith("M_") ? "F_" + s.prova.id.slice(2) : s.prova.id.startsWith("F_") ? "M_" + s.prova.id.slice(2) : null;
         if (altId) serSalva = evento.seriacao?.[`${altId}_${s.categoria.id}_${s.sexo}`];
+      }
+      // Fallback: match parcial no objeto de seriação
+      if (!serSalva?.series && evento.seriacao) {
+        const provaBase = s.prova.id.replace(/^[MF]_/, "");
+        const matchK = Object.keys(evento.seriacao).find(k => {
+          if (!evento.seriacao[k]?.series) return false;
+          return k.includes(provaBase) && k.includes(s.categoria.id) && k.includes(`_${s.sexo}`);
+        });
+        if (matchK) serSalva = evento.seriacao[matchK];
       }
       const getSerInfo = (eqId) => {
         if (!serSalva?.series) return { serie: "", raia: "" };
@@ -486,6 +497,13 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
         return _marcasComEmpateCentesimal(marcasMs);
       })();
 
+      // Pontuação por equipe para revezamento
+      const _cfgPontRevezImp = { ...(evento.pontuacaoEquipes || {}), equipeIdsFederados: evento.equipeIdsFederados || [] };
+      const _mostrarPtsEqRevez = pontEqAtivo && temRes;
+      const _ptsRevezMap = _mostrarPtsEqRevez
+        ? TeamScoringEngine.calcularPontosRevezamento(classif.filter(x => !x.isStatus && x.marca != null), _cfgPontRevezImp, _atletas, equipes)
+        : {};
+
       let _posFedRevezImp = 0;
       const linhas = classif.map((eq, j) => {
         const atlNomes = eq.atletas.map(a => a.nome).join(" · ");
@@ -500,6 +518,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
             if (eqFedImp && todosComCbatImp) { _posFedRevezImp++; posRevezImp = _posFedRevezImp + "\u00b0"; }
           }
         }
+        const ptsRevez = _ptsRevezMap[eq.equipeId]?.pontos || "";
         return `<tr class="${j%2===0?"par":"imp"}">
           ${temSeriacao ? `<td class="tdn">${eq.serie || ""}</td><td class="tdn" style="font-weight:700;color:#000">${eq.raia || ""}</td>` : ""}
           <td class="tdal" style="font-weight:700">${eq.nomeEquipe}${eq.sigla ? ` <span style="color:#888;font-size:8px">(${eq.sigla})</span>` : ""}</td>
@@ -507,6 +526,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
           ${temVento ? `<td class="tdv">${eq.vento || "\u2014"}</td>` : ""}
           <td class="${temRes?"tdmbd":"tdmb"}">${marcaStr || ""}</td>
           <td class="${temRes?"tdpf":"tdp"}">${posRevezImp}</td>
+          ${_mostrarPtsEqRevez ? `<td style="background:#fffde0;color:#8a7000;font-weight:800;text-align:center">${ptsRevez || "—"}</td>` : ""}
         </tr>`;
       }).join("");
 
@@ -515,7 +535,8 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
         <th class="thal" style="min-width:180px">ATLETAS (${nPernas})</th>
         ${temVento ? `<th style="width:38px">VENTO</th>` : ""}
         <th style="width:68px">MARCA</th>
-        <th style="width:32px">POS.</th>`;
+        <th style="width:32px">POS.</th>
+        ${_mostrarPtsEqRevez ? `<th style="width:38px;background:#fffde0;color:#8a7000;font-weight:800">PTS EQ.</th>` : ""}`;
 
       pags.push(`
         <div class="${pgClass(s)}">
@@ -563,7 +584,12 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
       const idxAtual = FASE_ORDEM.indexOf(s.faseSufixo);
       const proximaFase = FASE_ORDEM[idxAtual + 1];
       if (proximaFase && fasesConf.includes(proximaFase)) {
-        const serProxima = buscarSeriacao(evento.seriacao, s.prova.id, s.categoria.id, s.sexo, proximaFase);
+        // Buscar seriação da próxima fase com fallbacks
+        let serProxima = buscarSeriacao(evento.seriacao, s.prova.id, s.categoria.id, s.sexo, proximaFase);
+        if (!serProxima?.series && evento.seriacao) {
+          const altId = s.prova.id.startsWith("M_") ? "F_" + s.prova.id.slice(2) : s.prova.id.startsWith("F_") ? "M_" + s.prova.id.slice(2) : null;
+          if (altId) serProxima = buscarSeriacao(evento.seriacao, altId, s.categoria.id, s.sexo, proximaFase);
+        }
         if (serProxima?.series) {
           serProxima.series.forEach(ser => {
             ser.atletas.forEach(a => {
@@ -573,6 +599,30 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
               else _classifQqPrint[aid] = "Q";
             });
           });
+        } else {
+          // Sem seriação da próxima fase: calcular Q/q em tempo real via RT 20.3.2(a)
+          let serAtualPrint = buscarSeriacao(evento.seriacao, s.prova.id, s.categoria.id, s.sexo, s.faseSufixo);
+          if (!serAtualPrint?.series && evento.seriacao) {
+            const altId2 = s.prova.id.startsWith("M_") ? "F_" + s.prova.id.slice(2) : s.prova.id.startsWith("F_") ? "M_" + s.prova.id.slice(2) : null;
+            if (altId2) serAtualPrint = buscarSeriacao(evento.seriacao, altId2, s.categoria.id, s.sexo, s.faseSufixo);
+          }
+          if (serAtualPrint?.series) {
+            const cfgSer = evento.configSeriacao?.[s.prova.id];
+            const pF = (cfgSer && typeof cfgSer === "object") ? (cfgSer.porPosicao ?? 3) : 3;
+            const tF = (cfgSer && typeof cfgSer === "object") ? (cfgSer.porTempo ?? 2) : 2;
+            const isE2S = s.faseSufixo === "ELI" && proximaFase === "SEM";
+            const prog = isE2S
+              ? { porPosicao: (cfgSer?.porPosicaoEliSem ?? pF), porTempo: (cfgSer?.porTempoEliSem ?? tF) }
+              : { porPosicao: (cfgSer?.porPosicaoSemFin ?? pF), porTempo: (cfgSer?.porTempoSemFin ?? tF) };
+            try {
+              const classificados = SeriacaoEngine.rankearRT20_3_2a(serAtualPrint, res, prog);
+              classificados.forEach(c => {
+                if (c.origemClassif === "posicao") _classifQqPrint[c.atletaId] = "Q";
+                else if (c.origemClassif === "tempo") _classifQqPrint[c.atletaId] = "q";
+                else _classifQqPrint[c.atletaId] = "Q";
+              });
+            } catch (_e) { /* silenciar */ }
+          }
         }
       }
     }
@@ -1342,7 +1392,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
                     <div>Gerado em: ${dataGeracao}</div>
                     <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
                       <span>Plataforma de Competi\u00e7\u00f5es -</span>
-                      <img src="${_gtLogo}" alt="GERENTRACK" style="max-height:6mm;object-fit:contain;opacity:0.7;vertical-align:middle;" />
+                      <img src="${_gtLogoPlataforma}" alt="GERENTRACK" style="max-height:4mm;object-fit:contain;opacity:0.7;vertical-align:middle;" />
                     </div>
                   </div>
                   ${evento.logoRodape ? `<div style="margin-top:1px;text-align:center;"><img src="${evento.logoRodape}" alt="" style="max-width:100%;max-height:12mm;object-fit:contain;"/></div>` : ""}

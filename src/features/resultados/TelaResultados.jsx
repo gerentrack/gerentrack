@@ -664,18 +664,19 @@ function TelaResultados() {
     });
 
     // ── Classificação por Equipes — só quando sem filtro de prova ──
-    if (filtroProva === "todas" && classifEquipes.classificacao.length > 0) {
-      const labelEq = classifEquipes.totalProvasComResultado >= classifEquipes.totalProvas ? "CLASSIFICAÇÃO FINAL" : "CLASSIFICAÇÃO PARCIAL";
-      const corEq = classifEquipes.totalProvasComResultado >= classifEquipes.totalProvas ? "#2a8a2a" : "#8a7a00";
-      htmlExtra += `
+    const _gerarPaginaClassifEq = (dados, titulo) => {
+      if (!dados || !dados.classificacao || dados.classificacao.length === 0) return "";
+      const labelEq = dados.totalProvasComResultado >= dados.totalProvas ? "CLASSIFICAÇÃO FINAL" : "CLASSIFICAÇÃO PARCIAL";
+      const corEq = dados.totalProvasComResultado >= dados.totalProvas ? "#2a8a2a" : "#8a7a00";
+      return `
         <div class="pg" style="padding:12mm 14mm 10mm">
           ${cabExtra}
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;margin-top:10px">
-            <span style="font-size:16px;font-weight:800;color:#111">Classificação por Equipes</span>
-            <span style="font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700;background:${classifEquipes.totalProvasComResultado >= classifEquipes.totalProvas ? "#e8ffe8" : "#fff8e0"};color:${corEq};border:1px solid ${corEq}">${labelEq}</span>
+            <span style="font-size:16px;font-weight:800;color:#111">${titulo}</span>
+            <span style="font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700;background:${dados.totalProvasComResultado >= dados.totalProvas ? "#e8ffe8" : "#fff8e0"};color:${corEq};border:1px solid ${corEq}">${labelEq}</span>
           </div>
           <div style="font-size:10px;color:#666;margin-bottom:8px">
-            ${classifEquipes.totalProvasComResultado}/${classifEquipes.totalProvas} provas com resultado — ${eventoAtual.nome}
+            ${dados.totalProvasComResultado}/${dados.totalProvas} provas com resultado — ${eventoAtual.nome}
           </div>
           <table style="width:100%;border-collapse:collapse;font-size:11px">
             <thead>
@@ -684,22 +685,21 @@ function TelaResultados() {
                 <th style="padding:6px 8px;text-align:left">Equipe</th>
                 <th style="padding:6px 8px;text-align:left;width:60px">Sigla</th>
                 <th style="padding:6px 8px;text-align:center;width:80px">Provas</th>
-                ${classifEquipes.totalBonusRecordes > 0 ? `<th style="padding:6px 8px;text-align:center;width:70px;color:#996600">Bônus Rec.</th>` : ""}
+                ${dados.totalBonusRecordes > 0 ? `<th style="padding:6px 8px;text-align:center;width:70px;color:#996600">Bônus Rec.</th>` : ""}
                 <th style="padding:6px 8px;text-align:center;width:70px;font-weight:800;color:#8a7000">Total</th>
               </tr>
             </thead>
             <tbody>
-              ${classifEquipes.classificacao.map((eq, idx) => {
+              ${dados.classificacao.map((eq, idx) => {
                 const pos = (idx+1)+"º";
                 const nProvas = Object.keys(eq.pontosPorProva).length;
-                const totalBonus = (eq.bonusRecordes || []).reduce((acc, b) => acc + b.pontos, 0);
-                const bonusDetail = (eq.bonusRecordes || []).map(b => `${b.tipoSigla} ${b.provaNome} (+${b.pontos})`).join(", ");
-                return `<tr style="border-bottom:1px solid #ddd;${idx < 3 ? "background:#f9f9f0" : ""}">
-                  <td style="padding:6px 8px;font-weight:700">${pos}</td>
-                  <td style="padding:6px 8px;font-weight:600">${eq.nome}${bonusDetail ? `<div style="font-size:8px;color:#996600;margin-top:1px">${bonusDetail}</div>` : ""}</td>
+                const totalBonus = eq.bonusRecordes ? Object.values(eq.bonusRecordes).reduce((s, v) => s + v, 0) : 0;
+                return `<tr style="border-bottom:1px solid #ddd;${idx<3?"background:#fffde8":""}">
+                  <td style="padding:6px 8px;font-weight:800;color:${idx<3?"#8a7000":"#333"}">${pos}</td>
+                  <td style="padding:6px 8px;font-weight:600">${eq.nome}</td>
                   <td style="padding:6px 8px;color:#8a7000;font-weight:600">${eq.sigla}</td>
                   <td style="padding:6px 8px;text-align:center;color:#666">${nProvas}</td>
-                  ${classifEquipes.totalBonusRecordes > 0 ? `<td style="padding:6px 8px;text-align:center;color:#996600;font-weight:700">${totalBonus > 0 ? "+" + totalBonus : "—"}</td>` : ""}
+                  ${dados.totalBonusRecordes > 0 ? `<td style="padding:6px 8px;text-align:center;color:#996600;font-weight:700">${totalBonus > 0 ? "+" + totalBonus : "—"}</td>` : ""}
                   <td style="padding:6px 8px;text-align:center;font-weight:800;font-size:16px;color:#8a7000">${eq.totalPontos}</td>
                 </tr>`;
               }).join("")}
@@ -707,6 +707,14 @@ function TelaResultados() {
           </table>
           ${rodExtra}
         </div>`;
+    };
+
+    if (filtroProva === "todas" && classifEquipes.classificacao.length > 0) {
+      htmlExtra += _gerarPaginaClassifEq(classifEquipes, classifPorSexoAtivo ? "Classificação por Equipes — Geral" : "Classificação por Equipes");
+      if (classifPorSexoAtivo) {
+        if (classifEquipesM) htmlExtra += _gerarPaginaClassifEq(classifEquipesM, "Classificação por Equipes — Masculino");
+        if (classifEquipesF) htmlExtra += _gerarPaginaClassifEq(classifEquipesF, "Classificação por Equipes — Feminino");
+      }
     }
 
     // Injetar htmlExtra antes do </body>
@@ -1418,14 +1426,12 @@ function TelaResultados() {
                 const altPrefix = b.prova.id.startsWith("M_") ? "F_" + b.prova.id.slice(2) : b.prova.id.startsWith("F_") ? "M_" + b.prova.id.slice(2) : null;
                 if (altPrefix) _serBlk = buscarSeriacao(eventoAtual.seriacao, altPrefix, b.categoria.id, b.sexo, b.faseSufixo || "");
               }
-              // Fallback: buscar por match parcial no objeto de seriação (cobre combinadas, variantes de provaId, fases)
+              // Fallback: buscar por match parcial no objeto de seriação (sem exigir fase exata)
               if (!_serBlk?.series && eventoAtual.seriacao) {
                 const provaBase = b.prova.id.replace(/^[MF]_/, "");
-                const faseSuf = b.faseSufixo || "";
                 const match = Object.keys(eventoAtual.seriacao).find(k => {
                   if (!eventoAtual.seriacao[k]?.series) return false;
                   if (!k.includes(b.categoria.id) || !k.includes(`_${b.sexo}`)) return false;
-                  if (faseSuf && !k.includes(`__${faseSuf}`)) return false;
                   return k.includes(provaBase);
                 });
                 if (match) _serBlk = eventoAtual.seriacao[match];
@@ -2083,7 +2089,7 @@ function TelaResultados() {
                             )
                           ];
                         });
-                      } else if (temSerieBlk && _serBlk?.series?.length > 1) {
+                      } else if (temSerieBlk && _serBlk?.series?.length > 1 && b.faseSufixo !== "FIN") {
                         // Final por Tempo: séries + classificação geral
                         const nColsFt = 4 + (temSerieBlk ? 1 : 0)
                           + (temRaiaBlk ? 1 : 0) + (temVentoBlk ? 1 : 0)

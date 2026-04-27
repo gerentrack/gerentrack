@@ -2017,6 +2017,7 @@ function BlocoDigitarCategoria({
                       <span>Última→Cheg.: <strong style={{ color: t.textPrimary }}>{provaSel.especBarreiras.ultimaCheg}</strong></span>
                     </div>
                   )}
+                  <div style={{ overflowX: "auto" }}>
                   <table style={s.table}>
                     <thead>
                       <tr>
@@ -2156,6 +2157,7 @@ function BlocoDigitarCategoria({
                       })}
                     </tbody>
                   </table>
+                  </div>
                 </>
               )}
               <div style={{ marginTop:16, display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
