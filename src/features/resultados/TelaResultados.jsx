@@ -4,6 +4,7 @@ import { CATEGORIAS } from "../../shared/constants/categorias";
 import { _getLocalEventoDisplay, NomeProvaComImplemento, abreviarProva, formatarMarca, formatarMarcaExibicao, _marcasComEmpateCentesimal, _marcaParaMs, resolverAtleta, formatarPeito } from "../../shared/formatters/utils";
 import { RecordHelper } from "../../shared/engines/recordHelper";
 import { TeamScoringEngine } from "../../shared/engines/teamScoringEngine";
+import { SeriacaoEngine } from "../../shared/engines/seriacaoEngine";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { CombinedScoringEngine } from "../../shared/engines/combinedScoringEngine";
 import { getFasesModo, buscarSeriacao, resKey, FASE_NOME, FASE_ORDEM, getEntradasProva, resolverCronometragem } from "../../shared/constants/fases";
@@ -1533,7 +1534,7 @@ function TelaResultados() {
                   });
                 }
 
-                // Buscar seriação da PRÓXIMA fase para determinar Q/q
+                // Determinar Q/q: primeiro tenta seriação salva da próxima fase, senão calcula em tempo real
                 const fasesConf = getFasesModo(b.prova.id, eventoAtual.configSeriacao || {});
                 const idxAtual = FASE_ORDEM.indexOf(b.faseSufixo);
                 const proximaFase = FASE_ORDEM[idxAtual + 1];
@@ -1546,9 +1547,28 @@ function TelaResultados() {
                         const aid = a.id || a.atletaId;
                         if (a.origemClassif === "posicao") classifQq[aid] = "Q";
                         else if (a.origemClassif === "tempo") classifQq[aid] = "q";
-                        else classifQq[aid] = "Q"; // fallback se não tem info
+                        else classifQq[aid] = "Q";
                       });
                     });
+                  } else if (seriacaoFaseBlk?.series) {
+                    // Sem seriação da próxima fase: calcular classificados em tempo real via RT 20.3.2(a)
+                    const cfgSer = eventoAtual.configSeriacao?.[b.prova.id];
+                    const pFallback = (cfgSer && typeof cfgSer === "object") ? (cfgSer.porPosicao ?? 3) : 3;
+                    const tFallback = (cfgSer && typeof cfgSer === "object") ? (cfgSer.porTempo ?? 2) : 2;
+                    const isEliParaSem = b.faseSufixo === "ELI" && proximaFase === "SEM";
+                    const progressao = isEliParaSem
+                      ? { porPosicao: (cfgSer && typeof cfgSer === "object") ? (cfgSer.porPosicaoEliSem ?? pFallback) : pFallback, porTempo: (cfgSer && typeof cfgSer === "object") ? (cfgSer.porTempoEliSem ?? tFallback) : tFallback }
+                      : { porPosicao: (cfgSer && typeof cfgSer === "object") ? (cfgSer.porPosicaoSemFin ?? pFallback) : pFallback, porTempo: (cfgSer && typeof cfgSer === "object") ? (cfgSer.porTempoSemFin ?? tFallback) : tFallback };
+                    const chaveRes = resKey(eventoAtual.id, b.prova.id, b.categoria.id, b.sexo, b.faseSufixo);
+                    const resAtual = resultados[chaveRes] || {};
+                    try {
+                      const classificados = SeriacaoEngine.rankearRT20_3_2a(seriacaoFaseBlk, resAtual, progressao);
+                      classificados.forEach(c => {
+                        if (c.origemClassif === "posicao") classifQq[c.atletaId] = "Q";
+                        else if (c.origemClassif === "tempo") classifQq[c.atletaId] = "q";
+                        else classifQq[c.atletaId] = "Q";
+                      });
+                    } catch (_e) { /* silenciar erros de cálculo */ }
                   }
                 }
               }
