@@ -404,12 +404,15 @@ export default function TelaHome() {
         </div>
         <div style={{ padding: "16px 20px 20px", display: "flex", flexDirection: "column", gap: 10 }}>
           <div style={s.eventoCardNome}>{ev.nome}</div>
-          <div style={s.eventoCardMeta}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 13, color: t.textMuted }}>
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>{IcoCalendar()} {dataEv.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}{ev.horaInicio && <> · {ev.horaInicio}h</>}</span>
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>{IcoPin()} {ev.cidade || _getLocalEventoDisplay(ev)}{ev.uf ? ` - ${ev.uf}` : ""}</span>
-          </div>
-          <div style={s.eventoCardMeta}>
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>{IcoUsers()} {nAtletas} atleta{nAtletas !== 1 ? "s" : ""}</span>
+            {ev.dataEncerramentoInscricoes && status === "futuro" && (
+              <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}>
+                {IcoCalendar()} Inscrições até <strong style={{ color: t.danger, marginLeft: 2 }}>{new Date(ev.dataEncerramentoInscricoes + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}</strong>
+              </span>
+            )}
           </div>
           <button style={{ ...s.btnPrimary, alignSelf: "center", padding: "9px 22px", fontSize: 13 }} onClick={() => cta.action()}>
             {cta.label}
