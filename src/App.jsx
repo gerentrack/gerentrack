@@ -1874,7 +1874,7 @@ function App() {
               modo800: "raias",
             });
 
-            if (!novasSer) novasSer = { ...seriacaoSalva };
+            if (!novasSer) novasSer = {};
             const nClassP = classificados.filter(c => c.origemClassif === "posicao").length;
             const nClassT = classificados.filter(c => c.origemClassif === "tempo").length;
             novasSer[chaveSerProxima] = {
@@ -1890,7 +1890,9 @@ function App() {
     });
 
     if (novasSer && evtAtual?.id) {
-      _atualizarCamposEvento(evtAtual.id, { seriacao: novasSer });
+      // Merge pontual: atualiza apenas as chaves auto-geradas, preservando toda a seriação existente
+      const seriacaoAtual = eventoAtualRef_app.current?.seriacao || {};
+      _atualizarCamposEvento(evtAtual.id, { seriacao: { ...seriacaoAtual, ...novasSer } });
     }
     }, 800); // debounce — espera 800ms sem mudanças antes de processar
     return () => clearTimeout(timer);
