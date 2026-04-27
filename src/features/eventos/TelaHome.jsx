@@ -331,13 +331,13 @@ export default function TelaHome() {
     if (mobile) return null;
     const stats = [
       { value: animComp, label: "Competições", color: t.accent },
-      { value: animAtl, label: "Atletas", color: t.success },
-      { value: animEq, label: "Equipes", color: t.warning },
-      { value: animRes, label: "Resultados", color: t.gold || t.accent },
+      { value: animAtl, label: "Atletas", color: t.accent },
+      { value: animEq, label: "Equipes", color: t.accent },
+      { value: animRes, label: "Resultados", color: t.accent },
     ];
     return (
       <div style={s.dashboardMockup}>
-        <div style={{ fontSize: 11, color: t.textDimmed, fontWeight: 700, letterSpacing: 1.5, marginBottom: 12, textTransform: "uppercase", fontFamily: t.fontTitle }}>Dashboard</div>
+        <div style={{ fontSize: 11, color: t.textDimmed, fontWeight: 700, letterSpacing: 1.5, marginBottom: 12, textTransform: "uppercase", fontFamily: t.fontTitle }}>Painel</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           {stats.map((item, i) => (
             <div key={i} style={s.dashboardStat}>
@@ -351,10 +351,16 @@ export default function TelaHome() {
             <div style={{ fontSize: 10, color: t.textDimmed, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8, fontFamily: t.fontTitle }}>Próximos</div>
             {proximosEventos.slice(0, 3).map(ev => {
               const st = getStatusEvento(ev, resultados);
+              const stColor = t.accent;
+              const dataEv = ev.data ? new Date(ev.data + "T12:00:00") : null;
+              const dataFmt = dataEv ? dataEv.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }).replace(".", "") : "";
               return (
                 <div key={ev.id} style={{ fontSize: 12, color: t.textMuted, padding: "5px 0", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, borderBottom: `1px solid ${t.border}22` }}>
-                  <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{ev.nome}</span>
-                  <span style={{ ...s.eventoStatusBadge(st), fontSize: 9, padding: "2px 8px", flexShrink: 0 }}>{labelStatusEvento(st, ev)}</span>
+                  <span style={{ display: "flex", alignItems: "center", gap: 6, overflow: "hidden", flex: 1 }}>
+                    <span style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: stColor, flexShrink: 0 }} />
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 600, color: t.textSecondary }}>{ev.nome}</span>
+                  </span>
+                  <span style={{ fontSize: 11, color: t.textDimmed, flexShrink: 0 }}>{dataFmt}</span>
                 </div>
               );
             })}
