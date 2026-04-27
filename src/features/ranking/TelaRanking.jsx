@@ -472,7 +472,7 @@ export default function TelaRanking() {
           <button key={ab.id} onClick={() => { setAba(ab.id); setPagina(0); }}
             style={{
               padding: "8px 18px", borderRadius: 8, cursor: "pointer",
-              fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, fontWeight: 700, letterSpacing: 1,
+              fontFamily: t.fontTitle, fontSize: 14, fontWeight: 700, letterSpacing: 1,
               background: aba === ab.id ? t.accent : "transparent",
               color: aba === ab.id ? "#fff" : t.textMuted,
               border: `1px solid ${aba === ab.id ? t.accent : t.borderInput}`,
@@ -551,7 +551,7 @@ export default function TelaRanking() {
                 if (!fed?.nome) return null;
                 return (
                   <div style={{ textAlign:"center", padding:"14px 20px", marginBottom:16, background:`${t.accent}08`, border:`1px solid ${t.accentBorder}`, borderRadius:10 }}>
-                    <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontWeight:800, fontSize:16, color:t.accent, letterSpacing:1 }}>
+                    <div style={{ fontFamily: t.fontTitle, fontWeight:800, fontSize:16, color:t.accent, letterSpacing:1 }}>
                       Ranking Oficial - Homologado pela {fed.nome}
                     </div>
                   </div>
@@ -582,7 +582,7 @@ export default function TelaRanking() {
                       return (
                       <tr key={r.id} style={{ ...s.tr, background: bgPodio || (idx % 2 === 0 ? "transparent" : t.bgHeaderSolid) }}>
                         <td style={{ ...s.td, textAlign: "center", fontWeight: 700, color: corPos }}>{medalha ? <>{medalha} {pos}º</> : `${pos}º`}</td>
-                        <td style={{ ...s.td, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 15, color: t.textPrimary }}>
+                        <td style={{ ...s.td, fontFamily: t.fontTitle, fontWeight: 700, fontSize: 15, color: t.textPrimary }}>
                           {formatarMarca(r.marcaNum, r.unidade)}
                           {r.ventoAssistido && <span style={{ fontSize: 10, color: t.warning, marginLeft: 3 }}>w</span>}
                           {r.vento && !r.ventoAssistido && <span style={{ fontSize: 9, color: t.textDisabled, marginLeft: 3 }}>({r.vento})</span>}
@@ -618,7 +618,7 @@ export default function TelaRanking() {
                   if (!fed?.nome) return null;
                   const nomeUfCompleto = { AC:"Acre",AL:"Alagoas",AP:"Amapá",AM:"Amazonas",BA:"Bahia",CE:"Ceará",DF:"Distrito Federal",ES:"Espírito Santo",GO:"Goiás",MA:"Maranhão",MT:"Mato Grosso",MS:"Mato Grosso do Sul",MG:"Minas Gerais",PA:"Pará",PB:"Paraíba",PR:"Paraná",PE:"Pernambuco",PI:"Piauí",RJ:"Rio de Janeiro",RN:"Rio Grande do Norte",RS:"Rio Grande do Sul",RO:"Rondônia",RR:"Roraima",SC:"Santa Catarina",SP:"São Paulo",SE:"Sergipe",TO:"Tocantins" }[filtroUfAtleta] || filtroUfAtleta;
                   return (
-                    <button style={{ padding:"6px 14px", borderRadius:6, border:`1px solid ${t.accentBorder}`, background:t.accentBg, color:t.accent, fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'Barlow Condensed', sans-serif", letterSpacing:1 }}
+                    <button style={{ padding:"6px 14px", borderRadius:6, border:`1px solid ${t.accentBorder}`, background:t.accentBg, color:t.accent, fontSize:12, fontWeight:700, cursor:"pointer", fontFamily: t.fontTitle, letterSpacing:1 }}
                       onClick={async () => {
                         const gtLogo = branding.logo || GT_DEFAULT_LOGO;
                         const logoFed = fed.logo || "";
@@ -632,7 +632,7 @@ export default function TelaRanking() {
                           const medal = "";
                           return `<tr style="border-bottom:1px solid #ddd;${pos <= 3 ? "background:#fffbe6" : idx % 2 === 0 ? "" : "background:#f8f8f8"}">
                             <td style="padding:5px 8px;text-align:center;font-weight:700;font-size:12px">${medal} ${pos}º</td>
-                            <td style="padding:5px 8px;font-weight:700;font-size:13px;font-family:'Barlow Condensed',sans-serif">${formatarMarca(r.marcaNum, r.unidade)}${r.ventoAssistido ? ' <span style="color:#c66;font-size:9px">w</span>' : ""}</td>
+                            <td style="padding:5px 8px;font-weight:700;font-size:13px;font-family:'Montserrat',sans-serif">${formatarMarca(r.marcaNum, r.unidade)}${r.ventoAssistido ? ' <span style="color:#c66;font-size:9px">w</span>' : ""}</td>
                             <td style="padding:5px 8px;font-size:11px;color:#666">${r.atletaCbat || "—"}</td>
                             <td style="padding:5px 8px;font-weight:600;font-size:12px">${r.atletaNome || "—"}</td>
                             <td style="padding:5px 8px;font-size:11px;color:#666">${r.atletaNasc?.substring(0,4) || "—"}</td>
@@ -640,7 +640,7 @@ export default function TelaRanking() {
                           </tr>`;
                         }).join("");
                         const cabHtml = `<div style="text-align:center;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #333">
-                          <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:2px;color:#111">RANKING ESTADUAL - ${nomeUfCompleto.toUpperCase()}</div>
+                          <div style="font-family:'Montserrat',sans-serif;font-size:22px;font-weight:900;letter-spacing:2px;color:#111">RANKING ESTADUAL - ${nomeUfCompleto.toUpperCase()}</div>
                           <div style="font-size:12px;color:#555;margin-top:4px">
                             Ano: <strong>${filtroAno}</strong> · Categoria: <strong>${catNome}</strong> · Sexo: <strong>${sexoLabel}</strong> · Prova: <strong>${filtroProva}</strong>
                           </div>
@@ -648,12 +648,12 @@ export default function TelaRanking() {
                         const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
                           <title>Ranking Estadual - ${nomeUfCompleto}</title>
                           <style>
-                            @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;600;700&display=swap');
+                            @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
                             @page { size: A4 portrait; margin: 12mm 15mm 25mm;
-                              @bottom-center { content: "Página " counter(page) " de " counter(pages); font-size:9px; color:#999; font-family:'Barlow',sans-serif; }
+                              @bottom-center { content: "Página " counter(page) " de " counter(pages); font-size:9px; color:#999; font-family:'Inter',sans-serif; }
                             }
                             @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-                            body { font-family:'Barlow',sans-serif; margin:0; padding:20px; color:#111; }
+                            body { font-family:'Inter',sans-serif; margin:0; padding:20px; color:#111; }
                             table { width:100%; border-collapse:collapse; }
                             thead { display:table-header-group; }
                             thead tr.cab-row td { padding:0; border:none; }
@@ -973,7 +973,7 @@ export default function TelaRanking() {
                         </td>
                         <td style={{ ...s.td, fontSize: 12, color: t.textMuted }}>{r.atletaCbat || "—"}</td>
                         <td style={{ ...s.td, fontSize: 12 }}>{r.provaNome}</td>
-                        <td style={{ ...s.td, fontWeight: 700, color: t.accent, fontFamily: "'Barlow Condensed', sans-serif" }}>
+                        <td style={{ ...s.td, fontWeight: 700, color: t.accent, fontFamily: t.fontTitle }}>
                           {formatarMarca(r.marcaNum, r.unidade)}
                           {r.ventoAssistido && <span style={{ fontSize: 10, color: t.warning, marginLeft: 3 }}>w</span>}
                         </td>

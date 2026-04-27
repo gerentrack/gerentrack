@@ -38,19 +38,19 @@ function getStyles(t) {
   headerInnerMobile: { maxWidth: 1200, margin: "0 auto", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 },
   logo: { background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 14 },
   logoMobile: { background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 },
-  logoTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 24, fontWeight: 900, color: H.accent, letterSpacing: 3, lineHeight: 1 },
-  logoTitleMobile: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 900, color: H.accent, letterSpacing: 2, lineHeight: 1 },
+  logoTitle: { fontFamily: t.fontTitle, fontSize: 24, fontWeight: 900, color: H.accent, letterSpacing: 3, lineHeight: 1 },
+  logoTitleMobile: { fontFamily: t.fontTitle, fontSize: 18, fontWeight: 900, color: H.accent, letterSpacing: 2, lineHeight: 1 },
   logoSub: { fontSize: 11, color: H.textDim, letterSpacing: 1.5, marginTop: 3 },
   nav: { display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" },
-  btnNav: { background: "transparent", border: `1px solid ${H.borderLight}`, color: H.text, padding: "7px 14px", borderRadius: 6, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", whiteSpace: "nowrap" },
-  btnNavMobile: { background: "transparent", border: `1px solid ${H.borderLight}`, color: H.text, padding: "10px 16px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", whiteSpace: "nowrap", width: "100%" },
+  btnNav: { background: "transparent", border: `1px solid ${H.borderLight}`, color: H.text, padding: "7px 14px", borderRadius: 6, cursor: "pointer", fontSize: 13, fontFamily: t.fontBody, transition: "all 0.2s", whiteSpace: "nowrap" },
+  btnNavMobile: { background: "transparent", border: `1px solid ${H.borderLight}`, color: H.text, padding: "10px 16px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontFamily: t.fontBody, transition: "all 0.2s", whiteSpace: "nowrap", width: "100%" },
   btnNavActive: { background: "#0f2240", borderColor: H.accent, color: H.accent },
-  btnSair: { background: "transparent", border: `1px solid ${H.danger}33`, color: H.danger, padding: "7px 14px", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 700, fontFamily: "'Barlow', sans-serif" },
-  btnSairMobile: { background: "transparent", border: `1px solid ${H.danger}33`, color: H.danger, padding: "10px 16px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow', sans-serif", width: "100%" },
+  btnSair: { background: "transparent", border: `1px solid ${H.danger}33`, color: H.danger, padding: "7px 14px", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 700, fontFamily: t.fontBody },
+  btnSairMobile: { background: "transparent", border: `1px solid ${H.danger}33`, color: H.danger, padding: "10px 16px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: t.fontBody, width: "100%" },
   eventoBar: { background: H.bgSolid, borderTop: `1px solid ${H.border}`, padding: "6px 24px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" },
   eventoBarMobile: { background: H.bgSolid, borderTop: `1px solid ${H.border}`, padding: "6px 12px", display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 4 },
   eventoBarLabel: { fontSize: 11, color: H.textDim, letterSpacing: 1, textTransform: "uppercase" },
-  eventoBarNome: { fontSize: 13, fontWeight: 700, color: H.accent, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
+  eventoBarNome: { fontSize: 13, fontWeight: 700, color: H.accent, fontFamily: t.fontTitle, letterSpacing: 1 },
   eventoBarMeta: { fontSize: 12, color: H.textDim, marginLeft: "auto" },
   eventoBarMetaMobile: { fontSize: 11, color: H.textDim },
   statusDotInline: (cor) => ({ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: cor, background: cor + "22", border: `1px solid ${cor}44`, borderRadius: 10, padding: "2px 8px", whiteSpace: "nowrap" }),
@@ -116,7 +116,7 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
               title="Trocar perfil / organizador"
               style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 8px", background: "#0f224022",
                 border: "1px solid #1a2e4a", borderRadius: 6, cursor: "pointer", fontSize: 10, color: t.accent,
-                fontFamily: "'Barlow', sans-serif", fontWeight: 600, ...(mobile ? { width: "100%", padding: "10px 16px", fontSize: 13, justifyContent: "center" } : {}) }}
+                fontFamily: t.fontBody, fontWeight: 600, ...(mobile ? { width: "100%", padding: "10px 16px", fontSize: 13, justifyContent: "center" } : {}) }}
             >
               Trocar
             </button>
@@ -165,7 +165,7 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
           border: "none", borderRadius: 16, cursor: "pointer",
           padding: "4px 10px", fontSize: 11,
           color: !temaClaro ? "#c8d0dc" : "#4a5568",
-          fontFamily: "'Barlow', sans-serif", letterSpacing: 0.5, transition: "all 0.2s",
+          fontFamily: t.fontBody, letterSpacing: 0.5, transition: "all 0.2s",
         }}
       >
         escuro
@@ -178,7 +178,7 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
           border: "none", borderRadius: 16, cursor: "pointer",
           padding: "4px 10px", fontSize: 11,
           color: temaClaro ? "#c8d0dc" : "#4a5568",
-          fontFamily: "'Barlow', sans-serif", letterSpacing: 0.5, transition: "all 0.2s",
+          fontFamily: t.fontBody, letterSpacing: 0.5, transition: "all 0.2s",
         }}
       >
         claro
@@ -230,7 +230,7 @@ function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDispo
           <div style={styles.mobileMenu} onClick={(e) => { if (e.target === e.currentTarget) setMenuAberto(false); }}>
             <div style={styles.mobileMenuPanel}>
               <div style={styles.mobileMenuHeader}>
-                <span style={{ color: "#6b7a90", fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, textTransform: "uppercase" }}>Menu</span>
+                <span style={{ color: "#6b7a90", fontSize: 13, fontFamily: t.fontTitle, letterSpacing: 1, textTransform: "uppercase" }}>Menu</span>
                 <button style={styles.mobileMenuClose} onClick={() => setMenuAberto(false)} aria-label="Fechar menu">✕</button>
               </div>
               {navItems}

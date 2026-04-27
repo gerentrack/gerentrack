@@ -96,7 +96,7 @@ export default function MarchaJuizesPanel({
   // ── Estilos ──
   const panelSt = { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, marginTop: 16, overflow: "hidden" };
   const headerSt = { padding: "12px 18px", background: t.bgHeaderSolid, borderBottom: aberto ? `1px solid ${t.border}` : "none", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" };
-  const titleSt = { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 700, color: t.accent, letterSpacing: 0.5 };
+  const titleSt = { fontFamily: t.fontTitle, fontSize: 16, fontWeight: 700, color: t.accent, letterSpacing: 0.5 };
   const inputSm = { background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 4, padding: "3px 4px", color: t.textPrimary, fontSize: 10, width: 38, textAlign: "center", outline: "none" };
   const inputNome = { background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 6, padding: "5px 8px", color: t.textPrimary, fontSize: 12, outline: "none", width: "100%" };
   const lblSm = { color: t.textMuted, fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 };
@@ -184,7 +184,7 @@ export default function MarchaJuizesPanel({
               border: dirty ? "none" : `1px solid ${t.border}`,
               borderRadius: 8, padding: "10px 28px", fontSize: 14, fontWeight: 700,
               cursor: dirty ? "pointer" : "default", opacity: salvando ? 0.6 : 1,
-              fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5,
+              fontFamily: t.fontTitle, letterSpacing: 0.5,
             }}
           >
             {salvando ? "Salvando..." : "Salvar Súmula"}
@@ -367,7 +367,7 @@ export default function MarchaJuizesPanel({
               border: dirty ? "none" : `1px solid ${t.border}`,
               borderRadius: 8, padding: "10px 28px", fontSize: 14, fontWeight: 700,
               cursor: dirty ? "pointer" : "default", opacity: salvando ? 0.6 : 1,
-              fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5,
+              fontFamily: t.fontTitle, letterSpacing: 0.5,
             }}
           >
             {salvando ? "Salvando..." : "Salvar Súmula"}

@@ -50,7 +50,7 @@ function BannerCookies({ onAceitar, onRecusar }) {
           style={{
             background: "transparent", border: `1px solid ${t.border}`, color: t.textMuted,
             borderRadius: 8, padding: "8px 20px", cursor: "pointer", fontSize: 13,
-            fontFamily: "'Barlow', sans-serif", fontWeight: 600,
+            fontFamily: t.fontBody, fontWeight: 600,
           }}>
           Recusar
         </button>
@@ -58,7 +58,7 @@ function BannerCookies({ onAceitar, onRecusar }) {
           style={{
             background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff",
             border: "none", borderRadius: 8, padding: "8px 20px", cursor: "pointer", fontSize: 13,
-            fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, letterSpacing: 1,
+            fontFamily: t.fontTitle, fontWeight: 700, letterSpacing: 1,
           }}>
           Aceitar
         </button>

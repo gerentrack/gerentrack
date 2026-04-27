@@ -19,17 +19,17 @@ export function ConfirmModal({ mensagem, onConfirm, onCancel }) {
         <div style={{ marginBottom: 24 }}>
           {linhas.map((l, i) => (
             l.startsWith("•") ? (
-              <div key={i} style={{ color: t.textTertiary, fontSize: 13, lineHeight: 1.6, paddingLeft: 8, fontFamily: "'Barlow', sans-serif" }}>{l}</div>
+              <div key={i} style={{ color: t.textTertiary, fontSize: 13, lineHeight: 1.6, paddingLeft: 8, fontFamily: t.fontBody }}>{l}</div>
             ) : l === "" ? (
               <div key={i} style={{ height: 8 }} />
             ) : (
-              <p key={i} style={{ color: t.textSecondary, fontSize: 14, lineHeight: 1.6, marginBottom: 4, fontFamily: "'Barlow', sans-serif" }}>{l}</p>
+              <p key={i} style={{ color: t.textSecondary, fontSize: 14, lineHeight: 1.6, marginBottom: 4, fontFamily: t.fontBody }}>{l}</p>
             )
           ))}
         </div>
         <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-          <button style={{ background: "transparent", border: `1px solid ${t.borderLight}`, color: t.textMuted, padding: "10px 22px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontFamily: "'Barlow', sans-serif" }} onClick={onCancel}>Cancelar</button>
-          <button style={{ background: "linear-gradient(135deg, #c0392b, #a93226)", border: "none", color: "#fff", padding: "10px 22px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 }} onClick={onConfirm} autoFocus>Confirmar</button>
+          <button style={{ background: "transparent", border: `1px solid ${t.borderLight}`, color: t.textMuted, padding: "10px 22px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontFamily: t.fontBody }} onClick={onCancel}>Cancelar</button>
+          <button style={{ background: "linear-gradient(135deg, #c0392b, #a93226)", border: "none", color: "#fff", padding: "10px 22px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: t.fontTitle, letterSpacing: 1 }} onClick={onConfirm} autoFocus>Confirmar</button>
         </div>
       </div>
     </div>

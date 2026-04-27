@@ -37,26 +37,26 @@ function getStyles(t) {
   return {
   page:       { maxWidth: 1100, margin: "0 auto", padding: "40px 24px 80px" },
   header:     { display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 28 },
-  title:      { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: t.textPrimary, letterSpacing: 1 },
+  title:      { fontFamily: t.fontTitle, fontSize: 36, fontWeight: 800, color: t.textPrimary, letterSpacing: 1 },
   sub:        { color: t.textDimmed, fontSize: 14, marginTop: 4 },
   tabs:       { display: "flex", gap: 0, background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, overflow: "hidden", marginBottom: 28, width: "fit-content" },
-  tab:        { padding: "10px 24px", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, cursor: "pointer", border: "none", background: "transparent", color: t.textDimmed },
+  tab:        { padding: "10px 24px", fontSize: 14, fontWeight: 700, fontFamily: t.fontTitle, letterSpacing: 1, cursor: "pointer", border: "none", background: "transparent", color: t.textDimmed },
   tabActive:  { background: t.accent, color: t.textPrimary },
   card:       { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, marginBottom: 16, overflow: "hidden" },
   cardHead:   { padding: "14px 20px", background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`, display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 8 },
-  cardTitle:  { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 800, color: t.textPrimary, letterSpacing: 1 },
+  cardTitle:  { fontFamily: t.fontTitle, fontSize: 18, fontWeight: 800, color: t.textPrimary, letterSpacing: 1 },
   cardMeta:   { display: "flex", gap: 8, alignItems: "center" },
   badge:      (cor) => ({ background: cor + "22", color: cor, border: `1px solid ${cor}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }),
   table:      { width: "100%", borderCollapse: "collapse" },
   th:         { background: t.bgHeaderSolid, padding: "10px 14px", textAlign: "left", fontSize: 11, fontWeight: 700, color: t.textDimmed, letterSpacing: 1, textTransform: "uppercase", borderBottom: `1px solid ${t.border}` },
   td:         { padding: "10px 14px", fontSize: 13, color: t.textSecondary, borderBottom: `1px solid ${t.border}` },
-  btn:        (cor, bg) => ({ background: bg, border: `1px solid ${cor}44`, color: cor, borderRadius: 6, padding: "5px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5, whiteSpace: "nowrap" }),
-  btnDisabled:{ background: t.bgCardAlt, border: `1px solid ${t.border}`, color: t.textDisabled, borderRadius: 6, padding: "5px 14px", fontSize: 12, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5, whiteSpace: "nowrap", cursor: "not-allowed" },
+  btn:        (cor, bg) => ({ background: bg, border: `1px solid ${cor}44`, color: cor, borderRadius: 6, padding: "5px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700, fontFamily: t.fontTitle, letterSpacing: 0.5, whiteSpace: "nowrap" }),
+  btnDisabled:{ background: t.bgCardAlt, border: `1px solid ${t.border}`, color: t.textDisabled, borderRadius: 6, padding: "5px 14px", fontSize: 12, fontWeight: 700, fontFamily: t.fontTitle, letterSpacing: 0.5, whiteSpace: "nowrap", cursor: "not-allowed" },
   btnGhost:   { background: "transparent", color: t.textMuted, border: `1px solid ${t.borderLight}`, padding: "10px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13 },
   selectEvento: { background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, outline: "none", marginBottom: 0 },
   empty:      { textAlign: "center", padding: "48px 20px", color: t.textDisabled, fontSize: 14 },
   pill:       (cor, bg) => ({ display: "inline-block", background: bg, color: cor, border: `1px solid ${cor}33`, borderRadius: 12, padding: "2px 10px", fontSize: 11, fontWeight: 700 }),
-  horario:    { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 800, color: t.accent },
+  horario:    { fontFamily: t.fontTitle, fontSize: 16, fontWeight: 800, color: t.accent },
   nomeAtleta: { fontWeight: 600, color: t.textPrimary, fontSize: 13 },
   entregue:   { color: t.success, fontSize: 11, fontStyle: "italic" },
   entregueInfo:{ color: t.textDimmed, fontSize: 10, fontStyle: "italic", lineHeight: 1.5 },
@@ -664,7 +664,7 @@ function TelaSecretaria() {
           <div style={{ marginBottom: 16 }}>
             <button
               onClick={() => setScannerAberto(true)}
-              style={{ background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", borderRadius: 10, padding: "12px 24px", cursor: "pointer", fontSize: 15, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", maxWidth: 320 }}>
+              style={{ background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", borderRadius: 10, padding: "12px 24px", cursor: "pointer", fontSize: 15, fontWeight: 700, fontFamily: t.fontTitle, letterSpacing: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", maxWidth: 320 }}>
               Escanear QR Code
             </button>
           </div>
@@ -677,7 +677,7 @@ function TelaSecretaria() {
               { label: "DNS", valor: statsPresenca.dns, cor: t.danger },
             ].map(stat => (
               <div key={stat.label} style={{ background: t.bgCard, border: `1px solid ${stat.cor}33`, borderRadius: 10, padding: "12px 20px", textAlign: "center", minWidth: 90 }}>
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 28, fontWeight: 900, color: stat.cor }}>{stat.valor}</div>
+                <div style={{ fontFamily: t.fontTitle, fontSize: 28, fontWeight: 900, color: stat.cor }}>{stat.valor}</div>
                 <div style={{ fontSize: 11, color: t.textDimmed, letterSpacing: 1, textTransform: "uppercase" }}>{stat.label}</div>
               </div>
             ))}
@@ -690,7 +690,7 @@ function TelaSecretaria() {
               placeholder="Buscar por nº peito ou nome..."
               value={buscaChamada}
               onChange={e => setBuscaChamada(e.target.value)}
-              style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 14px", color: t.textPrimary, fontSize: 13, width: "100%", maxWidth: 400, outline: "none", fontFamily: "'Barlow', sans-serif" }}
+              style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 14px", color: t.textPrimary, fontSize: 13, width: "100%", maxWidth: 400, outline: "none", fontFamily: t.fontBody }}
             />
           </div>
 
@@ -744,7 +744,7 @@ function TelaSecretaria() {
                       const peito = formatarPeito(peitos[atl.id]);
                       return (
                         <tr key={`${prova.id}_${cat.id}_${sexo}_${atl.id}`} style={{ background: rowBg }}>
-                          <td style={{ ...s.td, textAlign: "center", fontWeight: 700, color: t.warning, fontSize: 14, fontFamily: "'Barlow Condensed', sans-serif" }}>{peito || "—"}</td>
+                          <td style={{ ...s.td, textAlign: "center", fontWeight: 700, color: t.warning, fontSize: 14, fontFamily: t.fontTitle }}>{peito || "—"}</td>
                           <td style={s.td}>
                             <span style={s.nomeAtleta}>{atl.nome}</span>
                           </td>
@@ -804,7 +804,7 @@ function TelaSecretaria() {
           <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 16, padding: "24px 28px", maxWidth: 420, width: "100%", maxHeight: "80vh", overflowY: "auto" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <div>
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 20, color: t.textPrimary }}>
+                <div style={{ fontFamily: t.fontTitle, fontWeight: 800, fontSize: 20, color: t.textPrimary }}>
                   {medalhaAtletaInfo.peito ? `#${medalhaAtletaInfo.peito} ` : ""}{medalhaAtletaInfo.atl.nome}
                 </div>
                 <div style={{ fontSize: 12, color: t.textMuted }}>{medalhaAtletaInfo.atl.clube || "Sem equipe"}</div>
@@ -896,7 +896,7 @@ function TelaSecretaria() {
           <div style={{ marginBottom: 16 }}>
             <button
               onClick={() => setScannerMedalhaAberto(true)}
-              style={{ background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", borderRadius: 10, padding: "12px 24px", cursor: "pointer", fontSize: 15, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", maxWidth: 320 }}>
+              style={{ background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", borderRadius: 10, padding: "12px 24px", cursor: "pointer", fontSize: 15, fontWeight: 700, fontFamily: t.fontTitle, letterSpacing: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", maxWidth: 320 }}>
               Escanear QR — Medalhas
             </button>
           </div>
@@ -910,7 +910,7 @@ function TelaSecretaria() {
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <button onClick={() => setLimiteParticipacao(l => Math.max(1, l - 1))}
                 style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.textMuted, borderRadius: 6, width: 28, height: 28, cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>−</button>
-              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 22, color: t.textPrimary, minWidth: 28, textAlign: "center" }}>{limiteParticipacao}</span>
+              <span style={{ fontFamily: t.fontTitle, fontWeight: 900, fontSize: 22, color: t.textPrimary, minWidth: 28, textAlign: "center" }}>{limiteParticipacao}</span>
               <button onClick={() => setLimiteParticipacao(l => l + 1)}
                 style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.textMuted, borderRadius: 6, width: 28, height: 28, cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
             </div>
@@ -967,7 +967,7 @@ function TelaSecretaria() {
               placeholder="Buscar por nº peito ou nome..."
               value={buscaChamada}
               onChange={e => setBuscaChamada(e.target.value)}
-              style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 14px", color: t.textPrimary, fontSize: 13, width: "100%", maxWidth: 400, outline: "none", fontFamily: "'Barlow', sans-serif" }}
+              style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 14px", color: t.textPrimary, fontSize: 13, width: "100%", maxWidth: 400, outline: "none", fontFamily: t.fontBody }}
             />
           </div>
 
@@ -1084,10 +1084,10 @@ function TelaSecretaria() {
 
                       return (
                         <tr key={`${prova.id}_${cat.id}_${sexo}_${atl.id}`} style={{ background: conf ? conf.bg : undefined }}>
-                          <td style={{ ...s.td, textAlign: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 18, color: conf ? conf.cor : t.textDisabled }}>
+                          <td style={{ ...s.td, textAlign: "center", fontFamily: t.fontTitle, fontWeight: 900, fontSize: 18, color: conf ? conf.cor : t.textDisabled }}>
                             {posicao ? `${posicao}º` : "—"}
                           </td>
-                          <td style={{ ...s.td, textAlign: "center", fontWeight: 700, color: t.warning, fontSize: 14, fontFamily: "'Barlow Condensed', sans-serif" }}>{formatarPeito(peitos[atl.id]) || "—"}</td>
+                          <td style={{ ...s.td, textAlign: "center", fontWeight: 700, color: t.warning, fontSize: 14, fontFamily: t.fontTitle }}>{formatarPeito(peitos[atl.id]) || "—"}</td>
                           <td style={s.td}>
                             <span style={s.nomeAtleta}>{atl.nome}</span>
                           </td>
@@ -1252,18 +1252,18 @@ function TelaSecretaria() {
               ].map(({ tipo, label, emoji, cor }) => (
                 <div key={tipo} style={{ background: t.bgCard, border: `1px solid ${cor}33`, borderRadius: 12, padding: "16px 24px", textAlign: "center", minWidth: 110 }}>
                   <div style={{ fontSize: 28, marginBottom: 4 }}>{emoji}</div>
-                  <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 900, color: cor, lineHeight: 1 }}>{totais[tipo]}</div>
+                  <div style={{ fontFamily: t.fontTitle, fontSize: 32, fontWeight: 900, color: cor, lineHeight: 1 }}>{totais[tipo]}</div>
                   <div style={{ fontSize: 11, color: t.textDimmed, marginTop: 4, textTransform: "uppercase", letterSpacing: 1 }}>{label}</div>
                 </div>
               ))}
               <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "16px 24px", textAlign: "center", minWidth: 110 }}>
                 <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>...</div>
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 900, color: t.danger, lineHeight: 1 }}>{totais.pendentes}</div>
+                <div style={{ fontFamily: t.fontTitle, fontSize: 32, fontWeight: 900, color: t.danger, lineHeight: 1 }}>{totais.pendentes}</div>
                 <div style={{ fontSize: 11, color: t.textDimmed, marginTop: 4, textTransform: "uppercase", letterSpacing: 1 }}>Pendentes</div>
               </div>
               <div style={{ background: t.bgCard, border: "1px solid #2a6a2a", borderRadius: 12, padding: "16px 24px", textAlign: "center", minWidth: 110, alignSelf: "center" }}>
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 700, color: t.success, letterSpacing: 1, marginBottom: 6 }}>TOTAL ENTREGUES</div>
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 900, color: t.success, lineHeight: 1 }}>{totalEntregues}<span style={{ fontSize: 16, color: t.textDisabled }}>/{totalGeral}</span></div>
+                <div style={{ fontFamily: t.fontTitle, fontSize: 13, fontWeight: 700, color: t.success, letterSpacing: 1, marginBottom: 6 }}>TOTAL ENTREGUES</div>
+                <div style={{ fontFamily: t.fontTitle, fontSize: 32, fontWeight: 900, color: t.success, lineHeight: 1 }}>{totalEntregues}<span style={{ fontSize: 16, color: t.textDisabled }}>/{totalGeral}</span></div>
                 <div style={{ fontSize: 11, color: t.textDimmed, marginTop: 4 }}>{totalGeral > 0 ? Math.round(totalEntregues / totalGeral * 100) : 0}% concluído</div>
               </div>
             </div>
@@ -1294,9 +1294,9 @@ function TelaSecretaria() {
                         return (
                           <tr key={equipe} style={{ background: dados.ouro > 0 ? t.trOuro : undefined }}>
                             <td style={{ ...s.td, fontWeight: 600, color: t.textPrimary }}>{equipe}</td>
-                            <td style={{ ...s.td, textAlign: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: "#FFD700" }}>{dados.ouro || "—"}</td>
-                            <td style={{ ...s.td, textAlign: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: "#C0C0C0" }}>{dados.prata || "—"}</td>
-                            <td style={{ ...s.td, textAlign: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: "#CD7F32" }}>{dados.bronze || "—"}</td>
+                            <td style={{ ...s.td, textAlign: "center", fontFamily: t.fontTitle, fontWeight: 800, fontSize: 16, color: "#FFD700" }}>{dados.ouro || "—"}</td>
+                            <td style={{ ...s.td, textAlign: "center", fontFamily: t.fontTitle, fontWeight: 800, fontSize: 16, color: "#C0C0C0" }}>{dados.prata || "—"}</td>
+                            <td style={{ ...s.td, textAlign: "center", fontFamily: t.fontTitle, fontWeight: 800, fontSize: 16, color: "#CD7F32" }}>{dados.bronze || "—"}</td>
                             <td style={{ ...s.td, textAlign: "center", color: t.textMuted }}>{dados.participacao || "—"}</td>
                             <td style={{ ...s.td, textAlign: "center", fontWeight: 700, color: t.textTertiary }}>{total}</td>
                           </tr>

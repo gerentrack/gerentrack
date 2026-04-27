@@ -13,8 +13,8 @@ import { useApp } from "../../contexts/AppContext";
 function getStyles(t) {
   return {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
-  pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: t.textPrimary, marginBottom: 24, letterSpacing: 1 },
-  sectionTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, fontWeight: 800, color: t.textPrimary, marginBottom: 20, letterSpacing: 1 },
+  pageTitle: { fontFamily: t.fontTitle, fontSize: 36, fontWeight: 800, color: t.textPrimary, marginBottom: 24, letterSpacing: 1 },
+  sectionTitle: { fontFamily: t.fontTitle, fontSize: 26, fontWeight: 800, color: t.textPrimary, marginBottom: 20, letterSpacing: 1 },
   painelHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 32 },
   painelBtns: { display: "flex", gap: 10 },
   statsRow: { display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 32 },
@@ -24,17 +24,17 @@ function getStyles(t) {
   td: { padding: "12px 16px", fontSize: 14, color: t.textSecondary, borderBottom: `1px solid ${t.border}` },
   tr: { transition: "background 0.15s" },
   label: { display: "block", fontSize: 12, fontWeight: 600, color: t.textMuted, letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" },
-  input: { width: "100%", background: t.bgInput, borderWidth: 1, borderStyle: "solid", borderColor: t.borderInput, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
-  select: { width: "100%", background: t.bgInput, borderWidth: 1, borderStyle: "solid", borderColor: t.borderInput, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
+  input: { width: "100%", background: t.bgInput, borderWidth: 1, borderStyle: "solid", borderColor: t.borderInput, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: t.fontBody, outline: "none", marginBottom: 4 },
+  select: { width: "100%", background: t.bgInput, borderWidth: 1, borderStyle: "solid", borderColor: t.borderInput, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: t.fontBody, outline: "none", marginBottom: 4 },
   emptyState: { textAlign: "center", padding: "60px 20px", color: t.textDisabled, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, fontSize: 15 },
-  btnPrimary: { background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, transition: "all 0.2s" },
-  btnSecondary: { background: "transparent", color: t.accent, border: `2px solid ${t.accent}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
-  btnGhost: { background: "transparent", color: t.textMuted, border: `1px solid ${t.borderLight}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
-  linkBtn: { background: "none", border: "none", color: t.accent, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", padding: 0 },
+  btnPrimary: { background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: t.fontTitle, letterSpacing: 1, transition: "all 0.2s" },
+  btnSecondary: { background: "transparent", color: t.accent, border: `2px solid ${t.accent}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: t.fontTitle, letterSpacing: 1 },
+  btnGhost: { background: "transparent", color: t.textMuted, border: `1px solid ${t.borderLight}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: t.fontBody },
+  linkBtn: { background: "none", border: "none", color: t.accent, cursor: "pointer", fontSize: 13, fontFamily: t.fontBody, padding: 0 },
   badgeGold: { background: t.accentBg, color: t.accent, border: `1px solid ${t.accentBorder}`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 },
   badge: (color) => ({ background: color + "22", color: color, border: `1px solid ${color}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }),
   catBanner: { background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 14, color: t.textTertiary },
-  marca: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: t.accent },
+  marca: { fontFamily: t.fontTitle, fontSize: 20, fontWeight: 800, color: t.accent },
 };
 }
 
@@ -223,7 +223,7 @@ function TelaPainelAtleta() {
                 return (
                   <div key={ev.id} style={{ background:t.bgHeaderSolid, border:`1px solid ${t.accentBorder}`,
                     borderRadius:12, padding:"16px 18px", display:"flex", flexDirection:"column", gap:8 }}>
-                    <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:18,
+                    <div style={{ fontFamily: t.fontTitle, fontSize:18,
                       fontWeight:800, color: t.textPrimary, lineHeight:1.2 }}>{ev.nome}</div>
                     <div style={{ fontSize:12, color: t.accent }}>
                       {orgEv?.entidade || orgEv?.nome || "—"}
@@ -299,7 +299,7 @@ function TelaPainelAtleta() {
                       <summary style={{ cursor:"pointer", color: t.danger, fontSize:12,
                         background: t.bgCardAlt, border:`1px solid ${t.danger}44`,
                         borderRadius:6, padding:"5px 12px", listStyle:"none",
-                        fontFamily:"'Barlow', sans-serif", userSelect:"none" }}>
+                        fontFamily: t.fontBody, userSelect:"none" }}>
                         ✗ Solicitar saída...
                       </summary>
                       <div style={{ marginTop:10, background: t.bgCardAlt, border:`1px solid ${t.danger}44`,
@@ -335,7 +335,7 @@ function TelaPainelAtleta() {
                           }}
                           style={{ background: t.bgCardAlt, border:`1px solid ${t.danger}`, color: t.danger,
                             borderRadius:6, padding:"8px 18px", cursor:"pointer", fontSize:13,
-                            fontWeight:700, fontFamily:"'Barlow Condensed', sans-serif", letterSpacing:0.5 }}>
+                            fontWeight:700, fontFamily: t.fontTitle, letterSpacing:0.5 }}>
                           Confirmar Solicitação de Saída
                         </button>
                       </div>
@@ -432,13 +432,13 @@ function TelaPainelAtleta() {
                   <button onClick={() => responderVinculo(solPendente.id, true)}
                     style={{ background: t.bgCardAlt, border:`1px solid ${t.success}44`, color: t.success,
                       borderRadius:6, padding:"8px 20px", cursor:"pointer", fontSize:13,
-                      fontWeight:700, fontFamily:"'Barlow', sans-serif" }}>
+                      fontWeight:700, fontFamily: t.fontBody }}>
                     ✓ Aceitar
                   </button>
                   <button onClick={() => responderVinculo(solPendente.id, false)}
                     style={{ background: t.bgCardAlt, border:`1px solid ${t.danger}44`, color: t.danger,
                       borderRadius:6, padding:"8px 16px", cursor:"pointer", fontSize:13,
-                      fontFamily:"'Barlow', sans-serif" }}>
+                      fontFamily: t.fontBody }}>
                     ✗ Recusar
                   </button>
                 </div>
@@ -561,12 +561,12 @@ function TelaPainelAtleta() {
         return (
           <>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12, marginTop:32, marginBottom:20 }}>
-              <h2 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:26, fontWeight:800, color: t.textPrimary, letterSpacing:1, margin:0 }}>
+              <h2 style={{ fontFamily: t.fontTitle, fontSize:26, fontWeight:800, color: t.textPrimary, letterSpacing:1, margin:0 }}>
                 Meus Resultados
               </h2>
               {solicitarRelatorio && eventosComInsc.length > 0 && (
                 <details style={{ position:"relative" }}>
-                  <summary style={{ cursor:"pointer", background:"transparent", color: t.accent, border:`1px solid ${t.accentBorder}`, borderRadius:8, padding:"8px 16px", fontSize:13, fontWeight:700, fontFamily:"'Barlow Condensed', sans-serif", letterSpacing:0.5, listStyle:"none" }}>
+                  <summary style={{ cursor:"pointer", background:"transparent", color: t.accent, border:`1px solid ${t.accentBorder}`, borderRadius:8, padding:"8px 16px", fontSize:13, fontWeight:700, fontFamily: t.fontTitle, letterSpacing:0.5, listStyle:"none" }}>
                     Solicitar Relatório Oficial
                   </summary>
                   <div style={{ marginTop:8, background:t.bgHeaderSolid, border:`1px solid ${t.accentBorder}`, borderRadius:8, padding:"14px 16px", minWidth:280 }}>
@@ -606,7 +606,7 @@ function TelaPainelAtleta() {
                 }}>
                   <div>
                     <div style={{
-                      fontFamily:"'Barlow Condensed',sans-serif",
+                      fontFamily: t.fontTitle,
                       fontSize:20, fontWeight:800, color: t.textPrimary, marginBottom:5,
                     }}>
                       {ev.nome}
@@ -649,7 +649,7 @@ function TelaPainelAtleta() {
                       }}>
                         {/* Nome da prova */}
                         <div style={{
-                          fontFamily:"'Barlow Condensed',sans-serif",
+                          fontFamily: t.fontTitle,
                           fontSize:14, fontWeight:700, color: t.textTertiary,
                           lineHeight:1.2, textTransform:"uppercase", letterSpacing:0.5,
                         }}>
@@ -658,7 +658,7 @@ function TelaPainelAtleta() {
 
                         {/* Marca em destaque */}
                         <div style={{
-                          fontFamily:"'Barlow Condensed',sans-serif",
+                          fontFamily: t.fontTitle,
                           fontSize:30, fontWeight:900, lineHeight:1,
                           color: isDNS ? "#555" : t.accent,
                           marginTop:2, marginBottom:2,

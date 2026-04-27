@@ -27,25 +27,25 @@ const badgeStatus = (s, t) => ({
 function getStyles(t) {
   return {
   page:       { maxWidth:1200, margin:"0 auto", padding:"36px 24px 80px" },
-  title:      { fontFamily:"'Barlow Condensed',sans-serif", fontSize:34, fontWeight:800, color: t.textPrimary, letterSpacing:1, margin:0 },
+  title:      { fontFamily: t.fontTitle, fontSize:34, fontWeight:800, color: t.textPrimary, letterSpacing:1, margin:0 },
   card:       { background:t.bgCard, border:`1px solid ${t.border}`, borderRadius:12, padding:"20px 24px", marginBottom:20 },
   tableWrap:  { overflowX:"auto", borderRadius:10, border:`1px solid ${t.border}` },
   table:      { width:"100%", borderCollapse:"collapse" },
   tr:         { transition:"background 0.15s" },
   empty:      { textAlign:"center", padding:"40px 20px", color: t.textDisabled, display:"flex", flexDirection:"column", alignItems:"center", gap:12, fontSize:14 },
-  btnPrimary: { background:`linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border:"none", padding:"9px 20px", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:700, fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:1, transition:"all 0.2s", whiteSpace:"nowrap" },
-  btnSecondary:{ background:"transparent", color: t.accent, border:`2px solid ${t.accent}`, padding:"8px 18px", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:700, fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:1, whiteSpace:"nowrap" },
-  btnGhost:   { background:"transparent", color: t.textMuted, border:`1px solid ${t.borderLight}`, padding:"8px 18px", borderRadius:8, cursor:"pointer", fontSize:13, fontFamily:"'Barlow',sans-serif", whiteSpace:"nowrap" },
-  input:      { width:"100%", background:t.bgInput, border:`1px solid ${t.borderInput}`, borderRadius:7, padding:"9px 12px", color: t.textSecondary, fontSize:13, fontFamily:"'Barlow',sans-serif", outline:"none", marginBottom:4 },
+  btnPrimary: { background:`linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border:"none", padding:"9px 20px", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:700, fontFamily: t.fontTitle, letterSpacing:1, transition:"all 0.2s", whiteSpace:"nowrap" },
+  btnSecondary:{ background:"transparent", color: t.accent, border:`2px solid ${t.accent}`, padding:"8px 18px", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:700, fontFamily: t.fontTitle, letterSpacing:1, whiteSpace:"nowrap" },
+  btnGhost:   { background:"transparent", color: t.textMuted, border:`1px solid ${t.borderLight}`, padding:"8px 18px", borderRadius:8, cursor:"pointer", fontSize:13, fontFamily: t.fontBody, whiteSpace:"nowrap" },
+  input:      { width:"100%", background:t.bgInput, border:`1px solid ${t.borderInput}`, borderRadius:7, padding:"9px 12px", color: t.textSecondary, fontSize:13, fontFamily: t.fontBody, outline:"none", marginBottom:4 },
   label:      { display:"block", fontSize:11, fontWeight:700, color: t.textDimmed, letterSpacing:1, marginBottom:5, textTransform:"uppercase" },
-  sectionHd:  { fontFamily:"'Barlow Condensed',sans-serif", fontSize:20, fontWeight:800, color: t.textPrimary, marginBottom:14 },
+  sectionHd:  { fontFamily: t.fontTitle, fontSize:20, fontWeight:800, color: t.textPrimary, marginBottom:14 },
 
   // pendência card clicável
   pendCard: (color, bg, border) => ({
     display:"flex", alignItems:"center", gap:14, textAlign:"left",
     background:bg, border:`1px solid ${border}`, borderRadius:10,
     padding:"14px 18px", cursor:"pointer", transition:"all 0.15s",
-    fontFamily:"'Barlow',sans-serif",
+    fontFamily: t.fontBody,
   }),
 
   // aba botão
@@ -61,7 +61,7 @@ function getStyles(t) {
     cursor:"pointer",
     fontSize:12,
     fontWeight: active ? 700 : 500,
-    fontFamily:"'Barlow Condensed',sans-serif",
+    fontFamily: t.fontTitle,
     letterSpacing:0.5,
     transition:"all 0.15s",
     display:"flex",
@@ -435,7 +435,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes }) {
           {/* Pendências urgentes */}
           {totalPend > 0 && (
             <div style={{ ...s.card, borderColor:"#c0392b44", marginBottom:20 }}>
-              <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:16, fontWeight:800, color:"#c0392b", marginBottom:14, letterSpacing:1 }}>
+              <div style={{ fontFamily: t.fontTitle, fontSize:16, fontWeight:800, color:"#c0392b", marginBottom:14, letterSpacing:1 }}>
                 PENDÊNCIAS QUE REQUEREM ATENÇÃO
               </div>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))", gap:10 }}>
@@ -489,7 +489,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes }) {
             if (vencendo.length === 0 && encerradosFase3.length === 0) return null;
             return (
               <div style={{ ...s.card, borderColor: `${t.warning}44`, marginBottom: 20 }}>
-                <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:14, fontWeight:800, color: t.warning, marginBottom:10 }}>ALERTAS DE LICENÇA</div>
+                <div style={{ fontFamily: t.fontTitle, fontSize:14, fontWeight:800, color: t.warning, marginBottom:10 }}>ALERTAS DE LICENÇA</div>
                 {vencendo.map(o => {
                   const dias = Math.ceil((new Date(o.planoFim + "T23:59:59") - hoje) / (1000 * 60 * 60 * 24));
                   return (
@@ -526,7 +526,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes }) {
                   border: a.primary ? "none" : `1px solid ${t.border}`,
                   borderRadius:10, padding:"16px 10px",
                   cursor:"pointer", color: a.primary ? "#fff" : t.textTertiary,
-                  fontFamily:"'Barlow',sans-serif", fontSize:13, fontWeight:600,
+                  fontFamily: t.fontBody, fontSize:13, fontWeight:600,
                   display:"flex", alignItems:"center", justifyContent:"center", textAlign:"center",
                   transition:"all 0.15s", minHeight:50,
                 }}>
@@ -575,7 +575,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes }) {
           {/* Recuperação de Senha */}
           {pendRec.length > 0 && (
             <div style={{ ...s.card, borderColor:"#2a5a2a", marginBottom:16 }}>
-              <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:800, color:t.success, marginBottom:14, letterSpacing:1 }}>
+              <div style={{ fontFamily: t.fontTitle, fontSize:18, fontWeight:800, color:t.success, marginBottom:14, letterSpacing:1 }}>
                 Recuperação de Senha ({pendRec.length})
               </div>
               <div style={s.tableWrap}>
@@ -892,7 +892,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes }) {
                             <Td style={{ fontSize:11 }}>{eq.cnpj||"—"}</Td>
                             <Td style={{ fontSize:12 }}>{eq.cidade ? `${eq.cidade}/${eq.estado||""}` : "—"}</Td>
                             <Td>{org ? <span style={{ color: t.accent, fontSize:12 }}>{org.entidade||org.nome}</span> : <span style={{ color: t.textDimmed, fontSize:12 }}>Sem vínculo</span>}</Td>
-                            <Td><span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:800, color: t.accent }}>{atletasPorEquipeId[eq.id] || 0}</span></Td>
+                            <Td><span style={{ fontFamily: t.fontTitle, fontSize:18, fontWeight:800, color: t.accent }}>{atletasPorEquipeId[eq.id] || 0}</span></Td>
                           </tr>
                         );
                       })}
@@ -965,7 +965,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes }) {
                             </Td>
                             <Td style={{ fontSize:12 }}>{_getNascDisplay(a)||"—"}</Td>
                             <Td style={{ fontSize:12 }}>{eq?.nome||<span style={{ color: t.textDimmed }}>Avulso</span>}</Td>
-                            <Td><span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:800, color: t.accent }}>{ninsc}</span></Td>
+                            <Td><span style={{ fontFamily: t.fontTitle, fontSize:18, fontWeight:800, color: t.accent }}>{ninsc}</span></Td>
                             <Td>
                               <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
                                 <button onClick={async () => { setAtletaEditandoId(a.id); setTela("editar-atleta"); }}
@@ -1593,7 +1593,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes }) {
         return (
           <div style={{ maxWidth: 860 }}>
             <div style={{ ...s.card, borderColor:"#a855f733" }}>
-              <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:800,
+              <div style={{ fontFamily: t.fontTitle, fontSize:18, fontWeight:800,
                 color:"#a855f7", marginBottom:8, letterSpacing:1 }}>
                 Solicitações de Portabilidade de Dados
               </div>
@@ -1699,7 +1699,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes }) {
           onClick={() => setModalTransf(null)}>
           <div style={{ background:t.bgCard, border:`1px solid ${t.border}`, borderRadius:14, padding:28, width:420, maxWidth:"95vw" }}
             onClick={e => e.stopPropagation()}>
-            <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:22, fontWeight:800, color: t.textPrimary, marginBottom:4 }}>
+            <h3 style={{ fontFamily: t.fontTitle, fontSize:22, fontWeight:800, color: t.textPrimary, marginBottom:4 }}>
               Transferir Atleta
             </h3>
             <p style={{ color: t.textMuted, fontSize:13, marginBottom:20 }}>{modalTransf.atleta.nome}</p>

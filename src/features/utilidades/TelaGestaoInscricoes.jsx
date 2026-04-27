@@ -41,15 +41,15 @@ const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 function getStyles(t) {
   return {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
-  pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: t.textPrimary, marginBottom: 24, letterSpacing: 1 },
-  sectionTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, fontWeight: 800, color: t.textPrimary, marginBottom: 20, letterSpacing: 1 },
+  pageTitle: { fontFamily: t.fontTitle, fontSize: 36, fontWeight: 800, color: t.textPrimary, marginBottom: 24, letterSpacing: 1 },
+  sectionTitle: { fontFamily: t.fontTitle, fontSize: 26, fontWeight: 800, color: t.textPrimary, marginBottom: 20, letterSpacing: 1 },
   statsRow: { display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 32 },
   statCard: { background: t.bgCardAlt, border: `1px solid ${t.border}`, borderRadius: 12, padding: "18px 24px", textAlign: "center", minWidth: 100 },
-  statValue: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 900, color: t.accent, lineHeight: 1, marginBottom: 6 },
+  statValue: { fontFamily: t.fontTitle, fontSize: 36, fontWeight: 900, color: t.accent, lineHeight: 1, marginBottom: 6 },
   statLabel: { fontSize: 13, color: t.textMuted, letterSpacing: 1 },
-  btnPrimary: { background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, transition: "all 0.2s" },
-  btnSecondary: { background: "transparent", color: t.accent, border: `2px solid ${t.accentBorder}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
-  btnGhost: { background: "transparent", color: t.textMuted, border: `1px solid ${t.borderLight}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
+  btnPrimary: { background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: t.fontTitle, letterSpacing: 1, transition: "all 0.2s" },
+  btnSecondary: { background: "transparent", color: t.accent, border: `2px solid ${t.accentBorder}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: t.fontTitle, letterSpacing: 1 },
+  btnGhost: { background: "transparent", color: t.textMuted, border: `1px solid ${t.borderLight}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: t.fontBody },
   btnIconSm: { background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.textMuted, borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
   btnIconSmDanger: { background: t.bgCardAlt, border: `1px solid ${t.danger}44`, color: t.danger, borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
   tableWrap: { overflowX: "auto", borderRadius: 12, border: `1px solid ${t.border}` },
@@ -60,15 +60,15 @@ function getStyles(t) {
   trOuro: { background: t.trOuro },
   trPrata: { background: t.trPrata },
   trBronze: { background: t.trBronze },
-  marca: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: t.accent },
+  marca: { fontFamily: t.fontTitle, fontSize: 20, fontWeight: 800, color: t.accent },
   emptyState: { textAlign: "center", padding: "60px 20px", color: t.textDisabled, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, fontSize: 15 },
   painelHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 32 },
   painelBtns: { display: "flex", gap: 10, flexWrap: "wrap" },
-  input: { width: "100%", background: t.bgInput, borderWidth: 1, borderStyle: "solid", borderColor: t.borderInput, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
-  select: { width: "100%", background: t.bgInput, borderWidth: 1, borderStyle: "solid", borderColor: t.borderInput, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
+  input: { width: "100%", background: t.bgInput, borderWidth: 1, borderStyle: "solid", borderColor: t.borderInput, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: t.fontBody, outline: "none", marginBottom: 4 },
+  select: { width: "100%", background: t.bgInput, borderWidth: 1, borderStyle: "solid", borderColor: t.borderInput, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: t.fontBody, outline: "none", marginBottom: 4 },
   label: { display: "block", fontSize: 12, fontWeight: 600, color: t.textMuted, letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" },
   erro: { background: t.bgCardAlt, border: `1px solid ${t.danger}`, color: t.danger, padding: "10px 14px", borderRadius: 8, marginBottom: 16, fontSize: 14 },
-  linkBtn: { background: "none", border: "none", color: t.accent, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", padding: 0 },
+  linkBtn: { background: "none", border: "none", color: t.accent, cursor: "pointer", fontSize: 13, fontFamily: t.fontBody, padding: 0 },
   badge: (color) => ({ background: color + "22", color: color, border: `1px solid ${color}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }),
   badgeGold: { background: t.accentBg, color: t.accent, border: `1px solid ${t.accentBorder}`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 },
   catBanner: { background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 14, color: t.textTertiary },
@@ -82,28 +82,28 @@ function getStyles(t) {
   statusDot: (cor) => ({ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: cor, flexShrink: 0 }),
   statusDotInline: (cor) => ({ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: cor, background: cor + "22", border: `1px solid ${cor}44`, borderRadius: 10, padding: "2px 8px", whiteSpace: "nowrap" }),
   statusControlsCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "20px 24px", marginBottom: 28 },
-  statusControlsTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 700, color: t.accent, letterSpacing: 1, marginBottom: 14 },
+  statusControlsTitle: { fontFamily: t.fontTitle, fontSize: 16, fontWeight: 700, color: t.accent, letterSpacing: 1, marginBottom: 14 },
   statusControlsGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 },
   statusControlBox: (ativo, corAtiva, bgAtiva, disabled) => ({ background: ativo ? bgAtiva : t.bgInput, border: `1px solid ${ativo ? corAtiva + "66" : t.borderInput}`, borderRadius: 10, padding: "14px 16px", opacity: disabled ? 0.5 : 1, transition: "all 0.2s" }),
   statusControlLabel: { display: "flex", alignItems: "flex-start", cursor: "pointer", gap: 0 },
   modoSwitch: { display: "flex", gap: 0, background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, overflow: "hidden", marginBottom: 24, width: "fit-content" },
-  modoBtn: { background: "transparent", border: "none", color: t.textDimmed, padding: "12px 24px", cursor: "pointer", fontSize: 14, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s" },
+  modoBtn: { background: "transparent", border: "none", color: t.textDimmed, padding: "12px 24px", cursor: "pointer", fontSize: 14, fontFamily: t.fontBody, transition: "all 0.2s" },
   modoBtnActive: { background: t.bgInput, color: t.accent },
   eventoAcoesGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16, marginBottom: 40 },
-  eventoAcaoBtn: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "20px 16px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, textAlign: "center", color: t.textPrimary, fontFamily: "'Barlow', sans-serif", fontSize: 15, fontWeight: 700, transition: "border-color 0.2s" },
+  eventoAcaoBtn: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "20px 16px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, textAlign: "center", color: t.textPrimary, fontFamily: t.fontBody, fontSize: 15, fontWeight: 700, transition: "border-color 0.2s" },
   permissividadeTag: (ativo) => ({ display: "inline-block", background: ativo ? `${t.success}15` : t.bgCard, border: `1px solid ${ativo ? `${t.success}44` : t.border}`, color: ativo ? t.success : t.textDisabled, borderRadius: 6, padding: "6px 12px", fontSize: 12, fontWeight: 600 }),
   filtroProvasBar: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "16px 20px", marginBottom: 16, display: "flex", flexWrap: "wrap", gap: 20 },
   filtroProvasBloco: { display: "flex", flexDirection: "column", gap: 8 },
   filtroProvasLabel: { fontSize: 11, fontWeight: 700, color: t.textDimmed, letterSpacing: 1, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 8 },
   filtroProvasPills: { display: "flex", flexWrap: "wrap", gap: 6 },
-  filtroPill: { background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.textDimmed, borderRadius: 20, padding: "5px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5, transition: "all 0.15s" },
+  filtroPill: { background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.textDimmed, borderRadius: 20, padding: "5px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: t.fontTitle, letterSpacing: 0.5, transition: "all 0.15s" },
   filtroPillAtivo: { background: t.bgHover, border: `1px solid ${t.accentBorder}`, color: t.accent },
-  filtroClearBtn: { background: "none", border: "none", color: `${t.accent}88`, cursor: "pointer", fontSize: 11, fontFamily: "'Barlow', sans-serif", padding: "0 4px", textDecoration: "underline" },
+  filtroClearBtn: { background: "none", border: "none", color: `${t.accent}88`, cursor: "pointer", fontSize: 11, fontFamily: t.fontBody, padding: "0 4px", textDecoration: "underline" },
   savedBadge: { background: `${t.success}15`, border: `1px solid ${t.success}44`, color: t.success, padding: "8px 16px", borderRadius: 8, fontSize: 13 },
   digitarDica: { color: t.textDimmed, fontSize: 12 },
   formPage: { maxWidth: 640, margin: "60px auto", padding: "0 24px 80px" },
   formCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 16, padding: 32, marginBottom: 20 },
-  formTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 800, color: t.textPrimary, textAlign: "center", marginBottom: 8 },
+  formTitle: { fontFamily: t.fontTitle, fontSize: 32, fontWeight: 800, color: t.textPrimary, textAlign: "center", marginBottom: 8 },
   formSub: { color: t.textDimmed, textAlign: "center", fontSize: 14, marginBottom: 24 },
   grid2: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 40 },
   grid2form: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 },
@@ -112,37 +112,37 @@ function getStyles(t) {
   radioLabel: { flex: 1, background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px", textAlign: "center", cursor: "pointer", fontSize: 14, color: t.textMuted, transition: "all 0.2s" },
   radioLabelActive: { background: t.bgHover, border: `1px solid ${t.accentBorder}`, color: t.accent },
   infoCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: 24 },
-  infoCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 700, color: t.accent, marginBottom: 16, letterSpacing: 1 },
+  infoCardTitle: { fontFamily: t.fontTitle, fontSize: 20, fontWeight: 700, color: t.accent, marginBottom: 16, letterSpacing: 1 },
   infoList: { listStyle: "none" },
   infoItem: { padding: "6px 0", borderBottom: `1px solid ${t.border}`, fontSize: 14, color: t.textSecondary, display: "flex", alignItems: "center", gap: 8 },
   infoItemDot: { color: t.accent, fontWeight: 700 },
   sumuCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, marginBottom: 20, overflow: "hidden" },
   sumuHeader: { padding: "16px 20px", background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" },
-  sumuProva: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.textPrimary, marginBottom: 6 },
+  sumuProva: { fontFamily: t.fontTitle, fontSize: 22, fontWeight: 800, color: t.textPrimary, marginBottom: 6 },
   sumuMeta: { display: "flex", gap: 8, alignItems: "center" },
   digitarSection: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, overflow: "hidden" },
   digitarHeader: { padding: "16px 20px", background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 },
-  inputMarca: { background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 6, padding: "8px 12px", color: t.accent, fontSize: 16, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, width: 120, outline: "none" },
+  inputMarca: { background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 6, padding: "8px 12px", color: t.accent, fontSize: 16, fontFamily: t.fontTitle, fontWeight: 700, width: 120, outline: "none" },
   adminGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 32 },
   adminCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: 24 },
-  adminCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.accent, marginBottom: 16 },
+  adminCardTitle: { fontFamily: t.fontTitle, fontSize: 22, fontWeight: 800, color: t.accent, marginBottom: 16 },
   heroSection: { textAlign: "center", padding: "60px 20px 40px", background: `linear-gradient(180deg, ${t.bgCardAlt} 0%, transparent 100%)`, borderRadius: 16, marginBottom: 48, position: "relative", overflow: "hidden" },
-  heroBadge: { display: "inline-block", background: t.accent, color: t.textPrimary, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: 3, padding: "6px 16px", borderRadius: 20, marginBottom: 20 },
-  heroTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 56, fontWeight: 900, color: t.textPrimary, lineHeight: 1.1, marginBottom: 16, letterSpacing: 1 },
+  heroBadge: { display: "inline-block", background: t.accent, color: t.textPrimary, fontFamily: t.fontTitle, fontWeight: 800, fontSize: 12, letterSpacing: 3, padding: "6px 16px", borderRadius: 20, marginBottom: 20 },
+  heroTitle: { fontFamily: t.fontTitle, fontSize: 56, fontWeight: 900, color: t.textPrimary, lineHeight: 1.1, marginBottom: 16, letterSpacing: 1 },
   heroBtns: { display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" },
   eventosGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 20, marginBottom: 48 },
   eventoCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 14, padding: 24, display: "flex", flexDirection: "column", gap: 10 },
-  eventoCardNome: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.textPrimary, lineHeight: 1.2 },
+  eventoCardNome: { fontFamily: t.fontTitle, fontSize: 22, fontWeight: 800, color: t.textPrimary, lineHeight: 1.2 },
   eventoCardMeta: { fontSize: 13, color: t.textDimmed },
   eventoCardStats: { display: "flex", gap: 16, fontSize: 13, color: t.textMuted, flexWrap: "wrap", borderTop: `1px solid ${t.border}`, paddingTop: 10, marginTop: 4 },
   eventoStatusBadge: (status) => ({ display: "inline-block", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700, letterSpacing: 0.5, background: status === "ao_vivo" ? `${t.danger}15` : status === "hoje_pre" ? t.accentBg : status === "futuro" ? `${t.success}15` : t.bgCardAlt, color: status === "ao_vivo" ? t.danger : status === "hoje_pre" ? t.accent : status === "futuro" ? t.success : t.textDisabled, border: `1px solid ${status === "ao_vivo" ? `${t.danger}44` : status === "hoje_pre" ? t.accentBorder : status === "futuro" ? `${t.success}44` : t.border}` }),
   grupoProvasBox: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 10, marginBottom: 16, overflow: "hidden" },
   grupoProvasHeader: { background: t.bgHeaderSolid, borderBottom: `1px solid ${t.border}`, padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" },
-  provaCheckBtn: { background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", lineHeight: 1.4, userSelect: "none" },
+  provaCheckBtn: { background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: t.fontBody, lineHeight: 1.4, userSelect: "none" },
   provaCheckBtnSel: { background: t.bgHover, borderColor: t.accentBorder, color: t.accent },
   provaChip: { background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 6, padding: "8px 12px", fontSize: 13, color: t.textSecondary, lineHeight: 1.4 },
   stepBar: { display: "flex", alignItems: "center", gap: 0, marginBottom: 32, maxWidth: 400 },
-  stepItem: (ativo) => ({ padding: "10px 24px", borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, background: ativo ? t.bgHover : "transparent", color: ativo ? t.accent : t.textDisabled, border: `1px solid ${ativo ? t.accentBorder : t.border}` }),
+  stepItem: (ativo) => ({ padding: "10px 24px", borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: t.fontTitle, letterSpacing: 1, background: ativo ? t.bgHover : "transparent", color: ativo ? t.accent : t.textDisabled, border: `1px solid ${ativo ? t.accentBorder : t.border}` }),
   stepDivider: { flex: 1, height: 1, background: t.border, margin: "0 8px" },
   permissividadeBox: { background: t.bgHeaderSolid, border: `1px solid ${t.accentBorder}`, borderRadius: 10, padding: 16, marginTop: 16, marginBottom: 4 },
   permissividadeHeader: { marginBottom: 10 },
@@ -157,10 +157,10 @@ function getStyles(t) {
   badgeNorma: { background: `${t.success}15`, color: t.success, border: `1px solid ${t.success}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600, cursor: "help" },
   eventoBar: { background: t.bgHeaderSolid, borderTop: `1px solid ${t.border}`, padding: "6px 24px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" },
   eventoBarLabel: { fontSize: 11, color: t.textDimmed, letterSpacing: 1, textTransform: "uppercase" },
-  eventoBarNome: { fontSize: 13, fontWeight: 700, color: t.accent, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
+  eventoBarNome: { fontSize: 13, fontWeight: 700, color: t.accent, fontFamily: t.fontTitle, letterSpacing: 1 },
   eventoBarMeta: { fontSize: 12, color: t.textDimmed, marginLeft: "auto" },
   provaGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 },
-  provaBtn: { background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", lineHeight: 1.4 },
+  provaBtn: { background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: t.fontBody, transition: "all 0.2s", lineHeight: 1.4 },
   provaBtnSel: { background: t.bgHover, borderColor: t.accentBorder, color: t.accent },
 };
 }
@@ -1271,7 +1271,7 @@ function TelaGestaoInscricoes() {
       {modoRecibo === "escolha" && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 16, padding: "32px 36px", maxWidth: 440, width: "90%" }}>
-            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 20, color: t.textPrimary, marginBottom: 8, letterSpacing: 1 }}>
+            <div style={{ fontFamily: t.fontTitle, fontWeight: 800, fontSize: 20, color: t.textPrimary, marginBottom: 8, letterSpacing: 1 }}>
               GERAR RECIBO
             </div>
             <div style={{ color: t.textDimmed, fontSize: 13, marginBottom: 20 }}>
@@ -1316,13 +1316,13 @@ function TelaGestaoInscricoes() {
               <button
                 onClick={() => gerarRecibos("individual")}
                 style={{ background: t.accentBg, border: `1px solid ${t.accentBorder}`, borderRadius: 10, padding: "16px 20px", cursor: "pointer", textAlign: "left" }}>
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: t.accent, marginBottom: 4 }}>Individual</div>
+                <div style={{ fontFamily: t.fontTitle, fontWeight: 800, fontSize: 16, color: t.accent, marginBottom: 4 }}>Individual</div>
                 <div style={{ fontSize: 12, color: t.textDimmed }}>Um recibo por atleta — nunca agrupa</div>
               </button>
               <button
                 onClick={() => gerarRecibos("equipe")}
                 style={{ background: t.bgCardAlt, border: `1px solid ${t.success}44`, borderRadius: 10, padding: "16px 20px", cursor: "pointer", textAlign: "left" }}>
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: t.success, marginBottom: 4 }}>Por Equipe</div>
+                <div style={{ fontFamily: t.fontTitle, fontWeight: 800, fontSize: 16, color: t.success, marginBottom: 4 }}>Por Equipe</div>
                 <div style={{ fontSize: 12, color: t.textDimmed }}>Agrupa da mesma equipe · sem equipe fica individual</div>
               </button>
             </div>
@@ -1396,7 +1396,7 @@ function TelaGestaoInscricoes() {
           {/* Pré-inscrições (sem provas) */}
           {isPrivileg && preInscricoes.length > 0 && (
             <div style={{ marginBottom: 16, padding: "14px 18px", background: `${t.warning}08`, border: `1px solid ${t.warning}33`, borderRadius: 10 }}>
-              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, fontWeight: 700, color: t.warning, marginBottom: 10 }}>
+              <div style={{ fontFamily: t.fontTitle, fontSize: 15, fontWeight: 700, color: t.warning, marginBottom: 10 }}>
                 Pre-inscricoes — Sem provas definidas ({preInscricoes.length})
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -1408,7 +1408,7 @@ function TelaGestaoInscricoes() {
                       display: "flex", alignItems: "center", gap: 10, padding: "8px 12px",
                       background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 8, flexWrap: "wrap",
                     }}>
-                      {peito && <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: t.accent, minWidth: 40 }}>#{formatarPeito(peito)}</span>}
+                      {peito && <span style={{ fontFamily: t.fontTitle, fontWeight: 800, fontSize: 16, color: t.accent, minWidth: 40 }}>#{formatarPeito(peito)}</span>}
                       <span style={{ fontWeight: 600, color: t.textPrimary, flex: "1 1 180px" }}>{atl?.nome || pre.atletaNome || "—"}</span>
                       <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 4, background: `${t.gold}12`, color: t.gold, border: `1px solid ${t.gold}33` }}>{pre.categoria || "—"}</span>
                       <span style={{ fontSize: 11, color: pre.sexo === "M" ? "#1a6ef5" : "#e54f9b" }}>{pre.sexo === "M" ? "Masc" : "Fem"}</span>
@@ -1478,7 +1478,7 @@ function TelaGestaoInscricoes() {
                         {mostrarSeparador && isPrivileg && (
                           <tr>
                             <td colSpan={10} style={{ background: t.bgCardAlt, borderBottom: `1px solid ${t.border}`, borderTop: rowIdx > 0 ? `2px solid ${t.accentBorder}` : "none", padding: "6px 16px" }}>
-                              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 12, color: t.accent, letterSpacing: 1, textTransform: "uppercase" }}>
+                              <span style={{ fontFamily: t.fontTitle, fontWeight: 800, fontSize: 12, color: t.accent, letterSpacing: 1, textTransform: "uppercase" }}>
                                 {equipeNome}
                               </span>
                             </td>
@@ -1499,10 +1499,10 @@ function TelaGestaoInscricoes() {
                           )}
                           <td style={{ ...s.td, textAlign: "center", verticalAlign: "top" }}>
                             {peito
-                              ? <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 18, color: t.warning }}>{formatarPeito(peito)}</span>
+                              ? <span style={{ fontFamily: t.fontTitle, fontWeight: 800, fontSize: 18, color: t.warning }}>{formatarPeito(peito)}</span>
                               : <span style={{ color: t.textDisabled, fontSize: 11 }}>—</span>}
                           </td>
-                          <td style={{ ...s.td, verticalAlign: "top", fontSize: 12, color: t.textMuted, fontFamily: "'Barlow Condensed', sans-serif" }}>
+                          <td style={{ ...s.td, verticalAlign: "top", fontSize: 12, color: t.textMuted, fontFamily: t.fontTitle }}>
                             {_getCbat(atl) || <span style={{ color: t.textDisabled }}>—</span>}
                           </td>
                           <td style={{ ...s.td, fontWeight: 600, color: t.textPrimary, verticalAlign: "top" }}>{atl?.nome || "—"}</td>
@@ -1542,7 +1542,7 @@ function TelaGestaoInscricoes() {
                           )}
                           <td style={{ ...s.td, verticalAlign: "top", textAlign: "right" }}>
                             {precoInfo?.preco != null
-                              ? <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 15, color: t.success }}>{formatarPreco(precoInfo.preco)}</span>
+                              ? <span style={{ fontFamily: t.fontTitle, fontWeight: 800, fontSize: 15, color: t.success }}>{formatarPreco(precoInfo.preco)}</span>
                               : <span style={{ color: t.textDimmed, fontSize: 11 }}>Gratuito</span>}
                           </td>
                           <td style={{ ...s.td, whiteSpace: "nowrap", verticalAlign: "top" }}>
@@ -1585,7 +1585,7 @@ function TelaGestaoInscricoes() {
           {/* ── Resumo financeiro por equipe ──────────────────────────────── */}
           {Object.keys(resumoFinanceiro.porEquipe).length > 0 && (
             <div style={{ marginTop: 24, background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "20px 24px" }}>
-              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: t.textPrimary, letterSpacing: 1, marginBottom: 16 }}>
+              <div style={{ fontFamily: t.fontTitle, fontWeight: 800, fontSize: 16, color: t.textPrimary, letterSpacing: 1, marginBottom: 16 }}>
                 RESUMO FINANCEIRO
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
@@ -1598,7 +1598,7 @@ function TelaGestaoInscricoes() {
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       {isPrivileg && dados.pago > 0 && <span style={{ fontSize: 11, color: t.success }}>Pago: {formatarPreco(dados.pago)}</span>}
                       {isPrivileg && dados.valor - dados.pago > 0 && <span style={{ fontSize: 11, color: t.warning }}>Pend.: {formatarPreco(dados.valor - dados.pago)}</span>}
-                      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: dados.valor > 0 ? t.success : t.textDisabled }}>
+                      <span style={{ fontFamily: t.fontTitle, fontWeight: 800, fontSize: 16, color: dados.valor > 0 ? t.success : t.textDisabled }}>
                         {dados.valor > 0 ? formatarPreco(dados.valor) : "Gratuito"}
                       </span>
                     </div>
@@ -1608,7 +1608,7 @@ function TelaGestaoInscricoes() {
               {resumoFinanceiro.totalGlobalSalvo > 0 && (
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px", background: t.bgCardAlt, borderRadius: 8, border: `1px solid ${t.success}44` }}>
                   <div>
-                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 14, color: t.success, letterSpacing: 1 }}>TOTAL</span>
+                    <span style={{ fontFamily: t.fontTitle, fontWeight: 800, fontSize: 14, color: t.success, letterSpacing: 1 }}>TOTAL</span>
                     <span style={{ color: t.textDimmed, fontSize: 12, marginLeft: 10 }}>{_porAtletaArr.length} atleta(s)</span>
                     {isPrivileg && (
                       <div style={{ marginTop: 4, display: "flex", gap: 12 }}>
@@ -1617,7 +1617,7 @@ function TelaGestaoInscricoes() {
                       </div>
                     )}
                   </div>
-                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 24, color: t.success }}>
+                  <span style={{ fontFamily: t.fontTitle, fontWeight: 900, fontSize: 24, color: t.success }}>
                     {formatarPreco(resumoFinanceiro.totalGlobalSalvo)}
                   </span>
                 </div>
@@ -1629,7 +1629,7 @@ function TelaGestaoInscricoes() {
           {provasRevez.length > 0 && (isPrivileg || eventoAtual.revezamentoInscAntecipada) && (
             <div style={{ marginTop: 28, padding: 16, background: t.bgHeaderSolid, border: `1px solid ${t.accentBorder}`, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
               <div>
-                <h2 style={{ color: t.accent, fontSize: 17, margin: 0, fontFamily: "'Barlow Condensed', sans-serif" }}>Revezamentos</h2>
+                <h2 style={{ color: t.accent, fontSize: 17, margin: 0, fontFamily: t.fontTitle }}>Revezamentos</h2>
                 <p style={{ color: t.textMuted, fontSize: 13, marginTop: 4 }}>
                   {inscsRevez.length > 0 ? `${inscsRevez.length} equipe(s) inscrita(s)` : "Nenhuma equipe inscrita ainda"}
                   <span style={{ color: t.success, marginLeft: 8, fontSize: 12, fontWeight: 600 }}>· Sem custo adicional</span>
@@ -1656,7 +1656,7 @@ function TelaGestaoInscricoes() {
             <>
               {/* ── Painel interativo de seleção ── */}
               <div style={{ background: t.accentBg, border: `1px solid ${t.accentBorder}`, borderRadius: 10, padding: 20, marginBottom: 20 }}>
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 16, color: t.accent, marginBottom: 14 }}>
+                <div style={{ fontFamily: t.fontTitle, fontWeight: 700, fontSize: 16, color: t.accent, marginBottom: 14 }}>
                   Selecionar atleta e provas
                 </div>
 
@@ -1841,7 +1841,7 @@ function TelaGestaoInscricoes() {
                               let chipStyle = {
                                 padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: 600,
                                 cursor: bloqueada ? "not-allowed" : "pointer",
-                                fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5,
+                                fontFamily: t.fontTitle, letterSpacing: 0.5,
                                 transition: "all 0.15s", border: "1px solid",
                                 opacity: bloqueada ? 0.45 : 1,
                               };
@@ -1939,7 +1939,7 @@ function TelaGestaoInscricoes() {
                                   </span>
                                 ) : r.precoInfo?.preco != null ? (
                                   <div>
-                                    <strong style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 17, color: t.success }}>
+                                    <strong style={{ fontFamily: t.fontTitle, fontSize: 17, color: t.success }}>
                                       {formatarPreco(r.precoInfo?.preco)}
                                     </strong>
                                     <div style={{ fontSize: 10, color: t.textDimmed, marginTop: 1 }}>
@@ -1969,7 +1969,7 @@ function TelaGestaoInscricoes() {
                               SUBTOTAL DO LOTE ({resumoCarrinho.filter(r => r.valorCobrar > 0).length} atleta{resumoCarrinho.filter(r => r.valorCobrar > 0).length !== 1 ? "s" : ""} a cobrar)
                             </td>
                             <td style={{ padding: "10px 16px", borderTop: `1px solid ${t.accentBorder}`, textAlign: "right" }}>
-                              <strong style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, color: t.success }}>
+                              <strong style={{ fontFamily: t.fontTitle, fontSize: 22, color: t.success }}>
                                 {formatarPreco(totalGeral)}
                               </strong>
                             </td>
@@ -2005,7 +2005,7 @@ function TelaGestaoInscricoes() {
           {etapa === "confirmacao" && (
             <div style={{ maxWidth: 720, margin: "0 auto" }}>
               <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 16, padding: 28 }}>
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, fontWeight: 800, color: t.textPrimary, marginBottom: 4 }}>
+                <div style={{ fontFamily: t.fontTitle, fontSize: 26, fontWeight: 800, color: t.textPrimary, marginBottom: 4 }}>
                   Revisao do Lote
                 </div>
                 <div style={{ color: t.textDimmed, fontSize: 13, marginBottom: 24 }}>
@@ -2030,7 +2030,7 @@ function TelaGestaoInscricoes() {
                             </div>
                           ) : r.precoInfo?.preco != null ? (
                             <div>
-                              <strong style={{ color: t.success, fontSize: 22, fontFamily: "'Barlow Condensed', sans-serif" }}>
+                              <strong style={{ color: t.success, fontSize: 22, fontFamily: t.fontTitle }}>
                                 {formatarPreco(r.precoInfo?.preco)}
                               </strong>
                               <div style={{ display: "flex", justifyContent: "flex-end", gap: 4, marginTop: 3, flexWrap: "wrap" }}>
@@ -2072,7 +2072,7 @@ function TelaGestaoInscricoes() {
                   <div style={{ background: t.accentBg, border: `1px solid ${t.accentBorder}`, borderRadius: 10, padding: "16px 20px", marginTop: 16 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                       <span style={{ fontWeight: 700, color: t.textPrimary, fontSize: 15 }}>Total do lote</span>
-                      <strong style={{ color: t.success, fontSize: 26, fontFamily: "'Barlow Condensed', sans-serif" }}>
+                      <strong style={{ color: t.success, fontSize: 26, fontFamily: t.fontTitle }}>
                         {totalGeral > 0 ? formatarPreco(totalGeral) : "—"}
                       </strong>
                     </div>
@@ -2123,7 +2123,7 @@ function TelaGestaoInscricoes() {
             <div style={{ maxWidth: 560, margin: "0 auto", textAlign: "center" }}>
               <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 16, padding: 40 }}>
                 <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{margin:"0 auto 16px"}}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 28, fontWeight: 800, color: t.success, marginBottom: 8 }}>
+                <div style={{ fontFamily: t.fontTitle, fontSize: 28, fontWeight: 800, color: t.success, marginBottom: 8 }}>
                   Lote confirmado!
                 </div>
                 <div style={{ color: t.textMuted, fontSize: 14, marginBottom: 24 }}>
@@ -2142,7 +2142,7 @@ function TelaGestaoInscricoes() {
                     ))}
                     <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0 0", fontSize: 15 }}>
                       <strong style={{ color: t.textPrimary }}>Total</strong>
-                      <strong style={{ color: t.success, fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22 }}>
+                      <strong style={{ color: t.success, fontFamily: t.fontTitle, fontSize: 22 }}>
                         {formatarPreco(totalGeral)}
                       </strong>
                     </div>

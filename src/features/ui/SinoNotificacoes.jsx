@@ -75,7 +75,7 @@ export function SinoNotificacoes({ notificacoes = [], usuarioId, marcarNotifLida
           <span style={{
             position: "absolute", top: 3, right: 3,
             background: t.danger, color: "#fff",
-            fontSize: 10, fontWeight: 800, fontFamily: "'Barlow Condensed', sans-serif",
+            fontSize: 10, fontWeight: 800, fontFamily: t.fontTitle,
             borderRadius: 10, minWidth: 16, height: 16,
             display: "flex", alignItems: "center", justifyContent: "center",
             padding: "0 3px", lineHeight: 1,
@@ -99,7 +99,7 @@ export function SinoNotificacoes({ notificacoes = [], usuarioId, marcarNotifLida
             display: "flex", alignItems: "center", justifyContent: "space-between",
             padding: "12px 16px", borderBottom: `1px solid ${t.border}`,
           }}>
-            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800,
+            <span style={{ fontFamily: t.fontTitle, fontWeight: 800,
               fontSize: 14, color: t.textPrimary, letterSpacing: 1 }}>
               NOTIFICAÇÕES
               {naoLidas.length > 0 && (
@@ -112,7 +112,7 @@ export function SinoNotificacoes({ notificacoes = [], usuarioId, marcarNotifLida
             {naoLidas.length > 0 && (
               <button onClick={marcarTodas}
                 style={{ background: "none", border: "none", color: t.accent,
-                  cursor: "pointer", fontSize: 11, fontFamily: "'Barlow', sans-serif" }}>
+                  cursor: "pointer", fontSize: 11, fontFamily: t.fontBody }}>
                 Marcar todas como lidas
               </button>
             )}

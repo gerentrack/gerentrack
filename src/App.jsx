@@ -198,11 +198,11 @@ function RegulamentoViewer({ eventoAtual, tema: _t }) {
   return (
     <div style={{ display:"flex", flexDirection:"column", height:"calc(100vh - 80px)", padding:"16px 24px 0" }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
-        <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:20, fontWeight:700, color:_t.textPrimary }}>
+        <div style={{ fontFamily: _t.fontTitle, fontSize:20, fontWeight:700, color:_t.textPrimary }}>
           {eventoAtual.regulamentoNome || "Regulamento"}
         </div>
         <a href={url} download={eventoAtual.regulamentoNome || "regulamento.pdf"}
-          style={{ background:`linear-gradient(135deg, ${_t.accent}, ${_t.accentDark})`, color:"#fff", border:"none", padding:"8px 20px", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:700, fontFamily:"'Barlow Condensed', sans-serif", letterSpacing:1, textDecoration:"none" }}>
+          style={{ background:`linear-gradient(135deg, ${_t.accent}, ${_t.accentDark})`, color:"#fff", border:"none", padding:"8px 20px", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:700, fontFamily: _t.fontTitle, letterSpacing:1, textDecoration:"none" }}>
           Download
         </a>
       </div>
@@ -1997,25 +1997,25 @@ function App() {
       {sessaoAvisoContagem !== null && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ background: "#181B25", border: "1px solid #1976D244", borderRadius: 16, padding: "36px 40px", maxWidth: 380, width: "90%", textAlign: "center" }}>
-            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 28, marginBottom: 12, color: "#ffaa44" }}>AVISO</div>
-            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 20, color: "#fff", marginBottom: 8, letterSpacing: 1 }}>
+            <div style={{ fontFamily: temaDark.fontTitle, fontSize: 28, marginBottom: 12, color: "#ffaa44" }}>AVISO</div>
+            <div style={{ fontFamily: temaDark.fontTitle, fontWeight: 800, fontSize: 20, color: "#fff", marginBottom: 8, letterSpacing: 1 }}>
               SESSÃO PRESTES A EXPIRAR
             </div>
             <div style={{ color: "#888", fontSize: 13, marginBottom: 20, lineHeight: 1.6 }}>
               Sua sessão expira em
             </div>
-            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 52, color: sessaoAvisoContagem <= 30 ? "#ff6b6b" : "#ffaa44", lineHeight: 1, marginBottom: 24 }}>
+            <div style={{ fontFamily: temaDark.fontTitle, fontWeight: 900, fontSize: 52, color: sessaoAvisoContagem <= 30 ? "#ff6b6b" : "#ffaa44", lineHeight: 1, marginBottom: 24 }}>
               {Math.floor(sessaoAvisoContagem / 60)}:{String(sessaoAvisoContagem % 60).padStart(2, "0")}
             </div>
             <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
               <button
                 onClick={renovarSessao}
-                style={{ background: "linear-gradient(135deg, #1976D2, #1565C0)", color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 }}>
+                style={{ background: "linear-gradient(135deg, #1976D2, #1565C0)", color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: temaDark.fontTitle, letterSpacing: 1 }}>
                 Continuar conectado
               </button>
               <button
                 onClick={logout}
-                style={{ background: "transparent", color: "#888", border: "1px solid #2a2d3a", padding: "12px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" }}>
+                style={{ background: "transparent", color: "#888", border: "1px solid #2a2d3a", padding: "12px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: temaDark.fontBody }}>
                 Sair agora
               </button>
             </div>
@@ -2027,8 +2027,8 @@ function App() {
       {reloginNecessario && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)", zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ background: "#181B25", border: "1px solid #1976D244", borderRadius: 16, padding: "36px 40px", maxWidth: 380, width: "90%", textAlign: "center" }}>
-            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 28, marginBottom: 12, color: "#ff6b6b" }}>BLOQUEADO</div>
-            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 20, color: "#fff", marginBottom: 8, letterSpacing: 1 }}>
+            <div style={{ fontFamily: temaDark.fontTitle, fontSize: 28, marginBottom: 12, color: "#ff6b6b" }}>BLOQUEADO</div>
+            <div style={{ fontFamily: temaDark.fontTitle, fontWeight: 800, fontSize: 20, color: "#fff", marginBottom: 8, letterSpacing: 1 }}>
               SESSÃO EXPIRADA
             </div>
             <div style={{ color: "#888", fontSize: 13, marginBottom: 20, lineHeight: 1.6 }}>
@@ -2045,7 +2045,7 @@ function App() {
               onChange={e => setReloginSenha(e.target.value)}
               onKeyDown={e => e.key === "Enter" && !reloginLoading && handleRelogin()}
               autoFocus
-              style={{ width: "100%", padding: "12px 14px", borderRadius: 8, border: "1px solid #2a2d3a", background: "#181a20", color: "#fff", fontSize: 14, fontFamily: "'Barlow', sans-serif", marginBottom: 10, boxSizing: "border-box", outline: "none" }}
+              style={{ width: "100%", padding: "12px 14px", borderRadius: 8, border: "1px solid #2a2d3a", background: "#181a20", color: "#fff", fontSize: 14, fontFamily: temaDark.fontBody, marginBottom: 10, boxSizing: "border-box", outline: "none" }}
             />
             {reloginErro && (
               <div style={{ color: "#ff6b6b", fontSize: 12, marginBottom: 10 }}>{reloginErro}</div>
@@ -2055,12 +2055,12 @@ function App() {
                 <button
                   onClick={handleRelogin}
                   disabled={reloginLoading || !reloginSenha}
-                  style={{ background: reloginLoading || !reloginSenha ? "#333" : "linear-gradient(135deg, #1976D2, #1565C0)", color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: reloginLoading || !reloginSenha ? "not-allowed" : "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, opacity: reloginLoading ? 0.6 : 1 }}>
+                  style={{ background: reloginLoading || !reloginSenha ? "#333" : "linear-gradient(135deg, #1976D2, #1565C0)", color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: reloginLoading || !reloginSenha ? "not-allowed" : "pointer", fontSize: 14, fontWeight: 700, fontFamily: temaDark.fontTitle, letterSpacing: 1, opacity: reloginLoading ? 0.6 : 1 }}>
                   {reloginLoading ? "Reconectando..." : "Reconectar"}
                 </button>
                 <button
                   onClick={handleReloginDesistir}
-                  style={{ background: "transparent", color: "#888", border: "1px solid #2a2d3a", padding: "12px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" }}>
+                  style={{ background: "transparent", color: "#888", border: "1px solid #2a2d3a", padding: "12px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: temaDark.fontBody }}>
                   Sair
                 </button>
               </div>
@@ -2080,7 +2080,7 @@ function App() {
                   } finally { setReloginLoading(false); }
                 }}
                 disabled={reloginLoading}
-                style={{ background: "#181a20", border: "1px solid #2a2d3a", borderRadius: 8, padding: "10px 20px", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "'Barlow', sans-serif", color: "#aaa", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, width: "100%" }}>
+                style={{ background: "#181a20", border: "1px solid #2a2d3a", borderRadius: 8, padding: "10px 20px", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: temaDark.fontBody, color: "#aaa", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, width: "100%" }}>
                 <svg width="16" height="16" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
                 Reconectar com Google
               </button>
@@ -2192,7 +2192,7 @@ function App() {
               <>
                 <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
                   {gtIcon && <img src={gtIcon} alt="" style={{ width: 44, height: 44, objectFit: "contain" }} />}
-                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 24, color: "#fff", letterSpacing: 2 }}>{gtNome}</span>
+                  <span style={{ fontFamily: temaDark.fontTitle, fontWeight: 800, fontSize: 24, color: "#fff", letterSpacing: 2 }}>{gtNome}</span>
                 </div>
                 <div style={{ fontSize: 15, color: "#777", lineHeight: 1.7 }}>{gtSlogan}</div>
               </>
@@ -2202,7 +2202,7 @@ function App() {
 
           {/* Coluna 2 — Links */}
           <div>
-            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 16, color: "#aaa", letterSpacing: 2, marginBottom: 16, textTransform: "uppercase" }}>Links</div>
+            <div style={{ fontFamily: temaDark.fontTitle, fontWeight: 700, fontSize: 16, color: "#aaa", letterSpacing: 2, marginBottom: 16, textTransform: "uppercase" }}>Links</div>
             {[
               { label: "Planos", tela: "planos" },
               { label: "FAQ", tela: "faq" },
@@ -2223,7 +2223,7 @@ function App() {
 
           {/* Coluna 3 — Contato + Redes */}
           <div>
-            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 16, color: "#aaa", letterSpacing: 2, marginBottom: 16, textTransform: "uppercase" }}>Contato</div>
+            <div style={{ fontFamily: temaDark.fontTitle, fontWeight: 700, fontSize: 16, color: "#aaa", letterSpacing: 2, marginBottom: 16, textTransform: "uppercase" }}>Contato</div>
             <div style={{ marginBottom: 12 }}>
               <a href="mailto:atendimento@gerentrack.com.br" style={{ color: "#888", fontSize: 15, textDecoration: "none", display: "flex", alignItems: "center", gap: 10 }}
                 onMouseEnter={ev => ev.currentTarget.style.color = "#1976D2"}
@@ -2270,9 +2270,9 @@ function App() {
 // ─── IMPORTAÇÃO EM LOTE DE ATLETAS ────────────────────────────────────────────
 // ─── ESTILOS ───────────────────────────────────────────────────────────────────
 const cssGlobal = `
-  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #0A0B0D; color: #E0E0E0; font-family: 'Barlow', sans-serif; }
+  body { background: #0A0B0D; color: #E0E0E0; font-family: 'Inter', sans-serif; }
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: #111; }
   ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
@@ -2331,64 +2331,64 @@ const styles = {
   headerInner: { maxWidth: 1200, margin: "0 auto", padding: "14px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 },
   logo: { background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 14 },
   logoIcon: { fontSize: 36 },
-  logoTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 24, fontWeight: 900, color: "#1976D2", letterSpacing: 3, lineHeight: 1 },
+  logoTitle: { fontFamily: temaDark.fontTitle, fontSize: 24, fontWeight: 900, color: "#1976D2", letterSpacing: 3, lineHeight: 1 },
   logoSub: { fontSize: 11, color: "#666", letterSpacing: 1.5, marginTop: 3 },
 
   nav: { display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" },
-  btnNav: { background: "transparent", border: "1px solid #2a2d3a", color: "#ccc", padding: "10px 20px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", whiteSpace: "nowrap" },
+  btnNav: { background: "transparent", border: "1px solid #2a2d3a", color: "#ccc", padding: "10px 20px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontFamily: temaDark.fontBody, transition: "all 0.2s", whiteSpace: "nowrap" },
   btnNavActive: { background: temaDark.bgHover, borderColor: "#1976D2", color: "#1976D2" },
-  btnSair: { background: "transparent", border: "1px solid #3a1a1a", color: "#ff6b6b", padding: "10px 20px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow', sans-serif" },
+  btnSair: { background: "transparent", border: "1px solid #3a1a1a", color: "#ff6b6b", padding: "10px 20px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: temaDark.fontBody },
 
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
-  pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 24, letterSpacing: 1 },
+  pageTitle: { fontFamily: temaDark.fontTitle, fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 24, letterSpacing: 1 },
 
   heroSection: { textAlign: "center", padding: "60px 20px 40px", background: "linear-gradient(180deg, #0D1018 0%, transparent 100%)", borderRadius: 16, marginBottom: 48, position: "relative", overflow: "hidden" },
-  heroBadge: { display: "inline-block", background: "#1976D2", color: "#fff", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: 3, padding: "6px 16px", borderRadius: 20, marginBottom: 20 },
-  heroTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 56, fontWeight: 900, color: "#fff", lineHeight: 1.1, marginBottom: 16, letterSpacing: 1 },
+  heroBadge: { display: "inline-block", background: "#1976D2", color: "#fff", fontFamily: temaDark.fontTitle, fontWeight: 800, fontSize: 12, letterSpacing: 3, padding: "6px 16px", borderRadius: 20, marginBottom: 20 },
+  heroTitle: { fontFamily: temaDark.fontTitle, fontSize: 56, fontWeight: 900, color: "#fff", lineHeight: 1.1, marginBottom: 16, letterSpacing: 1 },
   heroMeta: { color: "#888", fontSize: 15, marginBottom: 32 },
   heroStats: { display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap", marginBottom: 36 },
   heroBtns: { display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" },
 
   statCard: { background: "#1C1F2A", border: "1px solid #1E2130", borderRadius: 12, padding: "18px 24px", textAlign: "center", minWidth: 100 },
-  statValue: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 900, color: "#1976D2", lineHeight: 1, marginBottom: 6 },
+  statValue: { fontFamily: temaDark.fontTitle, fontSize: 36, fontWeight: 900, color: "#1976D2", lineHeight: 1, marginBottom: 6 },
   statLabel: { fontSize: 13, color: "#888", letterSpacing: 1 },
 
   statsRow: { display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 32 },
 
-  btnPrimary: { background: "linear-gradient(135deg, #1976D2, #1565C0)", color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, transition: "all 0.2s" },
-  btnSecondary: { background: "transparent", color: "#1976D2", border: "2px solid #1976D2", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
-  btnGhost: { background: "transparent", color: "#888", border: "1px solid #2a2d3a", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
+  btnPrimary: { background: "linear-gradient(135deg, #1976D2, #1565C0)", color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: temaDark.fontTitle, letterSpacing: 1, transition: "all 0.2s" },
+  btnSecondary: { background: "transparent", color: "#1976D2", border: "2px solid #1976D2", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: temaDark.fontTitle, letterSpacing: 1 },
+  btnGhost: { background: "transparent", color: "#888", border: "1px solid #2a2d3a", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: temaDark.fontBody },
 
   grid2: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 40 },
   infoCard: { background: "#181B25", border: "1px solid #1E2130", borderRadius: 12, padding: 24 },
-  infoCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 700, color: "#1976D2", marginBottom: 16, letterSpacing: 1 },
+  infoCardTitle: { fontFamily: temaDark.fontTitle, fontSize: 20, fontWeight: 700, color: "#1976D2", marginBottom: 16, letterSpacing: 1 },
   infoList: { listStyle: "none" },
   infoItem: { padding: "6px 0", borderBottom: `1px solid ${temaDark.border}`, fontSize: 14, color: "#bbb", display: "flex", alignItems: "center", gap: 8 },
   infoItemDot: { color: "#1976D2", fontWeight: 700 },
 
   catSection: { marginTop: 40 },
-  sectionTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, fontWeight: 800, color: "#fff", marginBottom: 20, letterSpacing: 1 },
+  sectionTitle: { fontFamily: temaDark.fontTitle, fontSize: 26, fontWeight: 800, color: "#fff", marginBottom: 20, letterSpacing: 1 },
   catGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12 },
   catCard: { background: "#181B25", border: "1px solid #1E2130", borderRadius: 10, padding: "14px 18px" },
-  catName: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: "#1976D2" },
+  catName: { fontFamily: temaDark.fontTitle, fontSize: 20, fontWeight: 800, color: "#1976D2" },
   catRange: { fontSize: 12, color: "#666", marginTop: 4 },
 
   formPage: { maxWidth: 640, margin: "60px auto", padding: "0 24px 80px" },
   formCard: { background: "#181B25", border: "1px solid #1E2130", borderRadius: 16, padding: 32, marginBottom: 20 },
   formIcon: { fontSize: 48, textAlign: "center", marginBottom: 16 },
-  formTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 800, color: "#fff", textAlign: "center", marginBottom: 8 },
+  formTitle: { fontFamily: temaDark.fontTitle, fontSize: 32, fontWeight: 800, color: "#fff", textAlign: "center", marginBottom: 8 },
   formSub: { color: "#666", textAlign: "center", fontSize: 14, marginBottom: 24 },
   formLink: { textAlign: "center", marginTop: 16, color: "#666", fontSize: 13 },
   formHint: { textAlign: "center", marginTop: 12, color: "#444" },
   grid2form: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 },
 
   label: { display: "block", fontSize: 12, fontWeight: 600, color: "#888", letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" },
-  input: { width: "100%", background: "#141720", borderWidth: 1, borderStyle: "solid", borderColor: "#252837", borderRadius: 8, padding: "10px 14px", color: "#E0E0E0", fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
+  input: { width: "100%", background: "#141720", borderWidth: 1, borderStyle: "solid", borderColor: "#252837", borderRadius: 8, padding: "10px 14px", color: "#E0E0E0", fontSize: 14, fontFamily: temaDark.fontBody, outline: "none", marginBottom: 4 },
   inputError: { borderColor: "#ff4444" },
   fieldError: { color: "#ff6b6b", fontSize: 12, marginTop: 2 },
-  select: { width: "100%", background: "#141720", borderWidth: 1, borderStyle: "solid", borderColor: "#252837", borderRadius: 8, padding: "10px 14px", color: "#E0E0E0", fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
+  select: { width: "100%", background: "#141720", borderWidth: 1, borderStyle: "solid", borderColor: "#252837", borderRadius: 8, padding: "10px 14px", color: "#E0E0E0", fontSize: 14, fontFamily: temaDark.fontBody, outline: "none", marginBottom: 4 },
   erro: { background: "#2a1010", border: "1px solid #ff4444", color: "#ff6b6b", padding: "10px 14px", borderRadius: 8, marginBottom: 16, fontSize: 14 },
-  linkBtn: { background: "none", border: "none", color: "#1976D2", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", padding: 0 },
+  linkBtn: { background: "none", border: "none", color: "#1976D2", cursor: "pointer", fontSize: 13, fontFamily: temaDark.fontBody, padding: 0 },
 
   radioGroup: { display: "flex", gap: 8, marginBottom: 16 },
   radioLabel: { flex: 1, background: "#141720", border: "1px solid #252837", borderRadius: 8, padding: "10px", textAlign: "center", cursor: "pointer", fontSize: 14, color: "#888", transition: "all 0.2s" },
@@ -2411,20 +2411,20 @@ const styles = {
   trOuro: { background: "#1a170a" },
   trPrata: { background: temaDark.trPrata },
   trBronze: { background: "#14100a" },
-  marca: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: "#1976D2" },
+  marca: { fontFamily: temaDark.fontTitle, fontSize: 20, fontWeight: 800, color: "#1976D2" },
 
   emptyState: { textAlign: "center", padding: "60px 20px", color: "#444", display: "flex", flexDirection: "column", alignItems: "center", gap: 12, fontSize: 15 },
 
   modoSwitch: { display: "flex", gap: 0, background: "#0D0E12", border: "1px solid #1E2130", borderRadius: 10, overflow: "hidden", marginBottom: 24, width: "fit-content" },
-  modoBtn: { background: "transparent", border: "none", color: "#666", padding: "12px 24px", cursor: "pointer", fontSize: 14, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s" },
+  modoBtn: { background: "transparent", border: "none", color: "#666", padding: "12px 24px", cursor: "pointer", fontSize: 14, fontFamily: temaDark.fontBody, transition: "all 0.2s" },
   modoBtnActive: { background: "#141720", color: "#1976D2" },
 
   filtros: { display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 },
 
   provaSection: { marginBottom: 28 },
-  provaSecTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 700, color: "#aaa", marginBottom: 12, letterSpacing: 1 },
+  provaSecTitle: { fontFamily: temaDark.fontTitle, fontSize: 20, fontWeight: 700, color: "#aaa", marginBottom: 12, letterSpacing: 1 },
   provaGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 },
-  provaBtn: { background: "#181B25", border: "1px solid #1E2130", color: "#888", padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", lineHeight: 1.4 },
+  provaBtn: { background: "#181B25", border: "1px solid #1E2130", color: "#888", padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: temaDark.fontBody, transition: "all 0.2s", lineHeight: 1.4 },
   provaBtnSel: { background: temaDark.bgHover, borderColor: "#1976D2", color: "#1976D2" },
   provaBtnInscrito: { opacity: 0.5, cursor: "not-allowed", borderColor: "#2a4a2a", color: "#4a8a4a" },
 
@@ -2433,18 +2433,18 @@ const styles = {
 
   sumuCard: { background: "#181B25", border: "1px solid #1E2130", borderRadius: 12, marginBottom: 20, overflow: "hidden" },
   sumuHeader: { padding: "16px 20px", background: "#0D0E12", borderBottom: "1px solid #1E2130", display: "flex", justifyContent: "space-between", alignItems: "center" },
-  sumuProva: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: "#fff", marginBottom: 6 },
+  sumuProva: { fontFamily: temaDark.fontTitle, fontSize: 22, fontWeight: 800, color: "#fff", marginBottom: 6 },
   sumuMeta: { display: "flex", gap: 8, alignItems: "center" },
 
   digitarSection: { background: "#181B25", border: "1px solid #1E2130", borderRadius: 12, overflow: "hidden" },
   digitarHeader: { padding: "16px 20px", background: "#0D0E12", borderBottom: "1px solid #1E2130", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 },
   digitarDica: { color: "#666", fontSize: 12 },
-  inputMarca: { background: "#141720", border: "1px solid #252837", borderRadius: 6, padding: "8px 12px", color: "#1976D2", fontSize: 16, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, width: 120, outline: "none" },
+  inputMarca: { background: "#141720", border: "1px solid #252837", borderRadius: 6, padding: "8px 12px", color: "#1976D2", fontSize: 16, fontFamily: temaDark.fontTitle, fontWeight: 700, width: 120, outline: "none" },
   savedBadge: { background: "#0a2a0a", border: "1px solid #2a6a2a", color: "#4aaa4a", padding: "8px 16px", borderRadius: 8, fontSize: 13 },
 
   adminGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 32 },
   adminCard: { background: "#181B25", border: "1px solid #1E2130", borderRadius: 12, padding: 24 },
-  adminCardTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: "#1976D2", marginBottom: 16 },
+  adminCardTitle: { fontFamily: temaDark.fontTitle, fontSize: 22, fontWeight: 800, color: "#1976D2", marginBottom: 16 },
 
   catBanner: { background: "#141720", border: "1px solid #252837", borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 14, color: "#aaa" },
 
@@ -2496,7 +2496,7 @@ const styles = {
   filtroPill: {
     background: "#141720", border: "1px solid #252837", color: "#666",
     borderRadius: 20, padding: "5px 14px", fontSize: 12, fontWeight: 600,
-    cursor: "pointer", fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5,
+    cursor: "pointer", fontFamily: temaDark.fontTitle, letterSpacing: 0.5,
     transition: "all 0.15s",
   },
   filtroPillAtivo: {
@@ -2504,7 +2504,7 @@ const styles = {
   },
   filtroClearBtn: {
     background: "none", border: "none", color: "#1976D288", cursor: "pointer",
-    fontSize: 11, fontFamily: "'Barlow', sans-serif", padding: "0 4px", textDecoration: "underline",
+    fontSize: 11, fontFamily: temaDark.fontBody, padding: "0 4px", textDecoration: "underline",
   },
 
   statusBar: {
@@ -2527,7 +2527,7 @@ const styles = {
     padding: "20px 24px", marginBottom: 28,
   },
   statusControlsTitle: {
-    fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 700,
+    fontFamily: temaDark.fontTitle, fontSize: 16, fontWeight: 700,
     color: "#1976D2", letterSpacing: 1, marginBottom: 14,
   },
   statusControlsGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 },
@@ -2544,13 +2544,13 @@ const styles = {
 
   eventoBar: { background: "#0D0E12", borderTop: `1px solid ${temaDark.border}`, padding: "6px 24px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" },
   eventoBarLabel: { fontSize: 11, color: "#555", letterSpacing: 1, textTransform: "uppercase" },
-  eventoBarNome: { fontSize: 13, fontWeight: 700, color: "#1976D2", fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
+  eventoBarNome: { fontSize: 13, fontWeight: 700, color: "#1976D2", fontFamily: temaDark.fontTitle, letterSpacing: 1 },
   eventoBarMeta: { fontSize: 12, color: "#555", marginLeft: "auto" },
 
   eventosGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 20, marginBottom: 48 },
   eventoCard: { background: "#181B25", border: "1px solid #1E2130", borderRadius: 14, padding: 24, display: "flex", flexDirection: "column", gap: 10 },
   eventoCardTop: { display: "flex", justifyContent: "space-between", alignItems: "center" },
-  eventoCardNome: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: "#fff", lineHeight: 1.2 },
+  eventoCardNome: { fontFamily: temaDark.fontTitle, fontSize: 22, fontWeight: 800, color: "#fff", lineHeight: 1.2 },
   eventoCardMeta: { fontSize: 13, color: "#666" },
   eventoCardStats: { display: "flex", gap: 16, fontSize: 13, color: "#888", flexWrap: "wrap", borderTop: `1px solid ${temaDark.border}`, paddingTop: 10, marginTop: 4 },
   eventoStatusBadge: (status) => ({
@@ -2561,16 +2561,16 @@ const styles = {
   }),
 
   eventoAcoesGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16, marginBottom: 40 },
-  eventoAcaoBtn: { background: "#181B25", border: "1px solid #1E2130", borderRadius: 12, padding: "20px 16px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, textAlign: "center", color: "#fff", fontFamily: "'Barlow', sans-serif", fontSize: 15, fontWeight: 700, transition: "border-color 0.2s" },
+  eventoAcaoBtn: { background: "#181B25", border: "1px solid #1E2130", borderRadius: 12, padding: "20px 16px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, textAlign: "center", color: "#fff", fontFamily: temaDark.fontBody, fontSize: 15, fontWeight: 700, transition: "border-color 0.2s" },
 
   grupoProvasBox: { background: "#181B25", border: "1px solid #1E2130", borderRadius: 10, marginBottom: 16, overflow: "hidden" },
   grupoProvasHeader: { background: "#0D0E12", borderBottom: "1px solid #1E2130", padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" },
-  provaCheckBtn: { background: "#181B25", border: "1px solid #1E2130", color: "#888", padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", lineHeight: 1.4, userSelect: "none" },
+  provaCheckBtn: { background: "#181B25", border: "1px solid #1E2130", color: "#888", padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: temaDark.fontBody, lineHeight: 1.4, userSelect: "none" },
   provaCheckBtnSel: { background: temaDark.bgHover, borderColor: "#1976D2", color: "#1976D2" },
   provaChip: { background: "#141720", border: "1px solid #252837", borderRadius: 6, padding: "8px 12px", fontSize: 13, color: "#bbb", lineHeight: 1.4 },
 
   stepBar: { display: "flex", alignItems: "center", gap: 0, marginBottom: 32, maxWidth: 400 },
-  stepItem: (ativo) => ({ padding: "10px 24px", borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, background: ativo ? temaDark.bgHover : "transparent", color: ativo ? "#1976D2" : "#444", border: `1px solid ${ativo ? "#1976D244" : "#1E2130"}` }),
+  stepItem: (ativo) => ({ padding: "10px 24px", borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: temaDark.fontTitle, letterSpacing: 1, background: ativo ? temaDark.bgHover : "transparent", color: ativo ? "#1976D2" : "#444", border: `1px solid ${ativo ? "#1976D244" : "#1E2130"}` }),
   stepDivider: { flex: 1, height: 1, background: "#1E2130", margin: "0 8px" },
 
   btnIconSm: { background: "#141720", border: "1px solid #252837", color: "#888", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },

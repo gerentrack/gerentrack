@@ -114,18 +114,18 @@ export function gerarHtmlRelatorioParticipacao(evento, atletasFiltrados, inscric
 
   // CSS
   const CSS = `
-    @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
     *{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:'Barlow',sans-serif;background:#ebebeb;color:#111;font-size:11px;}
+    body{font-family:'Inter',sans-serif;background:#ebebeb;color:#111;font-size:11px;}
     .barra{position:fixed;top:0;left:0;right:0;z-index:999;background:#0D0E12;
       border-bottom:2px solid #1976D2;padding:12px 24px;
       display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
-    .barra-titulo{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;color:#1976D2;letter-spacing:1px;}
+    .barra-titulo{font-family:'Montserrat',sans-serif;font-size:18px;font-weight:800;color:#1976D2;letter-spacing:1px;}
     .barra-sub{font-size:11px;color:#666;margin-top:2px;}
     .barra-acoes{display:flex;gap:10px;align-items:center;}
     .btn-imp{background:linear-gradient(135deg,#1976D2,#1565C0);color:#fff;border:none;
       padding:10px 28px;border-radius:8px;cursor:pointer;
-      font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;letter-spacing:1px;}
+      font-family:'Montserrat',sans-serif;font-size:15px;font-weight:800;letter-spacing:1px;}
     .btn-fch{background:transparent;color:#888;border:1px solid #333;
       padding:10px 20px;border-radius:8px;cursor:pointer;font-size:13px;}
     .conteudo{padding-top:74px;}
@@ -137,20 +137,20 @@ export function gerarHtmlRelatorioParticipacao(evento, atletasFiltrados, inscric
     .cab-left{display:flex;align-items:center;min-width:32mm;}
     .cab-left img{max-height:18mm;max-width:32mm;object-fit:contain;}
     .cab-c{flex:1;text-align:center;}
-    .cab-ev{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;
+    .cab-ev{font-family:'Montserrat',sans-serif;font-size:14px;font-weight:800;
       color:#111;text-transform:uppercase;letter-spacing:.5px;line-height:1.2;}
     .cab-dt{font-size:10px;color:#555;margin-top:3px;}
     .cab-right{display:flex;align-items:center;min-width:32mm;justify-content:flex-end;}
     .cab-right img{max-height:18mm;max-width:32mm;object-fit:contain;}
-    .titulo-rel{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;
+    .titulo-rel{font-family:'Montserrat',sans-serif;font-size:16px;font-weight:900;
       text-align:center;text-transform:uppercase;letter-spacing:2px;margin:8px 0 10px;
       padding:5px 0;border-top:2px solid #111;border-bottom:2px solid #111;}
     .equipe-header{background:#111;color:#fff;padding:6px 12px;border-radius:3px;margin-bottom:8px;
-      font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;letter-spacing:1px;text-transform:uppercase;}
+      font-family:'Montserrat',sans-serif;font-size:14px;font-weight:800;letter-spacing:1px;text-transform:uppercase;}
     .cat-header{background:#e8e8e8;padding:4px 10px;margin-bottom:4px;border-left:4px solid #1976D2;
-      font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:#333;letter-spacing:.5px;}
+      font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;color:#333;letter-spacing:.5px;}
     table{width:100%;border-collapse:collapse;margin-bottom:10px;}
-    th{padding:3px 6px;font-size:8px;font-weight:700;font-family:'Barlow Condensed',sans-serif;
+    th{padding:3px 6px;font-size:8px;font-weight:700;font-family:'Montserrat',sans-serif;
       letter-spacing:.5px;text-align:center;border:1px solid #ccc;text-transform:uppercase;background:#f0f0f0;color:#333;}
     td{padding:3px 6px;font-size:10px;border:1px solid #ddd;vertical-align:top;}
     table{table-layout:fixed;}
@@ -163,7 +163,7 @@ export function gerarHtmlRelatorioParticipacao(evento, atletasFiltrados, inscric
     .prova-badge{display:inline-block;margin-right:6px;margin-bottom:2px;white-space:nowrap;
       background:#f5f5f5;border:1px solid #ddd;border-radius:3px;padding:1px 6px;}
     .prova-nome{color:#333;font-size:8px;}
-    .prova-marca{font-weight:800;color:#111;font-family:'Barlow Condensed',sans-serif;font-size:10px;margin-left:3px;}
+    .prova-marca{font-weight:800;color:#111;font-family:'Montserrat',sans-serif;font-size:10px;margin-left:3px;}
     .prova-pos{color:#fff;background:#1976D2;border-radius:2px;padding:0 4px;font-weight:700;font-size:7px;margin-left:3px;}
     .par{background:#fff;} .imp{background:#fafafa;}
     .rod-wrap{margin-top:auto;padding-bottom:2mm;}

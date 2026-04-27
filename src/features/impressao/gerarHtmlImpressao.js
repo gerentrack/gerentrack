@@ -92,18 +92,18 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
   };
 
   const CSS = `
-    @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
     *{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:'Barlow',sans-serif;background:#ebebeb;color:#111;font-size:12px;}
+    body{font-family:'Inter',sans-serif;background:#ebebeb;color:#111;font-size:12px;}
     .barra{position:fixed;top:0;left:0;right:0;z-index:999;background:#0D0E12;
       border-bottom:2px solid #1976D2;padding:12px 24px;
       display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
-    .barra-titulo{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;color:#1976D2;letter-spacing:1px;}
+    .barra-titulo{font-family:'Montserrat',sans-serif;font-size:18px;font-weight:800;color:#1976D2;letter-spacing:1px;}
     .barra-sub{font-size:11px;color:#666;margin-top:2px;}
     .barra-acoes{display:flex;gap:10px;align-items:center;}
     .btn-imp{background:linear-gradient(135deg,#1976D2,#1565C0);color:#fff;border:none;
       padding:10px 28px;border-radius:8px;cursor:pointer;
-      font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;letter-spacing:1px;}
+      font-family:'Montserrat',sans-serif;font-size:15px;font-weight:800;letter-spacing:1px;}
     .btn-imp:hover{filter:brightness(1.1);}
     .btn-fch{background:transparent;color:#888;border:1px solid #333;
       padding:10px 20px;border-radius:8px;cursor:pointer;font-size:13px;}
@@ -117,29 +117,29 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
     .cab{display:flex;align-items:flex-start;justify-content:space-between;
       padding-bottom:4px;margin-bottom:4px;border-bottom:2px solid #111;gap:6px;
       font-size:initial;}
-    .cab-logo{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;
+    .cab-logo{font-family:'Montserrat',sans-serif;font-size:18px;font-weight:900;
       color:#111;letter-spacing:2px;white-space:nowrap;display:flex;align-items:center;gap:6px;}
     .cab-logo img{max-height:9mm;max-width:20mm;object-fit:contain;}
     .cab-left{display:flex;align-items:center;min-width:20mm;}
     .cab-left img{max-height:9mm;max-width:20mm;object-fit:contain;}
     .cab-c{flex:1;text-align:center;}
-    .cab-ev{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;
+    .cab-ev{font-family:'Montserrat',sans-serif;font-size:15px;font-weight:800;
       color:#111;text-transform:uppercase;letter-spacing:.5px;line-height:1.2;}
     .cab-dt{font-size:10px;color:#555;margin-top:3px;}
-    .cab-n{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
+    .cab-n{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;
       color:#888;text-align:right;white-space:nowrap;}
     .cab-nbig{font-size:14px;font-weight:900;color:#bbb;display:block;line-height:1.1;}
     .faixa{background:#eee;padding:5px 13px;border-radius:3px 3px 0 0;border:1px solid #999;border-bottom:2px solid #333;
       display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;}
-    .faixa-nome{font-family:'Barlow Condensed',sans-serif;font-size:22px;
+    .faixa-nome{font-family:'Montserrat',sans-serif;font-size:22px;
       font-weight:900;letter-spacing:1px;color:#000;}
     .faixa-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
     .b-cat{background:rgba(0,0,0,.08);color:#000;border:1px solid rgba(0,0,0,.3);
-      border-radius:3px;padding:2px 10px;font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;}
-    .b-sx{border-radius:3px;padding:2px 10px;font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;}
+      border-radius:3px;padding:2px 10px;font-size:13px;font-weight:700;font-family:'Montserrat',sans-serif;}
+    .b-sx{border-radius:3px;padding:2px 10px;font-size:13px;font-weight:700;font-family:'Montserrat',sans-serif;}
     .b-info{background:rgba(0,0,0,.05);color:#333;border:1px solid rgba(0,0,0,.15);
       border-radius:3px;padding:1px 8px;font-size:10px;}
-    .blk{padding:3px 13px;font-family:'Barlow Condensed',sans-serif;font-size:11px;
+    .blk{padding:3px 13px;font-family:'Montserrat',sans-serif;font-size:11px;
       font-weight:800;letter-spacing:1px;text-transform:uppercase;
       display:flex;justify-content:space-between;align-items:center;}
     .blk-semi{background:#ddd;color:#000;border:1px solid #999;}
@@ -151,7 +151,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
     .gap{height:5px;}
     table{width:100%;border-collapse:collapse;border:1px solid #ccc;}
     thead tr{background:#eee;color:#000;}
-    th{padding:3px 3px;font-size:9px;font-weight:700;font-family:'Barlow Condensed',sans-serif;
+    th{padding:3px 3px;font-size:9px;font-weight:700;font-family:'Montserrat',sans-serif;
       letter-spacing:.6px;text-align:center;border:1px solid #999;text-transform:uppercase;}
     .thal{text-align:left!important;padding-left:5px!important;}
     td{padding:2px 3px;font-size:10px;border:1px solid #ddd;text-align:center;vertical-align:middle;line-height:1.15;}

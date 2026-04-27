@@ -8,7 +8,7 @@ const ITENS_POR_PAGINA = 8;
 function getStyles(t) {
   return {
     page: { maxWidth: 800, margin: "0 auto", padding: "40px 24px 80px" },
-    title: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 34, fontWeight: 800, color: t.textPrimary, marginBottom: 4, letterSpacing: 1, textAlign: "center" },
+    title: { fontFamily: t.fontTitle, fontSize: 34, fontWeight: 800, color: t.textPrimary, marginBottom: 4, letterSpacing: 1, textAlign: "center" },
     subtitle: { fontSize: 14, color: t.textMuted, marginBottom: 24, textAlign: "center" },
     searchWrap: { marginBottom: 24, position: "relative" },
     searchInput: {
@@ -22,7 +22,7 @@ function getStyles(t) {
     question: {
       width: "100%", textAlign: "left", cursor: "pointer", border: "none",
       background: t.bgCard, padding: "18px 20px", borderRadius: 10,
-      fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 700,
+      fontFamily: t.fontTitle, fontSize: 16, fontWeight: 700,
       color: t.textPrimary, display: "flex", justifyContent: "space-between", alignItems: "center",
       letterSpacing: 0.5, transition: "background 0.15s",
     },

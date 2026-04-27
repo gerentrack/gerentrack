@@ -18,7 +18,7 @@ function getStyles(t) {
     logoWrap: { width: 100, height: 100, borderRadius: 16, overflow: "hidden", border: `4px solid ${t.bgCard}`, background: t.bgCard, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 20px rgba(0,0,0,0.3)" },
     logoImg: { width: "100%", height: "100%", objectFit: "contain" },
     logoFallback: { fontSize: 48, color: t.textDisabled },
-    orgName: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 900, color: t.textPrimary, textAlign: "center", marginTop: 14, letterSpacing: 1, lineHeight: 1.1 },
+    orgName: { fontFamily: t.fontTitle, fontSize: 36, fontWeight: 900, color: t.textPrimary, textAlign: "center", marginTop: 14, letterSpacing: 1, lineHeight: 1.1 },
     orgEntidade: { fontSize: 15, color: t.textMuted, textAlign: "center", marginTop: 4 },
     orgLocal: { fontSize: 13, color: t.textDimmed, textAlign: "center", marginTop: 4 },
     socialRow: { display: "flex", gap: 10, justifyContent: "center", marginTop: 12, flexWrap: "wrap" },
@@ -26,13 +26,13 @@ function getStyles(t) {
     descBox: { maxWidth: 700, margin: "24px auto 0", padding: "0 24px", textAlign: "center", color: t.textTertiary, fontSize: 14, lineHeight: 1.7 },
     statsRow: { display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap", margin: "28px 24px 0" },
     statCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "16px 24px", textAlign: "center", minWidth: 100 },
-    statValue: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 900, lineHeight: 1 },
+    statValue: { fontFamily: t.fontTitle, fontSize: 32, fontWeight: 900, lineHeight: 1 },
     statLabel: { fontSize: 12, color: t.textMuted, letterSpacing: 1, textTransform: "uppercase", marginTop: 4 },
-    sectionTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 24, fontWeight: 800, color: t.textPrimary, marginBottom: 16, letterSpacing: 1, padding: "0 24px" },
+    sectionTitle: { fontFamily: t.fontTitle, fontSize: 24, fontWeight: 800, color: t.textPrimary, marginBottom: 16, letterSpacing: 1, padding: "0 24px" },
     eventosGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(300px, 100%), 1fr))", gap: 16, padding: "0 24px" },
     eventoCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 14, overflow: "hidden", cursor: "pointer", transition: "border-color 0.2s" },
     eventoCardBody: { padding: "14px 18px" },
-    eventoCardNome: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: t.textPrimary, lineHeight: 1.2, minHeight: "2.4em", maxHeight: "2.4em", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" },
+    eventoCardNome: { fontFamily: t.fontTitle, fontSize: 20, fontWeight: 800, color: t.textPrimary, lineHeight: 1.2, minHeight: "2.4em", maxHeight: "2.4em", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" },
     eventoCardMeta: { fontSize: 12, color: t.textDimmed, marginTop: 4 },
     eventoCardStats: { display: "flex", gap: 12, fontSize: 12, color: t.textMuted, marginTop: 8, borderTop: `1px solid ${t.border}`, paddingTop: 8 },
     eventoStatusBadge: (status) => ({
@@ -42,7 +42,7 @@ function getStyles(t) {
       border: `1px solid ${status === "ao_vivo" ? `${t.danger}44` : status === "futuro" ? `${t.success}44` : t.border}`,
     }),
     emptyState: { textAlign: "center", padding: "60px 20px", color: t.textDisabled },
-    backBtn: { background: "transparent", color: t.textMuted, border: `1px solid ${t.borderLight}`, padding: "8px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", margin: "20px 24px 0" },
+    backBtn: { background: "transparent", color: t.textMuted, border: `1px solid ${t.borderLight}`, padding: "8px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: t.fontBody, margin: "20px 24px 0" },
     finalizadoRow: { display: "flex", flexDirection: "column", gap: 6, padding: "0 24px" },
     finalizadoItem: { display: "flex", flexDirection: "column", gap: 2, padding: "10px 14px", background: t.bgCard, borderWidth: 1, borderStyle: "solid", borderColor: t.border, borderRadius: 10, cursor: "pointer", transition: "border-color 0.15s" },
   };
@@ -133,7 +133,7 @@ export default function TelaPerfilOrganizador() {
             <span>{nAtletas} atleta{nAtletas !== 1 ? "s" : ""}</span>
             <span>{nInscs} {nInscs !== 1 ? "inscrições" : "inscrição"}</span>
           </div>
-          <button style={{ background: `linear-gradient(135deg, ${corPri}, ${corSec})`, color: "#fff", border: "none", padding: "10px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, width: "100%", marginTop: 8, transition: "opacity 0.2s" }}
+          <button style={{ background: `linear-gradient(135deg, ${corPri}, ${corSec})`, color: "#fff", border: "none", padding: "10px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: t.fontTitle, letterSpacing: 1, width: "100%", marginTop: 8, transition: "opacity 0.2s" }}
             onClick={() => selecionarEvento(ev.id)}>
             Acessar Competição →
           </button>
@@ -156,7 +156,7 @@ export default function TelaPerfilOrganizador() {
           <img src={org.banner} alt="" style={s.bannerImg} />
         ) : (
           <div style={{ ...s.bannerFallback, background: `linear-gradient(135deg, ${corPri}, ${corSec})` }}>
-            <span style={{ fontSize: 18, opacity: 0.15, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, letterSpacing: 4, color: "#fff" }}>GERENTRACK</span>
+            <span style={{ fontSize: 18, opacity: 0.15, fontFamily: t.fontTitle, fontWeight: 800, letterSpacing: 4, color: "#fff" }}>GERENTRACK</span>
           </div>
         )}
         <div style={s.bannerOverlay} />
@@ -168,7 +168,7 @@ export default function TelaPerfilOrganizador() {
           {org.logo ? (
             <img src={org.logo} alt={org.entidade} style={s.logoImg} />
           ) : (
-            <span style={{ fontSize: 14, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, color: t.textDisabled }}>ORG</span>
+            <span style={{ fontSize: 14, fontFamily: t.fontTitle, fontWeight: 700, color: t.textDisabled }}>ORG</span>
           )}
         </div>
         <h1 style={{ ...s.orgName, color: corPri }}>{org.entidade || org.nome}</h1>

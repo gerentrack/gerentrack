@@ -13,15 +13,15 @@ import { useApp } from "../../contexts/AppContext";
 function getS(t) {
   return {
     page: { maxWidth: 860, margin: "0 auto", padding: "40px 24px 80px" },
-    pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: t.textPrimary, marginBottom: 6, letterSpacing: 1 },
+    pageTitle: { fontFamily: t.fontTitle, fontSize: 36, fontWeight: 800, color: t.textPrimary, marginBottom: 6, letterSpacing: 1 },
     painelHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, marginBottom: 32 },
     card: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "24px 28px", marginBottom: 20 },
-    sectionTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 800, color: t.textPrimary, letterSpacing: 1, marginBottom: 16 },
+    sectionTitle: { fontFamily: t.fontTitle, fontSize: 18, fontWeight: 800, color: t.textPrimary, letterSpacing: 1, marginBottom: 16 },
     label: { display: "block", fontSize: 11, fontWeight: 700, color: t.textDimmed, letterSpacing: 1, marginBottom: 5, textTransform: "uppercase" },
-    input: { width: "100%", background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 7, padding: "9px 12px", color: t.textSecondary, fontSize: 13, fontFamily: "'Barlow', sans-serif", outline: "none", marginBottom: 4 },
-    btnPrimary: { background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", padding: "10px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
-    btnSecondary: { background: "transparent", color: t.accent, border: `2px solid ${t.accent}`, padding: "9px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif" },
-    btnGhost: { background: "transparent", color: t.textMuted, border: `1px solid ${t.borderLight}`, padding: "9px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
+    input: { width: "100%", background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 7, padding: "9px 12px", color: t.textSecondary, fontSize: 13, fontFamily: t.fontBody, outline: "none", marginBottom: 4 },
+    btnPrimary: { background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", padding: "10px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700, fontFamily: t.fontTitle, letterSpacing: 1 },
+    btnSecondary: { background: "transparent", color: t.accent, border: `2px solid ${t.accent}`, padding: "9px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700, fontFamily: t.fontTitle },
+    btnGhost: { background: "transparent", color: t.textMuted, border: `1px solid ${t.borderLight}`, padding: "9px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: t.fontBody },
     tabBar: { display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" },
     row: { display: "flex", justifyContent: "space-between", padding: "9px 0", borderBottom: `1px solid ${t.border}` },
     okBox: { background: `${t.success}08`, border: `1px solid ${t.success}66`, borderRadius: 8, padding: "10px 16px", marginBottom: 12, color: t.success, fontSize: 13 },
@@ -53,7 +53,7 @@ function ExclusaoConfirmada({ titulo, descricao, corAccent, btnLabel, onConfirma
     <button onClick={() => setFase(1)}
       style={{ background: "transparent", border: `1px solid ${corAccent}55`,
         color: corAccent, padding: "9px 18px", borderRadius: 7, cursor: "pointer",
-        fontSize: 13, fontFamily: "'Barlow', sans-serif" }}>
+        fontSize: 13, fontFamily: t.fontBody }}>
       {btnLabel}
     </button>
   );
@@ -70,7 +70,7 @@ function ExclusaoConfirmada({ titulo, descricao, corAccent, btnLabel, onConfirma
         <button onClick={() => setFase(2)}
           style={{ background: corAccent + "22", border: `1px solid ${corAccent}55`,
             color: corAccent, padding: "8px 16px", borderRadius: 6, cursor: "pointer",
-            fontSize: 13, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif" }}>
+            fontSize: 13, fontWeight: 700, fontFamily: t.fontTitle }}>
           Continuar →
         </button>
         <button onClick={() => { setFase(0); setPalavra(""); }}
@@ -101,7 +101,7 @@ function ExclusaoConfirmada({ titulo, descricao, corAccent, btnLabel, onConfirma
           style={{ background: errada ? t.bgHover : corAccent, color: errada ? t.textDisabled : "#fff",
             border: "none", padding: "9px 18px", borderRadius: 7,
             cursor: errada ? "not-allowed" : "pointer", fontSize: 13, fontWeight: 700,
-            fontFamily: "'Barlow Condensed', sans-serif", transition: "all 0.2s" }}>
+            fontFamily: t.fontTitle, transition: "all 0.2s" }}>
           Confirmar
         </button>
         <button onClick={() => { setFase(0); setPalavra(""); }} style={S.btnGhost}>Cancelar</button>
@@ -501,7 +501,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
 
   const tabStyle = (tab) => ({
     padding: "8px 18px", border: "none", cursor: "pointer", fontSize: 13,
-    fontFamily: "'Barlow', sans-serif", fontWeight: aba === tab ? 700 : 400,
+    fontFamily: t.fontBody, fontWeight: aba === tab ? 700 : 400,
     background: aba === tab ? t.accent : t.bgHover,
     color: aba === tab ? "#fff" : t.textMuted, borderRadius: 6,
   });
@@ -637,7 +637,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                 </div>
                 <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
                   <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.accentBorder}`, borderRadius: 7, padding: "10px 16px", textAlign: "center" }}>
-                    <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 28, fontWeight: 900, color: t.accent, lineHeight: 1 }}>{nInscricoes}</div>
+                    <div style={{ fontFamily: t.fontTitle, fontSize: 28, fontWeight: 900, color: t.accent, lineHeight: 1 }}>{nInscricoes}</div>
                     <div style={{ fontSize: 11, color: t.textDimmed, marginTop: 3 }}>Inscrição(ões)</div>
                   </div>
                   <div style={{ background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 7, padding: "10px 16px", fontSize: 12, color: t.textMuted, display: "flex", flexDirection: "column", gap: 3, justifyContent: "center" }}>
@@ -680,7 +680,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                       Vincule sua conta Google para fazer login mais rapidamente.
                       {meuRegistro?.email && <><br/>Pode ser qualquer conta Google — não precisa ser o mesmo e-mail do cadastro.</>}
                     </p>
-                    <button style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, padding:"10px 20px", cursor:"pointer", fontSize:13, fontWeight:600, fontFamily:"'Barlow', sans-serif", color:t.textSecondary, display:"flex", alignItems:"center", gap:10 }}
+                    <button style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, padding:"10px 20px", cursor:"pointer", fontSize:13, fontWeight:600, fontFamily: t.fontBody, color:t.textSecondary, display:"flex", alignItems:"center", gap:10 }}
                       onClick={async () => {
                         try {
                           const { linkWithPopup, googleProvider } = await import("../../firebase");
@@ -1332,7 +1332,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
               <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                 {siteBranding?.icon && <img src={siteBranding.icon} alt="" style={{ width:28, height:28, objectFit:"contain", borderRadius:4 }} />}
                 <div>
-                  <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:16, fontWeight:900, color: t.accent, letterSpacing:2 }}>
+                  <div style={{ fontFamily: t.fontTitle, fontSize:16, fontWeight:900, color: t.accent, letterSpacing:2 }}>
                     {siteBranding?.nome || "GERENTRACK"}
                   </div>
                   <div style={{ fontSize:10, color:t.textDimmed }}>{siteBranding?.slogan || "COMPETIÇÃO COM PRECISÃO"}</div>
@@ -1398,7 +1398,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                     badge: (siteBranding?.heroBadge ?? "PLATAFORMA DE COMPETIÇÕES") ? (
                       <span style={{
                         display:"inline-block", background:t.accent, color:"#fff",
-                        fontFamily:"'Barlow Condensed',sans-serif", fontWeight:800,
+                        fontFamily: t.fontTitle, fontWeight:800,
                         fontSize: Math.round(10 * (tam.badge || 1)), letterSpacing:2,
                         padding:`${Math.round(4*(tam.badge||1))}px ${Math.round(10*(tam.badge||1))}px`,
                         borderRadius:14,
@@ -1408,7 +1408,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                     ) : null,
                     titulo: (siteBranding?.heroMostrarTitulo !== false) ? (
                       <div style={{
-                        fontFamily:"'Barlow Condensed',sans-serif",
+                        fontFamily: t.fontTitle,
                         fontSize: Math.round(24 * (tam.titulo || 1)),
                         fontWeight:900, color:"#fff", lineHeight:1.1,
                       }}>
@@ -1437,7 +1437,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                               background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.2)",
                               borderRadius:6, padding:`${Math.round(5*(tam.stats||1))}px ${Math.round(10*(tam.stats||1))}px`,
                               fontSize: Math.round(9 * (tam.stats || 1)), fontWeight:700, color:t.accent,
-                              fontFamily:"'Barlow Condensed',sans-serif",
+                              fontFamily: t.fontTitle,
                             }}>{v}</div>
                           ))}
                         </div>
@@ -1526,7 +1526,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                 borderRadius: 7, padding: "9px 18px",
                 cursor: uploadandoHero ? "not-allowed" : "pointer",
                 fontSize: 13, color: uploadandoHero ? t.accent : t.textTertiary,
-                fontFamily: "'Barlow', sans-serif", transition: "all 0.2s",
+                fontFamily: t.fontBody, transition: "all 0.2s",
               }}>
                 {uploadandoHero ? "Enviando para Firebase Storage..." : "Escolher arquivo (JPG, PNG, WebP — máx. 2MB)"}
               </label>
@@ -1581,7 +1581,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
             </p>
             {Object.entries(siteBranding?.assinaturasFederacao || {}).map(([uf, fed]) => (
               <div key={uf} style={{ display:"flex", alignItems:"center", gap:14, flexWrap:"wrap", padding:"10px 14px", background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, marginBottom:8 }}>
-                <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontWeight:800, fontSize:16, color:t.accent, width:30 }}>{uf}</span>
+                <span style={{ fontFamily: t.fontTitle, fontWeight:800, fontSize:16, color:t.accent, width:30 }}>{uf}</span>
                 <input style={{ ...s.input, flex:1, minWidth:180, marginBottom:0 }} value={fed.nome || ""} placeholder="Nome da federação"
                   onChange={ev => setSiteBranding(prev => ({ ...prev, assinaturasFederacao: { ...prev.assinaturasFederacao, [uf]: { ...prev.assinaturasFederacao[uf], nome: ev.target.value } } }))} />
                 {fed.logo ? (
@@ -1740,7 +1740,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                           <div style={{ fontWeight: 700, fontSize: 14, color: t.textPrimary }}>{rede.label}</div>
                           <div style={{ fontSize: 12, color: t.textMuted, wordBreak: "break-all" }}>{rede.url}</div>
                         </div>
-                        <span style={{ fontSize: 11, color: t.textDimmed, fontFamily: "'Barlow Condensed', sans-serif" }}>#{rede.ordem}</span>
+                        <span style={{ fontSize: 11, color: t.textDimmed, fontFamily: t.fontTitle }}>#{rede.ordem}</span>
                         <button onClick={() => toggleAtivo(idx)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 700, color: rede.ativo ? t.success : t.textDisabled }} title={rede.ativo ? "Desativar" : "Ativar"}>
                           {rede.ativo ? "\u2713" : "\u2014"}
                         </button>
@@ -1756,7 +1756,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                 )}
 
                 <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 10, padding: 20 }}>
-                  <h4 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 700, color: t.textPrimary, marginBottom: 16 }}>
+                  <h4 style={{ fontFamily: t.fontTitle, fontSize: 16, fontWeight: 700, color: t.textPrimary, marginBottom: 16 }}>
                     {editandoRedeIdx !== null ? "Editar Rede Social" : "Nova Rede Social"}
                   </h4>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
@@ -1872,7 +1872,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
         return (
           <div style={{ maxWidth: 1100 }}>
             <div style={s.card}>
-              <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:800, color:t.accent, marginBottom:4, letterSpacing:1 }}>
+              <div style={{ fontFamily: t.fontTitle, fontSize:18, fontWeight:800, color:t.accent, marginBottom:4, letterSpacing:1 }}>
                 Registro de Operações de Tratamento de Dados Pessoais (ROPA)
               </div>
               <p style={{ color: t.textDimmed, fontSize:13, marginBottom:4, lineHeight:1.6 }}>
@@ -2042,7 +2042,7 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(ts => `   • ${ts}`).joi
                 <a href="https://peticionamento.anpd.gov.br" target="_blank" rel="noopener noreferrer"
                   style={{ display:"inline-block", marginTop:10, background:"#cc4400", color:"#fff",
                     borderRadius:6, padding:"6px 14px", fontSize:12, fontWeight:700,
-                    fontFamily:"'Barlow Condensed',sans-serif", textDecoration:"none", letterSpacing:1 }}>
+                    fontFamily: t.fontTitle, textDecoration:"none", letterSpacing:1 }}>
                   Abrir Portal da ANPD →
                 </a>
               </div>
@@ -2073,7 +2073,7 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(ts => `   • ${ts}`).joi
                 <label style={s.label}>Descrição do ocorrido</label>
                 <textarea value={incDescricao} onChange={e => setIncDescricao(e.target.value)}
                   placeholder="Descreva o que ocorreu, como foi descoberto e qual o impacto estimado..."
-                  style={{ ...s.input, minHeight:90, resize:"vertical", fontFamily:"'Barlow',sans-serif", lineHeight:1.6 }} />
+                  style={{ ...s.input, minHeight:90, resize:"vertical", fontFamily: t.fontBody, lineHeight:1.6 }} />
               </div>
               <div>
                 <label style={s.label}>Titulares afetados</label>
@@ -2165,14 +2165,14 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(ts => `   • ${ts}`).joi
         const diagTabStyle = (tab) => ({
           padding:"8px 16px", cursor:"pointer", fontSize:12, fontWeight: diagAba === tab ? 700 : 400,
           background: diagAba === tab ? t.accent : t.bgHover, color: diagAba === tab ? "#fff" : t.textMuted,
-          borderRadius:6, border:"none", fontFamily:"'Barlow',sans-serif", transition:"all 0.15s",
+          borderRadius:6, border:"none", fontFamily: t.fontBody, transition:"all 0.15s",
         });
         const statItem = (color) => ({ background:`${color}10`, border:`1px solid ${color}30`, borderRadius:10, padding:"14px 20px", flex:"1 1 140px", textAlign:"center" });
-        const statNum = (color) => ({ fontSize:28, fontWeight:800, color, fontFamily:"'Barlow Condensed',sans-serif" });
-        const statLabel = { fontSize:11, color:t.textMuted, marginTop:4, textTransform:"uppercase", letterSpacing:1, fontFamily:"'Barlow Condensed',sans-serif" };
+        const statNum = (color) => ({ fontSize:28, fontWeight:800, color, fontFamily: t.fontTitle });
+        const statLabel = { fontSize:11, color:t.textMuted, marginTop:4, textTransform:"uppercase", letterSpacing:1, fontFamily: t.fontTitle };
         const badge = (color) => ({ display:"inline-block", padding:"2px 10px", borderRadius:20, fontSize:11, fontWeight:700, color, background:`${color}15` });
-        const th = { textAlign:"left", padding:"10px 14px", fontSize:11, fontWeight:700, color:t.textDimmed, textTransform:"uppercase", letterSpacing:1, borderBottom:`1px solid ${t.border}`, fontFamily:"'Barlow Condensed',sans-serif" };
-        const td = { padding:"10px 14px", fontSize:13, color:t.textSecondary, borderBottom:`1px solid ${t.borderLight}`, fontFamily:"'Barlow',sans-serif" };
+        const th = { textAlign:"left", padding:"10px 14px", fontSize:11, fontWeight:700, color:t.textDimmed, textTransform:"uppercase", letterSpacing:1, borderBottom:`1px solid ${t.border}`, fontFamily: t.fontTitle };
+        const td = { padding:"10px 14px", fontSize:13, color:t.textSecondary, borderBottom:`1px solid ${t.borderLight}`, fontFamily: t.fontBody };
 
         const executarDiag = () => {
           if (diagAba === "storage") diagnosticarStorage();

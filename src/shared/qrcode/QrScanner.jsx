@@ -245,20 +245,20 @@ export default function QrScanner({
       <div style={{ position: "fixed", inset: 0, background: t.bgOverlay, zIndex: 9000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
         <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 16, padding: "28px 32px", maxWidth: 360, width: "100%", textAlign: "center" }}>
           <div style={{ fontSize: 18, marginBottom: 12, color: t.accent, fontWeight: 700 }}>Resumo</div>
-          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 20, color: t.textPrimary, marginBottom: 16 }}>
+          <div style={{ fontFamily: t.fontTitle, fontWeight: 800, fontSize: 20, color: t.textPrimary, marginBottom: 16 }}>
             Resumo da Sessão
           </div>
           <div style={{ display: "flex", justifyContent: "center", gap: 16, marginBottom: 20 }}>
             <div>
-              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 900, color: t.success }}>{sessaoStats.total}</div>
+              <div style={{ fontFamily: t.fontTitle, fontSize: 32, fontWeight: 900, color: t.success }}>{sessaoStats.total}</div>
               <div style={{ fontSize: 11, color: t.textDimmed }}>Escaneados</div>
             </div>
             {sessaoStats.bloqueados > 0 && <div>
-              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 900, color: t.danger }}>{sessaoStats.bloqueados}</div>
+              <div style={{ fontFamily: t.fontTitle, fontSize: 32, fontWeight: 900, color: t.danger }}>{sessaoStats.bloqueados}</div>
               <div style={{ fontSize: 11, color: t.textDimmed }}>Bloqueados</div>
             </div>}
             {sessaoStats.duplicados > 0 && <div>
-              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 900, color: t.accent }}>{sessaoStats.duplicados}</div>
+              <div style={{ fontFamily: t.fontTitle, fontSize: 32, fontWeight: 900, color: t.accent }}>{sessaoStats.duplicados}</div>
               <div style={{ fontSize: 11, color: t.textDimmed }}>Duplicados</div>
             </div>}
           </div>
@@ -267,7 +267,7 @@ export default function QrScanner({
           </div>
           <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
             <button onClick={() => { setMostrarResumo(false); iniciarCamera(); }}
-              style={{ background: t.accent, color: "#fff", border: "none", borderRadius: 8, padding: "10px 20px", cursor: "pointer", fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14 }}>
+              style={{ background: t.accent, color: "#fff", border: "none", borderRadius: 8, padding: "10px 20px", cursor: "pointer", fontWeight: 700, fontFamily: t.fontTitle, fontSize: 14 }}>
               Reabrir Scanner
             </button>
             <button onClick={handleFecharResumo}
@@ -285,7 +285,7 @@ export default function QrScanner({
       {/* Header */}
       <div style={{ background: t.bgHeaderSolid, paddingTop: "calc(env(safe-area-inset-top, 0px) + 10px)", paddingBottom: 10, paddingLeft: 16, paddingRight: 16, display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `1px solid ${t.border}` }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: t.textPrimary, letterSpacing: 1 }}>
+          <span style={{ fontFamily: t.fontTitle, fontWeight: 800, fontSize: 16, color: t.textPrimary, letterSpacing: 1 }}>
             SCANNER QR
           </span>
           <span style={{
@@ -336,7 +336,7 @@ export default function QrScanner({
 
       {/* Contador flutuante */}
       {contadorLabel && (
-        <div style={{ background: `${t.accent}15`, padding: "8px 16px", textAlign: "center", fontSize: 13, fontWeight: 700, color: t.accent, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5 }}>
+        <div style={{ background: `${t.accent}15`, padding: "8px 16px", textAlign: "center", fontSize: 13, fontWeight: 700, color: t.accent, fontFamily: t.fontTitle, letterSpacing: 0.5 }}>
           {contadorLabel}
         </div>
       )}

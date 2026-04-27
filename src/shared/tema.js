@@ -1,7 +1,14 @@
 // Tokens de tema — dark e light
 // Usado por TemaContext e pelos arquivos de estilo centralizados
 
+// Tipografia (compartilhada entre dark e light)
+const typography = {
+  fontTitle: "'Montserrat', sans-serif",
+  fontBody: "'Inter', sans-serif",
+};
+
 export const temaDark = {
+  ...typography,
   // Fundos
   bgPage: "#0A0B0D",
   bgCard: "#181B25",
@@ -59,6 +66,7 @@ export const temaDark = {
 };
 
 export const temaLight = {
+  ...typography,
   // Fundos
   bgPage: "#F0F1F3",
   bgCard: "#FFFFFF",

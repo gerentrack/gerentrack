@@ -9,13 +9,13 @@ import { useApp } from "../../contexts/AppContext";
 function getStyles(t) {
   return {
     page: { maxWidth: 900, margin: "0 auto", padding: "24px 16px" },
-    pageTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 28, fontWeight: 800, color: t.textPrimary, letterSpacing: 1, marginBottom: 4 },
+    pageTitle: { fontFamily: t.fontTitle, fontSize: 28, fontWeight: 800, color: t.textPrimary, letterSpacing: 1, marginBottom: 4 },
     subtitle: { fontSize: 13, color: t.textTertiary, marginBottom: 20 },
     card: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: "20px", marginBottom: 16 },
     label: { fontSize: 12, color: t.textMuted, fontWeight: 600, marginBottom: 6, display: "block" },
     preview: { width: "100%", minHeight: 300, maxHeight: 500, fontFamily: "monospace", fontSize: 12, background: t.bgHeaderSolid, color: t.textSecondary, border: `1px solid ${t.border}`, borderRadius: 8, padding: 14, resize: "vertical", overflowY: "auto", whiteSpace: "pre", lineHeight: 1.5 },
-    btnPrimary: { display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 24px", background: t.accent, color: "#fff", border: "none", borderRadius: 8, fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, fontWeight: 700, letterSpacing: 1, cursor: "pointer", transition: "all 0.2s" },
-    btnGhost: { display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 24px", background: "transparent", color: t.textSecondary, border: `1px solid ${t.border}`, borderRadius: 8, fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, fontWeight: 700, letterSpacing: 1, cursor: "pointer" },
+    btnPrimary: { display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 24px", background: t.accent, color: "#fff", border: "none", borderRadius: 8, fontFamily: t.fontTitle, fontSize: 15, fontWeight: 700, letterSpacing: 1, cursor: "pointer", transition: "all 0.2s" },
+    btnGhost: { display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 24px", background: "transparent", color: t.textSecondary, border: `1px solid ${t.border}`, borderRadius: 8, fontFamily: t.fontTitle, fontSize: 15, fontWeight: 700, letterSpacing: 1, cursor: "pointer" },
     badge: { display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 6, fontSize: 12, fontWeight: 700 },
     aviso: { display: "flex", alignItems: "flex-start", gap: 8, padding: "8px 12px", borderRadius: 8, fontSize: 12, lineHeight: 1.5, background: `${t.warning}12`, border: `1px solid ${t.warning}33`, color: t.warning, marginBottom: 6 },
   };

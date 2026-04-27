@@ -16,7 +16,7 @@ export default function BannerInstalar() {
       boxShadow: t.shadow,
     }}>
       <div style={{ flex: 1, minWidth: 200 }}>
-        <div style={{ fontWeight: 700, fontSize: 14, color: t.textPrimary, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5 }}>
+        <div style={{ fontWeight: 700, fontSize: 14, color: t.textPrimary, fontFamily: t.fontTitle, letterSpacing: 0.5 }}>
           Instalar GERENTRACK
         </div>
         <div style={{ fontSize: 12, color: t.textMuted, marginTop: 2, lineHeight: 1.4 }}>
@@ -29,7 +29,7 @@ export default function BannerInstalar() {
       <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
         {canInstall && (
           <button onClick={promptInstall}
-            style={{ background: t.accent, color: "#fff", border: "none", borderRadius: 6, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif" }}>
+            style={{ background: t.accent, color: "#fff", border: "none", borderRadius: 6, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontWeight: 700, fontFamily: t.fontTitle }}>
             Instalar
           </button>
         )}

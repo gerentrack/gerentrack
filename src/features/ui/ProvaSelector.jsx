@@ -5,9 +5,9 @@ export function ProvaSelector({ provas, titulo, selecionadas, onToggle, jaInscri
   const t = useTema();
   const s = {
     provaSection: { marginBottom: 28 },
-    provaSecTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 700, color: t.textTertiary, marginBottom: 12, letterSpacing: 1 },
+    provaSecTitle: { fontFamily: t.fontTitle, fontSize: 20, fontWeight: 700, color: t.textTertiary, marginBottom: 12, letterSpacing: 1 },
     provaGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 },
-    provaBtn: { background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", lineHeight: 1.4 },
+    provaBtn: { background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: t.fontBody, transition: "all 0.2s", lineHeight: 1.4 },
     provaBtnSel: { background: t.bgHover, borderColor: t.accent, color: t.accent },
     provaBtnInscrito: { opacity: 0.5, cursor: "not-allowed", borderColor: `${t.success}44`, color: `${t.success}88` },
     provaBtnBloqueada: { opacity: 0.4, cursor: "not-allowed", borderColor: `${t.warning}44`, color: `${t.warning}88` },

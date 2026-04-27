@@ -168,7 +168,7 @@ export default function CortarImagem({ imageSrc, aspecto, onConfirmar, onCancela
       }}
         onClick={e => e.stopPropagation()}
       >
-        <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: t.textPrimary, marginBottom: 14 }}>
+        <div style={{ fontFamily: t.fontTitle, fontSize: 20, fontWeight: 800, color: t.textPrimary, marginBottom: 14 }}>
           Recortar Imagem
         </div>
 
@@ -283,7 +283,7 @@ export default function CortarImagem({ imageSrc, aspecto, onConfirmar, onCancela
               color: removendoFundo ? t.textDisabled : fundoRemovido ? t.success : t.textSecondary,
               padding: "8px 16px", borderRadius: 8,
               cursor: removendoFundo ? "not-allowed" : "pointer",
-              fontSize: 12, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
+              fontSize: 12, fontFamily: t.fontTitle, fontWeight: 600,
             }}
           >
             {removendoFundo ? "Removendo fundo..." : fundoRemovido ? "✓ Fundo removido" : "Remover fundo"}
@@ -294,7 +294,7 @@ export default function CortarImagem({ imageSrc, aspecto, onConfirmar, onCancela
               style={{
                 background: "transparent", border: `1px solid ${t.borderInput}`,
                 color: t.textMuted, padding: "8px 20px", borderRadius: 8,
-                cursor: "pointer", fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif",
+                cursor: "pointer", fontSize: 13, fontFamily: t.fontTitle,
               }}
             >
               Cancelar
@@ -308,7 +308,7 @@ export default function CortarImagem({ imageSrc, aspecto, onConfirmar, onCancela
                 border: "none", padding: "8px 24px", borderRadius: 8,
                 cursor: removendoFundo ? "not-allowed" : "pointer",
                 fontSize: 13, fontWeight: 700,
-                fontFamily: "'Barlow Condensed', sans-serif",
+                fontFamily: t.fontTitle,
               }}
             >
               Confirmar Recorte

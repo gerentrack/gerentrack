@@ -17,17 +17,17 @@ import { useTema } from "../../shared/TemaContext";
 function getStyles(t) {
   return {
   page:        { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
-  pageTitle:   { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: t.textPrimary, marginBottom: 24, letterSpacing: 1 },
+  pageTitle:   { fontFamily: t.fontTitle, fontSize: 36, fontWeight: 800, color: t.textPrimary, marginBottom: 24, letterSpacing: 1 },
   painelHeader:{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 32 },
   filtros:     { display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 },
   label:       { display: "block", fontSize: 12, fontWeight: 600, color: t.textMuted, letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" },
-  select:      { background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none" },
+  select:      { background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "10px 14px", color: t.textSecondary, fontSize: 14, fontFamily: t.fontBody, outline: "none" },
   table:       { width: "100%", borderCollapse: "collapse" },
   tr:          { transition: "background 0.15s" },
-  btnPrimary:  { background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, transition: "all 0.2s" },
-  btnSecondary:{ background: "transparent", color: t.accent, border: `2px solid ${t.accentBorder}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
-  btnGhost:    { background: "transparent", color: t.textMuted, border: `1px solid ${t.borderLight}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif" },
-  linkBtn:     { background: "none", border: "none", color: t.accent, cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", padding: 0 },
+  btnPrimary:  { background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: t.fontTitle, letterSpacing: 1, transition: "all 0.2s" },
+  btnSecondary:{ background: "transparent", color: t.accent, border: `2px solid ${t.accentBorder}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: t.fontTitle, letterSpacing: 1 },
+  btnGhost:    { background: "transparent", color: t.textMuted, border: `1px solid ${t.borderLight}`, padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: t.fontBody },
+  linkBtn:     { background: "none", border: "none", color: t.accent, cursor: "pointer", fontSize: 13, fontFamily: t.fontBody, padding: 0 },
   emptyState:  { textAlign: "center", padding: "60px 20px", color: t.textDisabled, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, fontSize: 15 },
   badge:       (color) => ({ background: color + "22", color: color, border: `1px solid ${color}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }),
   badgeGold:   { background: t.accentBg, color: t.accent, border: `1px solid ${t.accentBorder}`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 },
@@ -830,7 +830,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
             )}
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
               <div>
-                <div style={{ color: t.accent, fontWeight:800, fontSize:16, fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:1 }}>
+                <div style={{ color: t.accent, fontWeight:800, fontSize:16, fontFamily: t.fontTitle, letterSpacing:1 }}>
                   SERIAÇÃO — RT 20.3 a 20.8
                 </div>
                 <div style={{ color: t.textDimmed, fontSize:11, marginTop:2 }}>
@@ -1649,7 +1649,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
             <div key={sumuKey(sum)} style={{ background:t.bgCard, border:`1px solid ${t.border}`, borderRadius:12, marginBottom:20, overflow:"hidden" }}>
               <div style={{ padding:"14px 20px", background:t.bgHeaderSolid, borderBottom:`1px solid ${t.border}`, display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12 }}>
                 <div>
-                  <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:22, fontWeight:800, color: t.textPrimary, marginBottom:4 }}>
+                  <div style={{ fontFamily: t.fontTitle, fontSize:22, fontWeight:800, color: t.textPrimary, marginBottom:4 }}>
                     <NomeProvaComImplemento nome={sum.prova.nome} />
                     {sum.prova.origemCombinada && (
                       <span style={{ fontSize: 11, background: t.accentBg, color: t.accent, padding: "2px 8px", borderRadius: 4, marginLeft: 8, fontWeight: 600 }}>
@@ -1823,7 +1823,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                           Sorteio realizado em {new Date(_srt.timestamp).toLocaleString("pt-BR", { day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit" })}
                         </span>
                         <button
-                          style={{ background:"transparent", color:t.textMuted, border:`1px solid ${t.borderLight}`, padding:"5px 14px", borderRadius:6, cursor:"pointer", fontSize:12, fontFamily:"'Barlow',sans-serif" }}
+                          style={{ background:"transparent", color:t.textMuted, border:`1px solid ${t.borderLight}`, padding:"5px 14px", borderRadius:6, cursor:"pointer", fontSize:12, fontFamily: t.fontBody }}
                           disabled={eventoAtual.competicaoFinalizada}
                           onClick={async () => {
                             const ok = await confirmar("Refazer o sorteio de ordem? A ordem atual será substituída.");
@@ -1837,7 +1837,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                       <>
                         <span style={{ fontSize:12, color:t.accent, fontWeight:600 }}>Sorteio não realizado (RT 25.5)</span>
                         <button
-                          style={{ background:`linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color:"#fff", border:"none", padding:"6px 16px", borderRadius:6, cursor:"pointer", fontSize:12, fontWeight:700, fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:1 }}
+                          style={{ background:`linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color:"#fff", border:"none", padding:"6px 16px", borderRadius:6, cursor:"pointer", fontSize:12, fontWeight:700, fontFamily: t.fontTitle, letterSpacing:1 }}
                           disabled={eventoAtual.competicaoFinalizada}
                           onClick={executarSorteio}>
                           Sortear Ordem

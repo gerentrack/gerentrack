@@ -49,7 +49,7 @@ export function PaginaControles({ pagina, totalPaginas, total, itensPorPagina, s
     background: dis ? t.bgHeaderSolid : t.bgInput,
     border:`1px solid ${t.borderInput}`, color: dis ? t.textDisabled : t.textTertiary,
     borderRadius:6, padding:"6px 12px", cursor: dis ? "default" : "pointer",
-    fontSize:13, fontFamily:"'Barlow', sans-serif",
+    fontSize:13, fontFamily: t.fontBody,
   });
   return (
     <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",

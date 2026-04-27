@@ -11,11 +11,11 @@ function getStyles(t) {
   return {
     overlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 9999, display: "flex", alignItems: "flex-end", justifyContent: "center", padding: 16 },
     modal: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 14, padding: "24px 28px", maxWidth: 420, width: "100%", marginBottom: 32, boxShadow: "0 8px 32px rgba(0,0,0,0.3)" },
-    title: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: t.textPrimary, marginBottom: 8, display: "flex", alignItems: "center", gap: 8 },
+    title: { fontFamily: t.fontTitle, fontSize: 20, fontWeight: 800, color: t.textPrimary, marginBottom: 8, display: "flex", alignItems: "center", gap: 8 },
     msg: { fontSize: 14, color: t.textSecondary, lineHeight: 1.6, marginBottom: 16 },
     bar: { height: 4, borderRadius: 2, background: t.bgInput, marginBottom: 16, overflow: "hidden" },
     barFill: { height: "100%", borderRadius: 2, background: t.success, animation: "shrink 8s linear forwards" },
-    btn: { background: "transparent", color: t.accent, border: `1px solid ${t.accent}`, padding: "8px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
+    btn: { background: "transparent", color: t.accent, border: `1px solid ${t.accent}`, padding: "8px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700, fontFamily: t.fontTitle, letterSpacing: 1 },
   };
 }
 

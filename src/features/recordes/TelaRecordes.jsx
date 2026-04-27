@@ -1606,7 +1606,7 @@ function TelaRecordes() {
           <div style={{ position:"fixed", inset:0, background:t.bgOverlay, display:"flex", alignItems:"center", justifyContent:"center", zIndex:9999, padding:24 }} onClick={() => setObsModal(null)}>
             <div style={{ background:t.bgCard, border:`1px solid ${cor}44`, borderRadius:14, padding:"28px 32px", maxWidth:480, width:"100%", boxShadow:t.shadowLg }} onClick={ev => ev.stopPropagation()}>
               <div style={{ fontSize:28, textAlign:"center", marginBottom:12 }}>{ico}</div>
-              <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontWeight:800, fontSize:16, color:cor, textAlign:"center", letterSpacing:1, marginBottom:6 }}>
+              <div style={{ fontFamily: t.fontTitle, fontWeight:800, fontSize:16, color:cor, textAlign:"center", letterSpacing:1, marginBottom:6 }}>
                 {titulo}
               </div>
               <div style={{ fontSize:12, color:t.textMuted, textAlign:"center", marginBottom:16, lineHeight:1.5 }}>
@@ -1621,11 +1621,11 @@ function TelaRecordes() {
               <textarea autoFocus value={obsModal.texto}
                 onChange={ev => setObsModal(prev => ({ ...prev, texto: ev.target.value }))}
                 placeholder={obsModal.tipo === "rejeitar" ? "Informe o motivo..." : "Observação opcional..."}
-                style={{ width:"100%", minHeight:80, background:t.bgInput, border:`1px solid ${t.borderInput}`, borderRadius:8, padding:"10px 14px", color:t.textSecondary, fontSize:14, fontFamily:"'Barlow', sans-serif", outline:"none", resize:"vertical", marginBottom:20 }}
+                style={{ width:"100%", minHeight:80, background:t.bgInput, border:`1px solid ${t.borderInput}`, borderRadius:8, padding:"10px 14px", color:t.textSecondary, fontSize:14, fontFamily: t.fontBody, outline:"none", resize:"vertical", marginBottom:20 }}
               />
               <div style={{ display:"flex", gap:10, justifyContent:"flex-end" }}>
                 <button onClick={() => setObsModal(null)}
-                  style={{ background:"transparent", border:`1px solid ${t.borderLight}`, color:t.textMuted, padding:"10px 22px", borderRadius:8, cursor:"pointer", fontSize:14, fontFamily:"'Barlow', sans-serif" }}>
+                  style={{ background:"transparent", border:`1px solid ${t.borderLight}`, color:t.textMuted, padding:"10px 22px", borderRadius:8, cursor:"pointer", fontSize:14, fontFamily: t.fontBody }}>
                   Cancelar
                 </button>
                 <button onClick={() => {
@@ -1660,7 +1660,7 @@ function TelaRecordes() {
                   }
                   setObsModal(null);
                 }}
-                  style={{ background: obsModal.tipo === "rejeitar" ? `linear-gradient(135deg, ${t.danger}, #a93226)` : obsModal.tipo === "homologar" ? `linear-gradient(135deg, ${t.success}, #1a8a1a)` : `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, border:"none", color:"#fff", padding:"10px 22px", borderRadius:8, cursor:"pointer", fontSize:14, fontWeight:700, fontFamily:"'Barlow Condensed', sans-serif", letterSpacing:1 }}>
+                  style={{ background: obsModal.tipo === "rejeitar" ? `linear-gradient(135deg, ${t.danger}, #a93226)` : obsModal.tipo === "homologar" ? `linear-gradient(135deg, ${t.success}, #1a8a1a)` : `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, border:"none", color:"#fff", padding:"10px 22px", borderRadius:8, cursor:"pointer", fontSize:14, fontWeight:700, fontFamily: t.fontTitle, letterSpacing:1 }}>
                   {obsModal.tipo === "rejeitar" ? "Rejeitar" : obsModal.tipo === "homologar" ? "Homologar" : "Confirmar"}{qtd > 1 ? ` (${qtd})` : ""}
                 </button>
               </div>

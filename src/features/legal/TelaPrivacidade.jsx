@@ -6,10 +6,10 @@ import { useApp } from "../../contexts/AppContext";
 function getStyles(t) {
   return {
     page: { maxWidth: 800, margin: "0 auto", padding: "40px 24px 80px" },
-    title: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 34, fontWeight: 800, color: t.textPrimary, marginBottom: 4, letterSpacing: 1, textAlign: "center" },
+    title: { fontFamily: t.fontTitle, fontSize: 34, fontWeight: 800, color: t.textPrimary, marginBottom: 4, letterSpacing: 1, textAlign: "center" },
     subtitle: { fontSize: 13, color: t.textDimmed, marginBottom: 32, textAlign: "center" },
     info: { background: t.bgCardAlt, border: `1px solid ${t.accentBorder}`, borderRadius: 10, padding: "20px 24px", marginBottom: 24, textAlign: "center", fontSize: 14, color: t.textSecondary, lineHeight: 1.7 },
-    h2: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, color: t.accent, marginTop: 28, marginBottom: 12, letterSpacing: 0.5, borderBottom: `1px solid ${t.border}`, paddingBottom: 6 },
+    h2: { fontFamily: t.fontTitle, fontSize: 20, fontWeight: 800, color: t.accent, marginTop: 28, marginBottom: 12, letterSpacing: 0.5, borderBottom: `1px solid ${t.border}`, paddingBottom: 6 },
     h3: { fontSize: 15, fontWeight: 700, color: t.textPrimary, marginTop: 18, marginBottom: 8 },
     p: { fontSize: 14, color: t.textSecondary, lineHeight: 1.8, marginBottom: 10 },
     ul: { paddingLeft: 22, marginBottom: 12 },

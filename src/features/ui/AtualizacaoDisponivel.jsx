@@ -28,7 +28,7 @@ export default function AtualizacaoDisponivel() {
       display: "flex", alignItems: "center", justifyContent: "center", gap: 12,
       boxShadow: "0 -2px 12px rgba(0,0,0,0.3)",
     }}>
-      <span style={{ color: "#fff", fontSize: 14, fontWeight: 600, fontFamily: "'Barlow', sans-serif" }}>
+      <span style={{ color: "#fff", fontSize: 14, fontWeight: 600, fontFamily: t.fontBody }}>
         Atualizando para nova versão...
       </span>
       <button
@@ -36,7 +36,7 @@ export default function AtualizacaoDisponivel() {
         style={{
           background: "#fff", color: t.accent, border: "none", borderRadius: 6,
           padding: "6px 16px", cursor: "pointer", fontSize: 13, fontWeight: 700,
-          fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5,
+          fontFamily: t.fontTitle, letterSpacing: 0.5,
         }}>
         Atualizar agora
       </button>

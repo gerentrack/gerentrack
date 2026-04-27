@@ -6,7 +6,7 @@ import { useApp } from "../../contexts/AppContext";
 function getStyles(t) {
   return {
     page: { maxWidth: 1000, margin: "0 auto", padding: "40px 24px 80px" },
-    title: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 34, fontWeight: 800, color: t.textPrimary, marginBottom: 4, letterSpacing: 1, textAlign: "center" },
+    title: { fontFamily: t.fontTitle, fontSize: 34, fontWeight: 800, color: t.textPrimary, marginBottom: 4, letterSpacing: 1, textAlign: "center" },
     subtitle: { fontSize: 14, color: t.textMuted, marginBottom: 32, textAlign: "center", lineHeight: 1.6 },
     planosGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20, marginBottom: 40 },
     planoCard: (destaque) => ({
@@ -15,13 +15,13 @@ function getStyles(t) {
       ...(destaque ? { boxShadow: `0 0 24px ${t.accent}22` } : {}),
     }),
     planoBadge: { position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: t.accent, color: "#fff", fontSize: 10, fontWeight: 800, letterSpacing: 1, padding: "4px 14px", borderRadius: 20, textTransform: "uppercase" },
-    planoNome: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 24, fontWeight: 800, color: t.textPrimary, marginBottom: 4 },
+    planoNome: { fontFamily: t.fontTitle, fontSize: 24, fontWeight: 800, color: t.textPrimary, marginBottom: 4 },
     planoPreco: { fontSize: 28, fontWeight: 800, color: t.accent, marginBottom: 2 },
     planoPrecoSub: { fontSize: 12, color: t.textMuted, marginBottom: 16 },
     planoLista: { listStyle: "none", padding: 0, margin: 0, flex: 1 },
     planoItem: { fontSize: 13, color: t.textSecondary, padding: "6px 0", borderBottom: `1px solid ${t.border}08`, lineHeight: 1.6 },
     planoItemIcon: { marginRight: 8 },
-    sectionTitle: { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.textPrimary, marginBottom: 16, letterSpacing: 1 },
+    sectionTitle: { fontFamily: t.fontTitle, fontSize: 22, fontWeight: 800, color: t.textPrimary, marginBottom: 16, letterSpacing: 1 },
     taxaGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12, marginBottom: 40 },
     taxaCard: { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 10, padding: "16px 18px", textAlign: "center" },
     taxaFaixa: { fontSize: 12, color: t.textMuted, marginBottom: 4 },
@@ -32,7 +32,7 @@ function getStyles(t) {
     stTdValor: { padding: "10px 14px", fontSize: 13, color: t.accent, fontWeight: 700, borderBottom: `1px solid ${t.border}`, whiteSpace: "nowrap" },
     nota: { fontSize: 12, color: t.textDimmed, lineHeight: 1.7, marginBottom: 24 },
     ctaWrap: { textAlign: "center", marginTop: 32 },
-    ctaBtn: { display: "inline-block", background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", padding: "14px 36px", borderRadius: 10, cursor: "pointer", fontSize: 15, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, textDecoration: "none" },
+    ctaBtn: { display: "inline-block", background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", padding: "14px 36px", borderRadius: 10, cursor: "pointer", fontSize: 15, fontWeight: 700, fontFamily: t.fontTitle, letterSpacing: 1, textDecoration: "none" },
     btnVoltar: { background: "none", border: "none", color: t.accent, cursor: "pointer", fontSize: 14, fontWeight: 600, marginBottom: 16, padding: 0 },
   };
 }

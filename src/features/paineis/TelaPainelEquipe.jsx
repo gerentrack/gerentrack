@@ -12,11 +12,11 @@ import { useApp } from "../../contexts/AppContext";
 function getS(t) {
   return {
   page:       { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
-  title:      { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 800, color: t.textPrimary, marginBottom: 6, letterSpacing: 1 },
-  secTitle:   { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: t.textPrimary, marginBottom: 14, letterSpacing: 1 },
+  title:      { fontFamily: t.fontTitle, fontSize: 36, fontWeight: 800, color: t.textPrimary, marginBottom: 6, letterSpacing: 1 },
+  secTitle:   { fontFamily: t.fontTitle, fontSize: 22, fontWeight: 800, color: t.textPrimary, marginBottom: 14, letterSpacing: 1 },
   card:       { background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: 24, marginBottom: 24 },
   statCard:   { background: t.bgCardAlt, border: `1px solid ${t.border}`, borderRadius: 12, padding: "18px 24px", textAlign: "center", minWidth: 100 },
-  statVal:    { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 900, color: t.accent, lineHeight: 1, marginBottom: 6 },
+  statVal:    { fontFamily: t.fontTitle, fontSize: 36, fontWeight: 900, color: t.accent, lineHeight: 1, marginBottom: 6 },
   statLabel:  { fontSize: 12, color: t.textMuted, letterSpacing: 1, textTransform: "uppercase" },
   statsRow:   { display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 28 },
   tableWrap:  { overflowX: "auto", borderRadius: 10, border: `1px solid ${t.border}` },
@@ -24,8 +24,8 @@ function getS(t) {
   th:         { background: t.bgHeaderSolid, padding: "10px 14px", textAlign: "left", fontSize: 11, fontWeight: 700, color: t.textDimmed, letterSpacing: 1, textTransform: "uppercase", borderBottom: `1px solid ${t.border}` },
   td:         { padding: "10px 14px", fontSize: 13, color: t.textSecondary, borderBottom: `1px solid ${t.border}` },
   tr:         { transition: "background 0.15s" },
-  btn:        { background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", padding: "10px 22px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
-  btnSec:     { background: "transparent", color: t.accent, border: `2px solid ${t.accentBorder}`, padding: "9px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 },
+  btn:        { background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`, color: "#fff", border: "none", padding: "10px 22px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700, fontFamily: t.fontTitle, letterSpacing: 1 },
+  btnSec:     { background: "transparent", color: t.accent, border: `2px solid ${t.accentBorder}`, padding: "9px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700, fontFamily: t.fontTitle, letterSpacing: 1 },
   btnGhost:   { background: "transparent", color: t.textMuted, border: `1px solid ${t.borderLight}`, padding: "9px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13 },
   input:      { width: "100%", background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 8, padding: "8px 12px", color: t.textSecondary, fontSize: 13, outline: "none", marginBottom: 8 },
   badge:      (c) => ({ background: c+"22", color: c, border: `1px solid ${c}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }),
@@ -262,7 +262,7 @@ export default function TelaPainelEquipe() {
       <div style={{ display: "flex", gap: 0, background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10, overflow: "hidden", marginBottom: 24, flexWrap: "wrap" }}>
         {abas.map(a => (
           <button key={a.id} onClick={() => setAbaAtiva(a.id)}
-            style={{ background: abaAtiva === a.id ? t.bgInput : "transparent", border: "none", color: abaAtiva === a.id ? t.accent : t.textDimmed, padding: "11px 20px", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow', sans-serif", transition: "all 0.2s", position: "relative", fontWeight: a.badge ? 700 : 400 }}>
+            style={{ background: abaAtiva === a.id ? t.bgInput : "transparent", border: "none", color: abaAtiva === a.id ? t.accent : t.textDimmed, padding: "11px 20px", cursor: "pointer", fontSize: 13, fontFamily: t.fontBody, transition: "all 0.2s", position: "relative", fontWeight: a.badge ? 700 : 400 }}>
             {a.label}
             {a.badge && <span style={{ position: "absolute", top: 6, right: 6, width: 7, height: 7, borderRadius: "50%", background: t.warning }} />}
           </button>
@@ -761,7 +761,7 @@ export default function TelaPainelEquipe() {
           {/* Solicitar relatório */}
           {solicitarRelatorio && eventosComInsc.length > 0 && (
             <div style={{ background:t.bgCard, border:`1px solid ${t.borderInput}`, borderRadius:10, padding:16, marginBottom:20 }}>
-              <div style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:14, fontWeight:700, color:t.accent, marginBottom:12, letterSpacing:1 }}>
+              <div style={{ fontFamily: t.fontTitle, fontSize:14, fontWeight:700, color:t.accent, marginBottom:12, letterSpacing:1 }}>
                 SOLICITAR RELATÓRIO OFICIAL
               </div>
 
@@ -818,7 +818,7 @@ export default function TelaPainelEquipe() {
               {/* Preview / Confirmação */}
               {relEvId && !relEnviado && !relPreview && !(solicitacoesRelatorio||[]).some(s => s.equipeId === equipeId && s.eventoId === relEvId && (s.status === "pendente" || s.status === "gerado")) && (
                 <button onClick={() => setRelPreview(true)}
-                  style={{ background:`${t.accent}18`, border:`1px solid ${t.accent}44`, color:t.accent, borderRadius:6, padding:"8px 16px", cursor:"pointer", fontSize:12, fontWeight:700, fontFamily:"'Barlow Condensed', sans-serif" }}>
+                  style={{ background:`${t.accent}18`, border:`1px solid ${t.accent}44`, color:t.accent, borderRadius:6, padding:"8px 16px", cursor:"pointer", fontSize:12, fontWeight:700, fontFamily: t.fontTitle }}>
                   Visualizar antes de enviar
                 </button>
               )}
@@ -843,7 +843,7 @@ export default function TelaPainelEquipe() {
                         solicitarRelatorio(equipeId, equipe?.nome || "", "equipe", ev.id, ev.nome, meusAtletas.map(a => a.id), equipeId, relAssinatura || null);
                         setRelEnviado(true); setRelPreview(false);
                         setTimeout(() => setRelEnviado(false), 5000);
-                      }} style={{ background:`${t.success}18`, border:`1px solid ${t.success}44`, color:t.success, borderRadius:6, padding:"8px 18px", cursor:"pointer", fontSize:12, fontWeight:700, fontFamily:"'Barlow Condensed', sans-serif" }}>
+                      }} style={{ background:`${t.success}18`, border:`1px solid ${t.success}44`, color:t.success, borderRadius:6, padding:"8px 18px", cursor:"pointer", fontSize:12, fontWeight:700, fontFamily: t.fontTitle }}>
                         Confirmar e enviar
                       </button>
                       <button onClick={() => setRelPreview(false)}
@@ -867,7 +867,7 @@ export default function TelaPainelEquipe() {
           {(solicitacoesRelatorio || []).filter(s => s.equipeId === equipeId).length > 0 && (
             <div style={{ marginBottom:20 }}>
               <button onClick={() => setRelHistAberto(!relHistAberto)}
-                style={{ background:"transparent", border:"none", color: t.textMuted, cursor:"pointer", fontSize:12, fontWeight:700, fontFamily:"'Barlow Condensed', sans-serif", letterSpacing:1, padding:0, marginBottom:8 }}>
+                style={{ background:"transparent", border:"none", color: t.textMuted, cursor:"pointer", fontSize:12, fontWeight:700, fontFamily: t.fontTitle, letterSpacing:1, padding:0, marginBottom:8 }}>
                 {relHistAberto ? "▾" : "▸"} HISTÓRICO DE RELATÓRIOS ({(solicitacoesRelatorio||[]).filter(s => s.equipeId === equipeId).length})
               </button>
               {relHistAberto && (
@@ -955,7 +955,7 @@ export default function TelaPainelEquipe() {
                               <Td><strong style={{ color: t.textPrimary }}>{l.atletaNome}</strong></Td>
                               <Td>{l.provaNome}</Td>
                               <Td>
-                                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 800, color: l.isStatus ? t.textDisabled : t.accent }}>
+                                <span style={{ fontFamily: t.fontTitle, fontSize: 16, fontWeight: 800, color: l.isStatus ? t.textDisabled : t.accent }}>
                                   {l.marca}
                                 </span>
                               </Td>
