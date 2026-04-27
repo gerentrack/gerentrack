@@ -1412,11 +1412,27 @@ function TelaResultados() {
               // Calcular série de cada atleta a partir da seriação salva
               const serieDoAtletaBlk = {};
               const raiaDoAtletaBlk = {};
-              const _serBlk = buscarSeriacao(eventoAtual.seriacao, b.prova.id, b.categoria.id, b.sexo, b.faseSufixo || "");
+              let _serBlk = buscarSeriacao(eventoAtual.seriacao, b.prova.id, b.categoria.id, b.sexo, b.faseSufixo || "");
+              // Fallback: tentar variante de sexo oposto no provaId (revezamentos/combinadas com M_→F_ ou vice-versa)
+              if (!_serBlk?.series && eventoAtual.seriacao) {
+                const altPrefix = b.prova.id.startsWith("M_") ? "F_" + b.prova.id.slice(2) : b.prova.id.startsWith("F_") ? "M_" + b.prova.id.slice(2) : null;
+                if (altPrefix) _serBlk = buscarSeriacao(eventoAtual.seriacao, altPrefix, b.categoria.id, b.sexo, b.faseSufixo || "");
+              }
+              // Fallback: buscar por prefixo parcial no objeto de seriação (combinadas com provaId longo)
+              if (!_serBlk?.series && eventoAtual.seriacao && b.prova.origemCombinada) {
+                const sufixoProva = b.prova.provaOriginalSufixo || "";
+                const combId = b.prova.combinadaId || "";
+                if (sufixoProva && combId) {
+                  const match = Object.keys(eventoAtual.seriacao).find(k =>
+                    k.includes(combId) && k.includes(sufixoProva) && k.includes(b.categoria.id) && k.includes(b.sexo)
+                  );
+                  if (match) _serBlk = eventoAtual.seriacao[match];
+                }
+              }
               if (_serBlk?.series && _serBlk.series.length > 0) {
                 _serBlk.series.forEach(ser => {
                   ser.atletas.forEach(a => {
-                    const aid = a.id || a.atletaId;
+                    const aid = a.id || a.atletaId || a.equipeId;
                     serieDoAtletaBlk[aid] = ser.numero;
                     if (a.raia) raiaDoAtletaBlk[aid] = a.raia;
                   });
@@ -1675,41 +1691,77 @@ function TelaResultados() {
                             if (eqFed && todosComCbat) { _posFedRevez++; return `${_posFedRevez}º`; }
                             return "";
                           });
-                          return b.classificados.map((item, j) => {
-                          const raw = item.raw;
-                          const getTent = (r, k) => r && typeof r === "object" ? (r[k] ?? "") : "";
-                          const atlNomes = item.atletasRevez ? item.atletasRevez.map(a => a.nome).join(" · ") : "";
-                          // Pontuação de revezamento
-                          const ptsRevez = pontuacaoAtiva ? (() => {
-                            const _cfgPontRevez = { ...(eventoAtual.pontuacaoEquipes || {}), equipeIdsFederados: eventoAtual.equipeIdsFederados || [] };
-                            const ptsR = TeamScoringEngine.calcularPontosRevezamento(
-                              b.classificados.filter(x => !x.isStatus),
-                              _cfgPontRevez, atletas, equipes
+                          const renderRevezRow = (item, j, posLabel, isFinal) => {
+                            const raw = item.raw;
+                            const getTent = (r, k) => r && typeof r === "object" ? (r[k] ?? "") : "";
+                            const atlNomes = item.atletasRevez ? item.atletasRevez.map(a => a.nome).join(" · ") : "";
+                            const ptsRevez = pontuacaoAtiva ? (() => {
+                              const _cfgPontRevez = { ...(eventoAtual.pontuacaoEquipes || {}), equipeIdsFederados: eventoAtual.equipeIdsFederados || [] };
+                              const ptsR = TeamScoringEngine.calcularPontosRevezamento(
+                                b.classificados.filter(x => !x.isStatus),
+                                _cfgPontRevez, atletas, equipes
+                              );
+                              return ptsR[item.equipeId]?.pontos || 0;
+                            })() : 0;
+                            return (
+                              <tr key={`${isFinal?"g":"s"}_${item.equipeId}`} style={{ ...s.tr, ...(isFinal && !item.isStatus ? (j===0?s.trOuro:j===1?s.trPrata:j===2?s.trBronze:{}) : {}) }}>
+                                <Td><strong style={{ color: item.isStatus ? t.textDimmed : (isFinal && j<3?t.accent:t.textPrimary), fontSize:15 }}>
+                                  {posLabel}
+                                </strong></Td>
+                                <Td><strong style={{ color: isFinal && j<3?t.accent:t.textPrimary }}>{item.nomeEquipe}</strong></Td>
+                                <Td><span style={{ fontSize: 11, color: t.textTertiary }}>{atlNomes}</span></Td>
+                                {temSerieBlk && <Td>{serieDoAtletaBlk[item.equipeId] || "—"}</Td>}
+                                {temRaiaBlk && <Td>{getTent(raw,"raia") || raiaDoAtletaBlk[item.equipeId] || "—"}</Td>}
+                                {temVentoBlk && <Td>{getTent(raw,"vento")||"—"}</Td>}
+                                <Td>
+                                  {item.isStatus
+                                    ? <span style={{ color: t.danger, fontWeight:700 }}>{item.status}</span>
+                                    : <strong style={{ color: isFinal && j<3?t.success:t.textSecondary, fontSize:15 }}>
+                                        {formatarMarcaExibicao(item.marca, "s", _msEmpatadosBloco, false)}
+                                      </strong>
+                                  }
+                                </Td>
+                                {pontuacaoAtiva && <Td><span style={{ color: t.accent, fontWeight:700 }}>{ptsRevez || ""}</span></Td>}
+                              </tr>
                             );
-                            return ptsR[item.equipeId]?.pontos || 0;
-                          })() : 0;
-                          return (
-                            <tr key={item.equipeId} style={{ ...s.tr, ...(item.isStatus ? {} : j===0?s.trOuro:j===1?s.trPrata:j===2?s.trBronze:{}) }}>
-                              <Td><strong style={{ color: item.isStatus ? t.textDimmed : j<3?t.accent:t.textPrimary, fontSize:15 }}>
-                                {_posLabelsRevez[j]}
-                              </strong></Td>
-                              <Td><strong style={{ color: j<3?t.accent:t.textPrimary }}>{item.nomeEquipe}</strong></Td>
-                              <Td><span style={{ fontSize: 11, color: t.textTertiary }}>{atlNomes}</span></Td>
-                              {temSerieBlk && <Td>{serieDoAtletaBlk[item.equipeId] || "—"}</Td>}
-                              {temRaiaBlk && <Td>{getTent(raw,"raia") || raiaDoAtletaBlk[item.equipeId] || "—"}</Td>}
-                              {temVentoBlk && <Td>{getTent(raw,"vento")||"—"}</Td>}
-                              <Td>
-                                {item.isStatus
-                                  ? <span style={{ color: t.danger, fontWeight:700 }}>{item.status}</span>
-                                  : <strong style={{ color: j<3?t.success:t.textSecondary, fontSize:15 }}>
-                                      {formatarMarcaExibicao(item.marca, "s", _msEmpatadosBloco, false)}
-                                    </strong>
-                                }
-                              </Td>
-                              {pontuacaoAtiva && <Td><span style={{ color: t.accent, fontWeight:700 }}>{ptsRevez || ""}</span></Td>}
-                            </tr>
-                          );
-                        });
+                          };
+
+                          // Agrupamento por série quando há múltiplas séries
+                          if (_serBlk?.series?.length > 1) {
+                            const nColsRevez = 3 + (temSerieBlk?1:0) + (temRaiaBlk?1:0) + (temVentoBlk?1:0) + 1 + (pontuacaoAtiva?1:0);
+                            const seriesOrd = [..._serBlk.series].sort((a2, b2) => a2.numero - b2.numero);
+                            const rows = [];
+                            for (const serie of seriesOrd) {
+                              const ids = new Set(serie.atletas.map(a => a.id || a.atletaId || a.equipeId));
+                              const cs = b.classificados.filter(item => ids.has(item.equipeId)).sort((a2, b2) => {
+                                if (a2.isStatus && !b2.isStatus) return 1;
+                                if (!a2.isStatus && b2.isStatus) return -1;
+                                if (a2.marca != null && b2.marca != null) return a2.marca - b2.marca;
+                                return 0;
+                              });
+                              if (cs.length === 0) continue;
+                              rows.push(
+                                <tr key={`rs-${serie.numero}`}>
+                                  <td colSpan={nColsRevez} style={{ padding:"8px 12px", background: t.bgCardAlt, borderBottom:`2px solid ${t.accentBorder}`, color: t.accent, fontWeight:700, fontSize:12 }}>
+                                    Série {serie.numero}
+                                  </td>
+                                </tr>
+                              );
+                              cs.forEach((item, j) => rows.push(renderRevezRow(item, j, item.isStatus ? "" : `${j+1}º`, false)));
+                            }
+                            // Classificação Geral
+                            rows.push(
+                              <tr key="rcg">
+                                <td colSpan={nColsRevez} style={{ padding:"10px 12px", background: `${t.success}12`, borderBottom:`2px solid ${t.success}44`, color: t.success, fontWeight:800, fontSize:13 }}>
+                                  Classificação Geral
+                                </td>
+                              </tr>
+                            );
+                            b.classificados.forEach((item, j) => rows.push(renderRevezRow(item, j, _posLabelsRevez[j], true)));
+                            return rows;
+                          }
+
+                          return b.classificados.map((item, j) => renderRevezRow(item, j, _posLabelsRevez[j], true));
                         })()}
                       </tbody>
                     </table>

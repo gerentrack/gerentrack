@@ -110,10 +110,10 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
     .badge-tot{background:#1976D222;color:#1976D2;border:1px solid #1976D244;
       border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;}
     .conteudo{padding-top:74px;}
-    .pg{background:#fff;width:210mm;height:297mm;margin:16px auto;
+    .pg{background:#fff;width:210mm;min-height:297mm;margin:16px auto;
       padding:12mm 15mm 8mm;display:flex;flex-direction:column;
-      box-shadow:0 4px 24px rgba(0,0,0,.2);overflow:hidden;}
-    .pg.landscape{width:297mm;height:210mm;padding:10mm 12mm 6mm;}
+      box-shadow:0 4px 24px rgba(0,0,0,.2);overflow:visible;}
+    .pg.landscape{width:297mm;min-height:210mm;padding:10mm 12mm 6mm;}
     .cab{display:flex;align-items:flex-start;justify-content:space-between;
       padding-bottom:4px;margin-bottom:4px;border-bottom:2px solid #111;gap:6px;
       font-size:initial;}
@@ -194,9 +194,12 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
       body{background:#fff;}
       .barra{display:none!important;}
       .conteudo{padding-top:0;}
-      .pg{margin:0;border:none;box-shadow:none;width:100%;height:100vh;padding:12mm 15mm 8mm;overflow:hidden;}
+      .pg{margin:0;border:none;box-shadow:none;width:100%;height:auto;padding:12mm 15mm 8mm;overflow:visible;}
       .pg:not(:last-child){page-break-after:always;}
       .pg.landscape{page:landscape-page;padding:8mm 12mm 6mm;}
+      tr{page-break-inside:avoid;break-inside:avoid;}
+      thead{display:table-header-group;}
+      .rod{page-break-before:avoid;break-before:avoid;}
     }
   `;
 
@@ -320,6 +323,9 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
 
   // extrai metros do id da prova (ex: "M_sub14_60m" -> 60, "M_adulto_4x400m" -> 400)
   const metrosProva = (prova) => {
+    // Marcha: IDs como 2kmM, 5kmM, 10kmM, 20kmM, 35kmM
+    const km = prova.id.match(/(\d+)kmM/);
+    if (km) return parseInt(km[1]) * 1000;
     const m = prova.id.match(/[_x]?(\d+)m/);
     return m ? parseInt(m[1]) : 0;
   };
@@ -369,7 +375,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
   let numPag = 0;
   const pags = [];
   const MAX_TOP8 = 8;  // Regra técnica: top 8 avançam para T4-T6
-  const MAX_LAND = 18; // Limite para páginas landscape (campo) — 210mm tem menos altura que portrait
+  const MAX_LAND = 14; // Limite para páginas landscape (campo) — reduzido para caber com vento e rodapé
 
   // ── Escala de fonte proporcional ao número de atletas por página ───────────
   // Quanto menos atletas, maior a fonte — preenche melhor a página.
@@ -428,7 +434,12 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
 
       // Seriação: buscar série/raia da seriação salva
       const serChave = `${s.prova.id}_${s.categoria.id}_${s.sexo}`;
-      const serSalva = evento.seriacao?.[serChave];
+      let serSalva = evento.seriacao?.[serChave];
+      // Fallback para revezamentos: tentar variante de sexo oposto no provaId
+      if (!serSalva?.series && s.isRevezamento && evento.seriacao) {
+        const altId = s.prova.id.startsWith("M_") ? "F_" + s.prova.id.slice(2) : s.prova.id.startsWith("F_") ? "M_" + s.prova.id.slice(2) : null;
+        if (altId) serSalva = evento.seriacao?.[`${altId}_${s.categoria.id}_${s.sexo}`];
+      }
       const getSerInfo = (eqId) => {
         if (!serSalva?.series) return { serie: "", raia: "" };
         for (const ser of serSalva.series) {
@@ -643,6 +654,22 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
         const _fsC = getFasesModo(s.prova.id, evento.configSeriacao || {});
         for (const _f of _fsC) { const _k = serKey(s.prova.id, s.categoria.id, s.sexo, _f); if (evento.seriacao?.[_k]?.series) { _serSalvaCheck = evento.seriacao[_k]; break; } }
       }
+      // Fallback: variante M_/F_ (revezamentos/combinadas)
+      if (!_serSalvaCheck?.series && evento.seriacao) {
+        const altId = s.prova.id.startsWith("M_") ? "F_" + s.prova.id.slice(2) : s.prova.id.startsWith("F_") ? "M_" + s.prova.id.slice(2) : null;
+        if (altId) _serSalvaCheck = evento.seriacao?.[`${altId}_${s.categoria.id}_${s.sexo}`];
+      }
+      // Fallback: busca parcial para componentes de combinada
+      if (!_serSalvaCheck?.series && evento.seriacao && s.prova.origemCombinada) {
+        const sufP = s.prova.provaOriginalSufixo || "";
+        const combIdP = s.prova.combinadaId || "";
+        if (sufP && combIdP) {
+          const matchK = Object.keys(evento.seriacao).find(k =>
+            k.includes(combIdP) && k.includes(sufP) && k.includes(s.categoria.id) && k.includes(s.sexo)
+          );
+          if (matchK) _serSalvaCheck = evento.seriacao[matchK];
+        }
+      }
       const _tipoLarg = _serSalvaCheck?.tipoLargada || (metros > 800 ? "grupo" : "raias");
       const isProvaLonga = (metros > 800 || metros === 0) || (metros === 800 && _tipoLarg === "grupo");
       // Para provas longas (>400m): usar atlPorSerie da config; para curtas: usar nRaias da config
@@ -674,8 +701,18 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
           <td class="tdat">${fmtNasc(a)}</td><td class="tdcl">${getSiglaEquipe(a)}</td>
           ${tdSerie(serieNum)}${tdRaiaVazio}${tdVentoVazio}<td class="tdmb"></td><td class="tdp"></td>${_tdClassifVazio}${_tdPtsEqVazio}
         </tr>`;
+      // Mapa de raias da seriação (fallback quando resultado não tem raia salva)
+      const _raiasSeriacao = {};
+      if (_serSalvaCheck?.series) {
+        _serSalvaCheck.series.forEach(ser => {
+          ser.atletas.forEach(sa => {
+            if (sa.raia) _raiasSeriacao[sa.id || sa.atletaId] = sa.raia;
+          });
+        });
+      }
+
       const linhaRes = (a, j, m, isFin, rawRes, serieNum) => {
-        const raiaDisp  = tdRaiaVal(getRaia(rawRes));
+        const raiaDisp  = tdRaiaVal(getRaia(rawRes) || _raiasSeriacao[a.id] || "");
         const ventoDisp = tdVentoVal(getVento(rawRes));
         const posDisp = isFin ? _posImp(a, j) : (j + 1);
         return `
@@ -893,12 +930,11 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
 
         const linhaStatus = (a, status, j) => `
           <tr class="${j%2===0?"par":"imp"}">
-            <td class="tdn"></td>
             <td class="tdn" style="font-weight:700;color:#333">${formatarPeito(numPeito[a.id])}</td>
             <td class="tdcbat">${_getCbat(a)}</td>
             <td class="tdal"><span class="anome">${a.nome}</span></td>
             <td class="tdat">${fmtNasc(a)}</td><td class="tdcl">${getSiglaEquipe(a)}</td>
-            ${isProvaLonga ? "" : `<td class="tdm"></td>`}${metros <= 400 ? `<td class="tdm"></td>` : ""}${metros <= 200 ? `<td class="tdv"></td>` : ""}
+            ${tdSerieRes("")}${metros <= 400 ? `<td class="tdm"></td>` : ""}${metros <= 200 ? `<td class="tdv"></td>` : ""}
             <td class="tdmb" style="color:#c44">${status}</td>
             <td class="tdp"></td>${_tdClassifVazio}${_tdPtsEqVazio}
           </tr>`;
@@ -931,12 +967,11 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
                 <table><thead>${thCor}</thead><tbody>${serieOrd.map(({a,m},j)=>linhaRes(a,j,m,false,res[a.id],serie.numero)).join("")}${statusLinhas.map(({a,status},j)=>{
                   const jj = serieOrd.length + j;
                   return `<tr class="${jj%2===0?"par":"imp"}">
-                    <td class="tdn"></td>
                     <td class="tdn" style="font-weight:700;color:#333">${formatarPeito(numPeito[a.id])}</td>
                     <td class="tdcbat">${_getCbat(a)}</td>
                     <td class="tdal"><span class="anome">${a.nome}</span></td>
                     <td class="tdat">${fmtNasc(a)}</td><td class="tdcl">${getSiglaEquipe(a)}</td>
-                    ${tdSerieRes("")}${tdRaiaVazio}${tdVentoVazio}<td class="tdmb" style="color:#c44">${status}</td>
+                    ${tdSerieRes(serie.numero)}${tdRaiaVazio}${tdVentoVazio}<td class="tdmb" style="color:#c44">${status}</td>
                     <td class="tdp"></td>${_tdClassifVazio}${_tdPtsEqVazio}
                   </tr>`;
                 }).join("")}</tbody></table>
@@ -956,8 +991,8 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
             }
           }
 
-          // Páginas por série (quando há seriação com múltiplas séries)
-          if (serSalva2?.series?.length > 1) {
+          // Páginas por série: apenas para fases ELI/SEM (não para final por tempo nem fase FIN)
+          if (serSalva2?.series?.length > 1 && !isFinalTempo2 && s.faseSufixo !== "FIN") {
             const seriesOrdFt = [...serSalva2.series].sort((a2, b2) => a2.numero - b2.numero);
             for (const serie of seriesOrdFt) {
               const atletaIdsSerie = new Set(serie.atletas.map(sa => sa.id || sa.atletaId));
@@ -978,7 +1013,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
 
           // Página de classificação geral
           if (classGeral.length > 0) {
-            const MAX_FT = 20;
+            const MAX_FT = 16;
             const totalPags = Math.ceil(classGeral.length / MAX_FT);
             for (let pi = 0; pi < totalPags; pi++) {
               numPag++;
@@ -1533,6 +1568,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
         // Layout: # CBAt Atleta Nasc Clube T1 T2 T3 Marca CP T4 T5 T6 Marca Pos
         // ════════════════════════════════════════════════════════════════════
 
+        const isSaltoHoriz = s.prova.nome?.includes("Dist") || s.prova.nome?.includes("Triplo") || s.prova.id?.includes("dist") || s.prova.id?.includes("triplo");
         const thCampoUnico = `<tr>
           <th style="width:30px">Nº</th>
           <th style="width:52px">CBAt</th>
@@ -1554,7 +1590,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
 
         const linhaCampoVazia = (a, j) => `
           <tr class="${j%2===0?"par":"imp"}">
-  
+
             <td class="tdn" style="font-weight:700;color:#333">${formatarPeito(numPeito[a.id])}</td>
             <td class="tdcbat">${_getCbat(a)}</td>
             <td class="tdal"><span class="anome">${a.nome}</span>${excTag(getInsc(a))}</td>
@@ -1583,22 +1619,29 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
             return n.toFixed(2).replace(".",",");
           };
           const hasTent = d.t1 != null || d.t2 != null || d.t3 != null;
+          const fmtTV = (tKey, vKey) => {
+            const marca = hasTent ? fmtT(tKey) : "\u2014";
+            if (!isSaltoHoriz) return marca;
+            const v = d[vKey];
+            const ventoStr = (v != null && v !== "") ? `<div style="font-size:7px;color:#1a56cc;margin-top:1px">${v}</div>` : "";
+            return marca + ventoStr;
+          };
           return `
           <tr class="${j%2===0?"par":"imp"}" style="${estilo}">
-  
+
             <td class="tdn" style="font-weight:700;color:#333">${formatarPeito(numPeito[a.id])}</td>
             <td class="tdcbat">${_getCbat(a)}</td>
             <td class="tdal"><span class="anome">${a.nome}</span>${excTag(getInsc(a))}</td>
             <td class="tdat">${fmtNasc(a)}</td>
             <td class="tdcl">${getSiglaEquipe(a)}</td>
-            <td class="tdm">${hasTent ? fmtT("t1") : "\u2014"}</td>
-            <td class="tdm">${hasTent ? fmtT("t2") : "\u2014"}</td>
-            <td class="tdm">${hasTent ? fmtT("t3") : "\u2014"}</td>
+            <td class="tdm">${fmtTV("t1","t1v")}</td>
+            <td class="tdm">${fmtTV("t2","t2v")}</td>
+            <td class="tdm">${fmtTV("t3","t3v")}</td>
             <td class="tdmb">${fmtMarca(m,"m")}</td>
             <td class="tdpc" style="${vaiFin?"color:#2a8a2a;font-weight:800":"color:#aaa"}">${posG}\u00b0${vaiFin?" \u2192":""}</td>
-            <td class="tdm" style="${vaiFin?"":"background:#f0f0f0;color:#ccc"}">${hasTent && vaiFin ? fmtT("t4") : "\u2014"}</td>
-            <td class="tdm" style="${vaiFin?"":"background:#f0f0f0;color:#ccc"}">${hasTent && vaiFin ? fmtT("t5") : "\u2014"}</td>
-            <td class="tdm" style="${vaiFin?"":"background:#f0f0f0;color:#ccc"}">${hasTent && vaiFin ? fmtT("t6") : "\u2014"}</td>
+            <td class="tdm" style="${vaiFin?"":"background:#f0f0f0;color:#ccc"}">${hasTent && vaiFin ? fmtTV("t4","t4v") : "\u2014"}</td>
+            <td class="tdm" style="${vaiFin?"":"background:#f0f0f0;color:#ccc"}">${hasTent && vaiFin ? fmtTV("t5","t5v") : "\u2014"}</td>
+            <td class="tdm" style="${vaiFin?"":"background:#f0f0f0;color:#ccc"}">${hasTent && vaiFin ? fmtTV("t6","t6v") : "\u2014"}</td>
             <td class="${vaiFin?"tdmbd":"tdmb"}" style="${vaiFin?"":"color:#aaa"}">${fmtMarca(m,"m")}</td>
             <td class="${vaiFin?"tdpf":"tdp"}" style="${vaiFin?"":"color:#aaa"}">${posG}\u00b0</td>
             ${_tdClassifVal(a.id)}${_tdPtsEqVal(a.id)}
@@ -1675,7 +1718,6 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
                     return linhaCampoRes(a, m, gi*MAX_LAND + j, posG, raw);
                   }).join("")}${gi === totalGrupos - 1 ? statusCampoPrint.map(({a,status},j) => `
                   <tr class="${(classGeral.length+j)%2===0?"par":"imp"}" style="opacity:.5">
-                    <td class="tdn"></td>
                     <td class="tdn" style="font-weight:700;color:#333">${formatarPeito(numPeito[a.id])}</td>
                     <td class="tdcbat">${_getCbat(a)}</td>
                     <td class="tdal"><span class="anome">${a.nome}</span></td>
@@ -1685,7 +1727,7 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
                     <td class="tdmb" style="color:#c44">${status}</td>
                     <td class="tdpc"></td>
                     <td class="tdm"></td><td class="tdm"></td><td class="tdm"></td>
-                    <td class="tdmb" style="color:#c44">${status}</td>
+                    <td class="tdmbd"></td>
                     <td class="tdp"></td>
                     ${_tdClassifVazio}${_tdPtsEqVazio}
                   </tr>`).join("") : ""}
