@@ -540,7 +540,15 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
     // Pontuação SÓ na final ou legado (sem fase). Eliminatória/semifinal NÃO pontuam.
     // Só mostra quando todos os inscritos têm qualquer resultado digitado
     const _isFaseFinalPrint = !s.faseSufixo || s.faseSufixo === "FIN";
-    const _inscsBlkPrint = (s.inscs || atl || []).length;
+    // Para fases com seriação (FIN/SEM/ELI), contar apenas atletas da seriação, não todos os inscritos
+    let _serBlkPrintCheck = s.faseSufixo ? buscarSeriacao(evento.seriacao, s.prova.id, s.categoria.id, s.sexo, s.faseSufixo) : null;
+    if (!_serBlkPrintCheck?.series && s.faseSufixo && evento.seriacao) {
+      const altId = s.prova.id.startsWith("M_") ? "F_" + s.prova.id.slice(2) : s.prova.id.startsWith("F_") ? "M_" + s.prova.id.slice(2) : null;
+      if (altId) _serBlkPrintCheck = buscarSeriacao(evento.seriacao, altId, s.categoria.id, s.sexo, s.faseSufixo);
+    }
+    const _inscsBlkPrint = (_serBlkPrintCheck?.series?.length > 0)
+      ? _serBlkPrintCheck.series.reduce((acc, ser) => acc + (ser.atletas?.length || 0), 0)
+      : (s.faseSufixo ? Object.keys(res).length : (s.inscs || atl || []).length);
     const _entradasBrutasPrint = Object.keys(res).length;
     const _provaCompletaPrint = _inscsBlkPrint === 0 || _entradasBrutasPrint >= _inscsBlkPrint;
     const mostrarPtsEq = pontEqAtivo && !s.prova.origemCombinada && _isFaseFinalPrint && _provaCompletaPrint;
@@ -702,14 +710,19 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
           ${tdSerie(serieNum)}${tdRaiaVazio}${tdVentoVazio}<td class="tdmb"></td><td class="tdp"></td>${_tdClassifVazio}${_tdPtsEqVazio}
         </tr>`;
       // Mapa de raias da seriação (fallback quando resultado não tem raia salva)
-      const _raiasSeriacao = {};
-      if (_serSalvaCheck?.series) {
-        _serSalvaCheck.series.forEach(ser => {
-          ser.atletas.forEach(sa => {
-            if (sa.raia) _raiasSeriacao[sa.id || sa.atletaId] = sa.raia;
+      // Atualizado para cada fase via _atualizarRaiasSeriacao
+      let _raiasSeriacao = {};
+      const _atualizarRaiasSeriacao = (serObj) => {
+        _raiasSeriacao = {};
+        if (serObj?.series) {
+          serObj.series.forEach(ser => {
+            ser.atletas.forEach(sa => {
+              if (sa.raia) _raiasSeriacao[sa.id || sa.atletaId] = sa.raia;
+            });
           });
-        });
-      }
+        }
+      };
+      _atualizarRaiasSeriacao(_serSalvaCheck);
 
       const linhaRes = (a, j, m, isFin, rawRes, serieNum) => {
         const raiaDisp  = tdRaiaVal(getRaia(rawRes) || _raiasSeriacao[a.id] || "");
@@ -909,6 +922,8 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
             if (evento.seriacao?.[_ck2]?.series) { serSalva2 = evento.seriacao[_ck2]; break; }
           }
         }
+        // Atualizar mapa de raias para a fase atual (serSalva2 pode ser FIN, SEM, ELI)
+        if (serSalva2) _atualizarRaiasSeriacao(serSalva2);
 
         const classGeral = [...atl]
           .map((a) => ({ a, m: res[a.id] != null ? parseFloat(getMarca(res[a.id])) : null }))
