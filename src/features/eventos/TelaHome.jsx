@@ -378,6 +378,15 @@ export default function TelaHome() {
     const cta = getCtaEvento(ev, status);
     const isLive = status === "ao_vivo";
 
+    // Verificar se inscrições estão abertas
+    const agora = new Date();
+    const dtAb = ev.dataAberturaInscricoes ? new Date(ev.dataAberturaInscricoes + "T" + (ev.horaAberturaInscricoes || "00:00") + ":00") : null;
+    const dtEnc = ev.dataEncerramentoInscricoes ? new Date(ev.dataEncerramentoInscricoes + "T" + (ev.horaEncerramentoInscricoes || "23:59") + ":00") : null;
+    const inscricoesAbertas = !ev.inscricoesEncerradas && !ev.competicaoFinalizada
+      && (!dtAb || agora >= dtAb)
+      && (!dtEnc || agora <= dtEnc)
+      && status === "futuro";
+
     return (
       <div key={ev.id} style={{ ...s.eventoCard, padding: 0, overflow: "hidden" }}
         onMouseEnter={e => { e.currentTarget.style.borderColor = t.accent; e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = `0 8px 30px ${t.accent}22`; }}
@@ -418,9 +427,16 @@ export default function TelaHome() {
               </span>
             )}
           </div>
-          <button style={{ ...s.btnPrimary, alignSelf: "center", padding: "9px 22px", fontSize: 13 }} onClick={() => cta.action()}>
-            {cta.label}
-          </button>
+          <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
+            <button style={{ ...s.btnPrimary, padding: "9px 22px", fontSize: 13 }} onClick={() => cta.action()}>
+              {cta.label}
+            </button>
+            {inscricoesAbertas && (
+              <button style={{ ...s.btnPrimary, padding: "9px 22px", fontSize: 13, background: `linear-gradient(135deg, ${t.success}, ${t.successDark || t.success})` }} onClick={() => selecionarEvento(ev.id, "inscricao-avulsa")}>
+                Realizar Inscrição
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
