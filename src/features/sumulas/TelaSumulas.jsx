@@ -790,7 +790,13 @@ function TelaSumulas({ chamada, getPresencaProva }) {
             tipoLargada: seriacaoPreview.tipoLargada || "raias",
             regraAplicada: seriacaoPreview.regraAplicada || "",
           };
-          atualizarCamposEvento(eventoAtual.id, { seriacao: novasSer });
+          // Persistir seriação + configSeriacao juntos se há mudanças pendentes
+          const campos = { seriacao: novasSer };
+          if (configSeriacaoDirty) {
+            campos.configSeriacao = configSeriacao;
+            setConfigSeriacaoDirty(false);
+          }
+          atualizarCamposEvento(eventoAtual.id, campos);
           setSeriacaoPreview(null);
           setSeriacaoChaveAtiva(null);
           setSeriacaoProvaId(null);
@@ -800,7 +806,12 @@ function TelaSumulas({ chamada, getPresencaProva }) {
           if (isFinalizado) return;
           const novasSer = { ...seriacaoSalva };
           delete novasSer[chave];
-          atualizarCamposEvento(eventoAtual.id, { seriacao: novasSer });
+          const campos = { seriacao: novasSer };
+          if (configSeriacaoDirty) {
+            campos.configSeriacao = configSeriacao;
+            setConfigSeriacaoDirty(false);
+          }
+          atualizarCamposEvento(eventoAtual.id, campos);
         };
 
         const itemAtivo = provasPista.find(pp => pp.chave === seriacaoChaveAtiva);
