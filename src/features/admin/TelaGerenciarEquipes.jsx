@@ -6,7 +6,7 @@ import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvento } from "../../contexts/EventoContext";
 import { useApp } from "../../contexts/AppContext";
-import { secondaryAuth, createUserWithEmailAndPassword, signOut as firebaseSignOut } from "../../firebase";
+import { secondaryAuth, createUserWithEmailAndPassword, signOut as firebaseSignOut, functions, httpsCallable } from "../../firebase";
 
 const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
 
@@ -181,13 +181,32 @@ function TelaGerenciarEquipes() {
     else if (!validarCNPJ(form.cnpj)) e.cnpj = "CNPJ inválido";
     if (!form.organizadorId && isAdmin) e.organizadorId = "Selecione o organizador";
     
-    // Verificar duplicação (exceto se for edição da mesma equipe)
-    const jaExiste = equipes.some(eq => 
-      eq.nome.toLowerCase() === form.nome.toLowerCase() && 
+    // Verificar duplicação de nome (exceto se for edição da mesma equipe)
+    const jaExisteNome = equipes.some(eq =>
+      eq.nome.toLowerCase() === form.nome.toLowerCase() &&
       eq.id !== equipeSelecionada?.id
     );
-    if (jaExiste) e.nome = "Já existe uma equipe com este nome";
-    
+    if (jaExisteNome) e.nome = "Já existe uma equipe com este nome";
+
+    // Verificar duplicação de sigla
+    if (form.sigla) {
+      const jaExisteSigla = equipes.some(eq =>
+        eq.sigla?.toLowerCase() === form.sigla.toLowerCase() &&
+        eq.id !== equipeSelecionada?.id
+      );
+      if (jaExisteSigla) e.sigla = "Já existe uma equipe com esta sigla";
+    }
+
+    // Verificar duplicação de CNPJ
+    if (form.cnpj && !e.cnpj) {
+      const cnpjLimpo = form.cnpj.replace(/\D/g, "");
+      const jaExisteCnpj = equipes.some(eq =>
+        eq.cnpj?.replace(/\D/g, "") === cnpjLimpo &&
+        eq.id !== equipeSelecionada?.id
+      );
+      if (jaExisteCnpj) e.cnpj = "Já existe uma equipe com este CNPJ";
+    }
+
     return e;
   };
 
@@ -239,6 +258,15 @@ function TelaGerenciarEquipes() {
             // OK — novo email já tem conta Auth
           } else {
             alert(`Aviso: não foi possível criar conta Auth para ${emailNovo} (${authErr.code}).`);
+          }
+        }
+        // Deletar conta Auth antiga via Cloud Function
+        if (emailAntigo) {
+          try {
+            const deleteAuthUser = httpsCallable(functions, "deleteAuthUser");
+            await deleteAuthUser({ email: emailAntigo });
+          } catch (err) {
+            console.warn("[GerenciarEquipes] Não foi possível deletar conta Auth antiga:", err.message);
           }
         }
       }
@@ -442,14 +470,39 @@ function TelaGerenciarEquipes() {
           }
 
           // Check duplicates by name
-          if (equipes.some(e => e.nome.toLowerCase() === nome.toLowerCase())) {
+          if (equipes.some(eq => eq.nome.toLowerCase() === nome.toLowerCase())) {
             erros.push(`Linha ${linha}: Equipe "${nome}" já cadastrada no sistema`);
             return;
           }
 
-          // Check duplicates in file
-          if (equipesParaImportar.some(e => e.nome.toLowerCase() === nome.toLowerCase())) {
+          // Check duplicates in file by name
+          if (equipesParaImportar.some(eq => eq.nome.toLowerCase() === nome.toLowerCase())) {
             erros.push(`Linha ${linha}: Equipe "${nome}" duplicada na planilha`);
+            return;
+          }
+
+          // Check duplicate CNPJ in system
+          const cnpjLimpo = cnpj.replace(/\D/g, "");
+          if (equipes.some(eq => eq.cnpj?.replace(/\D/g, "") === cnpjLimpo)) {
+            erros.push(`Linha ${linha}: CNPJ ${cnpj} já cadastrado no sistema`);
+            return;
+          }
+
+          // Check duplicate CNPJ in file
+          if (equipesParaImportar.some(eq => eq.cnpj?.replace(/\D/g, "") === cnpjLimpo)) {
+            erros.push(`Linha ${linha}: CNPJ ${cnpj} duplicado na planilha`);
+            return;
+          }
+
+          // Check duplicate sigla in system
+          if (equipes.some(eq => eq.sigla?.toLowerCase() === sigla.toLowerCase())) {
+            erros.push(`Linha ${linha}: Sigla "${sigla}" já cadastrada no sistema`);
+            return;
+          }
+
+          // Check duplicate sigla in file
+          if (equipesParaImportar.some(eq => eq.sigla?.toLowerCase() === sigla.toLowerCase())) {
+            erros.push(`Linha ${linha}: Sigla "${sigla}" duplicada na planilha`);
             return;
           }
 

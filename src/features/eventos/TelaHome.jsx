@@ -308,7 +308,7 @@ export default function TelaHome() {
 
   // ── CTA dinâmico ──
   const getCtaEvento = (ev, status) => {
-    if (status === "futuro") return { label: "Inscrever-se", action: () => selecionarEvento(ev.id) };
+    if (status === "futuro") return { label: "Ver detalhes", action: () => selecionarEvento(ev.id) };
     if (status === "ao_vivo" || status === "hoje_pre") return { label: "Acompanhar", action: () => selecionarEvento(ev.id) };
     return { label: "Ver Resultados", action: () => selecionarEvento(ev.id, "resultados") };
   };
@@ -411,7 +411,7 @@ export default function TelaHome() {
           <div style={s.eventoCardMeta}>
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>{IcoUsers()} {nAtletas} atleta{nAtletas !== 1 ? "s" : ""}</span>
           </div>
-          <button style={{ ...s.btnPrimary, alignSelf: "flex-start", padding: "9px 22px", fontSize: 13 }} onClick={() => cta.action()}>
+          <button style={{ ...s.btnPrimary, alignSelf: "center", padding: "9px 22px", fontSize: 13 }} onClick={() => cta.action()}>
             {cta.label}
           </button>
         </div>

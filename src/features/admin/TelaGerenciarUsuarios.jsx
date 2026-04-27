@@ -10,7 +10,7 @@ import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvento } from "../../contexts/EventoContext";
 import { useApp } from "../../contexts/AppContext";
-import { secondaryAuth, createUserWithEmailAndPassword, signOut as firebaseSignOut } from "../../firebase";
+import { secondaryAuth, createUserWithEmailAndPassword, signOut as firebaseSignOut, functions, httpsCallable } from "../../firebase";
 function getStyles(t) {
   return {
   page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
@@ -218,7 +218,33 @@ function TelaGerenciarUsuarios() {
       u.id !== perfilExistente?.id
     );
     if (jaExiste) e.email = "E-mail já cadastrado em outra conta.";
-    
+
+    // Verificar duplicação de CPF (atletas)
+    if (tipoUsuario === "atletas" && form.cpf && !e.cpf) {
+      const cpfLimpo = form.cpf.replace(/\D/g, "");
+      if (cpfLimpo.length === 11) {
+        const cpfDup = [...(atletasUsuarios||[]), ...(atletas||[])].find(u =>
+          u.cpf?.replace(/\D/g, "") === cpfLimpo &&
+          u.id !== usuarioSelecionado?.id &&
+          u.id !== perfilExistente?.id
+        );
+        if (cpfDup) e.cpf = "CPF já cadastrado no sistema.";
+      }
+    }
+
+    // Verificar duplicação de CNPJ (organizadores/equipes)
+    if ((tipoUsuario === "organizadores" || tipoUsuario === "equipes") && form.cnpj && !e.cnpj) {
+      const cnpjLimpo = form.cnpj.replace(/\D/g, "");
+      if (cnpjLimpo.length === 14) {
+        const cnpjDup = [...(organizadores||[]), ...(equipes||[])].find(u =>
+          u.cnpj?.replace(/\D/g, "") === cnpjLimpo &&
+          u.id !== usuarioSelecionado?.id &&
+          u.id !== perfilExistente?.id
+        );
+        if (cnpjDup) e.cnpj = "CNPJ já cadastrado no sistema.";
+      }
+    }
+
     return e;
   };
 
@@ -359,6 +385,15 @@ function TelaGerenciarUsuarios() {
             authAviso = "\n\nO novo email já possui conta Auth — o usuário deve usar a senha existente.";
           } else {
             authAviso = `\n\nAviso: não foi possível criar conta Auth para o novo email (${authErr.code}).`;
+          }
+        }
+        // Deletar conta Auth antiga via Cloud Function
+        if (emailAntigo) {
+          try {
+            const deleteAuthUser = httpsCallable(functions, "deleteAuthUser");
+            await deleteAuthUser({ email: emailAntigo });
+          } catch (err) {
+            console.warn("[GerenciarUsuarios] Não foi possível deletar conta Auth antiga:", err.message);
           }
         }
       }
