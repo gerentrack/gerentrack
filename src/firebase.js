@@ -11,6 +11,7 @@ import {
   writeBatch,
   runTransaction,
 } from "firebase/firestore";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -44,6 +45,7 @@ const db  = getFirestore(app);
 const auth = getAuth(app);
 const storage = getStorage(app);
 
+const functions = getFunctions(app, "southamerica-east1");
 const googleProvider = new GoogleAuthProvider();
 
 // Segunda instância exclusiva para criar contas sem afetar a sessão atual
@@ -65,4 +67,6 @@ export {
   googleProvider, signInWithPopup, signInWithRedirect, getRedirectResult, linkWithPopup, unlink,
   // Auth secundário (criar contas sem deslogar o usuário atual)
   secondaryAuth,
+  // Cloud Functions
+  functions, httpsCallable,
 };
