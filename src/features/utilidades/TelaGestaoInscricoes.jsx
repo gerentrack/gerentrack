@@ -1417,10 +1417,14 @@ function TelaGestaoInscricoes() {
                         <button
                           style={{ ...s.btnPrimary, padding: "5px 14px", fontSize: 12 }}
                           onClick={() => {
+                            setFiltroSexoLote("todos");
+                            setFiltroCatLote("todas");
+                            setFiltroEquipeLote("todas");
                             setModoCarrinho(true);
                             setEtapa("montagem");
                             setInserirAtletaId(pre.atletaId);
                             setInserirProvasIds(new Set());
+                            setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 100);
                           }}>
                           Definir Provas
                         </button>
