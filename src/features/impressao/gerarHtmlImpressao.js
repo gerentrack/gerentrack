@@ -1029,8 +1029,27 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
                 </div>`);
             }
           }
+        } else if (s.faseSufixo === "FIN") {
+          // Fase FINAL: apenas classificação geral (sem séries individuais)
+          if (classGeral.length > 0) {
+            const serDoAtlFin = {};
+            if (serSalva2?.series) {
+              serSalva2.series.forEach(ser => {
+                ser.atletas.forEach(sa => { serDoAtlFin[sa.id || sa.atletaId] = ser.numero; });
+              });
+            }
+            numPag++;
+            pags.push(`
+              <div class="${pgClass(s)}">
+                ${cabPrv(s, numPag, null)}
+                <div class="blk blk-final">FINAL<span class="blk-s">${classGeral.length} atleta${classGeral.length!==1?"s":""} \u00b7 resultado final</span></div>
+                ${infoBarreiras}
+                <table><thead>${thCor}</thead><tbody>${classGeral.map(({a,m},j) => linhaRes(a, j, m, true, res[a.id], serDoAtlFin[a.id] || "")).join("")}${statusGeralPrint.map(({a,status},j) => linhaStatus(a, status, classGeral.length+j)).join("")}</tbody></table>
+                ${rodape(s)}
+              </div>`);
+          }
         } else {
-          // Semifinal + Final com resultado
+          // Semifinal + Final com resultado (sem faseSufixo)
           for (let si = 0; si < totalSeries; si++) {
             numPag++;
             const serie = atl.slice(si*MAX_EFETIVO, (si+1)*MAX_EFETIVO);
