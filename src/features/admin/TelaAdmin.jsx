@@ -9,6 +9,7 @@ import { capitalizarNome } from "../../lib/utils/sanitize";
 import { StatCard } from "../ui/StatCard";
 import FormField from "../ui/FormField";
 import { Th, Td } from "../ui/TableHelpers";
+import { SinoNotificacoes } from "../ui/SinoNotificacoes";
 import { auth, secondaryAuth, createUserWithEmailAndPassword, signOut as firebaseSignOut, sendPasswordResetEmail } from "../../firebase";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
@@ -79,7 +80,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes }) {
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado, solicitacoesRecuperacao, resolverSolicitacaoRecuperacao, aplicarSenhaTemp, gerarSenhaTemp } = useAuth();
   const { equipes, atletas, inscricoes, eventos, selecionarEvento, excluirEvento, resultados, atualizarAtleta, excluirAtleta } = useEvento();
-  const { setTela, organizadores, adicionarOrganizador, aprovarOrganizador, recusarOrganizador, editarOrganizadorAdmin, excluirDadosOrganizador, exportarDados, importarDados, siteBranding, setSiteBranding, gtIcon, gtLogo, historicoAcoes, atletasUsuarios, funcionarios, treinadores, adicionarTreinador, atualizarTreinador, removerTreinador, setAtletaEditandoId, solicitacoesEquipe, aprovarEquipe, recusarEquipe, solicitacoesPortabilidade, resolverSolicitacaoPortabilidade, excluirSolicitacaoPortabilidade, registrarAcao } = useApp();
+  const { setTela, organizadores, adicionarOrganizador, aprovarOrganizador, recusarOrganizador, editarOrganizadorAdmin, excluirDadosOrganizador, exportarDados, importarDados, siteBranding, setSiteBranding, gtIcon, gtLogo, historicoAcoes, atletasUsuarios, funcionarios, treinadores, adicionarTreinador, atualizarTreinador, removerTreinador, setAtletaEditandoId, solicitacoesEquipe, aprovarEquipe, recusarEquipe, solicitacoesPortabilidade, resolverSolicitacaoPortabilidade, excluirSolicitacaoPortabilidade, registrarAcao, notificacoes, marcarNotifLida } = useApp();
   const confirmar = useConfirm();
   const pendOrg = organizadores.filter(o => o.status === "pendente");
   const pendRec = (solicitacoesRecuperacao || []).filter(sol => sol.status === "pendente");
@@ -378,6 +379,11 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes }) {
       {/* ── HEADER ─────────────────────────────────────────────────────────── */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:24 }}>
         <h1 style={s.title}>Administração</h1>
+        <SinoNotificacoes
+          notificacoes={notificacoes}
+          usuarioId="admin"
+          marcarNotifLida={marcarNotifLida}
+        />
       </div>
 
       {/* ── TAB BAR ────────────────────────────────────────────────────────── */}

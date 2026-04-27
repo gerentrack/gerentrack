@@ -7,22 +7,28 @@ import React, { useState, useRef, useEffect } from "react";
 import { useTema } from "../../shared/TemaContext";
 
 const ICONES = {
-  aprovacao_equipe:   "✓",
-  portabilidade:      "→",
-  vinculo_solicitado: "→",
-  sumulas_liberadas:  "✓",
-  desvinculacao:      "✕",
-  medals_ready:       "✓",
-  relatorio_solicitado: "!",
-  relatorio_gerado:    "✓",
-  relatorio_cancelado: "—",
-  relatorio_excluido:  "✕",
-  info:               "·",
+  aprovacao_equipe:      "✓",
+  organizador_pendente:  "!",
+  organizador_aprovado:  "✓",
+  organizador_recusado:  "✕",
+  portabilidade:         "→",
+  vinculo_solicitado:    "→",
+  sumulas_liberadas:     "✓",
+  desvinculacao:         "✕",
+  medals_ready:          "✓",
+  relatorio_solicitado:  "!",
+  relatorio_gerado:      "✓",
+  relatorio_cancelado:   "—",
+  relatorio_excluido:    "✕",
+  info:                  "·",
 };
 
 function getCores(t) {
   return {
     aprovacao_equipe:     { txt: t.success },
+    organizador_pendente: { txt: t.warning },
+    organizador_aprovado: { txt: t.success },
+    organizador_recusado: { txt: t.danger },
     portabilidade:        { txt: t.accent },
     vinculo_solicitado:   { txt: t.accent },
     sumulas_liberadas:    { txt: t.success },

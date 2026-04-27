@@ -908,11 +908,15 @@ function App() {
   const aprovarOrganizador  = (id) => {
     setOrganizadores((p) => p.map(o => o.id===id ? {...o, status:"aprovado"} : o));
     const org = organizadores.find(o => o.id === id);
+    adicionarNotificacao(id, "organizador_aprovado",
+      `Sua conta de organizador (${org?.entidade || ""}) foi aprovada! Você já pode acessar o sistema.`);
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Aprovou organizador", org?.nome || id, null, { modulo: "sistema" });
   };
   const recusarOrganizador  = (id) => {
     setOrganizadores((p) => p.map(o => o.id===id ? {...o, status:"recusado"} : o));
     const org = organizadores.find(o => o.id === id);
+    adicionarNotificacao(id, "organizador_recusado",
+      `Sua solicitação de conta de organizador (${org?.entidade || ""}) foi recusada.`);
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Recusou organizador", org?.nome || id, null, { modulo: "sistema" });
   };
 

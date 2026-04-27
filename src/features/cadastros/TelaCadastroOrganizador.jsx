@@ -13,7 +13,7 @@ import BlocoLGPD from "../ui/BlocoLGPD";
 
 function TelaCadastroOrganizador() {
   const { login } = useAuth();
-  const { setTela, organizadores, adicionarOrganizador } = useApp();
+  const { setTela, organizadores, adicionarOrganizador, adicionarNotificacao } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(criarInscricaoStyles(t));
   const [form, setForm] = useState({ nome:"", email:"", senha:"", entidade:"", fone:"", cnpj:"", equipeId:"", cidade:"", estado:"" });
@@ -67,6 +67,8 @@ function TelaCadastroOrganizador() {
       lgpdVersao: "2.0",
     };
     adicionarOrganizador(o);
+    adicionarNotificacao("admin", "organizador_pendente",
+      `Novo organizador cadastrado: ${o.nome} (${o.entidade}). Aguardando aprovação.`);
     // Flush direto no Firestore enquanto auth ainda está ativo (bypass debounce de 2s)
     try {
       const key = "atl_organizadores";
