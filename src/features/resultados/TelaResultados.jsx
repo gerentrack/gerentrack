@@ -1413,21 +1413,22 @@ function TelaResultados() {
               const serieDoAtletaBlk = {};
               const raiaDoAtletaBlk = {};
               let _serBlk = buscarSeriacao(eventoAtual.seriacao, b.prova.id, b.categoria.id, b.sexo, b.faseSufixo || "");
-              // Fallback: tentar variante de sexo oposto no provaId (revezamentos/combinadas com M_→F_ ou vice-versa)
+              // Fallback: tentar variante de sexo oposto no provaId
               if (!_serBlk?.series && eventoAtual.seriacao) {
                 const altPrefix = b.prova.id.startsWith("M_") ? "F_" + b.prova.id.slice(2) : b.prova.id.startsWith("F_") ? "M_" + b.prova.id.slice(2) : null;
                 if (altPrefix) _serBlk = buscarSeriacao(eventoAtual.seriacao, altPrefix, b.categoria.id, b.sexo, b.faseSufixo || "");
               }
-              // Fallback: buscar por prefixo parcial no objeto de seriação (combinadas com provaId longo)
-              if (!_serBlk?.series && eventoAtual.seriacao && b.prova.origemCombinada) {
-                const sufixoProva = b.prova.provaOriginalSufixo || "";
-                const combId = b.prova.combinadaId || "";
-                if (sufixoProva && combId) {
-                  const match = Object.keys(eventoAtual.seriacao).find(k =>
-                    k.includes(combId) && k.includes(sufixoProva) && k.includes(b.categoria.id) && k.includes(b.sexo)
-                  );
-                  if (match) _serBlk = eventoAtual.seriacao[match];
-                }
+              // Fallback: buscar por match parcial no objeto de seriação (cobre combinadas, variantes de provaId, fases)
+              if (!_serBlk?.series && eventoAtual.seriacao) {
+                const provaBase = b.prova.id.replace(/^[MF]_/, "");
+                const faseSuf = b.faseSufixo || "";
+                const match = Object.keys(eventoAtual.seriacao).find(k => {
+                  if (!eventoAtual.seriacao[k]?.series) return false;
+                  if (!k.includes(b.categoria.id) || !k.includes(`_${b.sexo}`)) return false;
+                  if (faseSuf && !k.includes(`__${faseSuf}`)) return false;
+                  return k.includes(provaBase);
+                });
+                if (match) _serBlk = eventoAtual.seriacao[match];
               }
               if (_serBlk?.series && _serBlk.series.length > 0) {
                 _serBlk.series.forEach(ser => {
@@ -1463,7 +1464,11 @@ function TelaResultados() {
               const resBlkObj = resultados[chaveBlkPont] || {};
               const entradasBrutas = Object.keys(resBlkObj).length;
               // Para fases com seriação (SEM/FIN), contar apenas atletas na seriação (classificados)
-              const _serBlkPont = b.faseSufixo ? buscarSeriacao(eventoAtual.seriacao, b.prova.id, b.categoria.id, b.sexo, b.faseSufixo) : null;
+              let _serBlkPont = b.faseSufixo ? buscarSeriacao(eventoAtual.seriacao, b.prova.id, b.categoria.id, b.sexo, b.faseSufixo) : null;
+              if (!_serBlkPont?.series && b.faseSufixo && eventoAtual.seriacao) {
+                const altId = b.prova.id.startsWith("M_") ? "F_" + b.prova.id.slice(2) : b.prova.id.startsWith("F_") ? "M_" + b.prova.id.slice(2) : null;
+                if (altId) _serBlkPont = buscarSeriacao(eventoAtual.seriacao, altId, b.categoria.id, b.sexo, b.faseSufixo);
+              }
               const _inscsBase = inscDoEvento.filter(i =>
                 i.provaId === b.prova.id &&
                 (i.categoriaId || i.categoriaOficialId) === b.categoria.id &&
@@ -1472,7 +1477,7 @@ function TelaResultados() {
               );
               const inscsBlkPont = (_serBlkPont?.series && _serBlkPont.series.length > 0)
                 ? _serBlkPont.series.flatMap(ser => ser.atletas.map(a => ({ atletaId: a.id || a.atletaId })))
-                : _inscsBase;
+                : (b.faseSufixo ? b.classificados.map(item => ({ atletaId: item.atleta?.id || item.equipeId })) : _inscsBase);
               // Para provas de campo com tentativas (salto/lançamento, exceto altura/vara):
               // só pontuam quando TODOS os atletas têm T3 preenchido ou têm status (DNS/NM/DQ)
               const isAltVaraBlk = b.prova.tipo === "salto" && (b.prova.id.includes("altura") || b.prova.id.includes("vara"));

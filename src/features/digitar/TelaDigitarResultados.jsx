@@ -340,7 +340,12 @@ function BlocoDigitarCategoria({
   const faseEfetiva = _temFases ? (filtroFase || _provaFases[0] || "") : "";
 
   // ── Filtrar e ordenar atletas pela seriação da fase selecionada (ou fase única) ──
-  const _serDigitar = buscarSeriacao(eventoAtual.seriacao, filtroProva, catId, filtroSexo, faseEfetiva);
+  let _serDigitar = buscarSeriacao(eventoAtual.seriacao, filtroProva, catId, filtroSexo, faseEfetiva);
+  // Fallback: variante M_/F_ no provaId
+  if (!_serDigitar?.series && eventoAtual?.seriacao) {
+    const altPfx = filtroProva.startsWith("M_") ? "F_" + filtroProva.slice(2) : filtroProva.startsWith("F_") ? "M_" + filtroProva.slice(2) : null;
+    if (altPfx) _serDigitar = buscarSeriacao(eventoAtual.seriacao, altPfx, catId, filtroSexo, faseEfetiva);
+  }
   // Mapa posicional: índice no atletasNaProva → { serie, raia } (preserva ordem da seriação)
   const _serInfoByIndex = new Map();
   if (_serDigitar?.series && _serDigitar.series.length > 0 && !isRevezamento) {
