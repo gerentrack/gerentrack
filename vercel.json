@@ -1,13 +1,6 @@
 {
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
-    {
-      "source": "/competicao/:slug/resultados",
-      "has": [
-        { "type": "header", "key": "user-agent", "value": "(?i).*(bot|crawler|spider|facebookexternalhit|WhatsApp|Telegram|Twitterbot|LinkedInBot|Slackbot|Discordbot|Googlebot|bingbot|Applebot).*" }
-      ],
-      "destination": "/api/og/competicao/:slug/resultados"
-    },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
