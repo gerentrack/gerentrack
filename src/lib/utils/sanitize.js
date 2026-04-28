@@ -7,10 +7,10 @@
 
 // Campos que devem ter capitalização automática (primeira letra de cada palavra)
 const CAMPOS_NOME = new Set([
-  "nome", "nomeUsuario", "nomeEquipe", "atletaNome", "equipeNome",
+  "nomeUsuario", "nomeEquipe", "atletaNome", "equipeNome",
   "organizadorNome", "responsavelLegal", "nomeAtleta", "nomeCombinada",
   "inscritoPorNome", "equipeSelecionadaNome", "clubeNome",
-  "cidade", "local", "clube", "entidade",
+  "cidade", "clube", "entidade",
 ]);
 
 // Palavras que não devem ser capitalizadas (preposições/artigos comuns)
