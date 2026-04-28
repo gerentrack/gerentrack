@@ -189,11 +189,13 @@ function TelaGerenciarUsuarios() {
       if ((u.organizadorId || "") !== filtroOrgUsuario) return false;
     }
     if (filtro === "") return true;
-    return u.nome?.toLowerCase().includes(filtro.toLowerCase()) ||
-      u.email?.toLowerCase().includes(filtro.toLowerCase()) ||
-      u.cpf?.replace(/\D/g, '').includes(filtro.replace(/\D/g, '')) ||
-      u.cnpj?.replace(/\D/g, '').includes(filtro.replace(/\D/g, '')) ||
-      u.sigla?.toLowerCase().includes(filtro.toLowerCase());
+    const filtroLow = filtro.toLowerCase();
+    const filtroDigitos = filtro.replace(/\D/g, '');
+    return u.nome?.toLowerCase().includes(filtroLow) ||
+      u.email?.toLowerCase().includes(filtroLow) ||
+      (filtroDigitos && u.cpf?.replace(/\D/g, '').includes(filtroDigitos)) ||
+      (filtroDigitos && u.cnpj?.replace(/\D/g, '').includes(filtroDigitos)) ||
+      u.sigla?.toLowerCase().includes(filtroLow);
   });
 
   const validar = () => {
