@@ -1,5 +1,9 @@
 import React from "react";
 import { useState, useEffect, useRef, useCallback } from "react";
+// ── Hooks extraídos (Etapa 2.3 — decomposição App.jsx) ──────────
+import { useSessionTimeout } from "./hooks/useSessionTimeout";
+import { useReloginGuard } from "./hooks/useReloginGuard";
+import { useMigrations } from "./hooks/useMigrations";
 // ── Contexts (Etapa 2 — migração React Router) ──────────────────
 import { AuthProvider, buildAuthValue } from "./contexts/AuthContext";
 import { EventoProvider, buildEventoValue } from "./contexts/EventoContext";
@@ -380,97 +384,6 @@ function App() {
     atletaEditandoId, setAtletaEditandoId,
   });
 
-  // ── Migração: gerar slugs para eventos legados que não têm ─────────────────
-  const slugsMigrados = useRef(false);
-  useEffect(() => {
-    if (slugsMigrados.current) return;
-    if (eventos.length === 0) return;
-    const semSlug = eventos.filter(e => !e.slug);
-    if (semSlug.length === 0) { slugsMigrados.current = true; return; }
-    slugsMigrados.current = true;
-    const gerarSlugMigr = (nome, data, id) => {
-      const base = (nome || "competicao")
-        .toLowerCase()
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9\s-]/g, "")
-        .trim()
-        .replace(/\s+/g, "-")
-        .slice(0, 60);
-      const ano = data ? data.slice(0, 4) : new Date().getFullYear();
-      return `${base}-${ano}`;
-    };
-    // Gera slugs garantindo unicidade
-    const slugsUsados = new Set(eventos.filter(e => e.slug).map(e => e.slug));
-    const atualizacoes = semSlug.map(ev => {
-      let slug = gerarSlugMigr(ev.nome, ev.data, ev.id);
-      if (slugsUsados.has(slug)) slug = `${slug}-${ev.id.slice(-4)}`;
-      slugsUsados.add(slug);
-      return { id: ev.id, slug };
-    });
-    atualizacoes.forEach(u => _atualizarCamposEvento(u.id, { slug: u.slug }));
-    console.log(`[App] Slugs gerados para ${atualizacoes.length} evento(s) legado(s)`);
-  }, [eventos.length]);
-
-  // ── Garantir que organizadores sempre tenham slug ─────────────────────
-  // Usa JSON dos IDs sem slug como dep para evitar loop infinito
-  const orgsSemSlugIds = organizadores.filter(o => !o.slug).map(o => o.id).join(",");
-  useEffect(() => {
-    if (!orgsSemSlugIds) return;
-    const semSlug = organizadores.filter(o => !o.slug);
-    const slugsUsados = new Set(organizadores.filter(o => o.slug).map(o => o.slug));
-    const atualizados = organizadores.map(o => {
-      if (o.slug) return o;
-      let base = (o.entidade || o.nome || "organizador")
-        .toLowerCase()
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9\s-]/g, "")
-        .trim()
-        .replace(/\s+/g, "-")
-        .slice(0, 60);
-      if (slugsUsados.has(base)) base = `${base}-${o.id.slice(-4)}`;
-      slugsUsados.add(base);
-      return { ...o, slug: base };
-    });
-    setOrganizadores(atualizados);
-    console.log(`[App] Slugs gerados para ${semSlug.length} organizador(es)`);
-  }, [orgsSemSlugIds]);
-
-  // ── Migração: garantir campos de plano em organizadores ──────────────
-  const orgsSemPlanoIds = organizadores.filter(o => o.plano === undefined).map(o => o.id).join(",");
-  useEffect(() => {
-    if (!orgsSemPlanoIds) return;
-    const atualizados = organizadores.map(o => {
-      if (o.plano !== undefined) return o;
-      return { ...o, plano: null, planoInicio: null, planoFim: null, creditosAvulso: [], suspenso: false, suspensoMotivo: null, suspensoEm: null, contratoEncerradoEm: null };
-    });
-    setOrganizadores(atualizados);
-  }, [orgsSemPlanoIds]);
-
-  // ── Migração: remover campo senha de registros no Firestore ──────────
-  // Roda uma vez — limpa senhas legadas que foram persistidas antes da
-  // migração para Firebase Auth. Após limpar, marca como feito.
-  useEffect(() => {
-    if (!firebaseAuthed) return;
-    const migKey = "atl_migr_senha_firestore_v1";
-    if (localStorage.getItem(migKey)) return;
-    const limpar = (arr, setter) => {
-      if (!Array.isArray(arr) || !arr.some(u => u.senha !== undefined)) return;
-      setter(arr.map(({ senha, ...resto }) => resto));
-    };
-    limpar(organizadores, setOrganizadores);
-    limpar(funcionarios, setFuncionarios);
-    limpar(treinadores, setTreinadores);
-    limpar(atletasUsuarios, setAtletasUsuarios);
-    // Equipes: coleção individual — regravar sem senha
-    equipes.forEach(eq => {
-      if (eq.senha !== undefined) {
-        const { senha: _s, ...eqSemSenha } = eq;
-        _atualizarEquipe(eqSemSenha);
-      }
-    });
-    localStorage.setItem(migKey, "1");
-  }, [firebaseAuthed]);
-
   const login = (dados) => {
     const dadosComSessao = { ...dados, _loginEm: Date.now() };
     setUsuarioLogado(dadosComSessao);
@@ -516,112 +429,22 @@ function App() {
   // tem usuarioLogado mas o Firebase Auth não tem token válido.
   // Em vez de navegar para a tela de login (perdendo dados em tela), mostra um
   // modal de relogin por cima da tela atual.
-  const [reloginNecessario, setReloginNecessario] = useState(false);
-  const [reloginSenha, setReloginSenha] = useState("");
-  const [reloginErro, setReloginErro] = useState("");
-  const [reloginLoading, setReloginLoading] = useState(false);
+  // ── Relogin guard (extraído para useHook) ───────────────────────────
+  const _reloginDesistir = () => { setUsuarioLogado(null); setPerfisDisponiveis([]); setTela("login"); };
+  const {
+    reloginNecessario, reloginSenha, setReloginSenha,
+    reloginErro, reloginLoading, handleRelogin, handleReloginDesistir,
+  } = useReloginGuard(usuarioLogado, firebaseAuthed, { onDesistir: _reloginDesistir });
 
-  useEffect(() => {
-    if (!usuarioLogado) return;
-    const timeout = setTimeout(() => {
-      if (!auth.currentUser) {
-        console.warn("[App] Sessão Firebase Auth ausente — solicitando relogin in-place");
-        setReloginNecessario(true);
-      }
-    }, 2000);
-    return () => clearTimeout(timeout);
-  }, [usuarioLogado, firebaseAuthed]);
-
-  // Quando a sessão Firebase Auth é restaurada (ex: após relogin), fechar o modal
-  useEffect(() => {
-    if (firebaseAuthed && reloginNecessario) {
-      setReloginNecessario(false);
-      setReloginSenha("");
-      setReloginErro("");
-    }
-  }, [firebaseAuthed, reloginNecessario]);
-
-  const handleRelogin = async () => {
-    const email = usuarioLogado?.email;
-    if (!email) {
-      // Sem email salvo, não tem como relogar in-place — fallback para login normal
-      setUsuarioLogado(null);
-      setPerfisDisponiveis([]);
-      setTela("login");
-      return;
-    }
-    setReloginLoading(true);
-    setReloginErro("");
-    try {
-      await signInWithEmailAndPassword(auth, email, reloginSenha);
-      // onAuthStateChanged vai setar firebaseAuthed=true → useEffect fecha o modal
-    } catch (err) {
-      if (err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
-        setReloginErro("Senha incorreta.");
-      } else if (err.code === "auth/too-many-requests") {
-        setReloginErro("Muitas tentativas. Aguarde alguns minutos.");
-      } else {
-        setReloginErro("Erro ao reconectar. Tente novamente.");
-      }
-    } finally {
-      setReloginLoading(false);
-    }
-  };
-
-  const handleReloginDesistir = () => {
-    setReloginNecessario(false);
-    setReloginSenha("");
-    setReloginErro("");
+  // ── Expiração de sessão por inatividade (extraído para useHook) ─────
+  const _sessaoExpirou = () => {
+    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Sessão expirada", "Logout automático por inatividade", usuarioLogado.organizadorId || null, { modulo: "auth" });
+    setTimeout(() => firebaseSignOut(auth).catch(() => {}), 300);
     setUsuarioLogado(null);
     setPerfisDisponiveis([]);
-    setTela("login");
+    setTela("home");
   };
-
-  // ── Expiração de sessão por inatividade ──────────────────────────────────
-  const INATIVIDADE_MS     = usuarioLogado?.tipo === "admin" ? 30 * 60 * 1000 : 24 * 60 * 60 * 1000; // admin: 30min, demais: 24h
-  const AVISO_ANTECEDENCIA = usuarioLogado?.tipo === "admin" ? 5 * 60 * 1000 : 5 * 60 * 1000;        // aviso 5min antes para todos
-  const [sessaoAvisoContagem, setSessaoAvisoContagem] = React.useState(null);
-  const ultimaAtividadeRef = React.useRef(Date.now());
-
-  // Rastrear atividade do usuário (clique, tecla, scroll, toque)
-  React.useEffect(() => {
-    if (!usuarioLogado) return;
-    const atualizarAtividade = () => { ultimaAtividadeRef.current = Date.now(); };
-    const eventos = ["mousedown", "keydown", "scroll", "touchstart"];
-    eventos.forEach(ev => window.addEventListener(ev, atualizarAtividade, { passive: true }));
-    return () => eventos.forEach(ev => window.removeEventListener(ev, atualizarAtividade));
-  }, [!!usuarioLogado]);
-
-  React.useEffect(() => {
-    if (!usuarioLogado) return;
-    const intervalo = setInterval(() => {
-      // Não expira enquanto offline — dados locais precisam ser preservados
-      if (!navigator.onLine) { ultimaAtividadeRef.current = Date.now(); setSessaoAvisoContagem(null); return; }
-      const agora = Date.now();
-      const inativo = agora - ultimaAtividadeRef.current;
-      const restante = INATIVIDADE_MS - inativo;
-      if (restante <= 0) {
-        clearInterval(intervalo);
-        setSessaoAvisoContagem(null);
-        if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Sessão expirada", "Logout automático por inatividade", usuarioLogado.organizadorId || null, { modulo: "auth" });
-        setTimeout(() => firebaseSignOut(auth).catch(() => {}), 300);
-        setUsuarioLogado(null);
-        setPerfisDisponiveis([]);
-        setTela("home");
-      } else if (restante <= AVISO_ANTECEDENCIA) {
-        setSessaoAvisoContagem(Math.ceil(restante / 1000));
-      } else {
-        setSessaoAvisoContagem(null);
-      }
-    }, 1000);
-    return () => clearInterval(intervalo);
-  }, [!!usuarioLogado, INATIVIDADE_MS]);
-
-  const renovarSessao = () => {
-    if (!usuarioLogado) return;
-    ultimaAtividadeRef.current = Date.now();
-    setSessaoAvisoContagem(null);
-  };
+  const { sessaoAvisoContagem, renovarSessao } = useSessionTimeout(usuarioLogado, { onExpire: _sessaoExpirou });
 
   const adicionarEquipe   = (t) => _adicionarEquipe(t);
   
@@ -1336,6 +1159,17 @@ function App() {
     importarEquipes,
     equipesRef,
   } = useEquipes();
+
+  // ── Migrações legadas (extraído para useHook) ──────────────────────
+  useMigrations({
+    eventos, _atualizarCamposEvento,
+    organizadores, setOrganizadores,
+    funcionarios, setFuncionarios,
+    treinadores, setTreinadores,
+    atletasUsuarios, setAtletasUsuarios,
+    equipes, _atualizarEquipe,
+    firebaseAuthed,
+  });
 
   // ── Guard: perfil deletado — força logout se equipe/treinador/org/func não existe mais ──
   useEffect(() => {
