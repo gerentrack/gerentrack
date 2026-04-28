@@ -11,6 +11,7 @@ import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvento } from "../../contexts/EventoContext";
 import { useApp } from "../../contexts/AppContext";
+import { chamarApiComFallback } from "../../lib/apiClient";
 
 import { IcoCalendar, IcoPin, IcoClock, IcoSignup, IcoTrophy, IcoLock, IcoUnlock, IcoEdit, IcoRefresh, IcoList, IcoHash, IcoRun, IcoMedal, IcoClipboard, IcoShield, IcoWifi, IcoSettings, IcoUsers, IcoPrinter, IcoFile, IcoInfo, IcoFlag } from "../../shared/icons";
 
@@ -770,12 +771,18 @@ function TelaEventoDetalhe() {
               <button style={{ padding:"8px 18px", borderRadius:8, border:`1px solid ${t.success}44`, background: t.accentBg, color: t.success, fontWeight:700, fontSize:12, cursor:"pointer" }}
                 onClick={async () => {
                   try {
-                    const novasPendencias = RecordDetectionEngine.detectarQuebras(eventoAtual, resultados, recordes, atletas, equipes, inscricoes);
+                    // Recordes — API com fallback local
+                    const resRecordes = await chamarApiComFallback(
+                      "/api/recordes",
+                      { method: "POST", body: { eventoId: eventoAtual.id } },
+                      () => ({ pendencias: RecordDetectionEngine.detectarQuebras(eventoAtual, resultados, recordes, atletas, equipes, inscricoes) })
+                    );
+                    const novasPendencias = resRecordes.pendencias || [];
                     const antes = (pendenciasRecorde || []).length;
                     const merged = RecordDetectionEngine.mesclarPendencias(pendenciasRecorde || [], novasPendencias);
                     const novas = merged.length - antes;
                     setPendenciasRecorde(merged);
-                    // Ranking
+                    // Ranking — cálculo local (API de ranking é read-only, extração é sempre local)
                     let nRnk = 0;
                     try {
                       const novasRnk = RankingExtractionEngine.extrairEntradas(eventoAtual, resultados, atletas, equipes, inscricoes);
@@ -1384,11 +1391,17 @@ function TelaEventoDetalhe() {
                   "Para desbloquear será necessário solicitar autorização a um administrador.\n\n" +
                   "Deseja finalizar esta competição?"
                 )) {
+                  // Recordes — API com fallback local
                   try {
-                    const novasPendencias = RecordDetectionEngine.detectarQuebras(eventoAtual, resultados, recordes, atletas, equipes, inscricoes);
+                    const resRecordes = await chamarApiComFallback(
+                      "/api/recordes",
+                      { method: "POST", body: { eventoId: eventoAtual.id } },
+                      () => ({ pendencias: RecordDetectionEngine.detectarQuebras(eventoAtual, resultados, recordes, atletas, equipes, inscricoes) })
+                    );
+                    const novasPendencias = resRecordes.pendencias || [];
                     if (novasPendencias.length > 0)
                       setPendenciasRecorde(prev => RecordDetectionEngine.mesclarPendencias(prev, novasPendencias));
-                   } catch (e) { console.error("Erro ao detectar quebras de recorde:", e); }
+                  } catch (e) { console.error("Erro ao detectar quebras de recorde:", e); }
                   // ── Ranking: extrair entradas de atletas com CBAt ──
                   try {
                     const novasRanking = RankingExtractionEngine.extrairEntradas(eventoAtual, resultados, atletas, equipes, inscricoes);

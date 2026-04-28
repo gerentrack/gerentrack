@@ -6,6 +6,7 @@ import { CATEGORIAS, getCategoria, getPermissividade, podeCategoriaSuperior } fr
 import { _getClubeAtleta, _getCbat, formatarPeito } from "../../shared/formatters/utils";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { calcularPrecoInscricao, formatarPreco, validarLimiteProvas, validarNorma12Sub14, getRestricoesNorma12, getLimiteCat } from "../../shared/engines/inscricaoEngine";
+import { chamarApiComFallback } from "../../lib/apiClient";
 import { Th, Td } from "../ui/TableHelpers";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
@@ -374,7 +375,7 @@ function TelaGestaoInscricoes() {
   };
 
   // ── Carrinho: adicionar ──────────────────────────────────────────────────
-  const handleAdicionarAoCarrinho = () => {
+  const handleAdicionarAoCarrinho = async () => {
     if (!inserirAtletaId || inserirProvasIds.size === 0) { alert("Selecione atleta e pelo menos uma prova."); return; }
     const atl = atletas.find(a => a.id === inserirAtletaId);
     if (!atl) return;
@@ -383,9 +384,13 @@ function TelaGestaoInscricoes() {
     const cat = getCategoria(atl.anoNasc, anoComp);
     const novasProvasNoCarrinho = carrinho.filter(c => c.atletaId === inserirAtletaId).map(c => c.provaId);
     const todasNovas = [...novasProvasNoCarrinho, ...[...inserirProvasIds]];
-    const validacao = validarLimiteProvas(eventoAtual, inscsEvt, inserirAtletaId, cat?.id || null, todasNovas);
+    const validacao = await chamarApiComFallback(
+      "/api/validar-inscricao",
+      { method: "POST", body: { eventoId: eventoAtual.id, atletaId: inserirAtletaId, catId: cat?.id || null, novasProvas: todasNovas } },
+      () => validarLimiteProvas(eventoAtual, inscsEvt, inserirAtletaId, cat?.id || null, todasNovas)
+    );
     if (!validacao.ok) {
-      alert(`Limite atingido: ${validacao.motivo}`); return;
+      alert(`Limite atingido: ${validacao.msg}`); return;
     }
 
     // Validar Norma 12 CBAt — Sub-14

@@ -6,6 +6,7 @@ import FormField from "../ui/FormField";
 import { ProvaSelector } from "../ui/ProvaSelector";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
 import { getLimiteCat, validarLimiteProvas, validarNorma12Sub14, getRestricoesNorma12, calcularPrecoInscricao, formatarPreco } from "../../shared/engines/inscricaoEngine";
+import { chamarApiComFallback } from "../../lib/apiClient";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
@@ -506,8 +507,10 @@ function TelaInscricaoAvulsa() {
       return;
     }
     const aIdCheck = modo === "novo" ? null : atletaId;
-    const validacaoLimite = validarLimiteProvas(
-      eventoParaInscricao, inscricoes, aIdCheck, catParaValidar?.id || null, provasSel
+    const validacaoLimite = await chamarApiComFallback(
+      "/api/validar-inscricao",
+      { method: "POST", body: { eventoId: eventoParaInscricao.id, atletaId: aIdCheck, catId: catParaValidar?.id || null, novasProvas: provasSel } },
+      () => validarLimiteProvas(eventoParaInscricao, inscricoes, aIdCheck, catParaValidar?.id || null, provasSel)
     );
     if (!validacaoLimite.ok) {
       setErro(validacaoLimite.msg);
