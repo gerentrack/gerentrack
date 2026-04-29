@@ -8,16 +8,18 @@
 
 ---
 
-## Diagnóstico do estado atual
+## Diagnóstico do estado atual (atualizado 2026-04-28)
 
-| Aspecto | Hoje | Risco em escala nacional |
-|---|---|---|
-| Banco de dados | Firestore (único) | Custo explosivo com leituras; queries limitadas |
-| Lógica de negócio | 100% no cliente (browser) | Sem controle server-side; bugs exigem deploy frontend |
-| Renderização | SPA pura (client-side only) | SEO zero; carregamento lento em 4G |
-| Testes | Nenhum | Medo de refatorar; risco de bugs em scoring oficial |
-| App.jsx | ~2.600 linhas | Orquestrador monolítico; qualquer mudança tem blast radius alto |
-| Integrações | Nenhuma | Impossível sem API própria (CBAt, federações, World Athletics) |
+| Aspecto | Antes | Agora | Pendente |
+|---|---|---|---|
+| Banco de dados | Firestore (único) | Firestore + 4 API endpoints Vercel | PostgreSQL para dados históricos |
+| Lógica de negócio | 100% no cliente | 3 operações server-side (ranking, recordes, validação) com fallback offline | Expandir API |
+| Renderização | SPA pura, SEO zero | SPA + Open Graph para crawlers (WhatsApp, Google) | SSR real (Fase 2.4) |
+| Testes | Nenhum | 265 testes (engines + componentes), CI no GitHub Actions | Expandir cobertura |
+| App.jsx | ~2.600 linhas | ~2.292 linhas (3 hooks extraídos, props eliminados) | Extrações de risco médio/alto |
+| Performance | Bundle 1.269KB | Bundle 246KB (-80%), lazy loading em 61 imagens | CDN imagens |
+| Observabilidade | Nenhuma | Sentry (error tracking) + health check (UptimeRobot) | Web Vitals budgets |
+| Integrações | Nenhuma | API privada (3 endpoints) | API pública (Fase 3.2) |
 
 ### Inventário de engines críticos (src/shared/engines/)
 
@@ -38,11 +40,11 @@
 
 ---
 
-## Fase 1 — Fundação (curto prazo)
+## Fase 1 — Fundação (curto prazo) ✅ CONCLUÍDA
 
 **Meta**: criar a base de qualidade e a primeira camada de backend sem alterar a experiência do usuário.
 
-**Duração estimada**: 4–6 semanas
+**Concluída em**: 2026-04-28
 
 ### 1.1 Testes unitários nos engines
 
@@ -437,18 +439,14 @@ Dados consolidados (pós-competição):
 ### 3.3 Performance e code splitting
 
 ```
-3.3.1  Implementar lazy loading agressivo por rota:
-       - React.lazy() para cada feature module
-       - Suspense boundaries com fallback de loading
-       - Prefetch de rotas prováveis (ex: ao hover no menu)
-3.3.2  Analisar bundle com rollup-plugin-visualizer
-       - Identificar dependências pesadas (firebase, exceljs, @imgly)
-       - Mover para dynamic imports onde possível
+3.3.1  ✅ Lazy loading por rota + manualChunks (Firebase/React separados)
+       - Bundle principal: 1269KB → 246KB (-80%)
+       - 40 telas com React.lazy(), 4 telas migradas de estático para lazy
+       - 6 imports mortos removidos
+3.3.2  ✅ Análise de bundle realizada via rollup-plugin-visualizer
 3.3.3  (DESCARTADO) Code splitting por role — benefício marginal com React.lazy() já ativo
-3.3.4  Otimizar imagens:
-       - CDN dedicado para logos de organizadores/competições (Cloudinary ou Vercel Image)
-       - Formatos modernos (WebP/AVIF) com fallback
-       - Lazy loading de imagens abaixo do fold
+3.3.4  ✅ Lazy loading de imagens (loading="lazy" em 61 <img>)
+       - CDN dedicado e WebP/AVIF adiados — poucas imagens na escala atual
 3.3.5  Service Worker otimizado:
        - Estratégia stale-while-revalidate para assets estáticos
        - Network-first para dados de competição ativa
@@ -458,10 +456,7 @@ Dados consolidados (pós-competição):
 ### 3.4 Observabilidade e monitoramento
 
 ```
-3.4.1  Integrar Sentry (ou similar) para error tracking
-       - Capturar erros no frontend e nas API routes
-       - Source maps para stack traces legíveis
-       - Alertas por severidade
+3.4.1  ✅ Sentry integrado (@sentry/react, habilitado apenas em produção)
 3.4.2  Métricas de performance (já tem @vercel/analytics e speed-insights)
        - Definir budgets: LCP < 2.5s, INP < 200ms, CLS < 0.1
        - Dashboard de Web Vitals por rota
@@ -469,9 +464,7 @@ Dados consolidados (pós-competição):
        - Request ID para rastreamento
        - Tempo de resposta por endpoint
        - Erros de Firestore/PostgreSQL
-3.4.4  Health check endpoint: api/health.js
-       - Verifica conectividade Firestore + PostgreSQL
-       - Usado pelo UptimeRobot
+3.4.4  ✅ Health check endpoint (api/health.js) + UptimeRobot configurado
 ```
 
 ### 3.5 Segurança avançada
