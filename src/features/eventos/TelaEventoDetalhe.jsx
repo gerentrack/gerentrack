@@ -804,8 +804,15 @@ function TelaEventoDetalhe() {
               </button>
               <button style={{ padding:"8px 18px", borderRadius:8, border:`1px solid ${t.danger}44`, background: t.accentBg, color: t.danger, fontWeight:700, fontSize:12, cursor:"pointer" }}
                 onClick={async () => { 
-                  if (await confirmar("Desbloquear esta competição para edição? Isso removerá a finalização."))
+                  if (await confirmar("Desbloquear esta competição para edição? Isso removerá a finalização.")) {
                     alterarStatusEvento(eventoAtual.id, { competicaoFinalizada: false, competicaoFinalizadaEm: null, competicaoFinalizadaPor: null, snapshotAtletas: null, snapshotClassifEquipes: null, snapshotClassifEquipesM: null, snapshotClassifEquipesF: null });
+                    // Marcar como revisão no PostgreSQL (background)
+                    chamarApiComFallback(
+                      "/api/resultados/desfinalizar",
+                      { method: "POST", body: { eventoId: eventoAtual.id } },
+                      () => ({ ok: true })
+                    ).catch(err => console.warn("Desfinalização PostgreSQL:", err.message));
+                  }
                 }}>
                 Desbloquear (Admin)
               </button>
@@ -1454,6 +1461,12 @@ function TelaEventoDetalhe() {
                     snapshotClassifEquipesM,
                     snapshotClassifEquipesF,
                   });
+                  // Consolidar no PostgreSQL (background, sem bloquear)
+                  chamarApiComFallback(
+                    "/api/resultados/consolidar",
+                    { method: "POST", body: { eventoId: eventoAtual.id } },
+                    () => ({ ok: true, msg: "Consolidação offline ignorada" })
+                  ).catch(err => console.warn("Consolidação PostgreSQL:", err.message));
                 }
               }}>
               Finalizar Competição
