@@ -1433,6 +1433,38 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes }) {
             </div>
           )}
 
+          {/* Consolidar histórico no PostgreSQL */}
+          <div style={{ marginTop: 20, padding: "16px 20px", background: t.bgHeaderSolid, border: `1px solid ${t.border}`, borderRadius: 10 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: t.textPrimary, marginBottom: 8 }}>PostgreSQL — Consolidação</div>
+            <p style={{ fontSize: 12, color: t.textDimmed, marginBottom: 12, lineHeight: 1.5 }}>
+              Migra todas as competições finalizadas para o banco relacional (Supabase). Execute uma vez para popular o histórico, ou após correções em massa.
+            </p>
+            <button
+              style={{ background: t.accent, color: "#fff", border: "none", borderRadius: 6, padding: "8px 18px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+              onClick={async () => {
+                if (!await confirmar("Consolidar TODAS as competições finalizadas no PostgreSQL?\n\nIsso pode levar alguns segundos.")) return;
+                try {
+                  const token = await auth.currentUser.getIdToken();
+                  const resp = await fetch("/api/resultados/migrar-historico", {
+                    method: "POST",
+                    headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
+                  });
+                  const data = await resp.json();
+                  if (data.ok) {
+                    const resumo = (data.migracoes || []).map(m => `${m.nome}: ${m.resultados || 0} resultados`).join("\n");
+                    alert(`Migração concluída!\n\n${data.totalEventos} competição(ões) consolidada(s).\n\n${resumo}`);
+                  } else {
+                    alert("Erro: " + (data.error || "desconhecido"));
+                  }
+                } catch (err) {
+                  alert("Erro ao migrar: " + err.message);
+                }
+              }}
+            >
+              Migrar Histórico para PostgreSQL
+            </button>
+          </div>
+
           {/* Backups de orgs excluídos (D.3.4 — reimplantação) */}
           {organizadores.filter(o => o.exportacaoUrl).length > 0 && (
             <div style={{ marginTop:20 }}>
