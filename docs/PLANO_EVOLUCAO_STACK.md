@@ -397,25 +397,24 @@ Dados consolidados (pós-competição):
 
 **Duração estimada**: 12–20 semanas (pode ser faseada internamente)
 
-### 3.1 Multi-tenancy para federações estaduais
+### 3.1 Autonomia de federações
 
-**Por quê**: cada federação estadual terá seu espaço, seus organizadores, seus recordes — mas compartilhando a base nacional de atletas.
+**Contexto**: federações estaduais SÃO os organizadores do sistema (não existe camada separada). Já possuem painel de organizador, gerenciam competições, inscrições, resultados e funcionários. O que falta é autonomia para gestão de recordes e visibilidade de ranking.
 
 **Tarefas**:
 
 ```
-3.1.1  Adicionar tabela federacoes no PostgreSQL:
-       - id, nome, sigla, estado (UF), logo_url, configuracoes (JSONB)
-3.1.2  Adicionar federacao_id em competicoes, organizadores, recordes
-3.1.3  Criar painel de federação (nova role: "federacao_admin")
-       - Dashboard com competições da UF
-       - Gestão de organizadores credenciados
-       - Recordes estaduais
-       - Ranking estadual
-3.1.4  Implementar Row Level Security por federação
-3.1.5  Subdomínios ou paths por federação:
-       - fasp.gerentrack.com.br ou gerentrack.com.br/sp
-3.1.6  Permitir personalização de branding por federação (logo, cores)
+3.1.1  Permitir que federações gerenciem seus próprios recordes estaduais
+       - Hoje apenas o admin pode criar/editar tipos de recorde
+       - Federação poderá criar, editar e homologar recordes do seu estado
+       - Admin mantém controle sobre recordes nacionais
+3.1.2  Ranking: federação vê ranking nacional, gerencia entradas do seu estado
+       - Aprovar/rejeitar entradas de ranking da sua UF
+       - Visualização do ranking nacional completo (read-only)
+3.1.3  (Opcional) Subdomínios por federação:
+       - fmat.gerentrack.com.br como atalho para o perfil público da federação
+       - Mesmo app, detecta federação pelo hostname
+       - Configuração de DNS na Vercel (zero custo)
 ```
 
 ### 3.2 Integrações externas
@@ -483,7 +482,7 @@ Dados consolidados (pós-competição):
 
 ### Entregáveis da Fase 3
 
-- [ ] Multi-tenancy por federação estadual operacional
+- [ ] Autonomia de federações: gestão de recordes estaduais + ranking por UF
 - [ ] API pública v1 documentada e com rate limiting
 - [x] Code splitting: bundle principal de 1269KB → 246KB (-80%), manualChunks para Firebase/React
 - [x] Sentry integrado (@sentry/react, habilitado em produção)
