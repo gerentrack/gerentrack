@@ -625,7 +625,7 @@ function TelaEventoDetalhe() {
             onMouseEnter={e => { if (orgEvt.slug) e.currentTarget.style.borderColor = `${corOrg}66`; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = `${corOrg}22`; }}>
             {orgEvt.logo && (
-              <img src={orgEvt.logo} alt="" style={{ width: 28, height: 28, borderRadius: 6, objectFit: "contain", background: "#fff", border: `1px solid ${corOrg}22` }} />
+              <img loading="lazy" src={orgEvt.logo} alt="" style={{ width: 28, height: 28, borderRadius: 6, objectFit: "contain", background: "#fff", border: `1px solid ${corOrg}22` }} />
             )}
             <span style={{ fontSize: 13, fontWeight: 600, color: corOrg }}>{orgEvt.entidade || orgEvt.nome}</span>
             {(orgEvt.cidade || orgEvt.estado) && (
@@ -707,7 +707,7 @@ function TelaEventoDetalhe() {
           <button style={s.btnGhost} onClick={() => setTela("home")}>← Competições</button>
           {eventoAtual.logoCompeticao && (
             <div style={{ padding: 12, background: "#fff", borderRadius: 12, border: `1px solid ${t.border}` }}>
-              <img src={eventoAtual.logoCompeticao} alt="" style={{ maxWidth: 180, maxHeight: 120, objectFit: "contain", display: "block" }} />
+              <img loading="lazy" src={eventoAtual.logoCompeticao} alt="" style={{ maxWidth: 180, maxHeight: 120, objectFit: "contain", display: "block" }} />
             </div>
           )}
         </div>
@@ -1200,17 +1200,17 @@ function TelaEventoDetalhe() {
                     </style></head><body>
                     <div class="page">
                       <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;border-bottom:3px solid #1976D2;padding-bottom:10px">
-                        ${logoCabEsq ? `<img src="${logoCabEsq}" style="max-height:60px;max-width:120px;object-fit:contain;flex-shrink:0"/>` : ""}
+                        ${logoCabEsq ? `<img loading="lazy" src="${logoCabEsq}" style="max-height:60px;max-width:120px;object-fit:contain;flex-shrink:0"/>` : ""}
                         <div style="flex:1;min-width:0">
                           <div style="font-size:18px;font-weight:800;color:#111">${eventoAtual.nome}</div>
                           <div style="font-size:11px;color:#666;margin-top:2px">${dataEvt} · ${_getLocalEventoDisplay(eventoAtual)}</div>
                         </div>
-                        ${logoCabDir ? `<img src="${logoCabDir}" style="max-height:60px;max-width:120px;object-fit:contain;flex-shrink:0"/>` : ""}
+                        ${logoCabDir ? `<img loading="lazy" src="${logoCabDir}" style="max-height:60px;max-width:120px;object-fit:contain;flex-shrink:0"/>` : ""}
                       </div>
                       <div style="text-align:center;font-size:15px;font-weight:800;color:#333;margin:10px 0 14px;letter-spacing:1px">PROGRAMA HORÁRIO</div>
                       <table><thead>${thPrint}</thead><tbody>${tableBody}</tbody></table>
                       <div class="rod-wrap">
-                        ${logoRod ? `<div style="margin-top:14px;padding-top:10px;border-top:1px solid #ddd;text-align:center;"><img src="${logoRod}" alt="" style="max-width:100%;max-height:18mm;object-fit:contain;"/></div>` : ""}
+                        ${logoRod ? `<div style="margin-top:14px;padding-top:10px;border-top:1px solid #ddd;text-align:center;"><img loading="lazy" src="${logoRod}" alt="" style="max-width:100%;max-height:18mm;object-fit:contain;"/></div>` : ""}
                         <div style="padding-top:6px;text-align:center;">
                           <div style="font-size:9px;color:#aaa;line-height:1.9">Gerado em: ${new Date().toLocaleString("pt-BR")} · Plataforma de Competições - GERENTRACK</div>
                         </div>

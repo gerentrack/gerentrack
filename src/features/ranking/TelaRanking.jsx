@@ -677,11 +677,11 @@ export default function TelaRanking() {
                             <tbody>${linhas}</tbody>
                           </table>
                           <div class="assinatura">
-                            ${logoFed ? `<img src="${logoFed}" alt="Federação" style="max-height:120px;max-width:400px;object-fit:contain;margin-bottom:-20px;display:block;margin-left:auto;margin-right:auto"/>` : ""}
+                            ${logoFed ? `<img loading="lazy" src="${logoFed}" alt="Federação" style="max-height:120px;max-width:400px;object-fit:contain;margin-bottom:-20px;display:block;margin-left:auto;margin-right:auto"/>` : ""}
                             <div style="width:280px;border-top:1px solid #333;margin:0 auto;padding-top:6px;font-size:12px;font-weight:700">${fed.nome}</div>
                           </div>
                           <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-top:20px;padding:12px 16px;background:#f8f8f8;border:1px solid #ddd;border-radius:6px">
-                            ${qrDataUrl ? `<img src="${qrDataUrl}" alt="QR" style="width:70px;height:70px;flex-shrink:0"/>` : ""}
+                            ${qrDataUrl ? `<img loading="lazy" src="${qrDataUrl}" alt="QR" style="width:70px;height:70px;flex-shrink:0"/>` : ""}
                             <div style="text-align:left;font-size:11px;color:#444;line-height:1.6">
                               <div style="font-weight:700;font-size:12px;color:#111">Consulte o ranking atualizado</div>
                               <div>gerentrack.com.br/ranking</div>
@@ -691,7 +691,7 @@ export default function TelaRanking() {
                             <div>Gerado em: ${new Date().toLocaleString("pt-BR")}</div>
                             <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px">
                               <span>Plataforma de Competições -</span>
-                              <img src="${gtLogo}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7"/>
+                              <img loading="lazy" src="${gtLogo}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7"/>
                             </div>
                           </div>
                         </body></html>`;

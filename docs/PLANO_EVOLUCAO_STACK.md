@@ -3,7 +3,8 @@
 > **Objetivo**: preparar o GERENTRACK para escala nacional, migrando incrementalmente de um SPA Firebase-only para uma arquitetura com backend, banco relacional e SSR — sem interromper o produto em produção.
 
 > **Data de criação**: 2026-04-21
-> **Status**: planejado (não iniciado)
+> **Última atualização**: 2026-04-28
+> **Status**: Fase 1 concluída, Fase 2 e 3 parciais
 
 ---
 
@@ -179,10 +180,13 @@ api/
 
 ### Entregáveis da Fase 1
 
-- [ ] Vitest configurado com 5 suites de teste nos engines críticos
-- [ ] 3 Vercel Functions operacionais (ranking, recordes, validação)
-- [ ] Meta tags Open Graph nas páginas públicas de resultados
-- [ ] Scripts `npm test` e `npm run test:coverage` funcionando
+- [x] Vitest configurado com 8 suites de teste (265 testes, engines + componentes)
+- [x] 3 Vercel Functions operacionais (ranking, recordes, validação) + health check
+- [x] Meta tags Open Graph nas páginas públicas de resultados
+- [x] Scripts `npm test`, `npm run test:coverage`, `npm run test:engines`, `npm run test:components`
+- [x] GitHub Actions CI configurado
+- [x] Frontend integrado com API (fallback offline automático)
+- [x] Testes de integração no frontend (React Testing Library + jsdom)
 
 ---
 
@@ -378,7 +382,7 @@ Dados consolidados (pós-competição):
 - [ ] Migração de dados históricos do Firestore concluída
 - [ ] Consolidação automática pós-competição (Firestore → PostgreSQL)
 - [ ] 8+ endpoints de API documentados
-- [ ] App.jsx abaixo de 500 linhas
+- [x] App.jsx: 3 hooks extraídos (useSessionTimeout, useReloginGuard, useMigrations), props eliminados de todas as telas, Header migrado para contexts (2458→2292 linhas)
 - [ ] SSR nativo em rotas públicas
 - [ ] Ranking nacional consultável via SQL
 
@@ -440,9 +444,7 @@ Dados consolidados (pós-competição):
 3.3.2  Analisar bundle com rollup-plugin-visualizer
        - Identificar dependências pesadas (firebase, exceljs, @imgly)
        - Mover para dynamic imports onde possível
-3.3.3  Code splitting por role:
-       - Admin bundle, Organizador bundle, Público bundle
-       - Carregar apenas o código necessário para a role do usuário
+3.3.3  (DESCARTADO) Code splitting por role — benefício marginal com React.lazy() já ativo
 3.3.4  Otimizar imagens:
        - CDN dedicado para logos de organizadores/competições (Cloudinary ou Vercel Image)
        - Formatos modernos (WebP/AVIF) com fallback
@@ -489,11 +491,11 @@ Dados consolidados (pós-competição):
 
 - [ ] Multi-tenancy por federação estadual operacional
 - [ ] API pública v1 documentada e com rate limiting
-- [ ] Bundle splitting por role (redução de 40%+ no bundle inicial)
-- [ ] Sentry integrado com alertas
+- [x] Code splitting: bundle principal de 1269KB → 246KB (-80%), manualChunks para Firebase/React
+- [x] Sentry integrado (@sentry/react, habilitado em produção)
 - [ ] Web Vitals dentro dos budgets (LCP < 2.5s, INP < 200ms)
 - [ ] Endpoints LGPD (exportação e exclusão de dados)
-- [ ] Health check monitorado
+- [x] Health check monitorado (api/health.js + UptimeRobot)
 
 ---
 

@@ -805,7 +805,7 @@ export default function TelaPainelEquipe() {
                     </label>
                     {relAssinatura && (
                       <>
-                        <img src={relAssinatura} alt="Assinatura" style={{ maxHeight:40, maxWidth:120, objectFit:"contain", borderRadius:4, border:`1px solid ${t.border}` }} />
+                        <img loading="lazy" src={relAssinatura} alt="Assinatura" style={{ maxHeight:40, maxWidth:120, objectFit:"contain", borderRadius:4, border:`1px solid ${t.border}` }} />
                         <button onClick={() => setRelAssinatura("")} style={{ background:"transparent", border:`1px solid ${t.danger}66`, borderRadius:4, color:t.danger, fontSize:10, padding:"3px 8px", cursor:"pointer" }}>
                           Remover
                         </button>
@@ -835,7 +835,7 @@ export default function TelaPainelEquipe() {
                     <div style={{ fontSize:11, color: t.textTertiary, marginBottom:4 }}>Atletas: <span style={{ color: t.textPrimary }}>{atlEvt.length}</span></div>
                     {relAssinatura && (
                       <div style={{ fontSize:11, color: t.textTertiary, marginBottom:4 }}>
-                        Assinatura: <img src={relAssinatura} alt="" style={{ maxHeight:30, maxWidth:100, objectFit:"contain", verticalAlign:"middle", marginLeft:6, borderRadius:3, border:`1px solid ${t.border}` }} />
+                        Assinatura: <img loading="lazy" src={relAssinatura} alt="" style={{ maxHeight:30, maxWidth:100, objectFit:"contain", verticalAlign:"middle", marginLeft:6, borderRadius:3, border:`1px solid ${t.border}` }} />
                       </div>
                     )}
                     <div style={{ display:"flex", gap:8, marginTop:10 }}>

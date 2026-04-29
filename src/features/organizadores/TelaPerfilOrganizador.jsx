@@ -103,7 +103,7 @@ export default function TelaPerfilOrganizador() {
       <div key={ev.id} style={{ ...s.eventoCard, padding: 0 }}>
         <div style={{ position: "relative", width: "100%", aspectRatio: "1/1", background: t.bgCard, borderBottom: `1px solid ${t.border}`, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
           {ev.logoCompeticao && !ev.competicaoFinalizada ? (
-            <img src={ev.logoCompeticao} alt="" style={{ maxWidth: "100%", maxHeight: "100%", display: "block", objectFit: "contain" }} />
+            <img loading="lazy" src={ev.logoCompeticao} alt="" style={{ maxWidth: "100%", maxHeight: "100%", display: "block", objectFit: "contain" }} />
           ) : null}
           <div style={{ position: "absolute", top: 10, left: 12, display: "flex", flexDirection: "column", gap: 4 }}>
             <span style={s.eventoStatusBadge(status)}>{labelStatusEvento(status, ev)}</span>
@@ -153,7 +153,7 @@ export default function TelaPerfilOrganizador() {
       {/* Banner */}
       <div style={s.bannerWrap}>
         {org.banner ? (
-          <img src={org.banner} alt="" style={s.bannerImg} />
+          <img loading="lazy" src={org.banner} alt="" style={s.bannerImg} />
         ) : (
           <div style={{ ...s.bannerFallback, background: `linear-gradient(135deg, ${corPri}, ${corSec})` }}>
             <span style={{ fontSize: 18, opacity: 0.15, fontFamily: t.fontTitle, fontWeight: 800, letterSpacing: 4, color: "#fff" }}>GERENTRACK</span>
@@ -166,7 +166,7 @@ export default function TelaPerfilOrganizador() {
       <div style={s.profileArea}>
         <div style={s.logoWrap}>
           {org.logo ? (
-            <img src={org.logo} alt={org.entidade} style={s.logoImg} />
+            <img loading="lazy" src={org.logo} alt={org.entidade} style={s.logoImg} />
           ) : (
             <span style={{ fontSize: 14, fontFamily: t.fontTitle, fontWeight: 700, color: t.textDisabled }}>ORG</span>
           )}

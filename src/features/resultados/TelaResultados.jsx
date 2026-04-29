@@ -587,14 +587,14 @@ function TelaResultados() {
     const cabExtra = `
       <div class="cab">
         <div class="cab-left">
-          ${eventoAtual.logoCabecalho ? `<img src="${eventoAtual.logoCabecalho}" alt=""/>` : ""}
+          ${eventoAtual.logoCabecalho ? `<img loading="lazy" src="${eventoAtual.logoCabecalho}" alt=""/>` : ""}
         </div>
         <div class="cab-c">
           <div class="cab-ev">${eventoAtual.nome}</div>
           <div class="cab-dt">\u{1F4C5} ${dataEvento2} \u00a0\u00b7\u00a0 \u{1F4CD} ${_getLocalEventoDisplay(eventoAtual)}</div>
         </div>
         <div style="text-align:right;">
-          ${eventoAtual.logoCabecalhoDireito ? `<div class="cab-logo"><img src="${eventoAtual.logoCabecalhoDireito}" alt="" style="max-height:24mm;max-width:45mm;object-fit:contain;" /></div>` : ""}
+          ${eventoAtual.logoCabecalhoDireito ? `<div class="cab-logo"><img loading="lazy" src="${eventoAtual.logoCabecalhoDireito}" alt="" style="max-height:24mm;max-width:45mm;object-fit:contain;" /></div>` : ""}
         </div>
       </div>`;
     const rodExtra = `
@@ -606,11 +606,11 @@ function TelaResultados() {
           <div>Gerado em: ${dataGeracao2}</div>
           <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:0;">
             <span>Plataforma de Competi\u00e7\u00f5es -</span>
-            <img src="${_gtLogo2}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7;vertical-align:middle;" />
+            <img loading="lazy" src="${_gtLogo2}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7;vertical-align:middle;" />
           </div>
         </div>
       </div>
-      ${eventoAtual.logoRodape ? `<div style="margin-top:1px;text-align:center;"><img src="${eventoAtual.logoRodape}" alt="" style="max-width:100%;max-height:15mm;object-fit:contain;"/></div>` : ""}`;
+      ${eventoAtual.logoRodape ? `<div style="margin-top:1px;text-align:center;"><img loading="lazy" src="${eventoAtual.logoRodape}" alt="" style="max-width:100%;max-height:15mm;object-fit:contain;"/></div>` : ""}`;
 
     // ── Classificação final das Combinadas — mostra quando filtro é "todas" ou é a combinada filtrada ──
     blocosCombinadas.filter(bc => filtroProva === "todas" || bc.comp.nome === filtroProva || bc.provaInfo.nome === filtroProva).forEach(bc => {
@@ -831,9 +831,9 @@ function TelaResultados() {
                     return `<div class="pg"${!isLast ? ` style="page-break-after:always;"` : ""}>
                     <div class="pg-content">
                     <div class="cab">
-                      <div class="cab-left">${eventoAtual.logoCabecalho ? `<img src="${eventoAtual.logoCabecalho}" alt=""/>` : ""}</div>
+                      <div class="cab-left">${eventoAtual.logoCabecalho ? `<img loading="lazy" src="${eventoAtual.logoCabecalho}" alt=""/>` : ""}</div>
                       <div class="cab-c"><div class="cab-ev">${eventoAtual.nome}</div><div class="cab-dt">\u{1F4C5} ${_de} \u00a0\u00b7\u00a0 \u{1F4CD} ${_getLocalEventoDisplay(eventoAtual)}</div></div>
-                      <div style="text-align:right;">${eventoAtual.logoCabecalhoDireito ? `<img src="${eventoAtual.logoCabecalhoDireito}" alt="" style="max-height:24mm;max-width:45mm;object-fit:contain;" />` : ""}</div>
+                      <div style="text-align:right;">${eventoAtual.logoCabecalhoDireito ? `<img loading="lazy" src="${eventoAtual.logoCabecalhoDireito}" alt="" style="max-height:24mm;max-width:45mm;object-fit:contain;" />` : ""}</div>
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;margin-top:10px">
                       <span style="font-size:13px;font-weight:800">${titulo}</span>
@@ -870,10 +870,10 @@ function TelaResultados() {
                         <div>Gerado em: ${_dg}</div>
                         <div>Plataforma de Competi\u00e7\u00f5es - GERENTRACK</div>
                       </div>
-                      ${eventoAtual.logoRodape ? `<div style="margin-top:8px;text-align:center;"><img src="${eventoAtual.logoRodape}" alt="" style="max-width:100%;max-height:15mm;object-fit:contain;"/></div>` : ""}
+                      ${eventoAtual.logoRodape ? `<div style="margin-top:8px;text-align:center;"><img loading="lazy" src="${eventoAtual.logoRodape}" alt="" style="max-width:100%;max-height:15mm;object-fit:contain;"/></div>` : ""}
                       <div style="margin-top:8px;text-align:center;padding-top:6px;border-top:1px solid #e0e0e0;">
                         <div style="font-size:7px;color:#999;letter-spacing:1px;margin-bottom:3px;">Desenvolvido por:</div>
-                        <img src="${_gl}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7;" />
+                        <img loading="lazy" src="${_gl}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7;" />
                       </div>
                     </div>
                     </div>`;
@@ -1123,9 +1123,9 @@ function TelaResultados() {
                         .rod-info{text-align:center;font-size:8px;color:#888;min-width:100px;}
                         @media print{@page{margin:10mm}body{height:100vh}}</style></head><body>
                         <div class="cab">
-                          <div class="cab-left">${eventoAtual.logoCabecalho ? `<img src="${eventoAtual.logoCabecalho}" alt=""/>` : ""}</div>
+                          <div class="cab-left">${eventoAtual.logoCabecalho ? `<img loading="lazy" src="${eventoAtual.logoCabecalho}" alt=""/>` : ""}</div>
                           <div class="cab-c"><div class="cab-ev">${eventoAtual.nome}</div><div class="cab-dt">\u{1F4C5} ${_de3} \u00a0\u00b7\u00a0 \u{1F4CD} ${_getLocalEventoDisplay(eventoAtual)}</div></div>
-                          <div style="text-align:right;">${eventoAtual.logoCabecalhoDireito ? `<img src="${eventoAtual.logoCabecalhoDireito}" alt="" style="max-height:24mm;max-width:45mm;object-fit:contain;" />` : ""}</div>
+                          <div style="text-align:right;">${eventoAtual.logoCabecalhoDireito ? `<img loading="lazy" src="${eventoAtual.logoCabecalhoDireito}" alt="" style="max-height:24mm;max-width:45mm;object-fit:contain;" />` : ""}</div>
                         </div>
                         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;margin-top:10px">
                           <span style="font-size:16px;font-weight:800">${bc.comp.nome}</span>
@@ -1160,11 +1160,11 @@ function TelaResultados() {
                             <div>Gerado em: ${_dg3}</div>
                             <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:0;">
                               <span>Plataforma de Competi\u00e7\u00f5es -</span>
-                              <img src="${_gl3}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7;vertical-align:middle;" />
+                              <img loading="lazy" src="${_gl3}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7;vertical-align:middle;" />
                             </div>
                           </div>
                         </div>
-                        ${eventoAtual.logoRodape ? `<div style="margin-top:1px;text-align:center;"><img src="${eventoAtual.logoRodape}" alt="" style="max-width:100%;max-height:15mm;object-fit:contain;"/></div>` : ""}
+                        ${eventoAtual.logoRodape ? `<div style="margin-top:1px;text-align:center;"><img loading="lazy" src="${eventoAtual.logoRodape}" alt="" style="max-width:100%;max-height:15mm;object-fit:contain;"/></div>` : ""}
                         <script>window.addEventListener('load',function(){document.querySelectorAll('.pg').forEach(function(pg){var rod=pg.querySelector('.rod-wrap');if(!rod)return;var pgH=pg.offsetHeight;var rodH=rod.offsetHeight;var dH=pgH-rodH;var cH=0;for(var i=0;i<pg.children.length;i++){var c=pg.children[i];if(c===rod)continue;cH+=c.offsetHeight+(parseFloat(getComputedStyle(c).marginTop)||0)+(parseFloat(getComputedStyle(c).marginBottom)||0);}if(cH>dH){var s=Math.max(0.55,dH/cH);for(var j=0;j<pg.children.length;j++){if(pg.children[j]===rod)continue;pg.children[j].style.fontSize=(s*100)+'%';pg.children[j].querySelectorAll('table').forEach(function(t){t.style.fontSize=(s*100)+'%';});}}});});<\/script>
                         </body></html>`;
                       const win = window.open("", "_blank", "width=900,height=700");

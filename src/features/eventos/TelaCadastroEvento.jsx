@@ -1110,7 +1110,7 @@ function TelaCadastroEvento() {
                 </div>
                 {form.logoCompeticao && (
                   <div style={{ width:80, height:80, borderRadius:8, border:`2px solid ${t.border}`, overflow:"hidden", background:"#fff", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
-                    <img src={form.logoCompeticao} alt="Logo" style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain" }} />
+                    <img loading="lazy" src={form.logoCompeticao} alt="Logo" style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain" }} />
                   </div>
                 )}
               </div>
@@ -1147,7 +1147,7 @@ function TelaCadastroEvento() {
                 </div>
                 {form.logoCabecalho && (
                   <div style={{ width:120, height:48, borderRadius:6, border:`2px solid ${t.border}`, overflow:"hidden", background:"#fff", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
-                    <img src={form.logoCabecalho} alt="Cabeçalho" style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain" }} />
+                    <img loading="lazy" src={form.logoCabecalho} alt="Cabeçalho" style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain" }} />
                   </div>
                 )}
               </div>
@@ -1184,7 +1184,7 @@ function TelaCadastroEvento() {
                 </div>
                 {form.logoCabecalhoDireito && (
                   <div style={{ width:120, height:50, borderRadius:4, border:`2px solid ${t.border}`, overflow:"hidden", background:"#fff", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
-                    <img src={form.logoCabecalhoDireito} alt="Cabeçalho Dir." style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain" }} />
+                    <img loading="lazy" src={form.logoCabecalhoDireito} alt="Cabeçalho Dir." style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain" }} />
                   </div>
                 )}
               </div>
@@ -1221,7 +1221,7 @@ function TelaCadastroEvento() {
                 </div>
                 {form.logoRodape && (
                   <div style={{ width:260, height:50, borderRadius:4, border:`2px solid ${t.border}`, overflow:"hidden", background:"#fff", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
-                    <img src={form.logoRodape} alt="Rodapé" style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain" }} />
+                    <img loading="lazy" src={form.logoRodape} alt="Rodapé" style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain" }} />
                   </div>
                 )}
               </div>

@@ -780,7 +780,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes }) {
                     return (
                       <div key={`all_${ev.id}`} style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, padding:"10px 14px" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
-                          {ev.logoCompeticao && <img src={ev.logoCompeticao} alt="" style={{ width:22, height:22, objectFit:"contain", borderRadius:3 }} />}
+                          {ev.logoCompeticao && <img loading="lazy" src={ev.logoCompeticao} alt="" style={{ width:22, height:22, objectFit:"contain", borderRadius:3 }} />}
                           <strong style={{ color: t.textPrimary, fontSize:13, flex:1 }}>{ev.nome}</strong>
                         </div>
                         <div style={{ color: t.textDimmed, fontSize:11, marginBottom:8 }}>

@@ -394,7 +394,7 @@ export default function TelaHome() {
         {/* Imagem da competição */}
         <div style={{ position: "relative", width: "100%", aspectRatio: "1/1", minHeight: 200, background: t.bgCardAlt, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
           {ev.logoCompeticao ? (
-            <img src={ev.logoCompeticao} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
+            <img loading="lazy" src={ev.logoCompeticao} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
           ) : (
             <span style={{ opacity: 0.15 }}>{IcoTarget(40)}</span>
           )}
@@ -542,7 +542,7 @@ export default function TelaHome() {
                       border: `2px solid ${corPri}33`,
                     }}>
                       {org.logo ? (
-                        <img src={org.logo} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                        <img loading="lazy" src={org.logo} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
                       ) : (
                         <span style={{ fontSize: 16, opacity: 0.4, fontFamily: t.fontTitle, fontWeight: 700, color: t.textDisabled }}>ORG</span>
                       )}

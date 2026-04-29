@@ -485,7 +485,7 @@ function TelaPainelOrganizador() {
                         {sol.assinaturaEquipe && (
                           <div style={{ marginTop:4 }}>
                             <span style={{ fontSize:9, color: t.textMuted }}>Assinatura anexada:</span>
-                            <img src={sol.assinaturaEquipe} alt="" style={{ display:"block", maxHeight:28, maxWidth:80, objectFit:"contain", marginTop:2, borderRadius:3, border:"1px solid #333" }} />
+                            <img loading="lazy" src={sol.assinaturaEquipe} alt="" style={{ display:"block", maxHeight:28, maxWidth:80, objectFit:"contain", marginTop:2, borderRadius:3, border:"1px solid #333" }} />
                           </div>
                         )}
                       </Td>
@@ -1113,7 +1113,7 @@ function TelaPainelOrganizador() {
                 </label>
                 {relAssinatura && (
                   <>
-                    <img src={relAssinatura} alt="Assinatura" style={{ maxHeight: 48, maxWidth: 160, objectFit: "contain" }} />
+                    <img loading="lazy" src={relAssinatura} alt="Assinatura" style={{ maxHeight: 48, maxWidth: 160, objectFit: "contain" }} />
                     <button onClick={() => setRelAssinatura("")} style={{ background: "none", border: "none", color: t.danger, cursor: "pointer", fontSize: 11 }}>✕ Remover</button>
                   </>
                 )}

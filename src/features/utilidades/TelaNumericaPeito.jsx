@@ -496,12 +496,12 @@ function TelaNumericaPeito() {
             </div>
             <div style={{ display: "flex", justifyContent: "center", gap: 24, marginBottom: 20 }}>
               <div>
-                <img src={testeQrPreview.qrPub} alt="QR Público" style={{ width: 140, height: 140, borderRadius: 8, border: `1px solid ${t.border}` }} />
+                <img loading="lazy" src={testeQrPreview.qrPub} alt="QR Público" style={{ width: 140, height: 140, borderRadius: 8, border: `1px solid ${t.border}` }} />
                 <div style={{ fontSize: 11, color: t.textDimmed, marginTop: 6 }}>QR Público</div>
                 <div style={{ fontSize: 9, color: t.textDisabled }}>Resultados</div>
               </div>
               <div>
-                <img src={testeQrPreview.qrSec} alt="QR Staff" style={{ width: 140, height: 140, borderRadius: 8, border: `1px solid ${t.border}` }} />
+                <img loading="lazy" src={testeQrPreview.qrSec} alt="QR Staff" style={{ width: 140, height: 140, borderRadius: 8, border: `1px solid ${t.border}` }} />
                 <div style={{ fontSize: 11, color: t.textDimmed, marginTop: 6 }}>QR Staff</div>
                 <div style={{ fontSize: 9, color: t.textDisabled }}>Secretaria</div>
               </div>

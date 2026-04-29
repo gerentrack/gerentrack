@@ -822,7 +822,7 @@ function TelaGestaoInscricoes() {
     const mkCabecalho = (pagNum) => `
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:12px;border-bottom:2px solid #1b5e20;gap:12px;">
         <div style="display:flex;align-items:center;gap:14px;">
-          ${logoEsq ? `<img src="${logoEsq}" alt="" style="max-height:56px;max-width:120px;object-fit:contain;" />` : ""}
+          ${logoEsq ? `<img loading="lazy" src="${logoEsq}" alt="" style="max-height:56px;max-width:120px;object-fit:contain;" />` : ""}
           <div>
             <div style="font-size:9px;font-weight:700;color:#1b5e20;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;">LISTA DE INSCRIÇÕES</div>
             <div style="font-size:17px;font-weight:700;color:#111;margin-bottom:2px;">${eventoAtual.nome}</div>
@@ -839,7 +839,7 @@ function TelaGestaoInscricoes() {
             <div style="margin-top:3px;color:#aaa;">${_porAtletaArr.length} atleta(s) · Emitido em ${dataEmissao}</div>
             <div style="font-weight:700;color:#1b5e20;font-size:11px;">Página ${pagNum} de ${totalPags}</div>
           </div>
-          ${logoDir ? `<img src="${logoDir}" alt="" style="max-height:56px;max-width:100px;object-fit:contain;" />` : ""}
+          ${logoDir ? `<img loading="lazy" src="${logoDir}" alt="" style="max-height:56px;max-width:100px;object-fit:contain;" />` : ""}
         </div>
       </div>`;
 
@@ -851,7 +851,7 @@ function TelaGestaoInscricoes() {
           <span>·</span>
           <span>Plataforma de Competições - GERENTRACK</span>
         </div>
-        ${logoRodap ? `<div style="margin-top:6px;text-align:center;"><img src="${logoRodap}" alt="" style="max-height:18mm;max-width:100%;object-fit:contain;" /></div>` : ""}
+        ${logoRodap ? `<div style="margin-top:6px;text-align:center;"><img loading="lazy" src="${logoRodap}" alt="" style="max-height:18mm;max-width:100%;object-fit:contain;" /></div>` : ""}
       </div>`;
 
     const paginas = [];
@@ -964,7 +964,7 @@ function TelaGestaoInscricoes() {
     const cabecalho = `
       <div class="cab-recibo" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:12px;border-bottom:2px solid #1b5e20;gap:12px;">
         <div style="display:flex;align-items:center;gap:14px;">
-          ${logoEsq ? `<img src="${logoEsq}" alt="Logo" />` : ""}
+          ${logoEsq ? `<img loading="lazy" src="${logoEsq}" alt="Logo" />` : ""}
           <div>
             <div style="font-size:9px;font-weight:700;color:#1b5e20;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;">${titulo}</div>
             <div style="font-size:17px;font-weight:700;color:#111;margin-bottom:2px;">${eventoAtual.nome}</div>
@@ -978,7 +978,7 @@ function TelaGestaoInscricoes() {
           <div style="text-align:right;font-size:10px;color:#aaa;">
             <div>Emitido em ${dataEmissao}</div>
           </div>
-          ${logoDir ? `<img src="${logoDir}" alt="Logo Org" />` : ""}
+          ${logoDir ? `<img loading="lazy" src="${logoDir}" alt="Logo Org" />` : ""}
         </div>
       </div>`;
 
@@ -988,7 +988,7 @@ function TelaGestaoInscricoes() {
         <div class="rod">
           <div class="rod-ass">
             <div class="rod-ln">
-              ${assinatura ? `<img src="${assinatura}" alt="Assinatura" style="max-height:64px;max-width:200px;object-fit:contain;object-position:bottom;" />` : ""}
+              ${assinatura ? `<img loading="lazy" src="${assinatura}" alt="Assinatura" style="max-height:64px;max-width:200px;object-fit:contain;object-position:bottom;" />` : ""}
             </div>
             <div class="rod-lb">${org?.entidade || org?.nome || "Organizador"}</div>
           </div>
@@ -996,7 +996,7 @@ function TelaGestaoInscricoes() {
             <div>Emitido em: ${dataEmissao}</div>
             <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin-top:2px;">
               ${gtLogo
-                ? `<span>Plataforma de Competições -</span><img src="${gtLogo}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7;vertical-align:middle;" />`
+                ? `<span>Plataforma de Competições -</span><img loading="lazy" src="${gtLogo}" alt="GERENTRACK" style="max-height:8mm;object-fit:contain;opacity:0.7;vertical-align:middle;" />`
                 : `<span>Plataforma de Competições - GERENTRACK</span>`}
             </div>
           </div>
@@ -1004,7 +1004,7 @@ function TelaGestaoInscricoes() {
             <div class="rod-ln"></div><div class="rod-lb">.</div>
           </div>
         </div>
-        ${logoRodap ? `<div style="margin-top:10px;text-align:center;"><img src="${logoRodap}" alt="" style="max-width:100%;max-height:18mm;object-fit:contain;" /></div>` : ""}
+        ${logoRodap ? `<div style="margin-top:10px;text-align:center;"><img loading="lazy" src="${logoRodap}" alt="" style="max-width:100%;max-height:18mm;object-fit:contain;" /></div>` : ""}
       </div>`;
 
     return `
@@ -1250,7 +1250,7 @@ function TelaGestaoInscricoes() {
               <div style={{ fontSize: 12, color: t.textTertiary, marginBottom: 8, fontWeight: 600 }}>ASSINATURA (opcional)</div>
               {assinaturaUrl ? (
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <img src={assinaturaUrl} alt="Assinatura" style={{ maxHeight: 48, maxWidth: 160, objectFit: "contain", background: "#fff", borderRadius: 4, padding: 4 }} />
+                  <img loading="lazy" src={assinaturaUrl} alt="Assinatura" style={{ maxHeight: 48, maxWidth: 160, objectFit: "contain", background: "#fff", borderRadius: 4, padding: 4 }} />
                   <button onClick={() => setAssinaturaUrl("")} style={{ background: "none", border: "none", color: t.danger, cursor: "pointer", fontSize: 12 }}>✕ Remover</button>
                 </div>
               ) : (

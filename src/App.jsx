@@ -1882,12 +1882,12 @@ function App() {
           <div>
             {siteBranding.logoFooter ? (
               <div style={{ marginBottom: 16, textAlign: "center" }}>
-                <img src={siteBranding.logoFooter} alt={gtNome} style={{ maxHeight: 140, maxWidth: "100%", objectFit: "contain", display: "block", margin: "0 auto" }} />
+                <img loading="lazy" src={siteBranding.logoFooter} alt={gtNome} style={{ maxHeight: 140, maxWidth: "100%", objectFit: "contain", display: "block", margin: "0 auto" }} />
               </div>
             ) : (
               <>
                 <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
-                  {gtIcon && <img src={gtIcon} alt="" style={{ width: 44, height: 44, objectFit: "contain" }} />}
+                  {gtIcon && <img loading="lazy" src={gtIcon} alt="" style={{ width: 44, height: 44, objectFit: "contain" }} />}
                   <span style={{ fontFamily: temaDark.fontTitle, fontWeight: 800, fontSize: 24, color: "#fff", letterSpacing: 2 }}>{gtNome}</span>
                 </div>
                 <div style={{ fontSize: 15, color: "#777", lineHeight: 1.7 }}>{gtSlogan}</div>
@@ -1932,7 +1932,7 @@ function App() {
                 <a href={rede.url} target="_blank" rel="noopener noreferrer" style={{ color: "#888", fontSize: 15, textDecoration: "none", display: "flex", alignItems: "center", gap: 10 }}
                   onMouseEnter={ev => ev.currentTarget.style.color = "#1976D2"}
                   onMouseLeave={ev => ev.currentTarget.style.color = "#888"}>
-                  {rede.iconeUrl ? <img src={rede.iconeUrl} alt="" style={{ width: 20, height: 20, objectFit: "contain" }} /> : <span style={{ fontSize: 18 }}>{rede.emoji}</span>}
+                  {rede.iconeUrl ? <img loading="lazy" src={rede.iconeUrl} alt="" style={{ width: 20, height: 20, objectFit: "contain" }} /> : <span style={{ fontSize: 18 }}>{rede.emoji}</span>}
                   {rede.label}
                 </a>
               </div>
@@ -1942,7 +1942,7 @@ function App() {
                 <a key={idx} href={rede.url} target="_blank" rel="noopener noreferrer" title={rede.label} style={{ opacity: 0.6, textDecoration: "none", display: "inline-flex", alignItems: "center", transition: "opacity 0.2s" }}
                   onMouseEnter={ev => ev.currentTarget.style.opacity = "1"}
                   onMouseLeave={ev => ev.currentTarget.style.opacity = "0.6"}>
-                  {rede.iconeUrl ? <img src={rede.iconeUrl} alt={rede.label} style={{ width: 48, height: 48, objectFit: "contain" }} /> : <span style={{ fontSize: 40 }}>{rede.emoji}</span>}
+                  {rede.iconeUrl ? <img loading="lazy" src={rede.iconeUrl} alt={rede.label} style={{ width: 48, height: 48, objectFit: "contain" }} /> : <span style={{ fontSize: 40 }}>{rede.emoji}</span>}
                 </a>
               ))}
             </div>

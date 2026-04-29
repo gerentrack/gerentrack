@@ -1025,7 +1025,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: 11, fontWeight: 600, color: t.textMuted, letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" }}>Logo</div>
                 <div style={{ width: 90, height: 90, borderRadius: 14, overflow: "hidden", border: `2px solid ${(meuOrgPerfil.corPrimaria || t.accent)}33`, background: t.bgCardAlt, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 8px" }}>
-                  {meuOrgPerfil.logo ? <img src={meuOrgPerfil.logo} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} /> : <span style={{ fontSize: 14, opacity: 0.3, color: t.textDisabled }}>Sem logo</span>}
+                  {meuOrgPerfil.logo ? <img loading="lazy" src={meuOrgPerfil.logo} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} /> : <span style={{ fontSize: 14, opacity: 0.3, color: t.textDisabled }}>Sem logo</span>}
                 </div>
                 <label style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 6, padding: "5px 14px", cursor: "pointer", fontSize: 12, color: t.textTertiary }}>
                   {perfilUploading ? "Enviando..." : "Alterar logo"}
@@ -1035,7 +1035,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
               <div style={{ flex: 1, minWidth: 220 }}>
                 <div style={{ fontSize: 11, fontWeight: 600, color: t.textMuted, letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" }}>Banner / Capa</div>
                 <div style={{ width: "100%", height: 120, borderRadius: 12, overflow: "hidden", border: `1px solid ${t.border}`, background: meuOrgPerfil.banner ? "transparent" : `linear-gradient(135deg, ${perfilForm.corPrimaria}, ${perfilForm.corSecundaria})`, marginBottom: 8 }}>
-                  {meuOrgPerfil.banner && <img src={meuOrgPerfil.banner} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
+                  {meuOrgPerfil.banner && <img loading="lazy" src={meuOrgPerfil.banner} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
                 </div>
                 <label style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 6, padding: "5px 14px", cursor: "pointer", fontSize: 12, color: t.textTertiary }}>
                   {perfilUploading ? "Enviando..." : "Alterar banner"}
@@ -1157,7 +1157,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
               {/* Ícone */}
               <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, padding:12 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
-                  <img src={siteBranding?.icon || ""} alt="" style={{ width:36, height:36, objectFit:"contain", borderRadius:5, background:t.bgHover }} />
+                  <img loading="lazy" src={siteBranding?.icon || ""} alt="" style={{ width:36, height:36, objectFit:"contain", borderRadius:5, background:t.bgHover }} />
                   <div>
                     <div style={{ fontWeight:700, fontSize:12, color:t.textPrimary }}>Ícone</div>
                     <div style={{ fontSize:10, color:t.textDisabled }}>48×48px · máx. 300KB</div>
@@ -1185,7 +1185,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
               {/* Logo */}
               <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, padding:12 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
-                  <img src={siteBranding?.logo || ""} alt="" style={{ height:28, objectFit:"contain", background:"#fff", padding:2, borderRadius:3 }} />
+                  <img loading="lazy" src={siteBranding?.logo || ""} alt="" style={{ height:28, objectFit:"contain", background:"#fff", padding:2, borderRadius:3 }} />
                   <div>
                     <div style={{ fontWeight:700, fontSize:12, color:t.textPrimary }}>Logo</div>
                     <div style={{ fontSize:10, color:t.textDisabled }}>300×120px · máx. 300KB</div>
@@ -1215,7 +1215,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
             <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, padding:12, marginBottom:16 }}>
               <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
                 {siteBranding?.logoFooter
-                  ? <img src={siteBranding.logoFooter} alt="" style={{ height:36, objectFit:"contain", borderRadius:5, background:t.bgHover }} />
+                  ? <img loading="lazy" src={siteBranding.logoFooter} alt="" style={{ height:36, objectFit:"contain", borderRadius:5, background:t.bgHover }} />
                   : <div style={{ width:36, height:36, background:t.bgHover, borderRadius:5, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, color:t.textDisabled }}>—</div>}
                 <div>
                   <div style={{ fontWeight:700, fontSize:12, color:t.textPrimary }}>Logo do Rodapé</div>
@@ -1248,7 +1248,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
             <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:8, padding:12, marginBottom:16 }}>
               <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
                 {siteBranding?.logoPlataforma
-                  ? <img src={siteBranding.logoPlataforma} alt="" style={{ height:28, objectFit:"contain", borderRadius:3, background:"#fff", padding:2 }} />
+                  ? <img loading="lazy" src={siteBranding.logoPlataforma} alt="" style={{ height:28, objectFit:"contain", borderRadius:3, background:"#fff", padding:2 }} />
                   : <div style={{ width:36, height:36, background:t.bgHover, borderRadius:5, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, color:t.textDisabled }}>—</div>}
                 <div>
                   <div style={{ fontWeight:700, fontSize:12, color:t.textPrimary }}>Logo da Plataforma (Impressão)</div>
@@ -1293,10 +1293,10 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
               <div style={{ fontSize:10, color:t.textDisabled, marginBottom:5 }}>Preview do header:</div>
               <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                 {siteBranding?.logo ? (
-                  <img src={siteBranding.logo} alt={siteBranding?.nome || "GERENTRACK"} style={{ height: 32, maxWidth: 200, objectFit: "contain" }} />
+                  <img loading="lazy" src={siteBranding.logo} alt={siteBranding?.nome || "GERENTRACK"} style={{ height: 32, maxWidth: 200, objectFit: "contain" }} />
                 ) : (
                   <>
-                    {siteBranding?.icon && <img src={siteBranding.icon} alt="" style={{ width:28, height:28, objectFit:"contain", borderRadius:4 }} />}
+                    {siteBranding?.icon && <img loading="lazy" src={siteBranding.icon} alt="" style={{ width:28, height:28, objectFit:"contain", borderRadius:4 }} />}
                     <div>
                       <div style={{ fontFamily: t.fontTitle, fontSize:16, fontWeight:900, color: t.accent, letterSpacing:2 }}>
                         {siteBranding?.nome || "GERENTRACK"}
@@ -1324,7 +1324,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                 <input style={{ ...s.input, flex:1, minWidth:180, marginBottom:0 }} value={fed.nome || ""} placeholder="Nome da federação"
                   onChange={ev => setSiteBranding(prev => ({ ...prev, assinaturasFederacao: { ...prev.assinaturasFederacao, [uf]: { ...prev.assinaturasFederacao[uf], nome: ev.target.value } } }))} />
                 {fed.logo ? (
-                  <img src={fed.logo} alt={uf} style={{ maxHeight:40, maxWidth:160, objectFit:"contain", background:"#fff", padding:2, borderRadius:4, border:`1px solid ${t.border}` }} />
+                  <img loading="lazy" src={fed.logo} alt={uf} style={{ maxHeight:40, maxWidth:160, objectFit:"contain", background:"#fff", padding:2, borderRadius:4, border:`1px solid ${t.border}` }} />
                 ) : (
                   <span style={{ fontSize:10, color:t.textDisabled }}>Sem logo</span>
                 )}
@@ -1473,7 +1473,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                         borderRadius: 8, marginBottom: 6, opacity: rede.ativo ? 1 : 0.5,
                       }}>
                         {rede.iconeUrl
-                          ? <img src={rede.iconeUrl} alt={rede.label} style={{ width: 24, height: 24, objectFit: "contain", borderRadius: 4 }} />
+                          ? <img loading="lazy" src={rede.iconeUrl} alt={rede.label} style={{ width: 24, height: 24, objectFit: "contain", borderRadius: 4 }} />
                           : <span style={{ fontSize: 20 }}>{rede.emoji}</span>}
                         <div style={{ flex: 1 }}>
                           <div style={{ fontWeight: 700, fontSize: 14, color: t.textPrimary }}>{rede.label}</div>
@@ -1521,7 +1521,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                       <label style={s.label}>Icone / Imagem</label>
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         {formRede.iconeUrl && (
-                          <img src={formRede.iconeUrl} alt="" style={{ width: 32, height: 32, objectFit: "contain", borderRadius: 4, background: t.bgHover }} />
+                          <img loading="lazy" src={formRede.iconeUrl} alt="" style={{ width: 32, height: 32, objectFit: "contain", borderRadius: 4, background: t.bgHover }} />
                         )}
                         <label style={{ ...s.btnGhost, fontSize: 12, padding: "6px 12px", cursor: "pointer", display: "inline-block" }}>
                           Upload

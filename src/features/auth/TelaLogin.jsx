@@ -318,7 +318,8 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
         if (matchLocal) {
           try {
             // Tenta criar conta nova (usuário legado sem Auth)
-            await createUserWithEmailAndPassword(auth, emailParaAuth, senha);
+            const cred = await createUserWithEmailAndPassword(auth, emailParaAuth, senha);
+            try { await sendEmailVerification(cred.user); } catch {}
             await signInWithEmailAndPassword(auth, emailParaAuth, senha);
             const perfis = buscarPerfis();
             finalizarLoginComConsentimento(perfis);
