@@ -106,9 +106,11 @@ export function useAtletas() {
 
   // ── Atualizar 1 atleta ───────────────────────────────────────────────────
   const atualizarAtleta = useCallback(async (a) => {
+    const dup = cpfDuplicado(a.cpf, a.id);
+    if (dup) throw new Error(`CPF já cadastrado para o atleta "${dup.nome}".`);
     const docRef = doc(db, COLLECTION, a.id);
     await setDoc(docRef, sanitize(a));
-  }, []);
+  }, [cpfDuplicado]);
 
   // ── Excluir 1 atleta por ID (sem confirm — confirm fica no App.jsx) ──────
   const excluirAtletaPorId = useCallback(async (id) => {

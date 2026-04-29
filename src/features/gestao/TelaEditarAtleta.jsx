@@ -149,7 +149,7 @@ function TelaEditarAtleta() {
     ? atletas.filter(a => a.id === atletaId)
     : atletas;
 
-  const handleSalvar = () => {
+  const handleSalvar = async () => {
     if (form.cpf && !validarCPF(form.cpf)) {
       alert("CPF inválido — verifique os dígitos digitados.");
       return;
@@ -169,7 +169,12 @@ function TelaEditarAtleta() {
       const atlDup = atletas.find(a => a.id !== form.id && a.email && a.email.trim().toLowerCase() === emailNorm);
       if (atlDup) { alert(`E-mail já cadastrado para ${atlDup.nome}.`); return; }
     }
-    atualizarAtleta({ ...form });
+    try {
+      await atualizarAtleta({ ...form });
+    } catch (err) {
+      alert(err.message);
+      return;
+    }
     setSalvou(true);
     setModo("ver");
     setTimeout(() => setSalvou(false), 3000);
