@@ -187,7 +187,7 @@ function StatCard({ value, label }) {
 function TelaEventoDetalhe() {
   const { usuarioLogado } = useAuth();
   const { eventoAtual, inscricoes, atletas, resultados, alterarStatusEvento, selecionarEvento, recordes, setRecordes, equipes, getClubeAtleta, atualizarCamposEvento, pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes, RecordDetectionEngine, RankingExtractionEngine, ranking, setRanking } = useEvento();
-  const { setTela, organizadores, setCadEventoGoStep, funcionarios, selecionarOrganizador } = useApp();
+  const { setTela, organizadores, setCadEventoGoStep, funcionarios, selecionarOrganizador, siteBranding, gtLogo } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const confirmar = useConfirm();
@@ -1219,7 +1219,10 @@ function TelaEventoDetalhe() {
                       <div class="rod-wrap">
                         ${logoRod ? `<div style="margin-top:14px;padding-top:10px;border-top:1px solid #ddd;text-align:center;"><img loading="lazy" src="${logoRod}" alt="" style="max-width:100%;max-height:18mm;object-fit:contain;"/></div>` : ""}
                         <div style="padding-top:6px;text-align:center;">
-                          <div style="font-size:9px;color:#aaa;line-height:1.9">Gerado em: ${new Date().toLocaleString("pt-BR")} · Plataforma de Competições - GERENTRACK</div>
+                          <div style="font-size:9px;color:#aaa;line-height:1.9;display:flex;align-items:center;justify-content:center;gap:6px">
+                            Gerado em: ${new Date().toLocaleString("pt-BR")} ·
+                            ${(siteBranding?.logoPlataforma || gtLogo) ? `<img src="${siteBranding?.logoPlataforma || gtLogo}" alt="GERENTRACK" style="max-height:4mm;object-fit:contain;opacity:0.7;vertical-align:middle;" />` : "GERENTRACK"}
+                          </div>
                         </div>
                       </div>
                     </div></body></html>`;
