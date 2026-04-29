@@ -1368,6 +1368,38 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
             </button>
           </div>
 
+          {/* ── PostgreSQL — Consolidação ────────────────────────────────────── */}
+          <div style={s.card}>
+            <h3 style={s.sectionTitle}>PostgreSQL — Consolidação</h3>
+            <p style={{ color: t.textDimmed, fontSize: 13, marginBottom: 16, lineHeight: 1.6 }}>
+              Migra todas as competições finalizadas para o banco relacional (Supabase). Execute uma vez para popular o histórico, ou após correções em massa.
+            </p>
+            <button
+              style={{ background: t.accent, color: "#fff", border: "none", borderRadius: 8, padding: "10px 22px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: t.fontTitle, letterSpacing: 0.5 }}
+              onClick={async () => {
+                if (!window.confirm("Consolidar TODAS as competições finalizadas no PostgreSQL?\n\nIsso pode levar alguns segundos.")) return;
+                try {
+                  const token = await auth.currentUser.getIdToken();
+                  const resp = await fetch("/api/resultados/migrar-historico", {
+                    method: "POST",
+                    headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
+                  });
+                  const data = await resp.json();
+                  if (data.ok) {
+                    const resumo = (data.migracoes || []).map(m => `${m.nome}: ${m.resultados || 0} resultados`).join("\n");
+                    alert(`Migração concluída!\n\n${data.totalEventos} competição(ões) consolidada(s).\n\n${resumo}`);
+                  } else {
+                    alert("Erro: " + (data.error || "desconhecido"));
+                  }
+                } catch (err) {
+                  alert("Erro ao migrar: " + err.message);
+                }
+              }}
+            >
+              Migrar Histórico para PostgreSQL
+            </button>
+          </div>
+
           {/* ── Backup e Restauração ─────────────────────────────────────────── */}
           <div style={s.card}>
             <h3 style={s.sectionTitle}>Backup e Restauração</h3>
