@@ -49,21 +49,14 @@ import {
 // IMPORTS ETAPA 4A — Cole no topo do App.jsx (após imports Etapa 3)
 // ══════════════════════════════════════════════════════════════════
 
-import { Header, NavBtn }          from "./features/layout/Header";
-import TelaLogin                   from "./features/auth/TelaLogin";
-import TelaHome                    from "./features/eventos/TelaHome";
-import TelaEventoDetalhe           from "./features/eventos/TelaEventoDetalhe";
-import { TelaCadastroEvento,
-         FiltroProvasStep,
-         ProgramaHorarioStep }     from "./features/eventos/TelaCadastroEvento";
-import RichTextEditor              from "./features/ui/RichTextEditor";
-import { getStatusEvento,
-         getStatusInscricoes,
-         labelStatusEvento,
-         _dtInscricoes }           from "./features/eventos/eventoHelpers";
-import { gerarHtmlImpressao }      from "./features/impressao/gerarHtmlImpressao";
+import { Header }                  from "./features/layout/Header";
+import { _dtInscricoes }           from "./features/eventos/eventoHelpers";
 
 // ── Lazy-loaded: telas carregadas sob demanda (pré-cacheadas pelo SW) ──
+const TelaHome                    = React.lazy(() => import("./features/eventos/TelaHome"));
+const TelaLogin                   = React.lazy(() => import("./features/auth/TelaLogin"));
+const TelaEventoDetalhe           = React.lazy(() => import("./features/eventos/TelaEventoDetalhe"));
+const TelaCadastroEvento          = React.lazy(() => import("./features/eventos/TelaCadastroEvento").then(m => ({ default: m.TelaCadastroEvento })));
 const TelaSelecaoPerfil           = React.lazy(() => import("./features/auth/TelaSelecaoPerfil"));
 const TelaRecuperacaoSenha        = React.lazy(() => import("./features/auth/TelaRecuperacaoSenha"));
 const TelaTrocarSenha             = React.lazy(() => import("./features/auth/TelaTrocarSenha"));
