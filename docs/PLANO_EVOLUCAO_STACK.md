@@ -3,7 +3,7 @@
 > **Objetivo**: preparar o GERENTRACK para escala nacional, migrando incrementalmente de um SPA Firebase-only para uma arquitetura com backend, banco relacional e SSR — sem interromper o produto em produção.
 
 > **Data de criação**: 2026-04-21
-> **Última atualização**: 2026-04-28
+> **Última atualização**: 2026-04-29
 > **Status**: Fase 1 concluída, Fase 2 e 3 parciais
 
 ---
@@ -380,13 +380,14 @@ Dados consolidados (pós-competição):
 
 ### Entregáveis da Fase 2
 
-- [ ] PostgreSQL operacional com schema relacional
-- [ ] Migração de dados históricos do Firestore concluída
-- [ ] Consolidação automática pós-competição (Firestore → PostgreSQL)
-- [ ] 8+ endpoints de API documentados
-- [x] App.jsx: 3 hooks extraídos (useSessionTimeout, useReloginGuard, useMigrations), props eliminados de todas as telas, Header migrado para contexts (2458→2292 linhas)
+- [x] PostgreSQL operacional (Supabase, São Paulo) com 5 tabelas + índices + RLS
+- [x] Migração de dados históricos concluída (7 competições consolidadas)
+- [x] Consolidação automática pós-competição (Firestore → PostgreSQL via /api/resultados/consolidar)
+- [x] Desfinalização marca como "revisao" no PostgreSQL (/api/resultados/desfinalizar)
+- [ ] 8+ endpoints de API documentados (6 implementados: ranking, recordes, validar-inscricao, consolidar, desfinalizar, migrar-historico)
+- [x] App.jsx: 3 hooks extraídos, props eliminados de todas as telas, Header migrado para contexts (2458→2292 linhas)
 - [ ] SSR nativo em rotas públicas
-- [ ] Ranking nacional consultável via SQL
+- [ ] Ranking nacional consultável via SQL (dados já no PostgreSQL)
 
 ---
 
