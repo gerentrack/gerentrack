@@ -3,7 +3,7 @@ import { useConfirm } from "../../features/ui/ConfirmContext";
 import { validarCPF, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { Th, Td } from "../ui/TableHelpers";
-import { secondaryAuth, createUserWithEmailAndPassword, signOut as firebaseSignOut, sendEmailVerification } from "../../firebase";
+import { secondaryAuth, createUserWithEmailAndPassword, signOut as firebaseSignOut, sendEmailVerification, functions, httpsCallable } from "../../firebase";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
@@ -384,6 +384,14 @@ function TelaTreinadores({ abaInicial } = {}) {
 
   const handleRemover = async (tr) => {
     if (!await confirmar(`Remover ${tr.nome } permanentemente?`)) return;
+    if (tr.email) {
+      try {
+        const deleteAuthUser = httpsCallable(functions, "deleteAuthUser");
+        await deleteAuthUser({ email: tr.email });
+      } catch (err) {
+        console.warn("[Treinadores] Não foi possível deletar conta Auth:", err.message);
+      }
+    }
     removerTreinador(tr.id);
     registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Removeu treinador", tr.nome, null, { equipeId, modulo: "treinadores" });
   };

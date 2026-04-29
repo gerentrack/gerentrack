@@ -3,7 +3,7 @@ import { useConfirm } from "../../features/ui/ConfirmContext";
 import { validarCPF, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { Th, Td } from "../ui/TableHelpers";
-import { secondaryAuth, createUserWithEmailAndPassword, signOut as firebaseSignOut, sendEmailVerification } from "../../firebase";
+import { secondaryAuth, createUserWithEmailAndPassword, signOut as firebaseSignOut, sendEmailVerification, functions, httpsCallable } from "../../firebase";
 const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useAuth } from "../../contexts/AuthContext";
@@ -316,8 +316,16 @@ function TelaFuncionarios() {
       f.ativo ? "Desativou funcionário" : "Reativou funcionário", f.nome, orgId);
   };
 
-  const handleRemover = async (f) => { 
+  const handleRemover = async (f) => {
     if (!await confirmar(`Remover ${f.nome } permanentemente?`)) return;
+    if (f.email) {
+      try {
+        const deleteAuthUser = httpsCallable(functions, "deleteAuthUser");
+        await deleteAuthUser({ email: f.email });
+      } catch (err) {
+        console.warn("[Funcionarios] Não foi possível deletar conta Auth:", err.message);
+      }
+    }
     removerFuncionario(f.id);
     registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Removeu funcionário", f.nome, orgId);
   };

@@ -951,7 +951,7 @@ function TelaGerenciarEquipes() {
                     </button>
                     <button
                       style={s.btnGhost}
-                      onClick={() => {
+                      onClick={async () => {
                         const atletasVinc = atletas.filter(a => a.equipeId === equipe.id || a.clube === equipe.nome);
                         const msg = atletasVinc.length > 0
                           ? `Excluir equipe "${equipe.nome}"?\n\n${atletasVinc.length} atleta(s) vinculado(s) terão o vínculo removido.`
@@ -963,6 +963,14 @@ function TelaGerenciarEquipes() {
                           if (a.clube === equipe.nome) updates.clube = "";
                           if (Object.keys(updates).length > 0) atualizarAtleta({ ...a, ...updates });
                         });
+                        if (equipe.email) {
+                          try {
+                            const deleteAuthUser = httpsCallable(functions, "deleteAuthUser");
+                            await deleteAuthUser({ email: equipe.email });
+                          } catch (err) {
+                            console.warn("[GerenciarEquipes] Não foi possível deletar conta Auth da equipe:", err.message);
+                          }
+                        }
                         excluirEquipeFiliada(equipe.id);
                       }}
                     >
