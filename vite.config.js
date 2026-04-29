@@ -87,6 +87,10 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['src/**/__tests__/**/*.test.{js,jsx}'],
+    environmentMatchGlobs: [
+      ['src/features/**/__tests__/**', 'jsdom'],
+    ],
+    setupFiles: ['./src/test/setup-components.js'],
     coverage: {
       provider: 'v8',
       include: ['src/shared/engines/**/*.js'],
