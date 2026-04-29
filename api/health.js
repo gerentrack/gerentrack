@@ -13,7 +13,15 @@ module.exports = async function handler(req, res) {
   let status = 'ok';
 
   try {
-    const { db } = require('./_lib/firestore');
+    const { db, initError } = require('./_lib/firestore');
+    if (initError) {
+      checks.firestore = 'init_error';
+      checks.detail = initError;
+      status = 'degraded';
+      const code = 503;
+      res.setHeader('Cache-Control', 'no-cache, no-store');
+      return res.status(code).json({ status, ...checks, timestamp: new Date().toISOString() });
+    }
     const snap = await db.collection('state').doc('atl_adminConfig').get();
     if (!snap.exists) {
       checks.firestore = 'empty';
