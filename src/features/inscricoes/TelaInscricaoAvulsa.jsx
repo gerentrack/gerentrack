@@ -530,10 +530,15 @@ function TelaInscricaoAvulsa() {
     let aId = atletaId;
     if (!isAtleta && modo === "novo") {
       aId = Date.now().toString();
-      adicionarAtleta({ ...novoAtleta, id: aId, cbat: novoAtleta.cbat||"",
-        dataCadastro: new Date().toISOString(),
-        cadastradoPor: usuarioLogado?.tipo || null,
-      });
+      try {
+        await adicionarAtleta({ ...novoAtleta, id: aId, cbat: novoAtleta.cbat||"",
+          dataCadastro: new Date().toISOString(),
+          cadastradoPor: usuarioLogado?.tipo || null,
+        });
+      } catch (err) {
+        setErro(err.message);
+        return;
+      }
     }
 
     const atleta = (isAtleta || modo !== "novo") ? atletaSel : { ...novoAtleta, id: aId };
