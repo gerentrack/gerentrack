@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { _getLocalEventoDisplay } from "../../shared/formatters/utils";
 import { useResponsivo } from "../../hooks/useResponsivo";
 import { useTema } from "../../shared/TemaContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
 function _dtInscricoes(data, hora) {
   if (!data) return null;
@@ -72,7 +75,10 @@ function NavBtn({ onClick, label, active, mobile, styles }) {
   );
 }
 
-function Header({ tela, setTela, usuarioLogado, logout, eventoAtual, perfisDisponiveis, gtIcon, gtLogo, gtNome, gtSlogan, pendenciasRecorde, ranking, temaClaro, setTemaClaro, online, pendentesOffline }) {
+function Header() {
+  const { usuarioLogado, logout, perfisDisponiveis } = useAuth();
+  const { eventoAtual, pendenciasRecorde, ranking } = useEvento();
+  const { tela, setTela, gtIcon, gtLogo, gtNome, gtSlogan, temaClaro, setTemaClaro, online, pendentesOffline } = useApp();
   const t = useTema();
   const styles = getStyles(t);
   const [menuAberto, setMenuAberto] = useState(false);

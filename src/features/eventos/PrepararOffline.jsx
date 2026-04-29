@@ -8,6 +8,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useTema } from "../../shared/TemaContext";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { cacheGet, cacheSet } from "../../lib/cacheDB";
+import { useEvento } from "../../contexts/EventoContext";
+import { useApp } from "../../contexts/AppContext";
 
 function getStyles(t) {
   return {
@@ -61,7 +63,9 @@ function verificarSW() {
   return "serviceWorker" in navigator && navigator.serviceWorker.controller != null;
 }
 
-export default function PrepararOffline({ eventoAtual, atletas, inscricoes, resultados, equipes, eventos, setTela }) {
+export default function PrepararOffline() {
+  const { eventoAtual, atletas, inscricoes, resultados, equipes, eventos } = useEvento();
+  const { setTela } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const [checks, setChecks] = useState(null);

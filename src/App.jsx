@@ -1792,7 +1792,7 @@ function App() {
         </div>
       )}
 
-      <Header {...props} />
+      <Header />
       {/* Banner de verificação de e-mail */}
       {usuarioLogado && firebaseAuthed && auth.currentUser && !auth.currentUser.emailVerified && (
         <div style={{ background:"#fff3e0", borderBottom:"1px solid #f0c040", padding:"8px 20px", display:"flex", alignItems:"center", justifyContent:"center", gap:10, flexWrap:"wrap", fontSize:13, color:"#8a6d00" }}>
@@ -1812,28 +1812,28 @@ function App() {
       )}
       <main style={styles.main}>
       <React.Suspense fallback={<div style={{ display:"flex", justifyContent:"center", alignItems:"center", minHeight:200 }}><span style={{ color:"#888", fontSize:14 }}>Carregando...</span></div>}>
-        {tela === "home"                  && <TelaHome {...props} />}
-        {tela === "login"                 && <TelaLogin {...props} adminConfig={adminConfig} setOrganizadores={setOrganizadores} setAtletasUsuarios={setAtletasUsuarios} setFuncionarios={setFuncionarios} setTreinadores={setTreinadores} />}
-        {tela === "cadastro-equipe"    && <TelaCadastroEquipe {...props} />}
-        {tela === "cadastro-organizador"  && <TelaCadastroOrganizador {...props} />}
-        {tela === "cadastro-atleta-login" && <TelaCadastroAtletaLogin {...props} />}
-        {tela === "recuperar-senha"        && <TelaRecuperacaoSenha {...props} />}
-        {tela === "trocar-senha"           && <TelaTrocarSenha {...props} />}
-        {tela === "selecionar-perfil"      && <TelaSelecaoPerfil {...props} />}
-        {tela === "configuracoes"          && <TelaConfiguracoes adminConfig={adminConfig} setAdminConfig={setAdminConfig} setOrganizadores={setOrganizadores} setAtletasUsuarios={setAtletasUsuarios} setFuncionarios={setFuncionarios} setTreinadores={setTreinadores} />}
-        {tela === "painel"                && <TelaPainel {...props} />}
-        {tela === "painel-organizador"    && <TelaPainelOrganizador {...props} />}
+        {tela === "home"                  && <TelaHome />}
+        {tela === "login"                 && <TelaLogin adminConfig={adminConfig} setOrganizadores={setOrganizadores} setAtletasUsuarios={setAtletasUsuarios} setFuncionarios={setFuncionarios} setTreinadores={setTreinadores} />}
+        {tela === "cadastro-equipe"       && <TelaCadastroEquipe />}
+        {tela === "cadastro-organizador"  && <TelaCadastroOrganizador />}
+        {tela === "cadastro-atleta-login" && <TelaCadastroAtletaLogin />}
+        {tela === "recuperar-senha"       && <TelaRecuperacaoSenha />}
+        {tela === "trocar-senha"          && <TelaTrocarSenha />}
+        {tela === "selecionar-perfil"     && <TelaSelecaoPerfil />}
+        {tela === "configuracoes"         && <TelaConfiguracoes adminConfig={adminConfig} setAdminConfig={setAdminConfig} setOrganizadores={setOrganizadores} setAtletasUsuarios={setAtletasUsuarios} setFuncionarios={setFuncionarios} setTreinadores={setTreinadores} />}
+        {tela === "painel"                && <TelaPainel />}
+        {tela === "painel-organizador"    && <TelaPainelOrganizador />}
         {tela === "funcionarios"          && <TelaFuncionarios />}
         {tela === "treinadores"           && <TelaTreinadores />}
         {tela === "treinadores-novo"      && <TelaTreinadores abaInicial="novo" />}
         {tela === "editar-atleta"         && <TelaEditarAtleta />}
-        {tela === "gerenciar-inscricoes"   && <TelaGerenciarInscricoes />}
-        {tela === "painel-atleta"         && <TelaPainelAtleta {...props} />}
-        {tela === "cadastrar-atleta"  && <TelaCadastrarAtleta />}
+        {tela === "gerenciar-inscricoes"  && <TelaGerenciarInscricoes />}
+        {tela === "painel-atleta"         && <TelaPainelAtleta />}
+        {tela === "cadastrar-atleta"      && <TelaCadastrarAtleta />}
         {tela === "cadastrar-atleta-novo" && <TelaCadastrarAtleta modoInicial="novo" />}
-        {tela === "novo-evento"       && <TelaCadastroEvento key={eventoAtualId || "novo"} />}
-        {tela === "evento-detalhe"    && <TelaEventoDetalhe {...props} />}
-        {tela === "preparar-offline"  && <PrepararOffline {...props} />}
+        {tela === "novo-evento"           && <TelaCadastroEvento key={eventoAtualId || "novo"} />}
+        {tela === "evento-detalhe"        && <TelaEventoDetalhe />}
+        {tela === "preparar-offline"      && <PrepararOffline />}
         {tela === "regulamento" && <RegulamentoViewer eventoAtual={eventoAtual} tema={temaClaro ? temaLight : temaDark} />}
 
         {/* Bloqueio global: telas de edição bloqueadas se competição finalizada */}
@@ -1866,9 +1866,9 @@ function App() {
 
         {tela === "gestao-inscricoes"&& <TelaGestaoInscricoes />}
         {tela === "sumulas"           && usuarioLogado && <TelaSumulas chamada={chamada} getPresencaProva={getPresencaProva} />}
-        {tela === "resultados"        && <TelaResultados {...props} />}
-        {tela === "recordes"          && <TelaRecordes {...props} />}
-        {tela === "ranking"           && <TelaRanking {...props} />}
+        {tela === "resultados"        && <TelaResultados />}
+        {tela === "recordes"          && <TelaRecordes />}
+        {tela === "ranking"           && <TelaRanking />}
         {tela === "faq"               && <TelaFaq />}
         {tela === "planos"            && <TelaPlanos />}
         {tela === "privacidade"       && <TelaPrivacidade />}
@@ -1877,10 +1877,10 @@ function App() {
         {tela === "gerenciar-equipes" && <TelaGerenciarEquipes />}
         {tela === "gerenciar-usuarios" && <TelaGerenciarUsuarios />}
         {tela === "importar-atletas"  && <TelaImportarAtletas />}
-        {tela === "painel-equipe"     && <TelaPainelEquipe {...props} />}
+        {tela === "painel-equipe"     && <TelaPainelEquipe />}
         {tela === "gerenciar-membros" && <TelaGerenciarMembros />}
         {tela === "auditoria"         && <TelaAuditoria />}
-        {tela === "organizador-perfil" && <TelaPerfilOrganizador {...props} />}
+        {tela === "organizador-perfil" && <TelaPerfilOrganizador />}
       </React.Suspense>
       </main>
       <footer style={styles.footer}>
