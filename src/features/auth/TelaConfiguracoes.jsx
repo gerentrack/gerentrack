@@ -2,8 +2,9 @@ import React, { useState, useCallback } from "react";
 import DOMPurify from "dompurify";
 import { validarCPF, validarCNPJ } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
-import { storage, storageRef, uploadBytes, getDownloadURL, deleteObject, db, doc, deleteDoc, auth, functions, httpsCallable } from "../../firebase";
+import { storage, storageRef, uploadBytes, getDownloadURL, deleteObject, db, doc, deleteDoc, setDoc, auth, functions, httpsCallable } from "../../firebase";
 import CortarImagem from "../../shared/CortarImagem";
+import { sanitize } from "../../lib/utils/sanitize";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
@@ -115,7 +116,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
   const t = useTema();
   const s = useStylesResponsivos(getS(t));
   const { usuarioLogado, setUsuarioLogado, logout, atualizarSenha, perfisDisponiveis, gerarSenhaTemp } = useAuth();
-  const { equipes, atualizarEquipePerfil, atletas, inscricoes, resultados, atualizarAtleta, eventos, atualizarCamposEvento, excluirInscricao } = useEvento();
+  const { equipes, atualizarEquipePerfil, atletas, inscricoes, resultados, atualizarAtleta, atualizarInscricao, eventos, atualizarCamposEvento, excluirInscricao } = useEvento();
   const { setTela, registrarAcao, organizadores, atletasUsuarios, funcionarios, treinadores, siteBranding, setSiteBranding, exportarDados, importarDados, solicitacoesPortabilidade, adicionarSolicitacaoPortabilidade, editarOrganizadorAdmin, selecionarOrganizador } = useApp();
   const [aba, setAba]           = useState("dados");
   const [feedback, setFeedback] = useState("");
@@ -177,6 +178,8 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
   const [diagAuth, setDiagAuth] = useState(null);
   const [diagOrfaos, setDiagOrfaos] = useState(null);
   const [deletandoOrfao, setDeletandoOrfao] = useState(null);
+  const [diagDuplicatas, setDiagDuplicatas] = useState(null);
+  const [mergeando, setMergeando] = useState(null);
 
   const extrairStoragePath = (url) => {
     if (!url || typeof url !== "string") return null;
@@ -280,6 +283,27 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
       if (chaves.has(chave)) problemas.push({ colecao: "inscricoes", docId: ins.id, campo: "duplicata", valor: chave, problema: `Duplicata de ${chaves.get(chave)}` });
       else chaves.set(chave, ins.id);
     }
+    // Detectar atletas duplicados por CPF
+    const cpfMap = {};
+    for (const atl of (atletas || [])) {
+      if (!atl.cpf) continue;
+      const cpfLimpo = atl.cpf.replace(/\D/g, "");
+      if (cpfLimpo.length < 11) continue;
+      if (!cpfMap[cpfLimpo]) cpfMap[cpfLimpo] = [];
+      cpfMap[cpfLimpo].push(atl);
+    }
+    const grupos = Object.entries(cpfMap)
+      .filter(([, lista]) => lista.length > 1)
+      .map(([cpf, lista]) => ({
+        cpf,
+        atletas: lista.map(atl => ({
+          ...atl,
+          nInscricoes: (inscricoes || []).filter(i => i.atletaId === atl.id).length,
+          nResultados: Object.values(resultados || {}).filter(doc => doc[atl.id] != null).length,
+        })),
+      }));
+    setDiagDuplicatas(grupos);
+
     setDiagFirestore(problemas);
     setDiagRodando(false);
   }, [atletas, equipes, eventos, inscricoes, resultados]);
@@ -2050,6 +2074,11 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(ts => `   • ${ts}`).joi
                     <div style={statItem(diagFirestore.length > 0 ? t.danger : t.success)}>
                       <div style={statNum(diagFirestore.length > 0 ? t.danger : t.success)}>{diagFirestore.length}</div><div style={statLabel}>Problemas</div>
                     </div>
+                    {diagDuplicatas && (
+                      <div style={statItem(diagDuplicatas.length > 0 ? t.danger : t.success)}>
+                        <div style={statNum(diagDuplicatas.length > 0 ? t.danger : t.success)}>{diagDuplicatas.length}</div><div style={statLabel}>Duplicatas CPF</div>
+                      </div>
+                    )}
                     <div style={statItem(t.accent)}><div style={statNum(t.accent)}>{(inscricoes || []).length}</div><div style={statLabel}>Inscrições</div></div>
                     <div style={statItem(t.accent)}><div style={statNum(t.accent)}>{(atletas || []).length}</div><div style={statLabel}>Atletas</div></div>
                   </div>
@@ -2097,6 +2126,107 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(ts => `   • ${ts}`).joi
                     </button>
                   )}
                   {diagFirestore.length === 0 && <div style={{ textAlign:"center", padding:20, color:t.success, fontSize:13 }}>Nenhuma referência órfã encontrada.</div>}
+
+                  {/* ── Atletas duplicados por CPF ── */}
+                  {diagDuplicatas && diagDuplicatas.length > 0 && (
+                    <div style={{ ...s.card, border:`1px solid ${t.danger}33`, marginTop:20 }}>
+                      <div style={{ fontWeight:700, fontSize:14, color:t.danger, marginBottom:4 }}>
+                        Atletas Duplicados por CPF ({diagDuplicatas.length} grupo(s))
+                      </div>
+                      <div style={{ fontSize:12, color:t.textMuted, marginBottom:16, lineHeight:1.6 }}>
+                        Atletas com mesmo CPF. Selecione qual manter — inscrições e resultados dos demais serão transferidos e os registros duplicados excluídos.
+                      </div>
+                      {diagDuplicatas.map((grupo, gi) => (
+                        <div key={grupo.cpf} style={{ background:t.bgHover, borderRadius:10, padding:16, marginBottom:12, border:`1px solid ${t.borderLight}` }}>
+                          <div style={{ fontSize:12, color:t.textDimmed, marginBottom:10, fontWeight:700 }}>
+                            CPF: {grupo.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")} — {grupo.atletas.length} registro(s)
+                          </div>
+                          <div style={{ overflowX:"auto", borderRadius:8, border:`1px solid ${t.border}` }}>
+                            <table style={{ width:"100%", borderCollapse:"collapse" }}>
+                              <thead><tr>
+                                <th style={th}>Nome</th>
+                                <th style={th}>Email</th>
+                                <th style={th}>Equipe</th>
+                                <th style={th}>Inscrições</th>
+                                <th style={th}>Resultados</th>
+                                <th style={th}>Ação</th>
+                              </tr></thead>
+                              <tbody>
+                                {grupo.atletas.map((atl, ai) => (
+                                  <tr key={atl.id} style={{ background: ai % 2 === 0 ? "transparent" : t.bgHover }}>
+                                    <td style={td}>{atl.nome}</td>
+                                    <td style={{ ...td, fontSize:11 }}>{atl.email || "—"}</td>
+                                    <td style={{ ...td, fontSize:11 }}>{atl.clube || "—"}</td>
+                                    <td style={{ ...td, textAlign:"center" }}>{atl.nInscricoes}</td>
+                                    <td style={{ ...td, textAlign:"center" }}>{atl.nResultados}</td>
+                                    <td style={td}>
+                                      <button
+                                        style={{ ...s.btnPrimary, fontSize:11, padding:"4px 10px" }}
+                                        disabled={mergeando === grupo.cpf}
+                                        onClick={async () => {
+                                          const outros = grupo.atletas.filter(a => a.id !== atl.id);
+                                          const nIns = outros.reduce((sum, a) => sum + a.nInscricoes, 0);
+                                          const nRes = outros.reduce((sum, a) => sum + a.nResultados, 0);
+                                          const msg = `Manter "${atl.nome}" e excluir ${outros.length} duplicata(s)?\n\n` +
+                                            `${nIns} inscrição(ões) e ${nRes} resultado(s) serão transferidos para este registro.`;
+                                          if (!window.confirm(msg)) return;
+                                          setMergeando(grupo.cpf);
+                                          const outrosIds = new Set(outros.map(a => a.id));
+                                          // 1. Transferir inscrições
+                                          for (const ins of (inscricoes || [])) {
+                                            if (outrosIds.has(ins.atletaId)) {
+                                              try { await atualizarInscricao({ ...ins, atletaId: atl.id }); } catch {}
+                                            }
+                                          }
+                                          // 2. Transferir resultados (atletaId é chave do objeto dentro do doc)
+                                          for (const [docId, docData] of Object.entries(resultados || {})) {
+                                            const updates = {};
+                                            let changed = false;
+                                            for (const [key, val] of Object.entries(docData)) {
+                                              if (outrosIds.has(key)) {
+                                                // Se o canônico não tem resultado nesta prova, transfere o do duplicado
+                                                if (!docData[atl.id] && !updates[atl.id]) updates[atl.id] = val;
+                                                updates[key] = null;
+                                                changed = true;
+                                              }
+                                            }
+                                            if (changed) {
+                                              try {
+                                                const merged = { ...docData, ...updates };
+                                                Object.keys(merged).forEach(k => { if (merged[k] === null) delete merged[k]; });
+                                                await setDoc(doc(db, "resultados", docId), sanitize(merged));
+                                              } catch {}
+                                            }
+                                          }
+                                          // 3. Transferir atletaUsuarioId se o canônico não tem
+                                          for (const outro of outros) {
+                                            if (outro.atletaUsuarioId && !atl.atletaUsuarioId) {
+                                              try { await atualizarAtleta({ ...atl, atletaUsuarioId: outro.atletaUsuarioId }); } catch {}
+                                            }
+                                          }
+                                          // 4. Excluir registros duplicados direto no Firestore
+                                          for (const outro of outros) {
+                                            try { await deleteDoc(doc(db, "atletas", outro.id)); } catch {}
+                                          }
+                                          setMergeando(null);
+                                          alert(`Merge concluído! ${outros.length} duplicata(s) removida(s).`);
+                                          diagnosticarFirestore();
+                                        }}>
+                                        {mergeando === grupo.cpf ? "..." : "Manter este"}
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {diagDuplicatas && diagDuplicatas.length === 0 && (
+                    <div style={{ textAlign:"center", padding:16, color:t.success, fontSize:13, marginTop:12 }}>Nenhum atleta duplicado por CPF.</div>
+                  )}
                 </>
               );
             })()}
