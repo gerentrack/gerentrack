@@ -781,8 +781,8 @@ function App() {
   };
   const adicionarAtletaUsuario = (u) => _adicionarAtletaUsuario(u);
   const atualizarAtletaUsuario = (u) => _atualizarAtletaUsuario(u);
-  const adicionarAtleta  = (a) => {
-    _adicionarAtleta(a);
+  const adicionarAtleta  = async (a) => {
+    await _adicionarAtleta(a);
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Cadastrou atleta", `${a.nome || ""}${a.clube ? " — " + a.clube : ""}${a.sexo ? " · " + (a.sexo === "M" ? "Masc" : "Fem") : ""}`, usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "atletas" });
   };
   const adicionarAtletasEmLote = async (lista) => {

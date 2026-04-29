@@ -62,15 +62,38 @@ export function useAtletas() {
     return () => unsub();
   }, []);
 
+  // ── Verificar CPF duplicado ───────────────────────────────────────────────
+  const cpfDuplicado = useCallback((cpf, excluirId = null) => {
+    if (!cpf) return null;
+    const limpo = cpf.replace(/\D/g, "");
+    if (limpo.length < 11) return null;
+    return atletasRef.current.find(
+      (a) => a.id !== excluirId && a.cpf && a.cpf.replace(/\D/g, "") === limpo
+    ) || null;
+  }, []);
+
   // ── Adicionar 1 atleta ───────────────────────────────────────────────────
   const adicionarAtleta = useCallback(async (a) => {
+    const dup = cpfDuplicado(a.cpf, a.id);
+    if (dup) throw new Error(`CPF já cadastrado para o atleta "${dup.nome}".`);
     const docRef = doc(db, COLLECTION, a.id);
     await setDoc(docRef, sanitize(a));
-  }, []);
+  }, [cpfDuplicado]);
 
   // ── Adicionar vários atletas em lote ─────────────────────────────────────
   const adicionarAtletasEmLote = useCallback(async (lista) => {
     if (!lista || lista.length === 0) return;
+    // Verificar duplicatas contra base existente e dentro do próprio lote
+    const cpfsLote = new Set();
+    for (const a of lista) {
+      if (!a.cpf) continue;
+      const limpo = a.cpf.replace(/\D/g, "");
+      if (limpo.length < 11) continue;
+      const dup = cpfDuplicado(limpo, a.id);
+      if (dup) throw new Error(`CPF ${a.cpf} já cadastrado para "${dup.nome}". Import cancelado.`);
+      if (cpfsLote.has(limpo)) throw new Error(`CPF ${a.cpf} duplicado dentro do lote (${a.nome}). Import cancelado.`);
+      cpfsLote.add(limpo);
+    }
     const LOTE = 500;
     for (let i = 0; i < lista.length; i += LOTE) {
       const batch = writeBatch(db);
@@ -79,7 +102,7 @@ export function useAtletas() {
       );
       await batch.commit();
     }
-  }, []);
+  }, [cpfDuplicado]);
 
   // ── Atualizar 1 atleta ───────────────────────────────────────────────────
   const atualizarAtleta = useCallback(async (a) => {

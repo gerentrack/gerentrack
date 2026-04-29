@@ -408,7 +408,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
     setVinculoEnviado(true);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const e = {};
     if (!form.nome)     e.nome    = "Nome obrigatório";
     if (!form.dataNasc) e.dataNasc = "Data de nascimento obrigatória";
@@ -480,26 +480,32 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
         return;
       }
     }
-    adicionarAtleta({
-      ...form,
-      id: genId(),
-      dataCadastro: new Date().toISOString(),
-      organizadorId: meuOrgIdFinal,
-      cadastradoPor: usuarioLogado?.tipo || null,
-      equipeAvulsa: form.equipeAvulsa,
-      lgpdConsentimento: true,
-      lgpdConsentimentoData: new Date().toISOString(),
-      lgpdVersao: "2.0",
-      ...(ehMenor ? {
-        consentimentoParental: true,
-        consentimentoParentalData: new Date().toISOString(),
-        consentimentoParentalPor: modoSimplificado ? "responsavel_equipe" : "responsavel_legal",
-        ...(modoSimplificado
-          ? { responsavelEquipeId: usuarioLogado?.id, responsavelEquipeNome: usuarioLogado?.nome, responsavelCpf: usuarioLogado?.cpf || "", responsavelEmail: usuarioLogado?.email || "" }
-          : { responsavelLegal: responsavelLegal.trim(), responsavelCpf: responsavelCpf.trim(), responsavelEmail: responsavelEmail.trim() }
-        ),
-      } : {}),
-    });
+    try {
+      await adicionarAtleta({
+        ...form,
+        id: genId(),
+        dataCadastro: new Date().toISOString(),
+        organizadorId: meuOrgIdFinal,
+        cadastradoPor: usuarioLogado?.tipo || null,
+        equipeAvulsa: form.equipeAvulsa,
+        lgpdConsentimento: true,
+        lgpdConsentimentoData: new Date().toISOString(),
+        lgpdVersao: "2.0",
+        ...(ehMenor ? {
+          consentimentoParental: true,
+          consentimentoParentalData: new Date().toISOString(),
+          consentimentoParentalPor: modoSimplificado ? "responsavel_equipe" : "responsavel_legal",
+          ...(modoSimplificado
+            ? { responsavelEquipeId: usuarioLogado?.id, responsavelEquipeNome: usuarioLogado?.nome, responsavelCpf: usuarioLogado?.cpf || "", responsavelEmail: usuarioLogado?.email || "" }
+            : { responsavelLegal: responsavelLegal.trim(), responsavelCpf: responsavelCpf.trim(), responsavelEmail: responsavelEmail.trim() }
+          ),
+        } : {}),
+      });
+    } catch (err) {
+      setErros({ cpf: err.message });
+      document.getElementById("campo-cpf")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     setOk(true);
   };
 

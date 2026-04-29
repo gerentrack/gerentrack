@@ -330,23 +330,27 @@ function TelaGerenciarUsuarios() {
           (a.cpf && form.cpf && a.cpf.replace(/\D/g,"") === form.cpf.replace(/\D/g,""))
         );
         if (!atletaBase) {
-          adicionarAtleta({
-            id: (Date.now() + 1).toString(),
-            atletaUsuarioId: atletaUserId,
-            nome: form.nome,
-            email: form.email || baseUsuario.email || "",
-            cpf: form.cpf || "",
-            fone: form.fone || "",
-            dataNasc: form.dataNasc || "",
-            anoNasc: form.dataNasc ? form.dataNasc.split("-")[0] : "",
-            sexo: form.sexo || "M",
-            cbat: "",
-            clube: "",
-            equipeId: null,
-            organizadorId: form.organizadorId || "",
-            cadastradoPor: "admin",
-            dataCadastro: new Date().toISOString(),
-          });
+          try {
+            await adicionarAtleta({
+              id: (Date.now() + 1).toString(),
+              atletaUsuarioId: atletaUserId,
+              nome: form.nome,
+              email: form.email || baseUsuario.email || "",
+              cpf: form.cpf || "",
+              fone: form.fone || "",
+              dataNasc: form.dataNasc || "",
+              anoNasc: form.dataNasc ? form.dataNasc.split("-")[0] : "",
+              sexo: form.sexo || "M",
+              cbat: "",
+              clube: "",
+              equipeId: null,
+              organizadorId: form.organizadorId || "",
+              cadastradoPor: "admin",
+              dataCadastro: new Date().toISOString(),
+            });
+          } catch (err) {
+            alert(err.message);
+          }
         }
       }
 

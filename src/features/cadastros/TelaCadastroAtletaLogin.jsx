@@ -368,24 +368,29 @@ function TelaCadastroAtletaLogin() {
     if (atletaCpfEncontrado) {
       atualizarAtleta({ ...atletaCpfEncontrado, atletaUsuarioId: id, email: form.email });
     } else {
-      await adicionarAtleta({
-        id, nome:form.nome, email:form.email,
-        dataNasc:form.dataNasc, anoNasc:form.dataNasc ? form.dataNasc.split("-")[0] : "",
-        sexo:form.sexo, clube:form.clube, cpf:form.cpf, cbat:form.cbat,
-        equipeId:null, atletaUsuarioId:id, organizadorId:form.organizadorId,
-        dataCadastro: new Date().toISOString(),
-        cadastradoPor: "atleta",
-        lgpdConsentimento: true,
-        lgpdConsentimentoData: new Date().toISOString(),
-        lgpdVersao: "2.0",
-        ...(ehMenor ? {
-          responsavelLegal: responsavelLegal.trim(),
-          responsavelCpf: responsavelCpf.trim(),
-          responsavelEmail: responsavelEmail.trim(),
-          consentimentoParental: true,
-          consentimentoParentalData: new Date().toISOString(),
-        } : {}),
-      });
+      try {
+        await adicionarAtleta({
+          id, nome:form.nome, email:form.email,
+          dataNasc:form.dataNasc, anoNasc:form.dataNasc ? form.dataNasc.split("-")[0] : "",
+          sexo:form.sexo, clube:form.clube, cpf:form.cpf, cbat:form.cbat,
+          equipeId:null, atletaUsuarioId:id, organizadorId:form.organizadorId,
+          dataCadastro: new Date().toISOString(),
+          cadastradoPor: "atleta",
+          lgpdConsentimento: true,
+          lgpdConsentimentoData: new Date().toISOString(),
+          lgpdVersao: "2.0",
+          ...(ehMenor ? {
+            responsavelLegal: responsavelLegal.trim(),
+            responsavelCpf: responsavelCpf.trim(),
+            responsavelEmail: responsavelEmail.trim(),
+            consentimentoParental: true,
+            consentimentoParentalData: new Date().toISOString(),
+          } : {}),
+        });
+      } catch (err) {
+        setErros({ cpf: err.message });
+        return;
+      }
     }
     // Flush atl_atletas_usuarios no Firestore enquanto auth ainda está ativo
     try {
