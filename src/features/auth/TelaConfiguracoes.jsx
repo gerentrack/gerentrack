@@ -2,7 +2,7 @@ import React, { useState, useCallback } from "react";
 import DOMPurify from "dompurify";
 import { validarCPF, validarCNPJ } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
-import { storage, storageRef, uploadBytes, getDownloadURL, deleteObject, db, doc, deleteDoc, auth } from "../../firebase";
+import { storage, storageRef, uploadBytes, getDownloadURL, deleteObject, db, doc, deleteDoc, auth, functions, httpsCallable } from "../../firebase";
 import CortarImagem from "../../shared/CortarImagem";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
@@ -175,6 +175,8 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
   const [diagStorage, setDiagStorage] = useState(null);
   const [diagFirestore, setDiagFirestore] = useState(null);
   const [diagAuth, setDiagAuth] = useState(null);
+  const [diagOrfaos, setDiagOrfaos] = useState(null);
+  const [deletandoOrfao, setDeletandoOrfao] = useState(null);
 
   const extrairStoragePath = (url) => {
     if (!url || typeof url !== "string") return null;
@@ -306,6 +308,15 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
     }
     for (const eq of (equipes || [])) {
       if (!eq.email && !eq.representanteEmail) problemas.push({ tipo: "Equipe", nome: eq.nome || eq.id, problema: "Sem email — possível conta Auth órfã se importada" });
+    }
+    // Buscar contas órfãs no Auth via Cloud Function
+    try {
+      const listOrphans = httpsCallable(functions, "listOrphanAuthUsers");
+      const result = await listOrphans();
+      setDiagOrfaos(result.data);
+    } catch (err) {
+      console.warn("[DiagAuth] Erro ao listar contas órfãs:", err.message);
+      setDiagOrfaos({ orphans: [], erro: err.message });
     }
     setDiagAuth(problemas);
     setDiagRodando(false);
@@ -2095,16 +2106,100 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(ts => `   • ${ts}`).joi
                     <div style={statItem(diagAuth.length > 0 ? t.accent : t.success)}>
                       <div style={statNum(diagAuth.length > 0 ? t.accent : t.success)}>{diagAuth.length}</div><div style={statLabel}>Alertas</div>
                     </div>
+                    {diagOrfaos && !diagOrfaos.erro && (
+                      <div style={statItem(diagOrfaos.orphans.length > 0 ? t.danger : t.success)}>
+                        <div style={statNum(diagOrfaos.orphans.length > 0 ? t.danger : t.success)}>{diagOrfaos.orphans.length}</div><div style={statLabel}>Órfãs Auth</div>
+                      </div>
+                    )}
+                    {diagOrfaos && !diagOrfaos.erro && (
+                      <div style={statItem(t.accent)}><div style={statNum(t.accent)}>{diagOrfaos.totalAuth || "—"}</div><div style={statLabel}>Contas Auth</div></div>
+                    )}
                     <div style={statItem(t.accent)}><div style={statNum(t.accent)}>{(organizadores || []).length}</div><div style={statLabel}>Organizadores</div></div>
                     <div style={statItem(t.accent)}><div style={statNum(t.accent)}>{(equipes || []).length}</div><div style={statLabel}>Equipes</div></div>
                   </div>
-                  <div style={{ ...s.card, background:t.bgHover, marginBottom:16 }}>
-                    <div style={{ fontSize:12, color:t.textMuted, lineHeight:1.6 }}>
-                      <strong>Nota:</strong> A listagem completa de contas no Firebase Auth requer o Admin SDK (servidor).
-                      Este diagnóstico verifica inconsistências nos dados do Firestore que podem indicar contas Auth órfãs.
-                      Para auditoria completa, use o console do Firebase &gt; Authentication.
+                  {/* Contas Auth órfãs */}
+                  {diagOrfaos && !diagOrfaos.erro && diagOrfaos.orphans.length > 0 && (
+                    <div style={{ ...s.card, border:`1px solid ${t.danger}33`, marginBottom:16 }}>
+                      <div style={{ fontWeight:700, fontSize:14, color:t.danger, marginBottom:10 }}>
+                        Contas Auth Órfãs ({diagOrfaos.orphans.length})
+                      </div>
+                      <div style={{ fontSize:12, color:t.textMuted, marginBottom:12, lineHeight:1.6 }}>
+                        Contas que existem no Firebase Auth mas não estão vinculadas a nenhum registro no Firestore
+                        (organizadores, equipes, funcionários, treinadores, atletas).
+                      </div>
+                      <div style={{ overflowX:"auto", borderRadius:10, border:`1px solid ${t.border}`, marginBottom:12 }}>
+                        <table style={{ width:"100%", borderCollapse:"collapse" }}>
+                          <thead><tr><th style={th}>Email</th><th style={th}>Criado em</th><th style={th}>Último login</th><th style={th}>Ação</th></tr></thead>
+                          <tbody>
+                            {diagOrfaos.orphans.map((orfao, i) => (
+                              <tr key={orfao.uid} style={{ background: i % 2 === 0 ? "transparent" : t.bgHover }}>
+                                <td style={td}>{orfao.email}</td>
+                                <td style={td}>{orfao.criadoEm ? new Date(orfao.criadoEm).toLocaleDateString("pt-BR") : "—"}</td>
+                                <td style={td}>{orfao.ultimoLogin ? new Date(orfao.ultimoLogin).toLocaleDateString("pt-BR") : "Nunca"}</td>
+                                <td style={td}>
+                                  <button
+                                    style={{ ...s.btnPrimary, fontSize:11, padding:"4px 10px", background:t.danger }}
+                                    disabled={deletandoOrfao === orfao.uid}
+                                    onClick={async () => {
+                                      if (!window.confirm(`Excluir conta Auth de "${orfao.email}"?`)) return;
+                                      setDeletandoOrfao(orfao.uid);
+                                      try {
+                                        const deleteAuthUser = httpsCallable(functions, "deleteAuthUser");
+                                        await deleteAuthUser({ email: orfao.email });
+                                        setDiagOrfaos(prev => ({ ...prev, orphans: prev.orphans.filter(o => o.uid !== orfao.uid) }));
+                                      } catch (err) {
+                                        alert("Erro ao excluir: " + err.message);
+                                      }
+                                      setDeletandoOrfao(null);
+                                    }}>
+                                    {deletandoOrfao === orfao.uid ? "..." : "Excluir"}
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      {diagOrfaos.orphans.length > 1 && (
+                        <button
+                          style={{ ...s.btnPrimary, fontSize:12, background:t.danger }}
+                          disabled={deletandoOrfao === "all"}
+                          onClick={async () => {
+                            if (!window.confirm(`Excluir TODAS as ${diagOrfaos.orphans.length} contas Auth órfãs?`)) return;
+                            setDeletandoOrfao("all");
+                            const deleteAuthUser = httpsCallable(functions, "deleteAuthUser");
+                            let removidos = 0;
+                            for (const orfao of diagOrfaos.orphans) {
+                              try {
+                                await deleteAuthUser({ email: orfao.email });
+                                removidos++;
+                              } catch (err) {
+                                console.warn(`Erro ao excluir ${orfao.email}:`, err.message);
+                              }
+                            }
+                            setDiagOrfaos(prev => ({ ...prev, orphans: [] }));
+                            setDeletandoOrfao(null);
+                            alert(`${removidos} conta(s) órfã(s) excluída(s).`);
+                          }}>
+                          {deletandoOrfao === "all" ? "Excluindo..." : `Excluir todas (${diagOrfaos.orphans.length})`}
+                        </button>
+                      )}
                     </div>
-                  </div>
+                  )}
+                  {diagOrfaos && !diagOrfaos.erro && diagOrfaos.orphans.length === 0 && (
+                    <div style={{ ...s.card, background:t.bgHover, marginBottom:16 }}>
+                      <div style={{ fontSize:12, color:t.success, lineHeight:1.6 }}>
+                        Nenhuma conta Auth órfã encontrada. Todas as contas estão vinculadas a registros no Firestore.
+                      </div>
+                    </div>
+                  )}
+                  {diagOrfaos?.erro && (
+                    <div style={{ ...s.card, background:t.bgHover, marginBottom:16 }}>
+                      <div style={{ fontSize:12, color:t.danger, lineHeight:1.6 }}>
+                        Erro ao consultar contas Auth: {diagOrfaos.erro}
+                      </div>
+                    </div>
+                  )}
                   {diagAuth.length > 0 && (
                     <>
                       <div style={{ overflowX:"auto", borderRadius:10, border:`1px solid ${t.border}`, marginBottom:12 }}>
