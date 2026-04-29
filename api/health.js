@@ -1,9 +1,7 @@
-const { db, admin } = require('./_lib/firestore');
-
 /**
  * GET /api/health
  *
- * Verifica conectividade com Firebase (Firestore + Auth).
+ * Verifica conectividade com Firebase Firestore.
  * Usado pelo UptimeRobot para monitoramento real dos serviços.
  */
 module.exports = async function handler(req, res) {
@@ -11,22 +9,18 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Método não permitido' });
   }
 
-  const checks = { firestore: 'ok', auth: 'ok' };
+  const checks = { firestore: 'ok' };
   let status = 'ok';
 
-  // Verificar Firestore — leitura leve
   try {
-    await db.collection('state').doc('atl_adminConfig').get();
-  } catch {
+    const { db } = require('./_lib/firestore');
+    const snap = await db.collection('state').doc('atl_adminConfig').get();
+    if (!snap.exists) {
+      checks.firestore = 'empty';
+    }
+  } catch (err) {
     checks.firestore = 'error';
-    status = 'degraded';
-  }
-
-  // Verificar Auth — listar 1 usuário
-  try {
-    await admin.auth().listUsers(1);
-  } catch {
-    checks.auth = 'error';
+    checks.detail = err.message;
     status = 'degraded';
   }
 
