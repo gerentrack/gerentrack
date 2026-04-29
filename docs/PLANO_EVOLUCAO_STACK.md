@@ -4,7 +4,7 @@
 
 > **Data de criação**: 2026-04-21
 > **Última atualização**: 2026-04-29
-> **Status**: Fase 1 concluída, Fase 2 e 3 parciais
+> **Status**: Fase 1 e 2 concluídas (exceto SSR), Fase 3 parcial
 
 ---
 
@@ -384,10 +384,10 @@ Dados consolidados (pós-competição):
 - [x] Migração de dados históricos concluída (7 competições consolidadas)
 - [x] Consolidação automática pós-competição (Firestore → PostgreSQL via /api/resultados/consolidar)
 - [x] Desfinalização marca como "revisao" no PostgreSQL (/api/resultados/desfinalizar)
-- [ ] 8+ endpoints de API documentados (6 implementados: ranking, recordes, validar-inscricao, consolidar, desfinalizar, migrar-historico)
+- [x] 8 endpoints de API operacionais: ranking, recordes, validar-inscricao, consolidar, desfinalizar, migrar-historico, atletas/buscar, atletas/historico
 - [x] App.jsx: 3 hooks extraídos, props eliminados de todas as telas, Header migrado para contexts (2458→2292 linhas)
-- [ ] SSR nativo em rotas públicas
-- [ ] Ranking nacional consultável via SQL (dados já no PostgreSQL)
+- [ ] SSR nativo em rotas públicas (adiado — Open Graph resolve SEO para crawlers)
+- [x] Ranking nacional consultável via SQL (dados consolidados no Supabase)
 
 ---
 
