@@ -72,27 +72,48 @@ export function useAtletas() {
     ) || null;
   }, []);
 
+  // ── Verificar email duplicado (entre atletas) ──────────────────────────
+  const emailDuplicado = useCallback((email, excluirId = null) => {
+    if (!email || !email.trim()) return null;
+    const norm = email.trim().toLowerCase();
+    return atletasRef.current.find(
+      (a) => a.id !== excluirId && a.email && a.email.trim().toLowerCase() === norm
+    ) || null;
+  }, []);
+
   // ── Adicionar 1 atleta ───────────────────────────────────────────────────
   const adicionarAtleta = useCallback(async (a) => {
-    const dup = cpfDuplicado(a.cpf, a.id);
-    if (dup) throw new Error(`CPF já cadastrado para o atleta "${dup.nome}".`);
+    const dupCpf = cpfDuplicado(a.cpf, a.id);
+    if (dupCpf) throw new Error(`CPF já cadastrado para o atleta "${dupCpf.nome}".`);
+    const dupEmail = emailDuplicado(a.email, a.id);
+    if (dupEmail) throw new Error(`E-mail já cadastrado para o atleta "${dupEmail.nome}".`);
     const docRef = doc(db, COLLECTION, a.id);
     await setDoc(docRef, sanitize(a));
-  }, [cpfDuplicado]);
+  }, [cpfDuplicado, emailDuplicado]);
 
   // ── Adicionar vários atletas em lote ─────────────────────────────────────
   const adicionarAtletasEmLote = useCallback(async (lista) => {
     if (!lista || lista.length === 0) return;
     // Verificar duplicatas contra base existente e dentro do próprio lote
     const cpfsLote = new Set();
+    const emailsLote = new Set();
     for (const a of lista) {
-      if (!a.cpf) continue;
-      const limpo = a.cpf.replace(/\D/g, "");
-      if (limpo.length < 11) continue;
-      const dup = cpfDuplicado(limpo, a.id);
-      if (dup) throw new Error(`CPF ${a.cpf} já cadastrado para "${dup.nome}". Import cancelado.`);
-      if (cpfsLote.has(limpo)) throw new Error(`CPF ${a.cpf} duplicado dentro do lote (${a.nome}). Import cancelado.`);
-      cpfsLote.add(limpo);
+      if (a.cpf) {
+        const limpo = a.cpf.replace(/\D/g, "");
+        if (limpo.length >= 11) {
+          const dup = cpfDuplicado(limpo, a.id);
+          if (dup) throw new Error(`CPF ${a.cpf} já cadastrado para "${dup.nome}". Import cancelado.`);
+          if (cpfsLote.has(limpo)) throw new Error(`CPF ${a.cpf} duplicado dentro do lote (${a.nome}). Import cancelado.`);
+          cpfsLote.add(limpo);
+        }
+      }
+      if (a.email && a.email.trim()) {
+        const norm = a.email.trim().toLowerCase();
+        const dup = emailDuplicado(norm, a.id);
+        if (dup) throw new Error(`E-mail ${a.email} já cadastrado para "${dup.nome}". Import cancelado.`);
+        if (emailsLote.has(norm)) throw new Error(`E-mail ${a.email} duplicado dentro do lote (${a.nome}). Import cancelado.`);
+        emailsLote.add(norm);
+      }
     }
     const LOTE = 500;
     for (let i = 0; i < lista.length; i += LOTE) {
@@ -102,15 +123,17 @@ export function useAtletas() {
       );
       await batch.commit();
     }
-  }, [cpfDuplicado]);
+  }, [cpfDuplicado, emailDuplicado]);
 
   // ── Atualizar 1 atleta ───────────────────────────────────────────────────
   const atualizarAtleta = useCallback(async (a) => {
-    const dup = cpfDuplicado(a.cpf, a.id);
-    if (dup) throw new Error(`CPF já cadastrado para o atleta "${dup.nome}".`);
+    const dupCpf = cpfDuplicado(a.cpf, a.id);
+    if (dupCpf) throw new Error(`CPF já cadastrado para o atleta "${dupCpf.nome}".`);
+    const dupEmail = emailDuplicado(a.email, a.id);
+    if (dupEmail) throw new Error(`E-mail já cadastrado para o atleta "${dupEmail.nome}".`);
     const docRef = doc(db, COLLECTION, a.id);
     await setDoc(docRef, sanitize(a));
-  }, [cpfDuplicado]);
+  }, [cpfDuplicado, emailDuplicado]);
 
   // ── Excluir 1 atleta por ID (sem confirm — confirm fica no App.jsx) ──────
   const excluirAtletaPorId = useCallback(async (id) => {

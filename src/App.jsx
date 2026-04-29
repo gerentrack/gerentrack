@@ -583,7 +583,7 @@ function App() {
             }
           }
           if (solicitacao?.email && atletaBase && !atletaBase.email) {
-            _atualizarAtleta({ ...atletaBase, email: solicitacao.email });
+            try { await _atualizarAtleta({ ...atletaBase, email: solicitacao.email }); } catch {}
           }
         } else {
           setAtletasUsuarios(updFlag);
@@ -686,13 +686,17 @@ function App() {
   };
   const editarOrganizadorAdmin = (o) => setOrganizadores((p) => p.map(x => x.id === o.id ? { ...x, ...o } : x));
   const editarEquipeAdmin      = (eq) => mergeEquipe(eq);
-  const editarAtletaUsuarioAdmin = (au) => {
+  const editarAtletaUsuarioAdmin = async (au) => {
     setAtletasUsuarios((p) => p.map(x => x.id === au.id ? { ...x, ...au } : x));
     // Sincroniza campos básicos no registro base de atleta vinculado
-    atletasRef_app.current.forEach(a => {
-      if (a.atletaUsuarioId !== au.id && !(a.email && au.email && a.email.toLowerCase() === au.email.toLowerCase())) return;
-      _atualizarAtleta({ ...a, nome: au.nome || a.nome, email: au.email || a.email, cpf: au.cpf || a.cpf, fone: au.fone || a.fone, dataNasc: au.dataNasc || a.dataNasc, anoNasc: au.dataNasc ? au.dataNasc.split("-")[0] : a.anoNasc, sexo: au.sexo || a.sexo, organizadorId: au.organizadorId || a.organizadorId });
-    });
+    for (const a of atletasRef_app.current) {
+      if (a.atletaUsuarioId !== au.id && !(a.email && au.email && a.email.toLowerCase() === au.email.toLowerCase())) continue;
+      try {
+        await _atualizarAtleta({ ...a, nome: au.nome || a.nome, email: au.email || a.email, cpf: au.cpf || a.cpf, fone: au.fone || a.fone, dataNasc: au.dataNasc || a.dataNasc, anoNasc: au.dataNasc ? au.dataNasc.split("-")[0] : a.anoNasc, sexo: au.sexo || a.sexo, organizadorId: au.organizadorId || a.organizadorId });
+      } catch (err) {
+        console.warn("[editarAtletaUsuarioAdmin] Erro ao sincronizar atleta:", err.message);
+      }
+    }
   };
   const adicionarFuncionario  = (f) => setFuncionarios((p) => [...p, f]);
   const atualizarFuncionario  = (f) => setFuncionarios((p) => p.map(x => x.id === f.id ? f : x));
@@ -793,8 +797,8 @@ function App() {
       registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Importou atletas em lote", `${lista.length} atleta(s): ${nomes}${extra}`, usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "atletas" });
     }
   };
-  const atualizarAtleta  = (a) => {
-    _atualizarAtleta(a);
+  const atualizarAtleta  = async (a) => {
+    await _atualizarAtleta(a);
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Editou atleta", `${a.nome || ""}${a.clube ? " — " + a.clube : ""}`, usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "atletas" });
   };
 

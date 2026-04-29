@@ -440,7 +440,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
   };
 
   // ── Revogação de Consentimento LGPD (Art. 8º §5º) ──────────────────────────
-  const revogarConsentimento = () => {
+  const revogarConsentimento = async () => {
     const agora = new Date().toISOString();
     const idAnon = usuarioLogado.id.slice(-6).toUpperCase();
 
@@ -476,17 +476,19 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
 
     // 2. Anonimizar registro base de atleta (mantém sexo e anoNasc para integridade histórica)
     if (atletaBase && atualizarAtleta) {
-      atualizarAtleta({
-        ...atletaBase,
-        nome:     `Atleta Anônimo ${idAnon}`,
-        email:    "",
-        cpf:      "",
-        fone:     "",
-        dataNasc: "",
-        // anoNasc e sexo preservados — necessários para validar resultados históricos
-        lgpdConsentimentoRevogado: true,
-        lgpdRevogadoEm: agora,
-      });
+      try {
+        await atualizarAtleta({
+          ...atletaBase,
+          nome:     `Atleta Anônimo ${idAnon}`,
+          email:    "",
+          cpf:      "",
+          fone:     "",
+          dataNasc: "",
+          // anoNasc e sexo preservados — necessários para validar resultados históricos
+          lgpdConsentimentoRevogado: true,
+          lgpdRevogadoEm: agora,
+        });
+      } catch {}
     }
 
     // 3. Registrar a ação no histórico
@@ -974,7 +976,7 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
                   corAccent="#ff4444"
                   btnLabel="Excluir Todos os Perfis e Sair do Sistema..."
                   confirmWord="EXCLUIR TUDO"
-                  onConfirmar={() => {
+                  onConfirmar={async () => {
                     const agora = new Date().toISOString();
                     const idAnon = usuarioLogado.id.slice(-6).toUpperCase();
                     const email = usuarioLogado?.email?.toLowerCase();
@@ -994,13 +996,15 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
 
                     // Anonimizar atleta base se existir
                     if (atletaBase && atualizarAtleta) {
-                      atualizarAtleta({
-                        ...atletaBase,
-                        nome: `Atleta Anônimo ${idAnon}`,
-                        email: "", cpf: "", fone: "", dataNasc: "",
-                        lgpdConsentimentoRevogado: true,
-                        lgpdRevogadoEm: agora,
-                      });
+                      try {
+                        await atualizarAtleta({
+                          ...atletaBase,
+                          nome: `Atleta Anônimo ${idAnon}`,
+                          email: "", cpf: "", fone: "", dataNasc: "",
+                          lgpdConsentimentoRevogado: true,
+                          lgpdRevogadoEm: agora,
+                        });
+                      } catch {}
                     }
 
                     if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome,
@@ -2226,7 +2230,7 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(ts => `   • ${ts}`).joi
                               if (!atl.email) continue;
                               const email = atl.email.toLowerCase().trim();
                               if (emailsVistos[email]) {
-                                atualizarAtleta({ ...atl, email: "" });
+                                try { await atualizarAtleta({ ...atl, email: "" }); } catch {}
                                 corrigidos++;
                               } else {
                                 emailsVistos[email] = true;

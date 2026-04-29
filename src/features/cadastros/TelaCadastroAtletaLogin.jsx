@@ -366,7 +366,12 @@ function TelaCadastroAtletaLogin() {
     };
     adicionarAtletaUsuario(usuario);
     if (atletaCpfEncontrado) {
-      atualizarAtleta({ ...atletaCpfEncontrado, atletaUsuarioId: id, email: form.email });
+      try {
+        await atualizarAtleta({ ...atletaCpfEncontrado, atletaUsuarioId: id, email: form.email });
+      } catch (err) {
+        setErros({ email: err.message });
+        return;
+      }
     } else {
       try {
         await adicionarAtleta({
