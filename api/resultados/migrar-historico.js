@@ -111,11 +111,21 @@ module.exports = async function handler(req, res) {
           consolidado_em: new Date().toISOString(),
         }, { onConflict: 'id' });
 
-        // Buscar resultados deste evento
-        const resultadosSnap = await db.collection('resultados')
-          .where('__name__', '>=', eventoId + '_')
-          .where('__name__', '<=', eventoId + '_\uf8ff')
-          .get();
+        // Buscar inscrições e resultados deste evento
+        const [inscricoesSnap, resultadosSnap] = await Promise.all([
+          db.collection('inscricoes').where('eventoId', '==', eventoId).get(),
+          db.collection('resultados')
+            .where('__name__', '>=', eventoId + '_')
+            .where('__name__', '<=', eventoId + '_\uf8ff')
+            .get(),
+        ]);
+
+        // Mapa provaId → provaNome a partir das inscrições
+        const provaNomes = {};
+        inscricoesSnap.forEach(doc => {
+          const d = doc.data();
+          if (d.provaId && d.provaNome) provaNomes[d.provaId] = d.provaNome;
+        });
 
         // Limpar resultados anteriores
         await supabase.from('resultados').delete().eq('competicao_id', eventoId);
@@ -160,7 +170,7 @@ module.exports = async function handler(req, res) {
               competicao_id: eventoId,
               atleta_id: atletaId,
               prova_id: provId,
-              prova_nome: provId,
+              prova_nome: provaNomes[provId] || provId,
               categoria_id: catId,
               sexo,
               fase,
