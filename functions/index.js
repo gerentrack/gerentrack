@@ -17,9 +17,11 @@ exports.listOrphanAuthUsers = onCall(async (request) => {
 
   const callerEmail = (request.auth.token.email || "").toLowerCase();
   const snap = await admin.firestore().doc("state/atl_adminConfig").get();
-  const adminEmail = (snap.exists && snap.data()?.value?.email || "").toLowerCase();
+  const rawEmail = snap.exists ? snap.data()?.value?.email : null;
+  const adminEmail = (rawEmail || "").toLowerCase().trim();
+  console.log("[listOrphanAuthUsers] callerEmail:", callerEmail, "| adminEmail:", adminEmail, "| snapExists:", snap.exists, "| rawEmail:", rawEmail);
   if (!adminEmail || callerEmail !== adminEmail) {
-    throw new HttpsError("permission-denied", "Apenas o administrador pode executar esta ação.");
+    throw new HttpsError("permission-denied", `Apenas o administrador pode executar esta ação. (caller=${callerEmail}, admin=${adminEmail})`);
   }
 
   // Coletar todos os emails do Firestore
