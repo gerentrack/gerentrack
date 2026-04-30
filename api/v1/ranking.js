@@ -51,6 +51,7 @@ module.exports = wrapHandler(async (req, res, { pagination }) => {
   }));
 
   return res.status(200).json({
+    fonte: 'GerenTrack — gerentrack.com.br',
     dados,
     paginacao: buildPaginacao(pagination.page, pagination.perPage, count || 0),
   });

@@ -8,10 +8,12 @@ const { parsePagination } = require('./pagination');
  */
 function wrapHandler(handler) {
   return async function (req, res) {
-    // CORS
+    // CORS + Identificação
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Headers', 'X-API-Key, Content-Type');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('X-Powered-By', 'GerenTrack');
+    res.setHeader('X-Data-Source', 'gerentrack.com.br');
     if (req.method === 'OPTIONS') return res.status(204).end();
 
     // Apenas GET
