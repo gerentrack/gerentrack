@@ -562,6 +562,7 @@ function TelaGerenciarEquipes() {
       let importados = 0;
       const credenciais = [];
       const authErros = [];
+      const authExistentes = [];
       for (const equipeDados of preview) {
         const { _linhaOrigem, _senhaGerada, senha: _senhaImport, ...data } = equipeDados;
         // Criar conta Auth
@@ -569,7 +570,9 @@ function TelaGerenciarEquipes() {
           await createUserWithEmailAndPassword(secondaryAuth, data.email, _senhaImport);
           await firebaseSignOut(secondaryAuth).catch(() => {});
         } catch (authErr) {
-          if (authErr.code !== "auth/email-already-in-use") {
+          if (authErr.code === "auth/email-already-in-use") {
+            authExistentes.push(`${data.nome} (${data.email})`);
+          } else {
             authErros.push(`${data.nome}: ${authErr.code}`);
           }
         }
@@ -590,9 +593,12 @@ function TelaGerenciarEquipes() {
       const resumo = credenciais.map(c =>
         `${c.nome}: ${c.email} / ${c.gerada ? c.senha + " (temporária)" : "(senha definida na planilha)"}`
       ).join("\n");
-      const authAviso = authErros.length > 0
-        ? `\n\n⚠ ${authErros.length} conta(s) Auth não criada(s):\n${authErros.join("\n")}`
+      const authAvisoExistentes = authExistentes.length > 0
+        ? `\n\n${authExistentes.length} equipe(s) já possuíam conta Auth (usarão a senha existente):\n${authExistentes.join("\n")}`
         : "";
+      const authAviso = (authErros.length > 0
+        ? `\n\n⚠ ${authErros.length} conta(s) Auth não criada(s):\n${authErros.join("\n")}`
+        : "") + authAvisoExistentes;
       alert(`${importados} equipe(s) importada(s)!\n\nCredenciais de acesso:\n${resumo}\n\nAnote as senhas temporárias — elas não serão exibidas novamente.\nTodas são temporárias — a equipe será obrigada a trocar no primeiro acesso.${authAviso}`);
       setModo("lista");
       setFile(null);
