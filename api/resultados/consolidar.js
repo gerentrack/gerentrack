@@ -110,6 +110,13 @@ module.exports = async function handler(req, res) {
     if (compErr) console.error('Erro upsert competição:', compErr.message);
 
     // ── 4. Consolidar resultados ──────────────────────────────────
+    // Mapa provaId → provaNome a partir das inscrições
+    const provaNomes = {};
+    inscricoesSnap.forEach(doc => {
+      const d = doc.data();
+      if (d.provaId && d.provaNome) provaNomes[d.provaId] = d.provaNome;
+    });
+
     // Primeiro, deletar resultados anteriores desta competição (upsert limpo)
     await supabase.from('resultados').delete().eq('competicao_id', eventoId);
 
@@ -156,7 +163,7 @@ module.exports = async function handler(req, res) {
           competicao_id: eventoId,
           atleta_id: atletaId,
           prova_id: provId,
-          prova_nome: provId, // será enriquecido depois se necessário
+          prova_nome: provaNomes[provId] || provId,
           categoria_id: catId,
           sexo,
           fase,
