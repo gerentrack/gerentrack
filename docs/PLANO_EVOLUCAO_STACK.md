@@ -483,7 +483,7 @@ Dados consolidados (pós-competição):
 ### Entregáveis da Fase 3
 
 - [ ] Autonomia de federações: gestão de recordes estaduais + ranking por UF
-- [ ] API pública v1 documentada e com rate limiting
+- [x] API pública v1 documentada e com rate limiting (3 endpoints: resultados, atletas, ranking)
 - [x] Code splitting: bundle principal de 1269KB → 246KB (-80%), manualChunks para Firebase/React
 - [x] Sentry integrado (@sentry/react, habilitado em produção)
 - [ ] Web Vitals dentro dos budgets (LCP < 2.5s, INP < 200ms)
