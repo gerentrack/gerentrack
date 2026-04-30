@@ -483,13 +483,59 @@ Dados consolidados (pós-competição):
 
 ### Entregáveis da Fase 3
 
-- [ ] Autonomia de federações: gestão de recordes estaduais + ranking por UF
 - [x] API pública v1 documentada e com rate limiting (3 endpoints: resultados, atletas, ranking)
 - [x] Code splitting: bundle principal de 1269KB → 246KB (-80%), manualChunks para Firebase/React
 - [x] Sentry integrado (@sentry/react, habilitado em produção)
+- [x] Health check monitorado (api/health.js + UptimeRobot)
+- [ ] Autonomia de federações: gestão de recordes estaduais + ranking por UF
 - [ ] Web Vitals dentro dos budgets (LCP < 2.5s, INP < 200ms)
 - [ ] Endpoints LGPD (exportação e exclusão de dados)
-- [x] Health check monitorado (api/health.js + UptimeRobot)
+
+---
+
+## Roadmap de execução (itens pendentes, em ordem)
+
+> Atualizado em 2026-04-30. Ordem baseada em: dependências técnicas → impacto no produto → risco.
+
+### Bloco 1 — Qualidade interna (pré-requisito para tudo)
+
+| # | Item | Origem | Esforço | Por quê primeiro |
+|---|---|---|---|---|
+| 1 | **Decomposição do App.jsx** (<500 linhas) | 2.3 | 2-3 dias | Reduz risco de regressão em todas as mudanças seguintes. Extrair hooks: useNotificacoes, useAuditoria, useBranding, useSolicitacoes |
+| 2 | **Logs estruturados nas API routes** | 3.4.3 | 1 dia | Request ID, tempo de resposta, erros — necessário para diagnosticar problemas antes de escalar |
+| 3 | **Rate limiting nas API routes** | 3.5.1 | 1 dia | Proteger endpoints antes de abrir autonomia para federações |
+
+### Bloco 2 — Autonomia de federações (feature principal)
+
+| # | Item | Origem | Esforço | Dependências |
+|---|---|---|---|---|
+| 4 | **Recordes estaduais gerenciados por federação** | 3.1.1 | 3-5 dias | Rate limiting (3) |
+| 5 | **Ranking por UF — federação gerencia seu estado** | 3.1.2 | 3-5 dias | Recordes estaduais (4) |
+| 6 | **Subdomínios por federação** (opcional) | 3.1.3 | 1 dia | DNS Vercel, zero código — só config. Atalho para perfil público |
+
+### Bloco 3 — Compliance e segurança
+
+| # | Item | Origem | Esforço | Por quê nesta ordem |
+|---|---|---|---|---|
+| 7 | **Endpoints LGPD** (exportação + exclusão de dados) | 3.5.5 | 2-3 dias | Obrigação legal antes do lançamento nacional |
+| 8 | **CSRF protection** para mutações | 3.5.2 | 1 dia | Segurança básica |
+| 9 | **Audit log server-side** | 3.5.3 | 2 dias | Complementa historicoAcoes do cliente |
+| 10 | **Backup automatizado PostgreSQL** | 3.5.4 | 0.5 dia | Config no Supabase |
+
+### Bloco 4 — Performance e integrações
+
+| # | Item | Origem | Esforço | Dependências |
+|---|---|---|---|---|
+| 11 | **Web Vitals budgets** (LCP < 2.5s, INP < 200ms) | 3.4.2 | 2 dias | Medir, definir budgets, otimizar rotas críticas |
+| 12 | **Service Worker otimizado** | 3.3.5 | 2 dias | stale-while-revalidate para assets, network-first para dados |
+| 13 | **Integrações externas** (World Athletics, webhooks, CBAt) | 3.2 | 5-10 dias | API pública já existe; depende de especificações externas |
+| 14 | **Penetration testing** | 3.5.6 | Externo | Antes do lançamento nacional |
+
+### Adiados (sem prazo definido)
+
+| Item | Motivo |
+|---|---|
+| SSR nativo (2.4) | Open Graph resolve SEO para crawlers. SSR real só se necessário para performance |
 
 ---
 
