@@ -1,10 +1,11 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvento } from "../../contexts/EventoContext";
-import { useApp } from "../../contexts/AppContext";
+
 
 function getStyles(t) {
   return {
@@ -94,14 +95,14 @@ function getStyles(t) {
 }
 
 function TelaConfigPontuacaoEquipes() {
+  const navigate = useNavigate();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
   const { eventoAtual, atualizarCamposEvento, equipes, inscricoes, atletas, recordes } = useEvento();
-  const { setTela } = useApp();
   if (!eventoAtual) return (
     <div style={s.page}><div style={s.emptyState}><p>Selecione uma competição.</p>
-      <button style={s.btnPrimary} onClick={() => setTela("home")}>Voltar</button></div></div>
+      <button style={s.btnPrimary} onClick={() => navigate("/")}>Voltar</button></div></div>
   );
 
   const config = eventoAtual.pontuacaoEquipes || {};
@@ -226,7 +227,7 @@ function TelaConfigPontuacaoEquipes() {
           <h1 style={s.pageTitle}>Pontuação por Equipes</h1>
           <div style={{ color: t.textDimmed, fontSize: 13 }}>{eventoAtual.nome}</div>
         </div>
-        <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
+        <button style={s.btnGhost} onClick={() => navigate("..")}>← Voltar</button>
       </div>
 
       <div style={s.formCard}>

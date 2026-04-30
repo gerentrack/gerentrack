@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas, nPernasRevezamento, isRevezamentoMisto } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/constants/categorias";
@@ -163,11 +164,12 @@ function getStyles(t) {
 }
 
 function TelaInscricaoRevezamento() {
+  const navigate = useNavigate();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
   const { eventoAtual, inscricoes, atletas, equipes, excluirInscricao, adicionarInscricao, atualizarInscricao, numeracaoPeito } = useEvento();
-  const { setTela, registrarAcao } = useApp();
+  const { registrarAcao } = useApp();
   const confirmar = useConfirm();
   // Hooks de estado antes de qualquer early return (Rules of Hooks do React)
   const [revezForm, setRevezForm] = useState(null);
@@ -187,7 +189,7 @@ function TelaInscricaoRevezamento() {
         <p style={{ color: t.textDimmed, fontSize: 14 }}>
           As inscrições para <strong>{eventoAtual.nome}</strong> estão encerradas.
         </p>
-        <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
+        <button style={s.btnGhost} onClick={() => navigate("..")}>← Voltar</button>
       </div>
     </div>
   );
@@ -201,7 +203,7 @@ function TelaInscricaoRevezamento() {
           Você revogou seu consentimento LGPD. Novas inscrições não são permitidas.<br/>
           Para voltar a se inscrever em competições, realize um novo cadastro.
         </p>
-        <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar ao Início</button>
+        <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar ao Início</button>
       </div>
     </div>
   );
@@ -392,7 +394,7 @@ function TelaInscricaoRevezamento() {
             {eventoAtual.nome} — {provasRevez.length} prova(s) · {inscsVisiveis.length} equipe(s) inscrita(s)
           </div>
         </div>
-        <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
+        <button style={s.btnGhost} onClick={() => navigate("..")}>← Voltar</button>
       </div>
 
       {feedback && (
@@ -431,7 +433,7 @@ function TelaInscricaoRevezamento() {
                       <td style={s.td}>{prv?.nome || insc.provaId}</td>
                       <td style={s.td}>{CATEGORIAS.find(c => c.id === (insc.categoriaId || insc.categoriaOficialId))?.nome || "—"}</td>
                       <td style={{ ...s.td, textAlign: "center" }}>
-                        <span style={{ color: insc.sexo === "M" ? "#1a6ef5" : "#e54f9b" }}>{insc.sexo === "M" ? "Masc" : "Fem"}</span>
+                        {(() => { const prMisto = prv ? isRevezamentoMisto(prv) : false; return prMisto ? <span style={{ color: "#888" }}>Misto</span> : <span style={{ color: insc.sexo === "M" ? "#1a6ef5" : "#e54f9b" }}>{insc.sexo === "M" ? "Masc" : "Fem"}</span>; })()}
                       </td>
                       <td style={{ ...s.td, fontWeight: 600, color: t.accent }}>{nomeEq}{siglaEq}</td>
                       <td style={{ ...s.td, fontSize: 11 }}>
@@ -488,18 +490,12 @@ function TelaInscricaoRevezamento() {
                 }}>
                 <option value="">Selecione a prova...</option>
                 {provasRevez.map(p => {
-                  const sexo = p.id.startsWith("F_") ? "Fem" : "Masc";
+                  const prov = todasAsProvas().find(pr => pr.id === p.id);
+                  const misto = prov ? isRevezamentoMisto(prov) : false;
+                  const sexoLabel = misto ? "Misto" : p.id.startsWith("F_") ? "Fem" : "Masc";
                   const cat = CATEGORIAS.find(c => p.id.includes(c.id))?.nome || "";
-                  return <option key={p.id} value={p.id}>{p.nome} — {cat} ({sexo})</option>;
+                  return <option key={p.id} value={p.id}>{p.nome} — {cat} ({sexoLabel})</option>;
                 })}
-              </select>
-            </div>
-            <div>
-              <div style={{ fontSize: 11, color: t.textMuted, marginBottom: 4 }}>Sexo</div>
-              <select style={{ ...s.input, minWidth: 120 }} value={revezForm.sexo}
-                onChange={e => setRevezForm(f => ({ ...f, sexo: e.target.value, atletasIds: [] }))}>
-                <option value="M">Masculino</option>
-                <option value="F">Feminino</option>
               </select>
             </div>
             <div>

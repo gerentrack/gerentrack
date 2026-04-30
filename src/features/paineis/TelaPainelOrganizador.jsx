@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { usePagination, PaginaControles } from "../../lib/hooks/usePagination.jsx";
 import { _getLocalEventoDisplay, formatarMarca } from "../../shared/formatters/utils";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
@@ -158,7 +159,8 @@ function getStyles(t) {
 function TelaPainelOrganizador() {
   const { usuarioLogado } = useAuth();
   const { eventos, inscricoes, atletas, selecionarEvento, adicionarEvento, editarEvento, excluirEvento, alterarStatusEvento, equipes, atualizarAtleta, responderVinculo, resultados, sincronizarNomesEquipes, numeracaoPeito } = useEvento();
-  const { setTela, organizadores, funcionarios, solicitacoesVinculo, solicitacoesEquipe, aprovarEquipe, recusarEquipe, registrarAcao, setAtletaEditandoId, notificacoes, marcarNotifLida, solicitacoesRelatorio, resolverRelatorio, excluirRelatorio, historicoAcoes, editarOrganizadorAdmin } = useApp();
+  const { organizadores, funcionarios, solicitacoesVinculo, solicitacoesEquipe, aprovarEquipe, recusarEquipe, registrarAcao, notificacoes, marcarNotifLida, solicitacoesRelatorio, resolverRelatorio, excluirRelatorio, historicoAcoes, editarOrganizadorAdmin } = useApp();
+  const navigate = useNavigate();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const tipoOrg = usuarioLogado?.tipo;
@@ -166,7 +168,7 @@ function TelaPainelOrganizador() {
     <div style={s.page}><div style={s.emptyState}>
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
       <p style={{ color: t.danger, fontWeight: 700 }}>Acesso não autorizado</p>
-      <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
+      <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
     </div></div>
   );
 
@@ -857,7 +859,7 @@ function TelaPainelOrganizador() {
       {aba === "equipes" && (<>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
           <h2 style={s.sectionTitle}>Equipes ({minhasEquipes.length})</h2>
-          <button style={s.btnPrimary} onClick={() => setTela("gerenciar-equipes")}>Gerenciar Equipes</button>
+          <button style={s.btnPrimary} onClick={() => navigate("/admin/equipes")}>Gerenciar Equipes</button>
         </div>
         <div style={{ position: "relative", maxWidth: 400, marginBottom: 16 }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={t.textDimmed} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ position: "absolute", left: 12, top: 12 }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -920,8 +922,8 @@ function TelaPainelOrganizador() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
           <h2 style={s.sectionTitle}>Atletas ({meusAtletas.length})</h2>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <button style={s.btnSecondary} onClick={() => setTela("importar-atletas")}>Importar Planilha</button>
-            <button style={s.btnPrimary} onClick={() => setTela("cadastrar-atleta")}>Cadastrar Atleta</button>
+            <button style={s.btnSecondary} onClick={() => navigate("/admin/importar-atletas")}>Importar Planilha</button>
+            <button style={s.btnPrimary} onClick={() => navigate("/admin/atleta/novo")}>Cadastrar Atleta</button>
           </div>
         </div>
         <div style={{ position: "relative", maxWidth: 400, marginBottom: 16 }}>
@@ -948,7 +950,7 @@ function TelaPainelOrganizador() {
                       <Td style={{ fontSize: 11, color: t.textDimmed }}>{a.cpf || "—"}</Td>
                       <Td>
                         <div style={{ display: "flex", gap: 5 }}>
-                          <button style={s.btnIconSm} onClick={() => { setAtletaEditandoId(a.id); setTela("editar-atleta"); }} title="Editar">
+                          <button style={s.btnIconSm} onClick={() => navigate(`/admin/atleta/${a.id}/editar`)} title="Editar">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                           </button>
                           <button style={{ ...s.btnIconSm, color: "#e6c430", borderColor: "#5a4a00" }}
@@ -971,12 +973,12 @@ function TelaPainelOrganizador() {
       {aba === "funcionarios" && (<>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
           <h2 style={s.sectionTitle}>Funcionários ({meusFuncs.length})</h2>
-          <button style={s.btnPrimary} onClick={() => setTela("funcionarios")}>Gerenciar Funcionários</button>
+          <button style={s.btnPrimary} onClick={() => navigate("/admin/funcionarios")}>Gerenciar Funcionários</button>
         </div>
         {meusFuncs.length === 0 ? (
           <div style={s.emptyState}>
             <p>Nenhum funcionário cadastrado</p>
-            <button style={s.btnPrimary} onClick={() => setTela("funcionarios")}>Cadastrar Funcionário</button>
+            <button style={s.btnPrimary} onClick={() => navigate("/admin/funcionarios")}>Cadastrar Funcionário</button>
           </div>
         ) : (
           <div style={s.tableWrap}>

@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { getStatusEvento, labelStatusEvento } from "../eventos/eventoHelpers";
 import { _getLocalEventoDisplay } from "../../shared/formatters/utils";
 import { capitalizarNome } from "../../lib/utils/sanitize";
@@ -49,17 +50,19 @@ function getStyles(t) {
 }
 
 export default function TelaPerfilOrganizador() {
-  const { eventos, inscricoes, atletas, equipes, resultados, selecionarEvento } = useEvento();
-  const { setTela, organizadorPerfilId, organizadores } = useApp();
+  const navigate = useNavigate();
+  const { slug } = useParams();
+  const { eventos, inscricoes, atletas, equipes, resultados } = useEvento();
+  const { organizadorPerfilId, organizadores } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
 
-  const org = organizadores?.find(o => o.id === organizadorPerfilId);
+  const org = organizadores?.find(o => o.slug === slug || o.id === slug || o.id === organizadorPerfilId);
   if (!org) return (
     <div style={{ maxWidth: 1200, margin: "0 auto", padding: "60px 24px", textAlign: "center" }}>
       <span style={{ fontSize: 22, color: t.textDisabled }}>?</span>
       <p style={{ color: t.textDisabled, marginTop: 12 }}>Organizador não encontrado.</p>
-      <button style={s.backBtn} onClick={() => setTela("home")}>← Voltar</button>
+      <button style={s.backBtn} onClick={() => navigate("/")}>← Voltar</button>
     </div>
   );
 
@@ -134,7 +137,7 @@ export default function TelaPerfilOrganizador() {
             <span>{nInscs} {nInscs !== 1 ? "inscrições" : "inscrição"}</span>
           </div>
           <button style={{ background: `linear-gradient(135deg, ${corPri}, ${corSec})`, color: "#fff", border: "none", padding: "10px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: t.fontTitle, letterSpacing: 1, width: "100%", marginTop: 8, transition: "opacity 0.2s" }}
-            onClick={() => selecionarEvento(ev.id)}>
+            onClick={() => navigate(`/competicao/${ev.slug || ev.id}`)}>
             Acessar Competição →
           </button>
         </div>
@@ -239,7 +242,7 @@ export default function TelaPerfilOrganizador() {
               const local = _getLocalEventoDisplay(ev);
               return (
                 <div key={ev.id} style={s.finalizadoItem}
-                  onClick={() => selecionarEvento(ev.id)}
+                  onClick={() => navigate(`/competicao/${ev.slug || ev.id}`)}
                   onMouseEnter={e => e.currentTarget.style.borderColor = corPri}
                   onMouseLeave={e => e.currentTarget.style.borderColor = t.border}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: t.textPrimary }}>
@@ -261,7 +264,7 @@ export default function TelaPerfilOrganizador() {
         </div>
       )}
 
-      <button style={s.backBtn} onClick={() => setTela("home")}>← Voltar à página inicial</button>
+      <button style={s.backBtn} onClick={() => navigate("/")}>← Voltar à página inicial</button>
     </div>
   );
 }

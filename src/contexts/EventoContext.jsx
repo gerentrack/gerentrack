@@ -99,5 +99,9 @@ export function buildEventoValue(props) {
     getClubeAtleta: props.getClubeAtleta,
     RecordDetectionEngine: props.RecordDetectionEngine,
     RankingExtractionEngine: props.RankingExtractionEngine,
+
+    // Câmara de Chamada (presença por prova)
+    chamada: props.chamada,
+    getPresencaProva: props.getPresencaProva,
   };
 }

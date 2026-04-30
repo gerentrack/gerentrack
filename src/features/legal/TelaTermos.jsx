@@ -1,7 +1,7 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { useTema } from "../../shared/TemaContext";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
-import { useApp } from "../../contexts/AppContext";
 
 function getStyles(t) {
   return {
@@ -21,13 +21,13 @@ function getStyles(t) {
 }
 
 function TelaTermos({ embedded } = {}) {
+  const navigate = useNavigate();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
-  const { setTela } = useApp();
 
   return (
     <div style={embedded ? { padding: 0 } : s.page}>
-      {!embedded && <button style={s.btnVoltar} onClick={() => setTela("home")}>← Voltar</button>}
+      {!embedded && <button style={s.btnVoltar} onClick={() => navigate("/")}>← Voltar</button>}
       <h1 style={s.title}>Termos de Uso</h1>
       <p style={s.subtitle}>GERENTRACK LTDA - CNPJ: 65.454.409/0001-23 — Última atualização: abril de 2026</p>
 
@@ -80,7 +80,7 @@ function TelaTermos({ embedded } = {}) {
       <p style={s.p}><strong style={s.strong}>6.4.</strong> A plataforma possui funcionamento offline (PWA), permitindo operação contínua mesmo sem conexão com a internet, com sincronização automática ao retornar online.</p>
 
       <h2 style={s.h2}>7. Da Privacidade e Proteção de Dados</h2>
-      <p style={s.p}><strong style={s.strong}>7.1.</strong> O tratamento de dados pessoais segue as disposições da <button style={{ background: "none", border: "none", color: t.accent, cursor: "pointer", fontSize: 14, padding: 0, textDecoration: "underline" }} onClick={() => setTela("privacidade")}>Política de Privacidade</button> da GERENTRACK e da Lei n. 13.709/2018 (LGPD).</p>
+      <p style={s.p}><strong style={s.strong}>7.1.</strong> O tratamento de dados pessoais segue as disposições da <button style={{ background: "none", border: "none", color: t.accent, cursor: "pointer", fontSize: 14, padding: 0, textDecoration: "underline" }} onClick={() => navigate("/privacidade")}>Política de Privacidade</button> da GERENTRACK e da Lei n. 13.709/2018 (LGPD).</p>
       <p style={s.p}><strong style={s.strong}>7.2.</strong> A entidade contratante é controladora dos dados pessoais inseridos na plataforma. A GERENTRACK atua como operadora.</p>
       <p style={s.p}><strong style={s.strong}>7.3.</strong> A Política de Privacidade é parte integrante destes Termos de Uso.</p>
 

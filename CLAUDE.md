@@ -32,43 +32,43 @@ No test framework is configured.
 
 ### Entry Flow
 
-`index.html` → `src/main.jsx` → `src/App.jsx` (main orchestrator, ~2100 lines, manages state coordination and renderiza telas)
+`index.html` → `src/main.jsx` → `src/App.jsx` (main orchestrator, ~1900 lines, manages state coordination and routing)
 
 ### Routing & Contexts
 
-O app está em **migração incremental** do sistema de routing baseado em estado (`tela`/`setTela`) para **React Router DOM v7**:
+O app usa **React Router DOM v7** com rotas declarativas definidas no `App.jsx`:
 
-- **`src/router/`** — Definição centralizada de rotas:
-  - `routes.jsx` — Mapeamento `ROUTES` (path → URL), `TELA_TO_PATH` (tela → path), `buildPath()`, `telaToPath()`
+- **`src/router/`** — Infraestrutura de rotas:
+  - `routes.jsx` — Constantes `ROUTES` (path → URL), `buildPath()` para construir URLs
   - `ProtectedRoute.jsx` — Guarda de autenticação
-  - `EventoRoute.jsx` — Guarda de competição selecionada
-  - `useRouterBridge.js` — Bridge entre o sistema legado (`setTela`) e React Router (`navigate`)
+  - `FinalizedGuard.jsx` — Bloqueia telas de edição se competição finalizada
 - **`src/layouts/`** — Layouts compartilhados:
-  - `MainLayout.jsx` — Header + main + footer (telas autenticadas)
-  - `EventoLayout.jsx` — Layout de competição (com slug dinâmico)
-  - `PublicLayout.jsx` — Layout para páginas públicas
+  - `EventoLayout.jsx` — Layout de competição (resolve `:slug` → evento, usa `<Outlet />`)
+  - `MainLayout.jsx` — Header + main + footer (disponível para uso futuro)
+  - `PublicLayout.jsx` — Layout para páginas públicas (disponível para uso futuro)
 - **`src/contexts/`** — React Contexts extraídos do App.jsx para reduzir prop drilling:
-  - `AppContext.jsx` (`useApp()`) — navegação, notificações, auditoria, branding, organizadores, funcionários, treinadores, solicitações
+  - `AppContext.jsx` (`useApp()`) — notificações, auditoria, branding, organizadores, funcionários, treinadores, solicitações
   - `AuthContext.jsx` (`useAuth()`) — usuarioLogado, login, logout, perfis, senhas
-  - `EventoContext.jsx` (`useEvento()`) — eventos, inscrições, resultados, atletas, equipes, recordes, ranking
+  - `EventoContext.jsx` (`useEvento()`) — eventos, inscrições, resultados, atletas, equipes, recordes, ranking, chamada
+  - `AdminConfigContext.jsx` (`useAdminConfig()`) — adminConfig, setAdminConfig (apenas TelaLogin, TelaConfiguracoes, TelaAdmin)
 
-**NOTA**: O sistema `tela`/`setTela` coexiste com React Router via `useRouterBridge`. **TODAS as telas DEVEM ter rota registrada** — ao criar uma tela nova:
-1. Adicionar path em `ROUTES` e `TELA_TO_PATH` em `routes.jsx`
-2. Adicionar resolução URL→tela em `resolverPathParaTela()` do `useRouterBridge.js`
-3. Adicionar resolução tela→URL no `staticMap` do `buildUrlForTela()` do `useRouterBridge.js`
-4. **NUNCA** criar tela que funcione apenas via `setTela` sem rota — todas as telas devem ter URL acessível diretamente pelo browser.
+**Ao criar uma tela nova:**
+1. Adicionar `<Route>` no `App.jsx` dentro de `<Routes>`
+2. Usar `useNavigate()` para navegação, nunca `setTela()`
+3. Para telas de competição: adicionar como rota filha de `/competicao/:slug` (dentro de `EventoLayout`)
+4. Para telas de edição bloqueáveis: envolver com `<Route element={<FinalizedGuard />}>`
 
 ### Source Structure
 
 - **`src/domain/`** — Athletics domain definitions: event types (`provas/provasDef.json`), combined events, relay helpers
-- **`src/router/`** — React Router routes, guards, and bridge (ver seção acima)
+- **`src/router/`** — React Router routes, guards, FinalizedGuard (ver seção acima)
 - **`src/contexts/`** — React Contexts: AppContext, AuthContext, EventoContext
 - **`src/layouts/`** — Layout components: MainLayout, EventoLayout, PublicLayout
 - **`src/features/`** — Feature modules organized by domain area:
   - `auth`, `eventos`, `inscricoes`, `resultados`, `recordes`, `paineis`, `admin`, `gestao`, `digitar`, `impressao`, `secretaria`
   - `cadastros` — Telas de cadastro público (atleta, equipe, organizador)
   - `configuracoes` — Configurações de pontuação de equipes
-  - `layout` — Header.jsx
+  - `layout` — Header.jsx, Footer.jsx
   - `organizadores` — Perfil do organizador
   - `ranking` — Sistema de ranking
   - `sumulas` — Geração de súmulas
@@ -192,7 +192,7 @@ Environment variables are prefixed with `VITE_FIREBASE_*` and loaded via `.env`.
 - **secondaryAuth** — SEMPRE usar para `createUserWithEmailAndPassword` quando criando conta para outro usuário (funcionário, treinador, equipe via admin)
 - **Filtro de provas na secretaria** — filtra por `prova.nome` (não `prova.id`), pois provas com variantes F_ têm IDs diferentes mas mesmo nome
 - **Contexts vs props** — features novas devem consumir dados via `useApp()`, `useAuth()`, `useEvento()` em vez de receber props diretamente do App.jsx. Os contexts são construídos via `buildAppValue()`, `buildAuthValue()`, `buildEventoValue()`
-- **Rotas novas** — ao criar telas novas, OBRIGATÓRIO registrar em 3 lugares: (1) `routes.jsx` (ROUTES + TELA_TO_PATH), (2) `useRouterBridge.js` em `resolverPathParaTela()`, (3) `useRouterBridge.js` em `buildUrlForTela()` staticMap. NUNCA criar tela sem rota — toda tela deve ter URL acessível diretamente pelo browser
+- **Rotas novas** — ao criar telas novas, adicionar `<Route>` no App.jsx dentro de `<Routes>`. Para competição, adicionar como rota filha de `/competicao/:slug`. Usar `useNavigate()` para navegação. NUNCA criar tela sem rota — toda tela deve ter URL acessível diretamente pelo browser
 
 ## Regras de dados e segurança
 

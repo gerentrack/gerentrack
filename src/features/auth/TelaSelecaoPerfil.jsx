@@ -1,20 +1,20 @@
 import { criarAuthStyles } from "./authStyles";
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
-import { useApp } from "../../contexts/AppContext";
 
 function TelaSelecaoPerfil() {
+  const navigate = useNavigate();
   const { perfisDisponiveis, loginComSelecao, logout } = useAuth();
-  const { setTela } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(criarAuthStyles(t));
   if (!perfisDisponiveis || perfisDisponiveis.length === 0) return (
     <div style={s.formPage}><div style={s.formCard}>
       <h2 style={{ ...s.formTitle, textAlign:"center" }}>Nenhum perfil encontrado</h2>
       <p style={{ textAlign:"center", color:t.textTertiary }}>Não foram encontrados perfis ativos vinculados à sua conta.</p>
-      <button style={s.btnGhost} onClick={() => setTela("login")}>← Voltar ao Login</button>
+      <button style={s.btnGhost} onClick={() => navigate("/entrar")}>← Voltar ao Login</button>
     </div></div>
   );
 
@@ -76,7 +76,7 @@ function TelaSelecaoPerfil() {
           ))}
         </div>
         <div style={{ borderTop:`1px solid ${t.border}`, marginTop:20, paddingTop:16, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-          <button style={s.linkBtn} onClick={() => setTela("login")}>← Voltar ao Login</button>
+          <button style={s.linkBtn} onClick={() => navigate("/entrar")}>← Voltar ao Login</button>
           <button style={{ ...s.btnGhost, fontSize:12 }} onClick={logout}>Sair</button>
         </div>
       </div>

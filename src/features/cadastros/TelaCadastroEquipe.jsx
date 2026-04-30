@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { auth, db, doc, setDoc, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, signOut as firebaseSignOut } from "../../firebase";
 import { sanitizeForFirestore } from "../../lib/firestore/sanitize";
 import { validarCNPJ, formatarCNPJ, emailJaCadastrado } from "../../shared/formatters/utils";
@@ -13,9 +14,10 @@ import { useApp } from "../../contexts/AppContext";
 import BlocoLGPD from "../ui/BlocoLGPD";
 
 function TelaCadastroEquipe() {
+  const navigate = useNavigate();
   const { usuarioLogado, login } = useAuth();
   const { equipes, adicionarEquipe } = useEvento();
-  const { setTela, organizadores, atletasUsuarios, funcionarios, treinadores, adicionarSolicitacaoEquipe } = useApp();
+  const { organizadores, atletasUsuarios, funcionarios, treinadores, adicionarSolicitacaoEquipe } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(criarInscricaoStyles(t));
   const [form, setForm] = useState({ nome: "", sigla: "", cidade: "", uf: "", email: "", senha: "", cnpj: "", fone: "", organizadorId: "" });
@@ -203,7 +205,7 @@ function TelaCadastroEquipe() {
             ? "O organizador responsável e o administrador serão notificados para aprovar sua equipe."
             : "Como não foi selecionado um organizador, o administrador irá revisar e vincular sua equipe."}
         </p>
-        <button style={s.btnPrimary} onClick={() => setTela("login")}>Voltar ao Login</button>
+        <button style={s.btnPrimary} onClick={() => navigate("/entrar")}>Voltar ao Login</button>
       </div>
     </div>
   );
@@ -242,7 +244,7 @@ function TelaCadastroEquipe() {
             <FormField label="Senha" value={loginForm.senha} onChange={v => setLoginForm({ ...loginForm, senha: v })} type="password" placeholder="Senha da conta" />
             <button style={{ ...s.btnPrimary, marginTop: 8 }} onClick={handleLoginExistente}>Confirmar Identidade</button>
             <div style={{ textAlign: "center", marginTop: 8 }}>
-              <button style={s.linkBtn} onClick={() => setTela("recuperar-senha")}>Esqueci minha senha</button>
+              <button style={s.linkBtn} onClick={() => navigate("/recuperar-senha")}>Esqueci minha senha</button>
             </div>
           </div>
         )}
@@ -306,7 +308,7 @@ function TelaCadastroEquipe() {
 
         <div style={s.formLink}>
           Já tem conta?{" "}
-          <button style={s.linkBtn} onClick={() => setTela("login")}>Entrar</button>
+          <button style={s.linkBtn} onClick={() => navigate("/entrar")}>Entrar</button>
         </div>
       </div>
     </div>

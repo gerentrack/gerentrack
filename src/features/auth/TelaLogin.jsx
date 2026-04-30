@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, db, getDoc, doc, googleProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut as firebaseSignOut } from "../../firebase";
 import { _getClubeAtleta } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
@@ -7,6 +8,7 @@ import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvento } from "../../contexts/EventoContext";
 import { useApp } from "../../contexts/AppContext";
+import { useAdminConfig } from "../../contexts/AdminConfigContext";
 import TelaPrivacidade from "../legal/TelaPrivacidade";
 import TelaTermos from "../legal/TelaTermos";
 import { getEncerramento } from "../../shared/engines/planEngine";
@@ -50,11 +52,12 @@ function getStyles(t) {
   };
 }
 
-function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFuncionarios, setTreinadores }) {
-  // Props extras de segurança (adminConfig, setters) injetadas explicitamente no App.jsx
+function TelaLogin({ setOrganizadores, setAtletasUsuarios, setFuncionarios, setTreinadores }) {
+  const navigate = useNavigate();
+  const { adminConfig } = useAdminConfig();
   const { login, loginComSelecao, setPerfisDisponiveis } = useAuth();
   const { equipes, atletas: atletasBase, atualizarEquipePerfil } = useEvento();
-  const { setTela, organizadores, atletasUsuarios, funcionarios, treinadores, registrarAcao } = useApp();
+  const { organizadores, atletasUsuarios, funcionarios, treinadores, registrarAcao } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const [ident,   setIdent]   = useState("");
@@ -272,7 +275,7 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
     }
     // Múltiplos perfis ou mix com suspensos → tela de seleção
     setPerfisDisponiveis(perfisEncontrados);
-    setTela("selecionar-perfil");
+    navigate("/selecionar-perfil");
   };
 
   const handleLogin = async () => {
@@ -601,9 +604,9 @@ function TelaLogin({ adminConfig, setOrganizadores, setAtletasUsuarios, setFunci
           </p>
           {cadastroAberto && (
             <div style={{ display:"flex", gap:8, justifyContent:"center", flexWrap:"wrap", marginTop:10 }}>
-              <button style={{ ...s.linkBtn, padding:"6px 12px", border:`1px solid ${t.border}`, borderRadius:6, background:t.bgHeaderSolid }} onClick={() => setTela("cadastro-equipe")}>Equipe</button>
-              <button style={{ ...s.linkBtn, padding:"6px 12px", border:`1px solid ${t.border}`, borderRadius:6, background:t.bgHeaderSolid }} onClick={() => setTela("cadastro-organizador")}>Organizador</button>
-              <button style={{ ...s.linkBtn, padding:"6px 12px", border:`1px solid ${t.border}`, borderRadius:6, background:t.bgHeaderSolid }} onClick={() => setTela("cadastro-atleta-login")}>Atleta</button>
+              <button style={{ ...s.linkBtn, padding:"6px 12px", border:`1px solid ${t.border}`, borderRadius:6, background:t.bgHeaderSolid }} onClick={() => navigate("/cadastro/equipe")}>Equipe</button>
+              <button style={{ ...s.linkBtn, padding:"6px 12px", border:`1px solid ${t.border}`, borderRadius:6, background:t.bgHeaderSolid }} onClick={() => navigate("/cadastro/organizador")}>Organizador</button>
+              <button style={{ ...s.linkBtn, padding:"6px 12px", border:`1px solid ${t.border}`, borderRadius:6, background:t.bgHeaderSolid }} onClick={() => navigate("/cadastro/atleta")}>Atleta</button>
             </div>
           )}
         </div>

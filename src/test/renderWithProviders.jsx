@@ -12,9 +12,11 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { vi } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider } from '../contexts/AuthContext';
 import { EventoProvider } from '../contexts/EventoContext';
 import { AppProvider } from '../contexts/AppContext';
+import { AdminConfigProvider } from '../contexts/AdminConfigContext';
 import { TemaProvider } from '../shared/TemaContext';
 
 export const defaultAuthValue = {
@@ -88,8 +90,6 @@ export const defaultEventoValue = {
 };
 
 export const defaultAppValue = {
-  tela: 'home',
-  setTela: vi.fn(),
   temaClaro: false,
   setTemaClaro: vi.fn(),
   notificacoes: [],
@@ -149,34 +149,44 @@ export const defaultAppValue = {
   gtSlogan: '',
   online: true,
   pendentesOffline: 0,
-  adminConfig: {},
-  setAdminConfig: vi.fn(),
   exportarDados: vi.fn(),
   importarDados: vi.fn(),
   limparTodosDados: vi.fn(),
+};
+
+export const defaultAdminConfigValue = {
+  adminConfig: {},
+  setAdminConfig: vi.fn(),
 };
 
 export function renderWithProviders(ui, {
   authValue = {},
   eventoValue = {},
   appValue = {},
+  adminConfigValue = {},
   temaClaro = false,
+  initialRoute = "/",
 } = {}) {
   const mergedAuth = { ...defaultAuthValue, ...authValue };
   const mergedEvento = { ...defaultEventoValue, ...eventoValue };
   const mergedApp = { ...defaultAppValue, ...appValue };
+  const mergedAdminConfig = { ...defaultAdminConfigValue, ...adminConfigValue };
 
   function Wrapper({ children }) {
     return (
-      <TemaProvider temaClaro={temaClaro}>
-        <AuthProvider value={mergedAuth}>
-          <EventoProvider value={mergedEvento}>
-            <AppProvider value={mergedApp}>
-              {children}
-            </AppProvider>
-          </EventoProvider>
-        </AuthProvider>
-      </TemaProvider>
+      <MemoryRouter initialEntries={[initialRoute]}>
+        <TemaProvider temaClaro={temaClaro}>
+          <AuthProvider value={mergedAuth}>
+            <EventoProvider value={mergedEvento}>
+              <AppProvider value={mergedApp}>
+                <AdminConfigProvider value={mergedAdminConfig}>
+                  {children}
+                </AdminConfigProvider>
+              </AppProvider>
+            </EventoProvider>
+          </AuthProvider>
+        </TemaProvider>
+      </MemoryRouter>
     );
   }
 

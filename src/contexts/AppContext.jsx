@@ -24,7 +24,7 @@ export function useApp() {
  * Extrai as props gerais do objeto props do App.jsx.
  *
  * Props incluídas:
- * - tela, setTela (temporário — será removido quando React Router assumir)
+ * (tela/setTela removidos — React Router controla a navegação)
  * - temaClaro, setTemaClaro
  * - notificacoes, adicionarNotificacao, marcarNotifLida
  * - historicoAcoes, registrarAcao
@@ -42,10 +42,6 @@ export function useApp() {
  */
 export function buildAppValue(props) {
   return {
-    // Navegação (temporário)
-    tela: props.tela,
-    setTela: props.setTela,
-
     // Tema
     temaClaro: props.temaClaro,
     setTemaClaro: props.setTemaClaro,

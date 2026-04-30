@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
@@ -93,11 +94,12 @@ function getStyles(t) {
 }
 
 function TelaGerenciarMembros() {
+  const navigate = useNavigate();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
   const { equipes, atualizarEquipe } = useEvento();
-  const { setTela, registrarAcao } = useApp();
+  const { registrarAcao } = useApp();
   const { equipe } = usuarioLogado;
   const [modo, setModo] = useState('lista'); // lista | novo | editar
   const [equipeSelecionada, setEquipeSelecionada] = useState(null);
@@ -235,7 +237,7 @@ function TelaGerenciarMembros() {
             Adicione e gerencie membros da equipe {equipe.nome}
           </p>
         </div>
-        <button style={s.btnGhost} onClick={() => setTela('painel-equipe')}>
+        <button style={s.btnGhost} onClick={() => navigate("/painel/equipe")}>
           ← Voltar
         </button>
       </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas, nPernasRevezamento } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/constants/categorias";
@@ -44,13 +45,15 @@ const getExibicaoEquipe = (atleta, equipes) => {
   return atleta?.clube || "—";
 };
 
-function TelaSumulas({ chamada, getPresencaProva }) {
+function TelaSumulas() {
+  const navigate = useNavigate();
   const t = useTema();
+  const { chamada, getPresencaProva } = useEvento();
   const s = useStylesResponsivos(getStyles(t));
   const confirmar = useConfirm();
   const { usuarioLogado } = useAuth();
   const { inscricoes, atletas, eventoAtual, resultados, numeracaoPeito, getClubeAtleta, equipes, atualizarCamposEvento, alterarStatusEvento, recordes, adicionarInscricao } = useEvento();
-  const { setTela, registrarAcao } = useApp();
+  const { registrarAcao } = useApp();
   const isFinalizado = !!eventoAtual?.competicaoFinalizada;
   const [filtroProva, setFiltroProva] = useState("todas");
   const [filtroCat, setFiltroCat] = useState("todas");
@@ -120,7 +123,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
 
   if (!eventoAtual) return (
     <div style={s.page}><div style={s.emptyState}><p>Selecione uma competição primeiro.</p>
-      <button style={s.btnPrimary} onClick={() => setTela("home")}>Ver Competições</button></div></div>
+      <button style={s.btnPrimary} onClick={() => navigate("/")}>Ver Competições</button></div></div>
   );
 
   // Controle de acesso: não-admins só acessam se sumulaLiberada = true
@@ -141,7 +144,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
           As súmulas desta competição ainda não foram liberadas para consulta.
           Aguarde o encerramento das inscrições e a liberação pelo administrador.
         </p>
-        <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar à Competição</button>
+        <button style={s.btnGhost} onClick={() => navigate("..")}>← Voltar à Competição</button>
       </div>
     </div>
   );
@@ -394,15 +397,15 @@ function TelaSumulas({ chamada, getPresencaProva }) {
           )}
           {isAmplo && (
             <button style={{ ...s.btnSecondary, background: `${t.success}12`, borderColor: `${t.success}44`, color: t.success }}
-              onClick={() => setTela("export-lynx")}>
+              onClick={() => navigate("../finishlynx")}>
               Exportar .evt
             </button>
           )}
           {(isDono || (usuarioLogado?.tipo === "funcionario" && eventoAtual.organizadorId === usuarioLogado?.organizadorId && usuarioLogado?.permissoes?.includes("resultados"))) && (
-            <button style={s.btnSecondary} onClick={() => setTela("digitar-resultados")}>Digitar Resultados</button>
+            <button style={s.btnSecondary} onClick={() => navigate("../digitar")}>Digitar Resultados</button>
           )}
-          <button style={s.btnSecondary} onClick={() => setTela("resultados")}>Ver Resultados</button>
-          <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Competição</button>
+          <button style={s.btnSecondary} onClick={() => navigate("../resultados")}>Ver Resultados</button>
+          <button style={s.btnGhost} onClick={() => navigate("..")}>← Competição</button>
         </div>
       </div>
 
@@ -1821,7 +1824,7 @@ function TelaSumulas({ chamada, getPresencaProva }) {
                         <Td>
                           {eq.atletas.length > 0
                             ? <span style={{ fontSize: 11, color: t.textTertiary }}>{eq.atletas.map(a => a.nome).join(" · ")}</span>
-                            : <span style={{ fontSize: 11, color: t.danger }}>Atletas não definidos — <button style={{ ...s.linkBtn, fontSize: 11, color: t.accent }} onClick={() => setTela("inscricao-revezamento")}>editar inscrição</button></span>
+                            : <span style={{ fontSize: 11, color: t.danger }}>Atletas não definidos — <button style={{ ...s.linkBtn, fontSize: 11, color: t.accent }} onClick={() => navigate("../inscricao/revezamento")}>editar inscrição</button></span>
                           }
                         </Td>
                       </tr>

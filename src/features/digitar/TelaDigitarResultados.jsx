@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas, getComposicaoCombinada, nPernasRevezamento } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/constants/categorias";
@@ -278,7 +279,7 @@ function BlocoDigitarCategoria({
   eid, eventoAtual, inscricoes, atletas, resultados, equipes,
   atualizarResultado, atualizarResultadosEmLote, limparResultado, limparTodosResultados,
   atualizarCamposEvento, numeracaoPeito, getClubeAtleta, recordes,
-  usuarioLogado, registrarAcao, setTela,
+  usuarioLogado, registrarAcao,
   todasProvasComCombinadas, inscDoEvento, getPresencaProva,
   marchaHook,
 }) {
@@ -958,7 +959,7 @@ function BlocoDigitarCategoria({
         equipesRevezNaProva.length === 0 ? (
           <div style={s.emptyState}>
             <span>Nenhuma equipe inscrita neste revezamento.</span>
-            <button style={{ ...s.btnGhost, marginTop: 10 }} onClick={() => setTela("inscricao-revezamento")}>Ir para Inscrição de Revezamento</button>
+            <button style={{ ...s.btnGhost, marginTop: 10 }} onClick={() => navigate("../inscricao/revezamento")}>Ir para Inscrição de Revezamento</button>
           </div>
         ) : (() => {
           const metros = (() => {
@@ -2631,12 +2632,13 @@ function ModalImportLif({ eventoAtual, inscricoes, atletas, equipes, numeracaoPe
 /* ════════════════════════════════════════════════════════════════════════════
    TelaDigitarResultados — componente principal (orquestrador de filtros)
    ════════════════════════════════════════════════════════════════════════════ */
-function TelaDigitarResultados({ getPresencaProva }) {
+function TelaDigitarResultados() {
+  const navigate = useNavigate();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
-  const { inscricoes, atletas, resultados, atualizarResultado, atualizarResultadosEmLote, limparResultado, limparTodosResultados, eventoAtual, atualizarCamposEvento, numeracaoPeito, getClubeAtleta, equipes, recordes } = useEvento();
-  const { setTela, registrarAcao } = useApp();
+  const { inscricoes, atletas, resultados, atualizarResultado, atualizarResultadosEmLote, limparResultado, limparTodosResultados, eventoAtual, atualizarCamposEvento, numeracaoPeito, getClubeAtleta, equipes, recordes, getPresencaProva } = useEvento();
+  const { registrarAcao } = useApp();
   const marchaHook = useMarchaJuizes(eventoAtual?.id);
   // Guard: apenas admin, organizador dono ou funcionário com permissão
   const tipoUser = usuarioLogado?.tipo;
@@ -2652,7 +2654,7 @@ function TelaDigitarResultados({ getPresencaProva }) {
 
   if (!eventoAtual) return (
     <div style={s.page}><div style={s.emptyState}><p>Selecione uma competição primeiro.</p>
-      <button style={s.btnPrimary} onClick={() => setTela("home")}>Ver Competições</button></div></div>
+      <button style={s.btnPrimary} onClick={() => navigate("/")}>Ver Competições</button></div></div>
   );
 
   const eid      = eventoAtual.id;
@@ -2703,7 +2705,7 @@ function TelaDigitarResultados({ getPresencaProva }) {
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
         <p style={{ color: t.danger, fontWeight: 700 }}>Acesso não autorizado</p>
         <p style={{ color: t.textDimmed, fontSize: 14 }}>Você não tem permissão para digitar resultados.</p>
-        <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
+        <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
       </div>
     </div>
   );
@@ -2717,8 +2719,8 @@ function TelaDigitarResultados({ getPresencaProva }) {
         </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <button style={s.btnSecondary} onClick={() => setMostrarImportLif(true)}>Importar .lif</button>
-          <button style={s.btnGhost} onClick={() => setTela("resultados")}>Ver Publicados</button>
-          <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Competição</button>
+          <button style={s.btnGhost} onClick={() => navigate("../resultados")}>Ver Publicados</button>
+          <button style={s.btnGhost} onClick={() => navigate("..")}>← Competição</button>
         </div>
       </div>
 
@@ -2859,7 +2861,6 @@ function TelaDigitarResultados({ getPresencaProva }) {
             recordes={recordes}
             usuarioLogado={usuarioLogado}
             registrarAcao={registrarAcao}
-            setTela={setTela}
             todasProvasComCombinadas={todasProvasComCombinadas}
             inscDoEvento={inscDoEvento}
             getPresencaProva={getPresencaProva}

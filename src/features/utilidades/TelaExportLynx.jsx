@@ -3,7 +3,7 @@ import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import { gerarEvt } from "../../shared/engines/lynxExportEngine";
 import { useEvento } from "../../contexts/EventoContext";
-import { useApp } from "../../contexts/AppContext";
+import { useNavigate } from "react-router-dom";
 
 function getStyles(t) {
   return {
@@ -24,7 +24,7 @@ function TelaExportLynx() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { eventoAtual, inscricoes, atletas, equipes, numeracaoPeito } = useEvento();
-  const { setTela } = useApp();
+  const navigate = useNavigate();
 
   const resultado = useMemo(() => {
     if (!eventoAtual) return { conteudo: "", avisos: ["Selecione uma competição."], totalEventos: 0, totalAtletas: 0 };
@@ -48,7 +48,7 @@ function TelaExportLynx() {
   if (!eventoAtual) return (
     <div style={s.page}>
       <p style={{ color: t.textDimmed }}>Selecione uma competição.</p>
-      <button style={s.btnGhost} onClick={() => setTela("home")}>Voltar</button>
+      <button style={s.btnGhost} onClick={() => navigate("/")}>Voltar</button>
     </div>
   );
 
@@ -59,7 +59,7 @@ function TelaExportLynx() {
           <h1 style={s.pageTitle}>Exportar FinishLynx (.evt)</h1>
           <div style={s.subtitle}>{eventoAtual.nome}</div>
         </div>
-        <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
+        <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
       </div>
 
       {/* Resumo */}

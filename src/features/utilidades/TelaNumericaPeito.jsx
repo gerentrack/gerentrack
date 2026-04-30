@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { _getCbat, formatarPeito } from "../../shared/formatters/utils";
@@ -102,11 +103,12 @@ function getStyles(t) {
 }
 
 function TelaNumericaPeito() {
+  const navigate = useNavigate();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
   const { eventoAtual, inscricoes, atletas, equipes, numeracaoPeito, setNumeracaoEvento } = useEvento();
-  const { setTela, registrarAcao } = useApp();
+  const { registrarAcao } = useApp();
   const confirmar = useConfirm();
 
   const eid = eventoAtual?.id;
@@ -528,7 +530,7 @@ function TelaNumericaPeito() {
           <h1 style={s.pageTitle}>Numeração de Peito</h1>
           <div style={{ color: t.textDimmed, fontSize: 13 }}>{eventoAtual.nome} — {atletasEvt.length} atletas</div>
         </div>
-        <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
+        <button style={s.btnGhost} onClick={() => navigate("..")}>← Voltar</button>
       </div>
 
       {feedback && (

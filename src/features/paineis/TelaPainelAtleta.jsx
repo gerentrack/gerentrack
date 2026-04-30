@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { getCategoria } from "../../shared/constants/categorias";
@@ -101,8 +102,9 @@ function VinculoSolicitarForm({ atletaId, atletaNome, clubeInicial, equipes, sol
 
 function TelaPainelAtleta() {
   const { usuarioLogado, perfisDisponiveis } = useAuth();
-  const { atletas, inscricoes, eventos, equipes, eventoAtual, adicionarInscricao, excluirInscricao, atualizarInscricao, resultados, solicitarVinculo, responderVinculo } = useEvento();
-  const { setTela, atletasUsuarios, atualizarAtletaUsuario, solicitacoesVinculo, notificacoes, marcarNotifLida, organizadores, solicitacoesRelatorio, solicitarRelatorio, setAtletaEditandoId } = useApp();
+  const { atletas, inscricoes, eventos, equipes, eventoAtual, eventoAtualId, adicionarInscricao, excluirInscricao, atualizarInscricao, resultados, solicitarVinculo, responderVinculo } = useEvento();
+  const { atletasUsuarios, atualizarAtletaUsuario, solicitacoesVinculo, notificacoes, marcarNotifLida, organizadores, solicitacoesRelatorio, solicitarRelatorio } = useApp();
+  const navigate = useNavigate();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const confirmar = useConfirm();
@@ -110,7 +112,7 @@ function TelaPainelAtleta() {
     <div style={s.page}><div style={s.emptyState}>
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
       <p style={{ color: t.danger, fontWeight: 700 }}>Acesso restrito a atletas</p>
-      <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
+      <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
     </div></div>
   );
 
@@ -164,9 +166,9 @@ function TelaPainelAtleta() {
         <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
           {meuAtleta && (
             <div style={s.painelBtns}>
-              <button style={s.btnSecondary} onClick={async () => { if (setAtletaEditandoId) setAtletaEditandoId(meuAtleta?.id); setTela("editar-atleta"); }}>Meus Dados</button>
-              <button style={s.btnSecondary} onClick={() => setTela("gerenciar-inscricoes")}>Minhas Inscrições</button>
-              <button style={s.btnPrimary} onClick={() => setTela("inscricao-avulsa")}>Me Inscrever</button>
+              <button style={s.btnSecondary} onClick={() => navigate(`/admin/atleta/${meuAtleta?.id}/editar`)}>Meus Dados</button>
+              <button style={s.btnSecondary} onClick={() => navigate(`/competicao/${eventoAtual?.slug || eventoAtualId}/gerenciar-inscricoes`)} disabled={!eventoAtual}>Minhas Inscrições</button>
+              <button style={s.btnPrimary} onClick={() => navigate(`/competicao/${eventoAtual?.slug || eventoAtualId}/inscricao`)} disabled={!eventoAtual}>Me Inscrever</button>
             </div>
           )}
           <SinoNotificacoes
@@ -239,7 +241,7 @@ function TelaPainelAtleta() {
                       </span>
                     ) : (
                       <button style={{ ...s.btnPrimary, fontSize:13, padding:"8px 16px" }}
-                        onClick={async () => { window.__eventoParaInscricao = ev.id; setTela("inscricao-avulsa"); }}>
+                        onClick={() => navigate(`/competicao/${ev.slug || ev.id}/inscricao`)}>
                         Me Inscrever
                       </button>
                     )}
@@ -253,7 +255,7 @@ function TelaPainelAtleta() {
 
       {!eventoAtual && !meuAtleta?.organizadorId && (
         <div style={{ ...s.catBanner, border:`1px solid ${t.accentBorder}`, marginBottom:16 }}>
-          Selecione uma competição em <button style={s.linkBtn} onClick={()=>setTela("home")}>Competições</button> para se inscrever.
+          Selecione uma competição em <button style={s.linkBtn} onClick={()=>navigate("/")}>Competições</button> para se inscrever.
         </div>
       )}
       {eventoAtual?.inscricoesEncerradas && (

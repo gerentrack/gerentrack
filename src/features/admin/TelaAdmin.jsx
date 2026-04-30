@@ -11,11 +11,13 @@ import FormField from "../ui/FormField";
 import { Th, Td } from "../ui/TableHelpers";
 import { SinoNotificacoes } from "../ui/SinoNotificacoes";
 import { auth, secondaryAuth, createUserWithEmailAndPassword, signOut as firebaseSignOut, sendPasswordResetEmail } from "../../firebase";
+import { useNavigate } from "react-router-dom";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvento } from "../../contexts/EventoContext";
 import { useApp } from "../../contexts/AppContext";
+import { useAdminConfig } from "../../contexts/AdminConfigContext";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 const badgeStatus = (s, t) => ({
@@ -75,12 +77,14 @@ function getStyles(t) {
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
-function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes }) {
+function TelaAdmin({ setHistoricoAcoes }) {
+  const navigate = useNavigate();
+  const { adminConfig, setAdminConfig } = useAdminConfig();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado, solicitacoesRecuperacao, resolverSolicitacaoRecuperacao, aplicarSenhaTemp, gerarSenhaTemp } = useAuth();
-  const { equipes, atletas, inscricoes, eventos, selecionarEvento, excluirEvento, resultados, atualizarAtleta, excluirAtleta } = useEvento();
-  const { setTela, organizadores, adicionarOrganizador, aprovarOrganizador, recusarOrganizador, editarOrganizadorAdmin, excluirDadosOrganizador, exportarDados, importarDados, siteBranding, setSiteBranding, gtIcon, gtLogo, historicoAcoes, atletasUsuarios, funcionarios, treinadores, adicionarTreinador, atualizarTreinador, removerTreinador, setAtletaEditandoId, solicitacoesEquipe, aprovarEquipe, recusarEquipe, solicitacoesPortabilidade, resolverSolicitacaoPortabilidade, excluirSolicitacaoPortabilidade, registrarAcao, notificacoes, marcarNotifLida } = useApp();
+  const { equipes, atletas, inscricoes, eventos, selecionarEvento, excluirEvento, resultados, atualizarAtleta, excluirAtleta, eventoAtual, eventoAtualId } = useEvento();
+  const { organizadores, adicionarOrganizador, aprovarOrganizador, recusarOrganizador, editarOrganizadorAdmin, excluirDadosOrganizador, exportarDados, importarDados, siteBranding, setSiteBranding, gtIcon, gtLogo, historicoAcoes, atletasUsuarios, funcionarios, treinadores, adicionarTreinador, atualizarTreinador, removerTreinador, setAtletaEditandoId, solicitacoesEquipe, aprovarEquipe, recusarEquipe, solicitacoesPortabilidade, resolverSolicitacaoPortabilidade, excluirSolicitacaoPortabilidade, registrarAcao, notificacoes, marcarNotifLida } = useApp();
   const confirmar = useConfirm();
   const pendOrg = organizadores.filter(o => o.status === "pendente");
   const pendRec = (solicitacoesRecuperacao || []).filter(sol => sol.status === "pendente");
@@ -102,7 +106,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes }) {
     <div style={s.page}><div style={s.empty}>
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={t.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
       <p style={{ color: t.danger, fontWeight:700 }}>Acesso restrito ao administrador</p>
-      <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
+      <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
     </div></div>
   );
 
@@ -522,10 +526,10 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes }) {
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))", gap:10 }}>
               {[
                 { label:"Criar Competição",   action:() => { selecionarEvento(null, "novo-evento"); }, primary:true },
-                { label:"Cadastrar Atleta",   action:() => setTela("cadastrar-atleta") },
-                { label:"Gerenciar Equipes",  action:() => setTela("gerenciar-equipes") },
-                { label:"Gerenciar Usuários", action:() => setTela("gerenciar-usuarios") },
-                { label:"Ver Inscrições",     action:() => setTela("gerenciar-inscricoes") },
+                { label:"Cadastrar Atleta",   action:() => navigate("/admin/atleta/novo") },
+                { label:"Gerenciar Equipes",  action:() => navigate("/admin/equipes") },
+                { label:"Gerenciar Usuários", action:() => navigate("/admin/usuarios") },
+                ...(eventoAtual ? [{ label:"Ver Inscrições",     action:() => navigate(`/competicao/${eventoAtual?.slug || eventoAtualId}/gerenciar-inscricoes`) }] : []),
               ].map(a => (
                 <button key={a.label} onClick={a.action} style={{
                   background: a.primary ? `linear-gradient(135deg, ${t.accent}, ${t.accentDark})` : t.bgHeaderSolid,
@@ -867,7 +871,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes }) {
 
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:14 }}>
             <div style={s.sectionHd}>Equipes ({equipes.length})</div>
-            <button style={s.btnSecondary} onClick={() => setTela("gerenciar-equipes")}>Gestão Completa →</button>
+            <button style={s.btnSecondary} onClick={() => navigate("/admin/equipes")}>Gestão Completa →</button>
           </div>
           {equipes.length === 0 ? (
             <div style={s.empty}>Nenhuma equipe cadastrada.</div>
@@ -921,8 +925,8 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes }) {
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:14 }}>
             <div style={s.sectionHd}>Atletas ({atletas.length})</div>
             <div style={{ display:"flex", gap:8 }}>
-              <button style={s.btnPrimary} onClick={() => setTela("cadastrar-atleta")}>+ Cadastrar</button>
-              <button style={s.btnSecondary} onClick={() => setTela("importar-atletas")}>Importar</button>
+              <button style={s.btnPrimary} onClick={() => navigate("/admin/atleta/novo")}>+ Cadastrar</button>
+              <button style={s.btnSecondary} onClick={() => navigate("/admin/importar-atletas")}>Importar</button>
             </div>
           </div>
           {atletas.length === 0 ? (
@@ -975,7 +979,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes }) {
                             <Td><span style={{ fontFamily: t.fontTitle, fontSize:18, fontWeight:800, color: t.accent }}>{ninsc}</span></Td>
                             <Td>
                               <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
-                                <button onClick={async () => { setAtletaEditandoId(a.id); setTela("editar-atleta"); }}
+                                <button onClick={async () => { navigate(`/admin/atleta/${a.id}/editar`); }}
                                   style={{ ...s.btnGhost, fontSize:11, padding:"3px 12px" }}>Editar</button>
                                 <button onClick={() => { setModalTransf({ atleta: a }); setTransfEquipeId(a.equipeId || ""); }}
                                   style={{ ...s.btnGhost, fontSize:11, padding:"3px 12px", color:"#e6c430", borderColor:"#5a4a00" }}>Transferir</button>

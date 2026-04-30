@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { CATEGORIAS, getCategoria } from "../../shared/constants/categorias";
 import { resKey, getFasesModo } from "../../shared/constants/fases";
@@ -65,11 +66,12 @@ function getStyles(t) {
 
 // ── Componente principal ──────────────────────────────────────────────────────
 function TelaSecretaria() {
+  const navigate = useNavigate();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
   const { eventoAtual, inscricoes, atletas, equipes, resultados, numeracaoPeito } = useEvento();
-  const { setTela, registrarAcao } = useApp();
+  const { registrarAcao } = useApp();
   const MEDALHA_CONFIG = getMedalhaConfig(t);
   // Modo de medalhas: retrocompatível com campo boolean antigo
   const modoMedalhas = eventoAtual?.modoMedalhas || (eventoAtual?.medalhasApenasParticipacao ? "apenas_participacao" : "classificacao_participacao");
@@ -619,7 +621,7 @@ function TelaSecretaria() {
               Limpar filtros
             </button>
           )}
-          <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
+          <button style={s.btnGhost} onClick={() => navigate("..")}>← Voltar</button>
         </div>
       </div>
 

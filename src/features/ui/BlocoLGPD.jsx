@@ -1,10 +1,10 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { useTema } from "../../shared/TemaContext";
-import { useApp } from "../../contexts/AppContext";
 
 function BlocoLGPD({ aceite, onChange, erro }) {
   const t = useTema();
-  const { setTela } = useApp();
+  const navigate = useNavigate();
   const linkStyle = { background: "none", border: "none", color: t.accent, cursor: "pointer", fontSize: 13, padding: 0, textDecoration: "underline" };
   return (
     <div style={{ background: t.bgCardAlt, border: `1px solid ${erro ? t.danger : t.accentBorder}`,
@@ -16,11 +16,11 @@ function BlocoLGPD({ aceite, onChange, erro }) {
           style={{ marginTop: 2, width: 16, height: 16, cursor: "pointer", flexShrink: 0 }} />
         <span style={{ fontSize: 13, color: t.textSecondary, lineHeight: 1.7 }}>
           Li e concordo com a{" "}
-          <button type="button" onClick={() => setTela("privacidade")} style={linkStyle}>
+          <button type="button" onClick={() => navigate("/privacidade")} style={linkStyle}>
             Política de Privacidade
           </button>
           {" "}e os{" "}
-          <button type="button" onClick={() => setTela("termos")} style={linkStyle}>
+          <button type="button" onClick={() => navigate("/termos")} style={linkStyle}>
             Termos de Uso
           </button>
           {" "}e autorizo o tratamento dos meus dados pessoais pelo GerenTrack para fins de gestão de competições de atletismo.

@@ -1,7 +1,7 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { useTema } from "../../shared/TemaContext";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
-import { useApp } from "../../contexts/AppContext";
 
 function getStyles(t) {
   return {
@@ -99,13 +99,13 @@ const SERVICOS = [
 ];
 
 function TelaPlanos() {
+  const navigate = useNavigate();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
-  const { setTela } = useApp();
 
   return (
     <div style={s.page}>
-      <button style={s.btnVoltar} onClick={() => setTela("home")}>← Voltar</button>
+      <button style={s.btnVoltar} onClick={() => navigate("/")}>← Voltar</button>
       <h1 style={s.title}>Planos e Preços</h1>
       <p style={s.subtitle}>
         Escolha o período ideal para sua federação, liga ou entidade esportiva.<br />

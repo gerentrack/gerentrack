@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { _getClubeAtleta } from "../../shared/formatters/utils";
@@ -211,7 +212,8 @@ function InscricaoProvaRow({ insc, prova, atleta, provasDisp, inscAberta, atuali
 function TelaPainel() {
   const { usuarioLogado } = useAuth();
   const { atletas, inscricoes, eventos, equipes, excluirInscricao, atualizarInscricao } = useEvento();
-  const { setTela, solicitacoesVinculo, treinadores } = useApp();
+  const { solicitacoesVinculo, treinadores } = useApp();
+  const navigate = useNavigate();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const confirmar = useConfirm();
@@ -222,7 +224,7 @@ function TelaPainel() {
     <div style={s.page}><div style={s.emptyState}>
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
       <p style={{ color: t.danger, fontWeight: 700 }}>Acesso restrito a equipes</p>
-      <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
+      <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
     </div></div>
   );
 
@@ -257,8 +259,8 @@ function TelaPainel() {
           </p>
         </div>
         <div style={s.painelBtns}>
-          <button style={s.btnPrimary} onClick={() => setTela("cadastrar-atleta")}>Atletas</button>
-          <button style={s.btnSecondary} onClick={() => setTela("treinadores")}>Treinadores</button>
+          <button style={s.btnPrimary} onClick={() => navigate("/admin/atleta/novo")}>Atletas</button>
+          <button style={s.btnSecondary} onClick={() => navigate("/admin/treinadores")}>Treinadores</button>
         </div>
       </div>
 

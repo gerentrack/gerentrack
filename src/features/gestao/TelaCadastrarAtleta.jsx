@@ -5,6 +5,7 @@ import { CATEGORIAS, getCategoria } from "../../shared/constants/categorias";
 import { _getClubeAtleta, validarCPF, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 
+import { useNavigate } from "react-router-dom";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvento } from "../../contexts/EventoContext";
@@ -244,11 +245,12 @@ function getStyles(t) {
 }
 
 function TelaCadastrarAtleta({ modoInicial } = {}) {
+  const navigate = useNavigate();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
-  const { adicionarAtleta, atualizarAtleta, excluirAtleta, excluirAtletasEmMassa, equipes, eventoAtual, atletas, solicitarVinculo } = useEvento();
-  const { setTela, atletasUsuarios, solicitacoesVinculo, organizadores, setAtletaEditandoId, funcionarios, treinadores } = useApp();
+  const { adicionarAtleta, atualizarAtleta, excluirAtleta, excluirAtletasEmMassa, equipes, eventoAtual, eventoAtualId, atletas, solicitarVinculo } = useEvento();
+  const { atletasUsuarios, solicitacoesVinculo, organizadores, setAtletaEditandoId, funcionarios, treinadores } = useApp();
   const confirmar = useConfirm();
   const _equipeDoUsuario = usuarioLogado?.tipo === "equipe" ? equipes?.find(e => e.id === usuarioLogado.id) : null;
   const _isTreinador = usuarioLogado?.tipo === "treinador";
@@ -283,13 +285,13 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
   const isEquipe = usuarioLogado?.tipo === "equipe";
   const isAdmin = usuarioLogado?.tipo === "admin";
   const isTreinador = usuarioLogado?.tipo === "treinador";
-  const voltarTela = isOrg ? "painel-organizador" : isAdmin ? "admin" : (isEquipe || isTreinador) ? "painel-equipe" : "painel";
+  const voltarPath = isOrg ? "/painel/organizador" : isAdmin ? "/admin" : (isEquipe || isTreinador) ? "/painel/equipe" : "/";
 
   if (isTreinador && !(usuarioLogado?.permissoes || []).includes("cadastrar_atletas")) {
     return (<div style={{ maxWidth:600, margin:"40px auto", padding:24, textAlign:"center" }}>
       <p style={{ fontSize:16, fontWeight:700 }}>Acesso restrito</p>
       <p style={{ fontSize:13, marginTop:8 }}>Você não tem permissão para cadastrar atletas.</p>
-      <button onClick={() => setTela("painel-equipe")} style={{ marginTop:16, padding:"8px 20px", cursor:"pointer" }}>← Voltar</button>
+      <button onClick={() => navigate("/painel/equipe")} style={{ marginTop:16, padding:"8px 20px", cursor:"pointer" }}>← Voltar</button>
     </div>);
   }
 
@@ -511,7 +513,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
 
   const handleCancelar = () => {
     if (modoInicial === "novo") {
-      setTela(voltarTela);
+      navigate(voltarPath);
       return;
     }
     setModo("lista");
@@ -535,7 +537,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
         <h2 style={{ ...s.formTitle, textAlign: "center" }}>Atleta cadastrado!</h2>
         <div style={s.heroBtns}>
           <button style={s.btnPrimary} onClick={async () => { setOk(false); setForm(FORM_VAZIO); setAtletaExistente(null); setVinculoEnviado(false); }}>Cadastrar outro</button>
-          <button style={s.btnSecondary} onClick={() => setTela("inscricao-avulsa")}>Inscrever atleta</button>
+          <button style={s.btnSecondary} onClick={() => navigate(`/competicao/${eventoAtual?.slug || eventoAtualId}/inscricao`)} disabled={!eventoAtual}>Inscrever atleta</button>
           <button style={s.btnGhost} onClick={handleCancelar}>{modoInicial === "novo" ? "← Voltar" : "← Voltar à lista"}</button>
         </div>
       </div>
@@ -556,7 +558,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
             <h1 style={s.pageTitle}>Atletas</h1>
             <p style={{ color: t.textDimmed, fontSize: 14 }}>Gerenciar atletas cadastrados</p>
           </div>
-          <button style={s.btnGhost} onClick={() => setTela(voltarTela)}>← Voltar</button>
+          <button style={s.btnGhost} onClick={() => navigate(voltarPath)}>← Voltar</button>
         </div>
 
         {/* Stats */}
@@ -578,7 +580,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
         {/* Ações */}
         <div style={{ display: "flex", gap: 12, marginBottom: 12, flexWrap: "wrap", alignItems: "center" }}>
           <button style={s.btnPrimary} onClick={() => setModo("novo")}>+ Novo Atleta</button>
-          <button style={s.btnSecondary} onClick={() => setTela("importar-atletas")}>Importar Planilha</button>
+          <button style={s.btnSecondary} onClick={() => navigate("/admin/importar-atletas")}>Importar Planilha</button>
           <input
             type="text"
             placeholder="Buscar atleta, CPF ou equipe..."
@@ -678,7 +680,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
                 <div style={{ fontSize: 14, marginBottom: 16 }}>Cadastre o primeiro atleta manualmente ou importe uma planilha</div>
                 <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
                   <button style={s.btnPrimary} onClick={() => setModo("novo")}>+ Novo Atleta</button>
-                  <button style={s.btnSecondary} onClick={() => setTela("importar-atletas")}>Importar Planilha</button>
+                  <button style={s.btnSecondary} onClick={() => navigate("/admin/importar-atletas")}>Importar Planilha</button>
                 </div>
               </>
             )}
@@ -734,7 +736,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
                   </div>
                   <div style={{ display: "flex", gap: 6, flexShrink: 0 }} onClick={e => e.stopPropagation()}>
                     <button
-                      onClick={() => { if (setAtletaEditandoId) setAtletaEditandoId(a.id); else window.__atletaEditId = a.id; setTela("editar-atleta"); }}
+                      onClick={() => { navigate(`/admin/atleta/${a.id}/editar`); }}
                       style={{ background: `${t.accent}18`, color: t.accent, border: `1px solid ${t.accent}44`, borderRadius: 6, cursor: "pointer", fontSize: 11, padding: "4px 10px", fontFamily: t.fontBody }}
                       title="Ver e editar dados do atleta"
                     >

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { _getLocalEventoDisplay } from "../../shared/formatters/utils";
 import { useResponsivo } from "../../hooks/useResponsivo";
 import { useTema } from "../../shared/TemaContext";
@@ -76,32 +77,34 @@ function NavBtn({ onClick, label, active, mobile, styles }) {
 }
 
 function Header() {
+  const navigate = useNavigate();
   const { usuarioLogado, logout, perfisDisponiveis } = useAuth();
   const { eventoAtual, pendenciasRecorde, ranking } = useEvento();
-  const { tela, setTela, gtIcon, gtLogo, gtNome, gtSlogan, temaClaro, setTemaClaro, online, pendentesOffline } = useApp();
+  const { gtIcon, gtLogo, gtNome, gtSlogan, temaClaro, setTemaClaro, online, pendentesOffline } = useApp();
+  const location = useLocation();
   const t = useTema();
   const styles = getStyles(t);
   const [menuAberto, setMenuAberto] = useState(false);
   const { mobile } = useResponsivo();
 
   // Fecha menu ao navegar
-  const navegar = (destino) => { setTela(destino); setMenuAberto(false); };
+  const navegar = (path) => { navigate(path); setMenuAberto(false); };
 
   const pendCount = usuarioLogado?.tipo === "admin" ? (pendenciasRecorde || []).filter(p => p.status === "pendente").length : 0;
   const rankingPendCount = usuarioLogado?.tipo === "admin" ? (ranking || []).filter(r => r.status === "pendente").length : 0;
 
   const navItems = (
     <>
-      <NavBtn styles={styles} onClick={() => navegar("home")} label="Competições" mobile={mobile} />
+      <NavBtn styles={styles} onClick={() => navegar("/")} label="Competições" mobile={mobile} />
       <div style={{ position: "relative", display: mobile ? "block" : "inline-block", width: mobile ? "100%" : "auto" }}>
-        <NavBtn styles={styles} onClick={() => navegar("recordes")} label="Recordes" mobile={mobile} />
+        <NavBtn styles={styles} onClick={() => navegar("/recordes")} label="Recordes" mobile={mobile} />
         {pendCount > 0 && (
           <span style={{ position: "absolute", top: mobile ? 6 : -4, right: mobile ? 8 : -4, background: t.danger, color: "#fff", fontSize: 9,
             fontWeight: 800, borderRadius: 10, padding: "1px 5px", minWidth: 16, textAlign: "center" }}>{pendCount}</span>
         )}
       </div>
       <div style={{ position: "relative", display: mobile ? "block" : "inline-block", width: mobile ? "100%" : "auto" }}>
-        <NavBtn styles={styles} onClick={() => navegar("ranking")} label="Ranking" mobile={mobile} />
+        <NavBtn styles={styles} onClick={() => navegar("/ranking")} label="Ranking" mobile={mobile} />
         {rankingPendCount > 0 && (
           <span style={{ position: "absolute", top: mobile ? 6 : -4, right: mobile ? 8 : -4, background: t.danger, color: "#fff", fontSize: 9,
             fontWeight: 800, borderRadius: 10, padding: "1px 5px", minWidth: 16, textAlign: "center" }}>{rankingPendCount}</span>
@@ -109,16 +112,16 @@ function Header() {
       </div>
       {usuarioLogado ? (
         <>
-          {usuarioLogado.tipo === "equipe"       && <NavBtn styles={styles} onClick={() => navegar("painel-equipe")}       label="Painel" active mobile={mobile} />}
-          {usuarioLogado.tipo === "treinador"    && <NavBtn styles={styles} onClick={() => navegar("painel-equipe")}       label="Painel" active mobile={mobile} />}
-          {usuarioLogado.tipo === "organizador" && <NavBtn styles={styles} onClick={() => navegar("painel-organizador")}  label="Painel" active mobile={mobile} />}
-          {usuarioLogado.tipo === "funcionario"  && <NavBtn styles={styles} onClick={() => navegar("painel-organizador")}  label="Painel" active mobile={mobile} />}
-          {usuarioLogado.tipo === "atleta"      && <NavBtn styles={styles} onClick={() => navegar("painel-atleta")}       label="Painel" active mobile={mobile} />}
-          {usuarioLogado.tipo === "admin"       && <NavBtn styles={styles} onClick={() => navegar("admin")}               label="Admin" mobile={mobile} />}
+          {usuarioLogado.tipo === "equipe"       && <NavBtn styles={styles} onClick={() => navegar("/painel/equipe")}       label="Painel" active mobile={mobile} />}
+          {usuarioLogado.tipo === "treinador"    && <NavBtn styles={styles} onClick={() => navegar("/painel/equipe")}       label="Painel" active mobile={mobile} />}
+          {usuarioLogado.tipo === "organizador" && <NavBtn styles={styles} onClick={() => navegar("/painel/organizador")}  label="Painel" active mobile={mobile} />}
+          {usuarioLogado.tipo === "funcionario"  && <NavBtn styles={styles} onClick={() => navegar("/painel/organizador")}  label="Painel" active mobile={mobile} />}
+          {usuarioLogado.tipo === "atleta"      && <NavBtn styles={styles} onClick={() => navegar("/painel/atleta")}       label="Painel" active mobile={mobile} />}
+          {usuarioLogado.tipo === "admin"       && <NavBtn styles={styles} onClick={() => navegar("/admin")}               label="Admin" mobile={mobile} />}
 
           {usuarioLogado._temOutrosPerfis && perfisDisponiveis?.length > 1 && (
             <button
-              onClick={() => navegar("selecionar-perfil")}
+              onClick={() => navegar("/selecionar-perfil")}
               title="Trocar perfil / organizador"
               style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 8px", background: "#0f224022",
                 border: "1px solid #1a2e4a", borderRadius: 6, cursor: "pointer", fontSize: 10, color: t.accent,
@@ -129,7 +132,7 @@ function Header() {
           )}
 
           <button
-            onClick={() => navegar("configuracoes")}
+            onClick={() => navegar("/configuracoes")}
             style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 8px", background: "#0d1a30", border: "1px solid #1a2e4a", borderRadius: 6, cursor: "pointer", ...(mobile ? { width: "100%", padding: "10px 16px" } : {}) }}
             title="Configurações da conta"
           >
@@ -145,7 +148,7 @@ function Header() {
           <button style={mobile ? styles.btnSairMobile : styles.btnSair} onClick={() => { logout(); setMenuAberto(false); }}>Sair</button>
         </>
       ) : (
-        <button style={{ ...(mobile ? styles.btnNavMobile : styles.btnNav), background: t.accent, color: "#fff", fontWeight: 700, border: "none" }} onClick={() => navegar("login")}>
+        <button style={{ ...(mobile ? styles.btnNavMobile : styles.btnNav), background: t.accent, color: "#fff", fontWeight: 700, border: "none" }} onClick={() => navegar("/entrar")}>
           Entrar
         </button>
       )}
@@ -192,8 +195,7 @@ function Header() {
     </div>
   );
 
-  const telasDeCompeticao = ["novo-evento","evento-detalhe","preparar-offline","regulamento","inscricao-avulsa","numeracao-peito","export-lynx","inscricao-revezamento","config-pontuacao-equipes","secretaria","sumulas","resultados","digitar-resultados","gerenciar-inscricoes"];
-  const showEventoBar = eventoAtual && telasDeCompeticao.includes(tela);
+  const showEventoBar = eventoAtual && location.pathname.startsWith("/competicao/");
 
   return (
     <>
@@ -204,7 +206,7 @@ function Header() {
       )}
       <header style={styles.header}>
         <div style={mobile ? styles.headerInnerMobile : styles.headerInner}>
-          <button style={mobile ? styles.logoMobile : styles.logo} onClick={() => setTela("home")}>
+          <button style={mobile ? styles.logoMobile : styles.logo} onClick={() => navigate("/")}>
             {gtLogo ? (
               <img src={gtLogo} alt={gtNome || "GERENTRACK"} style={{ height: mobile ? 34 : 44, maxWidth: mobile ? 180 : 280, objectFit: "contain" }} />
             ) : (

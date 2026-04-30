@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { todasAsProvas, getComposicaoCombinada } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/constants/categorias";
 import { _getLocalEventoDisplay, NomeProvaComImplemento, abreviarProva, formatarMarca, formatarMarcaExibicao, _marcasComEmpateCentesimal, _marcaParaMs, resolverAtleta, formatarPeito } from "../../shared/formatters/utils";
@@ -167,9 +168,10 @@ const _nomeProvaMatch = (a, b) => {
 };
 
 function TelaResultados() {
+  const navigate = useNavigate();
   const { usuarioLogado } = useAuth();
   const { inscricoes, atletas, resultados, eventoAtual, numeracaoPeito, equipes, getClubeAtleta, atualizarCamposEvento, recordes } = useEvento();
-  const { setTela, organizadores } = useApp();
+  const { organizadores } = useApp();
   const { marchaData } = useMarchaJuizes(eventoAtual?.id);
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
@@ -181,7 +183,7 @@ function TelaResultados() {
 
   if (!eventoAtual) return (
     <div style={s.page}><div style={s.emptyState}><p>Selecione uma competição primeiro.</p>
-      <button style={s.btnPrimary} onClick={() => setTela("home")}>Ver Competições</button></div></div>
+      <button style={s.btnPrimary} onClick={() => navigate("/")}>Ver Competições</button></div></div>
   );
 
   const eid = eventoAtual.id;
@@ -742,9 +744,9 @@ function TelaResultados() {
             </button>
           )}
           {isAmplo && (
-            <button style={s.btnSecondary} onClick={() => setTela("digitar-resultados")}>Inserir Resultados</button>
+            <button style={s.btnSecondary} onClick={() => navigate("../digitar")}>Inserir Resultados</button>
           )}
-          <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Competição</button>
+          <button style={s.btnGhost} onClick={() => navigate("..")}>← Competição</button>
         </div>
       </div>
 

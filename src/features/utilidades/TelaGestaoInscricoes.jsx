@@ -1,5 +1,6 @@
 import { usePagination, PaginaControles } from "../../lib/hooks/usePagination.jsx";
 import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { CATEGORIAS, getCategoria, getPermissividade, podeCategoriaSuperior } from "../../shared/constants/categorias";
@@ -167,11 +168,12 @@ function getStyles(t) {
 }
 
 function TelaGestaoInscricoes() {
+  const navigate = useNavigate();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
   const { eventoAtual, atualizarCamposEvento, inscricoes, atletas, equipes, excluirInscricao, adicionarInscricao, atualizarInscricao, numeracaoPeito } = useEvento();
-  const { setTela, registrarAcao, organizadores, gtLogo } = useApp();
+  const { registrarAcao, organizadores, gtLogo } = useApp();
   const confirmar = useConfirm();
 
   // ── Todos os useState DEVEM ficar antes de qualquer return antecipado ──
@@ -1172,7 +1174,7 @@ function TelaGestaoInscricoes() {
         <p style={{ color: t.textDimmed, fontSize: 14 }}>
           As inscrições para <strong>{eventoAtual.nome}</strong> estão encerradas.
         </p>
-        <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
+        <button style={s.btnGhost} onClick={() => navigate("..")}>← Voltar</button>
       </div>
     </div>
   );
@@ -1186,7 +1188,7 @@ function TelaGestaoInscricoes() {
           Você revogou seu consentimento LGPD. Novas inscrições não são permitidas.<br/>
           Para voltar a se inscrever em competições, realize um novo cadastro.
         </p>
-        <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar ao Início</button>
+        <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar ao Início</button>
       </div>
     </div>
   );
@@ -1224,7 +1226,7 @@ function TelaGestaoInscricoes() {
               )}
             </>
           )}
-          <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
+          <button style={s.btnGhost} onClick={() => navigate("..")}>← Voltar</button>
         </div>
       </div>
 
@@ -1558,7 +1560,7 @@ function TelaGestaoInscricoes() {
                   O revezamento é composto por atletas já inscritos no evento — nenhum valor extra é cobrado.
                 </p>
               </div>
-              <button style={s.btnSecondary} onClick={() => setTela("inscricao-revezamento")}>
+              <button style={s.btnSecondary} onClick={() => navigate("../inscricao/revezamento")}>
                 Gerenciar Revezamentos →
               </button>
             </div>

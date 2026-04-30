@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { validarCPF } from "../../shared/formatters/utils";
+import { useNavigate } from "react-router-dom";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
@@ -140,15 +141,16 @@ function getStyles(t) {
 }
 
 const painelDestino = (u) =>
-  (u?.tipo === "equipe" || u?.tipo === "treinador") ? "painel-equipe" : "painel";
+  (u?.tipo === "equipe" || u?.tipo === "treinador") ? "/painel/equipe" : "/";
 
 
 function TelaImportarAtletas() {
+  const navigate = useNavigate();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
   const { atletas, adicionarAtleta, adicionarAtletasEmLote, equipes } = useEvento();
-  const { setTela, organizadores, atletasUsuarios, funcionarios, treinadores } = useApp();
+  const { organizadores, atletasUsuarios, funcionarios, treinadores } = useApp();
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -167,7 +169,7 @@ function TelaImportarAtletas() {
     return (<div style={{ maxWidth:600, margin:"40px auto", padding:24, textAlign:"center" }}>
       <p style={{ fontSize:16, fontWeight:700 }}>Acesso restrito</p>
       <p style={{ fontSize:13, marginTop:8 }}>Você não tem permissão para importar atletas.</p>
-      <button onClick={() => setTela("painel-equipe")} style={{ marginTop:16, padding:"8px 20px", cursor:"pointer" }}>← Voltar</button>
+      <button onClick={() => navigate("/painel/equipe")} style={{ marginTop:16, padding:"8px 20px", cursor:"pointer" }}>← Voltar</button>
     </div>);
   }
 
@@ -448,12 +450,12 @@ function TelaImportarAtletas() {
     }
     const tp = usuarioLogado?.tipo;
     if (tp === "admin") {
-      setTela("admin");
+      navigate("/admin");
     } else if (tp === "organizador" || tp === "funcionario") {
-      setTela("painel-organizador");
+      navigate("/painel/organizador");
     } else {
       // equipe, treinador → painel da equipe
-      setTela(painelDestino(usuarioLogado));
+      navigate(painelDestino(usuarioLogado));
     }
   };
 
@@ -485,9 +487,9 @@ function TelaImportarAtletas() {
         </div>
         <button style={s.btnGhost} onClick={() => {
           const tp = usuarioLogado?.tipo;
-          if (tp === "admin") setTela("admin");
-          else if (tp === "organizador" || tp === "funcionario") setTela("painel-organizador");
-          else setTela(painelDestino(usuarioLogado)); // equipe, treinador
+          if (tp === "admin") navigate("/admin");
+          else if (tp === "organizador" || tp === "funcionario") navigate("/painel/organizador");
+          else navigate(painelDestino(usuarioLogado)); // equipe, treinador
         }}>
           ← Voltar
         </button>
@@ -730,10 +732,10 @@ function TelaImportarAtletas() {
                       Declaro que possuo o consentimento dos titulares{temMenor ? " e dos responsáveis legais pelos atletas menores de 18 anos " : " "}
                       para o tratamento dos dados pessoais contidos nesta planilha pelo GerenTrack,
                       para fins de gestão de competições de atletismo, conforme a{" "}
-                      <button type="button" onClick={() => setTela("privacidade")}
+                      <button type="button" onClick={() => navigate("/privacidade")}
                         style={{ background:"none", border:"none", color: t.accent, cursor:"pointer", fontSize:"inherit", padding:0, textDecoration: "underline" }}>Política de Privacidade</button>
                       {" "}e os{" "}
-                      <button type="button" onClick={() => setTela("termos")}
+                      <button type="button" onClick={() => navigate("/termos")}
                         style={{ background:"none", border:"none", color: t.accent, cursor:"pointer", fontSize:"inherit", padding:0, textDecoration: "underline" }}>Termos de Uso</button>,
                       assumindo total responsabilidade por esta declaração conforme a <strong style={{ color: t.accent }}>LGPD (Art. 7º{temMenor ? " e Art. 14" : ""})</strong>.
                       Os atletas serão solicitados a confirmar individualmente no primeiro acesso ao sistema.

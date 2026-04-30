@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTema } from "../../shared/TemaContext";
-import { useApp } from "../../contexts/AppContext";
 
 const STORAGE_KEY = "gt_cookie_consent";
 
@@ -14,8 +14,8 @@ export function useCookieConsent() {
 }
 
 function BannerCookies({ onAceitar, onRecusar }) {
+  const navigate = useNavigate();
   const t = useTema();
-  const { setTela } = useApp();
   const [visivel, setVisivel] = useState(true);
 
   useEffect(() => {
@@ -39,7 +39,7 @@ function BannerCookies({ onAceitar, onRecusar }) {
           <br />
           Utilizamos cookies e tecnologias semelhantes para melhorar sua experiência e analisar o uso do site.
           Ao aceitar, você concorda com o uso de cookies conforme nossa{" "}
-          <button type="button" onClick={() => setTela("privacidade")}
+          <button type="button" onClick={() => navigate("/privacidade")}
             style={{ background:"none", border:"none", color: t.accent, cursor:"pointer", fontSize:13, padding:0, textDecoration:"underline", fontFamily:"inherit" }}>
             Política de Privacidade
           </button>.

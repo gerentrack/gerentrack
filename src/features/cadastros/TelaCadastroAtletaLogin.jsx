@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { auth, db, doc, setDoc, signOut as firebaseSignOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, googleProvider, signInWithPopup, signInWithRedirect } from "../../firebase";
 import { sanitizeForFirestore } from "../../lib/firestore/sanitize";
 import { validarCPF, emailJaCadastrado } from "../../shared/formatters/utils";
@@ -101,9 +102,10 @@ function BlocoConsentimentoParental({ responsavel, onResponsavel, cpfResp, onCpf
 }
 
 function TelaCadastroAtletaLogin() {
+  const navigate = useNavigate();
   const { login, gerarSenhaTemp, adicionarSolicitacaoRecuperacao } = useAuth();
   const { atletas, equipes, adicionarAtleta, atualizarAtleta, solicitarVinculo } = useEvento();
-  const { setTela, atletasUsuarios, adicionarAtletaUsuario, organizadores, funcionarios, treinadores } = useApp();
+  const { atletasUsuarios, adicionarAtletaUsuario, organizadores, funcionarios, treinadores } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const [form, setForm] = useState({
@@ -440,7 +442,7 @@ function TelaCadastroAtletaLogin() {
           Sua solicitação de vínculo com a equipe foi enviada e aguarda aprovação.
         </div>
       )}
-      <button style={s.btnPrimary} onClick={() => setTela("painel-atleta")}>Ir para Meu Painel</button>
+      <button style={s.btnPrimary} onClick={() => navigate("/painel/atleta")}>Ir para Meu Painel</button>
     </div></div>
   );
 
@@ -486,7 +488,7 @@ function TelaCadastroAtletaLogin() {
             <button style={{ background:t.accentBg, border:`1px solid ${t.accentBorder}`, color:t.accent,
               borderRadius:6, padding:"8px 18px", cursor:"pointer", fontSize:13, fontWeight:700,
               fontFamily: t.fontBody }}
-              onClick={() => setTela("login")}>
+              onClick={() => navigate("/entrar")}>
               Ir para o Login
             </button>
           </div>
@@ -520,7 +522,7 @@ function TelaCadastroAtletaLogin() {
             Confirmar com Google
           </button>
           <div style={{ textAlign: "center", marginTop: 8 }}>
-            <button style={s.linkBtn} onClick={() => setTela("recuperar-senha")}>Esqueci minha senha</button>
+            <button style={s.linkBtn} onClick={() => navigate("/recuperar-senha")}>Esqueci minha senha</button>
           </div>
         </div>
       )}
@@ -658,7 +660,7 @@ function TelaCadastroAtletaLogin() {
       )}
 
       <div style={s.formLink}>
-        Já tem conta? <button style={s.linkBtn} onClick={() => setTela("login")}>Entrar</button>
+        Já tem conta? <button style={s.linkBtn} onClick={() => navigate("/entrar")}>Entrar</button>
       </div>
     </div></div>
   );

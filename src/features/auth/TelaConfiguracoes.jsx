@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import DOMPurify from "dompurify";
 import { validarCPF, validarCNPJ, formatarCNPJ } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
@@ -10,6 +11,7 @@ import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvento } from "../../contexts/EventoContext";
 import { useApp } from "../../contexts/AppContext";
+import { useAdminConfig } from "../../contexts/AdminConfigContext";
 
 function getS(t) {
   return {
@@ -112,12 +114,14 @@ function ExclusaoConfirmada({ titulo, descricao, corAccent, btnLabel, onConfirma
 }
 
 // ─── COMPONENTE PRINCIPAL ──────────────────────────────────────────────────────
-function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setAtletasUsuarios, setFuncionarios, setTreinadores }) {
+function TelaConfiguracoes({ setOrganizadores, setAtletasUsuarios, setFuncionarios, setTreinadores }) {
+  const { adminConfig, setAdminConfig } = useAdminConfig();
   const t = useTema();
   const s = useStylesResponsivos(getS(t));
   const { usuarioLogado, setUsuarioLogado, logout, atualizarSenha, perfisDisponiveis, gerarSenhaTemp } = useAuth();
   const { equipes, atualizarEquipePerfil, atletas, inscricoes, resultados, atualizarAtleta, atualizarInscricao, eventos, atualizarCamposEvento, excluirInscricao } = useEvento();
-  const { setTela, registrarAcao, organizadores, atletasUsuarios, funcionarios, treinadores, siteBranding, setSiteBranding, exportarDados, importarDados, solicitacoesPortabilidade, adicionarSolicitacaoPortabilidade, editarOrganizadorAdmin, selecionarOrganizador } = useApp();
+  const { registrarAcao, organizadores, atletasUsuarios, funcionarios, treinadores, siteBranding, setSiteBranding, exportarDados, importarDados, solicitacoesPortabilidade, adicionarSolicitacaoPortabilidade, editarOrganizadorAdmin, selecionarOrganizador } = useApp();
+  const navigate = useNavigate();
   const [aba, setAba]           = useState("dados");
   const [feedback, setFeedback] = useState("");
   const [erro, setErro]         = useState("");
@@ -587,8 +591,8 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
   });
 
   const voltar = () => {
-    const mapa = { admin: "admin", atleta: "painel-atleta", organizador: "painel-organizador", funcionario: "painel-organizador", equipe: "painel-equipe", treinador: "painel-equipe" };
-    setTela(mapa[usuarioLogado?.tipo] || "home");
+    const mapa = { admin: "/admin", atleta: "/painel/atleta", organizador: "/painel/organizador", funcionario: "/painel/organizador", equipe: "/painel/equipe", treinador: "/painel/equipe" };
+    navigate(mapa[usuarioLogado?.tipo] || "/");
   };
 
   // ── Dados para aba "conta" ───────────────────────────────────────────────

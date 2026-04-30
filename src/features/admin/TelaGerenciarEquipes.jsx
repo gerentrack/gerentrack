@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { usePagination, PaginaControles } from "../../lib/hooks/usePagination.jsx";
 import { validarCNPJ, formatarCNPJ } from "../../shared/formatters/utils";
+import { useNavigate } from "react-router-dom";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
@@ -142,11 +143,12 @@ function getStyles(t) {
 }
 
 function TelaGerenciarEquipes() {
+  const navigate = useNavigate();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado, gerarSenhaTemp } = useAuth();
   const { equipes, atletas, atualizarAtleta, inscricoes, atualizarInscricao, adicionarEquipeFiliada, editarEquipeFiliada, excluirEquipeFiliada } = useEvento();
-  const { setTela, organizadores } = useApp();
+  const { organizadores } = useApp();
   const [modo, setModo] = useState("lista"); // lista | novo | editar | importar
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -858,7 +860,7 @@ function TelaGerenciarEquipes() {
               Gerenciar clubes e equipes cadastradas no sistema
             </p>
           </div>
-          <button style={s.btnGhost} onClick={() => setTela(isAdmin ? "admin" : "painel-organizador")}>
+          <button style={s.btnGhost} onClick={() => navigate(isAdmin ? "/admin" : "/painel/organizador")}>
             ← Voltar
           </button>
         </div>

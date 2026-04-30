@@ -5,12 +5,14 @@ import { useTema } from "../../shared/TemaContext";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvento } from "../../contexts/EventoContext";
+import { useNavigate } from "react-router-dom";
 import { useApp } from "../../contexts/AppContext";
 
 function TelaTrocarSenha() {
+  const navigate = useNavigate();
   const { usuarioLogado, atualizarSenha } = useAuth();
   const { equipes } = useEvento();
-  const { setTela, organizadores, atletasUsuarios } = useApp();
+  const { organizadores, atletasUsuarios } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(criarAuthStyles(t));
   const [novaSenha, setNovaSenha] = useState("");
@@ -37,8 +39,8 @@ function TelaTrocarSenha() {
   };
 
   const irParaPainel = () => {
-    const mapa = { admin:"admin", atleta:"painel-atleta", organizador:"painel-organizador", funcionario:"painel-organizador", equipe:"painel", treinador:"painel" };
-    setTela(mapa[usuarioLogado?.tipo] || "home");
+    const mapa = { admin:"/admin", atleta:"/painel/atleta", organizador:"/painel/organizador", funcionario:"/painel/organizador", equipe:"/painel", treinador:"/painel" };
+    navigate(mapa[usuarioLogado?.tipo] || "/");
   };
 
   if (ok) return (

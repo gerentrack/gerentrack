@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { todasAsProvas, nPernasRevezamento, isRevezamentoMisto } from "../../shared/athletics/provasDef";
 import { CATEGORIAS, getCategoria, getPermissividade, podeCategoriaSuperior } from "../../shared/constants/categorias";
 import { _getClubeAtleta, _getLocalEventoDisplay, validarCPF } from "../../shared/formatters/utils";
@@ -125,11 +126,12 @@ function getStyles(t) {
 }
 
 function TelaInscricaoAvulsa() {
+    const navigate = useNavigate();
     const t = useTema();
     const s = useStylesResponsivos(getStyles(t));
     const { usuarioLogado, login, loginComSelecao } = useAuth();
     const { adicionarInscricao, adicionarAtleta, atletas, equipes, inscricoes, eventoAtual, eventoAtualId, eventos, selecionarEvento } = useEvento();
-    const { setTela, adicionarAtletaUsuario, atualizarAtletaUsuario, atletasUsuarios, organizadores } = useApp();
+    const { adicionarAtletaUsuario, atualizarAtletaUsuario, atletasUsuarios, organizadores } = useApp();
     const [modo, setModo] = useState("existente");
   const [atletaId, setAtletaId] = useState("");
   const [buscaAtleta, setBuscaAtleta] = useState("");
@@ -275,7 +277,7 @@ function TelaInscricaoAvulsa() {
       <div style={s.emptyState}>
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 20h20"/><path d="M4 20V8l8-4 8 4v12"/><path d="M9 20v-6h6v6"/><path d="M3 8h18"/></svg>
         <p>Selecione uma competição antes de inscrever atletas.</p>
-        <button style={s.btnPrimary} onClick={() => setTela("home")}>Ver Competições</button>
+        <button style={s.btnPrimary} onClick={() => navigate("/")}>Ver Competições</button>
       </div>
     </div>
   );
@@ -288,7 +290,7 @@ function TelaInscricaoAvulsa() {
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-6l-2 3H10l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
           <p style={{ fontWeight: 700, color: t.textPrimary, fontSize: 18 }}>Nenhuma competição com inscrições abertas</p>
           <p style={{ color: t.textDimmed, fontSize: 14 }}>Aguarde a abertura de inscrições de uma competição.</p>
-          <button style={s.btnGhost} onClick={() => setTela("painel-atleta")}>← Meu Painel</button>
+          <button style={s.btnGhost} onClick={() => navigate("/painel/atleta")}>← Meu Painel</button>
         </div>
       </div>
     );
@@ -296,7 +298,7 @@ function TelaInscricaoAvulsa() {
       <div style={s.page}>
         <div style={s.painelHeader}>
           <h1 style={s.pageTitle}>Me Inscrever</h1>
-          <button style={s.btnGhost} onClick={() => setTela("painel-atleta")}>← Meu Painel</button>
+          <button style={s.btnGhost} onClick={() => navigate("/painel/atleta")}>← Meu Painel</button>
         </div>
         <p style={{ color: t.textTertiary, marginBottom: 16 }}>Selecione a competição em que deseja se inscrever:</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 700 }}>
@@ -404,7 +406,7 @@ function TelaInscricaoAvulsa() {
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/><circle cx="12" cy="16" r="1"/></svg>
         <p style={{ fontWeight: 700, color: t.textPrimary, fontSize: 18 }}>Login Necessário</p>
         <p style={{ color: t.textDimmed, fontSize: 14 }}>Faça login para inscrever atletas nesta competição.</p>
-        <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar</button>
+        <button style={s.btnGhost} onClick={() => navigate("..")}>← Voltar</button>
       </div>
     </div>
   );
@@ -419,7 +421,7 @@ function TelaInscricaoAvulsa() {
         <p style={{ color: t.textDimmed, fontSize: 14 }}>
           As inscrições para <strong>{eventoParaInscricao.nome}</strong> estão encerradas.
         </p>
-        <button style={s.btnGhost} onClick={() => isAtleta ? setEventoSelecionadoAtleta(null) : setTela("evento-detalhe")}>← Voltar</button>
+        <button style={s.btnGhost} onClick={() => isAtleta ? setEventoSelecionadoAtleta(null) : navigate("..")}>← Voltar</button>
       </div>
     </div>
   );
@@ -433,7 +435,7 @@ function TelaInscricaoAvulsa() {
           Você revogou seu consentimento LGPD. Novas inscrições não são permitidas.<br/>
           Para voltar a se inscrever em competições, realize um novo cadastro.
         </p>
-        <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar ao Início</button>
+        <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar ao Início</button>
       </div>
     </div>
   );
@@ -697,7 +699,7 @@ function TelaInscricaoAvulsa() {
         </div>
 
         <div style={s.heroBtns}>
-          <button style={s.btnPrimary} onClick={() => setTela(isAtleta ? "painel-atleta" : "sumulas")}>{isAtleta ? "← Meu Painel" : "Ver Súmulas"}</button>
+          <button style={s.btnPrimary} onClick={() => navigate(isAtleta ? "/painel/atleta" : "../sumulas")}>{isAtleta ? "← Meu Painel" : "Ver Súmulas"}</button>
           <button style={s.btnGhost} onClick={() => { setOk(false); setProvasSel([]); if (isAtleta) { setEventoSelecionadoAtleta(null); } else { setAtletaId(""); setBuscaAtleta(""); } setNovoAtleta({ nome:"", dataNasc:"", anoNasc:"", sexo:"M", cbat:"", clube:"", equipeId:"" }); }}>
             {isAtleta ? "Inscrever em outra competição" : "Nova Inscrição"}
           </button>
@@ -710,7 +712,7 @@ function TelaInscricaoAvulsa() {
     <div style={s.page}>
       <div style={s.painelHeader}>
         <h1 style={s.pageTitle}>{isAtleta ? "Me Inscrever" : "Inscrição em Provas"}</h1>
-        <button style={s.btnGhost} onClick={() => isAtleta ? setEventoSelecionadoAtleta(null) : setTela("evento-detalhe")}>← {isAtleta ? "Escolher Competição" : eventoParaInscricao.nome}</button>
+        <button style={s.btnGhost} onClick={() => isAtleta ? setEventoSelecionadoAtleta(null) : navigate("..")}>← {isAtleta ? "Escolher Competição" : eventoParaInscricao.nome}</button>
       </div>
 
       {/* Info da competição para atletas */}
@@ -1109,7 +1111,7 @@ function TelaInscricaoAvulsa() {
                   {" · "}{provasRevezEvento.length} prova(s) disponível(eis)
                 </p>
               </div>
-              <button style={s.btnPrimary} onClick={() => setTela("inscricao-revezamento")}>
+              <button style={s.btnPrimary} onClick={() => navigate("../inscricao/revezamento")}>
                 Gerenciar Revezamentos →
               </button>
             </div>

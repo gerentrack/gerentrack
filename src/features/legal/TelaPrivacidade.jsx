@@ -1,7 +1,7 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { useTema } from "../../shared/TemaContext";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
-import { useApp } from "../../contexts/AppContext";
 
 function getStyles(t) {
   return {
@@ -25,13 +25,13 @@ function getStyles(t) {
 }
 
 function TelaPrivacidade({ embedded } = {}) {
+  const navigate = useNavigate();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
-  const { setTela } = useApp();
 
   return (
     <div style={embedded ? { padding: 0 } : s.page}>
-      {!embedded && <button style={s.btnVoltar} onClick={() => setTela("home")}>← Voltar</button>}
+      {!embedded && <button style={s.btnVoltar} onClick={() => navigate("/")}>← Voltar</button>}
       <h1 style={s.title}>Política de Privacidade</h1>
       <p style={s.subtitle}>GERENTRACK LTDA - CNPJ: 65.454.409/0001-23 — Última atualização: abril de 2026</p>
 

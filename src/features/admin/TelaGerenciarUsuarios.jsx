@@ -5,6 +5,7 @@ import { validarCPF, validarCNPJ, formatarCNPJ } from "../../shared/formatters/u
 
 const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
 
+import { useNavigate } from "react-router-dom";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
@@ -143,11 +144,12 @@ function getStyles(t) {
 }
 
 function TelaGerenciarUsuarios() {
+  const navigate = useNavigate();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { gerarSenhaTemp } = useAuth();
   const { equipes, atletas, adicionarAtleta } = useEvento();
-  const { setTela, organizadores, atletasUsuarios, funcionarios, adicionarOrganizador, editarOrganizadorAdmin, editarEquipeAdmin, adicionarAtletaUsuario, editarAtletaUsuarioAdmin, excluirOrganizador, excluirEquipeUsuario, excluirAtletaUsuario, excluirAtletaPorUsuario } = useApp();
+  const { organizadores, atletasUsuarios, funcionarios, adicionarOrganizador, editarOrganizadorAdmin, editarEquipeAdmin, adicionarAtletaUsuario, editarAtletaUsuarioAdmin, excluirOrganizador, excluirEquipeUsuario, excluirAtletaUsuario, excluirAtletaPorUsuario } = useApp();
   const adicionarEquipe = useEvento().adicionarEquipe;
   const confirmar = useConfirm();
   const [tipoUsuario, setTipoUsuario] = useState("organizadores"); // organizadores | equipes | atletas
@@ -475,7 +477,7 @@ function TelaGerenciarUsuarios() {
             Criar, editar e excluir usuários do sistema
           </p>
         </div>
-        <button style={s.btnGhost} onClick={() => setTela("admin")}>
+        <button style={s.btnGhost} onClick={() => navigate("/admin")}>
           ← Voltar
         </button>
       </div>

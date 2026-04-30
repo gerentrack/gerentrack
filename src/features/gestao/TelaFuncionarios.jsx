@@ -5,6 +5,7 @@ import FormField from "../ui/FormField";
 import { Th, Td } from "../ui/TableHelpers";
 import { secondaryAuth, createUserWithEmailAndPassword, signOut as firebaseSignOut, sendEmailVerification, functions, httpsCallable } from "../../firebase";
 const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+import { useNavigate } from "react-router-dom";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvento } from "../../contexts/EventoContext";
@@ -154,11 +155,12 @@ const PERMISSOES = [
 ];
 
 function TelaFuncionarios() {
+  const navigate = useNavigate();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado, gerarSenhaTemp } = useAuth();
   const { equipes } = useEvento();
-  const { setTela, funcionarios, adicionarFuncionario, atualizarFuncionario, removerFuncionario, registrarAcao, historicoAcoes, organizadores, atletasUsuarios, treinadores } = useApp();
+  const { funcionarios, adicionarFuncionario, atualizarFuncionario, removerFuncionario, registrarAcao, historicoAcoes, organizadores, atletasUsuarios, treinadores } = useApp();
   const confirmar = useConfirm();
 
   const tipoUsr = usuarioLogado?.tipo;
@@ -166,7 +168,7 @@ function TelaFuncionarios() {
     <div style={s.page}><div style={s.emptyState}>
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
       <p style={{ color: t.danger, fontWeight: 700 }}>Acesso não autorizado</p>
-      <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
+      <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
     </div></div>
   );
 
@@ -358,7 +360,7 @@ function TelaFuncionarios() {
         </div>
         <div style={s.painelBtns}>
           {podeGerenciar && <button style={s.btnPrimary} onClick={abrirNovo}>+ Novo Funcionário</button>}
-          <button style={s.btnGhost} onClick={() => setTela("painel-organizador")}>← Voltar</button>
+          <button style={s.btnGhost} onClick={() => navigate("/painel/organizador")}>← Voltar</button>
         </div>
       </div>
 

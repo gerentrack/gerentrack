@@ -15,7 +15,7 @@ import { useApp } from "../../contexts/AppContext";
 function TelaRecordes() {
   const { usuarioLogado } = useAuth();
   const { recordes, setRecordes, eventos, atletas, equipes, getClubeAtleta, pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes } = useEvento();
-  const { setTela, registrarAcao } = useApp();
+  const { registrarAcao } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(criarInscricaoStyles(t));
   const confirmar = useConfirm();

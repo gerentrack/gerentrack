@@ -4,6 +4,7 @@ import { validarCPF, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { Th, Td } from "../ui/TableHelpers";
 import { secondaryAuth, createUserWithEmailAndPassword, signOut as firebaseSignOut, sendEmailVerification, functions, httpsCallable } from "../../firebase";
+import { useNavigate } from "react-router-dom";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
@@ -152,15 +153,16 @@ const PERMISSOES_TREINADOR = [
 
 // Helper: destino do botão "Voltar" conforme tipo de usuário
 const painelDestino = (u) =>
-  (u?.tipo === "equipe" || u?.tipo === "treinador") ? "painel-equipe" : "painel";
+  (u?.tipo === "equipe" || u?.tipo === "treinador") ? "/painel/equipe" : "/";
 
 
 function TelaTreinadores({ abaInicial } = {}) {
+  const navigate = useNavigate();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado, gerarSenhaTemp } = useAuth();
   const { equipes, atletas } = useEvento();
-  const { setTela, treinadores, adicionarTreinador, atualizarTreinador, removerTreinador, registrarAcao, historicoAcoes, atletasUsuarios, funcionarios, organizadores } = useApp();
+  const { treinadores, adicionarTreinador, atualizarTreinador, removerTreinador, registrarAcao, historicoAcoes, atletasUsuarios, funcionarios, organizadores } = useApp();
   const confirmar = useConfirm();
 
   const tipoUsr = usuarioLogado?.tipo;
@@ -171,7 +173,7 @@ function TelaTreinadores({ abaInicial } = {}) {
     <div style={s.page}><div style={s.emptyState}>
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
       <p style={{ color: t.danger, fontWeight: 700 }}>Acesso restrito a equipes</p>
-      <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
+      <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
     </div></div>
   );
 
@@ -373,7 +375,7 @@ function TelaTreinadores({ abaInicial } = {}) {
         ? "Treinador vinculado ao perfil existente!"
         : "Treinador cadastrado! Senha temporária definida."));
     }
-    setTimeout(() => { setFeedback(""); setTela(painelDestino(usuarioLogado)); }, 2000);
+    setTimeout(() => { setFeedback(""); navigate(painelDestino(usuarioLogado)); }, 2000);
   };
 
   const handleToggleAtivo = (tr) => {
@@ -421,7 +423,7 @@ function TelaTreinadores({ abaInicial } = {}) {
         </div>
         <button style={s.btnGhost} onClick={() => {
           if (editando) { setEditando(null); setAba("lista"); }
-          else setTela(painelDestino(usuarioLogado));
+          else navigate(painelDestino(usuarioLogado));
         }}>← Voltar</button>
       </div>
 
@@ -586,7 +588,7 @@ function TelaTreinadores({ abaInicial } = {}) {
               onClick={handleSalvar} disabled={!!treinDuplicadoOrg}>
               {editando ? "Salvar Alterações" : docModo === "vincular" ? "Vincular Treinador" : "Cadastrar Treinador"}
             </button>
-            <button style={s.btnGhost} onClick={() => setTela(painelDestino(usuarioLogado))}>Cancelar</button>
+            <button style={s.btnGhost} onClick={() => navigate(painelDestino(usuarioLogado))}>Cancelar</button>
           </div>
             </>
           )}

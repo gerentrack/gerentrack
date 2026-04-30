@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { auth, db, doc, setDoc, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as firebaseSignOut, sendEmailVerification } from "../../firebase";
 import { sanitizeForFirestore } from "../../lib/firestore/sanitize";
 import { validarCNPJ, formatarCNPJ, emailJaCadastrado } from "../../shared/formatters/utils";
@@ -12,8 +13,9 @@ import { useApp } from "../../contexts/AppContext";
 import BlocoLGPD from "../ui/BlocoLGPD";
 
 function TelaCadastroOrganizador() {
+  const navigate = useNavigate();
   const { login } = useAuth();
-  const { setTela, organizadores, adicionarOrganizador, adicionarNotificacao } = useApp();
+  const { organizadores, adicionarOrganizador, adicionarNotificacao } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(criarInscricaoStyles(t));
   const [form, setForm] = useState({ nome:"", email:"", senha:"", entidade:"", fone:"", cnpj:"", equipeId:"", cidade:"", estado:"" });
@@ -91,7 +93,7 @@ function TelaCadastroOrganizador() {
         Seu cadastro como organizador foi recebido e está <strong style={{ color: t.accent }}>aguardando aprovação</strong> do administrador do sistema.<br/><br/>
         Você receberá acesso assim que for aprovado.
       </p>
-      <button style={s.btnGhost} onClick={() => setTela("login")}>← Voltar ao Login</button>
+      <button style={s.btnGhost} onClick={() => navigate("/entrar")}>← Voltar ao Login</button>
     </div></div>
   );
 
@@ -120,7 +122,7 @@ function TelaCadastroOrganizador() {
       <BlocoLGPD aceite={lgpdAceite} onChange={setLgpdAceite} erro={erros.lgpd} />
       <button style={{ ...s.btnPrimary, marginTop: 16 }} onClick={handleSubmit}>Criar Conta</button>
       <div style={s.formLink}>
-        Já tem conta? <button style={s.linkBtn} onClick={()=>setTela("login")}>Entrar</button>
+        Já tem conta? <button style={s.linkBtn} onClick={()=>navigate("/entrar")}>Entrar</button>
       </div>
     </div></div>
   );

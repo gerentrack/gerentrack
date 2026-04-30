@@ -3,6 +3,7 @@ import { CATEGORIAS, getCategoria } from "../../shared/constants/categorias";
 import { _getClubeAtleta, _getNascDisplay, _getCbat, validarCPF, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { Th, Td } from "../ui/TableHelpers";
+import { useNavigate, useParams } from "react-router-dom";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
@@ -97,19 +98,21 @@ function getStyles(t) {
 }
 
 function TelaEditarAtleta() {
+  const navigate = useNavigate();
+  const { id: paramId } = useParams();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
   const { atletas, atualizarAtleta, excluirAtleta, inscricoes, eventos, equipes } = useEvento();
-  const { setTela, notificacoes, marcarNotifLida, atletaEditandoId, setAtletaEditandoId, organizadores, atletasUsuarios, funcionarios, treinadores } = useApp();
+  const { notificacoes, marcarNotifLida, atletaEditandoId, setAtletaEditandoId, organizadores, atletasUsuarios, funcionarios, treinadores } = useApp();
 
   const atletaId = usuarioLogado?.tipo === "atleta"
     ? atletas.find(a => a.cpf && usuarioLogado.cpf &&
         a.cpf.replace(/\D/g,"") === usuarioLogado.cpf.replace(/\D/g,""))?.id
     : null;
-  // Admin/equipe passam atletaEditandoId via prop (substituiu window.__atletaEditId)
+  // Admin/equipe passam atletaEditandoId via prop ou URL param :id
   const [selId, setSelId] = useState(
-    atletaEditandoId || atletaId || ""
+    atletaEditandoId || paramId || atletaId || ""
   );
   useEffect(() => {
     if (atletaEditandoId) setAtletaEditandoId(null); // limpar após uso
@@ -206,8 +209,8 @@ function TelaEditarAtleta() {
     <div style={s.page}>
       <div style={s.painelHeader}>
         <h1 style={s.pageTitle}>Atletas</h1>
-        <button style={s.btnGhost} onClick={() => setTela(
-          isAtleta ? "painel-atleta" : isEquipe ? "painel-equipe" : "admin")}>← Voltar</button>
+        <button style={s.btnGhost} onClick={() => navigate(
+          isAtleta ? "/painel/atleta" : isEquipe ? "/painel/equipe" : "/admin")}>← Voltar</button>
       </div>
       <div style={s.tableWrap}>
         <table style={s.table}>
@@ -297,10 +300,10 @@ function TelaEditarAtleta() {
             </div>
           )}
           <button style={s.btnGhost} onClick={() => {
-            if (isAtleta) setTela("painel-atleta");
-            else if (isEquipe || usuarioLogado?.tipo === "treinador") setTela("painel-equipe");
-            else if (isOrg || (usuarioLogado?.tipo === "funcionario")) setTela("cadastrar-atleta");
-            else setTela("admin");
+            if (isAtleta) navigate("/painel/atleta");
+            else if (isEquipe || usuarioLogado?.tipo === "treinador") navigate("/painel/equipe");
+            else if (isOrg || (usuarioLogado?.tipo === "funcionario")) navigate("/admin/atleta/novo");
+            else navigate("/admin");
           }}>← Voltar</button>
         </div>
       </div>

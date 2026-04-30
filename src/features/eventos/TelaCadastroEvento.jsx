@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { todasAsProvas, getComposicaoCombinada } from "../../shared/athletics/provasDef";
 import { CATEGORIAS, ESTADOS_BR, getCategoria } from "../../shared/constants/categorias";
 import { calcularEtapa, getEtapaLabel } from "../../shared/constants/etapas";
@@ -203,18 +204,19 @@ function Acordeao({ keyName, titulo, icone, resumo, children, aberto, onToggle }
 
 
 function TelaCadastroEvento() {
+  const navigate = useNavigate();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
   const { adicionarEvento, editarEvento, atualizarCamposEvento, eventoAtual, eventoAtualId, selecionarEvento, recordes, equipes, inscricoes, atletas, eventos } = useEvento();
-  const { setTela, organizadores, cadEventoGoStep, setCadEventoGoStep, registrarAcao } = useApp();
+  const { organizadores, cadEventoGoStep, setCadEventoGoStep, registrarAcao } = useApp();
   const editando = eventoAtual && eventoAtualId && true;
   const tipoEvt = usuarioLogado?.tipo;
   if (tipoEvt !== "admin" && tipoEvt !== "organizador" && tipoEvt !== "funcionario") return (
     <div style={s.page}><div style={s.emptyState}>
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={t.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
       <p style={{ color: t.danger, fontWeight: 700 }}>Acesso não autorizado</p>
-      <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
+      <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
     </div></div>
   );
 
@@ -230,7 +232,7 @@ function TelaCadastroEvento() {
             <div style={{ fontSize: 20, fontWeight: 800, color: t.danger, fontFamily: t.fontTitle, marginBottom: 8 }}>Limite de competições</div>
             <div style={{ fontSize: 14, color: t.textSecondary, lineHeight: 1.7, marginBottom: 16 }}>{check.reason}</div>
             <div style={{ fontSize: 12, color: t.textMuted, marginBottom: 16 }}>Entre em contato: <span style={{ color: t.accent }}>atendimento@gerentrack.com.br</span></div>
-            <button style={s.btnGhost} onClick={() => setTela("painel-organizador")}>← Voltar ao Painel</button>
+            <button style={s.btnGhost} onClick={() => navigate("/painel/organizador")}>← Voltar ao Painel</button>
           </div>
         </div>
       );
@@ -245,7 +247,7 @@ function TelaCadastroEvento() {
       <p style={{ color: t.textMuted, fontSize: 14, maxWidth: 400, textAlign: "center", lineHeight: 1.6 }}>
         Esta competição pertence a outro organizador. Você não tem permissão para editá-la.
       </p>
-      <button style={s.btnGhost} onClick={() => setTela("painel-organizador")}>← Voltar ao Painel</button>
+      <button style={s.btnGhost} onClick={() => navigate("/painel/organizador")}>← Voltar ao Painel</button>
     </div></div>
   );
 
@@ -257,7 +259,7 @@ function TelaCadastroEvento() {
       <p style={{ color: t.textMuted, fontSize: 14, maxWidth: 400, textAlign: "center", lineHeight: 1.6 }}>
         Esta competição pertence a outro organizador. Você não tem permissão para editá-la.
       </p>
-      <button style={s.btnGhost} onClick={() => setTela("painel-organizador")}>← Voltar ao Painel</button>
+      <button style={s.btnGhost} onClick={() => navigate("/painel/organizador")}>← Voltar ao Painel</button>
     </div></div>
   );
 
@@ -273,7 +275,7 @@ function TelaCadastroEvento() {
         Os dados estão <strong style={{ color: t.danger }}>bloqueados para edição</strong>.
         Para desbloquear, solicite autorização a um <strong style={{ color: t.accent }}>administrador</strong>.
       </p>
-      <button style={s.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar à Competição</button>
+      <button style={s.btnGhost} onClick={() => navigate("..")}>← Voltar à Competição</button>
     </div></div>
   );
 
@@ -422,6 +424,7 @@ function TelaCadastroEvento() {
           await editarEvento(dadosParaSalvar);
         }
         selecionarEvento(dadosParaSalvar.id);
+        navigate(`/competicao/${dadosParaSalvar.slug || dadosParaSalvar.id}`);
       } else {
         const novo = adicionarEvento(dadosParaSalvar, usuarioLogado);
         if (novo?.blocked) {
@@ -429,6 +432,7 @@ function TelaCadastroEvento() {
           return;
         }
         selecionarEvento(novo.id);
+        navigate(`/competicao/${dadosParaSalvar.slug || novo.id}`);
       }
     } catch (err) {
       console.error("[TelaCadastroEvento] Erro ao salvar:", err);
@@ -493,7 +497,7 @@ function TelaCadastroEvento() {
               : `Passo 4 de ${totalSteps} — Programa horário`}
           </p>
         </div>
-        <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
+        <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
       </div>
 
       {/* ── Barra de steps ── */}

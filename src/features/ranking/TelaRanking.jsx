@@ -10,12 +10,14 @@ import { GT_DEFAULT_LOGO } from "../../shared/branding";
 import QRCode from "qrcode";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvento } from "../../contexts/EventoContext";
+import { useNavigate } from "react-router-dom";
 import { useApp } from "../../contexts/AppContext";
 
 export default function TelaRanking() {
+  const navigate = useNavigate();
   const { usuarioLogado } = useAuth();
   const { ranking, setRanking, historicoRanking, setHistoricoRanking, atletas, equipes } = useEvento();
-  const { setTela, registrarAcao } = useApp();
+  const { registrarAcao } = useApp();
   const t = useTema();
   const base = criarInscricaoStyles(t);
   const s = useStylesResponsivos({
@@ -463,7 +465,7 @@ export default function TelaRanking() {
           <h1 style={s.pageTitle}>Ranking</h1>
           <p style={{ color: t.textDimmed, fontSize: 13 }}>Ranking de Atletismo - Oficial</p>
         </div>
-        <button style={s.btnGhost} onClick={() => setTela("home")}>← Voltar</button>
+        <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
       </div>
 
       {/* Abas */}

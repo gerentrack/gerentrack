@@ -5,11 +5,12 @@
  */
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTema } from "../../shared/TemaContext";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { cacheGet, cacheSet } from "../../lib/cacheDB";
 import { useEvento } from "../../contexts/EventoContext";
-import { useApp } from "../../contexts/AppContext";
+
 
 function getStyles(t) {
   return {
@@ -64,8 +65,8 @@ function verificarSW() {
 }
 
 export default function PrepararOffline() {
+  const navigate = useNavigate();
   const { eventoAtual, atletas, inscricoes, resultados, equipes, eventos } = useEvento();
-  const { setTela } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const [checks, setChecks] = useState(null);
@@ -166,7 +167,7 @@ export default function PrepararOffline() {
   return (
     <div style={s.page}>
       <button
-        onClick={() => setTela("evento-detalhe")}
+        onClick={() => navigate("..")}
         style={{ background: "none", border: "none", color: t.accent, cursor: "pointer", fontSize: 14, fontWeight: 600, marginBottom: 16, padding: 0 }}
       >
         &larr; Voltar ao evento
@@ -212,7 +213,7 @@ export default function PrepararOffline() {
         {sincronizando ? "Sincronizando..." : sincronizado ? "Sincronizar novamente" : "Sincronizar dados agora"}
       </button>
 
-      <button style={s.btnVoltar} onClick={() => setTela("evento-detalhe")}>
+      <button style={s.btnVoltar} onClick={() => navigate("..")}>
         Voltar
       </button>
     </div>

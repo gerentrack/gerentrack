@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTema } from "../../shared/TemaContext";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
-import { useApp } from "../../contexts/AppContext";
 
 const ITENS_POR_PAGINA = 8;
 
@@ -98,9 +98,9 @@ function normalizar(texto) {
 }
 
 export default function TelaFaq() {
+  const navigate = useNavigate();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
-  const { setTela } = useApp();
   const [aberto, setAberto] = useState(null);
   const [busca, setBusca] = useState("");
   const [pagina, setPagina] = useState(1);
@@ -125,7 +125,7 @@ export default function TelaFaq() {
 
   return (
     <div style={s.page}>
-      <button style={s.btnVoltar} onClick={() => setTela("home")}>← Voltar</button>
+      <button style={s.btnVoltar} onClick={() => navigate("/")}>← Voltar</button>
 
       <h1 style={s.title}>Perguntas Frequentes</h1>
       <p style={s.subtitle}>Tire suas dúvidas sobre a plataforma Gerentrack</p>

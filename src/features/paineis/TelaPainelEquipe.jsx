@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { getCategoria, CATEGORIAS } from "../../shared/constants/categorias";
 import { getStatusEvento, labelStatusEvento } from "../eventos/eventoHelpers";
@@ -67,7 +68,8 @@ import { useTema } from "../../shared/TemaContext";
 export default function TelaPainelEquipe() {
   const { usuarioLogado, logout } = useAuth();
   const { atletas, inscricoes, eventos, equipes, resultados, selecionarEvento, solicitarVinculo } = useEvento();
-  const { setTela, treinadores, solicitarRelatorio, solicitacoesRelatorio, cancelarRelatorio, excluirRelatorio, solicitacoesVinculo, setAtletaEditandoId, notificacoes, marcarNotifLida, historicoAcoes } = useApp();
+  const { treinadores, solicitarRelatorio, solicitacoesRelatorio, cancelarRelatorio, excluirRelatorio, solicitacoesVinculo, notificacoes, marcarNotifLida, historicoAcoes } = useApp();
+  const navigate = useNavigate();
   const t = useTema();
   const s = useStylesResponsivos(getS(t));
   const confirmar = useConfirm();
@@ -352,8 +354,8 @@ export default function TelaPainelEquipe() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
             <div style={s.secTitle}>Atletas da Equipe</div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {temPerm("cadastrar_atletas") && <button style={s.btn} onClick={() => setTela("cadastrar-atleta-novo")}>+ Cadastrar</button>}
-              {temPerm("importar_atletas") && <button style={s.btnSec} onClick={() => setTela("importar-atletas")}>Importar Planilha</button>}
+              {temPerm("cadastrar_atletas") && <button style={s.btn} onClick={() => navigate("/admin/atleta/cadastrar")}>+ Cadastrar</button>}
+              {temPerm("importar_atletas") && <button style={s.btnSec} onClick={() => navigate("/admin/importar-atletas")}>Importar Planilha</button>}
             </div>
           </div>
 
@@ -396,8 +398,8 @@ export default function TelaPainelEquipe() {
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               <p>Nenhum atleta cadastrado</p>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
-                <button style={s.btn} onClick={() => setTela("cadastrar-atleta-novo")}>+ Cadastrar primeiro atleta</button>
-                <button style={s.btnSec} onClick={() => setTela("importar-atletas")}>Importar Planilha</button>
+                <button style={s.btn} onClick={() => navigate("/admin/atleta/cadastrar")}>+ Cadastrar primeiro atleta</button>
+                <button style={s.btnSec} onClick={() => navigate("/admin/importar-atletas")}>Importar Planilha</button>
               </div>
             </div>
           ) : (() => {
@@ -432,7 +434,7 @@ export default function TelaPainelEquipe() {
                             <Td>
                               <div style={{ display: "flex", gap: 6 }}>
                                 {temPerm("cadastrar_atletas") && <button style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.textTertiary, borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: 12 }}
-                                  onClick={() => { setAtletaEditandoId(a.id); setTela("editar-atleta"); }}>
+                                  onClick={() => navigate(`/admin/atleta/${a.id}/editar`)}>
                                   Editar
                                 </button>}
                                 {temPerm("cadastrar_atletas") && <button style={{ background: `${t.danger}12`, border: `1px solid ${t.danger}44`, color: t.danger, borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: 12 }}
@@ -606,8 +608,8 @@ export default function TelaPainelEquipe() {
             <div style={s.secTitle}>Treinadores ({meusTrein.length})</div>
             {!isTreinador && (
               <div style={{ display: "flex", gap: 8 }}>
-                <button style={s.btn} onClick={() => setTela("treinadores-novo")}>+ Adicionar</button>
-                {meusTrein.length > 0 && <button style={s.btnGhost} onClick={() => setTela("treinadores")}>Gerenciar</button>}
+                <button style={s.btn} onClick={() => navigate("/admin/treinadores/novo")}>+ Adicionar</button>
+                {meusTrein.length > 0 && <button style={s.btnGhost} onClick={() => navigate("/admin/treinadores")}>Gerenciar</button>}
               </div>
             )}
           </div>
@@ -615,7 +617,7 @@ export default function TelaPainelEquipe() {
             <div style={s.emptyState}>
               <span style={{ fontSize: 16, color: t.textDisabled }}>—</span>
               <p>Nenhum treinador cadastrado</p>
-              {!isTreinador && <button style={s.btn} onClick={() => setTela("treinadores-novo")}>+ Adicionar treinador</button>}
+              {!isTreinador && <button style={s.btn} onClick={() => navigate("/admin/treinadores/novo")}>+ Adicionar treinador</button>}
             </div>
           ) : (
             <div style={s.tableWrap}>

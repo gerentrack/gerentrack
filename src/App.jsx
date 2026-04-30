@@ -9,7 +9,9 @@ import { AuthProvider, buildAuthValue } from "./contexts/AuthContext";
 import { EventoProvider, buildEventoValue } from "./contexts/EventoContext";
 import { AppProvider, buildAppValue } from "./contexts/AppContext";
 // ── Router Bridge (Etapa 4 — sincroniza tela ↔ URL) ─────────────
-import { useRouterBridge } from "./router/useRouterBridge";
+import { Routes, Route, useNavigate } from "react-router-dom";
+import EventoLayout from "./layouts/EventoLayout";
+import FinalizedGuard from "./router/FinalizedGuard";
 // ── Domínio do Atletismo — Etapa 2 ────────────────────────────────
 import PROVAS_DEF                             from "./domain/provas/provasDef.json";
 import { getProvasCat }                       from "./domain/provas/getProvasCat";
@@ -149,6 +151,10 @@ import "./lib/migration/migrarDadosLegacy";
 import { ConfirmProvider, useConfirm } from "./features/ui/ConfirmContext";
 import { TemaProvider } from "./shared/TemaContext";
 import { temaDark, temaLight } from "./shared/tema";
+import cssGlobal from "./shared/styles/globalCss";
+import styles from "./shared/styles/appStyles";
+import Footer from "./features/layout/Footer";
+import { AdminConfigProvider } from "./contexts/AdminConfigContext";
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import BannerCookies, { useCookieConsent } from "./features/ui/BannerCookies";
@@ -215,7 +221,7 @@ function RegulamentoViewer({ eventoAtual, tema: _t }) {
 }
 
 function App() {
-  const [tela, _setTela] = useState("home");
+  const navigate = useNavigate();
   const cookieConsent = useCookieConsent();
 
   // Rastreia se Firebase Auth tem sessão ativa (necessário para listeners que exigem auth)
@@ -377,15 +383,6 @@ function App() {
   const organizadoresRef = useRef(organizadores);
   organizadoresRef.current = organizadores;
 
-  const { setTela } = useRouterBridge({
-    tela, _setTela,
-    eventos, organizadores,
-    eventoAtualId, setEventoAtualId,
-    eventoAtualIdRef,
-    organizadorPerfilId, setOrganizadorPerfilId,
-    atletaEditandoId, setAtletaEditandoId,
-  });
-
   const login = (dados) => {
     const dadosComSessao = { ...dados, _loginEm: Date.now() };
     setUsuarioLogado(dadosComSessao);
@@ -393,27 +390,19 @@ function App() {
       equipeId: dados.equipeId, modulo: "auth",
       ...(dados.tipo === "admin" ? { userAgent: navigator.userAgent, plataforma: navigator.platform, tela: `${screen.width}x${screen.height}` } : {}),
     });
-    if (dados.tipo === "admin") setTela("admin");
-    else if (dados.tipo === "atleta")       { setEventoAtualId(null); setTela("painel-atleta"); }
-    else if (dados.tipo === "organizador")  setTela("painel-organizador");
-    else if (dados.tipo === "funcionario")  setTela("painel-organizador");
-    else if (dados.tipo === "equipe")       setTela("painel-equipe");
-    else if (dados.tipo === "treinador")    setTela("painel-equipe");
-    else                                    setTela("painel-equipe");
+    const destinos = { admin: "/admin", atleta: "/painel/atleta", organizador: "/painel/organizador", funcionario: "/painel/organizador", equipe: "/painel/equipe", treinador: "/painel/equipe" };
+    if (dados.tipo === "atleta") setEventoAtualId(null);
+    navigate(destinos[dados.tipo] || "/painel/equipe");
   };
 
   const loginComSelecao = (dados, perfis) => {
     const dadosComSessao = { ...dados, _loginEm: Date.now(), _temOutrosPerfis: perfis.length > 1 };
     setPerfisDisponiveis(perfis);
     setUsuarioLogado(dadosComSessao);
-    if (dados.senhaTemporaria && !dados._googleAuth) { setTela("trocar-senha"); return; }
-    if (dados.tipo === "admin")             setTela("admin");
-    else if (dados.tipo === "atleta")       { setEventoAtualId(null); setTela("painel-atleta"); }
-    else if (dados.tipo === "organizador")  setTela("painel-organizador");
-    else if (dados.tipo === "funcionario")  setTela("painel-organizador");
-    else if (dados.tipo === "equipe")       setTela("painel-equipe");
-    else if (dados.tipo === "treinador")    setTela("painel-equipe");
-    else                                    setTela("painel-equipe");
+    if (dados.senhaTemporaria && !dados._googleAuth) { navigate("/trocar-senha"); return; }
+    const destinos = { admin: "/admin", atleta: "/painel/atleta", organizador: "/painel/organizador", funcionario: "/painel/organizador", equipe: "/painel/equipe", treinador: "/painel/equipe" };
+    if (dados.tipo === "atleta") setEventoAtualId(null);
+    navigate(destinos[dados.tipo] || "/painel/equipe");
   };
 
   const logout = () => {
@@ -423,7 +412,7 @@ function App() {
     setTimeout(() => firebaseSignOut(auth).catch(() => {}), 300);
     setUsuarioLogado(null);
     setPerfisDisponiveis([]);
-    setTela("home");
+    navigate("/");
   };
 
   // ── Guard: usuário local sem sessão Firebase Auth → pedir relogin in-place ─
@@ -432,7 +421,7 @@ function App() {
   // Em vez de navegar para a tela de login (perdendo dados em tela), mostra um
   // modal de relogin por cima da tela atual.
   // ── Relogin guard (extraído para useHook) ───────────────────────────
-  const _reloginDesistir = () => { setUsuarioLogado(null); setPerfisDisponiveis([]); setTela("login"); };
+  const _reloginDesistir = () => { setUsuarioLogado(null); setPerfisDisponiveis([]); navigate("/entrar"); };
   const {
     reloginNecessario, reloginSenha, setReloginSenha,
     reloginErro, reloginLoading, handleRelogin, handleReloginDesistir,
@@ -444,7 +433,7 @@ function App() {
     setTimeout(() => firebaseSignOut(auth).catch(() => {}), 300);
     setUsuarioLogado(null);
     setPerfisDisponiveis([]);
-    setTela("home");
+    navigate("/");
   };
   const { sessaoAvisoContagem, renovarSessao } = useSessionTimeout(usuarioLogado, { onExpire: _sessaoExpirou });
 
@@ -1199,7 +1188,7 @@ function App() {
       console.warn(`[App] Perfil ${tipo} id=${usuarioLogado.id} deletado — logout`);
       setUsuarioLogado(null);
       setPerfisDisponiveis([]);
-      setTela("login");
+      navigate("/entrar");
     }
   }, [equipes, organizadores, funcionarios, treinadores]);
 
@@ -1633,25 +1622,29 @@ function App() {
   };
 
 
-  const selecionarEvento = (id, targetTela = "evento-detalhe") => {
-    // Controle de acesso é feito nas telas individuais (TelaCadastroEvento, etc.)
-    // selecionarEvento apenas navega — qualquer usuário pode visualizar qualquer competição
+  const _telaSubpath = { "evento-detalhe": "", "novo-evento": "/editar", resultados: "/resultados", sumulas: "/sumulas", "digitar-resultados": "/digitar", "inscricao-avulsa": "/inscricao", "inscricao-revezamento": "/inscricao/revezamento", "gestao-inscricoes": "/gestao-inscricoes", "gerenciar-inscricoes": "/gerenciar-inscricoes", "numeracao-peito": "/numeracao", "config-pontuacao-equipes": "/pontuacao", secretaria: "/secretaria", "export-lynx": "/finishlynx", "gerenciar-membros": "/membros", "preparar-offline": "/offline", regulamento: "/regulamento" };
+
+  const selecionarEvento = useCallback((id, targetTela = "evento-detalhe") => {
     setEventoAtualId(id);
     eventoAtualIdRef.current = id;
-    setTela(targetTela);
-  };
+    if (id === null) { navigate("/competicao/novo"); return; }
+    const ev = eventos.find(ev2 => ev2.id === id);
+    const slug = ev?.slug || id;
+    navigate(`/competicao/${slug}${_telaSubpath[targetTela] || ""}`);
+  }, [eventos, navigate]);
 
   const selecionarOrganizador = useCallback((orgId) => {
     setOrganizadorPerfilId(orgId);
     organizadorPerfilIdRef.current = orgId;
-    setTela("organizador-perfil");
-  }, [setTela]);
+    const org = organizadores.find(o => o.id === orgId);
+    navigate(`/${org?.slug || orgId}`);
+  }, [navigate, organizadores]);
 
   // Helper: resolve nome da equipe/clube para exibição (closure sobre equipes do componente)
   const getClubeAtleta = (atleta) => _getClubeAtleta(atleta, equipes);
 
   const props = {
-    tela, setTela, usuarioLogado, setUsuarioLogado, login, loginComSelecao, logout,
+    usuarioLogado, setUsuarioLogado, login, loginComSelecao, logout,
     temaClaro, setTemaClaro,
     perfisDisponiveis, setPerfisDisponiveis,
     equipes, atletas, inscricoes, resultados, excluirAtletaPorUsuario,
@@ -1704,13 +1697,15 @@ function App() {
   // parciais causa de stale closures sem benefício real de memoização.
   // Para otimizar no futuro: envolver handlers em useCallback individualmente.
   const authValue = buildAuthValue(props);
-  const eventoValue = buildEventoValue(props);
+  const eventoValue = buildEventoValue({ ...props, chamada, getPresencaProva });
   const appValue = buildAppValue(props);
+  const adminConfigValue = { adminConfig, setAdminConfig };
 
   return (
     <AuthProvider value={authValue}>
     <EventoProvider value={eventoValue}>
     <AppProvider value={appValue}>
+    <AdminConfigProvider value={adminConfigValue}>
     <TemaProvider temaClaro={temaClaro}>
     <ConfirmProvider>
     <ConfirmBridge />
@@ -1849,482 +1844,81 @@ function App() {
         </div>
       )}
       <main style={styles.main}>
-      <React.Suspense fallback={<div style={{ display:"flex", justifyContent:"center", alignItems:"center", minHeight:200 }}><span style={{ color:"#888", fontSize:14 }}>Carregando...</span></div>}>
-        {tela === "home"                  && <TelaHome />}
-        {tela === "login"                 && <TelaLogin adminConfig={adminConfig} setOrganizadores={setOrganizadores} setAtletasUsuarios={setAtletasUsuarios} setFuncionarios={setFuncionarios} setTreinadores={setTreinadores} />}
-        {tela === "cadastro-equipe"       && <TelaCadastroEquipe />}
-        {tela === "cadastro-organizador"  && <TelaCadastroOrganizador />}
-        {tela === "cadastro-atleta-login" && <TelaCadastroAtletaLogin />}
-        {tela === "recuperar-senha"       && <TelaRecuperacaoSenha />}
-        {tela === "trocar-senha"          && <TelaTrocarSenha />}
-        {tela === "selecionar-perfil"     && <TelaSelecaoPerfil />}
-        {tela === "configuracoes"         && <TelaConfiguracoes adminConfig={adminConfig} setAdminConfig={setAdminConfig} setOrganizadores={setOrganizadores} setAtletasUsuarios={setAtletasUsuarios} setFuncionarios={setFuncionarios} setTreinadores={setTreinadores} />}
-        {tela === "painel"                && <TelaPainel />}
-        {tela === "painel-organizador"    && <TelaPainelOrganizador />}
-        {tela === "funcionarios"          && <TelaFuncionarios />}
-        {tela === "treinadores"           && <TelaTreinadores />}
-        {tela === "treinadores-novo"      && <TelaTreinadores abaInicial="novo" />}
-        {tela === "editar-atleta"         && <TelaEditarAtleta />}
-        {tela === "gerenciar-inscricoes"  && <TelaGerenciarInscricoes />}
-        {tela === "painel-atleta"         && <TelaPainelAtleta />}
-        {tela === "cadastrar-atleta"      && <TelaCadastrarAtleta />}
-        {tela === "cadastrar-atleta-novo" && <TelaCadastrarAtleta modoInicial="novo" />}
-        {tela === "novo-evento"           && <TelaCadastroEvento key={eventoAtualId || "novo"} />}
-        {tela === "evento-detalhe"        && <TelaEventoDetalhe />}
-        {tela === "preparar-offline"      && <PrepararOffline />}
-        {tela === "regulamento" && <RegulamentoViewer eventoAtual={eventoAtual} tema={temaClaro ? temaLight : temaDark} />}
+      <Routes>
+      {/* ── Rotas migradas (Etapa 2+) ── */}
+      <Route path="/faq" element={<React.Suspense fallback={null}><TelaFaq /></React.Suspense>} />
+      <Route path="/planos" element={<React.Suspense fallback={null}><TelaPlanos /></React.Suspense>} />
+      <Route path="/privacidade" element={<React.Suspense fallback={null}><TelaPrivacidade /></React.Suspense>} />
+      <Route path="/termos" element={<React.Suspense fallback={null}><TelaTermos /></React.Suspense>} />
+      <Route path="/recordes" element={<React.Suspense fallback={null}><TelaRecordes /></React.Suspense>} />
+      <Route path="/ranking" element={<React.Suspense fallback={null}><TelaRanking /></React.Suspense>} />
+      <Route path="/recuperar-senha" element={<React.Suspense fallback={null}><TelaRecuperacaoSenha /></React.Suspense>} />
+      <Route path="/trocar-senha" element={<React.Suspense fallback={null}><TelaTrocarSenha /></React.Suspense>} />
+      <Route path="/entrar" element={<React.Suspense fallback={null}><TelaLogin setOrganizadores={setOrganizadores} setAtletasUsuarios={setAtletasUsuarios} setFuncionarios={setFuncionarios} setTreinadores={setTreinadores} /></React.Suspense>} />
+      <Route path="/cadastro/equipe" element={<React.Suspense fallback={null}><TelaCadastroEquipe /></React.Suspense>} />
+      <Route path="/cadastro/organizador" element={<React.Suspense fallback={null}><TelaCadastroOrganizador /></React.Suspense>} />
+      <Route path="/cadastro/atleta" element={<React.Suspense fallback={null}><TelaCadastroAtletaLogin /></React.Suspense>} />
+      <Route path="/selecionar-perfil" element={<React.Suspense fallback={null}><TelaSelecaoPerfil /></React.Suspense>} />
+      <Route path="/painel" element={<React.Suspense fallback={null}><TelaPainel /></React.Suspense>} />
+      <Route path="/painel/organizador" element={<React.Suspense fallback={null}><TelaPainelOrganizador /></React.Suspense>} />
+      <Route path="/painel/atleta" element={<React.Suspense fallback={null}><TelaPainelAtleta /></React.Suspense>} />
+      <Route path="/painel/equipe" element={<React.Suspense fallback={null}><TelaPainelEquipe /></React.Suspense>} />
+      <Route path="/configuracoes" element={<React.Suspense fallback={null}><TelaConfiguracoes setOrganizadores={setOrganizadores} setAtletasUsuarios={setAtletasUsuarios} setFuncionarios={setFuncionarios} setTreinadores={setTreinadores} /></React.Suspense>} />
+      <Route path="/admin" element={<React.Suspense fallback={null}><TelaAdmin setHistoricoAcoes={setHistoricoAcoes} /></React.Suspense>} />
+      <Route path="/admin/usuarios" element={<React.Suspense fallback={null}><TelaGerenciarUsuarios /></React.Suspense>} />
+      <Route path="/admin/equipes" element={<React.Suspense fallback={null}><TelaGerenciarEquipes /></React.Suspense>} />
+      <Route path="/admin/funcionarios" element={<React.Suspense fallback={null}><TelaFuncionarios /></React.Suspense>} />
+      <Route path="/admin/treinadores" element={<React.Suspense fallback={null}><TelaTreinadores /></React.Suspense>} />
+      <Route path="/admin/treinadores/novo" element={<React.Suspense fallback={null}><TelaTreinadores abaInicial="novo" /></React.Suspense>} />
+      <Route path="/admin/atleta/novo" element={<React.Suspense fallback={null}><TelaCadastrarAtleta /></React.Suspense>} />
+      <Route path="/admin/atleta/cadastrar" element={<React.Suspense fallback={null}><TelaCadastrarAtleta modoInicial="novo" /></React.Suspense>} />
+      <Route path="/admin/atleta/:id/editar" element={<React.Suspense fallback={null}><TelaEditarAtleta /></React.Suspense>} />
+      <Route path="/admin/importar-atletas" element={<React.Suspense fallback={null}><TelaImportarAtletas /></React.Suspense>} />
+      <Route path="/admin/auditoria" element={<React.Suspense fallback={null}><TelaAuditoria /></React.Suspense>} />
 
-        {/* Bloqueio global: telas de edição bloqueadas se competição finalizada */}
-        {eventoAtual?.competicaoFinalizada && ["inscricao-avulsa","digitar-resultados","inscricao-revezamento","config-pontuacao-equipes","numeracao-peito","secretaria"].includes(tela) ? (
-          <div style={styles.page}><div style={styles.emptyState}>
-            <span style={{ fontSize:18, fontWeight:700, color:"#ff6b6b" }}>BLOQUEADO</span>
-            <p style={{ color:"#ff6b6b", fontWeight:700, fontSize:18 }}>Competição Finalizada</p>
-            <p style={{ color:"#888", fontSize:13, maxWidth:400, textAlign:"center", lineHeight:1.6 }}>
-              Os dados desta competição estão bloqueados para edição.<br/>
-              Para desbloquear, solicite autorização a um <strong style={{ color:"#1976D2" }}>administrador</strong>.
-            </p>
-            <button style={styles.btnGhost} onClick={() => setTela("evento-detalhe")}>← Voltar à Competição</button>
-          </div></div>
-        ) : (
-          <>
-            {tela === "inscricao-avulsa"  && <TelaInscricaoAvulsa />}
-            {tela === "digitar-resultados"&& <TelaDigitarResultados getPresencaProva={getPresencaProva} />}
-            {tela === "numeracao-peito"  && <TelaNumericaPeito />}
-            {tela === "export-lynx"      && <TelaFinishLynx />}
-            {tela === "inscricao-revezamento" && <TelaInscricaoRevezamento />}
-            {tela === "config-pontuacao-equipes" && <TelaConfigPontuacaoEquipes />}
-            {tela === "secretaria" && (() => {
-              const tpU = usuarioLogado?.tipo;
-              const podeCamara = tpU === "admin" || tpU === "organizador" ||
-                (tpU === "funcionario" && (usuarioLogado?.permissoes || []).includes("camara_chamada"));
-              return podeCamara ? <TelaSecretaria /> : null;
-            })()}
-          </>
-        )}
+      {/* ── Rotas de competição (com EventoLayout) ── */}
+      <Route path="/competicao/novo" element={<React.Suspense fallback={null}><TelaCadastroEvento /></React.Suspense>} />
+      <Route path="/competicao/:slug" element={<React.Suspense fallback={null}><EventoLayout /></React.Suspense>}>
+        <Route index element={<React.Suspense fallback={null}><TelaEventoDetalhe /></React.Suspense>} />
+        <Route path="editar" element={<React.Suspense fallback={null}><TelaCadastroEvento /></React.Suspense>} />
+        <Route path="resultados" element={<React.Suspense fallback={null}><TelaResultados /></React.Suspense>} />
+        <Route path="sumulas" element={<React.Suspense fallback={null}><TelaSumulas /></React.Suspense>} />
+        <Route path="gestao-inscricoes" element={<React.Suspense fallback={null}><TelaGestaoInscricoes /></React.Suspense>} />
+        <Route path="gerenciar-inscricoes" element={<React.Suspense fallback={null}><TelaGerenciarInscricoes /></React.Suspense>} />
+        <Route path="membros" element={<React.Suspense fallback={null}><TelaGerenciarMembros /></React.Suspense>} />
+        <Route path="offline" element={<React.Suspense fallback={null}><PrepararOffline /></React.Suspense>} />
+        <Route path="regulamento" element={<RegulamentoViewer eventoAtual={eventoAtual} tema={temaClaro ? temaLight : temaDark} />} />
+        <Route path="finishlynx" element={<React.Suspense fallback={null}><TelaFinishLynx /></React.Suspense>} />
+        {/* Telas bloqueadas se competição finalizada */}
+        <Route element={<FinalizedGuard />}>
+          <Route path="inscricao" element={<React.Suspense fallback={null}><TelaInscricaoAvulsa /></React.Suspense>} />
+          <Route path="inscricao/revezamento" element={<React.Suspense fallback={null}><TelaInscricaoRevezamento /></React.Suspense>} />
+          <Route path="digitar" element={<React.Suspense fallback={null}><TelaDigitarResultados /></React.Suspense>} />
+          <Route path="numeracao" element={<React.Suspense fallback={null}><TelaNumericaPeito /></React.Suspense>} />
+          <Route path="pontuacao" element={<React.Suspense fallback={null}><TelaConfigPontuacaoEquipes /></React.Suspense>} />
+          <Route path="secretaria" element={<React.Suspense fallback={null}><TelaSecretaria /></React.Suspense>} />
+        </Route>
+      </Route>
 
-        {tela === "gestao-inscricoes"&& <TelaGestaoInscricoes />}
-        {tela === "sumulas"           && usuarioLogado && <TelaSumulas chamada={chamada} getPresencaProva={getPresencaProva} />}
-        {tela === "resultados"        && <TelaResultados />}
-        {tela === "recordes"          && <TelaRecordes />}
-        {tela === "ranking"           && <TelaRanking />}
-        {tela === "faq"               && <TelaFaq />}
-        {tela === "planos"            && <TelaPlanos />}
-        {tela === "privacidade"       && <TelaPrivacidade />}
-        {tela === "termos"            && <TelaTermos />}
-        {tela === "admin"             && <TelaAdmin adminConfig={adminConfig} setAdminConfig={setAdminConfig} setHistoricoAcoes={setHistoricoAcoes} />}
-        {tela === "gerenciar-equipes" && <TelaGerenciarEquipes />}
-        {tela === "gerenciar-usuarios" && <TelaGerenciarUsuarios />}
-        {tela === "importar-atletas"  && <TelaImportarAtletas />}
-        {tela === "painel-equipe"     && <TelaPainelEquipe />}
-        {tela === "gerenciar-membros" && <TelaGerenciarMembros />}
-        {tela === "auditoria"         && <TelaAuditoria />}
-        {tela === "organizador-perfil" && <TelaPerfilOrganizador />}
-      </React.Suspense>
+      {/* ── Home + perfil organizador ── */}
+      <Route path="/" element={<React.Suspense fallback={null}><TelaHome /></React.Suspense>} />
+      <Route path="/:slug" element={<React.Suspense fallback={null}><TelaPerfilOrganizador /></React.Suspense>} />
+      </Routes>
       </main>
-      <footer style={styles.footer}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 48, textAlign: "left" }}>
-          {/* Coluna 1 — Marca */}
-          <div>
-            {siteBranding.logoFooter ? (
-              <div style={{ marginBottom: 16, textAlign: "center" }}>
-                <img loading="lazy" src={siteBranding.logoFooter} alt={gtNome} style={{ maxHeight: 140, maxWidth: "100%", objectFit: "contain", display: "block", margin: "0 auto" }} />
-              </div>
-            ) : (
-              <>
-                <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
-                  {gtIcon && <img loading="lazy" src={gtIcon} alt="" style={{ width: 44, height: 44, objectFit: "contain" }} />}
-                  <span style={{ fontFamily: temaDark.fontTitle, fontWeight: 800, fontSize: 24, color: "#fff", letterSpacing: 2 }}>{gtNome}</span>
-                </div>
-                <div style={{ fontSize: 15, color: "#777", lineHeight: 1.7 }}>{gtSlogan}</div>
-              </>
-            )}
-            <div style={{ fontSize: 13, color: "#555", marginTop: 14, textAlign: "center" }}>© {new Date().getFullYear()} {gtNome}. Todos os direitos reservados.</div>
-          </div>
-
-          {/* Coluna 2 — Links */}
-          <div>
-            <div style={{ fontFamily: temaDark.fontTitle, fontWeight: 700, fontSize: 16, color: "#aaa", letterSpacing: 2, marginBottom: 16, textTransform: "uppercase" }}>Links</div>
-            {[
-              { label: "Planos", tela: "planos" },
-              { label: "FAQ", tela: "faq" },
-              { label: "Privacidade", tela: "privacidade" },
-              { label: "Termos de Uso", tela: "termos" },
-              { label: "Recordes", tela: "recordes" },
-              { label: "Ranking", tela: "ranking" },
-            ].map(link => (
-              <div key={link.tela} style={{ marginBottom: 12 }}>
-                <span onClick={() => setTela(link.tela)} style={{ color: "#888", fontSize: 15, cursor: "pointer", textDecoration: "none" }}
-                  onMouseEnter={ev => ev.target.style.color = "#1976D2"}
-                  onMouseLeave={ev => ev.target.style.color = "#888"}>
-                  {link.label}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* Coluna 3 — Contato + Redes */}
-          <div>
-            <div style={{ fontFamily: temaDark.fontTitle, fontWeight: 700, fontSize: 16, color: "#aaa", letterSpacing: 2, marginBottom: 16, textTransform: "uppercase" }}>Contato</div>
-            <div style={{ marginBottom: 12 }}>
-              <a href="mailto:atendimento@gerentrack.com.br" style={{ color: "#888", fontSize: 15, textDecoration: "none", display: "flex", alignItems: "center", gap: 10 }}
-                onMouseEnter={ev => ev.currentTarget.style.color = "#1976D2"}
-                onMouseLeave={ev => ev.currentTarget.style.color = "#888"}>
-                atendimento@gerentrack.com.br
-              </a>
-            </div>
-            {(siteBranding.redesSociais || []).filter(r => r.ativo && (r.rede === "email" || r.rede === "whatsapp" || r.rede === "site")).sort((a, b) => (a.ordem || 0) - (b.ordem || 0)).map((rede, idx) => (
-              <div key={idx} style={{ marginBottom: 12 }}>
-                <a href={rede.url} target="_blank" rel="noopener noreferrer" style={{ color: "#888", fontSize: 15, textDecoration: "none", display: "flex", alignItems: "center", gap: 10 }}
-                  onMouseEnter={ev => ev.currentTarget.style.color = "#1976D2"}
-                  onMouseLeave={ev => ev.currentTarget.style.color = "#888"}>
-                  {rede.iconeUrl ? <img loading="lazy" src={rede.iconeUrl} alt="" style={{ width: 20, height: 20, objectFit: "contain" }} /> : <span style={{ fontSize: 18 }}>{rede.emoji}</span>}
-                  {rede.label}
-                </a>
-              </div>
-            ))}
-            <div style={{ display: "flex", gap: 16, marginTop: 18 }}>
-              {(siteBranding.redesSociais || []).filter(r => r.ativo && r.rede !== "email" && r.rede !== "whatsapp" && r.rede !== "site").sort((a, b) => (a.ordem || 0) - (b.ordem || 0)).map((rede, idx) => (
-                <a key={idx} href={rede.url} target="_blank" rel="noopener noreferrer" title={rede.label} style={{ opacity: 0.6, textDecoration: "none", display: "inline-flex", alignItems: "center", transition: "opacity 0.2s" }}
-                  onMouseEnter={ev => ev.currentTarget.style.opacity = "1"}
-                  onMouseLeave={ev => ev.currentTarget.style.opacity = "0.6"}>
-                  {rede.iconeUrl ? <img loading="lazy" src={rede.iconeUrl} alt={rede.label} style={{ width: 48, height: 48, objectFit: "contain" }} /> : <span style={{ fontSize: 40 }}>{rede.emoji}</span>}
-                </a>
-              ))}
-            </div>
-            <div style={{ marginTop: 16, fontSize: 13, color: "#666" }}>CNPJ: 65.454.409/0001-23</div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
     {cookieConsent.aceito && <Analytics />}
     {cookieConsent.aceito && <SpeedInsights />}
     <BannerCookies onAceitar={cookieConsent.aceitar} onRecusar={cookieConsent.recusar} />
     </ConfirmProvider>
     </TemaProvider>
+    </AdminConfigProvider>
     </AppProvider>
     </EventoProvider>
     </AuthProvider>
   );
 }
 
-// ─── TELA HOME — listagem de competições ──────────────────────────────────────
-// ─── IMPORTAÇÃO EM LOTE DE ATLETAS ────────────────────────────────────────────
-// ─── ESTILOS ───────────────────────────────────────────────────────────────────
-const cssGlobal = `
-  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #0A0B0D; color: #E0E0E0; font-family: 'Inter', sans-serif; }
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: #111; }
-  ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-  optgroup { background: ${temaDark.bgHover}; color: #1976D2; font-style: normal; }
-  option { background: ${temaDark.bgHover}; color: #E0E0E0; }
-
-  /* ── Modo Claro ── */
-  .tema-claro { background: #F0F1F3 !important; color: #1A1A1A !important; }
-  .tema-claro ::-webkit-scrollbar-track { background: #E8E8E8; }
-  .tema-claro ::-webkit-scrollbar-thumb { background: #BBB; }
-  .tema-claro optgroup { background: #fff; color: #1565C0; }
-  .tema-claro option { background: #fff; color: #1A1A1A; }
-  .tema-claro input, .tema-claro select, .tema-claro textarea {
-    background: #FFFFFF !important; border-color: #CDD1D9 !important; color: #333 !important;
-  }
-  .tema-claro input:focus, .tema-claro select:focus, .tema-claro textarea:focus {
-    border-color: #1565C0 !important; box-shadow: 0 0 0 2px #1565C022 !important;
-  }
-  .tema-claro table { border-color: #D8DCE3 !important; }
-  .tema-claro th { background: #F0F1F3 !important; color: #333 !important; border-color: #D8DCE3 !important; }
-  .tema-claro td { border-color: #E0E3EA !important; }
-  .tema-claro thead tr { background: #F0F1F3 !important; }
-  .tema-claro tr:hover td { background: #F0F2F5 !important; }
-
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
-  }
-
-  main > * { animation: fadeIn 0.25s ease; }
-
-  button:not([disabled]):hover { filter: brightness(1.12); }
-  button:not([disabled]):active { transform: scale(0.97); }
-
-  input:focus, select:focus { border-color: #1976D2 !important; box-shadow: 0 0 0 2px #1976D222; }
-
-  tr:hover td { background: ${temaDark.bgHover} !important; }
-
-  .saved-pulse { animation: pulse 1s ease 2; }
-`;
-
-
-const styles = {
-  root: { minHeight: "100vh", background: "#0A0B0D", display: "flex", flexDirection: "column" },
-  main: { flex: 1 },
-
-  header: { background: "linear-gradient(90deg, #0D0E12 0%, #141720 100%)", borderBottom: "1px solid #1E2130", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 20px rgba(0,0,0,0.5)" },
-  headerInner: { maxWidth: 1200, margin: "0 auto", padding: "14px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 },
-  logo: { background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 14 },
-  logoIcon: { fontSize: 36 },
-  logoTitle: { fontFamily: temaDark.fontTitle, fontSize: 24, fontWeight: 900, color: "#1976D2", letterSpacing: 3, lineHeight: 1 },
-  logoSub: { fontSize: 11, color: "#666", letterSpacing: 1.5, marginTop: 3 },
-
-  nav: { display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" },
-  btnNav: { background: "transparent", border: "1px solid #2a2d3a", color: "#ccc", padding: "10px 20px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontFamily: temaDark.fontBody, transition: "all 0.2s", whiteSpace: "nowrap" },
-  btnNavActive: { background: temaDark.bgHover, borderColor: "#1976D2", color: "#1976D2" },
-  btnSair: { background: "transparent", border: "1px solid #3a1a1a", color: "#ff6b6b", padding: "10px 20px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: temaDark.fontBody },
-
-  page: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" },
-  pageTitle: { fontFamily: temaDark.fontTitle, fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 24, letterSpacing: 1 },
-
-  heroSection: { textAlign: "center", padding: "60px 20px 40px", background: "linear-gradient(180deg, #0D1018 0%, transparent 100%)", borderRadius: 16, marginBottom: 48, position: "relative", overflow: "hidden" },
-  heroBadge: { display: "inline-block", background: "#1976D2", color: "#fff", fontFamily: temaDark.fontTitle, fontWeight: 800, fontSize: 12, letterSpacing: 3, padding: "6px 16px", borderRadius: 20, marginBottom: 20 },
-  heroTitle: { fontFamily: temaDark.fontTitle, fontSize: 56, fontWeight: 900, color: "#fff", lineHeight: 1.1, marginBottom: 16, letterSpacing: 1 },
-  heroMeta: { color: "#888", fontSize: 15, marginBottom: 32 },
-  heroStats: { display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap", marginBottom: 36 },
-  heroBtns: { display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" },
-
-  statCard: { background: "#1C1F2A", border: "1px solid #1E2130", borderRadius: 12, padding: "18px 24px", textAlign: "center", minWidth: 100 },
-  statValue: { fontFamily: temaDark.fontTitle, fontSize: 36, fontWeight: 900, color: "#1976D2", lineHeight: 1, marginBottom: 6 },
-  statLabel: { fontSize: 13, color: "#888", letterSpacing: 1 },
-
-  statsRow: { display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 32 },
-
-  btnPrimary: { background: "linear-gradient(135deg, #1976D2, #1565C0)", color: "#fff", border: "none", padding: "12px 28px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: temaDark.fontTitle, letterSpacing: 1, transition: "all 0.2s" },
-  btnSecondary: { background: "transparent", color: "#1976D2", border: "2px solid #1976D2", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: temaDark.fontTitle, letterSpacing: 1 },
-  btnGhost: { background: "transparent", color: "#888", border: "1px solid #2a2d3a", padding: "11px 24px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: temaDark.fontBody },
-
-  grid2: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 40 },
-  infoCard: { background: "#181B25", border: "1px solid #1E2130", borderRadius: 12, padding: 24 },
-  infoCardTitle: { fontFamily: temaDark.fontTitle, fontSize: 20, fontWeight: 700, color: "#1976D2", marginBottom: 16, letterSpacing: 1 },
-  infoList: { listStyle: "none" },
-  infoItem: { padding: "6px 0", borderBottom: `1px solid ${temaDark.border}`, fontSize: 14, color: "#bbb", display: "flex", alignItems: "center", gap: 8 },
-  infoItemDot: { color: "#1976D2", fontWeight: 700 },
-
-  catSection: { marginTop: 40 },
-  sectionTitle: { fontFamily: temaDark.fontTitle, fontSize: 26, fontWeight: 800, color: "#fff", marginBottom: 20, letterSpacing: 1 },
-  catGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12 },
-  catCard: { background: "#181B25", border: "1px solid #1E2130", borderRadius: 10, padding: "14px 18px" },
-  catName: { fontFamily: temaDark.fontTitle, fontSize: 20, fontWeight: 800, color: "#1976D2" },
-  catRange: { fontSize: 12, color: "#666", marginTop: 4 },
-
-  formPage: { maxWidth: 640, margin: "60px auto", padding: "0 24px 80px" },
-  formCard: { background: "#181B25", border: "1px solid #1E2130", borderRadius: 16, padding: 32, marginBottom: 20 },
-  formIcon: { fontSize: 48, textAlign: "center", marginBottom: 16 },
-  formTitle: { fontFamily: temaDark.fontTitle, fontSize: 32, fontWeight: 800, color: "#fff", textAlign: "center", marginBottom: 8 },
-  formSub: { color: "#666", textAlign: "center", fontSize: 14, marginBottom: 24 },
-  formLink: { textAlign: "center", marginTop: 16, color: "#666", fontSize: 13 },
-  formHint: { textAlign: "center", marginTop: 12, color: "#444" },
-  grid2form: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 },
-
-  label: { display: "block", fontSize: 12, fontWeight: 600, color: "#888", letterSpacing: 1, marginBottom: 6, textTransform: "uppercase" },
-  input: { width: "100%", background: "#141720", borderWidth: 1, borderStyle: "solid", borderColor: "#252837", borderRadius: 8, padding: "10px 14px", color: "#E0E0E0", fontSize: 14, fontFamily: temaDark.fontBody, outline: "none", marginBottom: 4 },
-  inputError: { borderColor: "#ff4444" },
-  fieldError: { color: "#ff6b6b", fontSize: 12, marginTop: 2 },
-  select: { width: "100%", background: "#141720", borderWidth: 1, borderStyle: "solid", borderColor: "#252837", borderRadius: 8, padding: "10px 14px", color: "#E0E0E0", fontSize: 14, fontFamily: temaDark.fontBody, outline: "none", marginBottom: 4 },
-  erro: { background: "#2a1010", border: "1px solid #ff4444", color: "#ff6b6b", padding: "10px 14px", borderRadius: 8, marginBottom: 16, fontSize: 14 },
-  linkBtn: { background: "none", border: "none", color: "#1976D2", cursor: "pointer", fontSize: 13, fontFamily: temaDark.fontBody, padding: 0 },
-
-  radioGroup: { display: "flex", gap: 8, marginBottom: 16 },
-  radioLabel: { flex: 1, background: "#141720", border: "1px solid #252837", borderRadius: 8, padding: "10px", textAlign: "center", cursor: "pointer", fontSize: 14, color: "#888", transition: "all 0.2s" },
-  radioLabelActive: { background: "#1c1f2e", border: "1px solid #1976D2", color: "#1976D2" },
-
-  catPreview: { background: "#141720", border: "1px solid #1976D2", borderRadius: 8, padding: "8px 14px", marginBottom: 16, fontSize: 13, color: "#aaa" },
-  atletaInfo: { display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginTop: 12, padding: "10px 14px", background: "#141720", borderRadius: 8, fontSize: 13 },
-
-  badge: (color) => ({ background: color + "22", color: color, border: `1px solid ${color}44`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }),
-  badgeGold: { background: "#1976D222", color: "#1976D2", border: "1px solid #1976D244", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 },
-
-  painelHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 32 },
-  painelBtns: { display: "flex", gap: 10 },
-
-  tableWrap: { overflowX: "auto", borderRadius: 12, border: "1px solid #1E2130" },
-  table: { width: "100%", borderCollapse: "collapse" },
-  th: { background: "#0D0E12", padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "#666", letterSpacing: 1, textTransform: "uppercase", borderBottom: "1px solid #1E2130" },
-  td: { padding: "12px 16px", fontSize: 14, color: "#bbb", borderBottom: `1px solid ${temaDark.border}` },
-  tr: { transition: "background 0.15s" },
-  trOuro: { background: "#1a170a" },
-  trPrata: { background: temaDark.trPrata },
-  trBronze: { background: "#14100a" },
-  marca: { fontFamily: temaDark.fontTitle, fontSize: 20, fontWeight: 800, color: "#1976D2" },
-
-  emptyState: { textAlign: "center", padding: "60px 20px", color: "#444", display: "flex", flexDirection: "column", alignItems: "center", gap: 12, fontSize: 15 },
-
-  modoSwitch: { display: "flex", gap: 0, background: "#0D0E12", border: "1px solid #1E2130", borderRadius: 10, overflow: "hidden", marginBottom: 24, width: "fit-content" },
-  modoBtn: { background: "transparent", border: "none", color: "#666", padding: "12px 24px", cursor: "pointer", fontSize: 14, fontFamily: temaDark.fontBody, transition: "all 0.2s" },
-  modoBtnActive: { background: "#141720", color: "#1976D2" },
-
-  filtros: { display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 },
-
-  provaSection: { marginBottom: 28 },
-  provaSecTitle: { fontFamily: temaDark.fontTitle, fontSize: 20, fontWeight: 700, color: "#aaa", marginBottom: 12, letterSpacing: 1 },
-  provaGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 },
-  provaBtn: { background: "#181B25", border: "1px solid #1E2130", color: "#888", padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: temaDark.fontBody, transition: "all 0.2s", lineHeight: 1.4 },
-  provaBtnSel: { background: temaDark.bgHover, borderColor: "#1976D2", color: "#1976D2" },
-  provaBtnInscrito: { opacity: 0.5, cursor: "not-allowed", borderColor: "#2a4a2a", color: "#4a8a4a" },
-
-  resumoInscricao: { background: "#181B25", border: "1px solid #1976D233", borderRadius: 10, padding: "16px 20px", marginTop: 16 },
-  tagProva: { background: "#1976D222", color: "#1976D2", border: "1px solid #1976D244", borderRadius: 6, padding: "4px 12px", fontSize: 12, cursor: "pointer" },
-
-  sumuCard: { background: "#181B25", border: "1px solid #1E2130", borderRadius: 12, marginBottom: 20, overflow: "hidden" },
-  sumuHeader: { padding: "16px 20px", background: "#0D0E12", borderBottom: "1px solid #1E2130", display: "flex", justifyContent: "space-between", alignItems: "center" },
-  sumuProva: { fontFamily: temaDark.fontTitle, fontSize: 22, fontWeight: 800, color: "#fff", marginBottom: 6 },
-  sumuMeta: { display: "flex", gap: 8, alignItems: "center" },
-
-  digitarSection: { background: "#181B25", border: "1px solid #1E2130", borderRadius: 12, overflow: "hidden" },
-  digitarHeader: { padding: "16px 20px", background: "#0D0E12", borderBottom: "1px solid #1E2130", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 },
-  digitarDica: { color: "#666", fontSize: 12 },
-  inputMarca: { background: "#141720", border: "1px solid #252837", borderRadius: 6, padding: "8px 12px", color: "#1976D2", fontSize: 16, fontFamily: temaDark.fontTitle, fontWeight: 700, width: 120, outline: "none" },
-  savedBadge: { background: "#0a2a0a", border: "1px solid #2a6a2a", color: "#4aaa4a", padding: "8px 16px", borderRadius: 8, fontSize: 13 },
-
-  adminGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 32 },
-  adminCard: { background: "#181B25", border: "1px solid #1E2130", borderRadius: 12, padding: 24 },
-  adminCardTitle: { fontFamily: temaDark.fontTitle, fontSize: 22, fontWeight: 800, color: "#1976D2", marginBottom: 16 },
-
-  catBanner: { background: "#141720", border: "1px solid #252837", borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 14, color: "#aaa" },
-
-  permissividadeTag: (ativo) => ({
-    display: "inline-block",
-    background: ativo ? "#1a2a0a" : temaDark.bgCard,
-    border: `1px solid ${ativo ? "#4a8a2a" : "#333"}`,
-    color: ativo ? "#7acc44" : "#555",
-    borderRadius: 6, padding: "6px 12px", fontSize: 12, fontWeight: 600,
-  }),
-  permissividadeBox: {
-    background: temaDark.bgHeaderSolid, border: "1px solid #1976D233",
-    borderRadius: 10, padding: 16, marginTop: 16, marginBottom: 4,
-  },
-  permissividadeHeader: { marginBottom: 10 },
-  permissividadeLabel: {
-    display: "flex", alignItems: "center", cursor: "pointer",
-    fontSize: 14, color: "#ddd", fontWeight: 600,
-  },
-  permissividadeInfo: {
-    background: temaDark.bgHover, borderRadius: 8, padding: "12px 16px",
-    borderLeft: "3px solid #1976D2",
-  },
-  permissividadeAlert: {
-    display: "flex", gap: 14, alignItems: "flex-start",
-    background: "#12180a", border: "1px solid #4a8a2a",
-    borderRadius: 10, padding: "14px 18px", marginBottom: 20,
-  },
-  permissividadeAlertIcon: { fontSize: 28, flexShrink: 0, marginTop: 2 },
-  permissividadeAlertTitle: { fontWeight: 700, color: "#7acc44", fontSize: 15, marginBottom: 4 },
-  permissividadeAlertBody: { color: "#aaa", fontSize: 13, lineHeight: 1.6, marginBottom: 6 },
-  permissividadeAlertRodape: { fontSize: 12, color: "#666", fontStyle: "italic" },
-  badgeOficial: {
-    background: "#1a1a2a", color: "#8888cc", border: "1px solid #333366",
-    borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600,
-  },
-  badgeNorma: {
-    background: "#1a2a0a", color: "#7acc44", border: "1px solid #3a6a1a",
-    borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600, cursor: "help",
-  },
-
-  filtroProvasBar: {
-    background: "#181B25", border: "1px solid #1E2130", borderRadius: 12,
-    padding: "16px 20px", marginBottom: 16, display: "flex", flexWrap: "wrap", gap: 20,
-  },
-  filtroProvasBloco: { display: "flex", flexDirection: "column", gap: 8 },
-  filtroProvasLabel: { fontSize: 11, fontWeight: 700, color: "#666", letterSpacing: 1, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 8 },
-  filtroProvasPills: { display: "flex", flexWrap: "wrap", gap: 6 },
-  filtroPill: {
-    background: "#141720", border: "1px solid #252837", color: "#666",
-    borderRadius: 20, padding: "5px 14px", fontSize: 12, fontWeight: 600,
-    cursor: "pointer", fontFamily: temaDark.fontTitle, letterSpacing: 0.5,
-    transition: "all 0.15s",
-  },
-  filtroPillAtivo: {
-    background: temaDark.bgHover, border: "1px solid #1976D2", color: "#1976D2",
-  },
-  filtroClearBtn: {
-    background: "none", border: "none", color: "#1976D288", cursor: "pointer",
-    fontSize: 11, fontFamily: temaDark.fontBody, padding: "0 4px", textDecoration: "underline",
-  },
-
-  statusBar: {
-    display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap",
-    background: "#0D0E12", border: "1px solid #1E2130", borderRadius: 10,
-    padding: "12px 18px", marginBottom: 24,
-  },
-  statusBarItem: { display: "flex", alignItems: "center", gap: 8, fontSize: 13 },
-  statusDot: (cor) => ({
-    display: "inline-block", width: 8, height: 8, borderRadius: "50%",
-    background: cor, flexShrink: 0,
-  }),
-  statusDotInline: (cor) => ({
-    display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11,
-    color: cor, background: cor + "22", border: `1px solid ${cor}44`,
-    borderRadius: 10, padding: "2px 8px", whiteSpace: "nowrap",
-  }),
-  statusControlsCard: {
-    background: "#181B25", border: "1px solid #1E2130", borderRadius: 12,
-    padding: "20px 24px", marginBottom: 28,
-  },
-  statusControlsTitle: {
-    fontFamily: temaDark.fontTitle, fontSize: 16, fontWeight: 700,
-    color: "#1976D2", letterSpacing: 1, marginBottom: 14,
-  },
-  statusControlsGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 },
-  statusControlBox: (ativo, corAtiva, bgAtiva, disabled) => ({
-    background: ativo ? bgAtiva : "#141720",
-    border: `1px solid ${ativo ? corAtiva + "66" : "#252837"}`,
-    borderRadius: 10, padding: "14px 16px",
-    opacity: disabled ? 0.5 : 1,
-    transition: "all 0.2s",
-  }),
-  statusControlLabel: {
-    display: "flex", alignItems: "flex-start", cursor: "pointer", gap: 0,
-  },
-
-  eventoBar: { background: "#0D0E12", borderTop: `1px solid ${temaDark.border}`, padding: "6px 24px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" },
-  eventoBarLabel: { fontSize: 11, color: "#555", letterSpacing: 1, textTransform: "uppercase" },
-  eventoBarNome: { fontSize: 13, fontWeight: 700, color: "#1976D2", fontFamily: temaDark.fontTitle, letterSpacing: 1 },
-  eventoBarMeta: { fontSize: 12, color: "#555", marginLeft: "auto" },
-
-  eventosGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 20, marginBottom: 48 },
-  eventoCard: { background: "#181B25", border: "1px solid #1E2130", borderRadius: 14, padding: 24, display: "flex", flexDirection: "column", gap: 10 },
-  eventoCardTop: { display: "flex", justifyContent: "space-between", alignItems: "center" },
-  eventoCardNome: { fontFamily: temaDark.fontTitle, fontSize: 22, fontWeight: 800, color: "#fff", lineHeight: 1.2 },
-  eventoCardMeta: { fontSize: 13, color: "#666" },
-  eventoCardStats: { display: "flex", gap: 16, fontSize: 13, color: "#888", flexWrap: "wrap", borderTop: `1px solid ${temaDark.border}`, paddingTop: 10, marginTop: 4 },
-  eventoStatusBadge: (status) => ({
-    display: "inline-block", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700, letterSpacing: 0.5,
-    background: status === "ao_vivo" ? "#3a0a0a" : status === "hoje_pre" ? "#2a2a0a" : status === "futuro" ? "#0a2a0a" : "#1a1a1a",
-    color: status === "ao_vivo" ? "#ff6b6b" : status === "hoje_pre" ? "#1976D2" : status === "futuro" ? "#7acc44" : "#555",
-    border: `1px solid ${status === "ao_vivo" ? "#6a2a2a" : status === "hoje_pre" ? "#4a4a0a" : status === "futuro" ? "#2a5a2a" : "#333"}`,
-  }),
-
-  eventoAcoesGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16, marginBottom: 40 },
-  eventoAcaoBtn: { background: "#181B25", border: "1px solid #1E2130", borderRadius: 12, padding: "20px 16px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, textAlign: "center", color: "#fff", fontFamily: temaDark.fontBody, fontSize: 15, fontWeight: 700, transition: "border-color 0.2s" },
-
-  grupoProvasBox: { background: "#181B25", border: "1px solid #1E2130", borderRadius: 10, marginBottom: 16, overflow: "hidden" },
-  grupoProvasHeader: { background: "#0D0E12", borderBottom: "1px solid #1E2130", padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" },
-  provaCheckBtn: { background: "#181B25", border: "1px solid #1E2130", color: "#888", padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "left", fontFamily: temaDark.fontBody, lineHeight: 1.4, userSelect: "none" },
-  provaCheckBtnSel: { background: temaDark.bgHover, borderColor: "#1976D2", color: "#1976D2" },
-  provaChip: { background: "#141720", border: "1px solid #252837", borderRadius: 6, padding: "8px 12px", fontSize: 13, color: "#bbb", lineHeight: 1.4 },
-
-  stepBar: { display: "flex", alignItems: "center", gap: 0, marginBottom: 32, maxWidth: 400 },
-  stepItem: (ativo) => ({ padding: "10px 24px", borderRadius: 8, fontSize: 14, fontWeight: 700, fontFamily: temaDark.fontTitle, letterSpacing: 1, background: ativo ? temaDark.bgHover : "transparent", color: ativo ? "#1976D2" : "#444", border: `1px solid ${ativo ? "#1976D244" : "#1E2130"}` }),
-  stepDivider: { flex: 1, height: 1, background: "#1E2130", margin: "0 8px" },
-
-  btnIconSm: { background: "#141720", border: "1px solid #252837", color: "#888", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
-  btnIconSmDanger: { background: "#1a0a0a", border: "1px solid #3a1a1a", color: "#ff6b6b", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13 },
-
-  footer: { padding: "60px 48px 48px", borderTop: "none", fontSize: 12, color: "#ccc", background: "#0a1628" },
-};
-
-
-
-// ═══════════════════════════════════════════════════════════════════════════
-// COMPONENTE: PAINEL DA EQUIPE
-// ═══════════════════════════════════════════════════════════════════════════
 
 
 export default App;

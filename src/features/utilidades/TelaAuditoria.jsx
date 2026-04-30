@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
@@ -93,10 +94,11 @@ function getStyles(t) {
 }
 
 function TelaAuditoria() {
+  const navigate = useNavigate();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
-  const { setTela, historicoAcoes } = useApp();
+  const { historicoAcoes } = useApp();
   const { equipe } = usuarioLogado;
   const [filtro, setFiltro] = useState('todos');
   const [busca, setBusca] = useState('');
@@ -141,7 +143,7 @@ function TelaAuditoria() {
           <h1 style={s.pageTitle}>Auditoria de Ações</h1>
           <p style={{ color: t.textDimmed, fontSize: 14 }}>Histórico de ações da equipe {equipe?.nome}</p>
         </div>
-        <button style={s.btnGhost} onClick={() => setTela('painel-equipe')}>← Voltar</button>
+        <button style={s.btnGhost} onClick={() => navigate('/painel/equipe')}>← Voltar</button>
       </div>
       <div style={{ background:t.bgHeaderSolid, border:`1px solid ${t.border}`, borderRadius:12, padding:24, marginBottom:24 }}>
         <div style={{ display:"flex", gap:16, flexWrap:"wrap", alignItems:"center" }}>

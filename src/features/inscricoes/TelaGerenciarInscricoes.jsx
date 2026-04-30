@@ -1,5 +1,6 @@
 import { usePagination, PaginaControles } from "../../lib/hooks/usePagination.jsx";
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useConfirm } from "../../features/ui/ConfirmContext";
 import { todasAsProvas } from "../../shared/athletics/provasDef";
 import { CATEGORIAS } from "../../shared/constants/categorias";
@@ -142,11 +143,12 @@ function getStyles(t) {
 }
 
 function TelaGerenciarInscricoes() {
+  const navigate = useNavigate();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
   const { atletas, inscricoes, eventos, eventoAtual, equipes, excluirInscricao, atualizarInscricao } = useEvento();
-  const { setTela, organizadores } = useApp();
+  const { organizadores } = useApp();
   const confirmar = useConfirm();
 
   const isAdmin   = usuarioLogado?.tipo === "admin";
@@ -212,11 +214,11 @@ function TelaGerenciarInscricoes() {
   };
   const cancelarEdicao = () => { setEditandoId(null); setEditForm(null); };
 
-  const voltarTela = () => setTela(
-    isAtleta ? "painel-atleta" :
-    isTrein  ? "painel" :
-    isOrg    ? "painel-organizador" :
-    isFunc   ? "painel-organizador" : "admin"
+  const voltarTela = () => navigate(
+    isAtleta ? "/painel/atleta" :
+    isTrein  ? "/painel" :
+    isOrg    ? "/painel/organizador" :
+    isFunc   ? "/painel/organizador" : "/admin"
   );
 
   // Guard: funcionário sem permissão não pode gerenciar inscrições
@@ -224,7 +226,7 @@ function TelaGerenciarInscricoes() {
     <div style={s.page}><div style={s.emptyState}>
       <p style={{ color: t.danger, fontWeight: 700 }}>Permissão insuficiente</p>
       <p style={{ color: t.textDimmed, fontSize: 14 }}>Você não tem permissão para gerenciar inscrições.</p>
-      <button style={s.btnGhost} onClick={() => setTela("painel-organizador")}>← Voltar</button>
+      <button style={s.btnGhost} onClick={() => navigate("/painel/organizador")}>← Voltar</button>
     </div></div>
   );
 

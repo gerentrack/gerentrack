@@ -3,8 +3,8 @@
 > **Objetivo**: preparar o GERENTRACK para escala nacional, migrando incrementalmente de um SPA Firebase-only para uma arquitetura com backend, banco relacional e SSR — sem interromper o produto em produção.
 
 > **Data de criação**: 2026-04-21
-> **Última atualização**: 2026-04-29
-> **Status**: Fase 1 e 2 concluídas (exceto SSR), Fase 3 parcial
+> **Última atualização**: 2026-04-30
+> **Status**: Fase 1 e 2 concluídas (exceto SSR), Fase 3 parcial. React Router v7 migração completa.
 
 ---
 
@@ -386,6 +386,7 @@ Dados consolidados (pós-competição):
 - [x] Desfinalização marca como "revisao" no PostgreSQL (/api/resultados/desfinalizar)
 - [x] 8 endpoints de API operacionais: ranking, recordes, validar-inscricao, consolidar, desfinalizar, migrar-historico, atletas/buscar, atletas/historico
 - [x] App.jsx: 3 hooks extraídos, props eliminados de todas as telas, Header migrado para contexts (2458→2292 linhas)
+- [x] React Router v7 completo: 40+ Route definitions, EventoLayout, FinalizedGuard, tela/setTela removidos (2292→1924 linhas)
 - [ ] SSR nativo em rotas públicas (adiado — Open Graph resolve SEO para crawlers)
 - [x] Ranking nacional consultável via SQL (dados consolidados no Supabase)
 

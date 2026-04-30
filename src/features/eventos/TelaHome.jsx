@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { getStatusEvento, labelStatusEvento } from "./eventoHelpers";
 import { _getLocalEventoDisplay } from "../../shared/formatters/utils";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
@@ -219,9 +220,10 @@ function injectAnimations() {
 }
 
 export default function TelaHome() {
+  const navigate = useNavigate();
   const { usuarioLogado } = useAuth();
-  const { eventos, inscricoes, atletas, resultados, selecionarEvento, excluirEvento, equipes } = useEvento();
-  const { setTela, organizadores, selecionarOrganizador } = useApp();
+  const { eventos, inscricoes, atletas, resultados, excluirEvento, equipes } = useEvento();
+  const { organizadores } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { mobile } = useResponsivo();
@@ -308,9 +310,10 @@ export default function TelaHome() {
 
   // ── CTA dinâmico ──
   const getCtaEvento = (ev, status) => {
-    if (status === "futuro") return { label: "Ver detalhes", action: () => selecionarEvento(ev.id) };
-    if (status === "ao_vivo" || status === "hoje_pre") return { label: "Acompanhar", action: () => selecionarEvento(ev.id) };
-    return { label: "Ver Resultados", action: () => selecionarEvento(ev.id, "resultados") };
+    const slug = ev.slug || ev.id;
+    if (status === "futuro") return { label: "Ver detalhes", action: () => navigate(`/competicao/${slug}`) };
+    if (status === "ao_vivo" || status === "hoje_pre") return { label: "Acompanhar", action: () => navigate(`/competicao/${slug}`) };
+    return { label: "Ver Resultados", action: () => navigate(`/competicao/${slug}/resultados`) };
   };
 
   // ── Agrupar finalizadas por mês ──
@@ -406,7 +409,7 @@ export default function TelaHome() {
           </div>
           {usuarioLogado?.tipo === "admin" && (
             <div style={{ position: "absolute", top: 8, right: 10, display: "flex", gap: 6 }}>
-              <button style={{ ...s.btnIconSm, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", color: "#fff" }} onClick={(e) => { e.stopPropagation(); selecionarEvento(ev.id, "novo-evento"); }} title="Editar">{IcoEdit(14)}</button>
+              <button style={{ ...s.btnIconSm, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", color: "#fff" }} onClick={(e) => { e.stopPropagation(); navigate(`/competicao/${ev.slug || ev.id}/editar`); }} title="Editar">{IcoEdit(14)}</button>
               <button style={{ ...s.btnIconSmDanger, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }} onClick={(e) => { e.stopPropagation(); excluirEvento(ev.id); }} title="Excluir">{IcoTrash(14)}</button>
             </div>
           )}
@@ -432,7 +435,7 @@ export default function TelaHome() {
               {cta.label}
             </button>
             {inscricoesAbertas && (
-              <button style={{ ...s.btnPrimary, padding: "9px 22px", fontSize: 13, background: `linear-gradient(135deg, ${t.success}, ${t.successDark || t.success})` }} onClick={() => selecionarEvento(ev.id, "inscricao-avulsa")}>
+              <button style={{ ...s.btnPrimary, padding: "9px 22px", fontSize: 13, background: `linear-gradient(135deg, ${t.success}, ${t.successDark || t.success})` }} onClick={() => navigate(`/competicao/${ev.slug || ev.id}/inscricao`)}>
                 Realizar Inscrição
               </button>
             )}
@@ -446,9 +449,9 @@ export default function TelaHome() {
   const handleCriarCompetição = () => {
     const tp = usuarioLogado?.tipo;
     if (tp === "admin" || tp === "organizador") {
-      selecionarEvento(null, "novo-evento");
+      navigate("/competicao/novo");
     } else {
-      setTela("planos");
+      navigate("/planos");
     }
   };
 
@@ -503,7 +506,7 @@ export default function TelaHome() {
               Planos a partir de R$ 400,00 por competição. Todos os módulos inclusos.
             </div>
           </div>
-          <button onClick={() => setTela("planos")} style={{ ...s.btnPrimary, whiteSpace: "nowrap" }}>
+          <button onClick={() => navigate("/planos")} style={{ ...s.btnPrimary, whiteSpace: "nowrap" }}>
             Conheça os Nossos Planos
           </button>
         </div>
@@ -525,7 +528,7 @@ export default function TelaHome() {
                 const corPri = org.corPrimaria || t.accent;
                 return (
                   <div key={org.id}
-                    onClick={() => { if (selecionarOrganizador) selecionarOrganizador(org.id); }}
+                    onClick={() => { if (org.slug) navigate(`/${org.slug}`); }}
                     style={{
                       flex: "0 0 auto", width: 168, background: t.bgCard,
                       border: `1px solid ${t.border}`, borderRadius: 14,
@@ -597,7 +600,7 @@ export default function TelaHome() {
                 <span style={{ fontSize: 20, color: t.textDisabled, fontFamily: t.fontTitle, fontWeight: 700 }}>SEM COMPETIÇÕES</span>
                 <p>Nenhuma competição cadastrada ainda.</p>
                 {usuarioLogado?.tipo === "admin" && (
-                  <button style={{ ...s.btnPrimary, width: "auto" }} onClick={() => selecionarEvento(null, "novo-evento")}>
+                  <button style={{ ...s.btnPrimary, width: "auto" }} onClick={() => navigate("/competicao/novo")}>
                     Cadastrar primeira competição
                   </button>
                 )}
@@ -664,7 +667,7 @@ export default function TelaHome() {
                       style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 10, cursor: "pointer", transition: "border-color 0.15s, box-shadow 0.2s" }}
                       onMouseEnter={e => { e.currentTarget.style.borderColor = t.accent; e.currentTarget.style.boxShadow = `0 2px 12px ${t.accent}15`; }}
                       onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.boxShadow = "none"; }}>
-                      <div style={{ flex: 1 }} onClick={() => selecionarEvento(ev.id)}>
+                      <div style={{ flex: 1 }} onClick={() => navigate(`/competicao/${ev.slug || ev.id}`)}>
                         <div style={{ fontSize: 14, fontWeight: 700, color: t.textPrimary }}>
                           <span style={{ color: t.textDimmed, fontWeight: 600 }}>{dataFmt}</span>
                           <span style={{ margin: "0 8px", color: t.textDisabled }}>—</span>
@@ -672,7 +675,7 @@ export default function TelaHome() {
                         </div>
                         {local && <div style={{ fontSize: 12, color: t.textMuted }}>{IcoPin()} {local}</div>}
                       </div>
-                      <button style={{ ...s.btnSecondary, padding: "5px 12px", fontSize: 12, flexShrink: 0 }} onClick={() => selecionarEvento(ev.id, "resultados")}>
+                      <button style={{ ...s.btnSecondary, padding: "5px 12px", fontSize: 12, flexShrink: 0 }} onClick={() => navigate(`/competicao/${ev.slug || ev.id}/resultados`)}>
                         Ver Resultados
                       </button>
                     </div>

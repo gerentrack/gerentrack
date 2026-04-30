@@ -5,12 +5,14 @@ import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvento } from "../../contexts/EventoContext";
+import { useNavigate } from "react-router-dom";
 import { useApp } from "../../contexts/AppContext";
 
 function TelaRecuperacaoSenha() {
+  const navigate = useNavigate();
   const { gerarSenhaTemp, aplicarSenhaTemp, adicionarSolicitacaoRecuperacao } = useAuth();
   const { equipes } = useEvento();
-  const { setTela, organizadores, atletasUsuarios, funcionarios, treinadores } = useApp();
+  const { organizadores, atletasUsuarios, funcionarios, treinadores } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(criarAuthStyles(t));
   const [perfil, setPerfil]   = useState("");
@@ -85,7 +87,7 @@ function TelaRecuperacaoSenha() {
           )}
           <button style={s.btnPrimary} onClick={handleBuscar}>Continuar →</button>
           <div style={{ textAlign:"center", marginTop:12 }}>
-            <button style={s.linkBtn} onClick={() => setTela("login")}>← Voltar ao Login</button>
+            <button style={s.linkBtn} onClick={() => navigate("/entrar")}>← Voltar ao Login</button>
           </div>
         </>)}
 
@@ -117,7 +119,7 @@ function TelaRecuperacaoSenha() {
             <p style={{ color:t.textTertiary, fontSize:13, lineHeight:1.6 }}>Enviamos um link de recuperação para<br/><strong style={{ color:t.textPrimary }}>{usuario?.email}</strong></p>
             <p style={{ color:t.textMuted, fontSize:12, lineHeight:1.6, marginTop:12 }}>Verifique sua caixa de entrada e a pasta de spam.<br/>O link expira em 1 hora.</p>
           </div>
-          <button style={s.btnPrimary} onClick={() => setTela("login")}>← Voltar ao Login</button>
+          <button style={s.btnPrimary} onClick={() => navigate("/entrar")}>← Voltar ao Login</button>
         </>)}
 
         {passo === 3 && metodo === "admin" && (<>
@@ -125,7 +127,7 @@ function TelaRecuperacaoSenha() {
             <h3 style={{ color:t.accent, marginBottom:8 }}>Solicitação enviada!</h3>
             <p style={{ color:t.textTertiary, fontSize:13, lineHeight:1.7 }}>O administrador foi notificado e enviará uma senha temporária para<br/><strong style={{ color:t.accent }}>{usuario?.email}</strong></p>
           </div>
-          <button style={{ ...s.btnGhost, marginTop:20, width:"100%" }} onClick={() => setTela("login")}>← Voltar ao Login</button>
+          <button style={{ ...s.btnGhost, marginTop:20, width:"100%" }} onClick={() => navigate("/entrar")}>← Voltar ao Login</button>
         </>)}
       </div>
     </div>
