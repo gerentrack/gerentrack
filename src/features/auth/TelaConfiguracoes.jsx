@@ -2,7 +2,7 @@ import React, { useState, useCallback } from "react";
 import DOMPurify from "dompurify";
 import { validarCPF, validarCNPJ, formatarCNPJ } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
-import { storage, storageRef, uploadBytes, getDownloadURL, deleteObject, db, doc, deleteDoc, setDoc, auth, functions, httpsCallable, reauthenticateWithCredential, EmailAuthProvider } from "../../firebase";
+import { storage, storageRef, uploadBytes, getDownloadURL, deleteObject, db, doc, deleteDoc, setDoc, writeBatch, auth, functions, httpsCallable, reauthenticateWithCredential, EmailAuthProvider } from "../../firebase";
 import CortarImagem from "../../shared/CortarImagem";
 import { sanitize } from "../../lib/utils/sanitize";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
@@ -1505,73 +1505,64 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
             </p>
             <button
               style={{ background: t.accent, color: "#fff", border: "none", borderRadius: 8, padding: "10px 22px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: t.fontTitle, letterSpacing: 0.5 }}
-              onClick={() => {
+              onClick={async () => {
+                if (!window.confirm("Sanitizar emails e telefones inválidos em TODOS os cadastros?\n\nCampos inválidos serão limpos. Os cadastros serão mantidos.")) return;
+
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 const foneMinDigitos = 8;
                 const correcoesLog = [];
-                let totalCorrigidos = 0;
 
-                // Sanitizar atletas
+                // Coletar correções por coleção: { collection, id, fixes }
+                const updates = [];
+
+                const checkFone = (val) => val && val.replace(/\D/g, "").length < foneMinDigitos;
+
                 (atletas || []).forEach(a => {
                   const fixes = {};
-                  if (a.email && !emailRegex.test(a.email.trim())) {
-                    fixes.email = "";
-                    correcoesLog.push(`Atleta "${a.nome}": email "${a.email}" removido`);
-                  }
-                  if (a.fone && (a.fone.replace(/\D/g, "").length < foneMinDigitos)) {
-                    fixes.fone = "";
-                    correcoesLog.push(`Atleta "${a.nome}": telefone "${a.fone}" removido`);
-                  }
-                  if (Object.keys(fixes).length > 0) {
-                    atualizarAtleta({ ...a, ...fixes });
-                    totalCorrigidos++;
-                  }
+                  if (a.email && !emailRegex.test(a.email.trim())) { fixes.email = ""; correcoesLog.push(`Atleta "${a.nome}": email "${a.email}"`); }
+                  if (checkFone(a.fone)) { fixes.fone = ""; correcoesLog.push(`Atleta "${a.nome}": telefone "${a.fone}"`); }
+                  if (Object.keys(fixes).length > 0) updates.push({ col: "atletas", id: a.id, data: { ...a, ...fixes } });
                 });
 
-                // Sanitizar equipes
                 (equipes || []).forEach(eq => {
                   const fixes = {};
-                  if (eq.email && !emailRegex.test(eq.email.trim())) {
-                    fixes.email = "";
-                    correcoesLog.push(`Equipe "${eq.nome}": email "${eq.email}" removido`);
-                  }
-                  if (eq.contato && (eq.contato.replace(/\D/g, "").length < foneMinDigitos)) {
-                    fixes.contato = "";
-                    correcoesLog.push(`Equipe "${eq.nome}": telefone "${eq.contato}" removido`);
-                  }
-                  if (eq.fone && (eq.fone.replace(/\D/g, "").length < foneMinDigitos)) {
-                    fixes.fone = "";
-                    correcoesLog.push(`Equipe "${eq.nome}": telefone "${eq.fone}" removido`);
-                  }
-                  if (Object.keys(fixes).length > 0) {
-                    atualizarEquipePerfil({ ...eq, ...fixes });
-                    totalCorrigidos++;
-                  }
+                  if (eq.email && !emailRegex.test(eq.email.trim())) { fixes.email = ""; correcoesLog.push(`Equipe "${eq.nome}": email "${eq.email}"`); }
+                  if (checkFone(eq.contato)) { fixes.contato = ""; correcoesLog.push(`Equipe "${eq.nome}": telefone "${eq.contato}"`); }
+                  if (checkFone(eq.fone)) { fixes.fone = ""; correcoesLog.push(`Equipe "${eq.nome}": telefone "${eq.fone}"`); }
+                  if (Object.keys(fixes).length > 0) updates.push({ col: "equipes", id: eq.id, data: { ...eq, ...fixes } });
                 });
 
-                // Sanitizar organizadores
                 (organizadores || []).forEach(org => {
                   const fixes = {};
-                  if (org.fone && (org.fone.replace(/\D/g, "").length < foneMinDigitos)) {
-                    fixes.fone = "";
-                    correcoesLog.push(`Organizador "${org.nome}": telefone "${org.fone}" removido`);
-                  }
-                  if (Object.keys(fixes).length > 0) {
-                    editarOrganizadorAdmin({ ...org, ...fixes });
-                    totalCorrigidos++;
-                  }
+                  if (checkFone(org.fone)) { fixes.fone = ""; correcoesLog.push(`Organizador "${org.nome}": telefone "${org.fone}"`); }
+                  if (Object.keys(fixes).length > 0) updates.push({ col: "organizadores", id: org.id, data: { ...org, ...fixes } });
                 });
 
-                if (totalCorrigidos === 0) {
+                if (updates.length === 0) {
                   alert("Nenhum campo inválido encontrado. Todos os cadastros estão OK!");
-                } else {
+                  return;
+                }
+
+                // Gravar em lotes de 500 via writeBatch
+                try {
+                  const LOTE = 500;
+                  for (let i = 0; i < updates.length; i += LOTE) {
+                    const batch = writeBatch(db);
+                    updates.slice(i, i + LOTE).forEach(u => {
+                      batch.set(doc(db, u.col, u.id), u.data);
+                    });
+                    await batch.commit();
+                  }
                   const resumo = correcoesLog.length > 20
                     ? correcoesLog.slice(0, 20).join("\n") + `\n\n... e mais ${correcoesLog.length - 20} correção(ões)`
                     : correcoesLog.join("\n");
-                  alert(`${totalCorrigidos} cadastro(s) corrigido(s):\n\n${resumo}`);
+                  alert(`${updates.length} cadastro(s) corrigido(s) no Firestore!\n\n${resumo}`);
+                } catch (err) {
+                  alert("Erro ao gravar: " + err.message);
                 }
+
                 if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Sanitizou emails/telefones",
-                  `${totalCorrigidos} cadastro(s) corrigido(s), ${correcoesLog.length} campo(s) limpo(s)`,
+                  `${updates.length} cadastro(s) corrigido(s), ${correcoesLog.length} campo(s) limpo(s)`,
                   null, { modulo: "diagnostico" });
               }}
             >
