@@ -1438,9 +1438,9 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
           <th style="width:30px">Nº</th>
           <th style="width:50px">CBAt</th>
           <th style="width:110px" class="thal">ATLETA</th>
-          <th style="width:64px">NASCIMENTO</th>
+          <th style="width:64px">NASC.</th>
           <th style="width:90px" class="thal">EQUIPE</th>
-          ${barras.map((_, i) => `<th colspan="3" class="td-barra-h">${i+1}</th>`).join("")}
+          ${barras.map(() => `<th colspan="3" class="td-barra-h"></th>`).join("")}
           <th style="width:28px;font-size:8px;background:#f0e0e0;color:#000;text-align:center;border:1px solid #999" title="Saltos na \u00daltima">SU</th>
           <th style="width:28px;font-size:8px;background:#f0e0e0;color:#000;text-align:center;border:1px solid #999" title="Falhas na Prova">FP</th>
           <th style="width:52px">MELHOR</th>
@@ -1450,7 +1450,6 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
           <td style="border:1px solid #333"></td>
           <td style="border:1px solid #333"></td>
           <td style="border:1px solid #333"></td>
-          <td style="border:1px solid #333;font-size:7px;color:#888;text-align:center">Altura \u2192</td>
           <td style="border:1px solid #333"></td>
           <td style="border:1px solid #333"></td>
           ${barras.map(() => [1,2,3].map((n,i) => `<td class="td-tent-num${i===0?" bl":""}">${n}\u00aa</td>`).join("")).join("")}
