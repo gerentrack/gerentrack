@@ -16,12 +16,10 @@ exports.listOrphanAuthUsers = onCall(async (request) => {
   }
 
   const callerEmail = (request.auth.token.email || "").toLowerCase();
-  const snap = await admin.firestore().doc("state/atl_adminConfig").get();
-  const rawEmail = snap.exists ? snap.data()?.value?.email : null;
-  const adminEmail = (rawEmail || "").toLowerCase().trim();
-  console.log("[listOrphanAuthUsers] callerEmail:", callerEmail, "| adminEmail:", adminEmail, "| snapExists:", snap.exists, "| rawEmail:", rawEmail);
+  const snap = await admin.firestore().doc("config/admin").get();
+  const adminEmail = (snap.exists ? snap.data()?.email || "" : "").toLowerCase().trim();
   if (!adminEmail || callerEmail !== adminEmail) {
-    throw new HttpsError("permission-denied", `Apenas o administrador pode executar esta ação. (caller=${callerEmail}, admin=${adminEmail})`);
+    throw new HttpsError("permission-denied", "Apenas o administrador pode executar esta ação.");
   }
 
   // Coletar todos os emails do Firestore
@@ -76,10 +74,10 @@ exports.deleteAuthUser = onCall(async (request) => {
     throw new HttpsError("unauthenticated", "Autenticação necessária.");
   }
 
-  // Verificar se o caller é admin lendo adminConfig do Firestore
+  // Verificar se o caller é admin lendo config/admin do Firestore
   const callerEmail = (request.auth.token.email || "").toLowerCase();
-  const snap = await admin.firestore().doc("state/atl_adminConfig").get();
-  const adminEmail = (snap.exists && snap.data()?.value?.email || "").toLowerCase();
+  const snap = await admin.firestore().doc("config/admin").get();
+  const adminEmail = (snap.exists ? snap.data()?.email || "" : "").toLowerCase().trim();
   if (!adminEmail || callerEmail !== adminEmail) {
     throw new HttpsError("permission-denied", "Apenas o administrador pode executar esta ação.");
   }

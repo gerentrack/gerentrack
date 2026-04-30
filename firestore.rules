@@ -107,5 +107,11 @@ service cloud.firestore {
       allow write: if request.auth != null;
     }
 
+    // ── Config do admin (email para Cloud Functions) ────────────────────────
+    match /config/{docId} {
+      allow read:  if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
   }
 }

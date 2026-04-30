@@ -339,6 +339,13 @@ function App() {
     }
   }, []);
 
+  // ── Sincronizar email do admin para Firestore (Cloud Functions leem daqui) ──
+  useEffect(() => {
+    if (adminConfig?.email) {
+      setDoc(doc(db, "config", "admin"), { email: adminConfig.email.toLowerCase().trim() }).catch(() => {});
+    }
+  }, [adminConfig?.email]);
+
   // ── Eventos via Firestore ─────────────────────────────────────────────────
   // Instanciado antes dos useCallback/useEffect que dependem de `eventos`
   const {
