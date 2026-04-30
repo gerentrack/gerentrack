@@ -337,11 +337,31 @@ export function calcularPrecoInscricao(atleta, catId, evento) {
     }
   }
 
-  // Fallback legado
-  const valorLegado = evento.valorInscricao;
-  if (valorLegado != null && valorLegado !== "") {
+  // Fallback: valor global (com distinção federado/não federado se configurado)
+  const valorNaoFed = evento.valorInscricao;
+  const valorFed = evento.valorInscricaoFederado;
+  if (valorNaoFed != null && valorNaoFed !== "") {
+    const parseVal = (v) => typeof v === "number" ? v : parseFloat(String(v).replace(",", ".")) || null;
+
+    // Se tem valor federado separado, verificar se atleta é federado
+    if (valorFed != null && valorFed !== "") {
+      const atletaEqId = atleta?.equipeId || null;
+      const equipeIds = Array.isArray(evento.equipeIdsFederados) ? evento.equipeIdsFederados : [];
+      const temEquipeSel = !!(atletaEqId && equipeIds.includes(atletaEqId));
+      const temCbat = !!(atleta?.cbat && String(atleta.cbat).trim() !== "");
+      const ehFederado = temEquipeSel && temCbat;
+
+      if (ehFederado) {
+        return { preco: parseVal(valorFed), tipo: "comEquipe", regra: null, label: "Atleta federado (valor global)" };
+      } else {
+        const motivo = !temEquipeSel && !temCbat ? "sem equipe e sem CBAt"
+          : !temEquipeSel ? "equipe não federada" : "sem registro CBAt";
+        return { preco: parseVal(valorNaoFed), tipo: "semEquipe", regra: null, label: `Atleta não federado (${motivo})` };
+      }
+    }
+
     return {
-      preco: typeof valorLegado === "number" ? valorLegado : parseFloat(String(valorLegado).replace(",", ".")) || null,
+      preco: parseVal(valorNaoFed),
       tipo:  "global",
       regra: null,
       label: "Valor geral da competição",

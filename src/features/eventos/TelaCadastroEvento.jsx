@@ -449,11 +449,15 @@ function TelaCadastroEvento() {
 
   const resumoPrecos = (() => {
     const n = (form.regrasPreco || []).filter(r => r.catId).length;
-    const tem = form.valorInscricao || form.formaPagamento;
+    const tem = form.valorInscricao || form.valorInscricaoFederado || form.formaPagamento;
     if (!n && !tem) return "Não configurado";
     const partes = [];
     if (n) partes.push(`${n} regra(s) por categoria`);
-    if (form.valorInscricao) partes.push(`R$ ${Number(form.valorInscricao).toFixed(2)} global`);
+    if (form.valorInscricao && form.valorInscricaoFederado) {
+      partes.push(`R$ ${Number(form.valorInscricaoFederado).toFixed(2)} federado · R$ ${Number(form.valorInscricao).toFixed(2)} não federado`);
+    } else if (form.valorInscricao) {
+      partes.push(`R$ ${Number(form.valorInscricao).toFixed(2)} global`);
+    }
     if (form.formaPagamento) partes.push(form.formaPagamento);
     return partes.join(" · ");
   })();
@@ -1024,16 +1028,27 @@ function TelaCadastroEvento() {
               <div style={{ fontFamily: t.fontTitle, fontSize:16, fontWeight:700, color: t.accent, marginBottom:12 }}>
                 Forma de Pagamento
               </div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:16 }}>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:16, marginBottom:16 }}>
                 <div>
-                  <label style={s.label}>Valor Global por Atleta (R$)</label>
+                  <label style={s.label}>Valor Não Federado (R$)</label>
                   <input type="number" min="0" step="0.01" style={s.input}
-                    placeholder="Ex: 50.00 — deixe em branco se usar regras por categoria"
+                    placeholder="Ex: 80.00"
                     value={form.valorInscricao ?? ""}
                     onChange={e => setForm(f => ({ ...f, valorInscricao: e.target.value === "" ? "" : parseFloat(e.target.value) }))}
                   />
                   <div style={{ fontSize:11, color: t.textDimmed, marginTop:2 }}>
-                    Usado como fallback quando não há regra de preço para a categoria do atleta.
+                    Valor para atletas sem CBAt ou sem equipe federada.
+                  </div>
+                </div>
+                <div>
+                  <label style={s.label}>Valor Federado (R$)</label>
+                  <input type="number" min="0" step="0.01" style={s.input}
+                    placeholder="Ex: 50.00"
+                    value={form.valorInscricaoFederado ?? ""}
+                    onChange={e => setForm(f => ({ ...f, valorInscricaoFederado: e.target.value === "" ? "" : parseFloat(e.target.value) }))}
+                  />
+                  <div style={{ fontSize:11, color: t.textDimmed, marginTop:2 }}>
+                    Valor para atletas com CBAt e equipe federada. Deixe vazio para usar o mesmo valor.
                   </div>
                 </div>
                 <div>
