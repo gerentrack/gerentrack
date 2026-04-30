@@ -10,6 +10,11 @@ Sentry.init({
   enabled: import.meta.env.PROD,     // só envia erros em produção
 })
 
+// Chunk antigo após deploy → reload automático (evita tela branca)
+window.addEventListener("vite:preloadError", () => {
+  window.location.reload();
+})
+
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
