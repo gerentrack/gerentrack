@@ -470,9 +470,9 @@ function TelaGerenciarEquipes() {
             erros.push(`Linha ${linha}: E-mail é obrigatório`);
             return;
           }
-          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-            erros.push(`Linha ${linha}: E-mail "${email}" inválido`);
-            return;
+          const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+          if (!emailValido) {
+            erros.push(`Linha ${linha}: E-mail "${email}" inválido — campo será ignorado`);
           }
 
           // Check duplicates by name
@@ -520,15 +520,24 @@ function TelaGerenciarEquipes() {
             return pwd;
           })();
 
+          // Sanitizar telefone: manter apenas se tem ao menos 8 dígitos
+          const foneDigitos = (contato || "").replace(/\D/g, "");
+          const foneValido = foneDigitos.length >= 8 ? contato.trim() : "";
+          if (contato && !foneValido) {
+            erros.push(`Linha ${linha}: Telefone "${contato}" inválido — campo será ignorado`);
+          }
+
+          const emailFinal = emailValido ? email.trim().toLowerCase() : "";
+
           equipesParaImportar.push({
             nome,
             sigla,
             cidade,
             estado,
             cnpj: formatarCNPJ(cnpj),
-            email,
+            email: emailFinal,
             senha: senhaFinal,
-            contato: contato || undefined,
+            contato: foneValido || undefined,
             _linhaOrigem: linha,
             _senhaGerada: !senha
           });
@@ -569,18 +578,20 @@ function TelaGerenciarEquipes() {
       const authExistentes = [];
       for (const equipeDados of preview) {
         const { _linhaOrigem, _senhaGerada, senha: _senhaImport, ...data } = equipeDados;
-        // Criar conta Auth
+        // Criar conta Auth (apenas se email válido)
         const senhaAuth = _senhaImport && String(_senhaImport).length >= 6
           ? String(_senhaImport)
           : (() => { const c = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; return Array.from({length:8}, () => c[Math.floor(Math.random()*c.length)]).join(""); })();
-        try {
-          await createUserWithEmailAndPassword(secondaryAuth, data.email.trim().toLowerCase(), senhaAuth);
-          await firebaseSignOut(secondaryAuth).catch(() => {});
-        } catch (authErr) {
-          if (authErr.code === "auth/email-already-in-use") {
-            authExistentes.push(`${data.nome} (${data.email})`);
-          } else {
-            authErros.push(`${data.nome} (${data.email}): ${authErr.code}`);
+        if (data.email) {
+          try {
+            await createUserWithEmailAndPassword(secondaryAuth, data.email, senhaAuth);
+            await firebaseSignOut(secondaryAuth).catch(() => {});
+          } catch (authErr) {
+            if (authErr.code === "auth/email-already-in-use") {
+              authExistentes.push(`${data.nome} (${data.email})`);
+            } else {
+              authErros.push(`${data.nome} (${data.email}): ${authErr.code}`);
+            }
           }
         }
         const novaEquipe = {

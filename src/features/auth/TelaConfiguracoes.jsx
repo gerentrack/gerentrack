@@ -1497,6 +1497,88 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
             </button>
           </div>
 
+          {/* ── Sanitizar Emails e Telefones ────────────────────────────────── */}
+          <div style={s.card}>
+            <h3 style={s.sectionTitle}>Sanitizar Emails e Telefones</h3>
+            <p style={{ color: t.textDimmed, fontSize: 13, marginBottom: 16, lineHeight: 1.6 }}>
+              Verifica todos os cadastros (atletas, equipes, organizadores, funcionários, treinadores) e limpa campos de email e telefone inválidos, mantendo o cadastro intacto.
+            </p>
+            <button
+              style={{ background: t.accent, color: "#fff", border: "none", borderRadius: 8, padding: "10px 22px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: t.fontTitle, letterSpacing: 0.5 }}
+              onClick={() => {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                const foneMinDigitos = 8;
+                const correcoesLog = [];
+                let totalCorrigidos = 0;
+
+                // Sanitizar atletas
+                (atletas || []).forEach(a => {
+                  const fixes = {};
+                  if (a.email && !emailRegex.test(a.email.trim())) {
+                    fixes.email = "";
+                    correcoesLog.push(`Atleta "${a.nome}": email "${a.email}" removido`);
+                  }
+                  if (a.fone && (a.fone.replace(/\D/g, "").length < foneMinDigitos)) {
+                    fixes.fone = "";
+                    correcoesLog.push(`Atleta "${a.nome}": telefone "${a.fone}" removido`);
+                  }
+                  if (Object.keys(fixes).length > 0) {
+                    atualizarAtleta({ ...a, ...fixes });
+                    totalCorrigidos++;
+                  }
+                });
+
+                // Sanitizar equipes
+                (equipes || []).forEach(eq => {
+                  const fixes = {};
+                  if (eq.email && !emailRegex.test(eq.email.trim())) {
+                    fixes.email = "";
+                    correcoesLog.push(`Equipe "${eq.nome}": email "${eq.email}" removido`);
+                  }
+                  if (eq.contato && (eq.contato.replace(/\D/g, "").length < foneMinDigitos)) {
+                    fixes.contato = "";
+                    correcoesLog.push(`Equipe "${eq.nome}": telefone "${eq.contato}" removido`);
+                  }
+                  if (eq.fone && (eq.fone.replace(/\D/g, "").length < foneMinDigitos)) {
+                    fixes.fone = "";
+                    correcoesLog.push(`Equipe "${eq.nome}": telefone "${eq.fone}" removido`);
+                  }
+                  if (Object.keys(fixes).length > 0) {
+                    atualizarEquipePerfil({ ...eq, ...fixes });
+                    totalCorrigidos++;
+                  }
+                });
+
+                // Sanitizar organizadores
+                (organizadores || []).forEach(org => {
+                  const fixes = {};
+                  if (org.fone && (org.fone.replace(/\D/g, "").length < foneMinDigitos)) {
+                    fixes.fone = "";
+                    correcoesLog.push(`Organizador "${org.nome}": telefone "${org.fone}" removido`);
+                  }
+                  if (Object.keys(fixes).length > 0) {
+                    editarOrganizadorAdmin({ ...org, ...fixes });
+                    totalCorrigidos++;
+                  }
+                });
+
+                if (totalCorrigidos === 0) {
+                  alert("Nenhum campo inválido encontrado. Todos os cadastros estão OK!");
+                } else {
+                  const resumo = correcoesLog.length > 20
+                    ? correcoesLog.slice(0, 20).join("\n") + `\n\n... e mais ${correcoesLog.length - 20} correção(ões)`
+                    : correcoesLog.join("\n");
+                  alert(`${totalCorrigidos} cadastro(s) corrigido(s):\n\n${resumo}`);
+                }
+                if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Sanitizou emails/telefones",
+                  `${totalCorrigidos} cadastro(s) corrigido(s), ${correcoesLog.length} campo(s) limpo(s)`,
+                  null, { modulo: "diagnostico" });
+              }}
+            >
+              Executar Sanitização
+            </button>
+          </div>
+
           {/* ── Backup e Restauração ─────────────────────────────────────────── */}
           <div style={s.card}>
             <h3 style={s.sectionTitle}>Backup e Restauração</h3>

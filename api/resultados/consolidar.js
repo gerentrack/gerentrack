@@ -174,8 +174,10 @@ module.exports = async function handler(req, res) {
       // Iterar atletas com resultado
       Object.entries(dados).forEach(([atletaId, raw]) => {
         if (!atletaId || atletaId.startsWith('_')) return;
-        const m = typeof raw === 'object' ? raw.marca : raw;
+        const mRaw = typeof raw === 'object' ? raw.marca : raw;
         const status = (raw && typeof raw === 'object') ? (raw.status || null) : null;
+        // Se marca vazia mas tem status, usar status como marca (DNS, DNF, NM, DQ)
+        const m = (mRaw || mRaw === 0) ? mRaw : (status || null);
         const vento = (raw && typeof raw === 'object') ? (raw.vento || null) : null;
         const posicao = (raw && typeof raw === 'object') ? (raw.posicao || null) : null;
         const marcaNum = m ? parseFloat(String(m).replace(',', '.')) : null;
