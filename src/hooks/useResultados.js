@@ -121,18 +121,77 @@ function calcularPosicoes(docResultados, provaId) {
     return 0;
   });
 
+  // Verificar se desempate resolveu entre duas entradas com mesma marca
+  const desempateResolveu = (a, b) => {
+    if (!a || !b || a.marca == null || b.marca == null || a.marca !== b.marca) return false;
+    if (isAltVara) {
+      // RT 26.9: comparar tentativas na altura transposta e falhas totais
+      const getSU = (r) => {
+        if (!r || typeof r !== "object") return 0;
+        const tObj = (r.tentativas && typeof r.tentativas === "object") ? r.tentativas : {};
+        const melhor = parseFloat(r.marca);
+        if (isNaN(melhor)) return 0;
+        const alts = Array.isArray(r.alturas) ? r.alturas : [];
+        const key = alts.find(h => Math.abs(parseFloat(h) - melhor) < 0.001);
+        if (!key) return 0;
+        const arr = Array.isArray(tObj[key]) ? tObj[key] : Array.isArray(tObj[parseFloat(key).toFixed(2)]) ? tObj[parseFloat(key).toFixed(2)] : [];
+        return arr.filter(v => v === "X" || v === "O").length;
+      };
+      const getFP = (r) => {
+        if (!r || typeof r !== "object") return 0;
+        const tObj = (r.tentativas && typeof r.tentativas === "object") ? r.tentativas : {};
+        const alts = Array.isArray(r.alturas) ? r.alturas : [];
+        let total = 0;
+        alts.forEach(h => {
+          const kStr = parseFloat(h).toFixed(2);
+          const arr = Array.isArray(tObj[h]) ? tObj[h] : Array.isArray(tObj[kStr]) ? tObj[kStr] : [];
+          if (arr.includes("O")) total += arr.filter(v => v === "X").length;
+        });
+        return total;
+      };
+      const suA = getSU(a.raw), suB = getSU(b.raw);
+      if (suA !== suB) return true;
+      const fpA = getFP(a.raw), fpB = getFP(b.raw);
+      if (fpA !== fpB) return true;
+      return false;
+    }
+    if (!isPista) {
+      // Campo RT 25.22: comparar sequência de melhores tentativas
+      const seqDesc = (r) => {
+        if (r == null) return [];
+        const obj = typeof r === "object" ? r : { marca: r };
+        return [obj.t1,obj.t2,obj.t3,obj.t4,obj.t5,obj.t6]
+          .map(v => { const n = parseFloat(v); return isNaN(n) ? null : n; })
+          .filter(n => n !== null).sort((x,y) => y - x);
+      };
+      const sa = seqDesc(a.raw), sb = seqDesc(b.raw);
+      const len = Math.max(sa.length, sb.length);
+      for (let i = 0; i < len; i++) {
+        if ((sa[i] ?? -Infinity) !== (sb[i] ?? -Infinity)) return true;
+      }
+      return false;
+    }
+    // Pista: mesma marca = empate real
+    return false;
+  };
+
   const resultado = {};
   let posAtual = 1;
+  let posContador = 0; // conta apenas não-status
   entradas.forEach((e, idx) => {
     if (e.isStatus) {
       resultado[e.id] = { ...e.raw, posicao: null };
       return;
     }
-    // Empate: mesma marca que o anterior → mesma posição
-    if (idx > 0 && !entradas[idx - 1].isStatus && e.marca != null && entradas[idx - 1].marca != null && e.marca === entradas[idx - 1].marca) {
+    posContador++;
+    const prev = idx > 0 ? entradas[idx - 1] : null;
+    const mesmaMarca = prev && !prev.isStatus && e.marca != null && prev.marca != null && e.marca === prev.marca;
+
+    if (mesmaMarca && !desempateResolveu(prev, e)) {
+      // Empate real (mesma marca + desempate não resolveu)
       resultado[e.id] = { ...e.raw, posicao: posAtual };
     } else {
-      posAtual = idx + 1; // pula posições (ex: 1º, 1º, 3º)
+      posAtual = posContador;
       resultado[e.id] = { ...e.raw, posicao: posAtual };
     }
   });

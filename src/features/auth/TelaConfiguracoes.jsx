@@ -1497,6 +1497,37 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
             </button>
           </div>
 
+          {/* ── Recalcular Posições ─────────────────────────────────────────── */}
+          <div style={s.card}>
+            <h3 style={s.sectionTitle}>Recalcular Posições</h3>
+            <p style={{ color: t.textDimmed, fontSize: 13, marginBottom: 16, lineHeight: 1.6 }}>
+              Recalcula as posições de todos os resultados no Firestore aplicando os critérios de desempate (RT 26.9 para altura/vara, RT 25.22 para campo). Execute após atualizar a lógica de classificação.
+            </p>
+            <button
+              style={{ background: t.accent, color: "#fff", border: "none", borderRadius: 8, padding: "10px 22px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: t.fontTitle, letterSpacing: 0.5 }}
+              onClick={async () => {
+                if (!window.confirm("Recalcular posições de TODOS os resultados no Firestore?\n\nIsso aplicará os critérios de desempate atualizados.")) return;
+                try {
+                  const token = await auth.currentUser.getIdToken();
+                  const resp = await fetch("/api/resultados/recalcular-posicoes", {
+                    method: "POST",
+                    headers: { "Authorization": "Bearer " + token },
+                  });
+                  const data = await resp.json();
+                  if (data.ok) {
+                    alert(`Posições recalculadas!\n\n${data.atualizados} documento(s) atualizado(s).\n${data.erros} erro(s).`);
+                  } else {
+                    alert("Erro: " + (data.error || "desconhecido"));
+                  }
+                } catch (err) {
+                  alert("Erro ao recalcular: " + err.message);
+                }
+              }}
+            >
+              Recalcular Posições
+            </button>
+          </div>
+
           {/* ── Sanitizar Emails e Telefones ────────────────────────────────── */}
           <div style={s.card}>
             <h3 style={s.sectionTitle}>Sanitizar Emails e Telefones</h3>
