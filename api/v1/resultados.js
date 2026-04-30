@@ -36,7 +36,7 @@ module.exports = wrapHandler(async (req, res, { pagination }) => {
 
   let query = supabase
     .from('resultados')
-    .select('id, competicao_id, atleta_id, prova_id, prova_nome, categoria_id, sexo, fase, marca, marca_num, posicao, vento, status, equipe_id, equipe_nome, pontos_equipe', { count: 'exact' });
+    .select('id, competicao_id, atleta_id, prova_id, prova_nome, categoria_id, sexo, fase, marca, marca_num, posicao, vento, status, equipe_id, equipe_nome, pontos_equipe, atletas(nome, sexo, ano_nasc, cbat, clube)', { count: 'exact' });
 
   if (compId) query = query.eq('competicao_id', compId);
   if (prova_id) query = query.eq('prova_id', prova_id);
@@ -49,11 +49,51 @@ module.exports = wrapHandler(async (req, res, { pagination }) => {
     .order('posicao', { ascending: true, nullsFirst: false })
     .range(pagination.offset, pagination.offset + pagination.perPage - 1);
 
-  const { data, error, count } = await query;
-  if (error) throw error;
+  let { data, error, count } = await query;
+  if (error) {
+    // Fallback: se join falhar (sem FK), buscar sem join + enriquecer manualmente
+    let q2 = supabase
+      .from('resultados')
+      .select('id, competicao_id, atleta_id, prova_id, prova_nome, categoria_id, sexo, fase, marca, marca_num, posicao, vento, status, equipe_id, equipe_nome, pontos_equipe', { count: 'exact' });
+    if (compId) q2 = q2.eq('competicao_id', compId);
+    if (prova_id) q2 = q2.eq('prova_id', prova_id);
+    if (categoria_id) q2 = q2.eq('categoria_id', categoria_id);
+    if (sexo) q2 = q2.eq('sexo', sexo.toUpperCase());
+    if (atleta_id) q2 = q2.eq('atleta_id', atleta_id);
+    if (fase) q2 = q2.eq('fase', fase);
+    q2 = q2.order('posicao', { ascending: true, nullsFirst: false })
+      .range(pagination.offset, pagination.offset + pagination.perPage - 1);
+    const res2 = await q2;
+    if (res2.error) throw res2.error;
+    data = res2.data;
+    count = res2.count;
+  }
+
+  // Enriquecer com nome do atleta
+  const atletaIds = [...new Set((data || []).filter(r => r.atleta_id).map(r => r.atleta_id))];
+  let atletasMap = {};
+  if (atletaIds.length > 0) {
+    const { data: atls } = await supabase
+      .from('atletas')
+      .select('id, nome, sexo, ano_nasc, cbat, clube')
+      .in('id', atletaIds);
+    (atls || []).forEach(a => { atletasMap[a.id] = a; });
+  }
+
+  const dados = (data || []).map(({ atletas: atl, ...r }) => {
+    const atleta = atl || atletasMap[r.atleta_id] || {};
+    return {
+      ...r,
+      atleta_nome: atleta.nome || null,
+      atleta_sexo: atleta.sexo || r.sexo,
+      atleta_ano_nasc: atleta.ano_nasc || null,
+      atleta_cbat: atleta.cbat || null,
+      atleta_clube: atleta.clube || r.equipe_nome || null,
+    };
+  });
 
   return res.status(200).json({
-    dados: data || [],
+    dados,
     paginacao: buildPaginacao(pagination.page, pagination.perPage, count || 0),
   });
 });
