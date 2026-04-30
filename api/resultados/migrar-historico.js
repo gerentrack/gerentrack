@@ -15,6 +15,18 @@ Object.values(PROVAS_DEF).forEach(cats => {
   });
 });
 
+function formatarTempoMs(ms) {
+  const totalMs = Math.round(ms);
+  const h = Math.floor(totalMs / 3600000);
+  const m = Math.floor((totalMs % 3600000) / 60000);
+  const s = Math.floor((totalMs % 60000) / 1000);
+  const millis = totalMs % 1000;
+  const msStr = String(millis).padStart(3, '0').slice(0, 2);
+  if (h > 0) return `${h}:${String(m).padStart(2,'0')}.${String(s).padStart(2,'0')}.${msStr}`;
+  if (m > 0) return `${m}.${String(s).padStart(2,'0')}.${msStr}`;
+  return `${s}.${msStr}`;
+}
+
 function formatarMarcaApi(valor, unidade) {
   if (!valor && valor !== 0) return null;
   const vs = String(valor).trim().toUpperCase();
@@ -23,6 +35,9 @@ function formatarMarcaApi(valor, unidade) {
     const num = parseFloat(String(valor).replace(',', '.'));
     return isNaN(num) ? String(valor) : num.toFixed(2).replace('.', ',');
   }
+  const num = parseFloat(String(valor).replace(',', '.'));
+  if (!isNaN(num) && num >= 1000) return formatarTempoMs(num);
+  if (!isNaN(num)) return formatarTempoMs(Math.round(num * 1000));
   return String(valor);
 }
 
