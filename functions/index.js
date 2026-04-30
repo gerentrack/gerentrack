@@ -65,6 +65,33 @@ exports.listOrphanAuthUsers = onCall(async (request) => {
 });
 
 /**
+ * updateOwnEmail — atualiza o email do próprio usuário no Firebase Auth.
+ * Qualquer usuário autenticado pode trocar o próprio email.
+ */
+exports.updateOwnEmail = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Autenticação necessária.");
+  }
+
+  const newEmail = request.data?.email;
+  if (!newEmail || typeof newEmail !== "string") {
+    throw new HttpsError("invalid-argument", "Email é obrigatório.");
+  }
+
+  const uid = request.auth.uid;
+
+  try {
+    await admin.auth().updateUser(uid, { email: newEmail.trim().toLowerCase() });
+    return { success: true };
+  } catch (err) {
+    if (err.code === "auth/email-already-exists") {
+      throw new HttpsError("already-exists", "Este email já está em uso por outra conta.");
+    }
+    throw new HttpsError("internal", `Erro ao atualizar email: ${err.message}`);
+  }
+});
+
+/**
  * deleteAuthUser — deleta uma conta Firebase Auth pelo email.
  * Apenas o admin do sistema pode chamar esta função.
  */

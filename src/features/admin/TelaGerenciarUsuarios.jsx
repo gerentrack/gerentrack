@@ -400,6 +400,7 @@ function TelaGerenciarUsuarios() {
             await deleteAuthUser({ email: emailAntigo });
           } catch (err) {
             console.warn("[GerenciarUsuarios] Não foi possível deletar conta Auth antiga:", err.message);
+            alert(`Atenção: a conta Auth antiga (${emailAntigo}) não foi excluída automaticamente.\nExclua manualmente em Gerenciar Usuários > Contas Órfãs.\n\nMotivo: ${err.message}`);
           }
         }
       }

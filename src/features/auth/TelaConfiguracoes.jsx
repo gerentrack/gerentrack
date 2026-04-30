@@ -2,7 +2,7 @@ import React, { useState, useCallback } from "react";
 import DOMPurify from "dompurify";
 import { validarCPF, validarCNPJ } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
-import { storage, storageRef, uploadBytes, getDownloadURL, deleteObject, db, doc, deleteDoc, setDoc, auth, functions, httpsCallable } from "../../firebase";
+import { storage, storageRef, uploadBytes, getDownloadURL, deleteObject, db, doc, deleteDoc, setDoc, auth, functions, httpsCallable, reauthenticateWithCredential, EmailAuthProvider } from "../../firebase";
 import CortarImagem from "../../shared/CortarImagem";
 import { sanitize } from "../../lib/utils/sanitize";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
@@ -146,9 +146,11 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
   const isAtleta = usuarioLogado?.tipo === "atleta";
   const usaCnpj  = isOrg || isEquipe;
 
+  const emailOriginal = (meuRegistro?.email || "").trim().toLowerCase();
   const [formDados, setFormDados] = useState({
     nome: meuRegistro?.nome || "", email: meuRegistro?.email || "",
     cpf: meuRegistro?.cpf || "", cnpj: meuRegistro?.cnpj || "", fone: meuRegistro?.fone || "",
+    senhaConfirmacao: "",
   });
   const [formSenha, setFormSenha] = useState({ atual: "", nova: "", confirmar: "" });
 
@@ -409,13 +411,37 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
 
   const ok = (msg) => { setFeedback(msg); setTimeout(() => setFeedback(""), 4000); };
 
-  const salvarDados = () => {
+  const emailMudou = formDados.email.trim().toLowerCase() !== emailOriginal;
+
+  const salvarDados = async () => {
     setErro("");
     if (!formDados.nome.trim())  { setErro("Nome é obrigatório."); return; }
     if (!formDados.email.trim()) { setErro("E-mail é obrigatório."); return; }
     if (usaCnpj && !formDados.cnpj.trim()) { setErro("CNPJ é obrigatório."); return; }
     if (usaCnpj && formDados.cnpj.trim() && !validarCNPJ(formDados.cnpj)) { setErro("CNPJ inválido."); return; }
     if (!usaCnpj && !isAdmin && formDados.cpf.trim() && !validarCPF(formDados.cpf)) { setErro("CPF inválido."); return; }
+
+    // Se email mudou, reautenticar e atualizar no Firebase Auth
+    if (emailMudou && !isAdmin) {
+      if (!formDados.senhaConfirmacao) { setErro("Informe sua senha para confirmar a troca de email."); return; }
+      try {
+        const currentUser = auth.currentUser;
+        const credential = EmailAuthProvider.credential(currentUser.email, formDados.senhaConfirmacao);
+        await reauthenticateWithCredential(currentUser, credential);
+      } catch (_) {
+        setErro("Senha incorreta."); return;
+      }
+      try {
+        const updateOwnEmail = httpsCallable(functions, "updateOwnEmail");
+        await updateOwnEmail({ email: formDados.email.trim() });
+      } catch (err) {
+        const msg = err.message?.includes("já está em uso") || err.code === "functions/already-exists"
+          ? "Este email já está em uso por outra conta."
+          : `Erro ao atualizar email no Auth: ${err.message}`;
+        setErro(msg); return;
+      }
+    }
+
     if (isAdmin) {
       setAdminConfig(prev => ({ ...prev, nome: formDados.nome.trim(), email: formDados.email.trim() }));
     } else if (store) {
@@ -430,10 +456,11 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
     // Atualizar sessão para refletir o novo nome em toda a aplicação (auditoria, header, etc.)
     setUsuarioLogado(u => u ? { ...u, nome: formDados.nome.trim(), email: formDados.email.trim() } : u);
     if (registrarAcao) registrarAcao(usuarioLogado.id, formDados.nome.trim(), "Editou dados pessoais",
-      `Nome: ${formDados.nome}`,
+      emailMudou ? `Email alterado de ${emailOriginal} para ${formDados.email.trim()}` : `Nome: ${formDados.nome}`,
       usuarioLogado.organizadorId || (isOrg ? usuarioLogado.id : null),
       { equipeId: usuarioLogado.equipeId });
-    ok("Dados atualizados com sucesso!");
+    setFormDados(prev => ({ ...prev, senhaConfirmacao: "" }));
+    ok(emailMudou ? "Dados atualizados! Seu email de login foi alterado." : "Dados atualizados com sucesso!");
   };
 
   const salvarSenha = async () => {
@@ -600,6 +627,14 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
             : <FormField label="CPF"    value={formDados.cpf}  onChange={v => setFormDados({ ...formDados, cpf: v })}  placeholder="000.000.000-00" />
           )}
           {!isAdmin && <FormField label="Telefone" value={formDados.fone} onChange={v => setFormDados({ ...formDados, fone: v })} placeholder="(00) 00000-0000" />}
+          {emailMudou && !isAdmin && (
+            <>
+              <div style={{ background: `${t.warning}15`, border: `1px solid ${t.warning}55`, borderRadius: 8, padding: "10px 14px", marginTop: 8, marginBottom: 4, fontSize: 13, color: t.warning }}>
+                Trocar o email altera também o seu login. Confirme com sua senha.
+              </div>
+              <FormField label="Senha atual *" value={formDados.senhaConfirmacao} onChange={v => setFormDados({ ...formDados, senhaConfirmacao: v })} type="password" placeholder="Confirme sua senha para trocar o email" />
+            </>
+          )}
           <button style={{ ...s.btnPrimary, marginTop: 12 }} onClick={salvarDados}>Salvar Dados</button>
         </div>
       )}
