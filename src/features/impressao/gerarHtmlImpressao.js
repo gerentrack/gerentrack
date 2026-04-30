@@ -185,8 +185,8 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
     .rod-logo{height:15mm;display:flex;align-items:center;justify-content:center;}
     .rod-logo img{max-width:100%;max-height:15mm;object-fit:contain;}
     .rod{padding-top:4px;}
-    .rod-assinaturas{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:6px;}
-    .rod-ass{flex:1;max-width:185px;}
+    .rod-assinaturas{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:6px;flex-wrap:wrap;}
+    .rod-ass{flex:1;min-width:100px;max-width:185px;}
     .rod-ln{border-bottom:1px solid #aaa;margin-bottom:4px;height:22px;}
     .rod-lb{font-size:9px;color:#888;text-align:center;font-style:italic;}
     .rod-info{font-size:9px;color:#aaa;text-align:center;line-height:1.6;margin-top:6px;margin-bottom:0;padding-bottom:0;}
@@ -229,7 +229,9 @@ function gerarHtmlImpressao(sumulas, evento, _atletasRaw, _resultados, orientMap
       </div>` : ""}
     <div class="rod">
       <div class="rod-assinaturas">
-        <div class="rod-ass"><div class="rod-ln"></div><div class="rod-lb">\u00c1rbitro Respons\u00e1vel</div></div>
+        ${Array.from({length: Math.min(Math.max(evento.qtdArbitrosSumula || 1, 1), 6)}, (_, i) =>
+          `<div class="rod-ass"><div class="rod-ln"></div><div class="rod-lb">${i === 0 ? "\u00c1rbitro Respons\u00e1vel" : `\u00c1rbitro ${i + 1}`}</div></div>`
+        ).join("")}
       </div>
       <div class="rod-info">
         <div>Gerado em: ${dataGeracao}</div>

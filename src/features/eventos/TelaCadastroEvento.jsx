@@ -336,7 +336,7 @@ function TelaCadastroEvento() {
   // Steps: 1=Dados | 2=Configurações | 3=Provas | 4=Horários (editing only)
   const [step, setStep] = useState(1);
   // Acordeões do step 2
-  const [acordeoes, setAcordeoes] = useState({ limites: false, precos: false, logos: false, regulamento: false, medalhas: false });
+  const [acordeoes, setAcordeoes] = useState({ limites: false, precos: false, logos: false, regulamento: false, sumula: false, medalhas: false });
   const [uploadandoRegulamento, setUploadandoRegulamento] = useState(false);
   // Estado do modal de corte: { src, campo, aspecto } ou null
   const [cropModal, setCropModal] = useState(null);
@@ -1300,6 +1300,26 @@ function TelaCadastroEvento() {
                   </div>
                 )}
               </div>
+            </div>
+          </Acordeao>
+
+          {/* ── Súmula Impressa ── */}
+          <Acordeao keyName="sumula" aberto={acordeoes["sumula"]} onToggle={toggleAcordeo} titulo="Súmula Impressa" icone="" resumo={`${form.qtdArbitrosSumula || 1} árbitro(s)`}>
+            <div style={{ fontSize:12, color: t.textMuted, marginBottom:12 }}>
+              Configure as opções de impressão das súmulas.
+            </div>
+            <div style={{ marginBottom:14, padding:"12px 14px", background:t.bgInput, borderRadius:8, border:`1px solid ${t.border}` }}>
+              <label style={s.label}>Linhas de assinatura de árbitros</label>
+              <select style={{ ...s.input, width:"100%" }}
+                value={form.qtdArbitrosSumula || 1}
+                onChange={(e) => setForm(f => ({ ...f, qtdArbitrosSumula: parseInt(e.target.value) || 1 }))}>
+                {[1,2,3,4,5,6].map(n => (
+                  <option key={n} value={n}>{n} {n === 1 ? "árbitro" : "árbitros"}</option>
+                ))}
+              </select>
+              <p style={{ fontSize:11, color: t.textDimmed, marginTop:4 }}>
+                Quantidade de campos de assinatura no rodapé da súmula impressa.
+              </p>
             </div>
           </Acordeao>
 
