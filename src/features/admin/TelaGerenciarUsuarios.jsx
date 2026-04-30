@@ -447,7 +447,8 @@ function TelaGerenciarUsuarios() {
     if (!await confirmar(`Excluir usuário "${usuario?.nome }"?\n\nEsta ação é IRREVERSÍVEL!`)) return;
     
     if (tipoUsuario === "organizadores") {
-      excluirOrganizador(id);
+      alert("Organizadores devem ser excluídos pela aba Licenças no painel Admin.\n\nIsso garante backup dos dados e exclusão completa de todos os vínculos (eventos, equipes, atletas, etc.).");
+      return;
     } else if (tipoUsuario === "equipes") {
       excluirEquipeUsuario(id);
     } else if (tipoUsuario === "atletas") {

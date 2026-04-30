@@ -338,6 +338,21 @@ export function useResultados({ eventos = [], recordes = [], editarEvento, _atua
     }
   }, []);
 
+  // ── Exclui todos os resultados de um evento ──────────────────────────────
+  const excluirResultadosPorEvento = useCallback(async (eventoId) => {
+    const chaves = Object.keys(resultadosRef.current).filter(k => k.startsWith(`${eventoId}_`));
+    if (chaves.length === 0) return;
+
+    const LOTE = 500;
+    for (let i = 0; i < chaves.length; i += LOTE) {
+      const batch = writeBatch(db);
+      chaves.slice(i, i + LOTE).forEach((chave) => {
+        batch.delete(doc(db, COLLECTION, chave));
+      });
+      await batch.commit();
+    }
+  }, []);
+
   // ── Importa backup completo (usado em importarDados) ─────────────────────
   // resultadosBackup = objeto { chave: { atletaId: {...} } }
   const importarResultados = useCallback(async (resultadosBackup) => {
@@ -364,6 +379,7 @@ export function useResultados({ eventos = [], recordes = [], editarEvento, _atua
     atualizarResultado,
     limparResultado,
     limparTodosResultados,
+    excluirResultadosPorEvento,
     resetResultados,
     importarResultados,
     atualizarResultadosEmLote,

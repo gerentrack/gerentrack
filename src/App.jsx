@@ -119,6 +119,8 @@ import {
   storageRef,
   uploadBytes,
   getDownloadURL,
+  functions,
+  httpsCallable,
 } from "./firebase";
 
 // Hooks de domínio (já existiam)
@@ -1263,6 +1265,7 @@ function App() {
     atualizarResultadosEmLote,
     limparResultado,
     limparTodosResultados,
+    excluirResultadosPorEvento,
     resetResultados,
     importarResultados,
   } = useResultados({ eventos, recordes, editarEvento, _atualizarCamposEvento });
@@ -1574,6 +1577,7 @@ function App() {
     for (const ev of eventosOrg) {
       excluirEventoPorId(ev.id);
       excluirInscricoesPorEvento(ev.id);
+      excluirResultadosPorEvento(ev.id);
       limparNumeracaoEvento(ev.id);
     }
 
@@ -1585,14 +1589,34 @@ function App() {
       excluirAtletasPorIds(new Set(atletasOrg.map(a => a.id)));
     }
 
+    // Coletar emails para exclusão de contas Auth
+    const emailsParaExcluir = new Set();
+    if (org.email) emailsParaExcluir.add(org.email.trim().toLowerCase());
+    atletasUsuarios.filter(a => a.organizadorId === orgId && a.email).forEach(a => emailsParaExcluir.add(a.email.trim().toLowerCase()));
+    funcionarios.filter(f => f.organizadorId === orgId && f.email).forEach(f => emailsParaExcluir.add(f.email.trim().toLowerCase()));
+    treinadores.filter(tr => tr.organizadorId === orgId && tr.email).forEach(tr => emailsParaExcluir.add(tr.email.trim().toLowerCase()));
+    equipesOrg.forEach(eq => { if (eq.email) emailsParaExcluir.add(eq.email.trim().toLowerCase()); });
+
     setAtletasUsuarios(prev => prev.filter(a => a.organizadorId !== orgId));
     setFuncionarios(prev => prev.filter(f => f.organizadorId !== orgId));
     setTreinadores(prev => prev.filter(tr => tr.organizadorId !== orgId));
 
+    // Excluir contas Auth vinculadas
+    const deleteAuthUser = httpsCallable(functions, "deleteAuthUser");
+    let authExcluidasCount = 0;
+    for (const email of emailsParaExcluir) {
+      try {
+        await deleteAuthUser({ email });
+        authExcluidasCount++;
+      } catch (err) {
+        console.warn(`[excluirDadosOrganizador] Não foi possível excluir conta Auth ${email}:`, err.message);
+      }
+    }
+
     editarOrganizadorAdmin({ ...org, dadosExcluidosEm: new Date().toISOString(), plano: null, creditosAvulso: [], exportacaoUrl: backupUrl, exportacaoPath: backupPath, exportacaoPosFim: new Date().toISOString() });
 
     registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Excluiu dados do organizador (Fase 3)",
-      `${org.entidade}: ${eventosOrg.length} evento(s), ${equipesOrg.length} equipe(s), ${atletasOrg.length} atleta(s)`,
+      `${org.entidade}: ${eventosOrg.length} evento(s), ${equipesOrg.length} equipe(s), ${atletasOrg.length} atleta(s), ${authExcluidasCount} conta(s) Auth`,
       null, { modulo: "licencas" });
 
     return { arqs, backupUrl };
