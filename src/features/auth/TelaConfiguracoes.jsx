@@ -1497,6 +1497,56 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
             </button>
           </div>
 
+          {/* ── Corrigir Slugs ─────────────────────────────────────────────── */}
+          <div style={s.card}>
+            <h3 style={s.sectionTitle}>Corrigir Slugs de Competições</h3>
+            <p style={{ color: t.textDimmed, fontSize: 13, marginBottom: 16, lineHeight: 1.6 }}>
+              Regenera slugs genéricos (ex: "competicao-2026") para competições que foram criadas sem nome ou com slug inválido.
+            </p>
+            <button
+              style={{ background: t.accent, color: "#fff", border: "none", borderRadius: 8, padding: "10px 22px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: t.fontTitle, letterSpacing: 0.5 }}
+              onClick={async () => {
+                const gerarSlug = (nome, id, ano) => {
+                  const base = (nome || "competicao")
+                    .toLowerCase()
+                    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                    .replace(/[^a-z0-9\s-]/g, "")
+                    .trim()
+                    .replace(/\s+/g, "-")
+                    .slice(0, 60);
+                  const slug = `${base}-${ano || new Date().getFullYear()}`;
+                  const jaExiste = (eventos || []).some(ev => ev.slug === slug && ev.id !== id);
+                  return jaExiste ? `${slug}-${id.slice(-4)}` : slug;
+                };
+
+                const genericos = (eventos || []).filter(ev =>
+                  !ev.slug || /^competicao-\d{4}/.test(ev.slug)
+                );
+
+                if (genericos.length === 0) {
+                  alert("Nenhuma competição com slug genérico encontrada.");
+                  return;
+                }
+
+                if (!window.confirm(`${genericos.length} competição(ões) com slug genérico encontrada(s):\n\n${genericos.map(ev => `"${ev.nome}" → ${ev.slug || "(vazio)"}`).join("\n")}\n\nCorrigir?`)) return;
+
+                let corrigidos = 0;
+                for (const ev of genericos) {
+                  if (!ev.nome) continue;
+                  const ano = ev.data ? new Date(ev.data).getFullYear() : new Date().getFullYear();
+                  const novoSlug = gerarSlug(ev.nome, ev.id, ano);
+                  if (novoSlug !== ev.slug) {
+                    await atualizarCamposEvento(ev.id, { slug: novoSlug });
+                    corrigidos++;
+                  }
+                }
+                alert(`${corrigidos} slug(s) corrigido(s)!`);
+              }}
+            >
+              Corrigir Slugs
+            </button>
+          </div>
+
           {/* ── Recalcular Posições ─────────────────────────────────────────── */}
           <div style={s.card}>
             <h3 style={s.sectionTitle}>Recalcular Posições</h3>
