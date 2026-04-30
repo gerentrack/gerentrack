@@ -450,6 +450,12 @@ function validarCPF(cpf) {
   return calc(9) === parseInt(nums[9]) && calc(10) === parseInt(nums[10]);
 }
 
+function formatarCNPJ(cnpj) {
+  const nums = (cnpj || "").replace(/\D/g, "");
+  if (nums.length !== 14) return cnpj || "";
+  return `${nums.slice(0,2)}.${nums.slice(2,5)}.${nums.slice(5,8)}/${nums.slice(8,12)}-${nums.slice(12)}`;
+}
+
 function validarCNPJ(cnpj) {
   const nums = (cnpj || "").replace(/\D/g, "");
   if (nums.length !== 14) return false;
@@ -540,6 +546,6 @@ export {
   _getNascDisplay, _getCbat, _getAnoNasc,
   _getEquipeIdAtleta, _getClubeAtleta,
   _getLocalRecorde, _getLocalEventoDisplay,
-  emailJaCadastrado, validarCPF, validarCNPJ,
+  emailJaCadastrado, validarCPF, validarCNPJ, formatarCNPJ,
   resolverAtleta
 };

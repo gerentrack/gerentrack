@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { auth, db, doc, setDoc, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, signOut as firebaseSignOut } from "../../firebase";
 import { sanitizeForFirestore } from "../../lib/firestore/sanitize";
-import { validarCNPJ, emailJaCadastrado } from "../../shared/formatters/utils";
+import { validarCNPJ, formatarCNPJ, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { criarInscricaoStyles } from "../inscricoes/inscricaoStyles";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
@@ -145,6 +145,7 @@ function TelaCadastroEquipe() {
     const { senha: _senha, ...formSemSenha } = form;
     const equipeObj = {
       ...formSemSenha,
+      cnpj: formatarCNPJ(formSemSenha.cnpj),
       sigla: form.sigla.trim().toUpperCase(),
       cidade: form.cidade.trim(),
       uf: form.uf.trim().toUpperCase(),

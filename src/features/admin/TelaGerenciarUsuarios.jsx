@@ -1,7 +1,7 @@
 import { usePagination, PaginaControles } from "../../lib/hooks/usePagination.jsx";
 import React, { useState } from "react";
 import { useConfirm } from "../../features/ui/ConfirmContext";
-import { validarCPF, validarCNPJ } from "../../shared/formatters/utils";
+import { validarCPF, validarCNPJ, formatarCNPJ } from "../../shared/formatters/utils";
 
 const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
 
@@ -289,7 +289,7 @@ function TelaGerenciarUsuarios() {
           ...baseUsuario,
           tipo: "organizador",
           entidade: form.entidade || baseUsuario.entidade || "",
-          cnpj: form.cnpj || baseUsuario.cnpj || "",
+          cnpj: formatarCNPJ(form.cnpj || baseUsuario.cnpj || ""),
           fone: form.fone || baseUsuario.fone || "",
           status: "aprovado",
         };
@@ -303,7 +303,7 @@ function TelaGerenciarUsuarios() {
           tipo: "equipe",
           status: "ativa",
           entidade: form.entidade || baseUsuario.entidade || "",
-          cnpj: form.cnpj || baseUsuario.cnpj || "",
+          cnpj: formatarCNPJ(form.cnpj || baseUsuario.cnpj || ""),
           organizadorId: form.organizadorId || "",
           equipeId: form.equipeId || null,
         };
@@ -364,7 +364,7 @@ function TelaGerenciarUsuarios() {
         nome: form.nome,
         email: form.email,
         entidade: form.entidade || "",
-        cnpj: form.cnpj || "",
+        cnpj: formatarCNPJ(form.cnpj || ""),
         fone: form.fone || "",
         equipeId: form.equipeId || usuarioSelecionado.equipeId || null,
         cpf: form.cpf || "",

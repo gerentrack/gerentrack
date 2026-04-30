@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import DOMPurify from "dompurify";
-import { validarCPF, validarCNPJ } from "../../shared/formatters/utils";
+import { validarCPF, validarCNPJ, formatarCNPJ } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { storage, storageRef, uploadBytes, getDownloadURL, deleteObject, db, doc, deleteDoc, setDoc, auth, functions, httpsCallable, reauthenticateWithCredential, EmailAuthProvider } from "../../firebase";
 import CortarImagem from "../../shared/CortarImagem";
@@ -465,10 +465,10 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
       setAdminConfig(prev => ({ ...prev, nome: formDados.nome.trim(), email: formDados.email.trim() }));
     } else if (store) {
       if (isEquipe) {
-        atualizarEquipePerfil({ ...meuRegistro, nome: formDados.nome.trim(), email: formDados.email.trim(), cnpj: formDados.cnpj.trim(), fone: formDados.fone.trim() });
+        atualizarEquipePerfil({ ...meuRegistro, nome: formDados.nome.trim(), email: formDados.email.trim(), cnpj: formatarCNPJ(formDados.cnpj), fone: formDados.fone.trim() });
       } else {
         store.set(arr => arr.map(u => u.id === usuarioLogado.id
-          ? { ...u, nome: formDados.nome.trim(), email: formDados.email.trim(), cpf: formDados.cpf.trim(), cnpj: formDados.cnpj.trim(), fone: formDados.fone.trim() }
+          ? { ...u, nome: formDados.nome.trim(), email: formDados.email.trim(), cpf: formDados.cpf.trim(), cnpj: formatarCNPJ(formDados.cnpj), fone: formDados.fone.trim() }
           : u));
       }
     }

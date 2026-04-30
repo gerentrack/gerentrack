@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { auth, db, doc, setDoc, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as firebaseSignOut, sendEmailVerification } from "../../firebase";
 import { sanitizeForFirestore } from "../../lib/firestore/sanitize";
-import { validarCNPJ, emailJaCadastrado } from "../../shared/formatters/utils";
+import { validarCNPJ, formatarCNPJ, emailJaCadastrado } from "../../shared/formatters/utils";
 import FormField from "../ui/FormField";
 import { criarInscricaoStyles } from "../inscricoes/inscricaoStyles";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
@@ -59,6 +59,7 @@ function TelaCadastroOrganizador() {
     const { senha: _senha, ...formSemSenha } = form;
     const o = {
       ...formSemSenha,
+      cnpj: formatarCNPJ(formSemSenha.cnpj),
       id: Date.now().toString(),
       status: "pendente",
       dataCadastro: new Date().toISOString(),

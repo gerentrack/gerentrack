@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { usePagination, PaginaControles } from "../../lib/hooks/usePagination.jsx";
-import { validarCNPJ } from "../../shared/formatters/utils";
+import { validarCNPJ, formatarCNPJ } from "../../shared/formatters/utils";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
 import { useAuth } from "../../contexts/AuthContext";
@@ -230,6 +230,7 @@ function TelaGerenciarEquipes() {
       const { senha: _s, ...formSemSenha } = form;
       const novaEquipe = {
         ...formSemSenha,
+        cnpj: formatarCNPJ(formSemSenha.cnpj),
         organizadorId: orgId,
         id: genId(),
         status: "ativa",
@@ -241,7 +242,7 @@ function TelaGerenciarEquipes() {
       alert(`Equipe "${form.nome}" cadastrada!\n\nLogin: ${form.email}\nSenha temporária definida.\n\nA equipe será obrigada a trocar a senha no primeiro acesso.`);
     } else if (modo === "editar") {
       const { senha: _s, ...dadosAtualizar } = form; // nunca persistir senha
-      const equipeAtualizada = { ...equipeSelecionada, ...dadosAtualizar, organizadorId: orgId };
+      const equipeAtualizada = { ...equipeSelecionada, ...dadosAtualizar, cnpj: formatarCNPJ(dadosAtualizar.cnpj), organizadorId: orgId };
 
       // Se email mudou, criar nova conta Auth com o novo email
       const emailAntigo = (equipeSelecionada.email || "").trim().toLowerCase();
@@ -520,7 +521,7 @@ function TelaGerenciarEquipes() {
             sigla,
             cidade,
             estado,
-            cnpj,
+            cnpj: formatarCNPJ(cnpj),
             email,
             senha: senhaFinal,
             contato: contato || undefined,
@@ -952,28 +953,7 @@ function TelaGerenciarEquipes() {
                     </button>
                     <button
                       style={s.btnGhost}
-                      onClick={async () => {
-                        const atletasVinc = atletas.filter(a => a.equipeId === equipe.id || a.clube === equipe.nome);
-                        const msg = atletasVinc.length > 0
-                          ? `Excluir equipe "${equipe.nome}"?\n\n${atletasVinc.length} atleta(s) vinculado(s) terão o vínculo removido.`
-                          : `Excluir equipe "${equipe.nome}"?`;
-                        if (!window.confirm(msg)) return;
-                        atletasVinc.forEach(a => {
-                          const updates = {};
-                          if (a.equipeId === equipe.id) updates.equipeId = null;
-                          if (a.clube === equipe.nome) updates.clube = "";
-                          if (Object.keys(updates).length > 0) atualizarAtleta({ ...a, ...updates });
-                        });
-                        if (equipe.email) {
-                          try {
-                            const deleteAuthUser = httpsCallable(functions, "deleteAuthUser");
-                            await deleteAuthUser({ email: equipe.email });
-                          } catch (err) {
-                            console.warn("[GerenciarEquipes] Não foi possível deletar conta Auth da equipe:", err.message);
-                          }
-                        }
-                        excluirEquipeFiliada(equipe.id);
-                      }}
+                      onClick={() => excluirEquipeFiliada(equipe.id)}
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
                     </button>

@@ -514,6 +514,15 @@ function App() {
     
     if (!await confirmar(msg)) return;
     excluirEquipePorId(id);
+    // Excluir conta Auth da equipe
+    if (equipe?.email) {
+      try {
+        const deleteAuthUser = httpsCallable(functions, "deleteAuthUser");
+        await deleteAuthUser({ email: equipe.email });
+      } catch (err) {
+        console.warn("[excluirEquipeFiliada] Não foi possível deletar conta Auth da equipe:", err.message);
+      }
+    }
     // Remover atletas vinculados à equipe
     if (nAtletas > 0) {
       const idsAtletas = new Set(atletasVinculados.map(a => a.id));
