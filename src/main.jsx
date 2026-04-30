@@ -8,6 +8,12 @@ Sentry.init({
   dsn: "https://041bc5213e8dcb94e879d5907ce1c3b0@o4511300658003968.ingest.us.sentry.io/4511300663902208",
   environment: import.meta.env.MODE, // "development" ou "production"
   enabled: import.meta.env.PROD,     // só envia erros em produção
+  beforeSend(event) {
+    // Firebase permission-denied é esperado em páginas públicas sem auth
+    const msg = event.exception?.values?.[0]?.value || "";
+    if (msg.includes("Missing or insufficient permissions")) return null;
+    return event;
+  },
 })
 
 // Chunk antigo após deploy → reload automático (evita tela branca)
