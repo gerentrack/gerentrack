@@ -521,6 +521,7 @@ function App() {
         await deleteAuthUser({ email: equipe.email });
       } catch (err) {
         console.warn("[excluirEquipeFiliada] Não foi possível deletar conta Auth da equipe:", err.message);
+        alert(`Atenção: a conta Auth da equipe (${equipe.email}) não foi excluída automaticamente.\nExclua manualmente em Gerenciar Usuários > Contas Órfãs.\n\nMotivo: ${err.message}`);
       }
     }
     // Remover atletas vinculados à equipe

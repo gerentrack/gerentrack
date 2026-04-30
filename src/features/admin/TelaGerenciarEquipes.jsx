@@ -566,14 +566,17 @@ function TelaGerenciarEquipes() {
       for (const equipeDados of preview) {
         const { _linhaOrigem, _senhaGerada, senha: _senhaImport, ...data } = equipeDados;
         // Criar conta Auth
+        const senhaAuth = _senhaImport && String(_senhaImport).length >= 6
+          ? String(_senhaImport)
+          : (() => { const c = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; return Array.from({length:8}, () => c[Math.floor(Math.random()*c.length)]).join(""); })();
         try {
-          await createUserWithEmailAndPassword(secondaryAuth, data.email, _senhaImport);
+          await createUserWithEmailAndPassword(secondaryAuth, data.email, senhaAuth);
           await firebaseSignOut(secondaryAuth).catch(() => {});
         } catch (authErr) {
           if (authErr.code === "auth/email-already-in-use") {
             authExistentes.push(`${data.nome} (${data.email})`);
           } else {
-            authErros.push(`${data.nome}: ${authErr.code}`);
+            authErros.push(`${data.nome} (${data.email}): ${authErr.code}`);
           }
         }
         const novaEquipe = {
@@ -586,7 +589,7 @@ function TelaGerenciarEquipes() {
           senhaTemporaria: true,
         };
         adicionarEquipeFiliada(novaEquipe);
-        credenciais.push({ nome: data.nome, email: data.email, senha: _senhaImport, gerada: _senhaGerada });
+        credenciais.push({ nome: data.nome, email: data.email, senha: senhaAuth, gerada: _senhaGerada || senhaAuth !== String(_senhaImport) });
         importados++;
       }
 

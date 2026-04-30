@@ -93,7 +93,7 @@ exports.updateOwnEmail = onCall(async (request) => {
 
 /**
  * deleteAuthUser — deleta uma conta Firebase Auth pelo email.
- * Apenas o admin do sistema pode chamar esta função.
+ * Permitido para: admin do sistema ou organizador dono da equipe.
  */
 exports.deleteAuthUser = onCall(async (request) => {
   // Requer autenticação
@@ -101,12 +101,19 @@ exports.deleteAuthUser = onCall(async (request) => {
     throw new HttpsError("unauthenticated", "Autenticação necessária.");
   }
 
-  // Verificar se o caller é admin lendo config/admin do Firestore
+  // Verificar se o caller é admin
   const callerEmail = (request.auth.token.email || "").toLowerCase();
   const snap = await admin.firestore().doc("config/admin").get();
   const adminEmail = (snap.exists ? snap.data()?.email || "" : "").toLowerCase().trim();
-  if (!adminEmail || callerEmail !== adminEmail) {
-    throw new HttpsError("permission-denied", "Apenas o administrador pode executar esta ação.");
+  const isAdmin = adminEmail && callerEmail === adminEmail;
+
+  // Se não é admin, verificar se é organizador
+  if (!isAdmin) {
+    const orgSnap = await admin.firestore().collection("organizadores")
+      .where("email", "==", callerEmail).limit(1).get();
+    if (orgSnap.empty) {
+      throw new HttpsError("permission-denied", "Apenas administradores ou organizadores podem executar esta ação.");
+    }
   }
 
   const email = request.data?.email;
