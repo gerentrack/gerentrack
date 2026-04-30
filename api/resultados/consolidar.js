@@ -3,13 +3,29 @@ const { supabase } = require('../_lib/supabase');
 const { verificarToken, verificarAdmin } = require('../_lib/auth');
 const PROVAS_DEF = require('../../src/domain/provas/provasDef.json');
 
-// Mapa provaId → nome a partir do provasDef.json
+// Mapa provaId → { nome, unidade } a partir do provasDef.json
 const provasDefMap = {};
+const provasUnidadeMap = {};
 Object.values(PROVAS_DEF).forEach(cats => {
   Object.values(cats).forEach(provas => {
-    provas.forEach(p => { provasDefMap[p.id] = p.nome; });
+    provas.forEach(p => {
+      provasDefMap[p.id] = p.nome;
+      provasUnidadeMap[p.id] = p.unidade || 's';
+    });
   });
 });
+
+function formatarMarcaApi(valor, unidade) {
+  if (!valor && valor !== 0) return null;
+  const vs = String(valor).trim().toUpperCase();
+  if (['DNS', 'DNF', 'NM'].includes(vs) || vs.startsWith('DQ')) return vs;
+  if (unidade === 'm') {
+    const num = parseFloat(String(valor).replace(',', '.'));
+    return isNaN(num) ? String(valor) : num.toFixed(2).replace('.', ',');
+  }
+  // Tempo: manter como está (já vem formatado do Firestore)
+  return String(valor);
+}
 
 /**
  * POST /api/resultados/consolidar
@@ -168,6 +184,7 @@ module.exports = async function handler(req, res) {
         const eqId = atl?.equipeId || null;
         const eqNome = eqId && equipes[eqId] ? equipes[eqId].nome : (atl?.clube || null);
 
+        const unidade = provasUnidadeMap[provId] || 's';
         resultadosArr.push({
           competicao_id: eventoId,
           atleta_id: atletaId,
@@ -176,7 +193,7 @@ module.exports = async function handler(req, res) {
           categoria_id: catId,
           sexo,
           fase,
-          marca: m ? String(m) : null,
+          marca: formatarMarcaApi(m, unidade),
           marca_num: isNaN(marcaNum) ? null : marcaNum,
           posicao: posicao ? parseInt(posicao) : null,
           vento: vento ? String(vento) : null,
