@@ -258,7 +258,7 @@ function TelaGerenciarUsuarios() {
       // Criar conta Auth para novo usuário (se não reutilizando perfil existente)
       if (!perfilExistente && form.email && form.senha) {
         try {
-          await createUserWithEmailAndPassword(secondaryAuth, form.email.trim(), form.senha);
+          await createUserWithEmailAndPassword(secondaryAuth, form.email.trim().toLowerCase(), form.senha);
           await firebaseSignOut(secondaryAuth).catch(() => {});
         } catch (authErr) {
           if (authErr.code !== "auth/email-already-in-use") {
@@ -382,7 +382,7 @@ function TelaGerenciarUsuarios() {
       if (emailNovo && emailNovo !== emailAntigo) {
         try {
           const senhaTemp = gerarSenhaTemp ? gerarSenhaTemp() : Math.random().toString(36).slice(2, 10);
-          await createUserWithEmailAndPassword(secondaryAuth, emailNovo, senhaTemp);
+          await createUserWithEmailAndPassword(secondaryAuth, emailNovo.toLowerCase(), senhaTemp);
           await firebaseSignOut(secondaryAuth).catch(() => {});
           dadosEditados.senhaTemporaria = true;
           authAviso = `\n\nNovo email Auth criado. Senha temporária: ${senhaTemp}\nO usuário deve trocar no primeiro acesso.`;

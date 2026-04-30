@@ -351,7 +351,7 @@ function TelaTreinadores({ abaInicial } = {}) {
       let authAviso = "";
       if (!docExistente) {
         try {
-          const cred = await createUserWithEmailAndPassword(secondaryAuth, form.email.trim(), form.senha);
+          const cred = await createUserWithEmailAndPassword(secondaryAuth, form.email.trim().toLowerCase(), form.senha);
           try { await sendEmailVerification(cred.user); } catch {}
           await firebaseSignOut(secondaryAuth).catch(() => {});
         } catch (err) {

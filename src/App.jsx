@@ -591,7 +591,7 @@ function App() {
             return [...prev, novoUsuario];
           });
           // Criar conta no Firebase Auth (senha fica apenas aqui)
-          const emailAuth = (solicitacao?.email || atletaBase.email || "").trim();
+          const emailAuth = (solicitacao?.email || atletaBase.email || "").trim().toLowerCase();
           if (emailAuth) {
             try {
               await createUserWithEmailAndPassword(secondaryAuth, emailAuth, senhaTemp);
@@ -614,7 +614,7 @@ function App() {
     if (tipo !== "atleta" && tipo !== "atleta_cpf" && tipo !== "equipe") {
       const stores = { organizador: organizadores, funcionario: funcionarios, treinador: treinadores };
       const registro = (stores[tipo] || []).find(u => u.id === userId);
-      const emailAuth = registro?.email?.trim();
+      const emailAuth = registro?.email?.trim().toLowerCase();
       if (emailAuth) {
         try {
           await createUserWithEmailAndPassword(secondaryAuth, emailAuth, senhaTemp);

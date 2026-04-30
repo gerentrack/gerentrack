@@ -220,7 +220,7 @@ function TelaGerenciarEquipes() {
     if (modo === "novo") {
       // Criar conta no Firebase Auth via secondaryAuth
       try {
-        await createUserWithEmailAndPassword(secondaryAuth, form.email.trim(), form.senha);
+        await createUserWithEmailAndPassword(secondaryAuth, form.email.trim().toLowerCase(), form.senha);
         await firebaseSignOut(secondaryAuth).catch(() => {});
       } catch (authErr) {
         if (authErr.code !== "auth/email-already-in-use") {
@@ -250,7 +250,7 @@ function TelaGerenciarEquipes() {
       if (emailNovo && emailNovo !== emailAntigo) {
         try {
           const senhaTemp = gerarSenhaTemp ? gerarSenhaTemp() : Math.random().toString(36).slice(2, 10);
-          await createUserWithEmailAndPassword(secondaryAuth, emailNovo, senhaTemp);
+          await createUserWithEmailAndPassword(secondaryAuth, emailNovo.toLowerCase(), senhaTemp);
           await firebaseSignOut(secondaryAuth).catch(() => {});
           equipeAtualizada.senhaTemporaria = true;
           alert(`Email atualizado! Nova conta Auth criada.\nSenha temporária: ${senhaTemp}\nA equipe deve trocar no primeiro acesso.`);
@@ -470,6 +470,10 @@ function TelaGerenciarEquipes() {
             erros.push(`Linha ${linha}: E-mail é obrigatório`);
             return;
           }
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+            erros.push(`Linha ${linha}: E-mail "${email}" inválido`);
+            return;
+          }
 
           // Check duplicates by name
           if (equipes.some(eq => eq.nome.toLowerCase() === nome.toLowerCase())) {
@@ -570,7 +574,7 @@ function TelaGerenciarEquipes() {
           ? String(_senhaImport)
           : (() => { const c = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; return Array.from({length:8}, () => c[Math.floor(Math.random()*c.length)]).join(""); })();
         try {
-          await createUserWithEmailAndPassword(secondaryAuth, data.email, senhaAuth);
+          await createUserWithEmailAndPassword(secondaryAuth, data.email.trim().toLowerCase(), senhaAuth);
           await firebaseSignOut(secondaryAuth).catch(() => {});
         } catch (authErr) {
           if (authErr.code === "auth/email-already-in-use") {

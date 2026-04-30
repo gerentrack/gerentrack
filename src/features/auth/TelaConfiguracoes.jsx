@@ -2475,7 +2475,7 @@ ${tiposSelecionados.length > 0 ? tiposSelecionados.map(ts => `   • ${ts}`).joi
                         for (const perfil of unicos) {
                           const senhaTemp = gerarSenhaTemp();
                           try {
-                            await createUserWithEmailAndPassword(secondaryAuth, perfil.email.trim(), senhaTemp);
+                            await createUserWithEmailAndPassword(secondaryAuth, perfil.email.trim().toLowerCase(), senhaTemp);
                             await fbSignOut(secondaryAuth).catch(() => {});
                             criados++;
                             // Marcar senhaTemporaria no registro

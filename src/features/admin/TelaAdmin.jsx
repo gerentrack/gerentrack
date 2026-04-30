@@ -183,7 +183,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes }) {
     if (organizadores.some(o => o.cnpj && formOrg.cnpj && o.cnpj.replace(/\D/g,"") === formOrg.cnpj.replace(/\D/g,""))) e.cnpj = "CNPJ já cadastrado";
     if (Object.keys(e).length) { setErrosOrg(e); return; }
     try {
-      await createUserWithEmailAndPassword(secondaryAuth, formOrg.email.trim(), formOrg.senha);
+      await createUserWithEmailAndPassword(secondaryAuth, formOrg.email.trim().toLowerCase(), formOrg.senha);
       await firebaseSignOut(secondaryAuth).catch(() => {});
     } catch (_) {}
     adicionarOrganizador({ ...formOrg, id:Date.now().toString(), status:"aprovado", dataCadastro:new Date().toISOString(), tipo:"organizador" });
@@ -224,7 +224,7 @@ function TelaAdmin({ adminConfig, setAdminConfig, setHistoricoAcoes }) {
     const senhaTemp = gerarSenhaTemp();
     let authAviso = "";
     try {
-      await createUserWithEmailAndPassword(secondaryAuth, formTrein.email.trim(), senhaTemp);
+      await createUserWithEmailAndPassword(secondaryAuth, formTrein.email.trim().toLowerCase(), senhaTemp);
       await firebaseSignOut(secondaryAuth).catch(() => {});
     } catch (err) {
       if (err.code === "auth/email-already-in-use") {
