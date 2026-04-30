@@ -748,6 +748,26 @@ function TelaCadastroEvento() {
             </div>
           </div>
 
+          {/* ── Restrição: somente federados ── */}
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ display: "flex", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
+              <label style={{ display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer", maxWidth: 700 }}>
+                <input type="checkbox" checked={form.apenasAtletasFederados ?? false}
+                  onChange={(e) => setForm({ ...form, apenasAtletasFederados: e.target.checked })}
+                  style={{ width:18, height:18, accentColor: t.accent, cursor:"pointer", flexShrink:0, marginTop:2 }} />
+                <div>
+                  <div style={{ fontWeight:700, color: t.textSecondary, fontSize:14 }}>Somente atletas federados</div>
+                  <div style={{ color: t.textDimmed, fontSize:12, marginTop:3, lineHeight:1.5 }}>
+                    Quando ativado, apenas atletas com <strong>número de registro CBAt</strong> preenchido poderão ser inscritos na competição.
+                    <span style={{ display:"block", marginTop:4, fontStyle:"italic", color: t.textDimmed }}>
+                      Atletas sem registro CBAt serão bloqueados no momento da inscrição.
+                    </span>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+
           {/* ── Limite de Provas por Atleta (acordeão) ── */}
           <Acordeao keyName="limites" aberto={acordeoes["limites"]} onToggle={toggleAcordeo} titulo="Limite de Provas por Atleta" icone="" resumo={resumoLimites}>
             <p style={{ color: t.textDimmed, fontSize:12, marginBottom:14, lineHeight:1.5 }}>

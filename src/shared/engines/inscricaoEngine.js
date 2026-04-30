@@ -8,6 +8,21 @@
 
 import { getGrupoNorma12, isCombinada, NOMES_GRUPOS_NORMA12 } from "../constants/gruposNorma12";
 
+// ─── RESTRIÇÃO: SOMENTE FEDERADOS ───────────────────────────────────────────
+
+/**
+ * Valida se o atleta possui registro CBAt quando o evento exige apenas federados.
+ * @param {object} evento  — objeto do evento
+ * @param {object} atleta  — objeto do atleta
+ * @returns {{ ok: boolean, msg?: string }}
+ */
+export function validarFederacao(evento, atleta) {
+  if (!evento?.apenasAtletasFederados) return { ok: true };
+  const cbat = atleta?.cbat || atleta?.numeroCbat || atleta?.nCbat || atleta?.registro || atleta?.numCbat || "";
+  if (String(cbat).trim()) return { ok: true };
+  return { ok: false, msg: "Esta competição aceita apenas atletas federados (com registro CBAt). Este atleta não possui registro CBAt." };
+}
+
 // ─── LIMITE DE PROVAS ────────────────────────────────────────────────────────
 
 /**

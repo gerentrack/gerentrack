@@ -5,7 +5,7 @@ import { _getClubeAtleta, _getLocalEventoDisplay, validarCPF } from "../../share
 import FormField from "../ui/FormField";
 import { ProvaSelector } from "../ui/ProvaSelector";
 import { CombinedEventEngine } from "../../shared/engines/combinedEventEngine";
-import { getLimiteCat, validarLimiteProvas, validarNorma12Sub14, getRestricoesNorma12, calcularPrecoInscricao, formatarPreco } from "../../shared/engines/inscricaoEngine";
+import { getLimiteCat, validarLimiteProvas, validarNorma12Sub14, validarFederacao, getRestricoesNorma12, calcularPrecoInscricao, formatarPreco } from "../../shared/engines/inscricaoEngine";
 import { chamarApiComFallback } from "../../lib/apiClient";
 import { useStylesResponsivos } from "../../hooks/useStylesResponsivos";
 import { useTema } from "../../shared/TemaContext";
@@ -506,6 +506,14 @@ function TelaInscricaoAvulsa() {
       setErro(`Atleta com ${idadeAtleta} ano(s) não pode ser inscrito — idade mínima é 11 anos (Sub-14).`);
       return;
     }
+
+    // ── Validar federação (somente federados) ──
+    const validacaoFederacao = validarFederacao(eventoParaInscricao, atletaParaValidar);
+    if (!validacaoFederacao.ok) {
+      setErro(validacaoFederacao.msg);
+      return;
+    }
+
     const aIdCheck = modo === "novo" ? null : atletaId;
     const validacaoLimite = await chamarApiComFallback(
       "/api/validar-inscricao",

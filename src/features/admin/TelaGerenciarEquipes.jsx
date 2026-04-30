@@ -547,7 +547,7 @@ function TelaGerenciarEquipes() {
       setLoading(false);
     };
 
-    const handleConfirmar = () => {
+    const handleConfirmar = async () => {
       if (!preview || preview.length === 0) return;
 
       // Validar organizador para admin
@@ -561,8 +561,18 @@ function TelaGerenciarEquipes() {
 
       let importados = 0;
       const credenciais = [];
-      preview.forEach(equipeDados => {
+      const authErros = [];
+      for (const equipeDados of preview) {
         const { _linhaOrigem, _senhaGerada, senha: _senhaImport, ...data } = equipeDados;
+        // Criar conta Auth
+        try {
+          await createUserWithEmailAndPassword(secondaryAuth, data.email, _senhaImport);
+          await firebaseSignOut(secondaryAuth).catch(() => {});
+        } catch (authErr) {
+          if (authErr.code !== "auth/email-already-in-use") {
+            authErros.push(`${data.nome}: ${authErr.code}`);
+          }
+        }
         const novaEquipe = {
           ...data,
           id: genId(),
@@ -575,12 +585,15 @@ function TelaGerenciarEquipes() {
         adicionarEquipeFiliada(novaEquipe);
         credenciais.push({ nome: data.nome, email: data.email, senha: _senhaImport, gerada: _senhaGerada });
         importados++;
-      });
+      }
 
       const resumo = credenciais.map(c =>
         `${c.nome}: ${c.email} / ${c.gerada ? c.senha + " (temporária)" : "(senha definida na planilha)"}`
       ).join("\n");
-      alert(`${importados} equipe(s) importada(s)!\n\nCredenciais de acesso:\n${resumo}\n\nAnote as senhas temporárias — elas não serão exibidas novamente.\nTodas são temporárias — a equipe será obrigada a trocar no primeiro acesso.`);
+      const authAviso = authErros.length > 0
+        ? `\n\n⚠ ${authErros.length} conta(s) Auth não criada(s):\n${authErros.join("\n")}`
+        : "";
+      alert(`${importados} equipe(s) importada(s)!\n\nCredenciais de acesso:\n${resumo}\n\nAnote as senhas temporárias — elas não serão exibidas novamente.\nTodas são temporárias — a equipe será obrigada a trocar no primeiro acesso.${authAviso}`);
       setModo("lista");
       setFile(null);
       setPreview(null);
