@@ -422,15 +422,34 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
     if (!usaCnpj && !isAdmin && formDados.cpf.trim() && !validarCPF(formDados.cpf)) { setErro("CPF inválido."); return; }
 
     // Se email mudou, reautenticar e atualizar no Firebase Auth
-    if (emailMudou && !isAdmin) {
-      if (!formDados.senhaConfirmacao) { setErro("Informe sua senha para confirmar a troca de email."); return; }
-      try {
-        const currentUser = auth.currentUser;
-        const credential = EmailAuthProvider.credential(currentUser.email, formDados.senhaConfirmacao);
-        await reauthenticateWithCredential(currentUser, credential);
-      } catch (_) {
-        setErro("Senha incorreta."); return;
+    if (emailMudou) {
+      const currentUser = auth.currentUser;
+      if (!currentUser) { setErro("Sessão expirada. Faça login novamente."); return; }
+
+      const temGoogle = currentUser.providerData?.some(p => p.providerId === "google.com");
+      const temSenha = currentUser.providerData?.some(p => p.providerId === "password");
+
+      // Reautenticar
+      if (temSenha) {
+        if (!formDados.senhaConfirmacao) { setErro("Informe sua senha para confirmar a troca de email."); return; }
+        try {
+          const credential = EmailAuthProvider.credential(currentUser.email, formDados.senhaConfirmacao);
+          await reauthenticateWithCredential(currentUser, credential);
+        } catch (_) {
+          setErro("Senha incorreta."); return;
+        }
+      } else if (temGoogle) {
+        try {
+          const { signInWithPopup, googleProvider } = await import("../../firebase");
+          await signInWithPopup(auth, googleProvider);
+        } catch (_) {
+          setErro("Autenticação com Google cancelada."); return;
+        }
+      } else {
+        setErro("Não foi possível reautenticar. Faça login novamente."); return;
       }
+
+      // Atualizar email no Auth via Cloud Function
       try {
         const updateOwnEmail = httpsCallable(functions, "updateOwnEmail");
         await updateOwnEmail({ email: formDados.email.trim() });
@@ -627,14 +646,18 @@ function TelaConfiguracoes({ adminConfig, setAdminConfig, setOrganizadores, setA
             : <FormField label="CPF"    value={formDados.cpf}  onChange={v => setFormDados({ ...formDados, cpf: v })}  placeholder="000.000.000-00" />
           )}
           {!isAdmin && <FormField label="Telefone" value={formDados.fone} onChange={v => setFormDados({ ...formDados, fone: v })} placeholder="(00) 00000-0000" />}
-          {emailMudou && !isAdmin && (
-            <>
-              <div style={{ background: `${t.warning}15`, border: `1px solid ${t.warning}55`, borderRadius: 8, padding: "10px 14px", marginTop: 8, marginBottom: 4, fontSize: 13, color: t.warning }}>
-                Trocar o email altera também o seu login. Confirme com sua senha.
-              </div>
-              <FormField label="Senha atual *" value={formDados.senhaConfirmacao} onChange={v => setFormDados({ ...formDados, senhaConfirmacao: v })} type="password" placeholder="Confirme sua senha para trocar o email" />
-            </>
-          )}
+          {emailMudou && (() => {
+            const temSenha = auth.currentUser?.providerData?.some(p => p.providerId === "password");
+            const temGoogle = auth.currentUser?.providerData?.some(p => p.providerId === "google.com");
+            return (
+              <>
+                <div style={{ background: `${t.warning}15`, border: `1px solid ${t.warning}55`, borderRadius: 8, padding: "10px 14px", marginTop: 8, marginBottom: 4, fontSize: 13, color: t.warning }}>
+                  Trocar o email altera também o seu login.{temSenha ? " Confirme com sua senha." : temGoogle ? " Você será redirecionado para confirmar com o Google." : ""}
+                </div>
+                {temSenha && <FormField label="Senha atual *" value={formDados.senhaConfirmacao} onChange={v => setFormDados({ ...formDados, senhaConfirmacao: v })} type="password" placeholder="Confirme sua senha para trocar o email" />}
+              </>
+            );
+          })()}
           <button style={{ ...s.btnPrimary, marginTop: 12 }} onClick={salvarDados}>Salvar Dados</button>
         </div>
       )}
