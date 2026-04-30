@@ -1,6 +1,15 @@
 const { db } = require('../_lib/firestore');
 const { supabase } = require('../_lib/supabase');
 const { verificarToken, verificarAdmin } = require('../_lib/auth');
+const PROVAS_DEF = require('../../src/domain/provas/provasDef.json');
+
+// Mapa provaId → nome a partir do provasDef.json
+const provasDefMap = {};
+Object.values(PROVAS_DEF).forEach(cats => {
+  Object.values(cats).forEach(provas => {
+    provas.forEach(p => { provasDefMap[p.id] = p.nome; });
+  });
+});
 
 /**
  * POST /api/resultados/migrar-historico
@@ -170,7 +179,7 @@ module.exports = async function handler(req, res) {
               competicao_id: eventoId,
               atleta_id: atletaId,
               prova_id: provId,
-              prova_nome: provaNomes[provId] || provId,
+              prova_nome: provaNomes[provId] || provasDefMap[provId] || provId,
               categoria_id: catId,
               sexo,
               fase,
