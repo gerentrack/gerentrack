@@ -1291,6 +1291,33 @@ function TelaAdmin({ setHistoricoAcoes }) {
                                 registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Exportou dados do org",
                                   `${org.entidade}: ${arqs.length} arquivo(s)`, null, { modulo: "licencas" });
                               }} style={{ ...s.btnGhost, fontSize:10, padding:"3px 8px" }}>Exportar</button>
+                              {/* Subdomínio */}
+                              <span style={{ display:"inline-flex", alignItems:"center", gap:4, marginLeft:4 }}>
+                                <input
+                                  style={{ width:60, fontSize:10, padding:"2px 5px", borderRadius:4, border:`1px solid ${t.border}`, background:t.bgCard, color:t.textPrimary }}
+                                  placeholder="sigla"
+                                  value={org.subdominio || ""}
+                                  onChange={e => editarOrganizadorAdmin({ ...org, subdominio: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 20) })}
+                                />
+                                <span style={{ fontSize:9, color:t.textDimmed }}>.gerentrack.com.br</span>
+                                <button
+                                  onClick={() => {
+                                    const novoAtivo = !org.subdominioAtivo;
+                                    editarOrganizadorAdmin({ ...org, subdominioAtivo: novoAtivo });
+                                    registrarAcao(usuarioLogado.id, usuarioLogado.nome,
+                                      novoAtivo ? "Ativou subdomínio" : "Desativou subdomínio",
+                                      `${org.entidade}: ${org.subdominio || "?"}.gerentrack.com.br`, null, { modulo: "licencas" });
+                                  }}
+                                  disabled={!org.subdominio}
+                                  style={{ fontSize:9, padding:"2px 6px", borderRadius:4, cursor: org.subdominio ? "pointer" : "not-allowed",
+                                    background: org.subdominioAtivo && org.subdominio ? t.success + "22" : "transparent",
+                                    color: org.subdominioAtivo && org.subdominio ? t.success : t.textDimmed,
+                                    border: `1px solid ${org.subdominioAtivo && org.subdominio ? t.success + "44" : t.border}`,
+                                    fontWeight: 600,
+                                  }}>
+                                  {org.subdominioAtivo && org.subdominio ? "Ativo" : "Inativo"}
+                                </button>
+                              </span>
                               {(() => {
                                 const enc = getEncerramento(org);
                                 if (!enc.encerrado) return (

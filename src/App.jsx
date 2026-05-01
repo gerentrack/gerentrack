@@ -19,6 +19,7 @@ import { useCrudEventos } from "./hooks/useCrudEventos";
 import { useExcluirDadosOrganizador } from "./hooks/useExcluirDadosOrganizador";
 import { useCrudEquipes } from "./hooks/useCrudEquipes";
 import { useNotificacaoProvaConcluida } from "./hooks/useNotificacaoProvaConcluida";
+import { useSubdominio } from "./hooks/useSubdominio";
 // ── Contexts (Etapa 2 — migração React Router) ──────────────────
 import { AuthProvider, buildAuthValue } from "./contexts/AuthContext";
 import { EventoProvider, buildEventoValue } from "./contexts/EventoContext";
@@ -168,6 +169,12 @@ function App() {
   // Wrapper com limite de 500 entradas — protege o documento Firestore de ultrapassar 1MB
   // ── Coleções individuais Firestore (migradas de state/) ──────────────────
   const { organizadores, setOrganizadores, resetOrganizadores, importarOrganizadores } = useOrganizadores();
+
+  // ── Subdomínio: fmat.gerentrack.com.br → perfil da federação ──
+  const { slug: _subSlug } = useSubdominio(organizadores);
+  useEffect(() => {
+    if (_subSlug && window.location.pathname === "/") navigate(`/${_subSlug}`, { replace: true });
+  }, [_subSlug]);
   const { atletasUsuarios, setAtletasUsuarios, resetAtletasUsuarios, importarAtletasUsuarios, adicionarAtletaUsuario: _adicionarAtletaUsuario, atualizarAtletaUsuario: _atualizarAtletaUsuario } = useAtletasUsuarios();
   const { funcionarios, setFuncionarios, resetFuncionarios, importarFuncionarios } = useFuncionarios();
   const { treinadores, setTreinadores, resetTreinadores, importarTreinadores } = useTreinadores();
