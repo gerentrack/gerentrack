@@ -22,6 +22,7 @@ import {
 } from "../firebase";
 import { sanitize } from "../lib/utils/sanitize";
 import { cacheGet, cacheSet } from "../lib/cacheDB";
+import { normalizarNome } from "../shared/formatters/normalizarNome";
 
 const COLLECTION = "atletas";
 const STORE = "cache_atletas";
@@ -83,6 +84,7 @@ export function useAtletas() {
 
   // ── Adicionar 1 atleta ───────────────────────────────────────────────────
   const adicionarAtleta = useCallback(async (a) => {
+    if (a.nome) a = { ...a, nome: normalizarNome(a.nome) };
     const dupCpf = cpfDuplicado(a.cpf, a.id);
     if (dupCpf) throw new Error(`CPF já cadastrado para o atleta "${dupCpf.nome}".`);
     const dupEmail = emailDuplicado(a.email, a.id);
@@ -94,6 +96,7 @@ export function useAtletas() {
   // ── Adicionar vários atletas em lote ─────────────────────────────────────
   const adicionarAtletasEmLote = useCallback(async (lista) => {
     if (!lista || lista.length === 0) return;
+    lista = lista.map(a => a.nome ? { ...a, nome: normalizarNome(a.nome) } : a);
     // Verificar duplicatas contra base existente e dentro do próprio lote
     const cpfsLote = new Set();
     const emailsLote = new Set();
@@ -127,6 +130,7 @@ export function useAtletas() {
 
   // ── Atualizar 1 atleta ───────────────────────────────────────────────────
   const atualizarAtleta = useCallback(async (a) => {
+    if (a.nome) a = { ...a, nome: normalizarNome(a.nome) };
     const dupCpf = cpfDuplicado(a.cpf, a.id);
     if (dupCpf) throw new Error(`CPF já cadastrado para o atleta "${dupCpf.nome}".`);
     const dupEmail = emailDuplicado(a.email, a.id);

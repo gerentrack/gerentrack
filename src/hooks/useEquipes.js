@@ -18,6 +18,7 @@ import {
   writeBatch,
 } from "../firebase";
 import { sanitize } from "../lib/utils/sanitize";
+import { normalizarNome } from "../shared/formatters/normalizarNome";
 import { cacheGet, cacheSet } from "../lib/cacheDB";
 
 const COLLECTION = "equipes";
@@ -61,16 +62,19 @@ export function useEquipes() {
 
   // ── Adicionar 1 equipe ───────────────────────────────────────────────────
   const adicionarEquipe = useCallback(async (eq) => {
+    if (eq.nome) eq = { ...eq, nome: normalizarNome(eq.nome) };
     await setDoc(doc(db, COLLECTION, eq.id), sanitize(eq));
   }, []);
 
   // ── Atualizar 1 equipe ───────────────────────────────────────────────────
   const atualizarEquipe = useCallback(async (eq) => {
+    if (eq.nome) eq = { ...eq, nome: normalizarNome(eq.nome) };
     await setDoc(doc(db, COLLECTION, eq.id), sanitize(eq));
   }, []);
 
   // ── Merge parcial de 1 equipe (editarEquipeAdmin) ────────────────────────
   const mergeEquipe = useCallback(async (eq) => {
+    if (eq.nome) eq = { ...eq, nome: normalizarNome(eq.nome) };
     const atual = equipesRef.current.find(e => e.id === eq.id);
     if (!atual) return;
     await setDoc(doc(db, COLLECTION, eq.id), sanitize({ ...atual, ...eq }));
