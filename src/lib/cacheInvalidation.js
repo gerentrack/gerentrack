@@ -18,7 +18,13 @@
  */
 
 // ─── INCREMENTAR quando o schema de dados mudar ────────────────────────────
+// Para limpeza manual: incrementar este número
 const SCHEMA_VERSION = 1;
+
+// ─── Build ID: muda automaticamente a cada deploy ──────────────────────────
+// Limpa IndexedDB (não localStorage) quando o código do app muda
+const BUILD_ID = __APP_BUILD_ID__ || "dev";
+const BUILD_KEY = "gt_build_id";
 
 const SCHEMA_KEY = "gt_schema_version";
 
@@ -39,12 +45,21 @@ const PRESERVED_KEYS = new Set([
 export function verificarSchema() {
   try {
     const versaoAtual = parseInt(localStorage.getItem(SCHEMA_KEY) || "0", 10);
+    const buildAtual = localStorage.getItem(BUILD_KEY) || "";
+    const schemaMudou = versaoAtual < SCHEMA_VERSION;
+    const buildMudou = BUILD_ID !== "dev" && buildAtual !== BUILD_ID;
 
-    if (versaoAtual >= SCHEMA_VERSION) return false;
+    if (!schemaMudou && !buildMudou) return false;
 
-    console.info(`[CacheInvalidation] Schema ${versaoAtual} → ${SCHEMA_VERSION}. Limpando caches...`);
+    // Schema mudou: limpeza completa (IndexedDB + localStorage de dados)
+    // Build mudou: limpeza leve (só IndexedDB — dados re-sincronizam do Firestore)
+    if (schemaMudou) {
+      console.info(`[CacheInvalidation] Schema ${versaoAtual} → ${SCHEMA_VERSION}. Limpeza completa.`);
+    } else {
+      console.info(`[CacheInvalidation] Build ${buildAtual.slice(0, 8)} → ${BUILD_ID.slice(0, 8)}. Limpando IndexedDB.`);
+    }
 
-    // 1. Limpar IndexedDB completamente (dados serão re-sincronizados do Firestore)
+    // 1. Limpar IndexedDB (sempre — dados re-sincronizam do Firestore)
     try {
       indexedDB.deleteDatabase("gerentrack_cache");
       console.info("[CacheInvalidation] IndexedDB limpo.");
@@ -52,19 +67,22 @@ export function verificarSchema() {
       console.warn("[CacheInvalidation] Erro ao limpar IndexedDB:", err.message);
     }
 
-    // 2. Limpar localStorage seletivamente (preservar sessão e preferências)
-    const keysToRemove = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && !PRESERVED_KEYS.has(key)) {
-        keysToRemove.push(key);
+    // 2. Limpar localStorage seletivamente (só quando schema muda)
+    if (schemaMudou) {
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && !PRESERVED_KEYS.has(key)) {
+          keysToRemove.push(key);
+        }
       }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      console.info(`[CacheInvalidation] ${keysToRemove.length} chaves do localStorage limpas.`);
     }
-    keysToRemove.forEach(key => localStorage.removeItem(key));
-    console.info(`[CacheInvalidation] ${keysToRemove.length} chaves do localStorage limpas.`);
 
-    // 3. Registrar nova versão
+    // 3. Registrar versões
     localStorage.setItem(SCHEMA_KEY, String(SCHEMA_VERSION));
+    localStorage.setItem(BUILD_KEY, BUILD_ID);
 
     return true;
   } catch (err) {
