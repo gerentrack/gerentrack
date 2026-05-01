@@ -220,14 +220,6 @@ function TelaPainel() {
   const isTreinador = usuarioLogado?.tipo === "treinador";
   const equipeId = isTreinador ? usuarioLogado.equipeId : usuarioLogado?.id;
   
-  if (usuarioLogado?.tipo !== "equipe" && !isTreinador) return (
-    <div style={s.page}><div style={s.emptyState}>
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-      <p style={{ color: t.danger, fontWeight: 700 }}>Acesso restrito a equipes</p>
-      <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
-    </div></div>
-  );
-
   const meusAtletas    = atletas.filter((a) => a.equipeId === equipeId);
   // Solicitações de vínculo: atleta ou equipe pedindo para ser vinculado a mim
   const vincPendentes     = (solicitacoesVinculo||[]).filter(sol =>
@@ -248,6 +240,15 @@ function TelaPainel() {
   // Contagem de treinadores da equipe
   const meusTreinadores = (treinadores||[]).filter(tr => tr.equipeId === equipeId);
   const [buscaInscEq, setBuscaInscEq] = useState("");
+
+  // Guard (APÓS todos os hooks — regra dos hooks React)
+  if (usuarioLogado?.tipo !== "equipe" && !isTreinador) return (
+    <div style={s.page}><div style={s.emptyState}>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      <p style={{ color: t.danger, fontWeight: 700 }}>Acesso restrito a equipes</p>
+      <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
+    </div></div>
+  );
 
   return (
     <div style={s.page}>

@@ -164,13 +164,6 @@ function TelaPainelOrganizador() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const tipoOrg = usuarioLogado?.tipo;
-  if (tipoOrg !== "organizador" && tipoOrg !== "funcionario" && tipoOrg !== "admin") return (
-    <div style={s.page}><div style={s.emptyState}>
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-      <p style={{ color: t.danger, fontWeight: 700 }}>Acesso não autorizado</p>
-      <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
-    </div></div>
-  );
 
   const isFuncionario = usuarioLogado?.tipo === "funcionario";
   const orgId         = isFuncionario ? usuarioLogado?.organizadorId : usuarioLogado?.id;
@@ -266,6 +259,15 @@ function TelaPainelOrganizador() {
   const { paginado: eqPag, infoPage: eqInfo } = usePagination(equipesFiltradas, 20);
   const { paginado: atlPag, infoPage: atlInfo } = usePagination(atletasFiltrados, 20);
   const { paginado: compPag, infoPage: compInfo } = usePagination(compFiltradas, 10);
+
+  // Guard (APÓS todos os hooks — regra dos hooks React)
+  if (tipoOrg !== "organizador" && tipoOrg !== "funcionario" && tipoOrg !== "admin") return (
+    <div style={s.page}><div style={s.emptyState}>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      <p style={{ color: t.danger, fontWeight: 700 }}>Acesso não autorizado</p>
+      <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
+    </div></div>
+  );
 
   return (
     <div style={s.page}>

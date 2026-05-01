@@ -164,13 +164,6 @@ function TelaFuncionarios() {
   const confirmar = useConfirm();
 
   const tipoUsr = usuarioLogado?.tipo;
-  if (tipoUsr !== "organizador" && tipoUsr !== "admin") return (
-    <div style={s.page}><div style={s.emptyState}>
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-      <p style={{ color: t.danger, fontWeight: 700 }}>Acesso não autorizado</p>
-      <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
-    </div></div>
-  );
 
   const orgId = usuarioLogado?.tipo === "funcionario"
     ? usuarioLogado.organizadorId
@@ -193,6 +186,15 @@ function TelaFuncionarios() {
   // Fluxo CPF existente → login → vincular
   const [docExistente, setDocExistente] = useState(null);
   const [docModo, setDocModo] = useState("novo"); // "novo" | "login" | "vincular"
+
+  // Guard (APÓS todos os hooks — regra dos hooks React)
+  if (tipoUsr !== "organizador" && tipoUsr !== "admin") return (
+    <div style={s.page}><div style={s.emptyState}>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      <p style={{ color: t.danger, fontWeight: 700 }}>Acesso não autorizado</p>
+      <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
+    </div></div>
+  );
 
   const verificarCpfExistente = (cpf) => {
     if (editando) return;

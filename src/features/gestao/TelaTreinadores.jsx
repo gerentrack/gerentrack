@@ -169,14 +169,6 @@ function TelaTreinadores({ abaInicial } = {}) {
   const isTreinador = tipoUsr === "treinador";
   const equipeId = isTreinador ? usuarioLogado.equipeId : usuarioLogado?.id;
   
-  if (tipoUsr !== "equipe" && !isTreinador) return (
-    <div style={s.page}><div style={s.emptyState}>
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-      <p style={{ color: t.danger, fontWeight: 700 }}>Acesso restrito a equipes</p>
-      <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
-    </div></div>
-  );
-
   const meusTreinadores = treinadores.filter(tr => tr.equipeId === equipeId);
   const meuHistorico = historicoAcoes.filter(h => h.equipeId === equipeId);
   const [buscaTrein, setBuscaTrein] = useState("");
@@ -199,6 +191,15 @@ function TelaTreinadores({ abaInicial } = {}) {
   const [loginErro, setLoginErro] = useState("");
   // Etapa 4: treinador duplicado no mesmo organizador
   const [treinDuplicadoOrg, setTreinDuplicadoOrg] = useState(null);
+
+  // Guard (APÓS todos os hooks — regra dos hooks React)
+  if (tipoUsr !== "equipe" && !isTreinador) return (
+    <div style={s.page}><div style={s.emptyState}>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      <p style={{ color: t.danger, fontWeight: 700 }}>Acesso restrito a equipes</p>
+      <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
+    </div></div>
+  );
 
   const verificarCpfExistente = (cpf) => {
     if (editando) return;

@@ -108,14 +108,6 @@ function TelaPainelAtleta() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const confirmar = useConfirm();
-  if (usuarioLogado?.tipo !== "atleta") return (
-    <div style={s.page}><div style={s.emptyState}>
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-      <p style={{ color: t.danger, fontWeight: 700 }}>Acesso restrito a atletas</p>
-      <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
-    </div></div>
-  );
-
   // Encontra o registro de atleta vinculado a este usuário
   const meuAtleta = atletas.find(a => {
     if (a.atletaUsuarioId === usuarioLogado?.id) return true;
@@ -138,6 +130,15 @@ function TelaPainelAtleta() {
   const [buscaInsc, setBuscaInsc] = useState("");
   const [relatorioEvId, setRelatorioEvId] = useState("");
   const [relatorioEnviado, setRelatorioEnviado] = useState(false);
+
+  // Guard (APÓS todos os hooks — regra dos hooks React)
+  if (usuarioLogado?.tipo !== "atleta") return (
+    <div style={s.page}><div style={s.emptyState}>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      <p style={{ color: t.danger, fontWeight: 700 }}>Acesso restrito a atletas</p>
+      <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
+    </div></div>
+  );
 
   // Eventos onde o atleta tem inscrições (para seletor de relatório)
   const eventosComInsc = meuAtleta

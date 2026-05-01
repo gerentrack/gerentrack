@@ -100,12 +100,7 @@ function TelaConfigPontuacaoEquipes() {
   const s = useStylesResponsivos(getStyles(t));
   const { usuarioLogado } = useAuth();
   const { eventoAtual, atualizarCamposEvento, equipes, inscricoes, atletas, recordes } = useEvento();
-  if (!eventoAtual) return (
-    <div style={s.page}><div style={s.emptyState}><p>Selecione uma competição.</p>
-      <button style={s.btnPrimary} onClick={() => navigate("/")}>Voltar</button></div></div>
-  );
-
-  const config = eventoAtual.pontuacaoEquipes || {};
+  const config = eventoAtual?.pontuacaoEquipes || {};
   const [ativo, setAtivo] = useState(!!config.ativo);
   const [equipeSel, setEquipeSel] = useState(config.equipesParticipantes || []);
   const [tabela, setTabela] = useState(() => {
@@ -123,6 +118,12 @@ function TelaConfigPontuacaoEquipes() {
   const [bonusRecordes, setBonusRecordes] = useState(config.bonusRecordes || {});
   const [penalidades, setPenalidades] = useState(config.penalidades || []);
   const [novaPen, setNovaPen] = useState({ equipeId: "", pontos: "", motivo: "atraso", obs: "" });
+
+  // Guard (APÓS todos os hooks — regra dos hooks React)
+  if (!eventoAtual) return (
+    <div style={s.page}><div style={s.emptyState}><p>Selecione uma competição.</p>
+      <button style={s.btnPrimary} onClick={() => navigate("/")}>Voltar</button></div></div>
+  );
 
   // Equipes com atletas inscritos neste evento
   const eid = eventoAtual.id;

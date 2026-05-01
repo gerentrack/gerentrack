@@ -212,72 +212,6 @@ function TelaCadastroEvento() {
   const { organizadores, cadEventoGoStep, setCadEventoGoStep, registrarAcao } = useApp();
   const editando = eventoAtual && eventoAtualId && true;
   const tipoEvt = usuarioLogado?.tipo;
-  if (tipoEvt !== "admin" && tipoEvt !== "organizador" && tipoEvt !== "funcionario") return (
-    <div style={s.page}><div style={s.emptyState}>
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={t.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-      <p style={{ color: t.danger, fontWeight: 700 }}>Acesso não autorizado</p>
-      <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
-    </div></div>
-  );
-
-  // Bloqueio de criação se sem plano/créditos (admin bypassa)
-  if (!editando && tipoEvt !== "admin") {
-    const orgId = tipoEvt === "organizador" ? usuarioLogado?.id : usuarioLogado?.organizadorId;
-    const org = organizadores?.find(o => o.id === orgId);
-    if (org) {
-      const check = canCreateEvent(org, eventos);
-      if (!check.allowed) return (
-        <div style={s.page}>
-          <div style={{ background: `${t.danger}10`, border: `2px solid ${t.danger}`, borderRadius: 12, padding: "28px 24px", maxWidth: 500, margin: "60px auto", textAlign: "center" }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: t.danger, fontFamily: t.fontTitle, marginBottom: 8 }}>Limite de competições</div>
-            <div style={{ fontSize: 14, color: t.textSecondary, lineHeight: 1.7, marginBottom: 16 }}>{check.reason}</div>
-            <div style={{ fontSize: 12, color: t.textMuted, marginBottom: 16 }}>Entre em contato: <span style={{ color: t.accent }}>atendimento@gerentrack.com.br</span></div>
-            <button style={s.btnGhost} onClick={() => navigate("/painel/organizador")}>← Voltar ao Painel</button>
-          </div>
-        </div>
-      );
-    }
-  }
-
-  // Bloqueio de edição se competição pertence a outro organizador
-  if (editando && tipoEvt === "organizador" && eventoAtual.organizadorId !== usuarioLogado?.id) return (
-    <div style={s.page}><div style={s.emptyState}>
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={t.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-      <p style={{ color: t.danger, fontWeight: 700, fontSize: 18 }}>Acesso não autorizado</p>
-      <p style={{ color: t.textMuted, fontSize: 14, maxWidth: 400, textAlign: "center", lineHeight: 1.6 }}>
-        Esta competição pertence a outro organizador. Você não tem permissão para editá-la.
-      </p>
-      <button style={s.btnGhost} onClick={() => navigate("/painel/organizador")}>← Voltar ao Painel</button>
-    </div></div>
-  );
-
-  // Bloqueio de edição se funcionário e competição pertence a outro organizador
-  if (editando && tipoEvt === "funcionario" && eventoAtual.organizadorId !== usuarioLogado?.organizadorId) return (
-    <div style={s.page}><div style={s.emptyState}>
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={t.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-      <p style={{ color: t.danger, fontWeight: 700, fontSize: 18 }}>Acesso não autorizado</p>
-      <p style={{ color: t.textMuted, fontSize: 14, maxWidth: 400, textAlign: "center", lineHeight: 1.6 }}>
-        Esta competição pertence a outro organizador. Você não tem permissão para editá-la.
-      </p>
-      <button style={s.btnGhost} onClick={() => navigate("/painel/organizador")}>← Voltar ao Painel</button>
-    </div></div>
-  );
-
-  // Bloqueio de edição se competição finalizada
-  if (editando && eventoAtual.competicaoFinalizada) return (
-    <div style={s.page}><div style={s.emptyState}>
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={t.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-      <p style={{ color: t.danger, fontWeight: 700, fontSize: 18 }}>Competição Finalizada</p>
-      <p style={{ color: t.textMuted, fontSize: 14, maxWidth: 400, textAlign: "center", lineHeight: 1.6 }}>
-        Esta competição foi finalizada{eventoAtual.competicaoFinalizadaEm ? ` em ${new Date(eventoAtual.competicaoFinalizadaEm).toLocaleString("pt-BR")}` : ""}
-        {eventoAtual.competicaoFinalizadaPor ? ` por ${eventoAtual.competicaoFinalizadaPor}` : ""}.
-        <br/><br/>
-        Os dados estão <strong style={{ color: t.danger }}>bloqueados para edição</strong>.
-        Para desbloquear, solicite autorização a um <strong style={{ color: t.accent }}>administrador</strong>.
-      </p>
-      <button style={s.btnGhost} onClick={() => navigate("..")}>← Voltar à Competição</button>
-    </div></div>
-  );
 
   const [form, setForm] = useState(() => {
     const base = editando ? { ...eventoAtual } : {
@@ -355,6 +289,74 @@ function TelaCadastroEvento() {
       setCadEventoGoStep(null);
     }
   }, [cadEventoGoStep, editando]);
+
+  // Guard (APÓS todos os hooks — regra dos hooks React)
+  if (tipoEvt !== "admin" && tipoEvt !== "organizador" && tipoEvt !== "funcionario") return (
+    <div style={s.page}><div style={s.emptyState}>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={t.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      <p style={{ color: t.danger, fontWeight: 700 }}>Acesso não autorizado</p>
+      <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
+    </div></div>
+  );
+
+  // Bloqueio de criação se sem plano/créditos (admin bypassa)
+  if (!editando && tipoEvt !== "admin") {
+    const orgId = tipoEvt === "organizador" ? usuarioLogado?.id : usuarioLogado?.organizadorId;
+    const org = organizadores?.find(o => o.id === orgId);
+    if (org) {
+      const check = canCreateEvent(org, eventos);
+      if (!check.allowed) return (
+        <div style={s.page}>
+          <div style={{ background: `${t.danger}10`, border: `2px solid ${t.danger}`, borderRadius: 12, padding: "28px 24px", maxWidth: 500, margin: "60px auto", textAlign: "center" }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: t.danger, fontFamily: t.fontTitle, marginBottom: 8 }}>Limite de competições</div>
+            <div style={{ fontSize: 14, color: t.textSecondary, lineHeight: 1.7, marginBottom: 16 }}>{check.reason}</div>
+            <div style={{ fontSize: 12, color: t.textMuted, marginBottom: 16 }}>Entre em contato: <span style={{ color: t.accent }}>atendimento@gerentrack.com.br</span></div>
+            <button style={s.btnGhost} onClick={() => navigate("/painel/organizador")}>← Voltar ao Painel</button>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // Bloqueio de edição se competição pertence a outro organizador
+  if (editando && tipoEvt === "organizador" && eventoAtual.organizadorId !== usuarioLogado?.id) return (
+    <div style={s.page}><div style={s.emptyState}>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={t.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      <p style={{ color: t.danger, fontWeight: 700, fontSize: 18 }}>Acesso não autorizado</p>
+      <p style={{ color: t.textMuted, fontSize: 14, maxWidth: 400, textAlign: "center", lineHeight: 1.6 }}>
+        Esta competição pertence a outro organizador. Você não tem permissão para editá-la.
+      </p>
+      <button style={s.btnGhost} onClick={() => navigate("/painel/organizador")}>← Voltar ao Painel</button>
+    </div></div>
+  );
+
+  // Bloqueio de edição se funcionário e competição pertence a outro organizador
+  if (editando && tipoEvt === "funcionario" && eventoAtual.organizadorId !== usuarioLogado?.organizadorId) return (
+    <div style={s.page}><div style={s.emptyState}>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={t.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      <p style={{ color: t.danger, fontWeight: 700, fontSize: 18 }}>Acesso não autorizado</p>
+      <p style={{ color: t.textMuted, fontSize: 14, maxWidth: 400, textAlign: "center", lineHeight: 1.6 }}>
+        Esta competição pertence a outro organizador. Você não tem permissão para editá-la.
+      </p>
+      <button style={s.btnGhost} onClick={() => navigate("/painel/organizador")}>← Voltar ao Painel</button>
+    </div></div>
+  );
+
+  // Bloqueio de edição se competição finalizada
+  if (editando && eventoAtual.competicaoFinalizada) return (
+    <div style={s.page}><div style={s.emptyState}>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={t.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      <p style={{ color: t.danger, fontWeight: 700, fontSize: 18 }}>Competição Finalizada</p>
+      <p style={{ color: t.textMuted, fontSize: 14, maxWidth: 400, textAlign: "center", lineHeight: 1.6 }}>
+        Esta competição foi finalizada{eventoAtual.competicaoFinalizadaEm ? ` em ${new Date(eventoAtual.competicaoFinalizadaEm).toLocaleString("pt-BR")}` : ""}
+        {eventoAtual.competicaoFinalizadaPor ? ` por ${eventoAtual.competicaoFinalizadaPor}` : ""}.
+        <br/><br/>
+        Os dados estão <strong style={{ color: t.danger }}>bloqueados para edição</strong>.
+        Para desbloquear, solicite autorização a um <strong style={{ color: t.accent }}>administrador</strong>.
+      </p>
+      <button style={s.btnGhost} onClick={() => navigate("..")}>← Voltar à Competição</button>
+    </div></div>
+  );
 
   const todasProvas = todasAsProvas();
   const grupos = [...new Set(todasProvas.map((p) => p.grupo))];

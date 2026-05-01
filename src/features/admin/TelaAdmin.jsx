@@ -101,15 +101,6 @@ function TelaAdmin({ setHistoricoAcoes }) {
     return mapa;
   }, [atletas]);
 
-  // ── Guard ──────────────────────────────────────────────────────────────────
-  if (usuarioLogado?.tipo !== "admin") return (
-    <div style={s.page}><div style={s.empty}>
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={t.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-      <p style={{ color: t.danger, fontWeight:700 }}>Acesso restrito ao administrador</p>
-      <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
-    </div></div>
-  );
-
   // ── State ──────────────────────────────────────────────────────────────────
   const [aba,       setAba]       = useState("visao-geral");
   const [buscaOrg,  setBuscaOrg]  = useState("");
@@ -138,6 +129,15 @@ function TelaAdmin({ setHistoricoAcoes }) {
   const [salvoTrein, setSalvoTrein] = useState("");
   const [treinDocExistente, setTreinDocExistente] = useState(null);
   const [editandoTrein, setEditandoTrein] = useState(null);
+
+  // ── Guard (DEVE ficar APÓS todos os hooks para evitar "fewer hooks" error) ──
+  if (usuarioLogado?.tipo !== "admin") return (
+    <div style={s.page}><div style={s.empty}>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={t.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      <p style={{ color: t.danger, fontWeight:700 }}>Acesso restrito ao administrador</p>
+      <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
+    </div></div>
+  );
 
   const PERMISSOES_TREINADOR = [
     { id:"ver_atletas",          grupo:"Atletas",      label:"Visualizar atletas" },
