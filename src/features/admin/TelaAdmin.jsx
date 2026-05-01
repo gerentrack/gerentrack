@@ -130,15 +130,6 @@ function TelaAdmin({ setHistoricoAcoes }) {
   const [treinDocExistente, setTreinDocExistente] = useState(null);
   const [editandoTrein, setEditandoTrein] = useState(null);
 
-  // ── Guard (DEVE ficar APÓS todos os hooks para evitar "fewer hooks" error) ──
-  if (usuarioLogado?.tipo !== "admin") return (
-    <div style={s.page}><div style={s.empty}>
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={t.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-      <p style={{ color: t.danger, fontWeight:700 }}>Acesso restrito ao administrador</p>
-      <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
-    </div></div>
-  );
-
   const PERMISSOES_TREINADOR = [
     { id:"ver_atletas",          grupo:"Atletas",      label:"Visualizar atletas" },
     { id:"cadastrar_atletas",    grupo:"Atletas",      label:"Cadastrar / editar atletas" },
@@ -376,6 +367,15 @@ function TelaAdmin({ setHistoricoAcoes }) {
     return (h.nomeUsuario||"").toLowerCase().includes(b)||(h.acao||"").toLowerCase().includes(b)||(h.detalhe||"").toLowerCase().includes(b);
   });
   const { paginado: histPag, infoPage: histInfo } = usePagination(_histFiltradas, 20);
+
+  // ── Guard (APÓS todos os hooks — regra dos hooks React) ──
+  if (usuarioLogado?.tipo !== "admin") return (
+    <div style={s.page}><div style={s.empty}>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={t.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      <p style={{ color: t.danger, fontWeight:700 }}>Acesso restrito ao administrador</p>
+      <button style={s.btnGhost} onClick={() => navigate("/")}>← Voltar</button>
+    </div></div>
+  );
 
   return (
     <div style={s.page}>
