@@ -14,6 +14,9 @@ import { useCrudOrganizadores } from "./hooks/useCrudOrganizadores";
 import { useCrudPessoal } from "./hooks/useCrudPessoal";
 import { useAprovacaoEquipes } from "./hooks/useAprovacaoEquipes";
 import { useVinculos } from "./hooks/useVinculos";
+import { useCrudAtletas } from "./hooks/useCrudAtletas";
+import { useCrudEventos } from "./hooks/useCrudEventos";
+import { useExcluirDadosOrganizador } from "./hooks/useExcluirDadosOrganizador";
 // ── Contexts (Etapa 2 — migração React Router) ──────────────────
 import { AuthProvider, buildAuthValue } from "./contexts/AuthContext";
 import { EventoProvider, buildEventoValue } from "./contexts/EventoContext";
@@ -36,7 +39,6 @@ import { CombinedScoringEngine }           from "./shared/engines/combinedScorin
 import { TeamScoringEngine }               from "./shared/engines/teamScoringEngine";
 import { RecordDetectionEngine }           from "./shared/engines/recordDetectionEngine";
 import RankingExtractionEngine             from "./shared/engines/rankingExtractionEngine";
-import { canCreateEvent, consumirCredito, getUsage } from "./shared/engines/planEngine";
 
 // ── Shared — Constants — Etapa 3 ──────────────────────────────────
 import { ESTADOS_BR, CATEGORIAS, getCategoria,
@@ -61,7 +63,6 @@ import {
 // ══════════════════════════════════════════════════════════════════
 
 import { Header }                  from "./features/layout/Header";
-import { _dtInscricoes }           from "./features/eventos/eventoHelpers";
 
 // ── Lazy-loaded: telas carregadas sob demanda (pré-cacheadas pelo SW) ──
 const TelaHome                    = React.lazy(() => import("./features/eventos/TelaHome"));
@@ -120,10 +121,6 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged,
   sendEmailVerification,
-  storage,
-  storageRef,
-  uploadBytes,
-  getDownloadURL,
   functions,
   httpsCallable,
 } from "./firebase";
@@ -473,92 +470,6 @@ function App() {
 
   const adicionarAtletaUsuario = (u) => _adicionarAtletaUsuario(u);
   const atualizarAtletaUsuario = (u) => _atualizarAtletaUsuario(u);
-  const adicionarAtleta  = async (a) => {
-    await _adicionarAtleta(a);
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Cadastrou atleta", `${a.nome || ""}${a.clube ? " — " + a.clube : ""}${a.sexo ? " · " + (a.sexo === "M" ? "Masc" : "Fem") : ""}`, usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "atletas" });
-  };
-  const adicionarAtletasEmLote = async (lista) => {
-    await _adicionarAtletasEmLote(lista);
-    if (usuarioLogado) {
-      const nomes = lista.slice(0, 10).map(a => a.nome || "?").join(", ");
-      const extra = lista.length > 10 ? ` +${lista.length - 10} mais` : "";
-      registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Importou atletas em lote", `${lista.length} atleta(s): ${nomes}${extra}`, usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "atletas" });
-    }
-  };
-  const atualizarAtleta  = async (a) => {
-    await _atualizarAtleta(a);
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Editou atleta", `${a.nome || ""}${a.clube ? " — " + a.clube : ""}`, usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "atletas" });
-  };
-
-
-
-  const excluirAtleta = async (atletaId) => {
-    const atleta = atletas.find(a => a.id === atletaId);
-    const nomeAtleta = atleta?.nome || "este atleta";
-    
-    if (!await confirmar(`ATENÇÃO: Esta ação é IRREVERSÍVEL!\n\nExcluir "${nomeAtleta}"?\n\nO cadastro será removido permanentemente.\nInscrições e resultados serão mantidos como snapshots.`)) return;
-    
-    _excluirAtletaInterno(atletaId);
-  };
-
-  const _excluirAtletaInterno = (atletaId) => {
-    const atleta = atletas.find(a => a.id === atletaId);
-    const nomeAtleta = atleta?.nome || "atleta";
-    excluirAtletaPorId(atletaId);
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Excluiu atleta", `${nomeAtleta}${atleta?.clube ? " — " + atleta.clube : ""}`, usuarioLogado.organizadorId || null, { equipeId: usuarioLogado.equipeId, modulo: "atletas" });
-    if (atleta) {
-      setAtletasUsuarios(p => p.filter(u => {
-        if (atleta.atletaUsuarioId && u.id === atleta.atletaUsuarioId) return false;
-        if (atleta.email && u.email && u.email.toLowerCase() === atleta.email.toLowerCase()) return false;
-        if (atleta.cpf && u.cpf && u.cpf.replace(/\D/g,"") === atleta.cpf.replace(/\D/g,"")) return false;
-        return true;
-      }));
-    }
-  };
-
-  const excluirAtletasEmMassa = (ids) => {
-    const idsSet = ids instanceof Set ? ids : new Set(ids);
-    const atletasRemovidos = atletas.filter(a => idsSet.has(a.id));
-    excluirAtletasPorIds(idsSet);
-    // Remover contas de usuario vinculadas
-    const emailsRem = new Set();
-    const cpfsRem = new Set();
-    const userIdsRem = new Set();
-    atletasRemovidos.forEach(a => {
-      if (a.atletaUsuarioId) userIdsRem.add(a.atletaUsuarioId);
-      if (a.email) emailsRem.add(a.email.toLowerCase());
-      if (a.cpf) cpfsRem.add(a.cpf.replace(/\D/g, ""));
-    });
-    setAtletasUsuarios(p => p.filter(u => {
-      if (userIdsRem.has(u.id)) return false;
-      if (u.email && emailsRem.has(u.email.toLowerCase())) return false;
-      if (u.cpf && cpfsRem.has(u.cpf.replace(/\D/g, ""))) return false;
-      return true;
-    }));
-    excluirInscricoesPorAtletas(idsSet);
-    if (usuarioLogado) {
-      const nomes = atletasRemovidos.slice(0, 10).map(a => a.nome || "?").join(", ");
-      const extra = atletasRemovidos.length > 10 ? ` +${atletasRemovidos.length - 10} mais` : "";
-      registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Excluiu atletas em massa", `${idsSet.size} atleta(s): ${nomes}${extra}`, usuarioLogado.organizadorId || null, { modulo: "atletas" });
-    }
-  };
-
-  const desvincularAtleta = (atletaId) => {
-    const atleta = atletas.find(a => a.id === atletaId);
-    const equipeAnterior = atleta?.clube || "";
-    const atletaDesv = atletasRef_app.current.find(a => a.id === atletaId);
-    if (atletaDesv) _atualizarAtleta({ ...atletaDesv, equipeId: null, clube: "", equipeAnterior, desvinculadoEm: new Date().toISOString() });
-    // Notifica o atleta se tiver conta própria
-    const contaAtleta = atletasUsuarios.find(u =>
-      u.cpf && atleta?.cpf && u.cpf.replace(/\D/g,"") === atleta.cpf.replace(/\D/g,""));
-    if (contaAtleta) {
-      adicionarNotificacao(contaAtleta.id, "desvinculacao",
-        `Você foi desvinculado${equipeAnterior ? ` da equipe ${equipeAnterior}` : ""}.` +
-        ` Seus resultados anteriores permanecem registrados em nome da equipe.`,
-        { equipeAnterior }
-      );
-    }
-  };
 
   
   // ═══════════════════════════════════════════════════════════════════════════
@@ -567,106 +478,6 @@ function App() {
   
     
 
-  const adicionarEvento = (ev, usuarioLogadoParam) => {
-    const hoje = new Date().toISOString().slice(0, 10);
-    const temAberturaFutura = ev.dataAberturaInscricoes && ev.dataAberturaInscricoes > hoje;
-    const orgPendente = usuarioLogadoParam?.tipo === "organizador";
-
-    // ── Enforcement de plano (admin bypassa) ──
-    const _usr = usuarioLogadoParam || usuarioLogado;
-    let _planCheck = null;
-    if (_usr?.tipo !== "admin") {
-      const orgId = ev.organizadorId || (_usr?.tipo === "organizador" ? _usr?.id : _usr?.organizadorId);
-      const org = organizadores.find(o => o.id === orgId);
-      if (org) {
-        _planCheck = canCreateEvent(org, eventos);
-        if (!_planCheck.allowed) return { blocked: true, reason: _planCheck.reason };
-      }
-    }
-
-    // Gera slug único a partir do nome
-    const gerarSlug = (nome, id) => {
-      const base = (nome || "competicao")
-        .toLowerCase()
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9\s-]/g, "")
-        .trim()
-        .replace(/\s+/g, "-")
-        .slice(0, 60);
-      const ano = new Date().getFullYear();
-      const slug = `${base}-${ano}`;
-      // Garante unicidade adicionando sufixo do ID se já existir
-      const jaExiste = eventos.some(e => e.slug === slug && e.id !== id);
-      return jaExiste ? `${slug}-${id.slice(-4)}` : slug;
-    };
-
-    const id = Date.now().toString();
-    const novo = {
-      ...ev,
-      id,
-      slug: gerarSlug(ev.nome, id),
-      organizadorId: orgPendente ? usuarioLogadoParam.id : (ev.organizadorId || null),
-      statusAprovacao: "aprovado",
-      inscricoesEncerradas: temAberturaFutura ? true : (ev.inscricoesEncerradas ?? false),
-    };
-    _adicionarEvento(novo);
-
-    // Consumir crédito avulso se foi a fonte permitida
-    if (_planCheck?.source === "avulso") {
-      const orgId = novo.organizadorId;
-      const org = organizadores.find(o => o.id === orgId);
-      if (org) {
-        const novosCreditos = consumirCredito(org.creditosAvulso, novo.id);
-        setOrganizadores(prev => prev.map(o => o.id === orgId ? { ...o, creditosAvulso: novosCreditos } : o));
-      }
-    }
-
-    const usr = usuarioLogadoParam || usuarioLogado;
-    if (usr) registrarAcao(usr.id, usr.nome, "Criou competição", ev.nome || "", orgPendente ? usr.id : null, { equipeId: usr.equipeId, modulo: "competicoes" });
-    return novo;
-  };
-
-  const editarEvento = async (ev) => {
-    // Se não tem slug ainda (evento legado), gera agora
-    if (!ev.slug) {
-      const base = (ev.nome || "competicao")
-        .toLowerCase()
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9\s-]/g, "")
-        .trim()
-        .replace(/\s+/g, "-")
-        .slice(0, 60);
-      const ano = ev.data ? ev.data.slice(0, 4) : new Date().getFullYear();
-      const slugBase = `${base}-${ano}`;
-      const jaExiste = eventosRef.current.some(e => e.slug === slugBase && e.id !== ev.id);
-      ev = { ...ev, slug: jaExiste ? `${slugBase}-${ev.id.slice(-4)}` : slugBase };
-    }
-    await _editarEvento(ev);
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Editou competição", ev.nome || "", usuarioLogado.organizadorId || usuarioLogado.id, { equipeId: usuarioLogado.equipeId, modulo: "competicoes" });
-  };
-
-  // Merge parcial — atualiza apenas os campos passados, sem sobrescrever o resto.
-  // Usar em vez de editarEvento({ ...eventoAtual, campo: valor }) para evitar
-  // sobrescrever campos alterados por outro usuário (closure stale).
-  const atualizarCamposEvento = async (eventoId, campos) => {
-    // Gera slug para eventos legados que ainda não têm
-    const evt = eventosRef.current.find(e => e.id === eventoId);
-    if (evt && !evt.slug && (campos.nome || evt.nome)) {
-      const nomeFonte = campos.nome || evt.nome;
-      const base = (nomeFonte || "competicao")
-        .toLowerCase()
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9\s-]/g, "")
-        .trim()
-        .replace(/\s+/g, "-")
-        .slice(0, 60);
-      const ano = (campos.data || evt.data || "").slice(0, 4) || new Date().getFullYear();
-      const slugBase = `${base}-${ano}`;
-      const jaExiste = eventosRef.current.some(e => e.slug === slugBase && e.id !== eventoId);
-      campos = { ...campos, slug: jaExiste ? `${slugBase}-${eventoId.slice(-4)}` : slugBase };
-    }
-    await _atualizarCamposEvento(eventoId, campos);
-  };
 
   // ── Equipes via Firestore ─────────────────────────────────────────────────
   const {
@@ -821,7 +632,7 @@ function App() {
     excluirResultadosPorEvento,
     resetResultados,
     importarResultados,
-  } = useResultados({ eventos, recordes, editarEvento, _atualizarCamposEvento });
+  } = useResultados({ eventos, recordes, _atualizarCamposEvento });
 
   // ── Inscrições via Firestore ──────────────────────────────────────────────
   const {
@@ -835,6 +646,26 @@ function App() {
     importarInscricoes,
     sincronizarNomesEquipes,
   } = useInscricoes({ atletas, registrarAcao, usuarioLogado });
+
+  // ── CRUD Atletas (extraído para useCrudAtletas) ──
+  const {
+    adicionarAtleta, adicionarAtletasEmLote, atualizarAtleta,
+    excluirAtleta, excluirAtletasEmMassa, desvincularAtleta,
+  } = useCrudAtletas({
+    atletas, _adicionarAtleta, _adicionarAtletasEmLote, _atualizarAtleta,
+    excluirAtletaPorId, excluirAtletasPorIds, excluirInscricoesPorAtletas,
+    atletasRef: atletasRef_app, atletasUsuarios, setAtletasUsuarios,
+    confirmar, registrarAcao, adicionarNotificacao, usuarioLogado,
+  });
+
+  // ── CRUD Eventos (extraído para useCrudEventos) ──
+  const { adicionarEvento, editarEvento, atualizarCamposEvento, alterarStatusEvento, excluirEvento } = useCrudEventos({
+    eventos, eventosRef, _adicionarEvento, _editarEvento, _atualizarCamposEvento,
+    excluirEventoPorId, excluirInscricoesPorEvento, limparNumeracaoEvento,
+    inscricoes, atletas, organizadores, setOrganizadores,
+    eventoAtualId, setEventoAtualId,
+    confirmar, registrarAcao, adicionarNotificacao, usuarioLogado, firebaseAuthed,
+  });
 
   // ── Notificação à secretaria quando prova é concluída ────────────────────
   // Colocado aqui pois depende de resultados, inscricoes e atletas (todos declarados acima)
@@ -918,181 +749,15 @@ function App() {
 
 
 
-  const alterarStatusEvento = (id, campos) => {
-    _atualizarCamposEvento(id, campos);
-    const nomeEv = eventosRef.current.find(e => e.id === id)?.nome || "";
-    const detalhe = campos.competicaoFinalizada === true
-      ? `${nomeEv} — Finalizou competição`
-      : campos.competicaoFinalizada === false
-        ? `${nomeEv} — Desbloqueou competição`
-        : campos.inscricoesEncerradas != null
-          ? `${nomeEv} — ${campos.inscricoesEncerradas ? "Encerrou inscrições" : "Abriu inscrições"}`
-          : campos.sumulaLiberada != null
-            ? `${nomeEv} — ${campos.sumulaLiberada ? "Liberou súmulas" : "Bloqueou súmulas"}`
-            : nomeEv;
-    // Notificar equipes com inscrições neste evento quando súmulas são liberadas
-    if (campos.sumulaLiberada === true) {
-      const equipeIds = [...new Set(
-        (inscricoes || []).filter(i => i.eventoId === id).map(i => i.equipeId).filter(Boolean)
-      )];
-      equipeIds.forEach(eqId => adicionarNotificacao(eqId, "sumulas_liberadas",
-        `As súmulas da competição "${nomeEv}" foram liberadas. Acesse o evento para visualizar.`));
-    }
-    // Notificar federações de origem quando inscrições encerram
-    if (campos.inscricoesEncerradas === true) {
-      const ev = eventosRef.current.find(e => e.id === id);
-      const evOrgId = ev?.organizadorId;
-      if (evOrgId) {
-        const inscsEv = (inscricoes || []).filter(i => i.eventoId === id);
-        const orgContagem = {};
-        inscsEv.forEach(i => {
-          const atl = atletas.find(a => a.id === i.atletaId);
-          const oId = i.organizadorOrigem || atl?.organizadorId;
-          if (oId && oId !== evOrgId) orgContagem[oId] = (orgContagem[oId] || 0) + 1;
-        });
-        Object.entries(orgContagem).forEach(([oId, count]) => {
-          adicionarNotificacao(oId, "inscricoes_externas",
-            `${count} inscrição(ões) de seus atletas na competição "${nomeEv}". Inscrições encerradas.`);
-        });
-      }
-    }
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Alterou status competição", detalhe, usuarioLogado.organizadorId || usuarioLogado.id, { equipeId: usuarioLogado.equipeId, modulo: "competicoes" });
-  };
-
-  // ── Auto-gestão de inscrições por data ─────────────────────────────────────
-  useEffect(() => {
-    if (!usuarioLogado || !firebaseAuthed) return; // só roda autenticado
-    const agora = new Date();
-    const updates = []; // { id, campos } — apenas campos que mudaram
-    eventosRef.current.forEach(ev => {
-      const dtAbEv  = _dtInscricoes(ev.dataAberturaInscricoes,    ev.horaAberturaInscricoes);
-      const dtEncEv = _dtInscricoes(ev.dataEncerramentoInscricoes, ev.horaEncerramentoInscricoes);
-      const campos = {};
-      // Auto-abrir
-      if (dtAbEv && agora >= dtAbEv && ev.inscricoesEncerradas && !ev.inscricoesForceEncerradas)
-        campos.inscricoesEncerradas = false;
-      // Auto-encerrar (reavalia sobre o estado já modificado acima)
-      const encerradoApos = "inscricoesEncerradas" in campos ? campos.inscricoesEncerradas : ev.inscricoesEncerradas;
-      if (dtEncEv && agora > dtEncEv && !encerradoApos)
-        campos.inscricoesEncerradas = true;
-      // Antes da abertura
-      if (dtAbEv && agora < dtAbEv && !encerradoApos && !ev.inscricoesForceAbertas)
-        campos.inscricoesEncerradas = true;
-      if (Object.keys(campos).length > 0) updates.push({ id: ev.id, campos });
-    });
-    if (updates.length > 0) {
-      updates.forEach(({ id, campos }) => _atualizarCamposEvento(id, campos));
-    }
-  }, [eventos.length]); // roda ao montar e quando nº de eventos muda
-
-  const excluirEvento = async (id) => {
-    const evento = eventosRef.current.find(e => e.id === id);
-    const nomeEvento = evento?.nome || "esta competição";
-    const nInscs = inscricoes.filter(i => i.eventoId === id).length;
-
-    const msg = `ATENÇÃO: Esta ação é IRREVERSÍVEL!\n\n` +
-      `Você está prestes a excluir "${nomeEvento}".\n\n` +
-      `Isso também excluirá:\n` +
-      `• ${nInscs} inscrição(ões)\n` +
-      `• Todos os resultados desta competição\n` +
-      `• Todas as súmulas\n\n` +
-      `Deseja realmente continuar?`;
-
-    if (!await confirmar(msg)) return;
-
-    excluirEventoPorId(id);
-    excluirInscricoesPorEvento(id);
-    limparNumeracaoEvento(id);
-    if (eventoAtualId === id) setEventoAtualId(null);
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Excluiu competição", `${nomeEvento} (${nInscs} inscrições removidas)`, usuarioLogado.organizadorId || usuarioLogado.id, { equipeId: usuarioLogado.equipeId, modulo: "competicoes" });
-  };
-
-
-
-  // ── EXCLUSÃO COMPLETA DE DADOS DE UM ORGANIZADOR (Fase 3 — D.3.3) ────────
-  const excluirDadosOrganizador = async (orgId) => {
-    const org = organizadores.find(o => o.id === orgId);
-    if (!org) return { erro: "Organizador não encontrado." };
-
-    // 1. Exportar dados (cópia de segurança para reimplantação — D.3.4)
-    const { exportarDadosOrg } = await import("./shared/engines/exportEngine");
-    const arqs = exportarDadosOrg(orgId, { atletas, equipes, inscricoes, resultados, eventos, historicoAcoes });
-
-    // 2. Upload da cópia para Firebase Storage — OBRIGATÓRIO antes de excluir
-    let backupUrl = null;
-    let backupPath = null;
-    try {
-      const dados = {};
-      arqs.forEach(a => { dados[a.nome] = a.conteudo; });
-      const blob = new Blob([JSON.stringify(dados)], { type: "application/json" });
-      const slug = (org.entidade || org.nome || "org").toLowerCase().replace(/\s+/g, "-").slice(0, 30);
-      backupPath = `exports/${orgId}/${slug}_${new Date().toISOString().slice(0, 10)}.json`;
-      const ref = storageRef(storage, backupPath);
-      await uploadBytes(ref, blob);
-      backupUrl = await getDownloadURL(ref);
-    } catch (err) {
-      console.error("[excluirDadosOrganizador] Erro ao salvar backup no Storage:", err);
-      return { erro: "Falha ao salvar backup no servidor. Exclusão abortada para proteção dos dados." };
-    }
-
-    // 3. Verificar se o backup é acessível
-    try {
-      const resp = await fetch(backupUrl, { method: "HEAD" });
-      if (!resp.ok) throw new Error("Backup inacessível");
-    } catch (err) {
-      console.error("[excluirDadosOrganizador] Backup não verificado:", err);
-      return { erro: "Backup salvo mas não pôde ser verificado. Exclusão abortada por segurança." };
-    }
-
-    // 4. Backup confirmado — proceder com exclusão
-    const eventosOrg = eventos.filter(ev => ev.organizadorId === orgId);
-    for (const ev of eventosOrg) {
-      excluirEventoPorId(ev.id);
-      excluirInscricoesPorEvento(ev.id);
-      excluirResultadosPorEvento(ev.id);
-      limparNumeracaoEvento(ev.id);
-    }
-
-    const equipesOrg = equipes.filter(eq => eq.organizadorId === orgId);
-    for (const eq of equipesOrg) excluirEquipePorId(eq.id);
-
-    const atletasOrg = atletas.filter(a => a.organizadorId === orgId);
-    if (atletasOrg.length > 0) {
-      excluirAtletasPorIds(new Set(atletasOrg.map(a => a.id)));
-    }
-
-    // Coletar emails para exclusão de contas Auth
-    const emailsParaExcluir = new Set();
-    if (org.email) emailsParaExcluir.add(org.email.trim().toLowerCase());
-    atletasUsuarios.filter(a => a.organizadorId === orgId && a.email).forEach(a => emailsParaExcluir.add(a.email.trim().toLowerCase()));
-    funcionarios.filter(f => f.organizadorId === orgId && f.email).forEach(f => emailsParaExcluir.add(f.email.trim().toLowerCase()));
-    treinadores.filter(tr => tr.organizadorId === orgId && tr.email).forEach(tr => emailsParaExcluir.add(tr.email.trim().toLowerCase()));
-    equipesOrg.forEach(eq => { if (eq.email) emailsParaExcluir.add(eq.email.trim().toLowerCase()); });
-
-    setAtletasUsuarios(prev => prev.filter(a => a.organizadorId !== orgId));
-    setFuncionarios(prev => prev.filter(f => f.organizadorId !== orgId));
-    setTreinadores(prev => prev.filter(tr => tr.organizadorId !== orgId));
-
-    // Excluir contas Auth vinculadas
-    const deleteAuthUser = httpsCallable(functions, "deleteAuthUser");
-    let authExcluidasCount = 0;
-    for (const email of emailsParaExcluir) {
-      try {
-        await deleteAuthUser({ email });
-        authExcluidasCount++;
-      } catch (err) {
-        console.warn(`[excluirDadosOrganizador] Não foi possível excluir conta Auth ${email}:`, err.message);
-      }
-    }
-
-    editarOrganizadorAdmin({ ...org, dadosExcluidosEm: new Date().toISOString(), plano: null, creditosAvulso: [], exportacaoUrl: backupUrl, exportacaoPath: backupPath, exportacaoPosFim: new Date().toISOString() });
-
-    registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Excluiu dados do organizador (Fase 3)",
-      `${org.entidade}: ${eventosOrg.length} evento(s), ${equipesOrg.length} equipe(s), ${atletasOrg.length} atleta(s), ${authExcluidasCount} conta(s) Auth`,
-      null, { modulo: "licencas" });
-
-    return { arqs, backupUrl };
-  };
+  // ── Exclusão de dados do organizador (extraído para useExcluirDadosOrganizador) ──
+  const { excluirDadosOrganizador } = useExcluirDadosOrganizador({
+    organizadores, atletas, equipes, inscricoes, resultados, eventos, historicoAcoes,
+    atletasUsuarios, funcionarios, treinadores,
+    setAtletasUsuarios, setFuncionarios, setTreinadores,
+    excluirEventoPorId, excluirInscricoesPorEvento, excluirResultadosPorEvento,
+    limparNumeracaoEvento, excluirEquipePorId, excluirAtletasPorIds,
+    editarOrganizadorAdmin, registrarAcao, usuarioLogado,
+  });
 
 
   const _telaSubpath = { "evento-detalhe": "", "novo-evento": "/editar", resultados: "/resultados", sumulas: "/sumulas", "digitar-resultados": "/digitar", "inscricao-avulsa": "/inscricao", "inscricao-revezamento": "/inscricao/revezamento", "gestao-inscricoes": "/gestao-inscricoes", "gerenciar-inscricoes": "/gerenciar-inscricoes", "numeracao-peito": "/numeracao", "config-pontuacao-equipes": "/pontuacao", secretaria: "/secretaria", "export-lynx": "/finishlynx", "gerenciar-membros": "/membros", "preparar-offline": "/offline", regulamento: "/regulamento" };

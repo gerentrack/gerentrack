@@ -204,9 +204,9 @@ function calcularPosicoes(docResultados, provaId) {
  * @param {object} opts
  * @param {Array}    opts.eventos      — lista de eventos (para snapshot de recordes)
  * @param {Array}    opts.recordes     — tipos de recorde (para snapshot de recordes)
- * @param {Function} opts.editarEvento — salva evento com snapshot (para snapshot de recordes)
+ * @param {Function} opts._atualizarCamposEvento — merge parcial de campos no evento
  */
-export function useResultados({ eventos = [], recordes = [], editarEvento, _atualizarCamposEvento } = {}) {
+export function useResultados({ eventos = [], recordes = [], _atualizarCamposEvento } = {}) {
   const [resultados, setResultadosLocal] = useState({});
   const [carregando, setCarregando] = useState(true);
 
@@ -285,7 +285,7 @@ export function useResultados({ eventos = [], recordes = [], editarEvento, _atua
       // ── Snapshot de recordes (lazy: cria na primeira digitação se não existir) ──
       try {
         const evt = eventos.find((e) => e.id === eventoId);
-        if (evt && !evt.recordesSnapshot && editarEvento) {
+        if (evt && !evt.recordesSnapshot && _atualizarCamposEvento) {
           const recSumulaIds = evt.recordesSumulas || [];
           const temVinculo =
             recSumulaIds.length > 0 ||
@@ -311,7 +311,7 @@ export function useResultados({ eventos = [], recordes = [], editarEvento, _atua
         /* silently ignore snapshot errors */
       }
     },
-    [eventos, recordes, editarEvento, _atualizarCamposEvento]
+    [eventos, recordes, _atualizarCamposEvento]
   );
 
   // ── Remove resultado de 1 atleta numa prova ──────────────────────────────
