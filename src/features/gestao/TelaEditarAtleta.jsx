@@ -153,6 +153,10 @@ function TelaEditarAtleta() {
     : atletas;
 
   const handleSalvar = async () => {
+    if (form.nome && form.nome.includes("@")) {
+      alert("Nome não pode ser um e-mail.");
+      return;
+    }
     if (form.cpf && !validarCPF(form.cpf)) {
       alert("CPF inválido — verifique os dígitos digitados.");
       return;

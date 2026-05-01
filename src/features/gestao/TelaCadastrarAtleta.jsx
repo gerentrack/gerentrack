@@ -413,6 +413,7 @@ function TelaCadastrarAtleta({ modoInicial } = {}) {
   const handleSubmit = async () => {
     const e = {};
     if (!form.nome)     e.nome    = "Nome obrigatório";
+    else if (form.nome.includes("@")) e.nome = "Nome não pode ser um e-mail";
     if (!form.dataNasc) e.dataNasc = "Data de nascimento obrigatória";
     else if (form.anoNasc && !getCategoria(form.anoNasc, anoBase)) e.dataNasc = "Idade mínima para cadastro é 11 anos (Sub-14)";
     if (!form.cpf)      e.cpf     = "CPF obrigatório";

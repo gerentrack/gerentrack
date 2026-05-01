@@ -128,6 +128,7 @@ function TelaCadastroAtletaLogin() {
   const validar = () => {
     const e = {};
     if (!form.nome)            e.nome    = "Nome obrigatório";
+    else if (form.nome.includes("@")) e.nome = "Nome não pode ser um e-mail";
     if (!form.organizadorId)   e.organizadorId = "Selecione o organizador";
     if (!form.email)           e.email   = "E-mail obrigatório";
     else if (docModo === "novo" && emailJaCadastrado(form.email, { organizadores, equipes, atletasUsuarios, funcionarios, treinadores }))

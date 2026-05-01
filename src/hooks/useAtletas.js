@@ -84,6 +84,7 @@ export function useAtletas() {
 
   // ── Adicionar 1 atleta ───────────────────────────────────────────────────
   const adicionarAtleta = useCallback(async (a) => {
+    if (a.nome && a.nome.includes("@")) throw new Error("Nome não pode ser um e-mail.");
     if (a.nome) a = { ...a, nome: normalizarNome(a.nome) };
     const dupCpf = cpfDuplicado(a.cpf, a.id);
     if (dupCpf) throw new Error(`CPF já cadastrado para o atleta "${dupCpf.nome}".`);
@@ -130,6 +131,7 @@ export function useAtletas() {
 
   // ── Atualizar 1 atleta ───────────────────────────────────────────────────
   const atualizarAtleta = useCallback(async (a) => {
+    if (a.nome && a.nome.includes("@")) throw new Error("Nome não pode ser um e-mail.");
     if (a.nome) a = { ...a, nome: normalizarNome(a.nome) };
     const dupCpf = cpfDuplicado(a.cpf, a.id);
     if (dupCpf) throw new Error(`CPF já cadastrado para o atleta "${dupCpf.nome}".`);
