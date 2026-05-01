@@ -30,12 +30,25 @@ export default function TelaRanking() {
   });
   const isAdmin = usuarioLogado?.tipo === "admin";
 
-  const [aba, setAba] = useState("ranking"); // "ranking" | "pendencias" | "manual"
+  // ── Permissão de federação para ranking da sua UF ──
+  const isFederacao = usuarioLogado?.tipo === "organizador";
+  const { organizadores } = useApp();
+  const federacaoOrg = isFederacao ? organizadores.find(o => o.id === usuarioLogado.id) : null;
+  const federacaoUf = federacaoOrg?.estado || "";
+  // Federação pode gerenciar entradas de ranking onde atletaUf === sua UF
+  const podeGerenciarEntrada = (entrada) => {
+    if (isAdmin) return true;
+    if (isFederacao && federacaoUf && entrada?.atletaUf === federacaoUf) return true;
+    return false;
+  };
+  const isGestor = isAdmin || (isFederacao && !!federacaoUf);
+
+  const [aba, setAba] = useState("ranking"); // "ranking" | "pendencias" | "manual" | "importar"
   const [filtroProva, setFiltroProva] = useState("todas");
   const [filtroAno, setFiltroAno] = useState("todos");
   const [filtroCat, setFiltroCat] = useState("todas");
   const [filtroSexo, setFiltroSexo] = useState("todos");
-  const [filtroUfAtleta, setFiltroUfAtleta] = useState("todos");
+  const [filtroUfAtleta, setFiltroUfAtleta] = useState(isFederacao && federacaoUf ? federacaoUf : "todos");
   const [filtroUfEvento, setFiltroUfEvento] = useState("todos");
   const [filtroClube, setFiltroClube] = useState("todos");
   const [pagina, setPagina] = useState(0);
@@ -43,7 +56,8 @@ export default function TelaRanking() {
 
   // ── Manual insertion state ──
   const [manualForm, setManualForm] = useState({
-    provaId: "", marca: "", atletaId: "", atletaNome: "", atletaCbat: "", atletaNasc: "", atletaUf: "", atletaClube: "",
+    provaId: "", marca: "", atletaId: "", atletaNome: "", atletaCbat: "", atletaNasc: "",
+    atletaUf: isFederacao && federacaoUf ? federacaoUf : "", atletaClube: "",
     eventoNome: "", eventoData: "", eventoLocal: "", eventoUf: "", categoriaId: "", sexo: "M", vento: "",
   });
 
@@ -122,7 +136,7 @@ export default function TelaRanking() {
   const paginaAtual = rankingFiltrado.slice(pagina * POR_PAG, (pagina + 1) * POR_PAG);
 
   // ── Pendências ──
-  const pendentes = useMemo(() => (ranking || []).filter(r => r.status === "pendente"), [ranking]);
+  const pendentes = useMemo(() => (ranking || []).filter(r => r.status === "pendente" && (isAdmin || (isFederacao && r.atletaUf === federacaoUf))), [ranking, isAdmin, isFederacao, federacaoUf]);
   const pendentesAgrupados = useMemo(() => {
     const grupos = {};
     pendentes.forEach(r => {
@@ -135,12 +149,14 @@ export default function TelaRanking() {
 
   // ── Ações de homologação ──
   const homologar = (entrada) => {
+    if (!podeGerenciarEntrada(entrada)) return;
     setRanking(prev => prev.map(r => r.id === entrada.id ? { ...r, status: "homologado", resolvidoPor: usuarioLogado?.nome, resolvidoEm: Date.now() } : r));
     setHistoricoRanking(prev => [...prev, { tipo: "homologado", entradaId: entrada.id, atletaNome: entrada.atletaNome, provaNome: entrada.provaNome, marca: entrada.marca, adminNome: usuarioLogado?.nome, data: Date.now() }].slice(-500));
     if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Homologou ranking", `${entrada.atletaNome} · ${entrada.provaNome} · ${entrada.marca}`, null, { modulo: "ranking" });
   };
 
   const rejeitar = (entrada) => {
+    if (!podeGerenciarEntrada(entrada)) return;
     setRanking(prev => prev.map(r => r.id === entrada.id ? { ...r, status: "rejeitado", resolvidoPor: usuarioLogado?.nome, resolvidoEm: Date.now() } : r));
     setHistoricoRanking(prev => [...prev, { tipo: "rejeitado", entradaId: entrada.id, atletaNome: entrada.atletaNome, provaNome: entrada.provaNome, marca: entrada.marca, adminNome: usuarioLogado?.nome, data: Date.now() }].slice(-500));
     if (registrarAcao) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Rejeitou ranking", `${entrada.atletaNome} · ${entrada.provaNome} · ${entrada.marca}`, null, { modulo: "ranking" });
@@ -162,6 +178,11 @@ export default function TelaRanking() {
     const prova = todasAsProvas().find(p => p.id === manualForm.provaId);
     if (!prova) { alert("Selecione uma prova."); return; }
     if (!manualForm.marca) { alert("Informe a marca."); return; }
+    // Federação só pode inserir entradas da sua UF
+    if (isFederacao && !isAdmin && manualForm.atletaUf && manualForm.atletaUf !== federacaoUf) {
+      alert(`Sua federação só pode inserir entradas de atletas de ${federacaoUf}.`);
+      return;
+    }
     const marcaNum = parseFloat(String(manualForm.marca).replace(",", "."));
     if (isNaN(marcaNum)) { alert("Marca inválida."); return; }
 
@@ -451,10 +472,10 @@ export default function TelaRanking() {
   // ── Abas ──
   const abas = [
     { id: "ranking", label: "Ranking", badge: null },
-    ...(isAdmin ? [
+    ...(isGestor ? [
       { id: "pendencias", label: "Pendências", badge: pendentes.length || null },
       { id: "manual", label: "Inserção Manual", badge: null },
-      { id: "importar", label: "Importar Planilha", badge: null },
+      ...(isAdmin ? [{ id: "importar", label: "Importar Planilha", badge: null }] : []),
     ] : []),
   ];
 
@@ -712,7 +733,7 @@ export default function TelaRanking() {
       )}
 
       {/* ═══ ABA PENDÊNCIAS ═══ */}
-      {aba === "pendencias" && isAdmin && (
+      {aba === "pendencias" && isGestor && (
         <>
           {pendentesAgrupados.length === 0 ? (
             <div style={s.emptyState}>
@@ -771,7 +792,7 @@ export default function TelaRanking() {
       )}
 
       {/* ═══ ABA INSERÇÃO MANUAL ═══ */}
-      {aba === "manual" && isAdmin && (
+      {aba === "manual" && isGestor && (
         <div style={{ ...s.formCard, maxWidth: 640 }}>
           <h3 style={{ ...s.sectionTitle, marginBottom: 16 }}>Inserção Manual</h3>
 
