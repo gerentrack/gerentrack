@@ -16,9 +16,9 @@
 | Lógica de negócio | 100% no cliente | 3 operações server-side (ranking, recordes, validação) com fallback offline | Expandir API |
 | Renderização | SPA pura, SEO zero | SPA + Open Graph para crawlers (WhatsApp, Google) | SSR real (Fase 2.4) |
 | Testes | Nenhum | 265 testes (engines + componentes), CI no GitHub Actions | Expandir cobertura |
-| App.jsx | ~2.600 linhas | ~2.292 linhas (3 hooks extraídos, props eliminados) | Extrações de risco médio/alto |
+| App.jsx | ~2.600 linhas | 803 linhas (19 hooks + 1 componente extraídos) | Fiação apenas — sem lógica de negócio |
 | Performance | Bundle 1.269KB | Bundle 246KB (-80%), lazy loading em 61 imagens | CDN imagens |
-| Observabilidade | Nenhuma | Sentry (error tracking) + health check (UptimeRobot) | Web Vitals budgets |
+| Observabilidade | Nenhuma | Sentry + health check + logs estruturados (14 routes) | Web Vitals budgets |
 | Integrações | Nenhuma | API privada (3 endpoints) | API pública (Fase 3.2) |
 
 ### Inventário de engines críticos (src/shared/engines/)
@@ -385,8 +385,8 @@ Dados consolidados (pós-competição):
 - [x] Consolidação automática pós-competição (Firestore → PostgreSQL via /api/resultados/consolidar)
 - [x] Desfinalização marca como "revisao" no PostgreSQL (/api/resultados/desfinalizar)
 - [x] 8 endpoints de API operacionais: ranking, recordes, validar-inscricao, consolidar, desfinalizar, migrar-historico, atletas/buscar, atletas/historico
-- [x] App.jsx: 3 hooks extraídos, props eliminados de todas as telas, Header migrado para contexts (2458→2292 linhas)
-- [x] React Router v7 completo: 40+ Route definitions, EventoLayout, FinalizedGuard, tela/setTela removidos (2292→1924 linhas)
+- [x] App.jsx: 19 hooks + 1 componente extraídos, toda lógica de negócio fora (1924→803 linhas, -58%)
+- [x] React Router v7 completo: 40+ Route definitions, EventoLayout, FinalizedGuard, tela/setTela removidos
 - [ ] SSR nativo em rotas públicas (adiado — Open Graph resolve SEO para crawlers)
 - [x] Ranking nacional consultável via SQL (dados consolidados no Supabase)
 
@@ -461,10 +461,9 @@ Dados consolidados (pós-competição):
 3.4.2  Métricas de performance (já tem @vercel/analytics e speed-insights)
        - Definir budgets: LCP < 2.5s, INP < 200ms, CLS < 0.1
        - Dashboard de Web Vitals por rota
-3.4.3  Logs estruturados nas API routes
-       - Request ID para rastreamento
-       - Tempo de resposta por endpoint
-       - Erros de Firestore/PostgreSQL
+3.4.3  ✅ Logs estruturados nas API routes
+       - logger.js (JSON) + withLogger.js (wrapper com requestId + timing)
+       - Aplicado em 14 routes (11 internas + 3 v1 via wrapHandler)
 3.4.4  ✅ Health check endpoint (api/health.js) + UptimeRobot configurado
 ```
 
@@ -495,15 +494,15 @@ Dados consolidados (pós-competição):
 
 ## Roadmap de execução (itens pendentes, em ordem)
 
-> Atualizado em 2026-04-30. Ordem baseada em: dependências técnicas → impacto no produto → risco.
+> Atualizado em 2026-05-01. Ordem baseada em: dependências técnicas → impacto no produto → risco.
 
 ### Bloco 1 — Qualidade interna (pré-requisito para tudo)
 
-| # | Item | Origem | Esforço | Por quê primeiro |
+| # | Item | Origem | Esforço | Status |
 |---|---|---|---|---|
-| 1 | **Decomposição do App.jsx** (<500 linhas) | 2.3 | 2-3 dias | Reduz risco de regressão em todas as mudanças seguintes. Extrair hooks: useNotificacoes, useAuditoria, useBranding, useSolicitacoes |
-| 2 | **Logs estruturados nas API routes** | 3.4.3 | 1 dia | Request ID, tempo de resposta, erros — necessário para diagnosticar problemas antes de escalar |
-| 3 | **Rate limiting nas API routes** | 3.5.1 | 1 dia | Proteger endpoints antes de abrir autonomia para federações |
+| 1 | **Decomposição do App.jsx** (803 linhas, -58%) | 2.3 | 2-3 dias | ✅ 19 hooks + 1 componente extraídos |
+| 2 | **Logs estruturados nas API routes** | 3.4.3 | 1 dia | ✅ logger.js + withLogger.js em 14 routes |
+| 3 | **Rate limiting nas API routes** | 3.5.1 | 1 dia | Próximo |
 
 ### Bloco 2 — Autonomia de federações (feature principal)
 
