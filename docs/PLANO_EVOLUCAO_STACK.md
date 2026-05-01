@@ -398,24 +398,67 @@ Dados consolidados (pós-competição):
 
 **Duração estimada**: 12–20 semanas (pode ser faseada internamente)
 
-### 3.1 Autonomia de federações
+### 3.1 Modelo de papéis: Federação + Confederação
 
-**Contexto**: federações estaduais SÃO os organizadores do sistema (não existe camada separada). Já possuem painel de organizador, gerenciam competições, inscrições, resultados e funcionários. O que falta é autonomia para gestão de recordes e visibilidade de ranking.
+**Contexto**: O GERENTRACK opera exclusivamente com **federações estaduais** como organizadores. Não existem organizadores genéricos — todo organizador é uma federação vinculada a uma UF. A **Confederação Brasileira de Atletismo (CBAt)** poderá acessar o sistema com papel similar ao admin, porém com restrições.
+
+**Hierarquia de papéis**:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ Admin (GERENTRACK)                                              │
+│   - Gestão técnica do sistema (branding, config, usuários)      │
+│   - Aprovação/recusa de federações                              │
+│   - Acesso total a todos os dados                               │
+│   - Gestão de planos e licenças                                 │
+├─────────────────────────────────────────────────────────────────┤
+│ Confederação (CBAt) — modelo a definir                          │
+│   - Acesso a recordes nacionais e ranking consolidado           │
+│   - Pode ser: papel interno (login), integração (API), ou ambos │
+│   - Funcionalidades similares ao admin, com restrições          │
+│   - Decisão depende de como a CBAt quer interagir               │
+├─────────────────────────────────────────────────────────────────┤
+│ Federação estadual (= organizador)                              │
+│   - Gerencia competições, inscrições, resultados, funcionários  │
+│   - Gerencia recordes ESTADUAIS da sua UF                       │
+│   - Gerencia ranking da sua UF (aprovar/rejeitar entradas)      │
+│   - Visualiza ranking nacional (read-only)                      │
+│   - Gerencia equipes e atletas da sua jurisdição                │
+└─────────────────────────────────────────────────────────────────┘
+```
 
 **Tarefas**:
 
 ```
-3.1.1  Permitir que federações gerenciem seus próprios recordes estaduais
-       - Hoje apenas o admin pode criar/editar tipos de recorde
-       - Federação poderá criar, editar e homologar recordes do seu estado
-       - Admin mantém controle sobre recordes nacionais
-3.1.2  Ranking: federação vê ranking nacional, gerencia entradas do seu estado
-       - Aprovar/rejeitar entradas de ranking da sua UF
-       - Visualização do ranking nacional completo (read-only)
-3.1.3  (Opcional) Subdomínios por federação:
-       - fmat.gerentrack.com.br como atalho para o perfil público da federação
+3.1.1  Recordes por escopo (estadual / nacional)
+       - Federação gerencia recordes do seu estado (escopo: UF)
+       - Confederação gerencia recordes nacionais (escopo: nacional)
+       - Admin mantém acesso total como fallback
+       - Campo `escopo` + `uf` no tipo de recorde determina permissão
+       - Homologação: federação/confederação marca como "homologado" ou "pendente"
+
+3.1.2  Ranking por UF com gestão pela federação
+       - Federação vê e gerencia entradas de ranking da sua UF
+       - Aprovar/rejeitar entradas antes de publicar
+       - Confederação visualiza ranking nacional (composição de todas UFs)
+       - Exportação de ranking estadual (CSV/XLSX)
+
+3.1.3  Confederação (CBAt) — modelo a definir
+       - Opção A: Papel interno — novo tipo "confederacao" com painel admin restrito
+       - Opção B: Integração externa — CBAt consome dados via API pública v1
+       - Opção C: Híbrido — login no sistema (RO) + API para automações
+       - Independente do modelo: acesso a recordes nacionais e ranking consolidado
+       - Decisão depende de como a CBAt quer interagir com o sistema
+
+3.1.4  (Opcional) Subdomínios por federação
+       - fmat.gerentrack.com.br como atalho para o perfil público
        - Mesmo app, detecta federação pelo hostname
        - Configuração de DNS na Vercel (zero custo)
+
+3.1.5  Renomear "organizador" → "federação" na UI
+       - Labels, textos, notificações, auditoria
+       - Manter campo `tipo: "organizador"` no banco por retrocompatibilidade
+       - Alias na UI: organizador = federação
 ```
 
 ### 3.2 Integrações externas
@@ -432,9 +475,10 @@ Dados consolidados (pós-competição):
        - Competição finalizada → webhook com resultados
        - Recorde detectado → webhook com detalhes
 3.2.4  Import de dados de outras plataformas de atletismo
-3.2.5  Integração com CBAt (quando disponível)
-       - Registro nacional de atletas
-       - Envio automático de resultados oficiais
+3.2.5  Integração com CBAt
+       - Modelo de acesso definido em 3.1.3 (papel interno, API, ou híbrido)
+       - Exportação de resultados para formato World Athletics
+       - Registro nacional de atletas (futuro, depende de especificação da CBAt)
 ```
 
 ### 3.3 Performance e code splitting
@@ -486,7 +530,7 @@ Dados consolidados (pós-competição):
 - [x] Code splitting: bundle principal de 1269KB → 246KB (-80%), manualChunks para Firebase/React
 - [x] Sentry integrado (@sentry/react, habilitado em produção)
 - [x] Health check monitorado (api/health.js + UptimeRobot)
-- [ ] Autonomia de federações: gestão de recordes estaduais + ranking por UF
+- [ ] Modelo federação + confederação: recordes por escopo, ranking por UF, papel CBAt
 - [ ] Web Vitals dentro dos budgets (LCP < 2.5s, INP < 200ms)
 - [ ] Endpoints LGPD (exportação e exclusão de dados)
 
@@ -504,31 +548,33 @@ Dados consolidados (pós-competição):
 | 2 | **Logs estruturados nas API routes** | 3.4.3 | 1 dia | ✅ logger.js + withLogger.js em 14 routes |
 | 3 | **Rate limiting nas API routes** | 3.5.1 | 1 dia | ✅ In-memory por IP+endpoint, integrado no withLogger |
 
-### Bloco 2 — Autonomia de federações (feature principal)
+### Bloco 2 — Modelo Federação + Confederação (feature principal)
 
 | # | Item | Origem | Esforço | Dependências |
 |---|---|---|---|---|
-| 4 | **Recordes estaduais gerenciados por federação** | 3.1.1 | 3-5 dias | Rate limiting (3) |
-| 5 | **Ranking por UF — federação gerencia seu estado** | 3.1.2 | 3-5 dias | Recordes estaduais (4) |
-| 6 | **Subdomínios por federação** (opcional) | 3.1.3 | 1 dia | DNS Vercel, zero código — só config. Atalho para perfil público |
+| 4 | **Recordes por escopo** (federação → estadual, confederação → nacional) | 3.1.1 | 3-5 dias | Rate limiting ✅ |
+| 5 | **Ranking por UF** — federação gerencia, confederação visualiza | 3.1.2 | 3-5 dias | Recordes (4) |
+| 6 | **Confederação (CBAt)** — modelo a definir (papel interno / API / híbrido) | 3.1.3 | 2-3 dias | Recordes (4) |
+| 7 | **Renomear organizador → federação** na UI | 3.1.5 | 1 dia | Confederação (6) |
+| 8 | **Subdomínios por federação** (opcional) | 3.1.4 | 1 dia | DNS Vercel, zero código |
 
 ### Bloco 3 — Compliance e segurança
 
 | # | Item | Origem | Esforço | Por quê nesta ordem |
 |---|---|---|---|---|
-| 7 | **Endpoints LGPD** (exportação + exclusão de dados) | 3.5.5 | 2-3 dias | Obrigação legal antes do lançamento nacional |
-| 8 | **CSRF protection** para mutações | 3.5.2 | 1 dia | Segurança básica |
-| 9 | **Audit log server-side** | 3.5.3 | 2 dias | Complementa historicoAcoes do cliente |
-| 10 | **Backup automatizado PostgreSQL** | 3.5.4 | 0.5 dia | Config no Supabase |
+| 9 | **Endpoints LGPD** (exportação + exclusão de dados) | 3.5.5 | 2-3 dias | Obrigação legal antes do lançamento nacional |
+| 10 | **CSRF protection** para mutações | 3.5.2 | 1 dia | Segurança básica |
+| 11 | **Audit log server-side** | 3.5.3 | 2 dias | Complementa historicoAcoes do cliente |
+| 12 | **Backup automatizado PostgreSQL** | 3.5.4 | 0.5 dia | Config no Supabase |
 
 ### Bloco 4 — Performance e integrações
 
 | # | Item | Origem | Esforço | Dependências |
 |---|---|---|---|---|
-| 11 | **Web Vitals budgets** (LCP < 2.5s, INP < 200ms) | 3.4.2 | 2 dias | Medir, definir budgets, otimizar rotas críticas |
-| 12 | **Service Worker otimizado** | 3.3.5 | 2 dias | stale-while-revalidate para assets, network-first para dados |
-| 13 | **Integrações externas** (World Athletics, webhooks, CBAt) | 3.2 | 5-10 dias | API pública já existe; depende de especificações externas |
-| 14 | **Penetration testing** | 3.5.6 | Externo | Antes do lançamento nacional |
+| 13 | **Web Vitals budgets** (LCP < 2.5s, INP < 200ms) | 3.4.2 | 2 dias | Medir, definir budgets, otimizar rotas críticas |
+| 14 | **Service Worker otimizado** | 3.3.5 | 2 dias | stale-while-revalidate para assets, network-first para dados |
+| 15 | **Integrações externas** (World Athletics, webhooks) | 3.2 | 5-10 dias | API pública já existe; depende de especificações externas |
+| 16 | **Penetration testing** | 3.5.6 | Externo | Antes do lançamento nacional |
 
 ### Adiados (sem prazo definido)
 
