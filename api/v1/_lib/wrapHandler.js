@@ -1,13 +1,21 @@
 const { validarApiKey } = require('./apiKeyAuth');
 const { checkRateLimit } = require('./rateLimiter');
 const { parsePagination } = require('./pagination');
+const { setContext, info, error } = require('../../_lib/logger');
 
 /**
  * Wrapper para endpoints da API pública v1.
- * Aplica: CORS → método → auth → rate limit → handler.
+ * Aplica: CORS → método → auth → rate limit → logger → handler.
  */
 function wrapHandler(handler) {
   return async function (req, res) {
+    const requestId = `req_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+    const endpoint = req.url?.split('?')[0] || req.url;
+    const start = Date.now();
+
+    res.setHeader('X-Request-Id', requestId);
+    setContext(requestId, endpoint);
+
     // CORS + Identificação
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Headers', 'X-API-Key, Content-Type');
@@ -46,11 +54,18 @@ function wrapHandler(handler) {
     // Paginação
     const pagination = parsePagination(req.query);
 
+    info('request', { method: req.method, query: req.query, apiKeyId: apiKey.id });
+
     try {
-      return await handler(req, res, { apiKey, pagination });
+      const result = await handler(req, res, { apiKey, pagination });
+      info('response', { status: res.statusCode, duration: Date.now() - start });
+      return result;
     } catch (err) {
-      console.error('[API v1] Erro:', err);
+      const duration = Date.now() - start;
+      error('unhandled_error', { status: 500, duration, error: err.message, stack: err.stack?.split('\n').slice(0, 3).join(' | ') });
       return res.status(500).json({ erro: 'Erro interno do servidor' });
+    } finally {
+      setContext(null, null);
     }
   };
 }

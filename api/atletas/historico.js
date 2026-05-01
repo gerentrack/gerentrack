@@ -1,5 +1,6 @@
 const { supabase } = require('../_lib/supabase');
 const { verificarToken } = require('../_lib/auth');
+const { withLogger } = require('../_lib/withLogger');
 
 /**
  * GET /api/atletas/historico?id=atletaId
@@ -11,7 +12,7 @@ const { verificarToken } = require('../_lib/auth');
  *
  * Requer autenticação via token Firebase.
  */
-module.exports = async function handler(req, res) {
+module.exports = withLogger(async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Método não permitido' });
   }
@@ -128,4 +129,4 @@ module.exports = async function handler(req, res) {
     console.error('Erro ao buscar histórico:', err);
     return res.status(500).json({ error: 'Erro interno ao buscar histórico do atleta' });
   }
-};
+});

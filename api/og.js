@@ -1,4 +1,5 @@
 const { db } = require('./_lib/firestore');
+const { withLogger } = require('./_lib/withLogger');
 
 /**
  * GET /api/og?slug=copa-minas-2026
@@ -9,7 +10,7 @@ const { db } = require('./_lib/firestore');
 
 const DEFAULT_OG_IMAGE = 'https://gerentrack.com.br/pwa-512x512.png';
 
-module.exports = async function handler(req, res) {
+module.exports = withLogger(async function handler(req, res) {
   const { slug } = req.query;
 
   if (!slug) {
@@ -82,7 +83,7 @@ module.exports = async function handler(req, res) {
     console.error('Erro OG:', err);
     return res.redirect(307, url);
   }
-};
+});
 
 function esc(str) {
   return String(str || '')

@@ -2,6 +2,7 @@ const { db } = require('../_lib/firestore');
 const { supabase } = require('../_lib/supabase');
 const { verificarToken, verificarAdmin } = require('../_lib/auth');
 const PROVAS_DEF = require('../../src/domain/provas/provasDef.json');
+const { withLogger } = require('../_lib/withLogger');
 
 // Mapa provaId → { nome, unidade } a partir do provasDef.json
 const provasDefMap = {};
@@ -51,7 +52,7 @@ function formatarMarcaApi(valor, unidade) {
  *
  * Requer autenticação + admin ou organizador do evento.
  */
-module.exports = async function handler(req, res) {
+module.exports = withLogger(async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido' });
   }
@@ -290,4 +291,4 @@ module.exports = async function handler(req, res) {
     console.error('Erro ao consolidar:', err);
     return res.status(500).json({ error: 'Erro interno ao consolidar competição' });
   }
-};
+});

@@ -1,5 +1,6 @@
 const { db } = require('./_lib/firestore');
 const { verificarToken } = require('./_lib/auth');
+const { withLogger } = require('./_lib/withLogger');
 
 /**
  * GET /api/ranking?uf=SP
@@ -8,7 +9,7 @@ const { verificarToken } = require('./_lib/auth');
  * Retorna entradas de ranking por UF ou nacional.
  * Requer autenticação via token Firebase.
  */
-module.exports = async function handler(req, res) {
+module.exports = withLogger(async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Método não permitido' });
   }
@@ -53,4 +54,4 @@ module.exports = async function handler(req, res) {
     console.error('Erro ao buscar ranking:', err);
     return res.status(500).json({ error: 'Erro interno ao buscar ranking' });
   }
-};
+});

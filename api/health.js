@@ -1,10 +1,12 @@
+const { withLogger } = require('./_lib/withLogger');
+
 /**
  * GET /api/health
  *
  * Verifica conectividade com Firebase Firestore.
  * Usado pelo UptimeRobot para monitoramento real dos serviços.
  */
-module.exports = async function handler(req, res) {
+module.exports = withLogger(async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     return res.status(405).json({ error: 'Método não permitido' });
   }
@@ -39,4 +41,4 @@ module.exports = async function handler(req, res) {
     ...checks,
     timestamp: new Date().toISOString(),
   });
-};
+});

@@ -1,6 +1,7 @@
 const { db } = require('../_lib/firestore');
 const { verificarToken } = require('../_lib/auth');
 const PROVAS_DEF = require('../../src/domain/provas/provasDef.json');
+const { withLogger } = require('../_lib/withLogger');
 
 // Mapa provaId → { unidade, tipo, id }
 const provasMap = {};
@@ -180,7 +181,7 @@ function calcularPosicoes(docResultados, provaId) {
  * Aplica desempate RT 26.9 (altura/vara) e RT 25.22 (campo).
  * Requer autenticação.
  */
-module.exports = async function handler(req, res) {
+module.exports = withLogger(async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido' });
   }
@@ -254,4 +255,4 @@ module.exports = async function handler(req, res) {
     console.error('Erro ao recalcular posições:', err);
     return res.status(500).json({ error: 'Erro interno: ' + err.message });
   }
-};
+});

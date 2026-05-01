@@ -1,5 +1,6 @@
 const { supabase } = require('../_lib/supabase');
 const { verificarToken } = require('../_lib/auth');
+const { withLogger } = require('../_lib/withLogger');
 
 /**
  * POST /api/resultados/desfinalizar
@@ -9,7 +10,7 @@ const { verificarToken } = require('../_lib/auth');
  * Dados não são apagados — ficam excluídos de consultas públicas
  * até a próxima finalização (re-consolidação).
  */
-module.exports = async function handler(req, res) {
+module.exports = withLogger(async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido' });
   }
@@ -43,4 +44,4 @@ module.exports = async function handler(req, res) {
     console.error('Erro ao desfinalizar no PostgreSQL:', err);
     return res.status(500).json({ error: 'Erro interno ao desfinalizar' });
   }
-};
+});

@@ -1,5 +1,6 @@
 const { db } = require('./_lib/firestore');
 const { verificarToken } = require('./_lib/auth');
+const { withLogger } = require('./_lib/withLogger');
 
 /**
  * POST /api/validar-inscricao
@@ -10,7 +11,7 @@ const { verificarToken } = require('./_lib/auth');
  *
  * Requer autenticação via token Firebase.
  */
-module.exports = async function handler(req, res) {
+module.exports = withLogger(async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido' });
   }
@@ -52,7 +53,7 @@ module.exports = async function handler(req, res) {
     console.error('Erro ao validar inscrição:', err);
     return res.status(500).json({ error: 'Erro interno ao validar inscrição' });
   }
-};
+});
 
 // ─── Lógica de validação (replicada do inscricaoEngine.js) ─────────────────
 
