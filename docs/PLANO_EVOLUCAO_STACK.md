@@ -530,7 +530,9 @@ Dados consolidados (pós-competição):
 - [x] Code splitting: bundle principal de 1269KB → 246KB (-80%), manualChunks para Firebase/React
 - [x] Sentry integrado (@sentry/react, habilitado em produção)
 - [x] Health check monitorado (api/health.js + UptimeRobot)
-- [ ] Modelo federação + confederação: recordes por escopo, ranking por UF, papel CBAt
+- [x] Recordes por escopo: federação gerencia estaduais da sua UF, admin mantém acesso total
+- [x] Ranking por UF: federação gerencia pendências/inserção da sua UF
+- [ ] Confederação (CBAt): modelo a definir (papel interno / API / híbrido)
 - [ ] Web Vitals dentro dos budgets (LCP < 2.5s, INP < 200ms)
 - [ ] Endpoints LGPD (exportação e exclusão de dados)
 
@@ -538,7 +540,7 @@ Dados consolidados (pós-competição):
 
 ## Roadmap de execução (itens pendentes, em ordem)
 
-> Atualizado em 2026-05-01. Ordem baseada em: dependências técnicas → impacto no produto → risco.
+> Atualizado em 2026-05-01 (sessão 2). Ordem baseada em: dependências técnicas → impacto no produto → risco.
 
 ### Bloco 1 — Qualidade interna (pré-requisito para tudo)
 
@@ -550,12 +552,12 @@ Dados consolidados (pós-competição):
 
 ### Bloco 2 — Modelo Federação + Confederação (feature principal)
 
-| # | Item | Origem | Esforço | Dependências |
+| # | Item | Origem | Esforço | Status |
 |---|---|---|---|---|
-| 4 | **Recordes por escopo** (federação → estadual, confederação → nacional) | 3.1.1 | 3-5 dias | Rate limiting ✅ |
-| 5 | **Ranking por UF** — federação gerencia, confederação visualiza | 3.1.2 | 3-5 dias | Recordes (4) |
-| 6 | **Confederação (CBAt)** — modelo a definir (papel interno / API / híbrido) | 3.1.3 | 2-3 dias | Recordes (4) |
-| 7 | **Renomear organizador → federação** na UI | 3.1.5 | 1 dia | Confederação (6) |
+| 4 | **Recordes por escopo** (federação → estadual) | 3.1.1 | 3-5 dias | ✅ podeGerenciar(tipo) por UF |
+| 5 | **Ranking por UF** — federação gerencia pendências/inserção | 3.1.2 | 3-5 dias | ✅ podeGerenciarEntrada por atletaUf |
+| 6 | **Confederação (CBAt)** — modelo a definir | 3.1.3 | 2-3 dias | Adiado — depende de definição de negócio |
+| 7 | **Renomear organizador → federação** na UI | 3.1.5 | 1 dia | Adiado — polimento para deploy nacional |
 | 8 | **Subdomínios por federação** (opcional) | 3.1.4 | 1 dia | DNS Vercel, zero código |
 
 ### Bloco 3 — Compliance e segurança
