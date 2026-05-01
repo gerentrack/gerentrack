@@ -15,11 +15,24 @@ import { useApp } from "../../contexts/AppContext";
 function TelaRecordes() {
   const { usuarioLogado } = useAuth();
   const { recordes, setRecordes, eventos, atletas, equipes, getClubeAtleta, pendenciasRecorde, setPendenciasRecorde, historicoRecordes, setHistoricoRecordes } = useEvento();
-  const { registrarAcao } = useApp();
+  const { registrarAcao, organizadores } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(criarInscricaoStyles(t));
   const confirmar = useConfirm();
   const isAdmin = usuarioLogado?.tipo === "admin";
+
+  // ── Permissão de federação para recordes estaduais ──
+  const isFederacao = usuarioLogado?.tipo === "organizador";
+  const federacaoOrg = isFederacao ? organizadores.find(o => o.id === usuarioLogado.id) : null;
+  const federacaoUf = federacaoOrg?.estado || "";
+  // Federação pode gerenciar recordes estaduais da sua UF
+  const podeGerenciar = (tipo) => {
+    if (isAdmin) return true;
+    if (isFederacao && federacaoUf && tipo?.escopo === "estado" && tipo?.estado === federacaoUf) return true;
+    return false;
+  };
+  // Tem permissão de gestão (admin ou federação com UF)
+  const isGestor = isAdmin || (isFederacao && !!federacaoUf);
   const [tipoSel, setTipoSel] = useState(null); // id do tipo selecionado
   const [editReg, setEditReg] = useState(null); // registro em edição
   const [importPreview, setImportPreview] = useState(null); // preview de importação
@@ -51,6 +64,13 @@ function TelaRecordes() {
     if (novoTipo.escopo === "pais" && !novoTipo.pais.trim()) return;
     if (novoTipo.escopo === "estado" && (!novoTipo.pais.trim() || !novoTipo.estado.trim())) return;
     if (novoTipo.escopo === "municipio" && (!novoTipo.pais.trim() || !novoTipo.estado.trim() || !novoTipo.municipio.trim())) return;
+    // Federação só pode criar tipo estadual da sua UF
+    if (isFederacao && !isAdmin) {
+      if (novoTipo.escopo !== "estado" || novoTipo.estado !== federacaoUf) {
+        alert(`Sua federação só pode criar recordes estaduais de ${federacaoUf}.`);
+        return;
+      }
+    }
     const novo = {
       id: `rec_${Date.now()}`, nome: novoTipo.nome.trim(), sigla: novoTipo.sigla.trim().toUpperCase(),
       escopo: novoTipo.escopo,
@@ -498,19 +518,23 @@ function TelaRecordes() {
           <p style={{ color:t.textDimmed, fontSize:13 }}>Acervo de recordes</p>
         </div>
         <div style={{ display:"flex", gap:8, alignItems:"center" }}>
-          {isAdmin && (
-            <button style={s.btnPrimary} onClick={() => setShowNovoTipo(true)}>+ Novo Tipo de Recorde</button>
+          {isGestor && (
+            <button style={s.btnPrimary} onClick={() => {
+              // Federação: pré-preencher escopo e estado
+              if (isFederacao && federacaoUf) setNovoTipo(prev => ({ ...prev, escopo: "estado", estado: federacaoUf }));
+              setShowNovoTipo(true);
+            }}>+ Novo Tipo de Recorde</button>
           )}
         </div>
       </div>
 
       {/* Abas principais */}
-      {isAdmin && (
+      {isGestor && (
         <div style={{ display:"flex", gap:6, marginBottom:16, borderBottom:`1px solid ${t.borderLight}`, paddingBottom:8 }}>
           {[
             { id: "registros", label: "Registros", count: null },
-            { id: "pendencias", label: "Pendencias", count: (pendenciasRecorde || []).filter(p => p.status === "pendente").length },
-            { id: "historico", label: "Historico", count: (historicoRecordes || []).length },
+            { id: "pendencias", label: "Pendências", count: (pendenciasRecorde || []).filter(p => p.status === "pendente" && (isAdmin || (isFederacao && p.recordeEstado === federacaoUf))).length },
+            { id: "historico", label: "Histórico", count: null },
           ].map(aba => (
             <button key={aba.id} onClick={() => setAbaRecordes(aba.id)}
               style={{
@@ -530,9 +554,9 @@ function TelaRecordes() {
       )}
 
       {/* ═══ ABA: REGISTROS ═══ */}
-      {(abaRecordes === "registros" || !isAdmin) && (<>
+      {(abaRecordes === "registros" || !isGestor) && (<>
       {/* Modal novo tipo */}
-      {showNovoTipo && isAdmin && (
+      {showNovoTipo && isGestor && (
         <div style={{ ...S.card, border:`2px solid ${t.accent}` }}>
           <div style={{ color:t.accent, fontWeight:700, fontSize:14, marginBottom:12 }}>Criar Tipo de Recorde</div>
 
@@ -638,7 +662,7 @@ function TelaRecordes() {
             const eb = escopoOrdem.indexOf(grupoMeta[b].escopo);
             return ea - eb || a.localeCompare(b);
           });
-          if (chaves.length === 0) return <p style={{ color:t.textDimmed, fontSize:13 }}>Nenhum tipo de recorde cadastrado.{isAdmin ? " Clique em '+ Novo Tipo' para começar." : ""}</p>;
+          if (chaves.length === 0) return <p style={{ color:t.textDimmed, fontSize:13 }}>Nenhum tipo de recorde cadastrado.{isGestor ? " Clique em '+ Novo Tipo' para começar." : ""}</p>;
           return chaves.map(key => (
             <div key={key} style={{ marginBottom:10 }}>
               <div style={{ color:t.textDimmed, fontSize:11, fontWeight:700, marginBottom:5, textTransform:"uppercase", letterSpacing:1 }}>
@@ -670,7 +694,7 @@ function TelaRecordes() {
           {/* Header do tipo */}
           <div style={{ ...S.card, display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:10 }}>
             <div>
-              {editTipoId === tipoAtivo.id && isAdmin ? (
+              {editTipoId === tipoAtivo.id && podeGerenciar(tipoAtivo) ? (
                 <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap" }}>
                   <input style={{ ...S.inputSm, width:250 }} value={tipoAtivo.nome}
                     onChange={e => editarTipo(tipoAtivo.id, "nome", e.target.value)} />
@@ -709,13 +733,13 @@ function TelaRecordes() {
                       : (tipoAtivo.escopo||"estado") === "municipio" ? `${tipoAtivo.municipio || ""}, ${tipoAtivo.estado || ""}`
                       : `${tipoAtivo.estado || "Estado"}`}
                   </span>
-                  {isAdmin && <button style={{ background:"none", border:"none", color:t.textDimmed, cursor:"pointer", marginLeft:8, fontSize:12 }}
+                  {podeGerenciar(tipoAtivo) && <button style={{ background:"none", border:"none", color:t.textDimmed, cursor:"pointer", marginLeft:8, fontSize:12 }}
                     onClick={() => setEditTipoId(tipoAtivo.id)}>Editar</button>}
                 </div>
               )}
               <div style={{ color:t.textDimmed, fontSize:12, marginTop:2 }}>{tipoAtivo.registros.length} registros</div>
             </div>
-            {isAdmin && (
+            {podeGerenciar(tipoAtivo) && (
               <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
                 <button style={{ ...s.btnPrimary, fontSize:11 }}
                   onClick={() => setEditReg({ categoriaId:"", sexo:"M", provaNome:"", marca:"", atleta:"", equipe:"", ano:"", local:"", provaId:"", unidade:"", atletaId:null, fonte:"manual", atletasRevezamento:null })}>
@@ -968,7 +992,7 @@ function TelaRecordes() {
           })()}
 
           {/* Formulário de edição de registro */}
-          {editReg && isAdmin && (
+          {editReg && podeGerenciar(tipoAtivo) && (
             <div style={{ ...S.card, border:"2px solid #4a8aff" }}>
               <div style={{ color:t.accent, fontWeight:700, fontSize:13, marginBottom:10 }}>{editReg.id ? "Editar Registro" : "Novo Registro"}</div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
@@ -1105,8 +1129,8 @@ function TelaRecordes() {
                   <th style={{ padding:"8px 10px", textAlign:"left", color:t.textMuted, fontSize:10 }}>Equipe</th>
                   <th style={{ padding:"8px 6px", color:t.textMuted, fontSize:10 }}>Ano</th>
                   <th style={{ padding:"8px 10px", textAlign:"left", color:t.textMuted, fontSize:10 }}>Local</th>
-                  {isAdmin && <th style={{ padding:"8px 6px", color:t.textMuted, fontSize:10 }}>Fonte</th>}
-                  {isAdmin && <th style={{ padding:"8px 6px", color:t.textMuted, fontSize:10 }}>Ações</th>}
+                  {podeGerenciar(tipoAtivo) && <th style={{ padding:"8px 6px", color:t.textMuted, fontSize:10 }}>Fonte</th>}
+                  {podeGerenciar(tipoAtivo) && <th style={{ padding:"8px 6px", color:t.textMuted, fontSize:10 }}>Ações</th>}
                 </tr>
               </thead>
               <tbody>
@@ -1143,7 +1167,7 @@ function TelaRecordes() {
                     <td style={{ padding:"6px 10px", color:t.textMuted }}>{RecordHelper.getEquipeTexto(r)}</td>
                     <td style={{ padding:"6px 6px", color:t.textMuted, textAlign:"center" }}>{RecordHelper.getAnoTexto(r)}</td>
                     <td style={{ padding:"6px 10px", color:t.textMuted }}>{RecordHelper.getLocalTexto(r)}</td>
-                    {isAdmin && (
+                    {podeGerenciar(tipoAtivo) && (
                       <td style={{ padding:"6px 6px", textAlign:"center" }}>
                         <span style={{ fontSize:9, padding:"2px 6px", borderRadius:3, fontWeight:600,
                           background: r.fonte === "auto" ? `${t.success}15` : t.bgCardAlt,
@@ -1151,7 +1175,7 @@ function TelaRecordes() {
                         }}>{r.fonte === "auto" ? "Auto" : "Manual"}</span>
                       </td>
                     )}
-                    {isAdmin && (
+                    {podeGerenciar(tipoAtivo) && (
                       <td style={{ padding:"6px 6px", textAlign:"center" }}>
                         <button style={{ background:"none", border:"none", color:t.accent, cursor:"pointer", fontSize:11, marginRight:4 }}
                           onClick={async () => {
@@ -1167,7 +1191,7 @@ function TelaRecordes() {
                   </tr>
                   {r.marcasComponentes && Object.keys(r.marcasComponentes).length > 0 && (
                     <tr style={{ borderBottom:`1px solid ${t.border}`, background: idx % 2 === 0 ? t.bgHeaderSolid : `${t.bgCardAlt}99` }}>
-                      <td colSpan={isAdmin ? 10 : 9} style={{ padding:"2px 10px 6px 30px" }}>
+                      <td colSpan={podeGerenciar(tipoAtivo) ? 10 : 8} style={{ padding:"2px 10px 6px 30px" }}>
                         <span style={{ fontSize:9, color:t.textMuted }}>
                           {Object.entries(r.marcasComponentes).map(([nome, m], ci) => {
                             const compProva = _allProvas.find(p => p.nome === nome);
@@ -1187,8 +1211,8 @@ function TelaRecordes() {
                   );
                 })}
                 {registrosFiltrados.length === 0 && (
-                  <tr><td colSpan={isAdmin ? 10 : 9} style={{ padding:20, textAlign:"center", color:t.textDimmed }}>
-                    Nenhum registro encontrado.{isAdmin ? " Adicione manualmente ou importe uma planilha." : ""}
+                  <tr><td colSpan={podeGerenciar(tipoAtivo) ? 10 : 8} style={{ padding:20, textAlign:"center", color:t.textDimmed }}>
+                    Nenhum registro encontrado.{podeGerenciar(tipoAtivo) ? " Adicione manualmente ou importe uma planilha." : ""}
                   </td></tr>
                 )}
               </tbody>
@@ -1198,10 +1222,12 @@ function TelaRecordes() {
       )}
       </>)}
 
-      {/* ═══ ABA: PENDÊNCIAS (admin only) ═══ */}
-      {abaRecordes === "pendencias" && isAdmin && (() => {
-        const pendentes = (pendenciasRecorde || []).filter(p => p.status === "pendente");
-        const resolvidas = (pendenciasRecorde || []).filter(p => p.status !== "pendente");
+      {/* ═══ ABA: PENDÊNCIAS (admin + federação da UF) ═══ */}
+      {abaRecordes === "pendencias" && isGestor && (() => {
+        // Federação vê apenas pendências de recordes da sua UF
+        const _filtrarPorUf = (p) => isAdmin || (isFederacao && p.recordeEstado === federacaoUf);
+        const pendentes = (pendenciasRecorde || []).filter(p => p.status === "pendente" && _filtrarPorUf(p));
+        const resolvidas = (pendenciasRecorde || []).filter(p => p.status !== "pendente" && _filtrarPorUf(p));
         const eventosComPend = [...new Set(pendentes.map(p => p.eventoId))];
 
         // Ordem de relevância para sort
@@ -1517,7 +1543,7 @@ function TelaRecordes() {
       })()}
 
       {/* ═══ ABA: HISTÓRICO (admin only) ═══ */}
-      {abaRecordes === "historico" && isAdmin && (() => {
+      {abaRecordes === "historico" && isGestor && (() => {
         const hist = (historicoRecordes || []).slice().reverse();
         const _allProvasH = todasAsProvas();
         return (
