@@ -113,6 +113,10 @@ import { useOfflineStatus } from "./hooks/useOfflineStatus";
 import { useLocalStorage } from "./lib/storage/useLocalStorage";
 import { useLocalOnly }    from "./lib/storage/useLocalOnly";
 
+// Cache invalidation por versão de schema (executa antes das migrações)
+import { verificarSchema } from "./lib/cacheInvalidation";
+verificarSchema();
+
 // Migração de dados legados (executa imediatamente ao importar)
 import "./lib/migration/migrarDadosLegacy";
 import { ConfirmProvider, useConfirm } from "./features/ui/ConfirmContext";
