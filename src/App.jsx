@@ -4,6 +4,16 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useSessionTimeout } from "./hooks/useSessionTimeout";
 import { useReloginGuard } from "./hooks/useReloginGuard";
 import { useMigrations } from "./hooks/useMigrations";
+import { useAuditoria } from "./hooks/useAuditoria";
+import { useNotificacoes } from "./hooks/useNotificacoes";
+import { useBranding } from "./hooks/useBranding";
+import { useSolicitacoes } from "./hooks/useSolicitacoes";
+import { useSenhas } from "./hooks/useSenhas";
+import { useBackupRestore } from "./hooks/useBackupRestore";
+import { useCrudOrganizadores } from "./hooks/useCrudOrganizadores";
+import { useCrudPessoal } from "./hooks/useCrudPessoal";
+import { useAprovacaoEquipes } from "./hooks/useAprovacaoEquipes";
+import { useVinculos } from "./hooks/useVinculos";
 // ── Contexts (Etapa 2 — migração React Router) ──────────────────
 import { AuthProvider, buildAuthValue } from "./contexts/AuthContext";
 import { EventoProvider, buildEventoValue } from "./contexts/EventoContext";
@@ -27,7 +37,6 @@ import { TeamScoringEngine }               from "./shared/engines/teamScoringEng
 import { RecordDetectionEngine }           from "./shared/engines/recordDetectionEngine";
 import RankingExtractionEngine             from "./shared/engines/rankingExtractionEngine";
 import { canCreateEvent, consumirCredito, getUsage } from "./shared/engines/planEngine";
-import { GT_DEFAULT_ICON, GT_DEFAULT_LOGO } from "./shared/branding";
 
 // ── Shared — Constants — Etapa 3 ──────────────────────────────────
 import { ESTADOS_BR, CATEGORIAS, getCategoria,
@@ -99,6 +108,7 @@ const TelaGestaoInscricoes        = React.lazy(() => import("./features/utilidad
 const TelaGerenciarMembros        = React.lazy(() => import("./features/utilidades/TelaGerenciarMembros"));
 const TelaAuditoria               = React.lazy(() => import("./features/utilidades/TelaAuditoria"));
 const TelaPerfilOrganizador       = React.lazy(() => import("./features/organizadores/TelaPerfilOrganizador"));
+const RegulamentoViewer           = React.lazy(() => import("./features/eventos/RegulamentoViewer"));
 
 // Firebase — apenas auth (Firestore é usado internamente pelos hooks de storage)
 import {
@@ -107,16 +117,9 @@ import {
   setDoc,
   onSnapshot,
   auth,
-  secondaryAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
   signOut as firebaseSignOut,
-  sendPasswordResetEmail,
-  updatePassword,
   onAuthStateChanged,
   sendEmailVerification,
-  reauthenticateWithCredential,
-  EmailAuthProvider,
   storage,
   storageRef,
   uploadBytes,
@@ -177,49 +180,6 @@ function ConfirmBridge() {
 const _confirmarRef = { current: null };
 const confirmar = (...args) => _confirmarRef.current ? _confirmarRef.current(...args) : Promise.resolve(window.confirm(...args.map(a => typeof a === "string" ? a : "")));
 
-function RegulamentoViewer({ eventoAtual, tema: _t }) {
-  const [status, setStatus] = useState("loading"); // loading | ok | error
-  const url = eventoAtual?.regulamentoUrl;
-
-  useEffect(() => {
-    if (!url) { setStatus("error"); return; }
-    setStatus("loading");
-    fetch(url, { method: "HEAD" })
-      .then(r => setStatus(r.ok ? "ok" : "error"))
-      .catch(() => setStatus("error"));
-  }, [url]);
-
-  if (!url || status === "error") return (
-    <div style={{ textAlign:"center", padding:60, color:_t.textDimmed }}>
-      <div style={{ fontSize:16, marginBottom:12, color:_t.textDimmed }}>Documento</div>
-      <div style={{ fontSize:16, fontWeight:600, marginBottom:6 }}>Regulamento indisponível</div>
-      <div style={{ fontSize:13 }}>O arquivo foi removido ou não está acessível.</div>
-    </div>
-  );
-
-  return (
-    <div style={{ display:"flex", flexDirection:"column", height:"calc(100vh - 80px)", padding:"16px 24px 0" }}>
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
-        <div style={{ fontFamily: _t.fontTitle, fontSize:20, fontWeight:700, color:_t.textPrimary }}>
-          {eventoAtual.regulamentoNome || "Regulamento"}
-        </div>
-        <a href={url} download={eventoAtual.regulamentoNome || "regulamento.pdf"}
-          style={{ background:`linear-gradient(135deg, ${_t.accent}, ${_t.accentDark})`, color:"#fff", border:"none", padding:"8px 20px", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:700, fontFamily: _t.fontTitle, letterSpacing:1, textDecoration:"none" }}>
-          Download
-        </a>
-      </div>
-      <div style={{ flex:1, position:"relative", borderRadius:10, overflow:"hidden", border:`1px solid ${_t.border}` }}>
-        {status === "loading" && (
-          <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", background:_t.bgCard, zIndex:2 }}>
-            <span style={{ fontSize:14, color:_t.textDimmed }}>Carregando regulamento…</span>
-          </div>
-        )}
-        <iframe src={url} loading="lazy" onLoad={() => setStatus("ok")} style={{ position:"relative", width:"100%", height:"100%", border:"none", zIndex:1, background:"transparent" }} title="Regulamento" />
-      </div>
-    </div>
-  );
-}
-
 function App() {
   const navigate = useNavigate();
   const cookieConsent = useCookieConsent();
@@ -252,19 +212,8 @@ function App() {
   const { recordes, setRecordes, resetRecordes, importarRecordes } = useRecordes();
 
 
-  // ⚠️ Arrays grandes — useLocalOnly evita limite de 1MB do Firestore
-  const [solicitacoesVinculo, setSolicitacoesVinculo] = useLocalStorage("atl_vinculo_sol",   []);
-  const [notificacoes, _setNotificacoes] = useLocalStorage("atl_notificacoes", []);
-  // Wrapper com limite de 200 entradas por usuário
-  const setNotificacoes = (fn) => _setNotificacoes(prev => {
-    const novo = typeof fn === "function" ? fn(prev) : fn;
-    return Array.isArray(novo) ? novo.slice(0, 200) : novo;
-  });
-  const [historicoAcoes,  setHistoricoAcoes]  = useLocalStorage("atl_historico",       []);
-  const [solicitacoesRecuperacao, setSolicitacoesRecuperacao] = useLocalStorage("atl_recuperacao", []);
-  const [solicitacoesEquipe,  setSolicitacoesEquipe]  = useLocalStorage("atl_sol_equipe",   []);
-  const [solicitacoesPortabilidade, setSolicitacoesPortabilidade] = useLocalStorage("atl_portabilidade", []);
-  const [solicitacoesRelatorio, setSolicitacoesRelatorio] = useLocalStorage("atl_sol_relatorio", []);
+  const { notificacoes, setNotificacoes, adicionarNotificacao, marcarNotifLida } = useNotificacoes();
+  const { historicoAcoes, setHistoricoAcoes, registrarAcao } = useAuditoria();
 
   // Multi-evento: cada evento tem { id, nome, data, local, permissividadeNorma, provasPrograma: Set de provaIds }
   // atl_eventos migrado para coleção Firestore própria via useEventos (ver abaixo)
@@ -284,41 +233,8 @@ function App() {
   // Inscrições e resultados vinculados ao eventoId
   // atl_numeracao_peito migrado para coleção Firestore própria via useNumeracaoPeito (ver abaixo)
 
-  // ── GERENTRACK Branding ──
-  const [siteBranding, setSiteBranding] = useLocalStorage("gt_branding", {
-    icon: "", // empty = use default GT_DEFAULT_ICON
-    logo: "", // empty = use default GT_DEFAULT_LOGO
-    nome: "GERENTRACK",
-    slogan: "COMPETIÇÃO COM PRECISÃO",
-    heroBg: "", // imagem de fundo do hero na home
-    heroBadge: "PLATAFORMA DE COMPETIÇÕES",
-    heroSubtitulo: "Gerencie competições, inscrições, súmulas e resultados em um só lugar.",
-    heroStats: { competicoes: true, organizadores: true, equipes: true, atletas: true },
-    heroMostrarTitulo: true,
-    heroOrdem: ["badge", "titulo", "stats", "subtitulo"],
-    heroTamanhos: { badge: 1, titulo: 1, subtitulo: 1, stats: 1 },
-    heroAltura: 400,
-    heroPosicoes: {
-      badge: { x: 50, y: 8 },
-      titulo: { x: 50, y: 28 },
-      subtitulo: { x: 50, y: 48 },
-      stats: { x: 50, y: 72 },
-    },
-    assinaturasFederacao: {
-      MG: { nome: "Federação Mineira de Atletismo", logo: "" },
-    },
-  });
-  // Migração: garantir assinaturasFederacao com MG padrão
-  React.useEffect(() => {
-    if (!siteBranding.assinaturasFederacao) {
-      setSiteBranding(prev => ({ ...prev, assinaturasFederacao: { MG: { nome: "Federação Mineira de Atletismo", logo: "" } } }));
-    }
-  }, []);
-  const gtIcon = siteBranding.icon || GT_DEFAULT_ICON;
-  const gtLogo = siteBranding.logo || null;
-  const gtLogoFull = siteBranding.logo || GT_DEFAULT_LOGO;
-  const gtNome = siteBranding.nome || "GERENTRACK";
-  const gtSlogan = siteBranding.slogan || "COMPETIÇÃO COM PRECISÃO";
+  // ── GERENTRACK Branding (extraído para useBranding) ──
+  const { siteBranding, setSiteBranding, gtIcon, gtLogo, gtLogoFull, gtNome, gtSlogan } = useBranding();
 
   // ── Multi-Organizador: perfis disponíveis após login ──
   const [perfisDisponiveis, setPerfisDisponiveis] = useLocalOnly("atl_perfis_disponiveis", []);
@@ -369,6 +285,19 @@ function App() {
   } = useEventos();
 
   const eventoAtual = eventos.find((e) => e.id === eventoAtualId) || null;
+
+  // ── Solicitações (extraído para useSolicitacoes) ──
+  const {
+    solicitacoesVinculo, setSolicitacoesVinculo,
+    solicitacoesRecuperacao, setSolicitacoesRecuperacao,
+    solicitacoesEquipe, setSolicitacoesEquipe,
+    solicitacoesPortabilidade, setSolicitacoesPortabilidade,
+    solicitacoesRelatorio, setSolicitacoesRelatorio,
+    adicionarSolicitacaoRecuperacao, resolverSolicitacaoRecuperacao,
+    adicionarSolicitacaoPortabilidade, resolverSolicitacaoPortabilidade, excluirSolicitacaoPortabilidade,
+    adicionarSolicitacaoEquipe,
+    solicitarRelatorio, resolverRelatorio, cancelarRelatorio, excluirRelatorio,
+  } = useSolicitacoes({ adicionarNotificacao, registrarAcao, usuarioLogado, eventos });
 
   // Controle de acesso a competições é feito nas telas individuais:
   // - TelaCadastroEvento bloqueia edição de eventos de outro organizador
@@ -449,10 +378,6 @@ function App() {
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Editou equipe", `${eq.nome || ""}${eq.sigla ? " (" + eq.sigla + ")" : ""}`, usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "equipes" });
   };
   // ── Exclusão de Usuários (Admin) ──────────────────────────────────────────
-  const excluirOrganizador = async (id) => {
-    if (!await confirmar("Excluir este organizador?\n\nEsta ação é IRREVERSÍVEL!")) return;
-    setOrganizadores((p) => p.filter(o => o.id !== id));
-  };
   
     const atualizarEquipe = async (equipeatualizada) => {
     await _atualizarEquipe(equipeatualizada);
@@ -532,167 +457,6 @@ function App() {
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Excluiu equipe", `${nomeEquipe} (${nAtletas} atletas removidos)`, usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "equipes" });
   };
   
-  // Gera senha aleatória 8 chars: letras maiúsculas + dígitos
-  const gerarSenhaTemp = () => {
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    return Array.from({length: 8}, () => chars[Math.floor(Math.random() * chars.length)]).join("");
-  };
-
-  // Aplica senha temporária num usuário de qualquer store.
-  // ⚠️ SEGURANÇA: senha NÃO é salva localmente — apenas o flag senhaTemporaria.
-  // A credencial real fica exclusivamente no Firebase Auth.
-  const aplicarSenhaTemp = async (tipo, userId, senhaTemp, solicitacao) => {
-    // Só persiste o flag — sem campo senha no objeto local
-    const updFlag = arr => arr.map(u => u.id === userId ? {...u, senhaTemporaria: true} : u);
-    if (tipo === "equipe")      atualizarCamposEquipe(userId, { senhaTemporaria: true });
-    if (tipo === "organizador") setOrganizadores(updFlag);
-    if (tipo === "funcionario") setFuncionarios(updFlag);
-    if (tipo === "treinador")   setTreinadores(updFlag);
-
-    if (tipo === "atleta" || tipo === "atleta_cpf") {
-      const existente = atletasUsuarios.find(u => u.id === userId);
-      if (existente) {
-        setAtletasUsuarios(updFlag);
-      } else {
-        // Não existe: criar entrada mínima com flag, sem senha
-        const atletaBase = atletas.find(a => a.id === userId);
-        if (atletaBase) {
-          const emailFinal = solicitacao?.email || atletaBase.email || "";
-          const novoUsuario = {
-            id: userId,
-            tipo: "atleta",
-            nome: atletaBase.nome || "",
-            email: emailFinal,
-            cpf: atletaBase.cpf || "",
-            dataNasc: atletaBase.dataNasc || "",
-            anoNasc: atletaBase.anoNasc || "",
-            sexo: atletaBase.sexo || "",
-            clube: atletaBase.clube || "",
-            equipeId: atletaBase.equipeId || null,
-            organizadorId: atletaBase.organizadorId || null,
-            senhaTemporaria: true,
-            status: "ativo",
-            dataCadastro: new Date().toISOString(),
-            criadoPorSenhaTemp: true,
-          };
-          setAtletasUsuarios(prev => {
-            if (prev.some(u => u.id === userId)) return prev.map(u => u.id === userId ? {...u, senhaTemporaria: true} : u);
-            return [...prev, novoUsuario];
-          });
-          // Criar conta no Firebase Auth (senha fica apenas aqui)
-          const emailAuth = (solicitacao?.email || atletaBase.email || "").trim().toLowerCase();
-          if (emailAuth) {
-            try {
-              await createUserWithEmailAndPassword(secondaryAuth, emailAuth, senhaTemp);
-              await firebaseSignOut(secondaryAuth).catch(() => {});
-            } catch (authErr) {
-              // auth/email-already-in-use: conta já existe no Auth com senha própria — não faz nada.
-              // O flag senhaTemporaria já foi setado e forçará a troca no próximo login.
-            }
-          }
-          if (solicitacao?.email && atletaBase && !atletaBase.email) {
-            try { await _atualizarAtleta({ ...atletaBase, email: solicitacao.email }); } catch {}
-          }
-        } else {
-          setAtletasUsuarios(updFlag);
-        }
-      }
-    }
-
-    // Criar conta Firebase Auth para não-atletas que ainda não têm
-    if (tipo !== "atleta" && tipo !== "atleta_cpf" && tipo !== "equipe") {
-      const stores = { organizador: organizadores, funcionario: funcionarios, treinador: treinadores };
-      const registro = (stores[tipo] || []).find(u => u.id === userId);
-      const emailAuth = registro?.email?.trim().toLowerCase();
-      if (emailAuth) {
-        try {
-          await createUserWithEmailAndPassword(secondaryAuth, emailAuth, senhaTemp);
-          await firebaseSignOut(secondaryAuth).catch(() => {});
-        } catch (authErr) {
-          // auth/email-already-in-use: conta já existe no Auth — não faz nada.
-          // O flag senhaTemporaria já foi setado e forçará a troca no próximo login.
-        }
-      }
-    }
-  };
-
-  const adicionarSolicitacaoRecuperacao = (sol) =>
-    setSolicitacoesRecuperacao(p => [...p, {...sol, id: Date.now().toString(), data: new Date().toISOString()}]);
-  const resolverSolicitacaoRecuperacao = (id) =>
-    setSolicitacoesRecuperacao(p => p.map(s => s.id === id ? {...s, status:"resolvido"} : s));
-
-  // ── Portabilidade de dados (Art. 18º, V LGPD) ─────────────────────────────
-  const adicionarSolicitacaoPortabilidade = (sol) =>
-    setSolicitacoesPortabilidade(p => [...p, {
-      ...sol, id: Date.now().toString(), status: "pendente", data: new Date().toISOString()
-    }]);
-  const resolverSolicitacaoPortabilidade = (id, dadosJson) => {
-    const sol = solicitacoesPortabilidade.find(s => s.id === id);
-    setSolicitacoesPortabilidade(p => p.map(s => s.id === id
-      ? { ...s, status: "pronto", dadosJson, dataResolucao: new Date().toISOString() }
-      : s
-    ));
-    if (sol) adicionarNotificacao(sol.usuarioId, "portabilidade",
-      "Sua solicitação de portabilidade de dados foi processada. Acesse Configurações → Minha Conta para baixar o arquivo.");
-  };
-  const excluirSolicitacaoPortabilidade = (id) =>
-    setSolicitacoesPortabilidade(p => p.filter(s => s.id !== id));
-  const atualizarSenha = async (tipo, userId, novaSenha, senhaAtual) => {
-    const currentUser = auth.currentUser;
-    if (!currentUser || !novaSenha) return { ok: false, erro: "Sessão expirada. Faça login novamente." };
-
-    // Tentar atualizar no Auth
-    try {
-      await updatePassword(currentUser, novaSenha);
-    } catch(e) {
-      if (e.code === "auth/requires-recent-login") {
-        // Reautenticar e tentar novamente
-        if (!senhaAtual) return { ok: false, erro: "requires-recent-login" };
-        try {
-          const credential = EmailAuthProvider.credential(currentUser.email, senhaAtual);
-          await reauthenticateWithCredential(currentUser, credential);
-          await updatePassword(currentUser, novaSenha);
-        } catch(reErr) {
-          console.error("Erro ao reautenticar para trocar senha:", reErr);
-          return { ok: false, erro: reErr.code === "auth/invalid-credential" ? "Senha atual incorreta." : "Erro ao atualizar senha. Tente fazer login novamente." };
-        }
-      } else {
-        console.error("Erro ao atualizar senha no Firebase Auth:", e);
-        return { ok: false, erro: "Erro ao atualizar senha. Tente novamente." };
-      }
-    }
-
-    // Auth atualizado com sucesso — limpar flag senhaTemporaria
-    if (tipo === "admin") {
-      setUsuarioLogado(u => u ? {...u, senhaTemporaria: false} : u);
-      return { ok: true };
-    }
-    const updFlag = arr => arr.map(u => u.id === userId ? { ...u, senhaTemporaria: false } : u);
-    if (tipo === "equipe")      atualizarCamposEquipe(userId, { senhaTemporaria: false });
-    if (tipo === "organizador") setOrganizadores(updFlag);
-    if (tipo === "atleta")      setAtletasUsuarios(updFlag);
-    if (tipo === "funcionario") setFuncionarios(updFlag);
-    if (tipo === "treinador")   setTreinadores(updFlag);
-    setUsuarioLogado(u => u ? {...u, senhaTemporaria: false} : u);
-    return { ok: true };
-  };
-
-  const gerarSlugOrganizador = (nome, id) => {
-    const base = (nome || "organizador")
-      .toLowerCase()
-      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9\s-]/g, "")
-      .trim()
-      .replace(/\s+/g, "-")
-      .slice(0, 60);
-    const jaExiste = organizadores.some(o => o.slug === base && o.id !== id);
-    return jaExiste ? `${base}-${id.slice(-4)}` : base;
-  };
-  const adicionarOrganizador  = (o) => {
-    const comSlug = { ...o, slug: o.slug || gerarSlugOrganizador(o.entidade || o.nome, o.id) };
-    setOrganizadores((p) => [...p, comSlug]);
-  };
-  const editarOrganizadorAdmin = (o) => setOrganizadores((p) => p.map(x => x.id === o.id ? { ...x, ...o } : x));
   const editarEquipeAdmin      = (eq) => mergeEquipe(eq);
   const editarAtletaUsuarioAdmin = async (au) => {
     setAtletasUsuarios((p) => p.map(x => x.id === au.id ? { ...x, ...au } : x));
@@ -706,91 +470,7 @@ function App() {
       }
     }
   };
-  const adicionarFuncionario  = (f) => setFuncionarios((p) => [...p, f]);
-  const atualizarFuncionario  = (f) => setFuncionarios((p) => p.map(x => x.id === f.id ? f : x));
-  const removerFuncionario    = async (id) => {
-    const func = funcionarios.find(f => f.id === id);
-    const nomeFuncionario = func?.nome || "este funcionário";
-    
-    if (!await confirmar(`Remover "${nomeFuncionario}"?\n\nEsta ação é IRREVERSÍVEL e o funcionário perderá acesso ao sistema.`)) return;
-    
-    setFuncionarios((p) => p.filter(x => x.id !== id));
-  };
 
-  // ── CRUD Treinadores (vinculados a equipes) ─────────────────────────────────
-  const adicionarTreinador   = (t) => setTreinadores((p) => [...p, t]);
-  const atualizarTreinador   = (t) => setTreinadores((p) => p.map(x => x.id === t.id ? t : x));
-  const removerTreinador     = async (id) => {
-    const trein = treinadores.find(t => t.id === id);
-    if (!await confirmar(`Remover "${trein?.nome || "este treinador"}"?\n\nEsta ação é IRREVERSÍVEL.`)) return;
-    setTreinadores((p) => p.filter(x => x.id !== id));
-  };
-  const registrarAcao = (usuarioId, nomeUsuario, acao, detalhe = "", organizadorId = null, extra = {}) =>
-    setHistoricoAcoes(p => [{
-      id: Date.now().toString(), usuarioId, nomeUsuario, acao, detalhe, organizadorId,
-      data: new Date().toISOString(), ...extra
-    }, ...p].slice(0, 500)); // keep last 500 — limite Firestore
-  const aprovarOrganizador  = (id) => {
-    setOrganizadores((p) => p.map(o => o.id===id ? {...o, status:"aprovado"} : o));
-    const org = organizadores.find(o => o.id === id);
-    adicionarNotificacao(id, "organizador_aprovado",
-      `Sua conta de organizador (${org?.entidade || ""}) foi aprovada! Você já pode acessar o sistema.`);
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Aprovou organizador", org?.nome || id, null, { modulo: "sistema" });
-  };
-  const recusarOrganizador  = (id) => {
-    setOrganizadores((p) => p.map(o => o.id===id ? {...o, status:"recusado"} : o));
-    const org = organizadores.find(o => o.id === id);
-    adicionarNotificacao(id, "organizador_recusado",
-      `Sua solicitação de conta de organizador (${org?.entidade || ""}) foi recusada.`);
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Recusou organizador", org?.nome || id, null, { modulo: "sistema" });
-  };
-
-  // ── Aprovação de Equipes ───────────────────────────────────────────────────
-  const adicionarSolicitacaoEquipe = (sol) => {
-    setSolicitacoesEquipe(p => [sol, ...p]);
-  };
-  const aprovarEquipe = async (equipeId, novoOrgId) => {
-    let eq = equipes.find(e => e.id === equipeId);
-    // Equipe pode não estar no Firestore (falha na criação antes da correção de rules)
-    // Recria a partir dos dados da solicitação
-    if (!eq) {
-      const sol = solicitacoesEquipe.find(s => s.equipeId === equipeId);
-      if (!sol) return;
-      eq = {
-        id: equipeId,
-        nome: sol.equipeNome,
-        sigla: sol.equipeSigla,
-        email: sol.equipeEmail,
-        cnpj: sol.equipeCnpj,
-        cidade: sol.equipeCidade,
-        uf: sol.equipeUf,
-        organizadorId: novoOrgId || sol.organizadorId || null,
-        status: "pendente",
-        dataCadastro: sol.data || new Date().toISOString(),
-      };
-    }
-    await _atualizarEquipe({ ...eq, status: "ativa", ...(novoOrgId ? { organizadorId: novoOrgId } : {}) });
-    setSolicitacoesEquipe(p => p.map(s => s.equipeId === equipeId && s.status === "pendente"
-      ? { ...s, status: "aprovada", dataResposta: new Date().toISOString() }
-      : s
-    ));
-    adicionarNotificacao(equipeId, "aprovacao_equipe",
-      `Sua equipe "${eq?.nome || ""}" foi aprovada! Você já pode gerenciar atletas e realizar inscrições.`);
-    if (usuarioLogado) {
-      const orgVinc = organizadores.find(o => o.id === (novoOrgId || eq?.organizadorId));
-      registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Aprovou equipe", `${eq?.nome || equipeId}${eq?.sigla ? " (" + eq.sigla + ")" : ""}${orgVinc ? " — " + (orgVinc.entidade || orgVinc.nome) : ""}`, null, { modulo: "sistema" });
-    }
-  };
-  const recusarEquipe = async (equipeId) => {
-    const eq = equipes.find(e => e.id === equipeId);
-    if (!eq) return;
-    await _atualizarEquipe({ ...eq, status: "recusada" });
-    setSolicitacoesEquipe(p => p.map(s => s.equipeId === equipeId && s.status === "pendente"
-      ? { ...s, status: "recusada", dataResposta: new Date().toISOString() }
-      : s
-    ));
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Recusou equipe", `${eq?.nome || equipeId}${eq?.sigla ? " (" + eq.sigla + ")" : ""}${eq?.email ? " · " + eq.email : ""}`, null, { modulo: "sistema" });
-  };
   const adicionarAtletaUsuario = (u) => _adicionarAtletaUsuario(u);
   const atualizarAtletaUsuario = (u) => _atualizarAtletaUsuario(u);
   const adicionarAtleta  = async (a) => {
@@ -810,170 +490,7 @@ function App() {
     if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Editou atleta", `${a.nome || ""}${a.clube ? " — " + a.clube : ""}`, usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: usuarioLogado.equipeId, modulo: "atletas" });
   };
 
-  // origem: "atleta" (atleta pede para equipe) | "equipe" (equipe pede ao atleta ou à equipe atual)
-  // aprovadorTipo: "atleta" | "equipe_atual"
-  // equipeAtualId: equipe atual do atleta (se houver) — precisa aprovar a transferência
-  const solicitarVinculo = (atletaId, atletaNome, equipeId, clube, opts = {}) => {
-    setSolicitacoesVinculo(p => [
-      ...p.filter(s => !(s.atletaId === atletaId && s.status === "pendente")),
-      { id: Date.now().toString(), atletaId, atletaNome, equipeId, clube,
-        origem: opts.origem || "atleta",
-        aprovadorTipo: opts.aprovadorTipo || "equipe",
-        equipeAtualId: opts.equipeAtualId || null,
-        equipeAtualNome: opts.equipeAtualNome || null,
-        solicitanteId: opts.solicitanteId || null,
-        solicitanteNome: opts.solicitanteNome || null,
-        organizadorId: opts.organizadorId || null,
-        ...(opts.tipo ? { tipo: opts.tipo } : {}),
-        status: "pendente", data: new Date().toISOString() }
-    ]);
-    // Notifica o organizador (quem aprova) e a equipe (informativo)
-    const _orgId = opts.organizadorId || equipes.find(e => e.id === equipeId)?.organizadorId;
-    const _equipeNome = clube || equipes.find(e => e.id === equipeId)?.nome || "";
-    if (opts.tipo === "desvinculacao") {
-      if (_orgId) adicionarNotificacao(_orgId, "vinculo_solicitado",
-        `Solicitação de desvinculação: "${atletaNome}" da equipe "${_equipeNome}". Acesse o painel para aprovar ou recusar.`);
-    } else {
-      if (_orgId) adicionarNotificacao(_orgId, "vinculo_solicitado",
-        `O atleta "${atletaNome}" solicitou vínculo com a equipe "${_equipeNome}". Acesse o painel para aprovar ou recusar.`);
-      adicionarNotificacao(equipeId, "vinculo_solicitado",
-        `O atleta "${atletaNome}" solicitou vínculo com sua equipe. Aguardando aprovação do organizador.`);
-    }
-  };
 
-  const responderVinculo = (solId, aceitar) => {
-    const sol = solicitacoesVinculoRef.current.find(s => s.id === solId);
-    if (!sol) return;
-    const resolvidoPorNome = usuarioLogado?.nome || usuarioLogado?.id || "—";
-    const resolvidoPorTipo = usuarioLogado?.tipo || "";
-    const _equipeNome = sol.clube || equipes.find(e => e.id === sol.equipeId)?.nome || "";
-    const _statusTxt = aceitar ? "aceito" : "recusado";
-    const _isDesvinc = sol.tipo === "desvinculacao";
-    const _tipoTxt = _isDesvinc ? "Desvinculação" : sol.aprovadorTipo === "equipe_atual" ? "Transferência" : "Vínculo";
-
-    setSolicitacoesVinculo(p => p.map(s => s.id === solId
-      ? { ...s, status: _statusTxt, resolvidoPorNome, resolvidoPorTipo, resolvidoEm: new Date().toISOString() } : s));
-
-    // Buscar conta do atleta para notificação
-    const atv = atletasRef_app.current.find(a => a.id === sol.atletaId);
-    const contaAtleta = atletasUsuarios.find(u =>
-      u.cpf && atv?.cpf && u.cpf.replace(/\D/g,"") === atv.cpf.replace(/\D/g,""));
-
-    if (aceitar) {
-      if (atv) {
-        if (_isDesvinc) {
-          const equipeAnterior = atv.clube || "";
-          _atualizarAtleta({ ...atv, equipeId: null, clube: "", equipeAnterior, desvinculadoEm: new Date().toISOString() });
-          if (contaAtleta) adicionarNotificacao(contaAtleta.id, "desvinculacao",
-            `Você foi desvinculado${equipeAnterior ? ` da equipe ${equipeAnterior}` : ""}. Seus resultados anteriores permanecem registrados.`,
-            { equipeAnterior });
-          adicionarNotificacao(sol.equipeId, "vinculo_resolvido",
-            `Desvinculação de "${sol.atletaNome}" foi aprovada pelo organizador.`);
-        } else {
-          _atualizarAtleta({ ...atv, equipeId: sol.equipeId, clube: sol.clube });
-          if (contaAtleta) adicionarNotificacao(contaAtleta.id, "vinculo_resolvido",
-            `Seu vínculo com a equipe "${_equipeNome}" foi aprovado.`);
-          adicionarNotificacao(sol.equipeId, "vinculo_resolvido",
-            `Vínculo de "${sol.atletaNome}" com sua equipe foi aprovado pelo organizador.`);
-        }
-      }
-    } else {
-      // Recusado — notificar atleta e equipe
-      if (contaAtleta) adicionarNotificacao(contaAtleta.id, "vinculo_resolvido",
-        _isDesvinc
-          ? `Sua solicitação de saída da equipe "${_equipeNome}" foi recusada pelo organizador.`
-          : `Sua solicitação de vínculo com a equipe "${_equipeNome}" foi recusada pelo organizador.`);
-      adicionarNotificacao(sol.equipeId, "vinculo_resolvido",
-        _isDesvinc
-          ? `Desvinculação de "${sol.atletaNome}" foi recusada pelo organizador.`
-          : `Solicitação de vínculo de "${sol.atletaNome}" foi recusada pelo organizador.`);
-    }
-
-    // Auditoria
-    registrarAcao(
-      usuarioLogado?.id, resolvidoPorNome,
-      `${_tipoTxt} ${_statusTxt}`,
-      `${sol.atletaNome} — equipe ${_equipeNome}`,
-      usuarioLogado?.organizadorId || (usuarioLogado?.tipo === "organizador" ? usuarioLogado?.id : null),
-      { modulo: "vinculos", atletaId: sol.atletaId, equipeId: sol.equipeId }
-    );
-  };
-
-  const adicionarNotificacao = (para, tipo, msg, extra = {}) =>
-    setNotificacoes(p => [{
-      id: Date.now().toString() + Math.random().toString(36).slice(2,6),
-      para, tipo, msg, data: new Date().toISOString(), lida: false, ...extra
-    }, ...p]);
-
-  const marcarNotifLida = (id) =>
-    setNotificacoes(p => p.map(n => n.id === id ? {...n, lida: true, lidaEm: new Date().toISOString()} : n));
-
-  // Limpar notificações: lidas há +48h, não lidas há +168h (7 dias)
-  useEffect(() => {
-    const agora = Date.now();
-    const _48h = 48 * 60 * 60 * 1000;
-    const _168h = 168 * 60 * 60 * 1000;
-    setNotificacoes(p => {
-      const filtradas = p.filter(n => {
-        if (n.lida && n.lidaEm) return agora - new Date(n.lidaEm).getTime() < _48h;
-        return agora - new Date(n.data).getTime() < _168h;
-      });
-      return filtradas.length === p.length ? p : filtradas;
-    });
-  }, []);
-
-  // ── Solicitações de relatório de participação ──
-  const solicitarRelatorio = (solicitanteId, solicitanteNome, solicitanteTipo, eventoId, eventoNome, atletaIds = [], equipeId = null, assinaturaEquipe = null) => {
-    const id = Date.now().toString() + Math.random().toString(36).slice(2,6);
-    setSolicitacoesRelatorio(p => [...p, {
-      id, solicitanteId, solicitanteNome, solicitanteTipo,
-      eventoId, eventoNome, atletaIds, equipeId,
-      ...(assinaturaEquipe ? { assinaturaEquipe } : {}),
-      status: "pendente", data: new Date().toISOString()
-    }]);
-    const evt = eventos.find(e => e.id === eventoId);
-    if (evt?.organizadorId) {
-      adicionarNotificacao(evt.organizadorId, "relatorio_solicitado",
-        `${solicitanteNome} solicitou relatório oficial de participação para "${eventoNome}".`);
-    }
-    registrarAcao(solicitanteId, solicitanteNome, "Solicitou relatório", `${eventoNome}${assinaturaEquipe ? " (com assinatura)" : ""}`, evt?.organizadorId || null, { equipeId, modulo: "relatorios" });
-  };
-  const resolverRelatorio = (solId, status) => {
-    const sol = solicitacoesRelatorio.find(s => s.id === solId);
-    setSolicitacoesRelatorio(p => p.map(s =>
-      s.id === solId ? { ...s, status, resolvidoEm: new Date().toISOString() } : s
-    ));
-    if (sol) {
-      adicionarNotificacao(sol.solicitanteId, "relatorio_gerado",
-        status === "gerado"
-          ? `Seu relatório oficial de participação para "${sol.eventoNome}" foi gerado pelo organizador.`
-          : `Sua solicitação de relatório para "${sol.eventoNome}" foi recusada.`);
-    }
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, status === "gerado" ? "Gerou relatório" : "Recusou relatório", `${sol?.eventoNome || ""} — solicitado por ${sol?.solicitanteNome || ""}`, usuarioLogado.organizadorId || (usuarioLogado.tipo === "organizador" ? usuarioLogado.id : null), { equipeId: sol?.equipeId, modulo: "relatorios" });
-  };
-  const cancelarRelatorio = (solId) => {
-    const sol = solicitacoesRelatorio.find(s => s.id === solId);
-    setSolicitacoesRelatorio(p => p.map(s =>
-      s.id === solId ? { ...s, status: "cancelado", resolvidoEm: new Date().toISOString() } : s
-    ));
-    if (sol) {
-      const evt = eventos.find(e => e.id === sol.eventoId);
-      if (evt?.organizadorId) {
-        adicionarNotificacao(evt.organizadorId, "relatorio_cancelado",
-          `${sol.solicitanteNome} cancelou a solicitação de relatório para "${sol.eventoNome}".`);
-      }
-    }
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Cancelou solicitação de relatório", sol?.eventoNome || "", usuarioLogado.organizadorId || null, { equipeId: sol?.equipeId || usuarioLogado.equipeId, modulo: "relatorios" });
-  };
-  const excluirRelatorio = (solId) => {
-    const sol = solicitacoesRelatorio.find(s => s.id === solId);
-    setSolicitacoesRelatorio(p => p.filter(s => s.id !== solId));
-    if (sol) {
-      adicionarNotificacao(sol.solicitanteId, "relatorio_excluido",
-        `O relatório de participação para "${sol.eventoNome}" foi excluído. Solicite novamente se necessário.`);
-    }
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Excluiu relatório", sol?.eventoNome || "", usuarioLogado.organizadorId || null, { equipeId: sol?.equipeId || usuarioLogado.equipeId, modulo: "relatorios" });
-  };
 
   const excluirAtleta = async (atletaId) => {
     const atleta = atletas.find(a => a.id === atletaId);
@@ -1224,6 +741,36 @@ function App() {
     importarAtletas,
   } = useAtletas();
 
+  // ── Senhas (extraído para useSenhas) ──
+  const { gerarSenhaTemp, aplicarSenhaTemp, atualizarSenha } = useSenhas({
+    setUsuarioLogado, atualizarCamposEquipe,
+    setOrganizadores, setFuncionarios, setTreinadores, setAtletasUsuarios,
+    atletasUsuarios, atletas, organizadores, funcionarios, treinadores,
+    _atualizarAtleta,
+  });
+
+  // ── CRUD Organizadores (extraído para useCrudOrganizadores) ──
+  const {
+    adicionarOrganizador, editarOrganizadorAdmin,
+    excluirOrganizador, aprovarOrganizador, recusarOrganizador,
+  } = useCrudOrganizadores({
+    organizadores, setOrganizadores, confirmar,
+    adicionarNotificacao, registrarAcao, usuarioLogado,
+  });
+
+  // ── CRUD Funcionários/Treinadores (extraído para useCrudPessoal) ──
+  const {
+    adicionarFuncionario, atualizarFuncionario, removerFuncionario,
+    adicionarTreinador, atualizarTreinador, removerTreinador,
+  } = useCrudPessoal({
+    funcionarios, setFuncionarios, treinadores, setTreinadores, confirmar,
+  });
+
+  // ── Aprovação de Equipes (extraído para useAprovacaoEquipes) ──
+  const { aprovarEquipe, recusarEquipe } = useAprovacaoEquipes({
+    equipes, _atualizarEquipe, solicitacoesEquipe, setSolicitacoesEquipe,
+    organizadores, adicionarNotificacao, registrarAcao, usuarioLogado,
+  });
 
   const {
     numeracaoPeito,
@@ -1242,6 +789,13 @@ function App() {
 
   const solicitacoesVinculoRef = React.useRef(solicitacoesVinculo);
   React.useEffect(() => { solicitacoesVinculoRef.current = solicitacoesVinculo; }, [solicitacoesVinculo]);
+
+  // ── Vínculos atleta-equipe (extraído para useVinculos) ──
+  const { solicitarVinculo, responderVinculo } = useVinculos({
+    equipes, setSolicitacoesVinculo, adicionarNotificacao, registrarAcao,
+    usuarioLogado, atletasUsuarios, atletasRef: atletasRef_app,
+    solicitacoesVinculoRef, _atualizarAtleta,
+  });
 
   const excluirAtletaPorUsuario = (id, usuario) => {
     const paraRemover = atletasRef_app.current.filter(a => {
@@ -1336,113 +890,32 @@ function App() {
     });
   }, [resultados, eventoAtual, inscricoes, atletas, organizadores, funcionarios]);
 
-  const limparTodosDados = async () => {
-    if (!await confirmar("ATENÇÃO: Esta ação é IRREVERSÍVEL e EXTREMAMENTE DESTRUTIVA!\n\nVocê está prestes a APAGAR TODOS OS DADOS do sistema:\n\n• Todas as competições\n• Todos os atletas\n• Todas as equipes\n• Todos os organizadores\n• Todas as inscrições\n• Todos os resultados\n• Todos os recordes\n• Todas as pendências de recorde\n• Todo o histórico\n\nAS CONTAS DE LOGIN (Firebase Auth) NÃO SERÃO APAGADAS.\nOs usuários ainda conseguirão fazer login, mas sem perfil no sistema.\nPara apagar as contas de login, acesse o Console do Firebase manualmente.\n\nEsta ação NÃO PODE SER DESFEITA.\n\nDeseja realmente continuar?")) return;
-    resetOrganizadores();
-    resetAtletasUsuarios();
-    setSolicitacoesRecuperacao([]);
-    resetFuncionarios();
-    resetTreinadores();
-    setHistoricoAcoes([]);
-    setSolicitacoesVinculo([]);
-    setNotificacoes([]);
-    resetEquipes();
-    resetAtletas();
-    await resetEventos();
-    setEventoAtualId(null);
-    resetInscricoes();
-    resetResultados();
-    await resetNumeracao();
-    resetRecordes();
-    setPendenciasRecorde([]);
-    setHistoricoRecordes([]);
-    resetRanking();
-    setHistoricoRanking([]);
-    setPerfisDisponiveis([]);
-    setAdminConfig(prev => ({ ...prev, configurado: true }));
-    registrarAcao(usuarioLogado?.id || "system", usuarioLogado?.nome || "Sistema", "Limpou todos os dados", "Reset completo do sistema", null, { modulo: "sistema" });
-  };
 
-  const exportarDados = () => {
-    const dados = {
-      versao: "1.2",
-      exportadoEm: new Date().toISOString(),
-      equipes, organizadores, atletasUsuarios, funcionarios, treinadores,
-      atletas, eventos, inscricoes, resultados, numeracaoPeito,
-      solicitacoesRecuperacao, solicitacoesEquipe, solicitacoesRelatorio, historicoAcoes,
-      recordes, pendenciasRecorde, historicoRecordes,
-      ranking, historicoRanking,
-      solicitacoesVinculo, notificacoes,
-      solicitacoesPortabilidade,
-      siteBranding, perfisDisponiveis,
-      adminConfig,
-    };
-    const json = JSON.stringify(dados, null, 2);
-    const blob = new Blob([json], { type: "application/json" });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement("a");
-    a.href     = url;
-    a.download = `gerentrack-backup-${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Exportou backup", `${eventos.length} eventos, ${atletas.length} atletas, ${recordes.length} tipos recorde`, null, { modulo: "sistema" });
-    alert("Backup exportado com sucesso!\n\nATENÇÃO: O backup NÃO inclui as contas de login (Firebase Auth).\nAs senhas e e-mails de acesso dos usuários ficam no Firebase Authentication e não podem ser exportados pelo sistema.\nSe necessário, exporte-os manualmente pelo Console do Firebase.");
-  };
+  // ── Backup/Restore (extraído para useBackupRestore) ──
+  const { limparTodosDados, exportarDados, importarDados } = useBackupRestore({
+    confirmar, usuarioLogado, registrarAcao,
+    equipes, organizadores, atletasUsuarios, funcionarios, treinadores,
+    atletas, eventos, inscricoes, resultados, numeracaoPeito,
+    solicitacoesRecuperacao, solicitacoesEquipe, solicitacoesRelatorio, historicoAcoes,
+    recordes, pendenciasRecorde, historicoRecordes,
+    ranking, historicoRanking,
+    solicitacoesVinculo, notificacoes,
+    solicitacoesPortabilidade,
+    siteBranding, perfisDisponiveis, adminConfig,
+    resetOrganizadores, resetAtletasUsuarios, resetFuncionarios, resetTreinadores,
+    resetEquipes, resetAtletas, resetEventos, resetInscricoes, resetResultados,
+    resetNumeracao, resetRecordes, resetRanking,
+    setSolicitacoesRecuperacao, setSolicitacoesVinculo, setNotificacoes,
+    setHistoricoAcoes, setPendenciasRecorde, setHistoricoRecordes,
+    setHistoricoRanking, setPerfisDisponiveis, setAdminConfig, setEventoAtualId,
+    setSolicitacoesEquipe, setSolicitacoesRelatorio, setSolicitacoesPortabilidade,
+    setSiteBranding,
+    importarEquipes, importarOrganizadores, importarAtletasUsuarios,
+    importarFuncionarios, importarTreinadores, importarAtletas,
+    importarEventos, importarInscricoes, importarResultados,
+    importarNumeracao, importarRecordes, importarRanking,
+  });
 
-  const importarDados = async (arquivo) => {
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      try {
-        const dados = JSON.parse(e.target.result);
-        if (!dados.versao) throw new Error("Arquivo inválido — não é um backup do sistema.");
-        if (!await confirmar(
-          `Importar backup de ${new Date(dados.exportadoEm).toLocaleString("pt-BR")}?\n\n` +
-          `Isso SUBSTITUIRÁ todos os dados atuais:\n` +
-          `• ${dados.eventos?.length||0} evento(s)\n` +
-          `• ${dados.atletas?.length||0} atleta(s)\n` +
-          `• ${dados.inscricoes?.length||0} inscrição(ões)\n` +
-          `• ${dados.equipes?.length||0} equipe(s)\n` +
-          `• ${dados.organizadores?.length||0} organizador(es)\n` +
-          `• ${dados.recordes?.length||0} tipo(s) de recorde\n` +
-          `• ${dados.pendenciasRecorde?.length||0} pendência(s) de recorde\n\n` +
-          `Esta ação não pode ser desfeita.`
-        )) return;
-        if (dados.equipes)                 await importarEquipes(dados.equipes);
-        if (dados.organizadores)           await importarOrganizadores(dados.organizadores);
-        if (dados.atletasUsuarios)         await importarAtletasUsuarios(dados.atletasUsuarios);
-        if (dados.funcionarios)            await importarFuncionarios(dados.funcionarios);
-        if (dados.treinadores)             await importarTreinadores(dados.treinadores);
-        if (dados.atletas)                 await importarAtletas(dados.atletas);
-        if (dados.eventos)                 await importarEventos(dados.eventos);
-        if (dados.inscricoes)              await importarInscricoes(dados.inscricoes);
-        if (dados.resultados)              await importarResultados(dados.resultados);
-        if (dados.numeracaoPeito)          await importarNumeracao(dados.numeracaoPeito);
-        if (dados.solicitacoesRecuperacao) setSolicitacoesRecuperacao(dados.solicitacoesRecuperacao);
-        if (dados.solicitacoesEquipe)    setSolicitacoesEquipe(dados.solicitacoesEquipe);
-        if (dados.solicitacoesRelatorio) setSolicitacoesRelatorio(dados.solicitacoesRelatorio);
-        if (dados.historicoAcoes)          setHistoricoAcoes(dados.historicoAcoes);
-        if (dados.recordes)                await importarRecordes(dados.recordes);
-        if (dados.pendenciasRecorde)       setPendenciasRecorde(dados.pendenciasRecorde);
-        if (dados.historicoRecordes)       setHistoricoRecordes(dados.historicoRecordes);
-        if (dados.ranking)                 await importarRanking(dados.ranking);
-        if (dados.historicoRanking)        setHistoricoRanking(dados.historicoRanking);
-        if (dados.solicitacoesVinculo)     setSolicitacoesVinculo(dados.solicitacoesVinculo);
-        if (dados.notificacoes)            setNotificacoes(dados.notificacoes);
-        if (dados.solicitacoesPortabilidade) setSolicitacoesPortabilidade(dados.solicitacoesPortabilidade);
-        if (dados.siteBranding)            setSiteBranding(dados.siteBranding);
-        if (dados.perfisDisponiveis)       setPerfisDisponiveis(dados.perfisDisponiveis);
-        if (dados.adminConfig) {
-          setAdminConfig(dados.adminConfig);
-        }
-        setEventoAtualId(null);
-        alert("Backup importado com sucesso!");
-        registrarAcao(usuarioLogado?.id || "system", usuarioLogado?.nome || "Sistema", "Importou backup", `v${dados.versao} de ${new Date(dados.exportadoEm).toLocaleString("pt-BR")}`, null, { modulo: "sistema" });
-      } catch (err) {
-        alert("Erro ao importar: " + err.message);
-      }
-    };
-    reader.readAsText(arquivo);
-  };
 
 
   const alterarStatusEvento = (id, campos) => {
@@ -1887,7 +1360,7 @@ function App() {
         <Route path="gerenciar-inscricoes" element={<React.Suspense fallback={null}><TelaGerenciarInscricoes /></React.Suspense>} />
         <Route path="membros" element={<React.Suspense fallback={null}><TelaGerenciarMembros /></React.Suspense>} />
         <Route path="offline" element={<React.Suspense fallback={null}><PrepararOffline /></React.Suspense>} />
-        <Route path="regulamento" element={<RegulamentoViewer eventoAtual={eventoAtual} tema={temaClaro ? temaLight : temaDark} />} />
+        <Route path="regulamento" element={<React.Suspense fallback={null}><RegulamentoViewer eventoAtual={eventoAtual} tema={temaClaro ? temaLight : temaDark} /></React.Suspense>} />
         <Route path="finishlynx" element={<React.Suspense fallback={null}><TelaFinishLynx /></React.Suspense>} />
         {/* Telas bloqueadas se competição finalizada */}
         <Route element={<FinalizedGuard />}>
