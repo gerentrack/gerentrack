@@ -36,52 +36,67 @@ import { _getClubeAtleta } from "./shared/formatters/utils";
 
 import { Header }                  from "./features/layout/Header";
 
-// ── Lazy-loaded: telas carregadas sob demanda (pré-cacheadas pelo SW) ──
-const TelaHome                    = React.lazy(() => import("./features/eventos/TelaHome"));
-const TelaLogin                   = React.lazy(() => import("./features/auth/TelaLogin"));
-const TelaEventoDetalhe           = React.lazy(() => import("./features/eventos/TelaEventoDetalhe"));
-const TelaCadastroEvento          = React.lazy(() => import("./features/eventos/TelaCadastroEvento").then(m => ({ default: m.TelaCadastroEvento })));
-const TelaSelecaoPerfil           = React.lazy(() => import("./features/auth/TelaSelecaoPerfil"));
-const TelaRecuperacaoSenha        = React.lazy(() => import("./features/auth/TelaRecuperacaoSenha"));
-const TelaTrocarSenha             = React.lazy(() => import("./features/auth/TelaTrocarSenha"));
-const TelaConfiguracoes           = React.lazy(() => import("./features/auth/TelaConfiguracoes"));
-const PrepararOffline             = React.lazy(() => import("./features/eventos/PrepararOffline"));
-const TelaGerenciarInscricoes     = React.lazy(() => import("./features/inscricoes/TelaGerenciarInscricoes"));
-const TelaInscricaoAvulsa         = React.lazy(() => import("./features/inscricoes/TelaInscricaoAvulsa"));
-const TelaInscricaoRevezamento    = React.lazy(() => import("./features/inscricoes/TelaInscricaoRevezamento"));
-const TelaSumulas                 = React.lazy(() => import("./features/sumulas/TelaSumulas"));
-const TelaResultados              = React.lazy(() => import("./features/resultados/TelaResultados"));
-const TelaRecordes                = React.lazy(() => import("./features/recordes/TelaRecordes"));
-const TelaRanking                 = React.lazy(() => import("./features/ranking/TelaRanking"));
-const TelaFaq                     = React.lazy(() => import("./features/utilidades/TelaFaq"));
-const TelaPlanos                  = React.lazy(() => import("./features/comercial/TelaPlanos"));
-const TelaPrivacidade             = React.lazy(() => import("./features/legal/TelaPrivacidade"));
-const TelaTermos                  = React.lazy(() => import("./features/legal/TelaTermos"));
-const TelaDigitarResultados       = React.lazy(() => import("./features/digitar/TelaDigitarResultados"));
-const TelaConfigPontuacaoEquipes  = React.lazy(() => import("./features/configuracoes/TelaConfigPontuacaoEquipes"));
-const TelaSecretaria              = React.lazy(() => import("./features/secretaria/TelaSecretaria"));
-const TelaGerenciarUsuarios       = React.lazy(() => import("./features/admin/TelaGerenciarUsuarios"));
-const TelaGerenciarEquipes        = React.lazy(() => import("./features/admin/TelaGerenciarEquipes"));
-const TelaAdmin                   = React.lazy(() => import("./features/admin/TelaAdmin"));
-const TelaPainel                  = React.lazy(() => import("./features/paineis/TelaPainel"));
-const TelaPainelOrganizador       = React.lazy(() => import("./features/paineis/TelaPainelOrganizador"));
-const TelaPainelAtleta            = React.lazy(() => import("./features/paineis/TelaPainelAtleta"));
-const TelaPainelEquipe            = React.lazy(() => import("./features/paineis/TelaPainelEquipe"));
-const TelaCadastroEquipe          = React.lazy(() => import("./features/cadastros/TelaCadastroEquipe"));
-const TelaCadastroOrganizador     = React.lazy(() => import("./features/cadastros/TelaCadastroOrganizador"));
-const TelaCadastroAtletaLogin     = React.lazy(() => import("./features/cadastros/TelaCadastroAtletaLogin"));
-const TelaFuncionarios            = React.lazy(() => import("./features/gestao/TelaFuncionarios"));
-const TelaTreinadores             = React.lazy(() => import("./features/gestao/TelaTreinadores"));
-const TelaCadastrarAtleta         = React.lazy(() => import("./features/gestao/TelaCadastrarAtleta"));
-const TelaEditarAtleta            = React.lazy(() => import("./features/gestao/TelaEditarAtleta"));
-const TelaImportarAtletas         = React.lazy(() => import("./features/utilidades/TelaImportarAtletas"));
-const TelaNumericaPeito           = React.lazy(() => import("./features/utilidades/TelaNumericaPeito"));
-const TelaFinishLynx              = React.lazy(() => import("./features/utilidades/TelaFinishLynx"));
-const TelaGestaoInscricoes        = React.lazy(() => import("./features/utilidades/TelaGestaoInscricoes"));
-const TelaGerenciarMembros        = React.lazy(() => import("./features/utilidades/TelaGerenciarMembros"));
-const TelaAuditoria               = React.lazy(() => import("./features/utilidades/TelaAuditoria"));
-const TelaPerfilOrganizador       = React.lazy(() => import("./features/organizadores/TelaPerfilOrganizador"));
-const RegulamentoViewer           = React.lazy(() => import("./features/eventos/RegulamentoViewer"));
+// ── Lazy com retry: recarrega a página se o chunk não existir (deploy novo) ──
+function lazyRetry(factory) {
+  return React.lazy(() =>
+    factory().catch(() => {
+      const reloaded = sessionStorage.getItem("chunk_reload");
+      if (!reloaded) {
+        sessionStorage.setItem("chunk_reload", "1");
+        window.location.reload();
+        return new Promise(() => {}); // nunca resolve — reload em andamento
+      }
+      sessionStorage.removeItem("chunk_reload");
+      return factory(); // segunda tentativa — deixa o erro propagar
+    })
+  );
+}
+
+const TelaHome                    = lazyRetry(() => import("./features/eventos/TelaHome"));
+const TelaLogin                   = lazyRetry(() => import("./features/auth/TelaLogin"));
+const TelaEventoDetalhe           = lazyRetry(() => import("./features/eventos/TelaEventoDetalhe"));
+const TelaCadastroEvento          = lazyRetry(() => import("./features/eventos/TelaCadastroEvento").then(m => ({ default: m.TelaCadastroEvento })));
+const TelaSelecaoPerfil           = lazyRetry(() => import("./features/auth/TelaSelecaoPerfil"));
+const TelaRecuperacaoSenha        = lazyRetry(() => import("./features/auth/TelaRecuperacaoSenha"));
+const TelaTrocarSenha             = lazyRetry(() => import("./features/auth/TelaTrocarSenha"));
+const TelaConfiguracoes           = lazyRetry(() => import("./features/auth/TelaConfiguracoes"));
+const PrepararOffline             = lazyRetry(() => import("./features/eventos/PrepararOffline"));
+const TelaGerenciarInscricoes     = lazyRetry(() => import("./features/inscricoes/TelaGerenciarInscricoes"));
+const TelaInscricaoAvulsa         = lazyRetry(() => import("./features/inscricoes/TelaInscricaoAvulsa"));
+const TelaInscricaoRevezamento    = lazyRetry(() => import("./features/inscricoes/TelaInscricaoRevezamento"));
+const TelaSumulas                 = lazyRetry(() => import("./features/sumulas/TelaSumulas"));
+const TelaResultados              = lazyRetry(() => import("./features/resultados/TelaResultados"));
+const TelaRecordes                = lazyRetry(() => import("./features/recordes/TelaRecordes"));
+const TelaRanking                 = lazyRetry(() => import("./features/ranking/TelaRanking"));
+const TelaFaq                     = lazyRetry(() => import("./features/utilidades/TelaFaq"));
+const TelaPlanos                  = lazyRetry(() => import("./features/comercial/TelaPlanos"));
+const TelaPrivacidade             = lazyRetry(() => import("./features/legal/TelaPrivacidade"));
+const TelaTermos                  = lazyRetry(() => import("./features/legal/TelaTermos"));
+const TelaDigitarResultados       = lazyRetry(() => import("./features/digitar/TelaDigitarResultados"));
+const TelaConfigPontuacaoEquipes  = lazyRetry(() => import("./features/configuracoes/TelaConfigPontuacaoEquipes"));
+const TelaSecretaria              = lazyRetry(() => import("./features/secretaria/TelaSecretaria"));
+const TelaGerenciarUsuarios       = lazyRetry(() => import("./features/admin/TelaGerenciarUsuarios"));
+const TelaGerenciarEquipes        = lazyRetry(() => import("./features/admin/TelaGerenciarEquipes"));
+const TelaAdmin                   = lazyRetry(() => import("./features/admin/TelaAdmin"));
+const TelaPainel                  = lazyRetry(() => import("./features/paineis/TelaPainel"));
+const TelaPainelOrganizador       = lazyRetry(() => import("./features/paineis/TelaPainelOrganizador"));
+const TelaPainelAtleta            = lazyRetry(() => import("./features/paineis/TelaPainelAtleta"));
+const TelaPainelEquipe            = lazyRetry(() => import("./features/paineis/TelaPainelEquipe"));
+const TelaCadastroEquipe          = lazyRetry(() => import("./features/cadastros/TelaCadastroEquipe"));
+const TelaCadastroOrganizador     = lazyRetry(() => import("./features/cadastros/TelaCadastroOrganizador"));
+const TelaCadastroAtletaLogin     = lazyRetry(() => import("./features/cadastros/TelaCadastroAtletaLogin"));
+const TelaFuncionarios            = lazyRetry(() => import("./features/gestao/TelaFuncionarios"));
+const TelaTreinadores             = lazyRetry(() => import("./features/gestao/TelaTreinadores"));
+const TelaCadastrarAtleta         = lazyRetry(() => import("./features/gestao/TelaCadastrarAtleta"));
+const TelaEditarAtleta            = lazyRetry(() => import("./features/gestao/TelaEditarAtleta"));
+const TelaImportarAtletas         = lazyRetry(() => import("./features/utilidades/TelaImportarAtletas"));
+const TelaNumericaPeito           = lazyRetry(() => import("./features/utilidades/TelaNumericaPeito"));
+const TelaFinishLynx              = lazyRetry(() => import("./features/utilidades/TelaFinishLynx"));
+const TelaGestaoInscricoes        = lazyRetry(() => import("./features/utilidades/TelaGestaoInscricoes"));
+const TelaGerenciarMembros        = lazyRetry(() => import("./features/utilidades/TelaGerenciarMembros"));
+const TelaAuditoria               = lazyRetry(() => import("./features/utilidades/TelaAuditoria"));
+const TelaPerfilOrganizador       = lazyRetry(() => import("./features/organizadores/TelaPerfilOrganizador"));
+const RegulamentoViewer           = lazyRetry(() => import("./features/eventos/RegulamentoViewer"));
 
 // Firebase — apenas auth (Firestore é usado internamente pelos hooks de storage)
 import {
