@@ -71,8 +71,8 @@ export function useReloginGuard(usuarioLogado, firebaseAuthed, { onDesistir }) {
   return {
     reloginNecessario,
     reloginSenha, setReloginSenha,
-    reloginErro,
-    reloginLoading,
+    reloginErro, setReloginErro,
+    reloginLoading, setReloginLoading,
     handleRelogin,
     handleReloginDesistir,
   };

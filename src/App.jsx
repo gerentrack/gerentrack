@@ -1,8 +1,8 @@
 import React from "react";
 import { useState, useEffect, useRef, useCallback } from "react";
 // ── Hooks extraídos (Etapa 2.3 — decomposição App.jsx) ──────────
-import { useSessionTimeout } from "./hooks/useSessionTimeout";
-import { useReloginGuard } from "./hooks/useReloginGuard";
+import { useLoginLogout } from "./hooks/useLoginLogout";
+import { useGuards } from "./hooks/useGuards";
 import { useMigrations } from "./hooks/useMigrations";
 import { useAuditoria } from "./hooks/useAuditoria";
 import { useNotificacoes } from "./hooks/useNotificacoes";
@@ -88,7 +88,6 @@ import {
   doc,
   setDoc,
   auth,
-  signOut as firebaseSignOut,
   onAuthStateChanged,
   sendEmailVerification,
 } from "./firebase";
@@ -276,59 +275,18 @@ function App() {
   const organizadoresRef = useRef(organizadores);
   organizadoresRef.current = organizadores;
 
-  const login = (dados) => {
-    const dadosComSessao = { ...dados, _loginEm: Date.now() };
-    setUsuarioLogado(dadosComSessao);
-    registrarAcao(dados.id, dados.nome, "Login", `${dados.tipo}`, dados.organizadorId || null, {
-      equipeId: dados.equipeId, modulo: "auth",
-      ...(dados.tipo === "admin" ? { userAgent: navigator.userAgent, plataforma: navigator.platform, tela: `${screen.width}x${screen.height}` } : {}),
-    });
-    const destinos = { admin: "/admin", atleta: "/painel/atleta", organizador: "/painel/organizador", funcionario: "/painel/organizador", equipe: "/painel/equipe", treinador: "/painel/equipe" };
-    if (dados.tipo === "atleta") setEventoAtualId(null);
-    navigate(destinos[dados.tipo] || "/painel/equipe");
-  };
-
-  const loginComSelecao = (dados, perfis) => {
-    const dadosComSessao = { ...dados, _loginEm: Date.now(), _temOutrosPerfis: perfis.length > 1 };
-    setPerfisDisponiveis(perfis);
-    setUsuarioLogado(dadosComSessao);
-    if (dados.senhaTemporaria && !dados._googleAuth) { navigate("/trocar-senha"); return; }
-    const destinos = { admin: "/admin", atleta: "/painel/atleta", organizador: "/painel/organizador", funcionario: "/painel/organizador", equipe: "/painel/equipe", treinador: "/painel/equipe" };
-    if (dados.tipo === "atleta") setEventoAtualId(null);
-    navigate(destinos[dados.tipo] || "/painel/equipe");
-  };
-
-  const logout = () => {
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Logout", usuarioLogado.tipo || "", usuarioLogado.organizadorId || null, { equipeId: usuarioLogado.equipeId, modulo: "auth" });
-    // Aguarda 300ms para o setDoc do historicoAcoes ser disparado antes do signOut
-    // revogar o token Firebase Auth (evita erro 400 Bad Request no Firestore)
-    setTimeout(() => firebaseSignOut(auth).catch(() => {}), 300);
-    setUsuarioLogado(null);
-    setPerfisDisponiveis([]);
-    navigate("/");
-  };
-
-  // ── Guard: usuário local sem sessão Firebase Auth → pedir relogin in-place ─
-  // Acontece quando o app reabre ou abre em outro dispositivo: o localStorage
-  // tem usuarioLogado mas o Firebase Auth não tem token válido.
-  // Em vez de navegar para a tela de login (perdendo dados em tela), mostra um
-  // modal de relogin por cima da tela atual.
-  // ── Relogin guard (extraído para useHook) ───────────────────────────
-  const _reloginDesistir = () => { setUsuarioLogado(null); setPerfisDisponiveis([]); navigate("/entrar"); };
+  // ── Login/Logout/Session (extraído para useLoginLogout) ──
   const {
+    login, loginComSelecao, logout,
     reloginNecessario, reloginSenha, setReloginSenha,
-    reloginErro, reloginLoading, handleRelogin, handleReloginDesistir,
-  } = useReloginGuard(usuarioLogado, firebaseAuthed, { onDesistir: _reloginDesistir });
-
-  // ── Expiração de sessão por inatividade (extraído para useHook) ─────
-  const _sessaoExpirou = () => {
-    if (usuarioLogado) registrarAcao(usuarioLogado.id, usuarioLogado.nome, "Sessão expirada", "Logout automático por inatividade", usuarioLogado.organizadorId || null, { modulo: "auth" });
-    setTimeout(() => firebaseSignOut(auth).catch(() => {}), 300);
-    setUsuarioLogado(null);
-    setPerfisDisponiveis([]);
-    navigate("/");
-  };
-  const { sessaoAvisoContagem, renovarSessao } = useSessionTimeout(usuarioLogado, { onExpire: _sessaoExpirou });
+    reloginErro, setReloginErro, reloginLoading, setReloginLoading,
+    handleRelogin, handleReloginDesistir,
+    sessaoAvisoContagem, renovarSessao,
+  } = useLoginLogout({
+    usuarioLogado, setUsuarioLogado, firebaseAuthed,
+    setPerfisDisponiveis, setEventoAtualId,
+    registrarAcao, navigate,
+  });
 
   const adicionarAtletaUsuario = (u) => _adicionarAtletaUsuario(u);
   const atualizarAtletaUsuario = (u) => _atualizarAtletaUsuario(u);
@@ -359,34 +317,11 @@ function App() {
     firebaseAuthed,
   });
 
-  // ── Guard: perfil deletado — força logout se equipe/treinador/org/func não existe mais ──
-  useEffect(() => {
-    if (!usuarioLogado || !firebaseAuthed) return;
-    const tipo = usuarioLogado.tipo;
-    if (tipo === "admin" || tipo === "atleta") return;
-    const listas = { organizador: organizadores, equipe: equipes, funcionario: funcionarios, treinador: treinadores };
-    const lista = listas[tipo];
-    if (!lista || lista.length === 0) return; // dados ainda carregando
-    if (!lista.some(u => u.id === usuarioLogado.id)) {
-      console.warn(`[App] Perfil ${tipo} id=${usuarioLogado.id} deletado — logout`);
-      setUsuarioLogado(null);
-      setPerfisDisponiveis([]);
-      navigate("/entrar");
-    }
-  }, [equipes, organizadores, funcionarios, treinadores]);
-
-  // ── Migração: garantir tipo e organizadorId em treinadores legados ────
-  const treinSemTipoIds = treinadores.filter(tr => !tr.tipo || !tr.organizadorId).map(tr => tr.id).join(",");
-  useEffect(() => {
-    if (!treinSemTipoIds) return;
-    const atualizados = treinadores.map(tr => {
-      if (tr.tipo && tr.organizadorId) return tr;
-      const orgId = tr.organizadorId || equipes.find(eq => eq.id === tr.equipeId)?.organizadorId || null;
-      return { ...tr, tipo: tr.tipo || "treinador", organizadorId: orgId };
-    });
-    console.info(`[Migração] Corrigindo ${treinSemTipoIds.split(",").length} treinador(es) sem tipo/organizadorId`);
-    setTreinadores(atualizados);
-  }, [treinSemTipoIds]);
+  // ── Guards reativos (extraído para useGuards) ──
+  useGuards({
+    usuarioLogado, setUsuarioLogado, firebaseAuthed, setPerfisDisponiveis, navigate,
+    equipes, organizadores, funcionarios, treinadores, setTreinadores,
+  });
 
   // ── Câmara de Chamada / Medalhas via Firestore (tempo real) ──────────────
   // Só ativa listeners de chamada/medalhas quando Firebase Auth tem sessão ativa
