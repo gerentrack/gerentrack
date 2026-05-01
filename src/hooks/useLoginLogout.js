@@ -27,6 +27,10 @@ export function useLoginLogout({
     const dadosComSessao = { ...dados, _loginEm: Date.now(), _temOutrosPerfis: perfis.length > 1 };
     setPerfisDisponiveis(perfis);
     setUsuarioLogado(dadosComSessao);
+    registrarAcao(dados.id, dados.nome, "Login", `${dados.tipo}`, dados.organizadorId || null, {
+      equipeId: dados.equipeId, modulo: "auth",
+      ...(dados.tipo === "admin" ? { userAgent: navigator.userAgent, plataforma: navigator.platform, tela: `${screen.width}x${screen.height}` } : {}),
+    });
     if (dados.senhaTemporaria && !dados._googleAuth) { navigate("/trocar-senha"); return; }
     const destinos = { admin: "/admin", atleta: "/painel/atleta", organizador: "/painel/organizador", funcionario: "/painel/organizador", equipe: "/painel/equipe", treinador: "/painel/equipe" };
     if (dados.tipo === "atleta") setEventoAtualId(null);
