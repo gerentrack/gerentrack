@@ -1,8 +1,9 @@
-const { setContext, info, error } = require('./logger');
+const { setContext, info, warn, error } = require('./logger');
+const { checkRateLimit } = require('./rateLimiter');
 
 /**
  * Middleware wrapper para API routes internas.
- * Adiciona: request ID, timing, log de entrada/saída, catch de erros.
+ * Adiciona: request ID, rate limiting, timing, log de entrada/saída, catch de erros.
  *
  * Uso:
  *   module.exports = withLogger(async (req, res) => { ... });
@@ -13,11 +14,23 @@ function withLogger(handler) {
     const endpoint = req.url?.split('?')[0] || req.url;
     const start = Date.now();
 
-    // Injetar requestId no response header (útil para debug no browser)
+    // Injetar requestId no response header
     res.setHeader('X-Request-Id', requestId);
 
-    // Definir contexto para o logger (módulo-global por request)
+    // Definir contexto para o logger
     setContext(requestId, endpoint);
+
+    // Rate limiting por IP + endpoint
+    const ip = req.headers?.['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown';
+    const rl = checkRateLimit(ip, endpoint);
+    res.setHeader('X-RateLimit-Limit', rl.limit);
+    res.setHeader('X-RateLimit-Remaining', rl.remaining);
+    res.setHeader('X-RateLimit-Reset', rl.resetAt);
+    if (!rl.allowed) {
+      res.setHeader('Retry-After', '60');
+      warn('rate_limited', { ip, limit: rl.limit });
+      return res.status(429).json({ error: 'Limite de requisições excedido. Tente novamente em 1 minuto.' });
+    }
 
     info('request', {
       method: req.method,

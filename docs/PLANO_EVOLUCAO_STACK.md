@@ -470,7 +470,7 @@ Dados consolidados (pós-competição):
 ### 3.5 Segurança avançada
 
 ```
-3.5.1  Rate limiting nas API routes (via @vercel/edge ou upstash/ratelimit)
+3.5.1  ✅ Rate limiting nas API routes (in-memory sliding window por IP+endpoint)
 3.5.2  CSRF protection para mutações
 3.5.3  Audit log server-side (complementar ao historicoAcoes no cliente)
 3.5.4  Backup automatizado do PostgreSQL (além do backup Firestore existente)
@@ -502,7 +502,7 @@ Dados consolidados (pós-competição):
 |---|---|---|---|---|
 | 1 | **Decomposição do App.jsx** (803 linhas, -58%) | 2.3 | 2-3 dias | ✅ 19 hooks + 1 componente extraídos |
 | 2 | **Logs estruturados nas API routes** | 3.4.3 | 1 dia | ✅ logger.js + withLogger.js em 14 routes |
-| 3 | **Rate limiting nas API routes** | 3.5.1 | 1 dia | Próximo |
+| 3 | **Rate limiting nas API routes** | 3.5.1 | 1 dia | ✅ In-memory por IP+endpoint, integrado no withLogger |
 
 ### Bloco 2 — Autonomia de federações (feature principal)
 
