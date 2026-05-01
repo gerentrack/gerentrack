@@ -91,8 +91,22 @@ export function useCrudAtletas({
     }
   };
 
+  const excluirAtletaPorUsuario = (id, usuario) => {
+    const paraRemover = atletasRef.current.filter(a => {
+      if (a.atletaUsuarioId === id) return true;
+      if (a.email && usuario?.email && a.email.toLowerCase() === usuario.email.toLowerCase()) return true;
+      if (a.cpf && usuario?.cpf && a.cpf.replace(/\D/g, "") === usuario.cpf.replace(/\D/g, "")) return true;
+      return false;
+    });
+    const idsSet = new Set(paraRemover.map(a => a.id));
+    if (idsSet.size > 0) {
+      excluirAtletasPorIds(idsSet);
+      excluirInscricoesPorAtletas(idsSet);
+    }
+  };
+
   return {
     adicionarAtleta, adicionarAtletasEmLote, atualizarAtleta,
-    excluirAtleta, excluirAtletasEmMassa, desvincularAtleta,
+    excluirAtleta, excluirAtletasEmMassa, desvincularAtleta, excluirAtletaPorUsuario,
   };
 }

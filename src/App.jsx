@@ -18,6 +18,7 @@ import { useCrudAtletas } from "./hooks/useCrudAtletas";
 import { useCrudEventos } from "./hooks/useCrudEventos";
 import { useExcluirDadosOrganizador } from "./hooks/useExcluirDadosOrganizador";
 import { useCrudEquipes } from "./hooks/useCrudEquipes";
+import { useNotificacaoProvaConcluida } from "./hooks/useNotificacaoProvaConcluida";
 // ── Contexts (Etapa 2 — migração React Router) ──────────────────
 import { AuthProvider, buildAuthValue } from "./contexts/AuthContext";
 import { EventoProvider, buildEventoValue } from "./contexts/EventoContext";
@@ -26,42 +27,11 @@ import { AppProvider, buildAppValue } from "./contexts/AppContext";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import EventoLayout from "./layouts/EventoLayout";
 import FinalizedGuard from "./router/FinalizedGuard";
-// ── Domínio do Atletismo — Etapa 2 ────────────────────────────────
-import PROVAS_DEF                             from "./domain/provas/provasDef.json";
-import { getProvasCat }                       from "./domain/provas/getProvasCat";
-import { todasAsProvas }                      from "./domain/provas/todasAsProvas";
-import { nPernasRevezamento, isRevezamentoMisto } from "./domain/revezamento/helpers";
-import { COMPOSICAO_COMBINADAS, getComposicaoCombinada } from "./domain/combinadas/composicao";
-
-// ── Shared — Engines — Etapa 3 ────────────────────────────────────
-import { RecordHelper }                    from "./shared/engines/recordHelper";
-import { CombinedEventEngine }             from "./shared/engines/combinedEventEngine";
-import { CombinedScoringEngine }           from "./shared/engines/combinedScoringEngine";
-import { TeamScoringEngine }               from "./shared/engines/teamScoringEngine";
+// ── Shared — Engines (apenas os que ainda são passados via context) ──
 import { RecordDetectionEngine }           from "./shared/engines/recordDetectionEngine";
 import RankingExtractionEngine             from "./shared/engines/rankingExtractionEngine";
 
-// ── Shared — Constants — Etapa 3 ──────────────────────────────────
-import { ESTADOS_BR, CATEGORIAS, getCategoria,
-         getPermissividade, podeCategoriaSuperior } from "./shared/constants/categorias";
-import { resKey, getFasesModo } from "./shared/constants/fases";
-
-// ── Shared — Formatters — Etapa 3 ─────────────────────────────────
-import {
-  formatarTempo, formatarTempoMs, autoFormatTempo,
-  parseTempoPista, _parseDigitsPuros, _parseMinSeg, _marcaParaMs,
-  formatarMarca, formatarMarcaExibicao, formatarMarcaExibicaoHtml,
-  normalizarMarca, exibirMarcaInput,
-  abreviarProva, nomeProvaHtml, NomeProvaComImplemento,
-  _getNascDisplay, _getCbat, _getAnoNasc,
-  _getEquipeIdAtleta, _getClubeAtleta,
-  _getLocalRecorde, _getLocalEventoDisplay,
-  emailJaCadastrado, validarCPF, validarCNPJ
-} from "./shared/formatters/utils";
-
-// ══════════════════════════════════════════════════════════════════
-// IMPORTS ETAPA 4A — Cole no topo do App.jsx (após imports Etapa 3)
-// ══════════════════════════════════════════════════════════════════
+import { _getClubeAtleta } from "./shared/formatters/utils";
 
 import { Header }                  from "./features/layout/Header";
 
@@ -117,7 +87,6 @@ import {
   db,
   doc,
   setDoc,
-  onSnapshot,
   auth,
   signOut as firebaseSignOut,
   onAuthStateChanged,
@@ -143,7 +112,6 @@ import { useOfflineStatus } from "./hooks/useOfflineStatus";
 // ── Infraestrutura extraída — Etapa 1 ──────────────────────────────
 import { useLocalStorage } from "./lib/storage/useLocalStorage";
 import { useLocalOnly }    from "./lib/storage/useLocalOnly";
-import { useStorageSync }  from "./lib/storage/useStorageSync";
 
 // Migração de dados legados (executa imediatamente ao importar)
 import "./lib/migration/migrarDadosLegacy";
@@ -365,13 +333,6 @@ function App() {
   const adicionarAtletaUsuario = (u) => _adicionarAtletaUsuario(u);
   const atualizarAtletaUsuario = (u) => _atualizarAtletaUsuario(u);
 
-  
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MIGRAÇÃO: TREINADOR → EQUIPE
-  // ═══════════════════════════════════════════════════════════════════════════
-  
-    
-
 
   // ── Equipes via Firestore ─────────────────────────────────────────────────
   const {
@@ -502,19 +463,6 @@ function App() {
     solicitacoesVinculoRef, _atualizarAtleta,
   });
 
-  const excluirAtletaPorUsuario = (id, usuario) => {
-    const paraRemover = atletasRef_app.current.filter(a => {
-      if (a.atletaUsuarioId === id) return true;
-      if (a.email && usuario?.email && a.email.toLowerCase() === usuario.email.toLowerCase()) return true;
-      if (a.cpf && usuario?.cpf && a.cpf.replace(/\D/g,"") === usuario.cpf.replace(/\D/g,"")) return true;
-      return false;
-    });
-    const idsSet = new Set(paraRemover.map(a => a.id));
-    if (idsSet.size > 0) {
-      excluirAtletasPorIds(idsSet);
-      excluirInscricoesPorAtletas(idsSet);
-    }
-  };
 
   // ── Resultados via Firestore ──────────────────────────────────────────────
   const {
@@ -556,7 +504,7 @@ function App() {
   // ── CRUD Atletas (extraído para useCrudAtletas) ──
   const {
     adicionarAtleta, adicionarAtletasEmLote, atualizarAtleta,
-    excluirAtleta, excluirAtletasEmMassa, desvincularAtleta,
+    excluirAtleta, excluirAtletasEmMassa, desvincularAtleta, excluirAtletaPorUsuario,
   } = useCrudAtletas({
     atletas, _adicionarAtleta, _adicionarAtletasEmLote, _atualizarAtleta,
     excluirAtletaPorId, excluirAtletasPorIds, excluirInscricoesPorAtletas,
@@ -573,59 +521,11 @@ function App() {
     confirmar, registrarAcao, adicionarNotificacao, usuarioLogado, firebaseAuthed,
   });
 
-  // ── Notificação à secretaria quando prova é concluída ────────────────────
-  // Colocado aqui pois depende de resultados, inscricoes e atletas (todos declarados acima)
-  const provasNotificadasRef = React.useRef(new Set());
-  React.useEffect(() => {
-    if (!eventoAtual || !inscricoes || !atletas || !resultados) return;
-    const eid = eventoAtual.id;
-    const STATUS_FINAL = ["DNS","DNF","DQ","NM"];
-    const inscsEvt = inscricoes.filter(i => i.eventoId === eid && i.tipo !== "revezamento" && !i.combinadaId);
-    const grupos = {};
-    inscsEvt.forEach(i => {
-      const atl = atletas.find(a => a.id === i.atletaId);
-      if (!atl) return;
-      const cat = getCategoria(atl.anoNasc, eventoAtual.data ? new Date(eventoAtual.data + "T12:00:00").getFullYear() : new Date().getFullYear());
-      if (!cat) return;
-      const key = `${i.provaId}_${cat.id}_${i.sexo || atl.sexo}`;
-      if (!grupos[key]) grupos[key] = { provaId: i.provaId, catId: cat.id, sexo: i.sexo || atl.sexo, atletaIds: new Set() };
-      grupos[key].atletaIds.add(i.atletaId);
-    });
-    Object.entries(grupos).forEach(([key, { provaId, catId, sexo, atletaIds }]) => {
-      if (provasNotificadasRef.current.has(`${eid}_${key}`)) return;
-      const fases = getFasesModo(provaId, eventoAtual.configSeriacao || {});
-      const fasesCheck = fases.length > 1 ? fases : [null];
-      const faseFinal = fasesCheck[fasesCheck.length - 1];
-      const rKey = resKey(eid, provaId, catId, sexo, faseFinal);
-      const res = resultados[rKey];
-      if (!res) return;
-      const completa = [...atletaIds].every(aId => {
-        const r = res[aId];
-        if (!r) return false;
-        const marca = typeof r === "object" ? r.marca : r;
-        const status = typeof r === "object" ? (r.status || "") : "";
-        if (STATUS_FINAL.includes(String(status).toUpperCase())) return true;
-        if (marca == null || marca === "") return false;
-        const num = parseFloat(String(marca).replace(",", "."));
-        return !isNaN(num) && num > 0;
-      });
-      if (!completa) return;
-      provasNotificadasRef.current.add(`${eid}_${key}`);
-      const todasP = todasAsProvas();
-      const provaInfo = todasP.find(p => p.id === provaId);
-      const provaNome = provaInfo?.nome || provaId;
-      const catInfo = CATEGORIAS.find(c => c.id === catId);
-      const catNome = catInfo?.nome || catId;
-      const msg = `Prova concluída: ${provaNome} — ${catNome} ${sexo === "M" ? "Masc" : "Fem"} — ${eventoAtual.nome}. Medalhas disponíveis para entrega.`;
-      const orgEvento = (organizadores || []).find(o => o.id === eventoAtual.organizadorId);
-      if (orgEvento) adicionarNotificacao(orgEvento.id, "medals_ready", msg);
-      (funcionarios || []).forEach(f => {
-        if (!(f.permissoes || []).includes("camara_chamada")) return;
-        if (f.organizadorId === eventoAtual.organizadorId || !f.organizadorId)
-          adicionarNotificacao(f.id, "medals_ready", msg);
-      });
-    });
-  }, [resultados, eventoAtual, inscricoes, atletas, organizadores, funcionarios]);
+  // ── Notificação à secretaria quando prova é concluída (extraído) ──
+  useNotificacaoProvaConcluida({
+    eventoAtual, resultados, inscricoes, atletas,
+    organizadores, funcionarios, adicionarNotificacao,
+  });
 
 
   // ── Backup/Restore (extraído para useBackupRestore) ──
