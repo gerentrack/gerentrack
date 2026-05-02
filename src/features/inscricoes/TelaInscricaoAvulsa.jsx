@@ -359,7 +359,7 @@ function TelaInscricaoAvulsa() {
 
   // ── Modal: criar perfil em novo organizador ──────────────────────────────
   if (modalNovoOrg) {
-    const handleCriarNovoPerfilOrg = () => {
+    const handleCriarNovoPerfilOrg = async () => {
       // Cria novo registro atletaUsuario vinculado ao novo organizador
       const novoId = Date.now().toString();
       const novoPerfil = {
@@ -369,7 +369,7 @@ function TelaInscricaoAvulsa() {
         dataCadastro: new Date().toISOString(),
         criadoPorMultiOrg: true,
       };
-      adicionarAtletaUsuario && adicionarAtletaUsuario(novoPerfil);
+      if (adicionarAtletaUsuario) await adicionarAtletaUsuario(novoPerfil);
       // Faz login com o novo perfil e prossegue para a inscrição
       loginComSelecao && loginComSelecao({ ...novoPerfil, _organizadorNome: modalNovoOrg.orgNome }, []);
       setModalNovoOrg(null);

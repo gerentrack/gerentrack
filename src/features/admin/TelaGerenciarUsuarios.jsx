@@ -325,7 +325,7 @@ function TelaGerenciarUsuarios() {
           status: "aprovado",
         };
         const jaAtl = (atletasUsuarios||[]).find(a => a.id === baseUsuario.id);
-        jaAtl ? atualizarAtletaUsuario(payload) : adicionarAtletaUsuario(payload);
+        jaAtl ? await atualizarAtletaUsuario(payload) : await adicionarAtletaUsuario(payload);
         // Criar/atualizar registro base de atleta
         const atletaBase = atletas?.find(a =>
           a.atletaUsuarioId === atletaUserId ||

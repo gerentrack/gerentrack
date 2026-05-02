@@ -112,6 +112,7 @@ function TelaCadastroAtletaLogin() {
     nome:"", email:"", senha:"", dataNasc:"", anoNasc:"", sexo:"M", clube:"", cpf:"", cbat:"", equipeId:"", organizadorId:""
   });
   const [erros, setErros] = useState({});
+  const [enviando, setEnviando] = useState(false);
   const [ok, setOk] = useState(false);
   const [lgpdAceite, setLgpdAceite] = useState(false);
   const [consentimentoParentalAceite, setConsentimentoParentalAceite] = useState(false);
@@ -288,6 +289,7 @@ function TelaCadastroAtletaLogin() {
   };
 
   const handleSubmit = async () => {
+    if (enviando) return;
     const e = validar();
     const idade = calcularIdade(form.dataNasc);
     const ehMenor = idade !== null && idade < 18;
@@ -319,6 +321,8 @@ function TelaCadastroAtletaLogin() {
         return;
       }
     }
+    setEnviando(true);
+    try {
     // Criar/autenticar no Firebase Auth
     // Se modo vincular e já autenticado (ex: confirmou via Google), pula criação Auth
     if (auth.currentUser) {
@@ -367,7 +371,7 @@ function TelaCadastroAtletaLogin() {
         consentimentoParentalData: new Date().toISOString(),
       } : {}),
     };
-    adicionarAtletaUsuario(usuario);
+    await adicionarAtletaUsuario(usuario);
     if (atletaCpfEncontrado) {
       try {
         await atualizarAtleta({ ...atletaCpfEncontrado, atletaUsuarioId: id, email: form.email });
@@ -429,6 +433,9 @@ function TelaCadastroAtletaLogin() {
     }
     login({ tipo:"atleta", ...usuario });
     setOk(true);
+    } finally {
+      setEnviando(false);
+    }
   };
 
   if (ok) return (
@@ -654,8 +661,8 @@ function TelaCadastroAtletaLogin() {
           {/* ── LGPD: Consentimento geral ── */}
           <BlocoLGPD aceite={lgpdAceite} onChange={setLgpdAceite} erro={erros.lgpd} />
 
-          <button style={{ ...s.btnPrimary, marginTop: 16 }} onClick={handleSubmit}>
-            {docModo === "vincular" ? "Realizar Cadastro" : "Criar Conta"}
+          <button style={{ ...s.btnPrimary, marginTop: 16, opacity: enviando ? 0.5 : 1 }} onClick={handleSubmit} disabled={enviando}>
+            {enviando ? "Criando conta..." : docModo === "vincular" ? "Realizar Cadastro" : "Criar Conta"}
           </button>
         </>
       )}
