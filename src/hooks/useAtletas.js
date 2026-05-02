@@ -34,12 +34,13 @@ export function useAtletas() {
 
   const atletasRef = useRef(atletas);
   atletasRef.current = atletas;
+  const firestoreLoaded = useRef(false);
 
   // ── Hidratar do IndexedDB (cache offline) ───────────────────────────────
   useEffect(() => {
     let cancelled = false;
     cacheGet(STORE).then((cached) => {
-      if (!cancelled && cached && cached.length > 0) setAtletasLocal(cached);
+      if (!cancelled && cached && cached.length > 0 && !firestoreLoaded.current) setAtletasLocal(cached);
     });
     return () => { cancelled = true; };
   }, []);
@@ -49,6 +50,7 @@ export function useAtletas() {
     const unsub = onSnapshot(
       collection(db, COLLECTION),
       (snap) => {
+        firestoreLoaded.current = true;
         const lista = [];
         snap.forEach((d) => lista.push({ id: d.id, ...d.data() }));
         setAtletasLocal(lista);

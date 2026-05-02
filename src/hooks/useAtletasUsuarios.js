@@ -33,12 +33,13 @@ export function useAtletasUsuarios() {
 
   const ref = useRef(atletasUsuarios);
   ref.current = atletasUsuarios;
+  const firestoreLoaded = useRef(false);
 
   // ── Hidratar do IndexedDB (cache offline) ───────────────────────────────
   useEffect(() => {
     let cancelled = false;
     cacheGet(STORE).then((cached) => {
-      if (!cancelled && cached && cached.length > 0) setLocal(cached);
+      if (!cancelled && cached && cached.length > 0 && !firestoreLoaded.current) setLocal(cached);
     });
     return () => { cancelled = true; };
   }, []);
@@ -48,6 +49,7 @@ export function useAtletasUsuarios() {
     const unsub = onSnapshot(
       collection(db, COLLECTION),
       (snap) => {
+        firestoreLoaded.current = true;
         const lista = [];
         snap.forEach((d) => lista.push({ id: d.id, ...d.data() }));
         setLocal(lista);

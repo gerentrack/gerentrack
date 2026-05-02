@@ -47,12 +47,13 @@ export function useInscricoes({ atletas = [], registrarAcao, usuarioLogado } = {
 
   const inscricoesRef = useRef(inscricoes);
   inscricoesRef.current = inscricoes;
+  const firestoreLoaded = useRef(false);
 
   // ── Hidratar do IndexedDB (cache offline) ───────────────────────────────
   useEffect(() => {
     let cancelled = false;
     cacheGet(STORE).then((cached) => {
-      if (!cancelled && cached && cached.length > 0) setInscricoesLocal(cached);
+      if (!cancelled && cached && cached.length > 0 && !firestoreLoaded.current) setInscricoesLocal(cached);
     });
     return () => { cancelled = true; };
   }, []);
@@ -62,6 +63,7 @@ export function useInscricoes({ atletas = [], registrarAcao, usuarioLogado } = {
     const unsub = onSnapshot(
       collection(db, COLLECTION),
       (snap) => {
+        firestoreLoaded.current = true;
         const lista = [];
         snap.forEach((d) => lista.push({ id: d.id, ...d.data() }));
         setInscricoesLocal(lista);

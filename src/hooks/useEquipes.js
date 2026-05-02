@@ -31,12 +31,13 @@ export function useEquipes() {
 
   const equipesRef = useRef(equipes);
   equipesRef.current = equipes;
+  const firestoreLoaded = useRef(false);
 
   // ── Hidratar do IndexedDB (cache offline) ───────────────────────────────
   useEffect(() => {
     let cancelled = false;
     cacheGet(STORE).then((cached) => {
-      if (!cancelled && cached && cached.length > 0) setEquipesLocal(cached);
+      if (!cancelled && cached && cached.length > 0 && !firestoreLoaded.current) setEquipesLocal(cached);
     });
     return () => { cancelled = true; };
   }, []);
@@ -46,6 +47,7 @@ export function useEquipes() {
     const unsub = onSnapshot(
       collection(db, COLLECTION),
       (snap) => {
+        firestoreLoaded.current = true;
         const lista = [];
         snap.forEach((d) => lista.push({ id: d.id, ...d.data() }));
         setEquipesLocal(lista);

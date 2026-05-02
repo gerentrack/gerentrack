@@ -213,12 +213,13 @@ export function useResultados({ eventos = [], recordes = [], _atualizarCamposEve
   // Ref para acesso síncrono no callback sem re-closure
   const resultadosRef = useRef(resultados);
   resultadosRef.current = resultados;
+  const firestoreLoaded = useRef(false);
 
   // ── Hidratar do IndexedDB (cache offline) ───────────────────────────────
   useEffect(() => {
     let cancelled = false;
     cacheGet(STORE).then((cached) => {
-      if (!cancelled && cached && Object.keys(cached).length > 0) setResultadosLocal(cached);
+      if (!cancelled && cached && Object.keys(cached).length > 0 && !firestoreLoaded.current) setResultadosLocal(cached);
     });
     return () => { cancelled = true; };
   }, []);
@@ -228,6 +229,7 @@ export function useResultados({ eventos = [], recordes = [], _atualizarCamposEve
     const unsub = onSnapshot(
       collection(db, COLLECTION),
       (snap) => {
+        firestoreLoaded.current = true;
         const dados = {};
         snap.forEach((d) => {
           dados[d.id] = d.data();

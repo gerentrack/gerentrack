@@ -267,7 +267,7 @@ function TelaCadastroEvento() {
     return base;
   });
   // Snapshot inicial para diff — ao editar, salva apenas campos alterados
-  const [formOriginal] = useState(() => editando ? { ...eventoAtual } : null);
+  const [formOriginal, setFormOriginal] = useState(() => editando ? { ...eventoAtual } : null);
   const [erros, setErros] = useState({});
   // Steps: 1=Dados | 2=Configurações | 3=Provas | 4=Horários (editing only)
   const [step, setStep] = useState(1);
@@ -289,6 +289,53 @@ function TelaCadastroEvento() {
       setCadEventoGoStep(null);
     }
   }, [cadEventoGoStep, editando]);
+
+  // ── Resincronizar form quando eventoAtual carrega após mount ──────────────
+  // Corrige race condition: se o componente montou antes do Firestore retornar
+  // eventoAtual, o form foi inicializado com template vazio. Este effect
+  // preenche o form com os dados reais assim que ficam disponíveis.
+  useEffect(() => {
+    if (eventoAtual && eventoAtualId && !formOriginal) {
+      const base = { ...eventoAtual };
+      if (!("dataAberturaInscricoes" in base)) base.dataAberturaInscricoes = "";
+      if (!("horaAberturaInscricoes" in base)) base.horaAberturaInscricoes = "";
+      if (!("dataEncerramentoInscricoes" in base)) base.dataEncerramentoInscricoes = "";
+      if (!("horaEncerramentoInscricoes" in base)) base.horaEncerramentoInscricoes = "";
+      if (!("descricao" in base)) base.descricao = "";
+      if (!("orgsAutorizadas" in base)) base.orgsAutorizadas = [];
+      if (!("programaHorario" in base)) {
+        const prog = {};
+        const oldH = base.horariosProvas || {};
+        const oldF = base.fasesProvas || {};
+        const allKeys = new Set([...Object.keys(oldH), ...Object.keys(oldF)]);
+        allKeys.forEach(id => {
+          prog[id] = [{ fase: oldF[id] || "", horario: oldH[id] || "" }];
+        });
+        base.programaHorario = prog;
+      }
+      if (!("programaPausa" in base)) base.programaPausa = { horario: "", retorno: "", descricao: "" };
+      if (base.programaPausa && base.programaPausa.horario && !base.programaPausa.dia1 && base.dataFim && base.dataFim !== base.data) {
+        const legado = { horario: base.programaPausa.horario, retorno: base.programaPausa.retorno || "", descricao: base.programaPausa.descricao || "" };
+        base.programaPausa = { ...base.programaPausa, dia1: { ...legado }, dia2: { ...legado } };
+      }
+      if (!("modoHorario" in base)) base.modoHorario = "detalhado";
+      if (!("programaOrdem" in base)) base.programaOrdem = [];
+      if (!("limitesProvasCat" in base)) base.limitesProvasCat = {};
+      if (!("usarLimiteCat" in base)) base.usarLimiteCat = false;
+      if (!("regrasPreco" in base)) base.regrasPreco = [];
+      if (!("equipeIdsFederados" in base)) {
+        const _orgId = base.organizadorId || (usuarioLogado?.tipo === "organizador" ? usuarioLogado?.id : usuarioLogado?.organizadorId);
+        const _org = _orgId ? organizadores?.find(o => o.id === _orgId) : null;
+        base.equipeIdsFederados = _org?.equipeIdsFederados || [];
+      }
+      if (!("valorInscricao" in base)) base.valorInscricao = "";
+      if (!("formaPagamento" in base)) base.formaPagamento = "";
+      if (!("orientacaoPagamento" in base)) base.orientacaoPagamento = "";
+      if (!("modoMedalhas" in base)) base.modoMedalhas = base.medalhasApenasParticipacao ? "apenas_participacao" : "classificacao_participacao";
+      setForm(base);
+      setFormOriginal({ ...base });
+    }
+  }, [eventoAtual, eventoAtualId, formOriginal]);
 
   // Guard (APÓS todos os hooks — regra dos hooks React)
   if (tipoEvt !== "admin" && tipoEvt !== "organizador" && tipoEvt !== "funcionario") return (

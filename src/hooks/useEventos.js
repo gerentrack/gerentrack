@@ -37,12 +37,16 @@ export function useEventos() {
 
   const eventosRef = useRef(eventos);
   eventosRef.current = eventos;
+  const firestoreLoaded = useRef(false);
 
   // ── Hidratar do IndexedDB (cache offline) ───────────────────────────────
   useEffect(() => {
     let cancelled = false;
     cacheGet(STORE).then((cached) => {
-      if (!cancelled && cached && cached.length > 0) setEventosLocal(cached);
+      // Só usar cache se Firestore ainda não carregou — evita sobrescrever dados frescos
+      if (!cancelled && cached && cached.length > 0 && !firestoreLoaded.current) {
+        setEventosLocal(cached);
+      }
     });
     return () => { cancelled = true; };
   }, []);
@@ -52,6 +56,7 @@ export function useEventos() {
     const unsub = onSnapshot(
       collection(db, COLLECTION),
       (snap) => {
+        firestoreLoaded.current = true;
         const lista = [];
         snap.forEach((d) => lista.push({ id: d.id, ...d.data() }));
         lista.sort((a, b) => {
