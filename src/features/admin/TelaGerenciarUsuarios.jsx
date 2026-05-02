@@ -148,7 +148,7 @@ function TelaGerenciarUsuarios() {
   const t = useTema();
   const s = useStylesResponsivos(getStyles(t));
   const { gerarSenhaTemp } = useAuth();
-  const { equipes, atletas, adicionarAtleta } = useEvento();
+  const { equipes, atletas, adicionarAtleta, atualizarAtleta } = useEvento();
   const { organizadores, atletasUsuarios, funcionarios, adicionarOrganizador, editarOrganizadorAdmin, editarEquipeAdmin, adicionarAtletaUsuario, editarAtletaUsuarioAdmin, excluirOrganizador, excluirEquipeUsuario, excluirAtletaUsuario, excluirAtletaPorUsuario } = useApp();
   const adicionarEquipe = useEvento().adicionarEquipe;
   const confirmar = useConfirm();
@@ -160,6 +160,60 @@ function TelaGerenciarUsuarios() {
   const [filtro, setFiltro] = useState("");
   const [filtroOrgUsuario, setFiltroOrgUsuario] = useState("");
   const [perfilExistente, setPerfilExistente] = useState(null); // perfil já cadastrado com mesmo CPF/CNPJ
+  const [modalDedup, setModalDedup] = useState(false);
+  const [dedupProcessando, setDedupProcessando] = useState(false);
+
+  // ── Detecção de duplicados por CPF+email+organizadorId ────────────────────
+  const gruposDuplicados = React.useMemo(() => {
+    const mapa = {};
+    atletasUsuarios.forEach(a => {
+      const chave = `${(a.cpf || "").replace(/\D/g, "")}|${(a.email || "").toLowerCase()}|${a.organizadorId || ""}`;
+      if (!chave.startsWith("|")) { // ignora sem CPF
+        if (!mapa[chave]) mapa[chave] = [];
+        mapa[chave].push(a);
+      }
+    });
+    return Object.values(mapa).filter(g => g.length > 1);
+  }, [atletasUsuarios]);
+
+  const totalDuplicados = gruposDuplicados.reduce((acc, g) => acc + g.length - 1, 0);
+
+  // Escolhe o registro canônico: prioriza quem tem atleta vinculado (inscrições), depois o mais antigo
+  const escolherCanonico = (grupo) => {
+    const comVinculo = grupo.filter(u => (atletas || []).some(a => a.atletaUsuarioId === u.id));
+    if (comVinculo.length > 0) {
+      // Entre os que têm vínculo, manter o mais antigo
+      return [...comVinculo].sort((a, b) => (a.id || "").localeCompare(b.id || ""))[0];
+    }
+    // Nenhum tem vínculo — manter o mais antigo
+    return [...grupo].sort((a, b) => (a.id || "").localeCompare(b.id || ""))[0];
+  };
+
+  const handleDeduplicar = async () => {
+    if (!await confirmar(`Unificar ${totalDuplicados} registros duplicados?\n\nPara cada grupo, o registro com inscrições vinculadas será mantido (ou o mais antigo se nenhum tiver). Referências serão transferidas automaticamente.`)) return;
+    setDedupProcessando(true);
+    try {
+      for (const grupo of gruposDuplicados) {
+        const manter = escolherCanonico(grupo);
+        const duplicatas = grupo.filter(u => u.id !== manter.id);
+
+        for (const dup of duplicatas) {
+          // Transferir atletaUsuarioId nos atletas que apontam para o duplicado
+          const atletasVinculados = (atletas || []).filter(a => a.atletaUsuarioId === dup.id);
+          for (const atl of atletasVinculados) {
+            await atualizarAtleta({ ...atl, atletaUsuarioId: manter.id });
+          }
+          // Excluir o duplicado
+          await excluirAtletaUsuario(dup.id);
+        }
+      }
+      setModalDedup(false);
+    } catch (err) {
+      alert("Erro ao deduplicar: " + err.message);
+    } finally {
+      setDedupProcessando(false);
+    }
+  };
 
   // Detectar perfil existente ao digitar CPF ou CNPJ
   const handleDocChange = (campo, valor) => {
@@ -517,10 +571,15 @@ function TelaGerenciarUsuarios() {
       </div>
 
       {/* Actions */}
-      <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
+      <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
         <button style={s.btnPrimary} onClick={() => setModo("novo")}>
           + {tipoUsuario === "organizadores" ? "Novo Organizador" : tipoUsuario === "equipes" ? "Nova Equipe" : "Novo Atleta"}
         </button>
+        {tipoUsuario === "atletas" && totalDuplicados > 0 && (
+          <button style={{ ...s.btnSecondary, borderColor: t.warning, color: t.warning }} onClick={() => setModalDedup(true)}>
+            Deduplicar ({totalDuplicados})
+          </button>
+        )}
         <input
           type="text"
           placeholder="Buscar usuário..."
@@ -880,6 +939,58 @@ function TelaGerenciarUsuarios() {
             <div style={{ fontSize: 18 }}>Nenhum usuário encontrado</div>
           </div>
         )}
+        </div>
+      )}
+      {/* Modal de deduplicação */}
+      {modalDedup && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.6)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+          onClick={() => !dedupProcessando && setModalDedup(false)}>
+          <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 16, padding: 32, maxWidth: 600, width: "100%", maxHeight: "80vh", overflow: "auto" }}
+            onClick={ev => ev.stopPropagation()}>
+            <h2 style={{ fontFamily: t.fontTitle, fontSize: 22, fontWeight: 800, color: t.textPrimary, marginBottom: 8 }}>
+              Deduplicar Atletas
+            </h2>
+            <p style={{ color: t.textTertiary, fontSize: 14, marginBottom: 20 }}>
+              {gruposDuplicados.length} grupo(s) com {totalDuplicados} registro(s) duplicado(s).
+              Para cada grupo, o registro mais antigo será mantido.
+            </p>
+
+            {gruposDuplicados.map((grupo, gi) => {
+              const canonico = escolherCanonico(grupo);
+              const dups = grupo.filter(u => u.id !== canonico.id);
+              const orgObj = organizadores.find(o => o.id === canonico.organizadorId);
+              const temVinculo = (atletas || []).some(a => a.atletaUsuarioId === canonico.id);
+              return (
+                <div key={gi} style={{ background: t.bgInput, border: `1px solid ${t.borderInput}`, borderRadius: 10, padding: "12px 16px", marginBottom: 10 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                    <strong style={{ color: t.textPrimary, fontSize: 14 }}>{canonico.nome}</strong>
+                    <span style={{ ...s.badge(t.warning), fontSize: 11 }}>{grupo.length} registros</span>
+                  </div>
+                  <div style={{ fontSize: 12, color: t.textDimmed }}>
+                    {canonico.email} {canonico.cpf ? ` \u00B7 ${canonico.cpf}` : ""}
+                    {orgObj ? ` \u00B7 ${orgObj.entidade || orgObj.nome}` : ""}
+                  </div>
+                  <div style={{ fontSize: 11, color: t.success, marginTop: 4 }}>
+                    Manter: {canonico.id} ({temVinculo ? "com inscrições" : "mais antigo"})
+                    &nbsp;\u00B7&nbsp; Excluir: {dups.length}
+                  </div>
+                </div>
+              );
+            })}
+
+            <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
+              <button
+                style={{ ...s.btnPrimary, opacity: dedupProcessando ? 0.5 : 1 }}
+                onClick={handleDeduplicar}
+                disabled={dedupProcessando}
+              >
+                {dedupProcessando ? "Processando..." : `Unificar ${totalDuplicados} duplicado(s)`}
+              </button>
+              <button style={s.btnGhost} onClick={() => setModalDedup(false)} disabled={dedupProcessando}>
+                Cancelar
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
