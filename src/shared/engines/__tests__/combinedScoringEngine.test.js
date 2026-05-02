@@ -119,6 +119,68 @@ describe('CombinedScoringEngine.calcularPontosProva — tabelas CBAt', () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// calcularPontosProva — fallback e edge cases
+// ═══════════════════════════════════════════════════════════════════════════════
+describe('CombinedScoringEngine.calcularPontosProva — fallback/edges', () => {
+  it('regrasPontuacao override substitui mapeamento', () => {
+    // Override decatlo 100m para usar women|100m em vez de men|100m
+    const regrasPontuacao = { 'M_adulto_decatlo|100m': 'women|100m' };
+    const ptsOverride = CombinedScoringEngine.calcularPontosProva('100m', 11.0, 'M', 'M_adulto_decatlo', null, regrasPontuacao);
+    const ptsPadrao = CombinedScoringEngine.calcularPontosProva('100m', 11.0, 'M', 'M_adulto_decatlo');
+    // Constantes diferentes → pontos diferentes
+    expect(ptsOverride).not.toBe(ptsPadrao);
+    expect(ptsOverride).toBeGreaterThan(0);
+  });
+
+  it('fallback WA por convenção quando combinadaProvaId é null', () => {
+    // Sem combinadaProvaId → usa fallback por convenção de nomes
+    const pts = CombinedScoringEngine.calcularPontosProva('100m', 11.0, 'M', null);
+    expect(pts).toBeGreaterThan(0);
+  });
+
+  it('fallback WA para saltos (comp → Long Jump)', () => {
+    const pts = CombinedScoringEngine.calcularPontosProva('comp', 7.0, 'M', null);
+    expect(pts).toBeGreaterThan(0);
+  });
+
+  it('fallback WA para altura (altura → High Jump)', () => {
+    const pts = CombinedScoringEngine.calcularPontosProva('altura', 2.0, 'M', null);
+    expect(pts).toBeGreaterThan(0);
+  });
+
+  it('prova totalmente desconhecida retorna 0', () => {
+    const pts = CombinedScoringEngine.calcularPontosProva('xyz_inexistente', 10.0, 'M', null);
+    expect(pts).toBe(0);
+  });
+
+  it('cronometragem MAN no fallback WA adiciona 0.24s', () => {
+    const ptsEle = CombinedScoringEngine.calcularPontosProva('100m', 11.0, 'M', null, 'ELE');
+    const ptsMan = CombinedScoringEngine.calcularPontosProva('100m', 11.0, 'M', null, 'MAN');
+    expect(ptsMan).toBeLessThan(ptsEle);
+  });
+
+  it('tabela CBAt com cronometragem MAN usa tabela _MAN', () => {
+    // hexatlo sub16 100mB com MAN → usa CBAt_100mH_M_Sub16_MAN
+    const ptsMan = CombinedScoringEngine.calcularPontosProva('100mB', 12.6, 'M', 'M_sub16_hexatlo', 'MAN');
+    const ptsEle = CombinedScoringEngine.calcularPontosProva('100mB', 12.6, 'M', 'M_sub16_hexatlo', 'ELE');
+    expect(ptsMan).toBe(977); // CBAt_100mH_M_Sub16_MAN[12.6]
+    expect(ptsEle).toBe(1000); // CBAt_100mH_M_Sub16_ELE[12.6]
+  });
+
+  it('campo com marca <= baseline WA retorna 0', () => {
+    // Shot: b=1.5 → marca <= 1.5m dá 0
+    const pts = CombinedScoringEngine.calcularPontosProva('peso', 1.0, 'M', 'M_adulto_decatlo');
+    expect(pts).toBe(0);
+  });
+
+  it('salto com marca <= baseline retorna 0', () => {
+    // High Jump men: b=75cm → marca <= 0.75m dá 0
+    const pts = CombinedScoringEngine.calcularPontosProva('altura', 0.5, 'M', 'M_adulto_decatlo');
+    expect(pts).toBe(0);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // resolverScoringMap
 // ═══════════════════════════════════════════════════════════════════════════════
 describe('resolverScoringMap', () => {

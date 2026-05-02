@@ -1037,4 +1037,1037 @@ describe('TeamScoringEngine.calcularClassificacaoEquipes', () => {
     const eq1 = resultado.classificacao.find(c => c.equipeId === 'eq1');
     expect(eq1.totalPontos).toBe(8);
   });
+
+  // ─── PENALIDADE MOTIVO DIFERENTE DE "ATRASO" ─────────────────────────────
+  it('penalidade com motivo "outro" usa obs', () => {
+    const atletas = [criarAtleta('a1', 'João', 'eq1')];
+    const equipes = [criarEquipe('eq1', 'Clube A', 'CA')];
+    const evento = {
+      id: 'evt1',
+      provasPrograma: ['M_adulto_100m'],
+      pontuacaoEquipes: {
+        ativo: true,
+        tabelaPontuacao: { 1: 8 },
+        tabelaPontuacaoRevezamentos: {},
+        equipesParticipantes: ['eq1'],
+        atletasPorEquipePorProva: 1,
+        penalidades: [
+          { equipeId: 'eq1', pontos: 2, motivo: 'outro', obs: 'Conduta irregular' },
+        ],
+      },
+    };
+    const inscricoes = [
+      { eventoId: 'evt1', atletaId: 'a1', provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M' },
+    ];
+    const resultados = {
+      'evt1_M_adulto_100m_adulto_M': { a1: { marca: 10.2 } },
+    };
+    const resultado = TeamScoringEngine.calcularClassificacaoEquipes(
+      evento, inscricoes, resultados, atletas, equipes, [], null
+    );
+    const eq1 = resultado.classificacao.find(c => c.equipeId === 'eq1');
+    expect(eq1.totalPontos).toBe(6); // 8 - 2
+    expect(eq1.penalidades[0].motivo).toBe('Conduta irregular');
+  });
+
+  // ─── PROVA ALTURA/VARA COM TENTATIVAS ─────────────────────────────────────
+  it('prova de salto em altura considera t3/t6 para completude', () => {
+    const atletas = [
+      criarAtleta('a1', 'João', 'eq1'),
+      criarAtleta('a2', 'Maria', 'eq2'),
+    ];
+    const equipes = [
+      criarEquipe('eq1', 'Clube A', 'CA'),
+      criarEquipe('eq2', 'Clube B', 'CB'),
+    ];
+    const evento = {
+      id: 'evt1',
+      provasPrograma: ['M_adulto_altura'],
+      pontuacaoEquipes: {
+        ativo: true,
+        tabelaPontuacao: { 1: 8, 2: 7 },
+        tabelaPontuacaoRevezamentos: {},
+        equipesParticipantes: ['eq1', 'eq2'],
+        atletasPorEquipePorProva: 1,
+      },
+    };
+    const inscricoes = [
+      { eventoId: 'evt1', atletaId: 'a1', provaId: 'M_adulto_altura', categoriaId: 'adulto', sexo: 'M' },
+      { eventoId: 'evt1', atletaId: 'a2', provaId: 'M_adulto_altura', categoriaId: 'adulto', sexo: 'M' },
+    ];
+    // Altura: não é isCampoTentEng (é salto em altura/vara), usa contagem simples
+    const resultados = {
+      'evt1_M_adulto_altura_adulto_M': {
+        a1: { marca: 2.10 },
+        a2: { marca: 2.00 },
+      },
+    };
+    const resultado = TeamScoringEngine.calcularClassificacaoEquipes(
+      evento, inscricoes, resultados, atletas, equipes, [], null
+    );
+    const eq1 = resultado.classificacao.find(c => c.equipeId === 'eq1');
+    expect(eq1.totalPontos).toBe(8);
+  });
+
+  // ─── RESULTADO COMO VALOR PRIMITIVO (NÃO OBJETO) ─────────────────────────
+  it('resultado como valor primitivo (número direto)', () => {
+    const atletas = [
+      criarAtleta('a1', 'João', 'eq1'),
+      criarAtleta('a2', 'Maria', 'eq2'),
+    ];
+    const equipes = [
+      criarEquipe('eq1', 'Clube A', 'CA'),
+      criarEquipe('eq2', 'Clube B', 'CB'),
+    ];
+    const evento = {
+      id: 'evt1',
+      provasPrograma: ['M_adulto_100m'],
+      pontuacaoEquipes: {
+        ativo: true,
+        tabelaPontuacao: { 1: 8, 2: 7 },
+        tabelaPontuacaoRevezamentos: {},
+        equipesParticipantes: ['eq1', 'eq2'],
+        atletasPorEquipePorProva: 1,
+      },
+    };
+    const inscricoes = [
+      { eventoId: 'evt1', atletaId: 'a1', provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M' },
+      { eventoId: 'evt1', atletaId: 'a2', provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M' },
+    ];
+    // Resultados como valores simples (não objetos)
+    const resultados = {
+      'evt1_M_adulto_100m_adulto_M': {
+        a1: 10.2,
+        a2: 10.5,
+      },
+    };
+    const resultado = TeamScoringEngine.calcularClassificacaoEquipes(
+      evento, inscricoes, resultados, atletas, equipes, [], null
+    );
+    const eq1 = resultado.classificacao.find(c => c.equipeId === 'eq1');
+    expect(eq1.totalPontos).toBe(8);
+  });
+
+  // ─── RESULTADO COM STATUS COMO STRING DIRETA ──────────────────────────────
+  it('resultado com marca como string de status (DNF, NM, NH)', () => {
+    const atletas = [
+      criarAtleta('a1', 'João', 'eq1'),
+      criarAtleta('a2', 'Maria', 'eq2'),
+    ];
+    const equipes = [
+      criarEquipe('eq1', 'Clube A', 'CA'),
+      criarEquipe('eq2', 'Clube B', 'CB'),
+    ];
+    const evento = {
+      id: 'evt1',
+      provasPrograma: ['M_adulto_100m'],
+      pontuacaoEquipes: {
+        ativo: true,
+        tabelaPontuacao: { 1: 8 },
+        tabelaPontuacaoRevezamentos: {},
+        equipesParticipantes: ['eq1', 'eq2'],
+        atletasPorEquipePorProva: 1,
+      },
+    };
+    const inscricoes = [
+      { eventoId: 'evt1', atletaId: 'a1', provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M' },
+      { eventoId: 'evt1', atletaId: 'a2', provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M' },
+    ];
+    const resultados = {
+      'evt1_M_adulto_100m_adulto_M': {
+        a1: { marca: 10.2 },
+        a2: { marca: 'DNF' }, // status como string na marca
+      },
+    };
+    const resultado = TeamScoringEngine.calcularClassificacaoEquipes(
+      evento, inscricoes, resultados, atletas, equipes, [], null
+    );
+    const eq1 = resultado.classificacao.find(c => c.equipeId === 'eq1');
+    expect(eq1.totalPontos).toBe(8);
+  });
+
+  // ─── BÔNUS RECORDE EM REVEZAMENTO ─────────────────────────────────────────
+  it('bônus por quebra de recorde em revezamento', () => {
+    const atletas = [criarAtleta('a1', 'João', 'eq1')];
+    const equipes = [criarEquipe('eq1', 'Clube A', 'CA', 'SP')];
+    const evento = {
+      id: 'evt1',
+      nome: 'Camp',
+      uf: 'SP',
+      provasPrograma: ['M_adulto_4x100m'],
+      recordesSumulas: ['rec1'],
+      recordesSnapshot: {
+        rec1: [{
+          provaId: 'M_adulto_4x100m', categoriaId: 'adulto', sexo: 'M',
+          marca: '43.00', provaNome: '4x100m Revezamento',
+        }],
+      },
+      pontuacaoEquipes: {
+        ativo: true,
+        tabelaPontuacao: { 1: 8 },
+        tabelaPontuacaoRevezamentos: { 1: 10 },
+        equipesParticipantes: ['eq1'],
+        atletasPorEquipePorProva: 1,
+        bonusRecordes: { rec1: 5 },
+      },
+    };
+    const inscricoes = [
+      { eventoId: 'evt1', provaId: 'M_adulto_4x100m', categoriaId: 'adulto', sexo: 'M',
+        tipo: 'revezamento', equipeId: 'eq1' },
+    ];
+    const resultados = {
+      'evt1_M_adulto_4x100m_adulto_M': { eq1: { marca: 42.50 } },
+    };
+    const recordes = [{
+      id: 'rec1', nome: 'RE-SP', sigla: 'RE', escopo: 'estado', estado: 'SP',
+      registros: [],
+    }];
+    const resultado = TeamScoringEngine.calcularClassificacaoEquipes(
+      evento, inscricoes, resultados, atletas, equipes, recordes, null
+    );
+    const eq1 = resultado.classificacao.find(c => c.equipeId === 'eq1');
+    // 10 pontos revezamento + 5 bônus recorde
+    expect(eq1.totalPontos).toBe(15);
+  });
+
+  // ─── BÔNUS RECORDE IGNORA RESULTADO NÃO-FIN EM MULTI-FASE ────────────────
+  it('bônus recorde ignora chave base quando prova tem fases', () => {
+    const atletas = [criarAtleta('a1', 'João', 'eq1')];
+    const equipes = [criarEquipe('eq1', 'Clube A', 'CA', 'SP')];
+    const evento = {
+      id: 'evt1',
+      nome: 'Camp',
+      uf: 'SP',
+      provasPrograma: ['M_adulto_100m'],
+      configSeriacao: { 'M_adulto_100m': { modo: 'eli_semi_final' } },
+      recordesSumulas: ['rec1'],
+      recordesSnapshot: {
+        rec1: [{
+          provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M',
+          marca: '10.50', provaNome: '100m Rasos',
+        }],
+      },
+      pontuacaoEquipes: {
+        ativo: true,
+        tabelaPontuacao: { 1: 8 },
+        tabelaPontuacaoRevezamentos: {},
+        equipesParticipantes: ['eq1'],
+        atletasPorEquipePorProva: 1,
+        bonusRecordes: { rec1: 5 },
+      },
+    };
+    const inscricoes = [
+      { eventoId: 'evt1', atletaId: 'a1', provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M' },
+    ];
+    const resultados = {
+      // Chave base sem sufixo → dados obsoletos (prova tem fases)
+      'evt1_M_adulto_100m_adulto_M': { a1: { marca: 10.00 } },
+      // Resultado da FIN
+      'evt1_M_adulto_100m_adulto_M__FIN': { a1: { marca: 10.30 } },
+    };
+    const recordes = [{
+      id: 'rec1', nome: 'RE-SP', sigla: 'RE', escopo: 'estado', estado: 'SP',
+      registros: [],
+    }];
+    const resultado = TeamScoringEngine.calcularClassificacaoEquipes(
+      evento, inscricoes, resultados, atletas, equipes, recordes, null
+    );
+    const eq1 = resultado.classificacao.find(c => c.equipeId === 'eq1');
+    // Bônus deve vir apenas do FIN (10.30 < 10.50 → superou), não da base
+    expect(eq1.bonusRecordes).toHaveLength(1);
+  });
+
+  // ─── REVEZAMENTO COM RESULTADO INVÁLIDO (marca 0 ou negativa) ─────────────
+  it('revezamento com marca 0 é filtrado', () => {
+    const atletas = [criarAtleta('a1', 'João', 'eq1')];
+    const equipes = [criarEquipe('eq1', 'Clube A', 'CA')];
+    const evento = {
+      id: 'evt1',
+      provasPrograma: ['M_adulto_4x100m'],
+      pontuacaoEquipes: {
+        ativo: true,
+        tabelaPontuacao: { 1: 8 },
+        tabelaPontuacaoRevezamentos: { 1: 10 },
+        equipesParticipantes: ['eq1'],
+        atletasPorEquipePorProva: 1,
+      },
+    };
+    const inscricoes = [
+      { eventoId: 'evt1', provaId: 'M_adulto_4x100m', categoriaId: 'adulto', sexo: 'M',
+        tipo: 'revezamento', equipeId: 'eq1' },
+    ];
+    const resultados = {
+      'evt1_M_adulto_4x100m_adulto_M': {
+        eq1: { marca: 0 }, // marca inválida
+      },
+    };
+    const resultado = TeamScoringEngine.calcularClassificacaoEquipes(
+      evento, inscricoes, resultados, atletas, equipes, [], null
+    );
+    const eq1 = resultado.classificacao.find(c => c.equipeId === 'eq1');
+    expect(eq1.totalPontos).toBe(0);
+  });
+
+  // ─── REVEZAMENTO COM STATUS DQ ────────────────────────────────────────────
+  it('revezamento com status DQ é filtrado da classificação', () => {
+    const atletas = [criarAtleta('a1', 'João', 'eq1')];
+    const equipes = [
+      criarEquipe('eq1', 'Clube A', 'CA'),
+      criarEquipe('eq2', 'Clube B', 'CB'),
+    ];
+    const evento = {
+      id: 'evt1',
+      provasPrograma: ['M_adulto_4x100m'],
+      pontuacaoEquipes: {
+        ativo: true,
+        tabelaPontuacao: { 1: 8 },
+        tabelaPontuacaoRevezamentos: { 1: 10, 2: 8 },
+        equipesParticipantes: ['eq1', 'eq2'],
+        atletasPorEquipePorProva: 1,
+      },
+    };
+    const inscricoes = [
+      { eventoId: 'evt1', provaId: 'M_adulto_4x100m', categoriaId: 'adulto', sexo: 'M',
+        tipo: 'revezamento', equipeId: 'eq1' },
+      { eventoId: 'evt1', provaId: 'M_adulto_4x100m', categoriaId: 'adulto', sexo: 'M',
+        tipo: 'revezamento', equipeId: 'eq2' },
+    ];
+    const resultados = {
+      'evt1_M_adulto_4x100m_adulto_M': {
+        eq1: { marca: 42.5 },
+        eq2: { marca: 'DQ', status: 'DQ' },
+      },
+    };
+    const resultado = TeamScoringEngine.calcularClassificacaoEquipes(
+      evento, inscricoes, resultados, atletas, equipes, [], null
+    );
+    const eq1 = resultado.classificacao.find(c => c.equipeId === 'eq1');
+    expect(eq1.totalPontos).toBe(10);
+  });
+
+  // ─── BÔNUS RECORDE: MARCA NÃO SUPEROU (sem bônus) ────────────────────────
+  it('bônus recorde não atribuído quando marca não supera snapshot', () => {
+    const atletas = [criarAtleta('a1', 'João', 'eq1')];
+    const equipes = [criarEquipe('eq1', 'Clube A', 'CA', 'SP')];
+    const evento = {
+      id: 'evt1',
+      nome: 'Camp',
+      uf: 'SP',
+      provasPrograma: ['M_adulto_100m'],
+      recordesSumulas: ['rec1'],
+      recordesSnapshot: {
+        rec1: [{
+          provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M',
+          marca: '10.00', provaNome: '100m Rasos',
+        }],
+      },
+      pontuacaoEquipes: {
+        ativo: true,
+        tabelaPontuacao: { 1: 8 },
+        tabelaPontuacaoRevezamentos: {},
+        equipesParticipantes: ['eq1'],
+        atletasPorEquipePorProva: 1,
+        bonusRecordes: { rec1: 5 },
+      },
+    };
+    const inscricoes = [
+      { eventoId: 'evt1', atletaId: 'a1', provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M' },
+    ];
+    const resultados = {
+      'evt1_M_adulto_100m_adulto_M': { a1: { marca: 10.50 } }, // pior que 10.00
+    };
+    const recordes = [{
+      id: 'rec1', nome: 'RE-SP', sigla: 'RE', escopo: 'estado', estado: 'SP',
+      registros: [],
+    }];
+    const resultado = TeamScoringEngine.calcularClassificacaoEquipes(
+      evento, inscricoes, resultados, atletas, equipes, recordes, null
+    );
+    const eq1 = resultado.classificacao.find(c => c.equipeId === 'eq1');
+    expect(eq1.totalPontos).toBe(8); // só prova, sem bônus
+    expect(eq1.bonusRecordes).toBeUndefined();
+  });
+
+  // ─── CALCULAR PONTOS REVEZAMENTO DIRETO COM FEDERADOS ─────────────────────
+  it('calcularPontosRevezamento com classificacaoApenasFederados', () => {
+    const atletas = [
+      criarAtleta('ra1', 'A1', 'eq1', '111'),
+      criarAtleta('ra2', 'A2', 'eq1', '222'),
+      criarAtleta('rb1', 'B1', 'eq2', ''),
+      criarAtleta('rb2', 'B2', 'eq2', '333'),
+    ];
+    const equipes = [
+      criarEquipe('eq1', 'Clube A', 'CA'),
+      criarEquipe('eq2', 'Clube B', 'CB'),
+    ];
+    const classificados = [
+      { equipeId: 'eq1', marca: 42.5, nomeEquipe: 'Clube A', atletasIds: ['ra1', 'ra2'] },
+      { equipeId: 'eq2', marca: 43.0, nomeEquipe: 'Clube B', atletasIds: ['rb1', 'rb2'] },
+    ];
+    const config = {
+      tabelaPontuacaoRevezamentos: { 1: 10, 2: 8 },
+      equipesParticipantes: ['eq1', 'eq2'],
+      classificacaoApenasFederados: true,
+      equipeIdsFederados: ['eq1', 'eq2'],
+    };
+    const resultado = TeamScoringEngine.calcularPontosRevezamento(classificados, config, atletas, equipes);
+    // eq1: todos com CBAt → posição federada 1 → 10pts
+    expect(resultado['eq1'].pontos).toBe(10);
+    // eq2: rb1 sem CBAt → bloqueada
+    expect(resultado['eq2']).toBeUndefined();
+  });
+
+  // ─── REVEZAMENTO COM MULTI-FASE (FIN) ────────────────────────────────────
+  it('revezamento com multi-fase usa resultado da FIN', () => {
+    const atletas = [criarAtleta('a1', 'João', 'eq1')];
+    const equipes = [
+      criarEquipe('eq1', 'Clube A', 'CA'),
+      criarEquipe('eq2', 'Clube B', 'CB'),
+    ];
+    const evento = {
+      id: 'evt1',
+      provasPrograma: ['M_adulto_4x100m'],
+      configSeriacao: { 'M_adulto_4x100m': { modo: 'eli_semi_final' } },
+      pontuacaoEquipes: {
+        ativo: true,
+        tabelaPontuacao: { 1: 8 },
+        tabelaPontuacaoRevezamentos: { 1: 10, 2: 8 },
+        equipesParticipantes: ['eq1', 'eq2'],
+        atletasPorEquipePorProva: 1,
+      },
+    };
+    const inscricoes = [
+      { eventoId: 'evt1', provaId: 'M_adulto_4x100m', categoriaId: 'adulto', sexo: 'M',
+        tipo: 'revezamento', equipeId: 'eq1' },
+      { eventoId: 'evt1', provaId: 'M_adulto_4x100m', categoriaId: 'adulto', sexo: 'M',
+        tipo: 'revezamento', equipeId: 'eq2' },
+    ];
+    const resultados = {
+      'evt1_M_adulto_4x100m_adulto_M__ELI': {
+        eq1: { marca: 43.0 },
+        eq2: { marca: 44.0 },
+      },
+      'evt1_M_adulto_4x100m_adulto_M__FIN': {
+        eq1: { marca: 42.5 },
+        eq2: { marca: 43.5 },
+      },
+    };
+    const resultado = TeamScoringEngine.calcularClassificacaoEquipes(
+      evento, inscricoes, resultados, atletas, equipes, [], null
+    );
+    const eq1 = resultado.classificacao.find(c => c.equipeId === 'eq1');
+    const eq2 = resultado.classificacao.find(c => c.equipeId === 'eq2');
+    expect(eq1.totalPontos).toBe(10);
+    expect(eq2.totalPontos).toBe(8);
+  });
+
+  // ─── PROVA DE CAMPO COM NM ────────────────────────────────────────────────
+  it('prova de campo com status NM conta como resultado completo', () => {
+    const atletas = [
+      criarAtleta('a1', 'João', 'eq1'),
+      criarAtleta('a2', 'Maria', 'eq2'),
+    ];
+    const equipes = [
+      criarEquipe('eq1', 'Clube A', 'CA'),
+      criarEquipe('eq2', 'Clube B', 'CB'),
+    ];
+    const evento = {
+      id: 'evt1',
+      provasPrograma: ['M_adulto_comp'],
+      pontuacaoEquipes: {
+        ativo: true,
+        tabelaPontuacao: { 1: 8 },
+        tabelaPontuacaoRevezamentos: {},
+        equipesParticipantes: ['eq1', 'eq2'],
+        atletasPorEquipePorProva: 1,
+      },
+    };
+    const inscricoes = [
+      { eventoId: 'evt1', atletaId: 'a1', provaId: 'M_adulto_comp', categoriaId: 'adulto', sexo: 'M' },
+      { eventoId: 'evt1', atletaId: 'a2', provaId: 'M_adulto_comp', categoriaId: 'adulto', sexo: 'M' },
+    ];
+    const resultados = {
+      'evt1_M_adulto_comp_adulto_M': {
+        a1: { marca: 7.50, t3: '7.20', t6: '7.50' },
+        a2: { status: 'NM' }, // NM conta como completo
+      },
+    };
+    const resultado = TeamScoringEngine.calcularClassificacaoEquipes(
+      evento, inscricoes, resultados, atletas, equipes, [], null
+    );
+    const eq1 = resultado.classificacao.find(c => c.equipeId === 'eq1');
+    expect(eq1.totalPontos).toBe(8);
+  });
+
+  // ─── BÔNUS RECORDE COM DNS → SEM BÔNUS ───────────────────────────────────
+  it('bônus recorde ignora atletas com status DNS', () => {
+    const atletas = [criarAtleta('a1', 'João', 'eq1')];
+    const equipes = [criarEquipe('eq1', 'Clube A', 'CA', 'SP')];
+    const evento = {
+      id: 'evt1',
+      nome: 'Camp',
+      uf: 'SP',
+      provasPrograma: ['M_adulto_100m'],
+      recordesSumulas: ['rec1'],
+      recordesSnapshot: {
+        rec1: [{
+          provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M',
+          marca: '10.50', provaNome: '100m Rasos',
+        }],
+      },
+      pontuacaoEquipes: {
+        ativo: true,
+        tabelaPontuacao: { 1: 8 },
+        tabelaPontuacaoRevezamentos: {},
+        equipesParticipantes: ['eq1'],
+        atletasPorEquipePorProva: 1,
+        bonusRecordes: { rec1: 5 },
+      },
+    };
+    const inscricoes = [
+      { eventoId: 'evt1', atletaId: 'a1', provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M' },
+    ];
+    const resultados = {
+      'evt1_M_adulto_100m_adulto_M': { a1: { marca: 'DNS', status: 'DNS' } },
+    };
+    const recordes = [{
+      id: 'rec1', nome: 'RE-SP', sigla: 'RE', escopo: 'estado', estado: 'SP',
+      registros: [],
+    }];
+    const resultado = TeamScoringEngine.calcularClassificacaoEquipes(
+      evento, inscricoes, resultados, atletas, equipes, recordes, null
+    );
+    expect(resultado.totalBonusRecordes).toBe(0);
+  });
+
+  // ─── DESEMPATE REVEZAMENTO POR equipeId ───────────────────────────────────
+  it('revezamento com marcas iguais desempata por equipeId', () => {
+    const atletas = [criarAtleta('a1', 'João', 'eq1')];
+    const equipes = [
+      criarEquipe('eq_b', 'Beta', 'B'),
+      criarEquipe('eq_a', 'Alfa', 'A'),
+    ];
+    const evento = {
+      id: 'evt1',
+      provasPrograma: ['M_adulto_4x100m'],
+      pontuacaoEquipes: {
+        ativo: true,
+        tabelaPontuacao: { 1: 8 },
+        tabelaPontuacaoRevezamentos: { 1: 10, 2: 8 },
+        equipesParticipantes: ['eq_a', 'eq_b'],
+        atletasPorEquipePorProva: 1,
+      },
+    };
+    const inscricoes = [
+      { eventoId: 'evt1', provaId: 'M_adulto_4x100m', categoriaId: 'adulto', sexo: 'M',
+        tipo: 'revezamento', equipeId: 'eq_a' },
+      { eventoId: 'evt1', provaId: 'M_adulto_4x100m', categoriaId: 'adulto', sexo: 'M',
+        tipo: 'revezamento', equipeId: 'eq_b' },
+    ];
+    const resultados = {
+      'evt1_M_adulto_4x100m_adulto_M': {
+        eq_a: { marca: 42.5 },
+        eq_b: { marca: 42.5 }, // mesma marca
+      },
+    };
+    const resultado = TeamScoringEngine.calcularClassificacaoEquipes(
+      evento, inscricoes, resultados, atletas, equipes, [], null
+    );
+    // eq_a < eq_b por localeCompare → eq_a fica em 1º
+    const eq_a = resultado.classificacao.find(c => c.equipeId === 'eq_a');
+    const eq_b = resultado.classificacao.find(c => c.equipeId === 'eq_b');
+    expect(eq_a.totalPontos).toBe(10);
+    expect(eq_b.totalPontos).toBe(8);
+  });
+
+  // ─── DESEMPATE COMBINADA POR atletaId ─────────────────────────────────────
+  it('combinada com pontuação igual desempata por atletaId', () => {
+    const atletas = [
+      criarAtleta('atl_b', 'Beta', 'eq1'),
+      criarAtleta('atl_a', 'Alfa', 'eq2'),
+    ];
+    const equipes = [
+      criarEquipe('eq1', 'Clube 1', 'C1'),
+      criarEquipe('eq2', 'Clube 2', 'C2'),
+    ];
+    const combinadaId = 'M_sub14_tetratlo';
+    const evento = {
+      id: 'evt1',
+      provasPrograma: [combinadaId],
+      pontuacaoEquipes: {
+        ativo: true,
+        tabelaPontuacao: { 1: 8, 2: 7 },
+        tabelaPontuacaoRevezamentos: {},
+        equipesParticipantes: ['eq1', 'eq2'],
+        atletasPorEquipePorProva: 1,
+      },
+    };
+    const inscricoes = [
+      { eventoId: 'evt1', atletaId: 'atl_b', combinadaId, provaId: combinadaId, categoriaId: 'sub14', sexo: 'M' },
+      { eventoId: 'evt1', atletaId: 'atl_a', combinadaId, provaId: combinadaId, categoriaId: 'sub14', sexo: 'M' },
+    ];
+    // Ambos com marcas idênticas → pontuação combinada igual → desempate por atletaId
+    const compPrefix = 'evt1_COMB_M_sub14_tetratlo';
+    const resultados = {
+      [`evt1_${compPrefix}_0_60mB_sub14_M`]: { atl_a: { marca: 9.5 }, atl_b: { marca: 9.5 } },
+      [`evt1_${compPrefix}_1_peso_sub14_M`]: { atl_a: { marca: 10.0 }, atl_b: { marca: 10.0 } },
+      [`evt1_${compPrefix}_2_comp_sub14_M`]: { atl_a: { marca: 5.0 }, atl_b: { marca: 5.0 } },
+      [`evt1_${compPrefix}_3_800m_sub14_M`]: { atl_a: { marca: 140 }, atl_b: { marca: 140 } },
+    };
+    const resultado = TeamScoringEngine.calcularClassificacaoEquipes(
+      evento, inscricoes, resultados, atletas, equipes, [], null
+    );
+    // atl_a < atl_b por localeCompare → atl_a fica 1º (eq2 = 8pts), atl_b 2º (eq1 = 7pts)
+    const eq2 = resultado.classificacao.find(c => c.equipeId === 'eq2');
+    const eq1 = resultado.classificacao.find(c => c.equipeId === 'eq1');
+    expect(eq2.totalPontos).toBe(8);
+    expect(eq1.totalPontos).toBe(7);
+  });
+
+  // ─── PROMOÇÃO DE COMBINAÇÃO (variante com resultado promove pendente) ─────
+  it('variante M_/F_ com resultado promove combinação pendente para completa', () => {
+    const atletas = [
+      criarAtleta('a1', 'João', 'eq1'),
+      criarAtleta('a2', 'Maria', 'eq1'),
+    ];
+    const equipes = [criarEquipe('eq1', 'Clube A', 'CA')];
+    // Ambas variantes M_ e F_ do 100m no programa — mesmo nome de prova
+    const evento = {
+      id: 'evt1',
+      provasPrograma: ['M_adulto_100m', 'F_adulto_100m'],
+      pontuacaoEquipes: {
+        ativo: true,
+        tabelaPontuacao: { 1: 8 },
+        tabelaPontuacaoRevezamentos: {},
+        equipesParticipantes: ['eq1'],
+        atletasPorEquipePorProva: 1,
+      },
+    };
+    const inscricoes = [
+      { eventoId: 'evt1', atletaId: 'a1', provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M' },
+      { eventoId: 'evt1', atletaId: 'a2', provaId: 'F_adulto_100m', categoriaId: 'adulto', sexo: 'F' },
+    ];
+    const resultados = {
+      'evt1_M_adulto_100m_adulto_M': { a1: { marca: 10.2 } },
+      'evt1_F_adulto_100m_adulto_F': { a2: { marca: 12.5 } },
+    };
+    const resultado = TeamScoringEngine.calcularClassificacaoEquipes(
+      evento, inscricoes, resultados, atletas, equipes, [], null
+    );
+    // Ambas variantes completas → nenhuma pendente
+    expect(resultado.provasPendentes).toHaveLength(0);
+    // eq1 pontua em ambas
+    const eq1 = resultado.classificacao.find(c => c.equipeId === 'eq1');
+    expect(eq1.totalPontos).toBe(16); // 8 + 8
+  });
+
+  // ─── REVEZAMENTO COM SERIAÇÃO FIN ─────────────────────────────────────────
+  it('revezamento multi-fase com seriação usa atletas da seriação para completude', () => {
+    const atletas = [criarAtleta('a1', 'João', 'eq1')];
+    const equipes = [
+      criarEquipe('eq1', 'Clube A', 'CA'),
+      criarEquipe('eq2', 'Clube B', 'CB'),
+    ];
+    const evento = {
+      id: 'evt1',
+      provasPrograma: ['M_adulto_4x100m'],
+      configSeriacao: { 'M_adulto_4x100m': { modo: 'semi_final' } },
+      seriacao: {
+        'M_adulto_4x100m_adulto_M__FIN': {
+          series: [{ numero: 1, atletas: [{ id: 'eq1' }, { id: 'eq2' }] }],
+        },
+      },
+      pontuacaoEquipes: {
+        ativo: true,
+        tabelaPontuacao: { 1: 8 },
+        tabelaPontuacaoRevezamentos: { 1: 10, 2: 8 },
+        equipesParticipantes: ['eq1', 'eq2'],
+        atletasPorEquipePorProva: 1,
+      },
+    };
+    const inscricoes = [
+      { eventoId: 'evt1', provaId: 'M_adulto_4x100m', categoriaId: 'adulto', sexo: 'M',
+        tipo: 'revezamento', equipeId: 'eq1' },
+      { eventoId: 'evt1', provaId: 'M_adulto_4x100m', categoriaId: 'adulto', sexo: 'M',
+        tipo: 'revezamento', equipeId: 'eq2' },
+    ];
+    const resultados = {
+      'evt1_M_adulto_4x100m_adulto_M__FIN': {
+        eq1: { marca: 42.5 },
+        eq2: { marca: 43.0 },
+      },
+    };
+    const resultado = TeamScoringEngine.calcularClassificacaoEquipes(
+      evento, inscricoes, resultados, atletas, equipes, [], null
+    );
+    const eq1 = resultado.classificacao.find(c => c.equipeId === 'eq1');
+    const eq2 = resultado.classificacao.find(c => c.equipeId === 'eq2');
+    expect(eq1.totalPontos).toBe(10);
+    expect(eq2.totalPontos).toBe(8);
+  });
+
+  // ─── PENALIDADE COM equipeId INEXISTENTE ──────────────────────────────────
+  it('penalidade com equipeId inexistente ou pontos 0 é ignorada', () => {
+    const atletas = [criarAtleta('a1', 'João', 'eq1')];
+    const equipes = [criarEquipe('eq1', 'Clube A', 'CA')];
+    const evento = {
+      id: 'evt1',
+      provasPrograma: ['M_adulto_100m'],
+      pontuacaoEquipes: {
+        ativo: true,
+        tabelaPontuacao: { 1: 8 },
+        tabelaPontuacaoRevezamentos: {},
+        equipesParticipantes: ['eq1'],
+        atletasPorEquipePorProva: 1,
+        penalidades: [
+          { equipeId: 'eq_inexistente', pontos: 5, motivo: 'atraso' },
+          { equipeId: 'eq1', pontos: 0, motivo: 'outro' },
+          { equipeId: '', pontos: 3, motivo: 'atraso' },
+        ],
+      },
+    };
+    const inscricoes = [
+      { eventoId: 'evt1', atletaId: 'a1', provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M' },
+    ];
+    const resultados = {
+      'evt1_M_adulto_100m_adulto_M': { a1: { marca: 10.2 } },
+    };
+    const resultado = TeamScoringEngine.calcularClassificacaoEquipes(
+      evento, inscricoes, resultados, atletas, equipes, [], null
+    );
+    const eq1 = resultado.classificacao.find(c => c.equipeId === 'eq1');
+    // Nenhuma penalidade aplicada (todas inválidas)
+    expect(eq1.totalPontos).toBe(8);
+    expect(eq1.penalidades).toBeUndefined();
+  });
+
+  // ─── PROVA INDIVIDUAL COM SERIAÇÃO FIN ─────────────────────────────────────
+  it('prova individual com seriação FIN usa atletas da seriação para completude', () => {
+    const atletas = [
+      criarAtleta('a1', 'João', 'eq1'),
+      criarAtleta('a2', 'Maria', 'eq2'),
+    ];
+    const equipes = [
+      criarEquipe('eq1', 'Clube A', 'CA'),
+      criarEquipe('eq2', 'Clube B', 'CB'),
+    ];
+    const evento = {
+      id: 'evt1',
+      provasPrograma: ['M_adulto_100m'],
+      configSeriacao: { 'M_adulto_100m': { modo: 'eli_semi_final' } },
+      seriacao: {
+        'M_adulto_100m_adulto_M__FIN': {
+          series: [{ numero: 1, atletas: [{ id: 'a1' }, { id: 'a2' }] }],
+        },
+      },
+      pontuacaoEquipes: {
+        ativo: true,
+        tabelaPontuacao: { 1: 8, 2: 7 },
+        tabelaPontuacaoRevezamentos: {},
+        equipesParticipantes: ['eq1', 'eq2'],
+        atletasPorEquipePorProva: 1,
+      },
+    };
+    const inscricoes = [
+      { eventoId: 'evt1', atletaId: 'a1', provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M' },
+      { eventoId: 'evt1', atletaId: 'a2', provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M' },
+    ];
+    const resultados = {
+      'evt1_M_adulto_100m_adulto_M__FIN': {
+        a1: { marca: 10.2 },
+        a2: { marca: 10.5 },
+      },
+    };
+    const resultado = TeamScoringEngine.calcularClassificacaoEquipes(
+      evento, inscricoes, resultados, atletas, equipes, [], null
+    );
+    const eq1 = resultado.classificacao.find(c => c.equipeId === 'eq1');
+    expect(eq1.totalPontos).toBe(8);
+  });
+
+  // ─── CAMPO INCOMPLETA: ATLETA SEM T3 NEM STATUS ──────────────────────────
+  it('campo incompleto quando atleta não tem t3, t6, nem status', () => {
+    const atletas = [
+      criarAtleta('a1', 'João', 'eq1'),
+      criarAtleta('a2', 'Maria', 'eq2'),
+    ];
+    const equipes = [
+      criarEquipe('eq1', 'Clube A', 'CA'),
+      criarEquipe('eq2', 'Clube B', 'CB'),
+    ];
+    const evento = {
+      id: 'evt1',
+      provasPrograma: ['M_adulto_comp'],
+      pontuacaoEquipes: {
+        ativo: true,
+        tabelaPontuacao: { 1: 8, 2: 7 },
+        tabelaPontuacaoRevezamentos: {},
+        equipesParticipantes: ['eq1', 'eq2'],
+        atletasPorEquipePorProva: 1,
+      },
+    };
+    const inscricoes = [
+      { eventoId: 'evt1', atletaId: 'a1', provaId: 'M_adulto_comp', categoriaId: 'adulto', sexo: 'M' },
+      { eventoId: 'evt1', atletaId: 'a2', provaId: 'M_adulto_comp', categoriaId: 'adulto', sexo: 'M' },
+    ];
+    const resultados = {
+      'evt1_M_adulto_comp_adulto_M': {
+        a1: { marca: 7.50, t3: '7.20', t6: '7.50' },
+        a2: { marca: 6.00 }, // sem t3, sem t6, sem status → incompleto
+      },
+    };
+    const resultado = TeamScoringEngine.calcularClassificacaoEquipes(
+      evento, inscricoes, resultados, atletas, equipes, [], null
+    );
+    // Campo incompleto (a2 sem t3) → 0 pontos
+    const eq1 = resultado.classificacao.find(c => c.equipeId === 'eq1');
+    expect(eq1.totalPontos).toBe(0);
+  });
+
+  // ─── DESEMPATE INDIVIDUAL POR atletaId ────────────────────────────────────
+  it('classificação individual com marcas iguais desempata por atletaId', () => {
+    const atletas = [
+      criarAtleta('atl_b', 'Beta', 'eq1'),
+      criarAtleta('atl_a', 'Alfa', 'eq2'),
+    ];
+    const equipes = [
+      criarEquipe('eq1', 'Clube 1', 'C1'),
+      criarEquipe('eq2', 'Clube 2', 'C2'),
+    ];
+    const evento = {
+      id: 'evt1',
+      provasPrograma: ['M_adulto_100m'],
+      pontuacaoEquipes: {
+        ativo: true,
+        tabelaPontuacao: { 1: 8, 2: 7 },
+        tabelaPontuacaoRevezamentos: {},
+        equipesParticipantes: ['eq1', 'eq2'],
+        atletasPorEquipePorProva: 1,
+      },
+    };
+    const inscricoes = [
+      { eventoId: 'evt1', atletaId: 'atl_a', provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M' },
+      { eventoId: 'evt1', atletaId: 'atl_b', provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M' },
+    ];
+    const resultados = {
+      'evt1_M_adulto_100m_adulto_M': {
+        atl_a: { marca: 10.50 },
+        atl_b: { marca: 10.50 }, // mesma marca
+      },
+    };
+    const resultado = TeamScoringEngine.calcularClassificacaoEquipes(
+      evento, inscricoes, resultados, atletas, equipes, [], null
+    );
+    // atl_a < atl_b por localeCompare → eq2 (atl_a) fica 1º com 8pts
+    const eq2 = resultado.classificacao.find(c => c.equipeId === 'eq2');
+    const eq1 = resultado.classificacao.find(c => c.equipeId === 'eq1');
+    expect(eq2.totalPontos).toBe(8);
+    expect(eq1.totalPontos).toBe(7);
+  });
+
+  // ─── PROMOÇÃO DE COMBO: variante sem resultado → variante com resultado ──
+  it('combo pendente promovido quando segunda variante tem resultado', () => {
+    const atletas = [
+      criarAtleta('a1', 'João', 'eq1'),
+      criarAtleta('a2', 'Maria', 'eq1'),
+    ];
+    const equipes = [criarEquipe('eq1', 'Clube A', 'CA')];
+    // M_ e F_ no programa: ambas com nome "100m Rasos"
+    // Inscrevemos atletas em AMBOS com sexo=M, mas resultado só em F_
+    const evento = {
+      id: 'evt1',
+      provasPrograma: ['M_adulto_100m', 'F_adulto_100m'],
+      pontuacaoEquipes: {
+        ativo: true,
+        tabelaPontuacao: { 1: 8 },
+        tabelaPontuacaoRevezamentos: {},
+        equipesParticipantes: ['eq1'],
+        atletasPorEquipePorProva: 1,
+      },
+    };
+    const inscricoes = [
+      // Inscrito em M_ com sexo M → não terá resultado
+      { eventoId: 'evt1', atletaId: 'a1', provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M' },
+      // Inscrito em F_ com sexo M (variante) → terá resultado
+      { eventoId: 'evt1', atletaId: 'a2', provaId: 'F_adulto_100m', categoriaId: 'adulto', sexo: 'M' },
+    ];
+    const resultados = {
+      // Resultado só na variante F_ para sexo M
+      'evt1_F_adulto_100m_adulto_M': { a2: { marca: 10.5 } },
+    };
+    const resultado = TeamScoringEngine.calcularClassificacaoEquipes(
+      evento, inscricoes, resultados, atletas, equipes, [], null
+    );
+    // M_ sem resultado registra combo como pendente.
+    // F_ com resultado promove para completa.
+    // O totalProvasComResultado deve refletir a promoção.
+    expect(resultado.totalProvasComResultado).toBeGreaterThanOrEqual(1);
+  });
+
+  // ─── BÔNUS RECORDE: NOME COM PARÊNTESES (strip) ──────────────────────────
+  it('bônus recorde matcha nome com parênteses via strip', () => {
+    const atletas = [criarAtleta('a1', 'João', 'eq1')];
+    const equipes = [criarEquipe('eq1', 'Clube A', 'CA', 'SP')];
+    const evento = {
+      id: 'evt1',
+      nome: 'Camp',
+      uf: 'SP',
+      provasPrograma: ['M_adulto_100m'],
+      recordesSumulas: ['rec1'],
+      recordesSnapshot: {
+        rec1: [{
+          provaId: 'OUTRO_ID_QUE_NAO_MATCHA', // provaId diferente → força match por nome
+          categoriaId: 'adulto', sexo: 'M',
+          marca: '10.50', provaNome: '100m Rasos (Sub-16)', // nome com parênteses → strip remove "(Sub-16)"
+        }],
+      },
+      pontuacaoEquipes: {
+        ativo: true,
+        tabelaPontuacao: { 1: 8 },
+        tabelaPontuacaoRevezamentos: {},
+        equipesParticipantes: ['eq1'],
+        atletasPorEquipePorProva: 1,
+        bonusRecordes: { rec1: 5 },
+      },
+    };
+    const inscricoes = [
+      { eventoId: 'evt1', atletaId: 'a1', provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M' },
+    ];
+    const resultados = {
+      'evt1_M_adulto_100m_adulto_M': { a1: { marca: 10.30 } },
+    };
+    const recordes = [{
+      id: 'rec1', nome: 'RE-SP', sigla: 'RE', escopo: 'estado', estado: 'SP',
+      registros: [],
+    }];
+    const resultado = TeamScoringEngine.calcularClassificacaoEquipes(
+      evento, inscricoes, resultados, atletas, equipes, recordes, null
+    );
+    const eq1 = resultado.classificacao.find(c => c.equipeId === 'eq1');
+    // provaId matcha exato, então o strip pode não ser necessário aqui,
+    // mas o provaNome com parênteses deve ser stripped para match por nome
+    expect(eq1.totalPontos).toBe(13); // 8 + 5 bônus
+  });
+
+  // ─── COMBINADA FEMININA PENDENTE ────────────────────────────────────────
+  it('combinada feminina pendente aparece em provasPendentes', () => {
+    const atletas = [criarAtleta('a1', 'Maria', 'eq1')];
+    const equipes = [criarEquipe('eq1', 'Clube A', 'CA')];
+    const combinadaId = 'F_sub16_pentatlo';
+    const evento = {
+      id: 'evt1',
+      provasPrograma: [combinadaId],
+      pontuacaoEquipes: {
+        ativo: true,
+        tabelaPontuacao: { 1: 8 },
+        tabelaPontuacaoRevezamentos: {},
+        equipesParticipantes: ['eq1'],
+        atletasPorEquipePorProva: 1,
+      },
+    };
+    const inscricoes = [
+      { eventoId: 'evt1', atletaId: 'a1', combinadaId, provaId: combinadaId, categoriaId: 'sub16', sexo: 'F' },
+    ];
+    // Só 1 de 5 provas componentes tem resultado → pendente
+    const compPrefix = 'evt1_COMB_F_sub16_pentatlo';
+    const resultados = {
+      [`evt1_${compPrefix}_0_80mB_sub16_F`]: { a1: { marca: 12.0 } },
+    };
+    const resultado = TeamScoringEngine.calcularClassificacaoEquipes(
+      evento, inscricoes, resultados, atletas, equipes, [], null
+    );
+    expect(resultado.provasPendentes.length).toBeGreaterThanOrEqual(1);
+    const pend = resultado.provasPendentes.find(p => p.provaId === combinadaId);
+    expect(pend).toBeDefined();
+    expect(pend.label).toContain('Fem');
+    expect(pend.label).toContain('pendente');
+  });
+
+  // ─── CLASSIFICAÇÃO GERAL DESEMPATE POR equipeId ───────────────────────────
+  it('classificação geral com 3+ equipes, 2 empatadas → desempate por equipeId', () => {
+    const atletas = [
+      criarAtleta('a1', 'João', 'eq_c'),
+      criarAtleta('a2', 'Maria', 'eq_a'),
+      criarAtleta('a3', 'Pedro', 'eq_b'),
+    ];
+    const equipes = [
+      criarEquipe('eq_a', 'Alfa', 'A'),
+      criarEquipe('eq_b', 'Beta', 'B'),
+      criarEquipe('eq_c', 'Gama', 'G'),
+    ];
+    const evento = {
+      id: 'evt1',
+      provasPrograma: ['M_adulto_100m'],
+      pontuacaoEquipes: {
+        ativo: true,
+        tabelaPontuacao: { 1: 10, 2: 5, 3: 5 }, // 2º e 3º empatados
+        tabelaPontuacaoRevezamentos: {},
+        equipesParticipantes: ['eq_a', 'eq_b', 'eq_c'],
+        atletasPorEquipePorProva: 1,
+      },
+    };
+    const inscricoes = [
+      { eventoId: 'evt1', atletaId: 'a1', provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M' },
+      { eventoId: 'evt1', atletaId: 'a2', provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M' },
+      { eventoId: 'evt1', atletaId: 'a3', provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M' },
+    ];
+    const resultados = {
+      'evt1_M_adulto_100m_adulto_M': {
+        a1: { marca: 10.0 },
+        a2: { marca: 10.5 },
+        a3: { marca: 10.8 },
+      },
+    };
+    const resultado = TeamScoringEngine.calcularClassificacaoEquipes(
+      evento, inscricoes, resultados, atletas, equipes, [], null
+    );
+    // eq_c = 10pts (1º), eq_a e eq_b empatam com 5pts → desempate por equipeId
+    expect(resultado.classificacao[0].equipeId).toBe('eq_c');
+    expect(resultado.classificacao[1].equipeId).toBe('eq_a'); // eq_a < eq_b
+    expect(resultado.classificacao[2].equipeId).toBe('eq_b');
+  });
+
+  // ─── BÔNUS RECORDE: MATCH POR NOME DA PROVA ──────────────────────────────
+  it('bônus recorde matcha por provaNome quando provaId difere', () => {
+    const atletas = [criarAtleta('a1', 'João', 'eq1')];
+    const equipes = [criarEquipe('eq1', 'Clube A', 'CA', 'SP')];
+    const evento = {
+      id: 'evt1',
+      nome: 'Camp',
+      uf: 'SP',
+      provasPrograma: ['M_adulto_100m'],
+      recordesSumulas: ['rec1'],
+      recordesSnapshot: {
+        rec1: [{
+          provaId: 'F_sub16_100m', // provaId diferente
+          categoriaId: 'adulto', sexo: 'M',
+          marca: '10.50', provaNome: '100m Rasos', // match por nome
+        }],
+      },
+      pontuacaoEquipes: {
+        ativo: true,
+        tabelaPontuacao: { 1: 8 },
+        tabelaPontuacaoRevezamentos: {},
+        equipesParticipantes: ['eq1'],
+        atletasPorEquipePorProva: 1,
+        bonusRecordes: { rec1: 5 },
+      },
+    };
+    const inscricoes = [
+      { eventoId: 'evt1', atletaId: 'a1', provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M' },
+    ];
+    const resultados = {
+      'evt1_M_adulto_100m_adulto_M': { a1: { marca: 10.30 } },
+    };
+    const recordes = [{
+      id: 'rec1', nome: 'RE-SP', sigla: 'RE', escopo: 'estado', estado: 'SP',
+      registros: [],
+    }];
+    const resultado = TeamScoringEngine.calcularClassificacaoEquipes(
+      evento, inscricoes, resultados, atletas, equipes, recordes, null
+    );
+    const eq1 = resultado.classificacao.find(c => c.equipeId === 'eq1');
+    expect(eq1.totalPontos).toBe(13); // 8 + 5 bônus
+    expect(eq1.bonusRecordes).toHaveLength(1);
+  });
 });

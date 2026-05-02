@@ -778,7 +778,7 @@ function TelaGerenciarEquipes() {
                   }}
                 >
                   <option value="">Selecione...</option>
-                  {organizadores.filter(o => o.status === "aprovado").map(org => (
+                  {organizadores.filter(o => o.status === "aprovado" || o.status === "placeholder").map(org => (
                     <option key={org.id} value={org.id}>{org.nome} - {org.entidade}</option>
                   ))}
                 </select>
@@ -1102,7 +1102,7 @@ function TelaGerenciarEquipes() {
                 style={{ ...s.input, borderColor: erros.organizadorId ? t.danger : undefined }}
               >
                 <option value="">Selecione o organizador...</option>
-                {organizadores.filter(o => o.status === "aprovado").map(org => (
+                {organizadores.filter(o => o.status === "aprovado" || o.status === "placeholder").map(org => (
                   <option key={org.id} value={org.id}>
                     {org.nome} - {org.entidade}
                   </option>

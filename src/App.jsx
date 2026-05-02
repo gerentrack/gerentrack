@@ -418,7 +418,7 @@ function App() {
   React.useEffect(() => { solicitacoesVinculoRef.current = solicitacoesVinculo; }, [solicitacoesVinculo]);
 
   // ── Vínculos atleta-equipe (extraído para useVinculos) ──
-  const { solicitarVinculo, responderVinculo } = useVinculos({
+  const { solicitarVinculo, responderVinculo, redirecionarVinculo } = useVinculos({
     equipes, setSolicitacoesVinculo, adicionarNotificacao, registrarAcao,
     usuarioLogado, atletasUsuarios, atletasRef: atletasRef_app,
     solicitacoesVinculoRef, _atualizarAtleta,
@@ -577,7 +577,7 @@ function App() {
     atualizarEquipe: _atualizarEquipe,
     // ⚠️ SEGURANÇA: setOrganizadores, setAtletasUsuarios, setFuncionarios, setTreinadores
     // removidos do spread global — injetados explicitamente em TelaConfiguracoes.
-    adicionarAtleta, adicionarAtletasEmLote, atualizarAtleta, excluirAtleta, excluirAtletasEmMassa, solicitarVinculo, responderVinculo, desvincularAtleta,
+    adicionarAtleta, adicionarAtletasEmLote, atualizarAtleta, excluirAtleta, excluirAtletasEmMassa, solicitarVinculo, responderVinculo, redirecionarVinculo, desvincularAtleta,
     notificacoes, adicionarNotificacao, marcarNotifLida,
     solicitacoesVinculo,
     adicionarInscricao, excluirInscricao, atualizarInscricao,

@@ -3,7 +3,7 @@
 > **Objetivo**: preparar o GERENTRACK para escala nacional, migrando incrementalmente de um SPA Firebase-only para uma arquitetura com backend, banco relacional e SSR — sem interromper o produto em produção.
 
 > **Data de criação**: 2026-04-21
-> **Última atualização**: 2026-04-30
+> **Última atualização**: 2026-05-01
 > **Status**: Fase 1 e 2 concluídas (exceto SSR), Fase 3 parcial. React Router v7 migração completa.
 
 ---
@@ -558,7 +558,7 @@ Dados consolidados (pós-competição):
 | 5 | **Ranking por UF** — federação gerencia pendências/inserção | 3.1.2 | 3-5 dias | ✅ podeGerenciarEntrada por atletaUf |
 | 6 | **Confederação (CBAt)** — modelo a definir | 3.1.3 | 2-3 dias | Adiado — depende de definição de negócio |
 | 7 | **Renomear organizador → federação** na UI | 3.1.5 | 1 dia | Adiado — polimento para deploy nacional |
-| 8 | **Subdomínios por federação** (opcional) | 3.1.4 | 1 dia | DNS Vercel, zero código |
+| 8 | **Subdomínios por federação** | 3.1.4 | 1 dia | ✅ Código pronto. DNS pendente (migrar nameservers na madrugada) |
 
 ### Bloco 3 — Compliance e segurança
 
@@ -577,6 +577,54 @@ Dados consolidados (pós-competição):
 | 14 | **Service Worker otimizado** | 3.3.5 | 2 dias | stale-while-revalidate para assets, network-first para dados |
 | 15 | **Integrações externas** (World Athletics, webhooks) | 3.2 | 5-10 dias | API pública já existe; depende de especificações externas |
 | 16 | **Penetration testing** | 3.5.6 | Externo | Antes do lançamento nacional |
+
+### Bloco 5 — Gestão de equipes entre federações
+
+| # | Item | Esforço | Status |
+|---|---|---|---|
+| 17 | **Transferência de equipe entre organizadores** | 1-2 dias | Planejado |
+| 18 | **Federação placeholder para onboarding** | 0.5-1 dia | Planejado |
+| 19 | **Redirecionamento de solicitação de vínculo** | 0.5 dia | Planejado |
+
+---
+
+**17 — Transferência de equipe** — admin transfere uma equipe (e todos os atletas vinculados) para outro organizador/federação. Execução imediata, sem fluxo de aprovação. Checkbox opcional para manter ou desvincular histórico de inscrições. Alterações contidas em `TelaGerenciarEquipes.jsx` (~130 linhas novas): botão "Transferir" no card, tela com dropdown de destino + checkbox + resumo, handler que atualiza `equipe.organizadorId`, `atleta.organizadorId` de cada vinculado, e opcionalmente limpa `equipeCadastroId` das inscrições. Auditoria registrada. **Plano detalhado**: `.claude/plans/magical-soaring-snail.md`.
+
+Localizações:
+- `src/features/admin/TelaGerenciarEquipes.jsx` — botão no card (~linha 986), novo `modo === "transferir"` (~linha 853), handler `handleTransferir`, estados novos (~linha 161)
+- Expandir `useApp()` destructuring (~linha 151) para incluir `registrarAcao`
+
+---
+
+**18 — Federação placeholder** — quando uma equipe de uma federação que ainda não está no sistema quer se cadastrar, o admin pré-cadastra a federação com status `"placeholder"` (nome + UF, sem conta de acesso). As equipes e atletas ficam vinculados à federação correta desde o dia 1. Quando a federação real aderir, basta ativar a conta — já encontra seus dados prontos.
+
+Localizações:
+- `src/features/admin/TelaAdmin.jsx`:
+  - Badge `"placeholder"` cor cinza (~linha 23-27)
+  - `handleCriarOrg` condicionar Auth quando placeholder (~linha 169-187)
+  - Dropdowns incluir placeholder (~linhas 773, 850, 1101): `["aprovado", "placeholder"].includes(o.status)`
+- `src/features/cadastros/TelaCadastroOrganizador.jsx`:
+  - Validação CNPJ duplicado na `validar()` (~linha 26-36)
+  - `handleSubmit` (~linha 38-86): se CNPJ bate com placeholder, assume registro existente (preenche dados, cria Auth, muda status para `"pendente"`). Se bate com não-placeholder, bloqueia: "CNPJ já cadastrado."
+- `src/features/admin/TelaGerenciarEquipes.jsx`:
+  - Dropdowns incluir placeholder (~linhas 781, 1105)
+
+---
+
+**19 — Redirecionamento de solicitação de vínculo** — quando um atleta/equipe solicita vínculo com a federação errada, o organizador pode redirecionar a solicitação para a equipe/federação correta em vez de simplesmente recusar. Admin pode redirecionar e aprovar automaticamente (sem pendência no destino).
+
+Localizações:
+- `src/hooks/useVinculos.js`:
+  - Nova função `redirecionarVinculo(solId, novoEquipeId, novoClubeNome)` (~após linha 92, ~15 linhas)
+  - Atualiza `equipeId`, `clube`, `organizadorId` da solicitação
+  - Se `usuarioLogado.tipo === "admin"`, chama `responderVinculo(solId, true)` automaticamente
+  - Notifica novo organizador (se não auto-aprovado)
+  - Registra auditoria
+- `src/features/paineis/TelaPainelOrganizador.jsx`:
+  - Botão "Redirecionar" + dropdown de equipes no card de solicitação pendente (~linha 564-567)
+  - Estado para controlar qual solicitação está em modo redirecionamento
+- `src/contexts/EventoContext.jsx`:
+  - Expor `redirecionarVinculo` junto ao `responderVinculo` já existente
 
 ### Adiados (sem prazo definido)
 

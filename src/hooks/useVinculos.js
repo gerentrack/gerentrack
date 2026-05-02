@@ -91,5 +91,40 @@ export function useVinculos({
     );
   };
 
-  return { solicitarVinculo, responderVinculo };
+  const redirecionarVinculo = (solId, novoEquipeId) => {
+    const sol = solicitacoesVinculoRef.current.find(s => s.id === solId);
+    if (!sol) return;
+    const novaEquipe = equipes.find(e => e.id === novoEquipeId);
+    if (!novaEquipe) return;
+    const novoOrgId = novaEquipe.organizadorId || null;
+    const nomeEquipeAntiga = sol.clube || equipes.find(e => e.id === sol.equipeId)?.nome || "—";
+
+    // Atualizar solicitação com nova equipe/organizador
+    setSolicitacoesVinculo(p => p.map(s => s.id === solId
+      ? { ...s, equipeId: novoEquipeId, clube: novaEquipe.nome, organizadorId: novoOrgId,
+          redirecionadoPor: usuarioLogado?.nome || "—", redirecionadoEm: new Date().toISOString() }
+      : s));
+
+    const isAdmin = usuarioLogado?.tipo === "admin";
+    if (isAdmin) {
+      // Admin: redireciona e aprova automaticamente — usar setTimeout para garantir que o state atualizou
+      setTimeout(() => responderVinculo(solId, true), 0);
+    } else {
+      // Organizador: redireciona como pendente, notifica novo organizador
+      if (novoOrgId) adicionarNotificacao(novoOrgId, "vinculo_solicitado",
+        `Solicitação de vínculo redirecionada: "${sol.atletaNome}" para equipe "${novaEquipe.nome}". Acesse o painel para aprovar ou recusar.`);
+      adicionarNotificacao(novoEquipeId, "vinculo_solicitado",
+        `Solicitação de vínculo de "${sol.atletaNome}" foi redirecionada para sua equipe. Aguardando aprovação do organizador.`);
+    }
+
+    registrarAcao(
+      usuarioLogado?.id, usuarioLogado?.nome || "—",
+      isAdmin ? "Redirecionou e aprovou vínculo" : "Redirecionou vínculo",
+      `${sol.atletaNome} — de "${nomeEquipeAntiga}" para "${novaEquipe.nome}"`,
+      usuarioLogado?.organizadorId || (usuarioLogado?.tipo === "organizador" ? usuarioLogado?.id : null),
+      { modulo: "vinculos", atletaId: sol.atletaId, equipeId: novoEquipeId }
+    );
+  };
+
+  return { solicitarVinculo, responderVinculo, redirecionarVinculo };
 }

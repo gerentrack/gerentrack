@@ -158,7 +158,7 @@ function getStyles(t) {
 
 function TelaPainelOrganizador() {
   const { usuarioLogado } = useAuth();
-  const { eventos, inscricoes, atletas, selecionarEvento, adicionarEvento, editarEvento, excluirEvento, alterarStatusEvento, equipes, atualizarAtleta, responderVinculo, resultados, sincronizarNomesEquipes, numeracaoPeito } = useEvento();
+  const { eventos, inscricoes, atletas, selecionarEvento, adicionarEvento, editarEvento, excluirEvento, alterarStatusEvento, equipes, atualizarAtleta, responderVinculo, redirecionarVinculo, resultados, sincronizarNomesEquipes, numeracaoPeito } = useEvento();
   const { organizadores, funcionarios, solicitacoesVinculo, solicitacoesEquipe, aprovarEquipe, recusarEquipe, registrarAcao, notificacoes, marcarNotifLida, solicitacoesRelatorio, resolverRelatorio, excluirRelatorio, historicoAcoes, editarOrganizadorAdmin } = useApp();
   const navigate = useNavigate();
   const t = useTema();
@@ -178,17 +178,37 @@ function TelaPainelOrganizador() {
     : _todosEventosOrg;
   const isPendente    = meuOrg?.status === "pendente";
   const [vinculoFeedback, setVinculoFeedback] = useState(null);
+  const [redirecionandoSolId, setRedirecionandoSolId] = useState(null);
+  const [equipeRedirecionamento, setEquipeRedirecionamento] = useState("");
   const [aba, setAba] = useState("visao-geral");
 
   const handleResponderVinculo = (solId, aceitar) => {
     const sol = (solicitacoesVinculo || []).find(sv => sv.id === solId);
     responderVinculo(solId, aceitar);
     const nome = sol?.atletaNome || "Atleta";
+    setRedirecionandoSolId(null);
+    setEquipeRedirecionamento("");
     const msg = aceitar
       ? `Vínculo de ${nome} aceito com sucesso!`
       : `Vínculo de ${nome} recusado.`;
     setVinculoFeedback(msg);
     setTimeout(() => setVinculoFeedback(null), 4000);
+  };
+
+  const handleRedirecionarVinculo = (solId) => {
+    if (!equipeRedirecionamento) return;
+    const sol = (solicitacoesVinculo || []).find(sv => sv.id === solId);
+    const eqDest = equipes?.find(eq => eq.id === equipeRedirecionamento);
+    redirecionarVinculo(solId, equipeRedirecionamento);
+    const isAdmin = usuarioLogado?.tipo === "admin";
+    const nome = sol?.atletaNome || "Atleta";
+    const msg = isAdmin
+      ? `Vínculo de ${nome} redirecionado para "${eqDest?.nome || "equipe"}" e aprovado automaticamente.`
+      : `Vínculo de ${nome} redirecionado para "${eqDest?.nome || "equipe"}". Aguardando aprovação.`;
+    setVinculoFeedback(msg);
+    setRedirecionandoSolId(null);
+    setEquipeRedirecionamento("");
+    setTimeout(() => setVinculoFeedback(null), 5000);
   };
 
   const perms = isFuncionario ? (usuarioLogado?.permissoes || []) : null;
@@ -595,13 +615,39 @@ function TelaPainelOrganizador() {
                         </Td>
                         <Td style={{ fontSize:11, color: t.textDimmed }}>{new Date(sol.data).toLocaleString("pt-BR")}</Td>
                         <Td>
-                          <div style={{ display:"flex", gap:6 }}>
-                            <button onClick={() => handleResponderVinculo(sol.id, true)}
-                              style={{ ...s.btnGhost, fontSize:12, padding:"4px 14px",
-                                color:t.success, borderColor:`${t.success}66` }}>✓ Aceitar</button>
-                            <button onClick={() => handleResponderVinculo(sol.id, false)}
-                              style={{ ...s.btnGhost, fontSize:12, padding:"4px 12px",
-                                color: t.danger, borderColor:`${t.danger}66` }}>✗ Recusar</button>
+                          <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                            <div style={{ display:"flex", gap:6 }}>
+                              <button onClick={() => handleResponderVinculo(sol.id, true)}
+                                style={{ ...s.btnGhost, fontSize:12, padding:"4px 14px",
+                                  color:t.success, borderColor:`${t.success}66` }}>✓ Aceitar</button>
+                              <button onClick={() => handleResponderVinculo(sol.id, false)}
+                                style={{ ...s.btnGhost, fontSize:12, padding:"4px 12px",
+                                  color: t.danger, borderColor:`${t.danger}66` }}>✗ Recusar</button>
+                              {sol.tipo !== "desvinculacao" && (
+                                <button onClick={() => { setRedirecionandoSolId(redirecionandoSolId === sol.id ? null : sol.id); setEquipeRedirecionamento(""); }}
+                                  style={{ ...s.btnGhost, fontSize:12, padding:"4px 12px",
+                                    color: t.accent, borderColor:`${t.accent}66` }}>↪ Redirecionar</button>
+                              )}
+                            </div>
+                            {redirecionandoSolId === sol.id && (
+                              <div style={{ display:"flex", gap:6, alignItems:"center" }}>
+                                <select value={equipeRedirecionamento} onChange={ev => setEquipeRedirecionamento(ev.target.value)}
+                                  style={{ flex:1, background:t.bgInput, border:`1px solid ${t.borderInput}`, borderRadius:6, padding:"4px 8px", color:t.textSecondary, fontSize:12, fontFamily:t.fontBody }}>
+                                  <option value="">Selecione a equipe destino...</option>
+                                  {(equipes || []).filter(eq => eq.id !== sol.equipeId && eq.status !== "inativa").sort((a, b) => (a.nome || "").localeCompare(b.nome || "")).map(eq => (
+                                    <option key={eq.id} value={eq.id}>{eq.nome}{eq.sigla ? ` (${eq.sigla})` : ""}</option>
+                                  ))}
+                                </select>
+                                <button onClick={() => handleRedirecionarVinculo(sol.id)}
+                                  disabled={!equipeRedirecionamento}
+                                  style={{ ...s.btnGhost, fontSize:12, padding:"4px 12px",
+                                    color: equipeRedirecionamento ? t.accent : t.textDisabled,
+                                    borderColor: equipeRedirecionamento ? `${t.accent}66` : t.border,
+                                    cursor: equipeRedirecionamento ? "pointer" : "not-allowed" }}>
+                                  {usuarioLogado?.tipo === "admin" ? "Redirecionar e Aprovar" : "Confirmar"}
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </Td>
                       </tr>

@@ -109,7 +109,24 @@
       "Bash(where gcloud:*)",
       "Bash(gcloud.cmd firestore:*)",
       "Bash(sort -t'|' -k1 -rn)",
-      "Bash(git pull *)"
+      "Bash(git pull *)",
+      "Bash(npx vitest:*)",
+      "Bash(git diff:*)",
+      "Bash(xargs sed:*)",
+      "Bash(npx vercel:*)",
+      "Bash(rm:*)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(npx rollup-plugin-visualizer:*)",
+      "WebFetch(domain:gerentrack.com.br)",
+      "Bash(npm test:*)",
+      "Bash(bash /tmp/check_absolute_paths.sh)",
+      "Bash(pkill -f \"vite dev\")",
+      "Bash(pkill -f \"vite\")",
+      "Bash(xargs -I {} bash -c \"echo '=== {} ===' && grep -m1 'import.*from.*\\\\.\\\\.' {}\")",
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(rm -rf C:/Projetos/gerentrack/node_modules/.vite)",
+      "Bash(chmod +x /tmp/final_check.sh)",
+      "Bash(/tmp/final_check.sh)"
     ]
   }
 }

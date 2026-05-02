@@ -24,6 +24,7 @@ const badgeStatus = (s, t) => ({
   pendente: { bg:t.accentBg, color: t.accent, label:"Pendente" },
   aprovado: { bg:`${t.success}15`, color:t.success, label:"✓ Aprovado" },
   recusado: { bg:`${t.danger}15`, color: t.danger, label:"✗ Recusado" },
+  placeholder: { bg:`${t.textDimmed}15`, color: t.textDimmed, label:"Placeholder" },
 }[s] || { bg:t.bgHover, color: t.textMuted, label: s || "—" });
 
 // ── Styles ───────────────────────────────────────────────────────────────────
@@ -114,6 +115,8 @@ function TelaAdmin({ setHistoricoAcoes }) {
   const [filtroEqAtl, setFiltroEqAtl] = useState("");
   const [orgSel,    setOrgSel]    = useState({});
   const [buscaHist, setBuscaHist] = useState("");
+  const [redirEqSolId, setRedirEqSolId] = useState(null);
+  const [redirEqOrgId, setRedirEqOrgId] = useState("");
   const [licencaEditId, setLicencaEditId] = useState(null);
   const [licencaForm, setLicencaForm] = useState({ plano: "", planoInicio: "", planoFim: "" });
   const [creditoForm, setCreditoForm] = useState({ orgId: null, descricao: "", eventoId: "" });
@@ -162,27 +165,31 @@ function TelaAdmin({ setHistoricoAcoes }) {
   const [showOrgForm, setShowOrgForm] = useState(false);
   const [senhasVisiveis, setSenhasVisiveis] = useState(new Set());
   const [resetFeedback, setResetFeedback] = useState({}); // { [solId]: "ok" | "erro" | "enviando" } // IDs de senhas reveladas
-  const [formOrg,  setFormOrg]  = useState({ nome:"", email:"", senha:"", entidade:"", fone:"", cnpj:"", cidade:"", estado:"" });
+  const [formOrg,  setFormOrg]  = useState({ nome:"", email:"", senha:"", entidade:"", fone:"", cnpj:"", cidade:"", estado:"", placeholder: false });
   const [errosOrg, setErrosOrg] = useState({});
   const [salvoOrg, setSalvoOrg] = useState(false);
 
   const handleCriarOrg = async () => {
+    const isPlaceholder = !!formOrg.placeholder;
     const e = {};
     if (!formOrg.nome)     e.nome = "Nome obrigatório";
-    if (!formOrg.email)    e.email = "E-mail obrigatório";
-    if (formOrg.senha.length < 6) e.senha = "Mínimo 6 caracteres";
+    if (!isPlaceholder && !formOrg.email) e.email = "E-mail obrigatório";
+    if (!isPlaceholder && formOrg.senha.length < 6) e.senha = "Mínimo 6 caracteres";
     if (!formOrg.entidade) e.entidade = "Entidade obrigatória";
     if (!formOrg.cnpj)     e.cnpj = "CNPJ obrigatório";
     else if (!validarCNPJ(formOrg.cnpj)) e.cnpj = "CNPJ inválido";
-    if (emailJaCadastrado(formOrg.email, { organizadores, equipes, atletasUsuarios, funcionarios, treinadores })) e.email = "E-mail já cadastrado";
+    if (!isPlaceholder && formOrg.email && emailJaCadastrado(formOrg.email, { organizadores, equipes, atletasUsuarios, funcionarios, treinadores })) e.email = "E-mail já cadastrado";
     if (organizadores.some(o => o.cnpj && formOrg.cnpj && o.cnpj.replace(/\D/g,"") === formOrg.cnpj.replace(/\D/g,""))) e.cnpj = "CNPJ já cadastrado";
     if (Object.keys(e).length) { setErrosOrg(e); return; }
-    try {
-      await createUserWithEmailAndPassword(secondaryAuth, formOrg.email.trim().toLowerCase(), formOrg.senha);
-      await firebaseSignOut(secondaryAuth).catch(() => {});
-    } catch (_) {}
-    adicionarOrganizador({ ...formOrg, id:Date.now().toString(), status:"aprovado", dataCadastro:new Date().toISOString(), tipo:"organizador" });
-    setFormOrg({ nome:"", email:"", senha:"", entidade:"", fone:"", cnpj:"", cidade:"", estado:"" });
+    if (!isPlaceholder) {
+      try {
+        await createUserWithEmailAndPassword(secondaryAuth, formOrg.email.trim().toLowerCase(), formOrg.senha);
+        await firebaseSignOut(secondaryAuth).catch(() => {});
+      } catch (_) {}
+    }
+    const { placeholder: _ph, ...formSemFlag } = formOrg;
+    adicionarOrganizador({ ...formSemFlag, id:Date.now().toString(), status: isPlaceholder ? "placeholder" : "aprovado", dataCadastro:new Date().toISOString(), tipo:"organizador" });
+    setFormOrg({ nome:"", email:"", senha:"", entidade:"", fone:"", cnpj:"", cidade:"", estado:"", placeholder: false });
     setErrosOrg({}); setSalvoOrg(true); setTimeout(() => setSalvoOrg(false), 3000); setShowOrgForm(false);
   };
 
@@ -699,8 +706,14 @@ function TelaAdmin({ setHistoricoAcoes }) {
                     </select>
                   </div>
                 </div>
+                <label style={{ display:"flex", alignItems:"center", gap:8, marginTop:8, fontSize:13, color:t.textMuted, cursor:"pointer" }}>
+                  <input type="checkbox" checked={!!formOrg.placeholder} onChange={ev => setFormOrg({...formOrg, placeholder: ev.target.checked})} />
+                  Criar como placeholder (sem conta de acesso — pré-cadastro de federação)
+                </label>
                 <div style={{ display:"flex", gap:8, marginTop:8 }}>
-                  <button onClick={handleCriarOrg} style={s.btnPrimary}>Criar Organizador (aprovado)</button>
+                  <button onClick={handleCriarOrg} style={s.btnPrimary}>
+                    {formOrg.placeholder ? "Criar Placeholder" : "Criar Organizador (aprovado)"}
+                  </button>
                   <button onClick={() => setShowOrgForm(false)} style={s.btnGhost}>Cancelar</button>
                 </div>
               </div>
@@ -770,7 +783,7 @@ function TelaAdmin({ setHistoricoAcoes }) {
               <select value={filtroOrgComp} onChange={e => setFiltroOrgComp(e.target.value)}
                 style={{ ...si, marginBottom: 0, width: "auto", minWidth: 200 }}>
                 <option value="">Todos organizadores</option>
-                {organizadores.filter(o => o.status === "aprovado").sort((a,b) => (a.entidade||a.nome||"").localeCompare(b.entidade||b.nome||"","pt-BR")).map(o => (
+                {organizadores.filter(o => o.status === "aprovado" || o.status === "placeholder").sort((a,b) => (a.entidade||a.nome||"").localeCompare(b.entidade||b.nome||"","pt-BR")).map(o => (
                   <option key={o.id} value={o.id}>{o.entidade || o.nome}</option>
                 ))}
               </select>
@@ -847,21 +860,53 @@ function TelaAdmin({ setHistoricoAcoes }) {
                         <select value={orgSel[sol.id] || ""} onChange={e => setOrgSel(p => ({...p, [sol.id]: e.target.value}))}
                           style={{ background:t.bgInput, border:`1px solid ${t.borderInput}`, borderRadius:6, color: t.textPrimary, padding:"6px 10px", fontSize:13, width:"100%" }}>
                           <option value="">Selecione o organizador...</option>
-                          {organizadores.filter(o => o.status === "aprovado").map(o => (
+                          {organizadores.filter(o => o.status === "aprovado" || o.status === "placeholder").map(o => (
                             <option key={o.id} value={o.id}>{o.nome} — {o.entidade}</option>
                           ))}
                         </select>
                       </div>
                     )}
-                    <div style={{ display:"flex", gap:8 }}>
-                      <button style={{ ...s.btnPrimary, fontSize:13, padding:"6px 18px" }}
-                        onClick={() => {
-                          const orgId = sol.organizadorId || orgSel[sol.id];
-                          if (!sol.organizadorId && !orgId) { alert("Selecione um organizador antes de aprovar."); return; }
-                          aprovarEquipe(sol.equipeId, orgId || null);
-                        }}>Aprovar</button>
-                      <button style={{ background:`${t.danger}15`, color: t.danger, border:`1px solid ${t.danger}66`, borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:700, padding:"6px 18px" }}
-                        onClick={() => recusarEquipe(sol.equipeId)}>Recusar</button>
+                    <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                      <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                        <button style={{ ...s.btnPrimary, fontSize:13, padding:"6px 18px" }}
+                          onClick={() => {
+                            const orgId = sol.organizadorId || orgSel[sol.id];
+                            if (!sol.organizadorId && !orgId) { alert("Selecione um organizador antes de aprovar."); return; }
+                            aprovarEquipe(sol.equipeId, orgId || null);
+                          }}>Aprovar</button>
+                        <button style={{ background:`${t.danger}15`, color: t.danger, border:`1px solid ${t.danger}66`, borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:700, padding:"6px 18px" }}
+                          onClick={() => recusarEquipe(sol.equipeId)}>Recusar</button>
+                        {sol.organizadorId && (
+                          <button style={{ ...s.btnGhost, fontSize:13, padding:"6px 16px", color: t.accent, borderColor:`${t.accent}66` }}
+                            onClick={() => { setRedirEqSolId(redirEqSolId === sol.id ? null : sol.id); setRedirEqOrgId(""); }}>
+                            ↪ Redirecionar
+                          </button>
+                        )}
+                      </div>
+                      {redirEqSolId === sol.id && (
+                        <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+                          <select value={redirEqOrgId} onChange={ev => setRedirEqOrgId(ev.target.value)}
+                            style={{ flex:1, background:t.bgInput, border:`1px solid ${t.borderInput}`, borderRadius:6, padding:"6px 10px", color:t.textSecondary, fontSize:13, fontFamily:t.fontBody }}>
+                            <option value="">Selecione o organizador correto...</option>
+                            {organizadores.filter(o => (o.status === "aprovado" || o.status === "placeholder") && o.id !== sol.organizadorId).sort((a,b) => (a.entidade||a.nome||"").localeCompare(b.entidade||b.nome||"","pt-BR")).map(o => (
+                              <option key={o.id} value={o.id}>{o.entidade || o.nome} ({o.estado || "—"})</option>
+                            ))}
+                          </select>
+                          <button onClick={() => {
+                            if (!redirEqOrgId) return;
+                            aprovarEquipe(sol.equipeId, redirEqOrgId);
+                            setRedirEqSolId(null); setRedirEqOrgId("");
+                          }}
+                            disabled={!redirEqOrgId}
+                            style={{ ...s.btnPrimary, fontSize:13, padding:"6px 16px", whiteSpace:"nowrap",
+                              opacity: redirEqOrgId ? 1 : 0.5,
+                              cursor: redirEqOrgId ? "pointer" : "not-allowed" }}>
+                            Aprovar com novo org.
+                          </button>
+                          <button onClick={() => { setRedirEqSolId(null); setRedirEqOrgId(""); }}
+                            style={{ ...s.btnGhost, fontSize:12, padding:"4px 10px" }}>✕</button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -883,7 +928,7 @@ function TelaAdmin({ setHistoricoAcoes }) {
                 <select value={filtroOrgEq} onChange={e => setFiltroOrgEq(e.target.value)}
                   style={{ ...si, marginBottom: 0, width: "auto", minWidth: 200 }}>
                   <option value="">Todos organizadores</option>
-                  {organizadores.filter(o => o.status === "aprovado").sort((a,b) => (a.entidade||a.nome||"").localeCompare(b.entidade||b.nome||"","pt-BR")).map(o => (
+                  {organizadores.filter(o => o.status === "aprovado" || o.status === "placeholder").sort((a,b) => (a.entidade||a.nome||"").localeCompare(b.entidade||b.nome||"","pt-BR")).map(o => (
                     <option key={o.id} value={o.id}>{o.entidade || o.nome}</option>
                   ))}
                 </select>
@@ -945,7 +990,7 @@ function TelaAdmin({ setHistoricoAcoes }) {
                 <select value={filtroOrgAtl} onChange={e => { setFiltroOrgAtl(e.target.value); setFiltroEqAtl(""); }}
                   style={{ ...si, marginBottom: 0, width: "auto", minWidth: 180 }}>
                   <option value="">Todos organizadores</option>
-                  {organizadores.filter(o => o.status === "aprovado").sort((a,b) => (a.entidade||a.nome||"").localeCompare(b.entidade||b.nome||"","pt-BR")).map(o => (
+                  {organizadores.filter(o => o.status === "aprovado" || o.status === "placeholder").sort((a,b) => (a.entidade||a.nome||"").localeCompare(b.entidade||b.nome||"","pt-BR")).map(o => (
                     <option key={o.id} value={o.id}>{o.entidade || o.nome}</option>
                   ))}
                 </select>
@@ -1098,7 +1143,7 @@ function TelaAdmin({ setHistoricoAcoes }) {
                 <select value={filtroOrgTrein} onChange={e => { setFiltroOrgTrein(e.target.value); setFiltroEqTrein(""); }}
                   style={{ ...si, marginBottom: 0, width: "auto", minWidth: 200 }}>
                   <option value="">Todos organizadores</option>
-                  {organizadores.filter(o => o.status === "aprovado").sort((a,b) => (a.entidade||a.nome||"").localeCompare(b.entidade||b.nome||"","pt-BR")).map(o => (
+                  {organizadores.filter(o => o.status === "aprovado" || o.status === "placeholder").sort((a,b) => (a.entidade||a.nome||"").localeCompare(b.entidade||b.nome||"","pt-BR")).map(o => (
                     <option key={o.id} value={o.id}>{o.entidade || o.nome}</option>
                   ))}
                 </select>
@@ -1187,7 +1232,7 @@ function TelaAdmin({ setHistoricoAcoes }) {
                 <Th>Organizador</Th><Th>Plano</Th><Th>Status</Th><Th>Competições</Th><Th>Créditos</Th><Th>Validade</Th><Th>Ações</Th>
               </tr></thead>
               <tbody>
-                {organizadores.filter(o => o.status === "aprovado").map(org => {
+                {organizadores.filter(o => o.status === "aprovado" || o.status === "placeholder").map(org => {
                   const usage = getUsage(org, eventos);
                   const editando = licencaEditId === org.id;
                   return (

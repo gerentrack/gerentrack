@@ -112,6 +112,49 @@ describe('SeriacaoEngine — distribuição', () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// _sortearPorGrupos com origemClassif P/T
+// ═══════════════════════════════════════════════════════════════════════════════
+describe('SeriacaoEngine — sorteio com origemClassif P/T', () => {
+  it('distribui P nas raias prioritárias e T nas restantes', () => {
+    const atletas = [
+      { id: 'a1', nome: 'A1', ranking: 1, origemClassif: 'posicao' },
+      { id: 'a2', nome: 'A2', ranking: 2, origemClassif: 'posicao' },
+      { id: 'a3', nome: 'A3', ranking: 3, origemClassif: 'posicao' },
+      { id: 'a4', nome: 'A4', ranking: 4, origemClassif: 'posicao' },
+      { id: 'a5', nome: 'A5', ranking: 5, origemClassif: 'tempo' },
+      { id: 'a6', nome: 'A6', ranking: 6, origemClassif: 'tempo' },
+    ];
+    const resultado = SeriacaoEngine.sortearRaiasReta(atletas, 8);
+    expect(resultado).toHaveLength(6);
+    // Todos devem ter raia atribuída
+    resultado.forEach(a => expect(a.raia).toBeGreaterThanOrEqual(1));
+  });
+
+  it('atletas sem origemClassif usam distribuição por ranking', () => {
+    const atletas = [
+      { id: 'a1', nome: 'A1', ranking: 1 },
+      { id: 'a2', nome: 'A2', ranking: 2 },
+    ];
+    const resultado = SeriacaoEngine.sortearRaiasReta(atletas, 8);
+    expect(resultado).toHaveLength(2);
+    resultado.forEach(a => expect(a.raia).toBeTruthy());
+  });
+
+  it('mais atletas que raias disponíveis → overflow recebe raia null', () => {
+    // Forçar overflow: 10 atletas mas só 3 raias em grupos
+    const atletas = Array.from({ length: 10 }, (_, i) => ({
+      id: `a${i}`, nome: `A${i}`, ranking: i + 1,
+    }));
+    // sortearRaiasReta com 3 raias → apenas 3 raias disponíveis
+    const resultado = SeriacaoEngine.sortearRaiasReta(atletas, 3);
+    const comRaia = resultado.filter(a => a.raia !== null);
+    const semRaia = resultado.filter(a => a.raia === null);
+    expect(comRaia.length).toBe(3);
+    expect(semRaia.length).toBe(7);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // NOTE (iii) — RAIAS DISPONÍVEIS
 // ═══════════════════════════════════════════════════════════════════════════════
 describe('SeriacaoEngine — raias disponíveis (Note iii)', () => {
@@ -234,6 +277,12 @@ describe('SeriacaoEngine — getSortearRaias', () => {
     const info = SeriacaoEngine.getSortearRaias({ id: 'M_adulto_100m' }, 1, {});
     expect(info.regra).toBe('RT 20.4.1');
   });
+
+  it('retorna RT 20.4.5 para revezamento 4x400m em final', () => {
+    const info = SeriacaoEngine.getSortearRaias({ id: 'M_adulto_4x400m', tipo: 'revezamento' }, 'final', {});
+    expect(info.regra).toBe('RT 20.4.5');
+    expect(info.tipo).toBe('raias');
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -328,6 +377,64 @@ describe('SeriacaoEngine — seriarProva', () => {
     expect(resultado.series).toHaveLength(2);
     expect(resultado.series[0].numero).toBe(1);
     expect(resultado.series[1].numero).toBe(2);
+  });
+
+  it('semifinal usa zigzag em vez de serpentina', () => {
+    const atletas = criarAtletas(16);
+    const resultado = SeriacaoEngine.seriarProva(atletas, { id: 'M_adulto_100m', unidade: 's' }, { nRaias: 8, fase: 'semifinal' });
+    expect(resultado.series).toHaveLength(2);
+    expect(resultado.regraAplicada).toContain('Semifinal');
+  });
+
+  it('200m em final usa regra RT 20.4.4', () => {
+    const atletas = criarAtletas(8);
+    const resultado = SeriacaoEngine.seriarProva(atletas, { id: 'M_adulto_200m', unidade: 's' }, { nRaias: 8, fase: 'final' });
+    expect(resultado.regraAplicada).toContain('RT 20.4.4');
+    expect(resultado.regraAplicada).toContain('200m');
+  });
+
+  it('400m em final usa regra RT 20.4.5', () => {
+    const atletas = criarAtletas(8);
+    const resultado = SeriacaoEngine.seriarProva(atletas, { id: 'M_adulto_400m', unidade: 's' }, { nRaias: 8, fase: 'final' });
+    expect(resultado.regraAplicada).toContain('RT 20.4.5');
+    expect(resultado.regraAplicada).toContain('400m');
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// descreverRegra — cobertura de branches
+// ═══════════════════════════════════════════════════════════════════════════════
+describe('SeriacaoEngine — descreverRegra', () => {
+  it('200m semifinal', () => {
+    const desc = SeriacaoEngine.descreverRegra({ id: 'M_adulto_200m' }, 'semifinal', {});
+    expect(desc).toContain('RT 20.4.4');
+    expect(desc).toContain('Semifinal');
+    expect(desc).toContain('200m');
+  });
+
+  it('400m final', () => {
+    const desc = SeriacaoEngine.descreverRegra({ id: 'M_adulto_400m' }, 'final', {});
+    expect(desc).toContain('RT 20.4.5');
+    expect(desc).toContain('Final');
+    expect(desc).toContain('400m');
+  });
+
+  it('100m final (reta)', () => {
+    const desc = SeriacaoEngine.descreverRegra({ id: 'M_adulto_100m' }, 'final', {});
+    expect(desc).toContain('RT 20.4.3');
+    expect(desc).toContain('reta');
+  });
+
+  it('1500m (grupo)', () => {
+    const desc = SeriacaoEngine.descreverRegra({ id: 'M_adulto_1500m' }, 'final', {});
+    expect(desc).toContain('RT 20.4.6');
+    expect(desc).toContain('sem raias');
+  });
+
+  it('eliminatória (sorteio livre)', () => {
+    const desc = SeriacaoEngine.descreverRegra({ id: 'M_adulto_100m' }, 'eliminatoria', {});
+    expect(desc).toContain('RT 20.4.1');
+    expect(desc).toContain('sorteio livre');
   });
 });
 

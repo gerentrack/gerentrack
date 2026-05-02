@@ -15,7 +15,7 @@ import BlocoLGPD from "../ui/BlocoLGPD";
 function TelaCadastroOrganizador() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const { organizadores, adicionarOrganizador, adicionarNotificacao } = useApp();
+  const { organizadores, adicionarOrganizador, editarOrganizadorAdmin, adicionarNotificacao } = useApp();
   const t = useTema();
   const s = useStylesResponsivos(criarInscricaoStyles(t));
   const [form, setForm] = useState({ nome:"", email:"", senha:"", entidade:"", fone:"", cnpj:"", equipeId:"", cidade:"", estado:"" });
@@ -31,6 +31,13 @@ function TelaCadastroOrganizador() {
     if (!form.entidade)       e.entidade= "Entidade/Federação obrigatória";
     if (!form.cnpj)           e.cnpj    = "CNPJ obrigatório";
     else if (!validarCNPJ(form.cnpj)) e.cnpj = "CNPJ inválido";
+    else {
+      const cnpjLimpo = form.cnpj.replace(/\D/g, "");
+      const orgExistente = organizadores.find(o => o.cnpj && o.cnpj.replace(/\D/g, "") === cnpjLimpo);
+      if (orgExistente && orgExistente.status !== "placeholder") {
+        e.cnpj = "CNPJ já cadastrado no sistema. Entre em contato com o administrador.";
+      }
+    }
     if (emailJaCadastrado(form.email, { organizadores })) e.email = "E-mail já cadastrado em outra conta.";
     return e;
   };
@@ -39,6 +46,11 @@ function TelaCadastroOrganizador() {
     const e = validar();
     if (!lgpdAceite) e.lgpd = "É necessário aceitar a Política de Privacidade para continuar.";
     if (Object.keys(e).length) { setErros(e); return; }
+
+    // Verificar se existe placeholder com mesmo CNPJ para assumir
+    const cnpjLimpo = form.cnpj.replace(/\D/g, "");
+    const placeholder = organizadores.find(o => o.cnpj && o.cnpj.replace(/\D/g, "") === cnpjLimpo && o.status === "placeholder");
+
     // Criar usuário no Firebase Auth
     try {
       const cred = await createUserWithEmailAndPassword(auth, form.email.trim(), form.senha);
@@ -57,21 +69,40 @@ function TelaCadastroOrganizador() {
         setErros({ email: "Erro ao criar conta. Tente novamente." }); return;
       }
     }
-    // Montar objeto ANTES do signOut — Firestore exige auth.currentUser para escrita
+
     const { senha: _senha, ...formSemSenha } = form;
-    const o = {
-      ...formSemSenha,
-      cnpj: formatarCNPJ(formSemSenha.cnpj),
-      id: Date.now().toString(),
-      status: "pendente",
-      dataCadastro: new Date().toISOString(),
-      lgpdConsentimento: true,
-      lgpdConsentimentoData: new Date().toISOString(),
-      lgpdVersao: "2.0",
-    };
-    adicionarOrganizador(o);
-    adicionarNotificacao("admin", "organizador_pendente",
-      `Novo organizador cadastrado: ${o.nome} (${o.entidade}). Aguardando aprovação.`);
+
+    if (placeholder) {
+      // Assumir registro placeholder existente — mantém id, equipes e atletas vinculados
+      const orgAtualizado = {
+        ...placeholder,
+        ...formSemSenha,
+        cnpj: formatarCNPJ(formSemSenha.cnpj),
+        status: "pendente",
+        lgpdConsentimento: true,
+        lgpdConsentimentoData: new Date().toISOString(),
+        lgpdVersao: "2.0",
+      };
+      editarOrganizadorAdmin(orgAtualizado);
+      adicionarNotificacao("admin", "organizador_pendente",
+        `Federação "${orgAtualizado.entidade}" (placeholder) solicitou ativação. Aguardando aprovação.`);
+    } else {
+      // Criar organizador novo
+      const o = {
+        ...formSemSenha,
+        cnpj: formatarCNPJ(formSemSenha.cnpj),
+        id: Date.now().toString(),
+        status: "pendente",
+        dataCadastro: new Date().toISOString(),
+        lgpdConsentimento: true,
+        lgpdConsentimentoData: new Date().toISOString(),
+        lgpdVersao: "2.0",
+      };
+      adicionarOrganizador(o);
+      adicionarNotificacao("admin", "organizador_pendente",
+        `Novo organizador cadastrado: ${o.nome} (${o.entidade}). Aguardando aprovação.`);
+    }
+
     // Flush direto no Firestore enquanto auth ainda está ativo (bypass debounce de 2s)
     try {
       const key = "atl_organizadores";

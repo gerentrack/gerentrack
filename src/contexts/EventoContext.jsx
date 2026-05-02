@@ -64,6 +64,7 @@ export function buildEventoValue(props) {
     excluirAtletasEmMassa: props.excluirAtletasEmMassa,
     solicitarVinculo: props.solicitarVinculo,
     responderVinculo: props.responderVinculo,
+    redirecionarVinculo: props.redirecionarVinculo,
     desvincularAtleta: props.desvincularAtleta,
 
     equipes: props.equipes,

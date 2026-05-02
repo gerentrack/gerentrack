@@ -266,6 +266,240 @@ describe('RecordDetectionEngine.detectarQuebras', () => {
     expect(RecordDetectionEngine.detectarQuebras({}, null, [], [], [], [])).toEqual([]);
   });
 
+  it('classifica relevância como mundial', () => {
+    const evento = {
+      id: 'evt1', nome: 'Camp', uf: 'SP',
+      recordesSumulas: ['rec1'],
+    };
+    const recordes = [{
+      id: 'rec1', nome: 'RM', escopo: 'mundial',
+      registros: [{
+        provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M',
+        marca: '10.50', provaNome: '100m', detentores: [],
+      }],
+    }];
+    const resultados = {
+      'evt1_M_adulto_100m_adulto_M': { atl1: { marca: 10.00 } },
+    };
+    const pendencias = RecordDetectionEngine.detectarQuebras(
+      evento, resultados, recordes, atletas, equipes, []
+    );
+    const p = pendencias.find(pp => pp.atletaId === 'atl1');
+    expect(p).toBeDefined();
+    expect(p.relevancia).toBe('mundial');
+  });
+
+  it('classifica relevância como atleta (estado do atleta != evento)', () => {
+    const atletasRJ = [
+      { id: 'atl1', nome: 'João', equipeId: 'eq_rj', cbat: '12345' },
+    ];
+    const equipesRJ = [
+      { id: 'eq_rj', nome: 'Clube RJ', clube: 'Clube RJ', estado: 'RJ' },
+    ];
+    const evento = {
+      id: 'evt1', nome: 'Camp', uf: 'SP',
+      recordesSumulas: ['rec1'],
+    };
+    const recordes = [{
+      id: 'rec1', nome: 'RE-RJ', escopo: 'estado', estado: 'RJ', pais: 'Brasil',
+      registros: [{
+        provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M',
+        marca: '10.50', provaNome: '100m', detentores: [],
+      }],
+    }];
+    const resultados = {
+      'evt1_M_adulto_100m_adulto_M': { atl1: { marca: 10.00 } },
+    };
+    const pendencias = RecordDetectionEngine.detectarQuebras(
+      evento, resultados, recordes, atletasRJ, equipesRJ, []
+    );
+    const p = pendencias.find(pp => pp.atletaId === 'atl1' && pp.recordeTipoId === 'rec1');
+    expect(p).toBeDefined();
+    expect(p.relevancia).toBe('atleta');
+  });
+
+  it('classifica relevância como outro_estado', () => {
+    const evento = {
+      id: 'evt1', nome: 'Camp', uf: 'SP',
+      recordesSumulas: ['rec1'],
+    };
+    // Recorde de MG, evento em SP, atleta de SP
+    const recordes = [{
+      id: 'rec1', nome: 'RE-MG', escopo: 'estado', estado: 'MG', pais: 'Brasil',
+      registros: [{
+        provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M',
+        marca: '10.50', provaNome: '100m', detentores: [],
+      }],
+    }];
+    const resultados = {
+      'evt1_M_adulto_100m_adulto_M': { atl1: { marca: 10.00 } },
+    };
+    const pendencias = RecordDetectionEngine.detectarQuebras(
+      evento, resultados, recordes, atletas, equipes, []
+    );
+    const p = pendencias.find(pp => pp.recordeTipoId === 'rec1');
+    expect(p).toBeDefined();
+    expect(p.relevancia).toBe('outro_estado');
+  });
+
+  it('classifica relevância como nacional (escopo país)', () => {
+    const evento = {
+      id: 'evt1', nome: 'Camp', uf: 'SP',
+      recordesSumulas: ['rec1'],
+    };
+    const recordes = [{
+      id: 'rec1', nome: 'RB', escopo: 'pais', pais: 'Brasil',
+      registros: [{
+        provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M',
+        marca: '10.50', provaNome: '100m', detentores: [],
+      }],
+    }];
+    const resultados = {
+      'evt1_M_adulto_100m_adulto_M': { atl1: { marca: 10.00 } },
+    };
+    const pendencias = RecordDetectionEngine.detectarQuebras(
+      evento, resultados, recordes, atletas, equipes, []
+    );
+    const p = pendencias.find(pp => pp.recordeTipoId === 'rec1');
+    expect(p).toBeDefined();
+    expect(p.relevancia).toBe('nacional');
+  });
+
+  it('detecta recorde em revezamento', () => {
+    const equipesRevez = [
+      { id: 'eq1', nome: 'Clube A', clube: 'Clube A', estado: 'SP' },
+    ];
+    const evento = {
+      id: 'evt1', nome: 'Camp', uf: 'SP',
+      recordesSumulas: ['rec1'],
+    };
+    const recordes = [{
+      id: 'rec1', nome: 'RE-SP', escopo: 'estado', estado: 'SP', pais: 'Brasil',
+      registros: [{
+        provaId: 'M_adulto_4x100m', categoriaId: 'adulto', sexo: 'M',
+        marca: '42.00', provaNome: '4x100m',
+        detentores: [{ atleta: 'Antigo', equipe: 'X' }],
+      }],
+    }];
+    const resultados = {
+      'evt1_M_adulto_4x100m_adulto_M': {
+        eq1: { marca: 41.50 },
+      },
+    };
+    const inscricoes = [
+      { tipo: 'revezamento', eventoId: 'evt1', provaId: 'M_adulto_4x100m',
+        categoriaId: 'adulto', sexo: 'M', equipeId: 'eq1',
+        atletasIds: ['atl1', 'atl2'] },
+    ];
+    const pendencias = RecordDetectionEngine.detectarQuebras(
+      evento, resultados, recordes, atletas, equipesRevez, inscricoes
+    );
+    const p = pendencias.find(pp => pp.atletaId === 'eq1');
+    expect(p).toBeDefined();
+    expect(p.tipoQuebra).toBe('superou');
+    expect(p.atletasRevezamento).toEqual(['João', 'Maria']);
+  });
+
+  it('match por provaNome quando provaId difere', () => {
+    const evento = {
+      id: 'evt1', nome: 'Camp', uf: 'SP',
+      recordesSumulas: ['rec1'],
+    };
+    const recordes = [{
+      id: 'rec1', nome: 'RE-SP', escopo: 'estado', estado: 'SP', pais: 'Brasil',
+      registros: [{
+        provaId: 'F_sub16_100m', // provaId diferente
+        categoriaId: 'adulto', sexo: 'M',
+        marca: '10.50', provaNome: '100m Rasos', // match por nome
+        detentores: [],
+      }],
+    }];
+    const resultados = {
+      'evt1_M_adulto_100m_adulto_M': { atl1: { marca: 10.00 } },
+    };
+    const pendencias = RecordDetectionEngine.detectarQuebras(
+      evento, resultados, recordes, atletas, equipes, []
+    );
+    const p = pendencias.find(pp => pp.atletaId === 'atl1');
+    expect(p).toBeDefined();
+    expect(p.tipoQuebra).toBe('superou');
+  });
+
+  it('ignora fase ELI quando prova tem múltiplas fases', () => {
+    const evento = {
+      id: 'evt1', nome: 'Camp', uf: 'SP',
+      recordesSumulas: ['rec1'],
+      configSeriacao: { 'M_adulto_100m': { modo: 'eli_semi_final' } },
+    };
+    const recordes = [{
+      id: 'rec1', nome: 'RE-SP', escopo: 'estado', estado: 'SP', pais: 'Brasil',
+      registros: [{
+        provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M',
+        marca: '10.50', provaNome: '100m', detentores: [],
+      }],
+    }];
+    const resultados = {
+      // ELI não deve gerar pendência
+      'evt1_M_adulto_100m_adulto_M__ELI': { atl1: { marca: 10.00 } },
+      // FIN deve gerar pendência
+      'evt1_M_adulto_100m_adulto_M__FIN': { atl1: { marca: 10.20 } },
+    };
+    const pendencias = RecordDetectionEngine.detectarQuebras(
+      evento, resultados, recordes, atletas, equipes, []
+    );
+    // Só 1 pendência (da FIN), não 2
+    const ps = pendencias.filter(pp => pp.atletaId === 'atl1' && pp.recordeTipoId === 'rec1');
+    expect(ps).toHaveLength(1);
+    expect(ps[0].marca).toBe('10.2');
+  });
+
+  it('ignora chave sem fase quando prova tem fases configuradas', () => {
+    const evento = {
+      id: 'evt1', nome: 'Camp', uf: 'SP',
+      recordesSumulas: ['rec1'],
+      configSeriacao: { 'M_adulto_100m': { modo: 'eli_semi_final' } },
+    };
+    const recordes = [{
+      id: 'rec1', nome: 'RE-SP', escopo: 'estado', estado: 'SP', pais: 'Brasil',
+      registros: [{
+        provaId: 'M_adulto_100m', categoriaId: 'adulto', sexo: 'M',
+        marca: '10.50', provaNome: '100m', detentores: [],
+      }],
+    }];
+    const resultados = {
+      // Chave base sem sufixo: dados obsoletos quando há fases → ignorar
+      'evt1_M_adulto_100m_adulto_M': { atl1: { marca: 10.00 } },
+    };
+    const pendencias = RecordDetectionEngine.detectarQuebras(
+      evento, resultados, recordes, atletas, equipes, []
+    );
+    expect(pendencias).toHaveLength(0);
+  });
+
+  it('campo (metros): marca maior supera recorde', () => {
+    const evento = {
+      id: 'evt1', nome: 'Camp', uf: 'SP',
+      recordesSumulas: ['rec1'],
+    };
+    const recordes = [{
+      id: 'rec1', nome: 'RE-SP', escopo: 'estado', estado: 'SP', pais: 'Brasil',
+      registros: [{
+        provaId: 'M_adulto_comp', categoriaId: 'adulto', sexo: 'M',
+        marca: '7.50', provaNome: 'Salto em Distância', unidade: 'm',
+        detentores: [{ atleta: 'Antigo' }],
+      }],
+    }];
+    const resultados = {
+      'evt1_M_adulto_comp_adulto_M': { atl1: { marca: 7.80 } },
+    };
+    const pendencias = RecordDetectionEngine.detectarQuebras(
+      evento, resultados, recordes, atletas, equipes, []
+    );
+    const p = pendencias.find(pp => pp.atletaId === 'atl1');
+    expect(p).toBeDefined();
+    expect(p.tipoQuebra).toBe('superou');
+  });
+
   it('usa snapshot quando disponível', () => {
     const evento = {
       id: 'evt1', nome: 'Camp', uf: 'SP',
@@ -396,6 +630,24 @@ describe('RecordDetectionEngine.aplicarHomologacao', () => {
     expect(recordesAtualizados[0].registros).toHaveLength(1);
     expect(recordesAtualizados[0].registros[0].marca).toBe('21.50');
     expect(recordesAtualizados[0].registros[0].detentores[0].atleta).toBe('Carlos');
+  });
+
+  it('igualou sem registro existente cria registro novo', () => {
+    const recordesSemRegistro = [{ id: 'rec1', nome: 'RE-SP', registros: [] }];
+    const pendencia = {
+      id: 'pend5', recordeTipoId: 'rec1', provaId: 'M_adulto_100m',
+      categoriaId: 'adulto', sexo: 'M', marca: '10.50',
+      atletaNome: 'João', equipeNome: 'Clube A', atletaId: 'atl1',
+      tipoQuebra: 'igualou', eventoId: 'evt1', eventoNome: 'Camp',
+      provaNome: '100m', unidade: 's',
+      recordeAtual: null,
+    };
+    const { recordesAtualizados } = RecordDetectionEngine.aplicarHomologacao(
+      pendencia, recordesSemRegistro, 'admin1'
+    );
+    expect(recordesAtualizados[0].registros).toHaveLength(1);
+    expect(recordesAtualizados[0].registros[0].marca).toBe('10.50');
+    expect(recordesAtualizados[0].registros[0].detentores[0].atleta).toBe('João');
   });
 
   it('não duplica co-detentor se já existe', () => {

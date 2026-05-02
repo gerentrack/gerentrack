@@ -58,6 +58,7 @@ export const defaultEventoValue = {
   excluirAtletasEmMassa: vi.fn(),
   solicitarVinculo: vi.fn(),
   responderVinculo: vi.fn(),
+  redirecionarVinculo: vi.fn(),
   desvincularAtleta: vi.fn(),
   equipes: [],
   adicionarEquipe: vi.fn(),
