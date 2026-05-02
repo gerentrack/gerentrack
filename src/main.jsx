@@ -13,6 +13,7 @@ Sentry.init({
     const msg = event.exception?.values?.[0]?.value || "";
     if (msg.includes("Missing or insufficient permissions")) return null;
     if (msg.includes("text/html") && msg.includes("MIME")) return null;
+    if (msg.includes("Java object is gone")) return null;
     return event;
   },
 })
