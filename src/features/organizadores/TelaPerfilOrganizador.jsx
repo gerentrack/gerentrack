@@ -58,26 +58,30 @@ export default function TelaPerfilOrganizador() {
   const s = useStylesResponsivos(getStyles(t));
 
   const org = organizadores?.find(o => o.slug === slug || o.id === slug || o.id === organizadorPerfilId);
+
+  // Cores customizadas do organizador
+  const corPri = org?.corPrimaria || t.accent;
+  const corSec = org?.corSecundaria || t.accentDark;
+
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+
+  const orgId = org?.id;
+  const eventosOrg = useMemo(() =>
+    orgId
+      ? eventos
+          .filter(ev => ev.organizadorId === orgId)
+          .sort((a, b) => new Date(a.data || 0) - new Date(b.data || 0))
+      : [],
+    [eventos, orgId]
+  );
+
   if (!org) return (
     <div style={{ maxWidth: 1200, margin: "0 auto", padding: "60px 24px", textAlign: "center" }}>
       <span style={{ fontSize: 22, color: t.textDisabled }}>?</span>
       <p style={{ color: t.textDisabled, marginTop: 12 }}>Organizador não encontrado.</p>
       <button style={s.backBtn} onClick={() => navigate("/")}>← Voltar</button>
     </div>
-  );
-
-  // Cores customizadas do organizador
-  const corPri = org.corPrimaria || t.accent;
-  const corSec = org.corSecundaria || t.accentDark;
-
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
-
-  const eventosOrg = useMemo(() =>
-    eventos
-      .filter(ev => ev.organizadorId === org.id)
-      .sort((a, b) => new Date(a.data || 0) - new Date(b.data || 0)),
-    [eventos, org.id]
   );
 
   const eventosFuturos = eventosOrg.filter(ev => {
