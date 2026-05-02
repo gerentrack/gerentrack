@@ -12,6 +12,7 @@ Sentry.init({
     // Firebase permission-denied é esperado em páginas públicas sem auth
     const msg = event.exception?.values?.[0]?.value || "";
     if (msg.includes("Missing or insufficient permissions")) return null;
+    if (msg.includes("text/html") && msg.includes("MIME")) return null;
     return event;
   },
 })
@@ -19,6 +20,20 @@ Sentry.init({
 // Chunk antigo após deploy → reload automático (evita tela branca)
 window.addEventListener("vite:preloadError", () => {
   window.location.reload();
+})
+
+// MIME type error (Safari/iOS) — chunk retorna HTML após deploy
+window.addEventListener("error", (ev) => {
+  const msg = ev.message || "";
+  if (msg.includes("text/html") && msg.includes("MIME")) {
+    const reloaded = sessionStorage.getItem("chunk_reload");
+    if (!reloaded) {
+      sessionStorage.setItem("chunk_reload", "1");
+      window.location.reload();
+    } else {
+      sessionStorage.removeItem("chunk_reload");
+    }
+  }
 })
 
 createRoot(document.getElementById('root')).render(
