@@ -517,7 +517,12 @@ Dados consolidados (pós-competição):
 3.5.1  ✅ Rate limiting nas API routes (in-memory sliding window por IP+endpoint)
 3.5.2  CSRF protection para mutações
 3.5.3  Audit log server-side (complementar ao historicoAcoes no cliente)
-3.5.4  Backup automatizado do PostgreSQL (além do backup Firestore existente)
+3.5.4  Backup automatizado do PostgreSQL — IMPLEMENTAÇÃO FUTURA
+       Hoje o PostgreSQL contém apenas dados consolidados derivados do Firestore
+       (que já tem backup diário com 30 dias de retenção + PITR de 7 dias).
+       Se o Supabase for perdido, os dados podem ser reconstruídos via re-consolidação.
+       Priorizar quando o PostgreSQL passar a ter dados exclusivos (ex: ranking editado
+       manualmente pela federação, dados inseridos via API pública, registros da CBAt)
 3.5.5  Política de retenção de dados conforme LGPD
        - Endpoint de exportação de dados pessoais (direito de portabilidade)
        - Endpoint de exclusão de dados (direito ao esquecimento)
@@ -567,7 +572,7 @@ Dados consolidados (pós-competição):
 | 9 | **Endpoints LGPD** (exportação + exclusão de dados) | 3.5.5 | 2-3 dias | Obrigação legal antes do lançamento nacional |
 | 10 | **CSRF protection** para mutações | 3.5.2 | 1 dia | Segurança básica |
 | 11 | **Audit log server-side** | 3.5.3 | 2 dias | Complementa historicoAcoes do cliente |
-| 12 | **Backup automatizado PostgreSQL** | 3.5.4 | 0.5 dia | Config no Supabase |
+| 12 | **Backup automatizado PostgreSQL** | 3.5.4 | 0.5 dia | Implementação futura (ver 3.5.4) |
 
 ### Bloco 4 — Performance e integrações
 

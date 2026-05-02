@@ -99,7 +99,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['src/**/__tests__/**/*.test.{js,jsx}'],
+    include: ['src/**/__tests__/**/*.test.{js,jsx}', 'api/__tests__/**/*.test.js'],
     environmentMatchGlobs: [
       ['src/features/**/__tests__/**', 'jsdom'],
     ],
